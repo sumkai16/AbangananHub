@@ -41,17 +41,7 @@
                     {{ $rightContent ?? '' }}
                 </div>
 
-                {{-- Bottom: SDG badge --}}
-                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-lg bg-[#61B2F0] flex items-center justify-center shrink-0">
-                        <span class="text-white text-xs font-bold text-center leading-tight">SDG<br>16</span>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-white text-sm">Supporting SDG 16</p>
-                        <p class="text-white/80 text-xs mt-0.5">We promote transparency, accountability, and trust in
-                            rental transactions to build a safer and more trustworthy community.</p>
-                    </div>
-                </div>
+                {{-- Bottom SDG badge removed --}}
 
             </div>
         </div>
