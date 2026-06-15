@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -9,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
-protected $primaryKey = 'user_id';
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -90,6 +91,20 @@ protected $primaryKey = 'user_id';
     public function hasRole(string $role): bool
     {
         return $this->roles()->where('role', $role)->exists();
+    }
+
+    // Provide a computed `name` attribute when the DB column is removed.
+    public function getNameAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        $first = $this->first_name ?? '';
+        $last = $this->last_name ?? '';
+        $full = trim($first . ' ' . $last);
+
+        return $full !== '' ? $full : ($this->email ?? '');
     }
 
     public function assignRole(string $role): void
