@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Property extends Model
 {
+    protected $primaryKey = 'property_id';
     protected $fillable = [
         'landlord_id',
         'title',
