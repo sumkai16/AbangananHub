@@ -8,10 +8,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('reports', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('reporter_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('property_id')->nullable()->constrained('properties')->onDelete('cascade');
-            $table->foreignId('reported_user_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->id('report_id');
+            $table->unsignedBigInteger('reporter_id');
+            $table->foreign('reporter_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->unsignedBigInteger('property_id')->nullable();
+            $table->foreign('property_id')->references('property_id')->on('properties')->onDelete('cascade');
+            $table->unsignedBigInteger('reported_user_id')->nullable();
+            $table->foreign('reported_user_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->text('report_reason');
             $table->enum('report_status', ['Pending', 'Resolved'])->default('Pending');
             $table->timestamps();

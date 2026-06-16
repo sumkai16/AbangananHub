@@ -8,11 +8,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('landlord_verifications', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->id('verification_id');
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->string('government_id');
             $table->enum('verification_status', ['Pending', 'Approved', 'Rejected'])->default('Pending');
-            $table->foreignId('reviewed_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->unsignedBigInteger('reviewed_by')->nullable();
+            $table->foreign('reviewed_by')->references('user_id')->on('users')->onDelete('set null');
             $table->timestamp('reviewed_at')->nullable();
             $table->timestamp('submitted_at')->useCurrent();
         });

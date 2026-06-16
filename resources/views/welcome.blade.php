@@ -4,245 +4,379 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>AbangananHub — Find. Rent. Live with Confidence.</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        .hero-bg {
+            background-image: url('{{ asset('images/hero-bg.jpg') }}');
+            background-size: cover;
+            background-position: center;
+        }
+        .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+        .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    </style>
 </head>
+
 <body class="font-sans antialiased text-[#2A2523] bg-white">
 
-    {{-- NAVBAR --}}
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2">
-                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shadow-md">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    {{-- ─── NAVBAR ─────────────────────────────────────────────── --}}
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+
+            {{-- Logo --}}
+            <a href="/" class="flex items-center gap-2.5">
+                <div id="logo-icon" class="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                 </div>
-                <span class="font-bold text-lg text-[#2A2523]">Abanganan<span class="text-[#61B2F0]">Hub</span></span>
+                <span id="logo-text" class="font-black text-base text-white tracking-tight">Abanganan<span class="text-[#61B2F0]">Hub</span></span>
             </a>
-            <div class="flex items-center gap-4">
+
+            {{-- Nav Links --}}
+            <div class="flex items-center gap-2">
                 @auth
-                    <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-[#2A2523] hover:text-[#61B2F0] transition-colors">Dashboard</a>
-                @else
-                    <a href="{{ route('login') }}" class="text-sm font-semibold text-[#2A2523] hover:text-[#61B2F0] transition-colors">Login</a>
-                    <a href="{{ route('register') }}" class="text-sm font-semibold px-4 py-2 bg-gradient-to-r from-[#286CD2] to-[#61B2F0] text-white rounded-lg shadow-md hover:opacity-90 transition-opacity">Get Started</a>
+                    <a href="{{ route('dashboard') }}"
+                       class="text-sm font-semibold text-white/90 hover:text-white px-4 py-2 rounded-lg hover:bg-white/10 transition-all">
+                        Dashboard
+                    </a>
+              @else
+                    <a href="{{ route('login') }}"
+                    class="nav-link text-sm font-semibold text-white/90 hover:text-white px-4 py-2 rounded-lg hover:bg-white/10 transition-all">
+                        Login
+                    </a>
+                    <a id="get-started-btn" href="{{ route('register') }}"
+                        class="text-sm font-bold px-4 py-2 bg-white text-[#286CD2] rounded-lg hover:bg-[#D7E8F3] transition-colors shadow-sm">
+                            Get Started
+                    </a>
                 @endauth
             </div>
         </div>
     </nav>
 
-    {{-- HERO --}}
-    <section class="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div class="absolute inset-0">
-            <img src="{{ asset('images/hero-bg.jpg') }}" class="w-full h-full object-cover" alt="" />
-            <div class="absolute inset-0 bg-gradient-to-r from-[#2A2523]/85 via-[#2A2523]/60 to-transparent"></div>
+    {{-- ─── HERO ───────────────────────────────────────────────── --}}
+    <section class="hero-bg relative min-h-screen flex flex-col items-center justify-center">
+
+        {{-- Overlay --}}
+        <div class="absolute inset-0 bg-gradient-to-b from-[#2A2523]/70 via-[#2A2523]/50 to-[#2A2523]/80"></div>
+
+        {{-- Content --}}
+        <div class="relative z-10 w-full max-w-3xl mx-auto px-6 text-center">
+
+            {{-- SDG Badge --}}
+            <span class="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#61B2F0] animate-pulse"></span>
+                Supporting SDG 16 — Peace, Justice & Strong Institutions
+            </span>
+
+            {{-- Headline --}}
+            <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight mb-4">
+                Your next home<br>
+                <span class="text-[#61B2F0]">is verified.</span>
+            </h1>
+
+            <p class="text-white/60 text-base md:text-lg font-medium mb-10 max-w-xl mx-auto leading-relaxed">
+                Browse admin-verified rentals in Cebu. No scams, no fake listings — connect directly with trusted landlords.
+            </p>
+
+           {{-- Search Bar --}}
+       <div class="flex items-center bg-white rounded-xl overflow-hidden max-w-lg mx-auto mb-10 focus-within:ring-0 focus-within:outline-none">
+            <i class="ti ti-search ml-4" style="font-size: 16px; color: #9B9F98;"></i>
+            <input type="text"
+                placeholder="Search location or property..."
+                class="flex-1 text-sm text-[#2A2523] placeholder-[#9B9F98] bg-transparent outline-none ring-0 focus:outline-none focus:ring-0 border-none font-medium py-3 px-3">
+            <a href="{{ route('register') }}"
+            class="bg-[#2A2523] hover:bg-[#3d3330] text-white text-xs font-bold px-5 py-4 transition-colors whitespace-nowrap">
+                Search
+            </a>
         </div>
-        <div class="relative z-10 max-w-7xl mx-auto px-6 py-32 w-full">
-            <div class="max-w-2xl">
-                <span class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#61B2F0] animate-pulse"></span>
-                    Supporting SDG 16 — Peace, Justice & Strong Institutions
+
+            {{-- Trust stats --}}
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-8 text-white/50 text-xs font-medium">
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#61B2F0]" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Admin-verified listings
                 </span>
-                <h1 class="text-5xl md:text-6xl font-black text-white leading-tight tracking-tight mb-6">
-                    Find. Rent.<br>
-                    <span class="bg-gradient-to-r from-[#9cd4ff] to-[#61B2F0] bg-clip-text text-transparent">Live with Confidence.</span>
-                </h1>
-                <p class="text-white/80 text-lg font-medium mb-8 leading-relaxed">
-                    AbangananHub connects tenants with verified landlords and quality properties. No scams, no fake listings — just transparent and accountable rentals.
-                </p>
-                <div class="flex flex-wrap gap-4">
-                    <a href="{{ route('register') }}" class="px-6 py-3 bg-gradient-to-r from-[#286CD2] to-[#61B2F0] text-white font-bold text-sm rounded-xl shadow-lg hover:opacity-90 transition-opacity">
-                        Find a Place
+                <span class="hidden sm:block w-px h-3 bg-white/20"></span>
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#61B2F0]" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Verified landlords only
+                </span>
+                <span class="hidden sm:block w-px h-3 bg-white/20"></span>
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#61B2F0]" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Cebu coverage
+                </span>
+            </div>
+        </div>
+
+        {{-- Scroll hint --}}
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/30 text-xs font-medium">
+            <span>Browse listings</span>
+            <svg class="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </div>
+    </section>
+
+    {{-- ─── BROWSE PROPERTIES ──────────────────────────────────── --}}
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+
+            {{-- Filter bar --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
+                <div>
+                    <h2 class="text-2xl font-black text-[#2A2523]">Available Properties</h2>
+                    <p class="text-[#9B9F98] text-sm mt-0.5">{{ $properties->count() }} verified listings in Cebu</p>
+                </div>
+
+                {{-- Type filter chips --}}
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button class="px-3.5 py-1.5 text-xs font-bold rounded-full bg-[#2A2523] text-white">All</button>
+                    <button class="px-3.5 py-1.5 text-xs font-bold rounded-full border border-slate-200 text-[#9B9F98] hover:border-[#61B2F0] hover:text-[#61B2F0] transition-colors">Bedspace</button>
+                    <button class="px-3.5 py-1.5 text-xs font-bold rounded-full border border-slate-200 text-[#9B9F98] hover:border-[#61B2F0] hover:text-[#61B2F0] transition-colors">Room</button>
+                    <button class="px-3.5 py-1.5 text-xs font-bold rounded-full border border-slate-200 text-[#9B9F98] hover:border-[#61B2F0] hover:text-[#61B2F0] transition-colors">Apartment</button>
+                    <button class="px-3.5 py-1.5 text-xs font-bold rounded-full border border-slate-200 text-[#9B9F98] hover:border-[#61B2F0] hover:text-[#61B2F0] transition-colors">House</button>
+                </div>
+            </div>
+
+            {{-- Grid --}}
+            @if($properties->isNotEmpty())
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    @foreach($properties as $property)
+                        <div class="group bg-white rounded-2xl border border-slate-100 hover:border-slate-200 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col cursor-pointer">
+
+                            {{-- Photo area --}}
+                            <div class="relative h-48 bg-gradient-to-br from-[#D7E8F3] to-[#61B2F0]/20 overflow-hidden">
+
+                                {{-- Placeholder --}}
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <svg class="w-16 h-16 text-[#61B2F0]/20" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                    </svg>
+                                </div>
+
+                                {{-- Type badge --}}
+                                <span class="absolute bottom-3 left-3 text-xs font-bold px-2 py-1 rounded-lg backdrop-blur-sm
+                                    @if($property->property_type === 'Bedspace') bg-purple-500/90 text-white
+                                    @elseif($property->property_type === 'Room') bg-emerald-500/90 text-white
+                                    @elseif($property->property_type === 'Apartment') bg-blue-500/90 text-white
+                                    @else bg-orange-500/90 text-white
+                                    @endif">
+                                    {{ $property->property_type }}
+                                </span>
+
+                                {{-- Availability dot --}}
+                                @if($property->availability_status === 'Available')
+                                    <span class="absolute top-3 right-3 flex items-center gap-1 text-xs font-bold bg-white/90 backdrop-blur-sm text-emerald-600 px-2 py-1 rounded-lg">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        Available
+                                    </span>
+                                @else
+                                    <span class="absolute top-3 right-3 flex items-center gap-1 text-xs font-bold bg-white/90 backdrop-blur-sm text-amber-600 px-2 py-1 rounded-lg">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        {{ $property->availability_status }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            {{-- Card body --}}
+                            <div class="p-4 flex flex-col flex-1">
+
+                                {{-- Price --}}
+                                <div class="flex items-baseline gap-1 mb-2">
+                                    <span class="text-xl font-black text-[#2A2523]">₱{{ number_format($property->rental_fee, 0) }}</span>
+                                    <span class="text-xs text-[#9B9F98] font-medium">/month</span>
+                                </div>
+
+                                {{-- Title --}}
+                                <h3 class="font-bold text-[#2A2523] text-sm leading-snug mb-1.5 line-clamp-2">
+                                    {{ $property->title }}
+                                </h3>
+
+                                {{-- Address --}}
+                                <div class="flex items-start gap-1 text-[#9B9F98] text-xs mt-auto pt-3 border-t border-slate-50">
+                                    <svg class="w-3 h-3 mt-0.5 shrink-0 text-[#61B2F0]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <span class="line-clamp-1">{{ $property->address }}</span>
+                                </div>
+                            </div>
+
+                            {{-- CTA footer --}}
+                            <div class="px-4 pb-4">
+                                <a href="{{ route('login') }}"
+                                   class="block w-full text-center text-xs font-bold py-2.5 rounded-xl border-2 border-[#61B2F0] text-[#61B2F0] hover:bg-[#61B2F0] hover:text-white transition-all duration-200">
+                                    View Property
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                {{-- View more --}}
+                <div class="text-center mt-10">
+                    <a href="{{ route('login') }}"
+                       class="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#2A2523] text-[#2A2523] font-bold text-sm rounded-xl hover:bg-[#2A2523] hover:text-white transition-all duration-200">
+                        View all listings
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
                     </a>
-                    <a href="{{ route('register') }}" class="px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white font-bold text-sm rounded-xl hover:bg-white/20 transition-colors">
-                        List Your Property
-                    </a>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    {{-- HOW IT WORKS --}}
-    <section class="py-24 bg-white">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <span class="text-[#61B2F0] font-bold text-sm uppercase tracking-widest">Simple Process</span>
-                <h2 class="text-3xl md:text-4xl font-black text-[#2A2523] mt-2">How It Works</h2>
-                <p class="text-[#9B9F98] mt-3 max-w-xl mx-auto">Three steps between you and your next home.</p>
-            </div>
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="relative text-center p-8 rounded-2xl bg-[#D7E8F3]/30 border border-[#D7E8F3]">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/20">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                    </div>
-                    <div class="absolute top-6 right-6 text-5xl font-black text-[#61B2F0]/10">01</div>
-                    <h3 class="text-lg font-black text-[#2A2523] mb-2">Search</h3>
-                    <p class="text-[#9B9F98] text-sm leading-relaxed">Browse verified listings by location, property type, price, and amenities.</p>
-                </div>
-                <div class="relative text-center p-8 rounded-2xl bg-[#D7E8F3]/30 border border-[#D7E8F3]">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/20">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
-                    </div>
-                    <div class="absolute top-6 right-6 text-5xl font-black text-[#61B2F0]/10">02</div>
-                    <h3 class="text-lg font-black text-[#2A2523] mb-2">Connect</h3>
-                    <p class="text-[#9B9F98] text-sm leading-relaxed">Chat directly with landlords in real-time, ask questions, and schedule viewings.</p>
-                </div>
-                <div class="relative text-center p-8 rounded-2xl bg-[#D7E8F3]/30 border border-[#D7E8F3]">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/20">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div class="absolute top-6 right-6 text-5xl font-black text-[#61B2F0]/10">03</div>
-                    <h3 class="text-lg font-black text-[#2A2523] mb-2">Reserve</h3>
-                    <p class="text-[#9B9F98] text-sm leading-relaxed">Submit a reservation request and track its status until you're ready to move in.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {{-- WHY ABANGANANHUB --}}
-    <section class="py-24 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <span class="text-[#61B2F0] font-bold text-sm uppercase tracking-widest">Why Us</span>
-                <h2 class="text-3xl md:text-4xl font-black text-[#2A2523] mt-2">Built for Trust</h2>
-                <p class="text-[#9B9F98] mt-3 max-w-xl mx-auto">Every feature exists to eliminate the risks of informal rental channels.</p>
-            </div>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="w-11 h-11 rounded-xl bg-[#D7E8F3] flex items-center justify-center mb-4">
-                        <svg class="w-5 h-5 text-[#286CD2]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-[#2A2523] mb-1">Verified Landlords</h3>
-                    <p class="text-[#9B9F98] text-sm leading-relaxed">Every landlord submits a government ID before listing a property.</p>
-                </div>
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="w-11 h-11 rounded-xl bg-[#D7E8F3] flex items-center justify-center mb-4">
-                        <svg class="w-5 h-5 text-[#286CD2]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            @else
+                <div class="text-center py-24">
+                    <div class="w-14 h-14 rounded-2xl bg-[#D7E8F3] flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-7 h-7 text-[#61B2F0]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                         </svg>
                     </div>
-                    <h3 class="font-black text-[#2A2523] mb-1">Approved Listings</h3>
-                    <p class="text-[#9B9F98] text-sm leading-relaxed">All properties are reviewed and approved by admins before going live.</p>
+                    <h3 class="font-black text-[#2A2523] mb-1">No listings yet</h3>
+                    <p class="text-[#9B9F98] text-sm">Properties are being verified. Check back soon.</p>
                 </div>
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="w-11 h-11 rounded-xl bg-[#D7E8F3] flex items-center justify-center mb-4">
-                        <svg class="w-5 h-5 text-[#286CD2]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-[#2A2523] mb-1">Real-time Chat</h3>
-                    <p class="text-[#9B9F98] text-sm leading-relaxed">Talk directly with landlords without leaving the platform.</p>
-                </div>
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="w-11 h-11 rounded-xl bg-[#D7E8F3] flex items-center justify-center mb-4">
-                        <svg class="w-5 h-5 text-[#286CD2]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-[#2A2523] mb-1">Secure Reservations</h3>
-                    <p class="text-[#9B9F98] text-sm leading-relaxed">Submit and track reservation requests with full status visibility.</p>
-                </div>
-            </div>
+            @endif
         </div>
     </section>
 
-    {{-- PROPERTY TYPES --}}
-    <section class="py-24 bg-white">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <span class="text-[#61B2F0] font-bold text-sm uppercase tracking-widest">What We Offer</span>
-                <h2 class="text-3xl md:text-4xl font-black text-[#2A2523] mt-2">Property Types</h2>
-                <p class="text-[#9B9F98] mt-3 max-w-xl mx-auto">From budget-friendly bedspaces to full apartments — find what fits your needs.</p>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="group text-center p-6 rounded-2xl border border-slate-200 hover:border-[#61B2F0] hover:bg-[#D7E8F3]/20 transition-all cursor-pointer">
-                    <div class="w-14 h-14 rounded-2xl bg-slate-100 group-hover:bg-[#61B2F0] flex items-center justify-center mx-auto mb-4 transition-colors">
-                        <svg class="w-6 h-6 text-[#5E6968] group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-[#2A2523] text-sm">Bedspace</h3>
-                    <p class="text-[#9B9F98] text-xs mt-1">Shared living, budget-friendly</p>
+        {{-- ─── HOW IT WORKS ───────────────────────────────────────── --}}
+        <section class="py-20 bg-[#F8FAFC] border-t border-slate-100">
+            <div class="max-w-4xl mx-auto px-6">
+                <div class="text-center mb-14">
+                    <h2 class="text-2xl font-black text-[#2A2523]">How it works</h2>
+                    <p class="text-[#9B9F98] text-sm mt-2">From search to move-in in three steps.</p>
                 </div>
-                <div class="group text-center p-6 rounded-2xl border border-slate-200 hover:border-[#61B2F0] hover:bg-[#D7E8F3]/20 transition-all cursor-pointer">
-                    <div class="w-14 h-14 rounded-2xl bg-slate-100 group-hover:bg-[#61B2F0] flex items-center justify-center mx-auto mb-4 transition-colors">
-                        <svg class="w-6 h-6 text-[#5E6968] group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-[#2A2523] text-sm">Room</h3>
-                    <p class="text-[#9B9F98] text-xs mt-1">Private room, semi-furnished</p>
-                </div>
-                <div class="group text-center p-6 rounded-2xl border border-slate-200 hover:border-[#61B2F0] hover:bg-[#D7E8F3]/20 transition-all cursor-pointer">
-                    <div class="w-14 h-14 rounded-2xl bg-slate-100 group-hover:bg-[#61B2F0] flex items-center justify-center mx-auto mb-4 transition-colors">
-                        <svg class="w-6 h-6 text-[#5E6968] group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-[#2A2523] text-sm">Apartment</h3>
-                    <p class="text-[#9B9F98] text-xs mt-1">Self-contained unit</p>
-                </div>
-                <div class="group text-center p-6 rounded-2xl border border-slate-200 hover:border-[#61B2F0] hover:bg-[#D7E8F3]/20 transition-all cursor-pointer">
-                    <div class="w-14 h-14 rounded-2xl bg-slate-100 group-hover:bg-[#61B2F0] flex items-center justify-center mx-auto mb-4 transition-colors">
-                        <svg class="w-6 h-6 text-[#5E6968] group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-[#2A2523] text-sm">House</h3>
-                    <p class="text-[#9B9F98] text-xs mt-1">Whole house for rent</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    {{-- CTA BANNER --}}
-    <section class="py-24 bg-gradient-to-r from-[#286CD2] to-[#61B2F0]">
-        <div class="max-w-4xl mx-auto px-6 text-center">
-            <h2 class="text-3xl md:text-4xl font-black text-white mb-4">Ready to Find Your Next Home?</h2>
-            <p class="text-white/80 text-lg mb-8">Join AbangananHub and access verified listings with confidence.</p>
-            <div class="flex flex-wrap justify-center gap-4">
-                <a href="{{ route('register') }}" class="px-8 py-3 bg-white text-[#286CD2] font-black text-sm rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                    Create Free Account
-                </a>
-                <a href="{{ route('login') }}" class="px-8 py-3 bg-white/10 border border-white/30 text-white font-bold text-sm rounded-xl hover:bg-white/20 transition-colors">
-                    Login
-                </a>
-            </div>
-        </div>
-    </section>
+                {{-- Mobile: vertical stack | Desktop: horizontal timeline --}}
+                <div class="flex flex-col md:flex-row md:items-start md:gap-0 gap-8">
 
-    {{-- FOOTER --}}
-    <footer class="bg-[#2A2523] py-12">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                        </svg>
+                    {{-- Step 1 --}}
+                    <div class="flex md:flex-col md:text-center md:flex-1 items-start gap-5 md:gap-0 md:items-center md:px-6">
+                        <div class="w-10 h-10 rounded-full bg-[#61B2F0] flex items-center justify-center shrink-0 md:mb-4">
+                            <i class="ti ti-search text-white" style="font-size: 18px;"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-black text-[#2A2523] mb-1">Search</p>
+                            <p class="text-xs text-[#9B9F98] leading-relaxed">Browse verified listings by location, type, and price range.</p>
+                        </div>
                     </div>
-                    <span class="font-bold text-white">Abanganan<span class="text-[#61B2F0]">Hub</span></span>
+
+                    {{-- Connector — hidden on mobile, visible on desktop --}}
+                    <div class="hidden md:block flex-1 h-px bg-slate-200 mt-5 self-start"></div>
+
+                    {{-- Step 2 --}}
+                    <div class="flex md:flex-col md:text-center md:flex-1 items-start gap-5 md:gap-0 md:items-center md:px-6">
+                        <div class="w-10 h-10 rounded-full bg-white border-2 border-[#61B2F0] flex items-center justify-center shrink-0 md:mb-4">
+                            <i class="ti ti-message text-[#61B2F0]" style="font-size: 18px;"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-black text-[#2A2523] mb-1">Connect</p>
+                            <p class="text-xs text-[#9B9F98] leading-relaxed">Chat directly with landlords and schedule a viewing.</p>
+                        </div>
+                    </div>
+
+                    {{-- Connector --}}
+                    <div class="hidden md:block flex-1 h-px bg-slate-200 mt-5 self-start"></div>
+
+                    {{-- Step 3 --}}
+                    <div class="flex md:flex-col md:text-center md:flex-1 items-start gap-5 md:gap-0 md:items-center md:px-6">
+                        <div class="w-10 h-10 rounded-full bg-white border-2 border-[#61B2F0] flex items-center justify-center shrink-0 md:mb-4">
+                            <i class="ti ti-circle-check text-[#61B2F0]" style="font-size: 18px;"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-black text-[#2A2523] mb-1">Reserve</p>
+                            <p class="text-xs text-[#9B9F98] leading-relaxed">Submit a request and track your status until move-in.</p>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="flex items-center gap-6 text-sm text-[#9B9F98]">
-                    <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-                    <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-                    <a href="#" class="hover:text-white transition-colors">Contact</a>
-                </div>
-                <p class="text-[#9B9F98] text-xs">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
             </div>
+        </section>
+
+    {{-- ─── FOOTER ─────────────────────────────────────────────── --}}
+    <footer class="bg-[#2A2523] py-8">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-[#61B2F0]/20 border border-[#61B2F0]/30 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 text-[#61B2F0]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                </div>
+                <span class="font-black text-sm text-white">Abanganan<span class="text-[#61B2F0]">Hub</span></span>
+            </div>
+            <div class="flex items-center gap-6 text-xs text-[#9B9F98]">
+                <a href="#" class="hover:text-white transition-colors">Privacy</a>
+                <a href="#" class="hover:text-white transition-colors">Terms</a>
+                <a href="#" class="hover:text-white transition-colors">Contact</a>
+            </div>
+            <p class="text-[#9B9F98] text-xs">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
         </div>
     </footer>
+
+    {{-- Navbar scroll behavior --}}
+ <script>
+        const navbar = document.getElementById('navbar');
+        const logoText = document.getElementById('logo-text');
+        const logoIcon = document.getElementById('logo-icon');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const getStartedBtn = document.getElementById('get-started-btn');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 80) {
+                navbar.classList.add('bg-white/95', 'backdrop-blur-md', 'border-b', 'border-slate-200/80', 'shadow-sm');
+
+                logoText.innerHTML = 'Abanganan<span class="text-[#61B2F0]">Hub</span>';
+                logoText.classList.remove('text-white');
+                logoText.classList.add('text-[#2A2523]');
+
+                logoIcon.classList.remove('bg-white/20', 'border-white/30');
+                logoIcon.classList.add('bg-[#D7E8F3]', 'border-[#61B2F0]/30');
+                logoIcon.querySelector('svg').classList.remove('text-white');
+                logoIcon.querySelector('svg').classList.add('text-[#286CD2]');
+
+                navLinks.forEach(l => {
+                    l.classList.remove('text-white/90', 'text-white', 'hover:bg-white/10');
+                    l.classList.add('text-[#2A2523]', 'hover:bg-slate-100');
+                });
+
+                if (getStartedBtn) {
+                    getStartedBtn.classList.remove('bg-white', 'text-[#286CD2]', 'hover:bg-[#D7E8F3]');
+                    getStartedBtn.classList.add('bg-[#286CD2]', 'text-white', 'hover:bg-[#61B2F0]');
+                }
+            } else {
+                navbar.classList.remove('bg-white/95', 'backdrop-blur-md', 'border-b', 'border-slate-200/80', 'shadow-sm');
+
+                logoText.innerHTML = 'Abanganan<span class="text-[#61B2F0]">Hub</span>';
+                logoText.classList.remove('text-[#2A2523]');
+                logoText.classList.add('text-white');
+
+                logoIcon.classList.remove('bg-[#D7E8F3]', 'border-[#61B2F0]/30');
+                logoIcon.classList.add('bg-white/20', 'border-white/30');
+                logoIcon.querySelector('svg').classList.remove('text-[#286CD2]');
+                logoIcon.querySelector('svg').classList.add('text-white');
+
+                navLinks.forEach(l => {
+                    l.classList.remove('text-[#2A2523]', 'hover:bg-slate-100');
+                    l.classList.add('text-white/90', 'hover:bg-white/10');
+                });
+
+                if (getStartedBtn) {
+                    getStartedBtn.classList.remove('bg-[#286CD2]', 'text-white', 'hover:bg-[#61B2F0]');
+                    getStartedBtn.classList.add('bg-white', 'text-[#286CD2]', 'hover:bg-[#D7E8F3]');
+                }
+            }
+        });
+</script>
 
 </body>
 </html>

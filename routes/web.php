@@ -3,10 +3,10 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TenantDashboardController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\PropertyController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [WelcomeController::class, 'index']);
 Route::get('/dashboard', [TenantDashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

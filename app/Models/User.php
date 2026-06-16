@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
-
+protected $primaryKey = 'user_id';
     protected $fillable = [
         'first_name',
         'last_name',
