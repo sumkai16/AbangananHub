@@ -9,58 +9,51 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Property::with(['media', 'landlord'])
+        $query = Property::with(['media', 'landlord', 'amenities'])
             ->where('verification_status', 'Approved')
-            ->where('availability_status', 'Available');
+            ->where('availability_status', '!=', 'Occupied');
 
-        if ($request->filled('type')) {
-            $query->where('property_type', $request->type);
-        }
-
+        // Location — text search against address
         if ($request->filled('location')) {
             $query->where('address', 'like', '%' . $request->location . '%');
         }
 
-        if ($request->boolean('verified')) {
-            $query->where('verification_status', 'Approved');
+        // Property type
+        if ($request->filled('type')) {
+            $query->where('property_type', $request->type);
         }
 
-        $properties = $query->latest()->paginate(12)->withQueryString();
+        // Budget — max rental fee
+        if ($request->filled('price_max')) {
+            $query->where('rental_fee', '<=', $request->price_max);
+        }
+
+        // Verified landlord filter
+        if ($request->boolean('verified')) {
+            $query->whereHas('landlord.roles', function ($q) {
+                $q->where('role', 'Landlord');
+            })->whereHas('landlord.verificationApplication', function ($q) {
+                $q->where('verification_status', 'Approved');
+            });
+        }
+
+        $properties = $query
+            ->latest('created_at')
+            ->paginate(12)
+            ->withQueryString();
 
         return view('properties.index', compact('properties'));
     }
 
     public function show(Property $property)
     {
-        $property->load(['media', 'landlord', 'amenities', 'reviews']);
+        // Only show approved properties
+        if ($property->verification_status !== 'Approved') {
+            abort(404);
+        }
+
+        $property->load(['media', 'landlord', 'amenities', 'reviews.tenant']);
+
         return view('properties.show', compact('property'));
-    }
-
-    public function create()
-    {
-        return view('properties.create');
-    }
-
-    public function store(Request $request)
-    {
-        // TODO: implement
-        return redirect()->route('properties.index');
-    }
-
-    public function edit(Property $property)
-    {
-        return view('properties.edit', compact('property'));
-    }
-
-    public function update(Request $request, Property $property)
-    {
-        // TODO: implement
-        return redirect()->route('properties.show', $property);
-    }
-
-    public function destroy(Property $property)
-    {
-        $property->delete();
-        return redirect()->route('properties.index')->with('success', 'Property deleted.');
     }
 }

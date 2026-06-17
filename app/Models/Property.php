@@ -2,7 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Property extends Model
 {
     protected $primaryKey = 'property_id';
@@ -41,11 +41,15 @@ class Property extends Model
         return $this->hasMany(PropertyMedia::class, 'property_id', 'property_id');
     }
 
-    public function amenities()
+    public function amenities(): BelongsToMany
     {
-        return $this->belongsToMany(Amenity::class, 'property_amenities');
+        return $this->belongsToMany(
+            Amenity::class,        // related model
+            'property_amenities',  // pivot table name
+            'property_id',         // FK on pivot pointing to THIS model
+            'amenity_id'           // FK on pivot pointing to Amenity
+        );
     }
-
     public function reservations()
     {
         return $this->hasMany(Reservation::class, 'property_id', 'property_id');
