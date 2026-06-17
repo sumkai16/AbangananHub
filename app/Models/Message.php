@@ -30,13 +30,13 @@ class Message extends Model
 
     public function sender()
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(User::class, 'sender_id', 'user_id');
     }
 
     // ─── Helpers ─────────────────────────────────────────────
 
     public function isSentBy(User $user): bool
     {
-        return $this->sender_id === $user->id;
+        return $this->sender_id === $user->user_id;
     }
 }

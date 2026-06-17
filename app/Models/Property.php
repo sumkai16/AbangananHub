@@ -33,12 +33,12 @@ class Property extends Model
 
     public function landlord()
     {
-        return $this->belongsTo(User::class, 'landlord_id');
+        return $this->belongsTo(User::class, 'landlord_id', 'user_id');
     }
 
     public function media()
     {
-        return $this->hasMany(PropertyMedia::class);
+        return $this->hasMany(PropertyMedia::class, 'property_id', 'property_id');
     }
 
     public function amenities()
@@ -48,27 +48,27 @@ class Property extends Model
 
     public function reservations()
     {
-        return $this->hasMany(Reservation::class);
+        return $this->hasMany(Reservation::class, 'property_id', 'property_id');
     }
 
     public function conversations()
     {
-        return $this->hasMany(Conversation::class);
+        return $this->hasMany(Conversation::class, 'property_id', 'property_id');
     }
 
     public function favorites()
     {
-        return $this->hasMany(Favorite::class);
+        return $this->hasMany(Favorite::class, 'property_id', 'property_id');
     }
 
     public function reviews()
     {
-        return $this->hasMany(Review::class);
+        return $this->hasMany(Review::class, 'property_id', 'property_id');
     }
 
     public function reports()
     {
-        return $this->hasMany(Report::class);
+        return $this->hasMany(Report::class, 'property_id', 'property_id');
     }
 
     // ─── Status Helpers ──────────────────────────────────────

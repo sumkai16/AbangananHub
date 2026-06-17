@@ -24,12 +24,12 @@ class Favorite extends Model
 
     public function tenant()
     {
-        return $this->belongsTo(User::class, 'tenant_id');
+        return $this->belongsTo(User::class, 'tenant_id', 'user_id');
     }
 
     public function property()
     {
-        return $this->belongsTo(Property::class);
+        return $this->belongsTo(Property::class, 'property_id', 'property_id');
     }
 
     // ─── Helpers ─────────────────────────────────────────────

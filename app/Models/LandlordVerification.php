@@ -33,7 +33,7 @@ class LandlordVerification extends Model
 
     public function reviewer()
     {
-        return $this->belongsTo(User::class, 'reviewed_by');
+        return $this->belongsTo(User::class, 'reviewed_by', 'user_id');
     }
 
     // ─── Status Helpers ──────────────────────────────────────

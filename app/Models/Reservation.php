@@ -24,12 +24,12 @@ class Reservation extends Model
 
     public function property()
     {
-        return $this->belongsTo(Property::class);
+        return $this->belongsTo(Property::class, 'property_id', 'property_id');
     }
 
     public function tenant()
     {
-        return $this->belongsTo(User::class, 'tenant_id');
+        return $this->belongsTo(User::class, 'tenant_id', 'user_id');
     }
 
     // ─── Status Helpers ──────────────────────────────────────
