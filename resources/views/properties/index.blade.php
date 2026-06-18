@@ -1,11 +1,11 @@
-<x-app-layout>
+@extends('layouts.app')
+
+@section('content')
     <div class="max-w-7xl mx-auto px-6 py-10 pb-16">
 
         {{-- HEADER --}}
-        <x-section-header
-            title="Browse Properties"
-            sub="Verified rentals across Cebu — every listing reviewed, every landlord checked."
-        />
+        <x-section-header title="Browse Properties"
+            sub="Verified rentals across Cebu — every listing reviewed, every landlord checked." />
 
         {{-- ACTIVE FILTERS SUMMARY --}}
         @if(request()->hasAny(['location', 'type', 'price_max', 'verified']))
@@ -13,34 +13,55 @@
                 <span class="text-[13px] text-gray-500 font-medium">Filtering by:</span>
 
                 @if(request('location'))
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[13px] font-semibold">
-                        📍 {{ request('location') }}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[13px] font-semibold">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                            class="flex-shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {{ request('location') }}
                         <a href="{{ request()->fullUrlWithoutQuery('location') }}" class="hover:text-blue-900">✕</a>
                     </span>
                 @endif
 
                 @if(request('type'))
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[13px] font-semibold">
-                        🏠 {{ request('type') }}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[13px] font-semibold">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                            class="flex-shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        {{ request('type') }}
                         <a href="{{ request()->fullUrlWithoutQuery('type') }}" class="hover:text-blue-900">✕</a>
                     </span>
                 @endif
 
                 @if(request('price_max'))
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[13px] font-semibold">
-                        💰 Max ₱{{ number_format(request('price_max')) }}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[13px] font-semibold">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                            class="flex-shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Max ₱{{ number_format(request('price_max')) }}
                         <a href="{{ request()->fullUrlWithoutQuery('price_max') }}" class="hover:text-blue-900">✕</a>
                     </span>
                 @endif
 
                 @if(request('verified'))
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[13px] font-semibold">
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[13px] font-semibold">
                         ✓ Verified only
                         <a href="{{ request()->fullUrlWithoutQuery('verified') }}" class="hover:text-emerald-900">✕</a>
                     </span>
                 @endif
 
-                <a href="{{ route('properties.index') }}" class="text-[13px] text-red-500 hover:text-red-700 font-semibold ml-2">
+                <a href="{{ route('properties.index') }}"
+                    class="text-[13px] text-red-500 hover:text-red-700 font-semibold ml-2">
                     Clear all
                 </a>
             </div>
@@ -55,84 +76,81 @@
         @if($properties->count() > 0)
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
                 @foreach($properties as $property)
-                    <a href="{{ route('properties.show', $property->property_id) }}"
-                       class="group bg-white rounded-[20px] border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+                    <div class="group relative cursor-pointer"
+                        onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
 
-                        {{-- THUMBNAIL --}}
-                        <div class="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden">
+                        {{-- IMAGE --}}
+                        <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-gray-100">
                             @if($property->media->first())
-                                <img
-                                    src="{{ Storage::url($property->media->first()->media_url) }}"
-                                    alt="{{ $property->title }}"
+                                <img src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                             @else
-                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#EBF3FF] to-[#D7E8F3]">
+                                <div class="w-full h-full flex items-center justify-center bg-[#EBF3FF]">
                                     <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#286CD2" stroke-width="1.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                     </svg>
                                 </div>
                             @endif
 
-                            {{-- TYPE BADGE --}}
+                            {{-- TYPE BADGE top-left --}}
                             <div class="absolute top-3 left-3">
-                                <span class="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[11px] font-bold text-gray-700 rounded-full shadow-sm">
+                                <span
+                                    class="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[11px] font-bold text-gray-700 rounded-full shadow-sm">
                                     {{ $property->property_type }}
                                 </span>
                             </div>
 
-                            {{-- VERIFIED BADGE --}}
-                            @if($property->landlord->verificationApplication?->verification_status === 'Approved')
-                                <div class="absolute top-3 right-3">
-                                    <span class="px-2.5 py-1 bg-emerald-500 text-white text-[11px] font-bold rounded-full shadow-sm flex items-center gap-1">
-                                        <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                        Verified
-                                    </span>
-                                </div>
-                            @endif
+                            {{-- HEART top-right --}}
+                            <button type="button" data-property-id="{{ $property->property_id }}"
+                                data-favorited="{{ in_array($property->property_id, $favoritedIds) ? 'true' : 'false' }}"
+                                onclick="event.stopPropagation(); toggleFavorite(this)"
+                                class="favorite-btn absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 transition-colors">
+                                {{-- Outline heart (not favorited) --}}
+                                <svg class="heart-outline {{ in_array($property->property_id, $favoritedIds) ? 'hidden' : '' }}"
+                                    width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                {{-- Filled heart (favorited) --}}
+                                <svg class="heart-filled {{ in_array($property->property_id, $favoritedIds) ? '' : 'hidden' }}"
+                                    width="20" height="20" viewBox="0 0 24 24" fill="#ff385c" stroke="#ff385c" stroke-width="1">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                            </button>
                         </div>
 
-                        {{-- CARD BODY --}}
-                        <div class="p-4 flex flex-col flex-1">
-                            <div class="flex items-start justify-between gap-2 mb-1">
-                                <h3 class="text-[15px] font-bold text-[#1A1A2E] leading-tight line-clamp-1 group-hover:text-[#286CD2] transition-colors">
+                        {{-- TEXT BELOW IMAGE — no card box --}}
+                        <div class="mt-3 px-1">
+                            <div class="flex items-start justify-between gap-2">
+                                <h3 class="text-[14px] font-semibold text-[#1A1A2E] leading-snug line-clamp-1">
                                     {{ $property->title }}
                                 </h3>
-                            </div>
-
-                            <p class="text-[13px] text-gray-400 mb-3 line-clamp-1">
-                                📍 {{ $property->address }}
-                            </p>
-
-                            @if($property->amenities->count() > 0)
-                                <div class="flex flex-wrap gap-1.5 mb-3">
-                                    @foreach($property->amenities->take(3) as $amenity)
-                                        <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[11px] font-medium rounded-full">
-                                            {{ $amenity->amenity_name }}
-                                        </span>
-                                    @endforeach
-                                    @if($property->amenities->count() > 3)
-                                        <span class="px-2 py-0.5 bg-gray-100 text-gray-400 text-[11px] font-medium rounded-full">
-                                            +{{ $property->amenities->count() - 3 }} more
-                                        </span>
-                                    @endif
-                                </div>
-                            @endif
-
-                            <div class="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between">
-                                <div>
-                                    <span class="text-[18px] font-black text-[#286CD2]">₱{{ number_format($property->rental_fee) }}</span>
-                                    <span class="text-[12px] text-gray-400 font-medium">/month</span>
-                                </div>
-                                <span class="text-[12px] font-semibold px-2.5 py-1 rounded-full
-                                    {{ $property->availability_status === 'Available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
+                                <span
+                                    class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0
+                                            {{ $property->availability_status === 'Available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
                                     {{ $property->availability_status }}
                                 </span>
                             </div>
+
+                            <p class="text-[13px] text-gray-400 mt-0.5 line-clamp-1 flex items-center gap-1">
+                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                                    class="flex-shrink-0">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                {{ $property->address }}
+                            </p>
+
+                            <p class="text-[14px] font-semibold text-[#1A1A2E] mt-1.5">
+                                ₱{{ number_format($property->rental_fee) }}
+                                <span class="text-[13px] font-normal text-gray-400">/month</span>
+                            </p>
                         </div>
 
-                    </a>
+                    </div>
                 @endforeach
             </div>
 
@@ -142,19 +160,46 @@
             </div>
 
         @else
-            <x-empty-state
-                title="No properties found"
-                message="Try adjusting your filters or search in a different area of Cebu."
-                :href="route('properties.index')"
-                cta="Clear filters"
-            >
+            <x-empty-state title="No properties found"
+                message="Try adjusting your filters or search in a different area of Cebu." :href="route('properties.index')"
+                cta="Clear filters">
                 <x-slot name="icon">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                 </x-slot>
             </x-empty-state>
         @endif
 
     </div>
-</x-app-layout>
+    @push('scripts')
+        <script>
+            (function () {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                window.toggleFavorite = function (btn) {
+                    const propertyId = btn.dataset.propertyId;
+                    const isFavorited = btn.dataset.favorited === 'true';
+
+                    fetch(`/favorites/${propertyId}/toggle`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            btn.dataset.favorited = data.favorited ? 'true' : 'false';
+                            btn.querySelector('.heart-outline').classList.toggle('hidden', data.favorited);
+                            btn.querySelector('.heart-filled').classList.toggle('hidden', !data.favorited);
+                        })
+                        .catch(() => {
+                            // Silently fail — don't crash the page over a heart toggle
+                        });
+                };
+            })();
+        </script>
+    @endpush
+@endsection

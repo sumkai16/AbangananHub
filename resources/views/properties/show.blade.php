@@ -1,9 +1,402 @@
-<x-app-layout>
-    <div style="max-width:900px;margin:40px auto;padding:0 40px;">
-        <a href="{{ route('properties.index') }}" style="font-size:13px;color:#286CD2;text-decoration:none;">← Back to listings</a>
-        <h1 style="font-size:24px;font-weight:800;color:#1A1A2E;margin:16px 0 4px;">{{ $property->title }}</h1>
-        <p style="color:#9AA0AB;margin-bottom:24px;">{{ $property->property_type }} · {{ $property->address }}</p>
-        <div style="font-size:22px;font-weight:900;color:#286CD2;margin-bottom:20px;">₱{{ number_format($property->rental_fee) }}/mo</div>
-        <p style="color:#374151;line-height:1.7;">{{ $property->description }}</p>
+@extends('layouts.app', ['searchBar' => false])
+
+@section('content')
+    <div class="max-w-[1200px] mx-auto px-5 md:px-10 py-8">
+
+        {{-- Back --}}
+        <a href="{{ route('properties.index') }}"
+            class="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#286CD2] hover:underline mb-6">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back to listings
+        </a>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10">
+
+            {{-- ===== LEFT COLUMN ===== --}}
+            <div>
+
+                {{-- GALLERY --}}
+                @if($property->media->count() > 0)
+                    {{-- Hero Image --}}
+                    <div class="relative rounded-2xl overflow-hidden bg-gray-100 aspect-[16/10] cursor-zoom-in"
+                        id="hero-wrap">
+                        <img id="hero-img"
+                            src="{{ $property->media->first()->media_url }}"
+                            alt="{{ $property->title }}"
+                            class="w-full h-full object-cover transition-opacity duration-200"
+                            onclick="openLightbox(0)">
+                        {{-- Photo count badge --}}
+                        @if($property->media->count() > 1)
+                            <div class="absolute bottom-3 right-3 bg-black/60 text-white text-[12px] font-semibold px-3 py-1 rounded-full">
+                                <span id="hero-index">1</span> / {{ $property->media->count() }}
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Thumbnail Strip --}}
+                    @if($property->media->count() > 1)
+                        <div class="flex gap-2.5 mt-3 overflow-x-auto pb-1" style="-ms-overflow-style:none; scrollbar-width:none;">
+                            @foreach($property->media as $index => $media)
+                                <button type="button"
+                                    onclick="setHero({{ $index }})"
+                                    id="thumb-{{ $index }}"
+                                    class="flex-shrink-0 w-20 h-16 rounded-xl overflow-hidden border-2 transition-all
+                                        {{ $index === 0 ? 'border-[#286CD2]' : 'border-transparent opacity-60 hover:opacity-100' }}">
+                                    <img src="{{ $media->media_url }}"
+                                        alt="Photo {{ $index + 1 }}"
+                                        class="w-full h-full object-cover">
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+
+                @else
+                    {{-- No media placeholder --}}
+                    <div class="rounded-2xl bg-gray-100 aspect-[16/10] flex flex-col items-center justify-center text-gray-400">
+                        <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="mt-3 text-[13px] font-medium">No photos yet</p>
+                    </div>
+                @endif
+
+                {{-- TITLE + META --}}
+                <div class="mt-7">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <span class="text-[12px] font-semibold px-3 py-1 rounded-full bg-blue-50 text-blue-700">
+                            {{ $property->property_type }}
+                        </span>
+                        @if(optional($property->landlord->verificationApplication)->verification_status === 'Approved')
+                            <span class="text-[12px] font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 flex items-center gap-1">
+                                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Verified Landlord
+                            </span>
+                        @endif
+                        <span class="text-[12px] font-medium px-3 py-1 rounded-full
+                            {{ $property->availability_status === 'Available' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">
+                            {{ $property->availability_status }}
+                        </span>
+                    </div>
+
+                    <h1 class="text-[24px] font-extrabold text-[#1A1A2E] leading-tight">
+                        {{ $property->title }}
+                    </h1>
+
+                    <div class="flex items-center gap-1.5 mt-2 text-[13.5px] text-gray-500">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        {{ $property->address }}
+                    </div>
+
+                    @if($property->occupancy_limit)
+                        <div class="flex items-center gap-1.5 mt-1.5 text-[13px] text-gray-500">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Up to {{ $property->occupancy_limit }} {{ Str::plural('occupant', $property->occupancy_limit) }}
+                        </div>
+                    @endif
+                </div>
+
+                {{-- DIVIDER --}}
+                <div class="border-t border-gray-100 my-7"></div>
+
+                {{-- ABOUT --}}
+                <div>
+                    <h2 class="text-[16px] font-bold text-[#1A1A2E] mb-3">About this place</h2>
+                    <p class="text-[14.5px] text-gray-600 leading-relaxed whitespace-pre-line">{{ $property->description }}</p>
+                </div>
+
+                {{-- AMENITIES --}}
+                @if($property->amenities->count() > 0)
+                    <div class="border-t border-gray-100 my-7"></div>
+                    <div>
+                        <h2 class="text-[16px] font-bold text-[#1A1A2E] mb-4">Amenities</h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            @foreach($property->amenities as $amenity)
+                                <div class="flex items-center gap-2.5 text-[13.5px] text-gray-700">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#286CD2" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </div>
+                                    {{ $amenity->amenity_name }}
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- REVIEWS --}}
+                <div class="border-t border-gray-100 my-7"></div>
+                <div>
+                    <div class="flex items-center justify-between mb-5">
+                        <h2 class="text-[16px] font-bold text-[#1A1A2E]">
+                            Reviews
+                            @if($property->reviews->count() > 0)
+                                <span class="text-[13px] font-normal text-gray-400 ml-1">({{ $property->reviews->count() }})</span>
+                            @endif
+                        </h2>
+                        @if($property->reviews->count() > 0)
+                            @php
+                                $avgRating = round($property->reviews->avg('rating'), 1);
+                            @endphp
+                            <div class="flex items-center gap-1.5">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="none">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                <span class="text-[14px] font-bold text-[#1A1A2E]">{{ $avgRating }}</span>
+                                <span class="text-[13px] text-gray-400">/ 5</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    @forelse($property->reviews as $review)
+                        <div class="mb-6 last:mb-0">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-9 h-9 rounded-full bg-[#286CD2] text-white text-[13px] font-bold flex items-center justify-center flex-shrink-0">
+                                        {{ strtoupper(substr($review->tenant->first_name, 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <div class="text-[13.5px] font-semibold text-[#1A1A2E]">
+                                            {{ $review->tenant->first_name }} {{ $review->tenant->last_name }}
+                                        </div>
+                                        <div class="text-[11px] text-gray-400">
+                                            {{ $review->created_at->format('M Y') }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-0.5">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <svg width="13" height="13" viewBox="0 0 24 24"
+                                            fill="{{ $i <= $review->rating ? '#f59e0b' : '#e5e7eb' }}" stroke="none">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                    @endfor
+                                </div>
+                            </div>
+                            <p class="text-[13.5px] text-gray-600 leading-relaxed pl-[46px]">
+                                {{ $review->review_comment }}
+                            </p>
+                        </div>
+                    @empty
+                        <div class="text-[13.5px] text-gray-400 py-4">
+                            No reviews yet for this property.
+                        </div>
+                    @endforelse
+                </div>
+
+            </div>
+
+            {{-- ===== RIGHT COLUMN (sticky sidebar) ===== --}}
+            <div class="lg:sticky lg:top-[88px] lg:self-start space-y-4">
+
+                {{-- Pricing + CTA Card --}}
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-baseline gap-1 mb-1">
+                        <span class="text-[26px] font-extrabold text-[#286CD2]">
+                            ₱{{ number_format($property->rental_fee) }}
+                        </span>
+                        <span class="text-[13px] text-gray-400 font-medium">/month</span>
+                    </div>
+                    <p class="text-[12px] text-gray-400 mb-5">
+                        Up to {{ $property->occupancy_limit }} {{ Str::plural('occupant', $property->occupancy_limit) }}
+                    </p>
+
+                    @if($property->availability_status === 'Available')
+                        <a href="#"
+                            class="block w-full text-center bg-[#286CD2] hover:bg-[#1a57b0] text-white text-[14px] font-bold py-3 rounded-xl transition-colors mb-3">
+                            Reserve this property
+                        </a>
+                    @else
+                        <div class="block w-full text-center bg-gray-100 text-gray-400 text-[14px] font-bold py-3 rounded-xl mb-3 cursor-not-allowed">
+                            Currently {{ $property->availability_status }}
+                        </div>
+                    @endif
+
+                    <a href="#"
+                        class="block w-full text-center border border-[#286CD2] text-[#286CD2] hover:bg-blue-50 text-[14px] font-bold py-3 rounded-xl transition-colors">
+                        Message landlord
+                    </a>
+
+                    <p class="text-center text-[11px] text-gray-400 mt-4">
+                        You won't be charged yet
+                    </p>
+                </div>
+
+                {{-- Landlord Card --}}
+                <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-3">Hosted by</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-full bg-[#286CD2] text-white text-[15px] font-bold flex items-center justify-center flex-shrink-0">
+                            {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <div class="text-[14px] font-bold text-[#1A1A2E]">
+                                {{ $property->landlord->first_name }} {{ $property->landlord->last_name }}
+                            </div>
+                            @if(optional($property->landlord->verificationApplication)->verification_status === 'Approved')
+                                <div class="flex items-center gap-1 text-[12px] text-emerald-600 font-medium mt-0.5">
+                                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Verified landlord
+                                </div>
+                            @else
+                                <div class="text-[12px] text-gray-400 mt-0.5">Landlord</div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Location stub (Maps module later) --}}
+                <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-3">Location</p>
+                    <div class="flex items-start gap-2 text-[13px] text-gray-600">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="mt-0.5 flex-shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        {{ $property->address }}
+                    </div>
+                    {{-- Map placeholder — replace with Google Maps embed when that module is built --}}
+                    <div class="mt-3 rounded-xl bg-gray-100 h-[140px] flex items-center justify-center text-[12px] text-gray-400">
+                        Map coming soon
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
-</x-app-layout>
+
+    {{-- ===== LIGHTBOX ===== --}}
+    @if($property->media->count() > 0)
+        <div id="lightbox"
+            class="fixed inset-0 z-[999] bg-black/90 hidden items-center justify-center"
+            onclick="closeLightbox()">
+
+            {{-- Close button --}}
+            <button type="button"
+                class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                onclick="closeLightbox()">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            {{-- Prev --}}
+            <button type="button" id="lb-prev"
+                class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                onclick="event.stopPropagation(); shiftLightbox(-1)">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+
+            {{-- Image --}}
+            <img id="lb-img"
+                src=""
+                alt=""
+                class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg select-none"
+                onclick="event.stopPropagation()">
+
+            {{-- Next --}}
+            <button type="button" id="lb-next"
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                onclick="event.stopPropagation(); shiftLightbox(1)">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+
+            {{-- Counter --}}
+            <div class="absolute bottom-5 left-1/2 -translate-x-1/2 text-white/70 text-[13px] font-medium">
+                <span id="lb-counter"></span>
+            </div>
+        </div>
+    @endif
+
+    @push('scripts')
+        <script>
+        (function () {
+            const mediaUrls = @json($property->media->pluck('media_url')->values());
+            const total = mediaUrls.length;
+            let currentIndex = 0;
+
+            // ── Hero swap ──────────────────────────────────────────────
+            window.setHero = function (index) {
+                currentIndex = index;
+                const heroImg = document.getElementById('hero-img');
+                const heroBadge = document.getElementById('hero-index');
+
+                heroImg.style.opacity = '0';
+                setTimeout(() => {
+                    heroImg.src = mediaUrls[index];
+                    heroImg.style.opacity = '1';
+                }, 150);
+
+                if (heroBadge) heroBadge.textContent = index + 1;
+
+                document.querySelectorAll('[id^="thumb-"]').forEach((thumb, i) => {
+                    if (i === index) {
+                        thumb.classList.add('border-[#286CD2]');
+                        thumb.classList.remove('border-transparent', 'opacity-60');
+                    } else {
+                        thumb.classList.remove('border-[#286CD2]');
+                        thumb.classList.add('border-transparent', 'opacity-60');
+                    }
+                });
+            };
+
+            // ── Lightbox ───────────────────────────────────────────────
+            const lightbox = document.getElementById('lightbox');
+            const lbImg    = document.getElementById('lb-img');
+            const lbCounter = document.getElementById('lb-counter');
+            const lbPrev   = document.getElementById('lb-prev');
+            const lbNext   = document.getElementById('lb-next');
+
+            function updateLightbox() {
+                lbImg.src = mediaUrls[currentIndex];
+                if (lbCounter) lbCounter.textContent = (currentIndex + 1) + ' / ' + total;
+                if (lbPrev) lbPrev.style.display = total <= 1 ? 'none' : '';
+                if (lbNext) lbNext.style.display = total <= 1 ? 'none' : '';
+            }
+
+            window.openLightbox = function (index) {
+                currentIndex = index;
+                updateLightbox();
+                lightbox.classList.remove('hidden');
+                lightbox.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            };
+
+            window.closeLightbox = function () {
+                lightbox.classList.add('hidden');
+                lightbox.classList.remove('flex');
+                document.body.style.overflow = '';
+            };
+
+            window.shiftLightbox = function (dir) {
+                currentIndex = (currentIndex + dir + total) % total;
+                updateLightbox();
+                setHero(currentIndex);
+            };
+
+            // Keyboard navigation
+            document.addEventListener('keydown', function (e) {
+                if (!lightbox || lightbox.classList.contains('hidden')) return;
+                if (e.key === 'ArrowRight') shiftLightbox(1);
+                if (e.key === 'ArrowLeft')  shiftLightbox(-1);
+                if (e.key === 'Escape')     closeLightbox();
+            });
+        })();
+        </script>
+    @endpush
+@endsection

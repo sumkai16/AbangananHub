@@ -28,6 +28,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites/{propertyId}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle'); // add this
 });
 
 // Landlord-only routes

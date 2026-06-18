@@ -13,22 +13,15 @@ class PropertyController extends Controller
             ->where('verification_status', 'Approved')
             ->where('availability_status', '!=', 'Occupied');
 
-        // Location — text search against address
         if ($request->filled('location')) {
             $query->where('address', 'like', '%' . $request->location . '%');
         }
-
-        // Property type
         if ($request->filled('type')) {
             $query->where('property_type', $request->type);
         }
-
-        // Budget — max rental fee
         if ($request->filled('price_max')) {
             $query->where('rental_fee', '<=', $request->price_max);
         }
-
-        // Verified landlord filter
         if ($request->boolean('verified')) {
             $query->whereHas('landlord.roles', function ($q) {
                 $q->where('role', 'Landlord');
@@ -37,12 +30,14 @@ class PropertyController extends Controller
             });
         }
 
-        $properties = $query
-            ->latest('created_at')
-            ->paginate(12)
-            ->withQueryString();
+        $properties = $query->latest('created_at')->paginate(12)->withQueryString();
 
-        return view('properties.index', compact('properties'));
+        // Fetch current user's favorited property IDs for heart state
+        $favoritedIds = \App\Models\Favorite::where('tenant_id', auth()->user()->user_id)
+            ->pluck('property_id')
+            ->toArray();
+
+        return view('properties.index', compact('properties', 'favoritedIds'));
     }
 
     public function show(Property $property)

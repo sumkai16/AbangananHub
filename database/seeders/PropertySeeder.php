@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Property;
+use App\Models\PropertyMedia;
 
 class PropertySeeder extends Seeder
 {
@@ -24,6 +25,11 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 4,
                 'availability_status' => 'Available',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1200&q=80'],
+                ],
             ],
             [
                 'title'               => 'Private Room Near USC Main',
@@ -36,6 +42,10 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 1,
                 'availability_status' => 'Available',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&q=80'],
+                ],
             ],
             [
                 'title'               => 'Studio Apartment in IT Park',
@@ -48,6 +58,12 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 2,
                 'availability_status' => 'Available',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1200&q=80'],
+                ],
             ],
             [
                 'title'               => 'Affordable Room in Mandaue',
@@ -60,6 +76,10 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 1,
                 'availability_status' => 'Available',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=1200&q=80'],
+                ],
             ],
             [
                 'title'               => '2-Bedroom Apartment in Banilad',
@@ -72,6 +92,11 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 4,
                 'availability_status' => 'Available',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=1200&q=80'],
+                ],
             ],
             [
                 'title'               => 'Bedspace for Female in Punta Princesa',
@@ -84,6 +109,10 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 6,
                 'availability_status' => 'Available',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1586105251261-72a756497a11?w=1200&q=80'],
+                ],
             ],
             [
                 'title'               => 'Whole House for Rent in Talisay',
@@ -96,6 +125,11 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 6,
                 'availability_status' => 'Available',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80'],
+                ],
             ],
             [
                 'title'               => 'Room for Rent Near SM Seaside',
@@ -108,6 +142,10 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 1,
                 'availability_status' => 'Available',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1200&q=80'],
+                ],
             ],
             [
                 'title'               => 'Condo-Type Apartment in Lahug',
@@ -120,6 +158,11 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 2,
                 'availability_status' => 'Reserved',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&q=80'],
+                ],
             ],
             [
                 'title'               => 'Bedspace Near Cebu Doctors University',
@@ -132,13 +175,28 @@ class PropertySeeder extends Seeder
                 'occupancy_limit'     => 4,
                 'availability_status' => 'Available',
                 'verification_status' => 'Approved',
+                'media'               => [
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80'],
+                    ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&q=80'],
+                ],
             ],
         ];
 
         foreach ($properties as $data) {
-            Property::create(array_merge($data, [
+            $mediaItems = $data['media'];
+            unset($data['media']);
+
+            $property = Property::create(array_merge($data, [
                 'landlord_id' => $landlord->user_id,
             ]));
+
+            foreach ($mediaItems as $media) {
+                PropertyMedia::create([
+                    'property_id' => $property->property_id,
+                    'media_type'  => $media['media_type'],
+                    'media_url'   => $media['media_url'],
+                ]);
+            }
         }
     }
 }
