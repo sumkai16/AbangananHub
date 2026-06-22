@@ -1,42 +1,40 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Message extends Model
 {
+    protected $primaryKey = 'message_id';
+
     public $timestamps = false;
 
     protected $fillable = [
         'conversation_id',
         'sender_id',
         'message',
-        'sent_at',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'sent_at' => 'datetime',
+    ];
+
+    public function conversation(): BelongsTo
     {
-        return [
-            'sent_at' => 'datetime',
-        ];
+        return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
     }
 
-    // ─── Relationships ───────────────────────────────────────
-
-    public function conversation()
-    {
-        return $this->belongsTo(Conversation::class);
-    }
-
-    public function sender()
+    public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id', 'user_id');
     }
 
-    // ─── Helpers ─────────────────────────────────────────────
-
-    public function isSentBy(User $user): bool
-    {
-        return $this->sender_id === $user->user_id;
-    }
+    protected static function booted(): void
+{
+    static::creating(function (Message $message) {
+        $message->sent_at ??= now();
+    });
+}
 }

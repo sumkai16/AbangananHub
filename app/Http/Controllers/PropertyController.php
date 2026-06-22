@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Favorite;
 use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,7 @@ class PropertyController extends Controller
     {
         $query = Property::with(['media', 'landlord', 'amenities'])
             ->where('verification_status', 'Approved')
-            ->where('availability_status', '!=', 'Occupied');
+            ->where('availability_status', 'Available');
 
         if ($request->filled('location')) {
             $query->where('address', 'like', '%' . $request->location . '%');
@@ -36,7 +37,7 @@ class PropertyController extends Controller
 
         $favoritedIds = [];
         if (auth()->check()) {
-            $favoritedIds = \App\Models\Favorite::where('tenant_id', auth()->user()->user_id)
+            $favoritedIds = Favorite::where('tenant_id', auth()->user()->user_id)
                 ->pluck('property_id')
                 ->toArray();
         }
@@ -131,7 +132,7 @@ class PropertyController extends Controller
             foreach ($request->file('photos') as $photo) {
                 $path = $photo->store('properties', 'public');
                 $property->media()->create([
-                    'media_url' => $path, 
+                    'media_url' => $path,
                 ]);
             }
         }

@@ -1,6 +1,26 @@
-<x-app-layout>
-    <div style="max-width:900px;margin:40px auto;padding:0 40px;">
-        <h1 style="font-size:24px;font-weight:800;color:#1A1A2E;margin-bottom:8px;">Messages</h1>
-        <p style="color:#9AA0AB;">Your conversations with landlords.</p>
+@extends('layouts.app', ['searchBar' => false])
+
+@section('content')
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-6">Messages</h1>
+
+        @forelse ($conversations as $conversation)
+            @php
+                $otherParty = auth()->id() === $conversation->tenant_id
+                    ? $conversation->landlord
+                    : $conversation->tenant;
+            @endphp
+            <a href="{{ route('conversations.show', $conversation) }}" class="block border-b border-gray-200 py-4">
+                <div class="flex justify-between">
+                    <span class="font-semibold">{{ $otherParty->first_name }} {{ $otherParty->last_name }}</span>
+                    <span class="text-sm text-gray-500">{{ $conversation->property->title }}</span>
+                </div>
+                <p class="text-gray-600 text-sm mt-1">
+                    {{ $conversation->latestMessage->message ?? 'No messages yet.' }}
+                </p>
+            </a>
+        @empty
+            <p class="text-gray-500">No conversations yet.</p>
+        @endforelse
     </div>
-</x-app-layout>
+@endsection

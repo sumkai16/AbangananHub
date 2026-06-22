@@ -10,6 +10,7 @@ use App\Http\Controllers\Landlord\ListingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\MessageController;
 
 Route::get('/', [WelcomeController::class, 'index']);
 
@@ -38,6 +39,29 @@ Route::middleware('auth')->group(function () {
     Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+
+
+        // Tenant
+    Route::middleware(['auth', 'ensure.tenant'])->group(function () {
+        Route::get('/reservations', [App\Http\Controllers\ReservationController::class, 'index'])->name('reservations.index');
+        Route::post('/properties/{property}/reservations', [App\Http\Controllers\ReservationController::class, 'store'])->name('reservations.store');
+        Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\ReservationController::class, 'cancel'])->name('reservations.cancel');
+    });
+
+    // Landlord
+    Route::middleware(['auth', 'ensure.landlord'])->prefix('landlord')->name('landlord.')->group(function () {
+        Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
+        Route::patch('/reservations/{reservation}/approve', [App\Http\Controllers\Landlord\ReservationController::class, 'approve'])->name('reservations.approve');
+        Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
+    });
+    
+//conversations and messages
+    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
+    Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+    Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+        
 });
+
 
 require __DIR__.'/auth.php';

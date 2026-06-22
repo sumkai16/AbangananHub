@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
+
+
     <div class="max-w-7xl mx-auto px-6 py-10 pb-16">
 
         {{-- HEADER --}}
@@ -129,7 +131,7 @@
                                 </h3>
                                 <span
                                     class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0
-                                            {{ $property->availability_status === 'Available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
+                                                                                                                                            {{ $property->availability_status === 'Available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
                                     {{ $property->availability_status }}
                                 </span>
                             </div>
@@ -202,4 +204,5 @@
             })();
         </script>
     @endpush
+
 @endsection
