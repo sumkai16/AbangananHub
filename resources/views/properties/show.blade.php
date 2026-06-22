@@ -221,10 +221,27 @@
                         </div>
                     @endif
 
-                    <a href="#"
-                        class="block w-full text-center border border-[#286CD2] text-[#286CD2] hover:bg-blue-50 text-[14px] font-bold py-3 rounded-xl transition-colors">
-                        Message landlord
-                    </a>
+                    @auth
+                        @if((int) auth()->id() !== (int) $property->landlord_id)
+                            <form action="{{ route('conversations.store') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="property_id" value="{{ $property->property_id }}">
+                                <button type="submit"
+                                    class="block w-full text-center border border-[#286CD2] text-[#286CD2] hover:bg-blue-50 text-[14px] font-bold py-3 rounded-xl transition-colors">
+                                    Message landlord
+                                </button>
+                            </form>
+                        @else
+                            <div class="block w-full text-center border border-gray-200 text-gray-400 text-[14px] font-bold py-3 rounded-xl cursor-not-allowed">
+                                This is your listing
+                            </div>
+                        @endif
+                    @else
+                        <a href="{{ route('login') }}"
+                            class="block w-full text-center border border-[#286CD2] text-[#286CD2] hover:bg-blue-50 text-[14px] font-bold py-3 rounded-xl transition-colors">
+                            Message landlord
+                        </a>
+                    @endauth
 
                     <p class="text-center text-[11px] text-gray-400 mt-4">
                         You won't be charged yet
@@ -330,7 +347,6 @@
             const total = mediaUrls.length;
             let currentIndex = 0;
 
-            // ── Hero swap ──────────────────────────────────────────────
             window.setHero = function (index) {
                 currentIndex = index;
                 const heroImg = document.getElementById('hero-img');
@@ -355,7 +371,6 @@
                 });
             };
 
-            // ── Lightbox ───────────────────────────────────────────────
             const lightbox = document.getElementById('lightbox');
             const lbImg    = document.getElementById('lb-img');
             const lbCounter = document.getElementById('lb-counter');
@@ -389,7 +404,6 @@
                 setHero(currentIndex);
             };
 
-            // Keyboard navigation
             document.addEventListener('keydown', function (e) {
                 if (!lightbox || lightbox.classList.contains('hidden')) return;
                 if (e.key === 'ArrowRight') shiftLightbox(1);
