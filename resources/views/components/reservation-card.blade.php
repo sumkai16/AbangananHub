@@ -1,4 +1,4 @@
-@props(['reservation'])
+@props(['reservation', 'showActions' => false])
 
 @php
     $pillClass = match ($reservation->reservation_status) {
@@ -7,6 +7,7 @@
         'Rejected' => 'bg-red-100 text-red-800',
         default => 'bg-gray-100 text-gray-800',
     };
+    $canCancel = in_array($reservation->reservation_status, ['Pending', 'Approved']);
 @endphp
 
 <div class="flex flex-col md:flex-row md:items-center gap-5 bg-white border border-gray-200 rounded-[20px] p-5 shadow-sm hover:shadow-md transition-all reservation-row"
@@ -15,8 +16,8 @@
     <div
         class="w-[72px] h-[72px] rounded-[16px] flex-shrink-0 bg-gray-100 overflow-hidden flex items-center justify-center">
         @if($reservation->property->media->first())
-            <img src="{{ Storage::url($reservation->property->media->first()->media_url) }}"
-                class="w-full h-full object-cover" alt="Property">
+            <img src="{{ $reservation->property->media->first()->media_url }}" class="w-full h-full object-cover"
+                alt="Property">
         @else
             <div class="text-2xl font-bold text-gray-400">
                 {{ strtoupper(substr($reservation->property->title ?? 'P', 0, 1)) }}
@@ -46,6 +47,17 @@
         <div class="text-[13px] text-gray-400 font-medium reference-id">
             Ref: #R{{ $reservation->reservation_id }}
         </div>
+
+        @if($showActions && $canCancel)
+            <form action="{{ route('reservations.cancel', $reservation->reservation_id) }}" method="POST"
+                onsubmit="return confirm('Cancel this reservation?');">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="text-[13px] font-bold text-red-600 hover:text-red-800 transition-colors">
+                    Cancel
+                </button>
+            </form>
+        @endif
     </div>
 
 </div>
