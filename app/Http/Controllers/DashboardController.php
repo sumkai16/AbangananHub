@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Notification;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-         /** @var User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         // Latest 5 reservations for the dashboard preview
@@ -20,22 +22,18 @@ class DashboardController extends Controller
             ->get();
 
         // Stat counters
-        $upcomingCount  = $user->reservations()
+        $upcomingCount = $user->reservations()
             ->where('reservation_status', 'Approved')
             ->count();
 
-        $messagesCount  = \App\Models\Conversation::where('tenant_id', $user->user_id)
-            ->orWhere('landlord_id', $user->user_id)
-            ->withCount(['messages as unread_count' => function ($q) use ($user) {
-                $q->where('sender_id', '!=', $user->user_id)
-                  ->whereNull('read_at'); // add read_at to messages table later
-            }])
-            ->get()
-            ->sum('unread_count');
+        $messagesCount = Notification::where('user_id', $user->user_id)
+            ->where('type', 'message')
+            ->where('is_read', false)
+            ->count();
 
-        $savedCount     = $user->favorites()->count();
+        $savedCount = $user->favorites()->count();
 
-        $reportsCount   = $user->reports()
+        $reportsCount = $user->reports()
             ->where('report_status', 'Pending')
             ->count();
 

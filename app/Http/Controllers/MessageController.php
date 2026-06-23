@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Events\MessageSent;
 use App\Http\Requests\SendMessageRequest;
 use App\Models\Conversation;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class MessageController extends Controller
 {
@@ -17,6 +19,19 @@ class MessageController extends Controller
         ]);
 
         $message->load('sender');
+
+        $recipientId = $message->sender_id === $conversation->tenant_id
+            ? $conversation->landlord_id
+            : $conversation->tenant_id;
+
+        Notification::create([
+            'user_id' => $recipientId,
+            'type' => 'message',
+            'conversation_id' => $conversation->conversation_id,
+            'title' => 'New message from ' . $message->sender->first_name,
+            'message' => Str::limit($message->message, 100),
+            'is_read' => false,
+        ]);
 
         broadcast(new MessageSent($message))->toOthers();
 

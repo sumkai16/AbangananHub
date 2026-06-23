@@ -5,8 +5,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
+    protected $primaryKey = 'notification_id';
+
     protected $fillable = [
         'user_id',
+        'type',
+        'conversation_id',
         'title',
         'message',
         'is_read',
@@ -20,14 +24,15 @@ class Notification extends Model
         ];
     }
 
-    // ─── Relationships ───────────────────────────────────────
-
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
-    // ─── Helpers ─────────────────────────────────────────────
+    public function conversation()
+    {
+        return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
+    }
 
     public function markAsRead(): bool
     {

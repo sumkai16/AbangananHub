@@ -7,7 +7,7 @@ use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-
+use App\Models\Notification;
 class ConversationController extends Controller
 {
     public function index()
@@ -47,12 +47,18 @@ class ConversationController extends Controller
         return redirect()->route('conversations.show', $conversation);
     }
 
-    public function show(Conversation $conversation)
-    {
-        Gate::authorize('view', $conversation);
+public function show(Conversation $conversation)
+{
+    Gate::authorize('view', $conversation);
 
-        $conversation->load(['tenant', 'landlord', 'property', 'messages.sender']);
+    Notification::where('user_id', Auth::id())
+        ->where('type', 'message')
+        ->where('conversation_id', $conversation->conversation_id)
+        ->where('is_read', false)
+        ->update(['is_read' => true]);
 
-        return view('conversations.show', compact('conversation'));
-    }
+    $conversation->load(['tenant', 'landlord', 'property', 'messages.sender']);
+
+    return view('conversations.show', compact('conversation'));
+}
 }
