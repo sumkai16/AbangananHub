@@ -209,17 +209,58 @@
                     <p class="text-[12px] text-gray-400 mb-5">
                         Up to {{ $property->occupancy_limit }} {{ Str::plural('occupant', $property->occupancy_limit) }}
                     </p>
+                    @php
+                        $isOwner = auth()->check() && (int) auth()->id() === (int) $property->landlord_id;
+                    @endphp
 
-                    @if($property->availability_status === 'Available')
-                        <a href="#"
-                            class="block w-full text-center bg-[#286CD2] hover:bg-[#1a57b0] text-white text-[14px] font-bold py-3 rounded-xl transition-colors mb-3">
-                            Reserve this property
-                        </a>
-                    @else
+                   @php
+                        $isOwner = auth()->check() && (int) auth()->id() === (int) $property->landlord_id;
+                    @endphp
+
+                    @if($property->availability_status !== 'Available')
                         <div class="block w-full text-center bg-gray-100 text-gray-400 text-[14px] font-bold py-3 rounded-xl mb-3 cursor-not-allowed">
                             Currently {{ $property->availability_status }}
                         </div>
+                   @elseif($isOwner)
+                        {{-- Owner notice already shown below in the Message-landlord slot --}}
+                    @elseif(auth()->check())
+                        <form action="{{ route('reservations.store', $property) }}" method="POST" class="mb-3">
+                            @csrf
+
+                            @error('property')
+                                <p class="text-[12.5px] text-red-600 font-medium mb-2">{{ $message }}</p>
+                            @enderror
+                            @error('reservation_date')
+                                <p class="text-[12.5px] text-red-600 font-medium mb-2">{{ $message }}</p>
+                            @enderror
+
+                            <label for="reservation_date" class="block text-[12px] font-semibold text-gray-600 mb-1">
+                                Preferred move-in date
+                            </label>
+                            <input type="date" id="reservation_date" name="reservation_date"
+                                min="{{ now()->toDateString() }}"
+                                value="{{ old('reservation_date') }}"
+                                required
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13.5px] text-gray-700 mb-3 focus:outline-none focus:ring-2 focus:ring-[#286CD2]/30 focus:border-[#286CD2]">
+
+                            <label for="remarks" class="block text-[12px] font-semibold text-gray-600 mb-1">
+                                Note to landlord <span class="text-gray-400 font-normal">(optional)</span>
+                            </label>
+                            <textarea id="remarks" name="remarks" rows="2"
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13.5px] text-gray-700 mb-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#286CD2]/30 focus:border-[#286CD2]">{{ old('remarks') }}</textarea>
+
+                            <button type="submit"
+                                class="block w-full text-center bg-[#286CD2] hover:bg-[#1a57b0] text-white text-[14px] font-bold py-3 rounded-xl transition-colors">
+                                Reserve this property
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}"
+                            class="block w-full text-center bg-[#286CD2] hover:bg-[#1a57b0] text-white text-[14px] font-bold py-3 rounded-xl transition-colors mb-3">
+                            Log in to reserve
+                        </a>
                     @endif
+                                
 
                     @auth
                         @if((int) auth()->id() !== (int) $property->landlord_id)
