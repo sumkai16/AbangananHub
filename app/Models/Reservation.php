@@ -78,13 +78,13 @@ class Reservation extends Model
         return $this->save();
     }
 
-    public function cancel(): bool
-    {
-        if (!$this->isPending() && !$this->isApproved()) {
-            return false;
-        }
-
-        $this->reservation_status = 'Cancelled';
-        return $this->save();
+public function cancel(): bool
+{
+    if (!$this->isPending() && !$this->isApproved()) {
+        return false;
     }
+
+    $this->reservation_status = 'Cancelled';
+    return $this->save();
+}
 }
