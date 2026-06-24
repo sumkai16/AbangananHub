@@ -45,7 +45,8 @@
 
                 {{-- Become a Landlord / My Listings --}}
                 <div class="relative hidden sm:block">
-                    @if(auth()->user()->hasRole('Landlord'))
+                    {{-- Force dropdown logic instead of a direct link if the user is an admin --}}
+                    @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
                         <a href="{{ route('landlord.listings.index') }}"
                             class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all">
                             <span class="text-base leading-none"></span> My Listings
@@ -53,19 +54,42 @@
                     @else
                         <button id="landlord-btn" aria-expanded="false"
                             class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all focus:outline-none">
-                            <span class="text-base leading-none"></span> Become a Landlord
+                            <span class="text-base leading-none"></span> {{ auth()->user()->hasRole('Admin') ? 'Admin Actions' : 'Become a Landlord' }}
                         </button>
                         <div id="landlord-menu"
                             class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
-                            <a href="#"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
-                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                </svg>
-                                Apply as Landlord
-                            </a>
+                            
+                            {{-- Admin Only Option --}}
+                            @if(auth()->user()->hasRole('Admin'))
+                                <a href="{{ route('admin.listings.approval') }}" {{-- NOTE: Ensure 'admin.listings.approval' matches your actual route name --}}
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#286CD2] hover:bg-blue-50 border-b border-gray-100 mb-1">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Listing Approval
+                                </a>
+                            @endif
+
+                            @if(!auth()->user()->hasRole('Landlord'))
+                                <a href="#"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    Apply as Landlord
+                                </a>
+                            @else
+                                <a href="{{ route('landlord.listings.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                    My Listings
+                                </a>
+                            @endif
+
                             <a href="{{ route('properties.index') }}"
                                 class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -194,8 +218,8 @@
                 @else
                     {{-- Guest Actions --}}
                     <div class="flex items-center gap-1 sm:gap-2">
-                        <button x-on:click="$dispatch('open-modal', 'login-modal')" class="text-[13px] sm:text-[14px] font-bold text-[#1A1A2E] hover:bg-gray-100 px-3 sm:px-4 py-2 rounded-full transition-colors focus:outline-none whitespace-nowrap">Log in</button>
-                        <button x-on:click="$dispatch('open-modal', 'register-modal')" class="text-[13px] sm:text-[14px] font-bold text-white bg-[#286CD2] hover:bg-[#1D4ED8] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap">Sign up</button>
+                        <a href="{{ route('login') }}" class="text-[13px] sm:text-[14px] font-bold text-[#1A1A2E] hover:bg-gray-100 px-3 sm:px-4 py-2 rounded-full transition-colors focus:outline-none whitespace-nowrap no-underline">Log in</a>
+                        <a href="{{ route('register') }}" class="text-[13px] sm:text-[14px] font-bold text-white bg-[#286CD2] hover:bg-[#1D4ED8] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">Sign up</a>
                     </div>
                 @endauth
             </div>
@@ -419,10 +443,6 @@
     </script>
 
     @stack('scripts')
-    @guest
-        <x-login-modal />
-        <x-register-modal />
-    @endguest
 </body>
 
 </html>
