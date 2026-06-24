@@ -14,7 +14,7 @@ class ReservationController extends Controller
         $reservations = Reservation::whereHas('property', function ($query) {
                 $query->where('landlord_id', Auth::id());
             })
-            ->with(['property', 'tenant'])
+            ->with(['property.media', 'tenant'])
             ->latest()
             ->paginate(10);
 
