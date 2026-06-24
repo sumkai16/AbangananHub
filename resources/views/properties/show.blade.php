@@ -5,7 +5,7 @@
 
         {{-- Back --}}
         <a href="{{ route('properties.index') }}"
-            class="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#286CD2] hover:underline mb-6">
+            class="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#2A2523] hover:underline mb-6">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -17,44 +17,48 @@
             {{-- ===== LEFT COLUMN ===== --}}
             <div>
 
-                {{-- GALLERY --}}
-                @if($property->media->count() > 0)
-                    {{-- Hero Image --}}
-                    <div class="relative rounded-2xl overflow-hidden bg-gray-100 aspect-[16/10] cursor-zoom-in"
-                        id="hero-wrap">
-                        <img id="hero-img"
-                            src="{{ $property->media->first()->media_url }}"
-                            alt="{{ $property->title }}"
-                            class="w-full h-full object-cover transition-opacity duration-200"
-                            onclick="openLightbox(0)">
-                        {{-- Photo count badge --}}
+                {{-- PREMIUM GALLERY --}}
+                @if($property->media->count() >= 5)
+                    <div class="relative grid grid-cols-4 gap-2 aspect-[2/1] rounded-3xl overflow-hidden mb-8 group cursor-pointer" onclick="openLightbox(0)">
+                        {{-- Main Hero Image --}}
+                        <div class="col-span-2 row-span-2 relative overflow-hidden">
+                            <img src="{{ $property->media[0]->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02] brightness-95 hover:brightness-100">
+                        </div>
+                        {{-- Small Grid Images --}}
+                        <div class="col-span-1 row-span-1 relative overflow-hidden">
+                            <img src="{{ $property->media[1]->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105 brightness-90 hover:brightness-100">
+                        </div>
+                        <div class="col-span-1 row-span-1 relative overflow-hidden">
+                            <img src="{{ $property->media[2]->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105 brightness-90 hover:brightness-100">
+                        </div>
+                        <div class="col-span-1 row-span-1 relative overflow-hidden">
+                            <img src="{{ $property->media[3]->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105 brightness-90 hover:brightness-100">
+                        </div>
+                        <div class="col-span-1 row-span-1 relative overflow-hidden">
+                            <img src="{{ $property->media[4]->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105 brightness-90 hover:brightness-100">
+                        </div>
+
+                        {{-- Show all photos button --}}
+                        <button class="absolute bottom-4 right-4 bg-white/90 backdrop-blur border border-gray-200 px-4 py-2 rounded-xl text-[13px] font-bold text-gray-800 shadow-sm hover:bg-white transition flex items-center gap-2">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                            </svg>
+                            Show all photos
+                        </button>
+                    </div>
+                @elseif($property->media->count() > 0)
+                    {{-- Single Hero Fallback --}}
+                    <div class="relative rounded-3xl overflow-hidden bg-gray-100 aspect-[16/9] mb-8 cursor-pointer group" onclick="openLightbox(0)">
+                        <img src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                         @if($property->media->count() > 1)
-                            <div class="absolute bottom-3 right-3 bg-black/60 text-white text-[12px] font-semibold px-3 py-1 rounded-full">
-                                <span id="hero-index">1</span> / {{ $property->media->count() }}
-                            </div>
+                            <button class="absolute bottom-4 right-4 bg-white/90 backdrop-blur border border-gray-200 px-4 py-2 rounded-xl text-[13px] font-bold text-gray-800 shadow-sm hover:bg-white transition flex items-center gap-2">
+                                Show all {{ $property->media->count() }} photos
+                            </button>
                         @endif
                     </div>
-
-                    {{-- Thumbnail Strip --}}
-                    @if($property->media->count() > 1)
-                        <div class="flex gap-2.5 mt-3 overflow-x-auto pb-1" style="-ms-overflow-style:none; scrollbar-width:none;">
-                            @foreach($property->media as $index => $media)
-                                <button type="button"
-                                    onclick="setHero({{ $index }})"
-                                    id="thumb-{{ $index }}"
-                                    class="flex-shrink-0 w-20 h-16 rounded-xl overflow-hidden border-2 transition-all
-                                        {{ $index === 0 ? 'border-[#286CD2]' : 'border-transparent opacity-60 hover:opacity-100' }}">
-                                    <img src="{{ $media->media_url }}"
-                                        alt="Photo {{ $index + 1 }}"
-                                        class="w-full h-full object-cover">
-                                </button>
-                            @endforeach
-                        </div>
-                    @endif
-
                 @else
                     {{-- No media placeholder --}}
-                    <div class="rounded-2xl bg-gray-100 aspect-[16/10] flex flex-col items-center justify-center text-gray-400">
+                    <div class="rounded-3xl bg-gray-100 aspect-[16/9] mb-8 flex flex-col items-center justify-center text-gray-400">
                         <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
@@ -82,7 +86,7 @@
                         </span>
                     </div>
 
-                    <h1 class="text-[24px] font-extrabold text-[#1A1A2E] leading-tight">
+                    <h1 class="text-[24px] font-extrabold text-[#2A2523] leading-tight">
                         {{ $property->title }}
                     </h1>
 
@@ -109,7 +113,7 @@
 
                 {{-- ABOUT --}}
                 <div>
-                    <h2 class="text-[16px] font-bold text-[#1A1A2E] mb-3">About this place</h2>
+                    <h2 class="text-[16px] font-bold text-[#2A2523] mb-3">About this place</h2>
                     <p class="text-[14.5px] text-gray-600 leading-relaxed whitespace-pre-line">{{ $property->description }}</p>
                 </div>
 
@@ -117,12 +121,12 @@
                 @if($property->amenities->count() > 0)
                     <div class="border-t border-gray-100 my-7"></div>
                     <div>
-                        <h2 class="text-[16px] font-bold text-[#1A1A2E] mb-4">Amenities</h2>
+                        <h2 class="text-[16px] font-bold text-[#2A2523] mb-4">Amenities</h2>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             @foreach($property->amenities as $amenity)
                                 <div class="flex items-center gap-2.5 text-[13.5px] text-gray-700">
                                     <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#286CD2" stroke-width="2">
+                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#61B2F0" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                         </svg>
                                     </div>
@@ -137,7 +141,7 @@
                 <div class="border-t border-gray-100 my-7"></div>
                 <div>
                     <div class="flex items-center justify-between mb-5">
-                        <h2 class="text-[16px] font-bold text-[#1A1A2E]">
+                        <h2 class="text-[16px] font-bold text-[#2A2523]">
                             Reviews
                             @if($property->reviews->count() > 0)
                                 <span class="text-[13px] font-normal text-gray-400 ml-1">({{ $property->reviews->count() }})</span>
@@ -151,7 +155,7 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="none">
                                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                                 </svg>
-                                <span class="text-[14px] font-bold text-[#1A1A2E]">{{ $avgRating }}</span>
+                                <span class="text-[14px] font-bold text-[#2A2523]">{{ $avgRating }}</span>
                                 <span class="text-[13px] text-gray-400">/ 5</span>
                             </div>
                         @endif
@@ -161,11 +165,11 @@
                         <div class="mb-6 last:mb-0">
                             <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2.5">
-                                    <div class="w-9 h-9 rounded-full bg-[#286CD2] text-white text-[13px] font-bold flex items-center justify-center flex-shrink-0">
+                                    <div class="w-9 h-9 rounded-full bg-[#61B2F0] text-[#2A2523] text-[13px] font-bold flex items-center justify-center flex-shrink-0">
                                         {{ strtoupper(substr($review->tenant->first_name, 0, 1)) }}
                                     </div>
                                     <div>
-                                        <div class="text-[13.5px] font-semibold text-[#1A1A2E]">
+                                        <div class="text-[13.5px] font-semibold text-[#2A2523]">
                                             {{ $review->tenant->first_name }} {{ $review->tenant->last_name }}
                                         </div>
                                         <div class="text-[11px] text-gray-400">
@@ -199,9 +203,9 @@
             <div class="lg:sticky lg:top-[88px] lg:self-start space-y-4">
 
                 {{-- Pricing + CTA Card --}}
-                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_6px_24px_rgba(0,0,0,0.06)]">
                     <div class="flex items-baseline gap-1 mb-1">
-                        <span class="text-[26px] font-extrabold text-[#286CD2]">
+                        <span class="text-[26px] font-extrabold text-[#2A2523]">
                             ₱{{ number_format($property->rental_fee) }}
                         </span>
                         <span class="text-[13px] text-gray-400 font-medium">/month</span>
@@ -210,10 +214,6 @@
                         Up to {{ $property->occupancy_limit }} {{ Str::plural('occupant', $property->occupancy_limit) }}
                     </p>
                     @php
-                        $isOwner = auth()->check() && (int) auth()->id() === (int) $property->landlord_id;
-                    @endphp
-
-                   @php
                         $isOwner = auth()->check() && (int) auth()->id() === (int) $property->landlord_id;
                     @endphp
 
@@ -250,17 +250,16 @@
                                 class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13.5px] text-gray-700 mb-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#286CD2]/30 focus:border-[#286CD2]">{{ old('remarks') }}</textarea>
 
                             <button type="submit"
-                                class="block w-full text-center bg-[#286CD2] hover:bg-[#1a57b0] text-white text-[14px] font-bold py-3 rounded-xl transition-colors">
+                                class="block w-full text-center bg-[#286CD2] hover:bg-[#1D4ED8] text-white text-[14px] font-bold py-3 rounded-xl transition shadow-sm">
                                 Reserve this property
                             </button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}"
-                            class="block w-full text-center bg-[#286CD2] hover:bg-[#1a57b0] text-white text-[14px] font-bold py-3 rounded-xl transition-colors mb-3">
+                        <button type="button" x-data x-on:click="$dispatch('open-modal', 'login-modal')"
+                            class="block w-full text-center bg-[#286CD2] hover:bg-[#1D4ED8] text-white text-[14px] font-bold py-3 rounded-xl transition mb-3 shadow-sm">
                             Log in to reserve
-                        </a>
+                        </button>
                     @endif
-                                
 
                     @auth
                         @if((int) auth()->id() !== (int) $property->landlord_id)
@@ -268,20 +267,20 @@
                                 @csrf
                                 <input type="hidden" name="property_id" value="{{ $property->property_id }}">
                                 <button type="submit"
-                                    class="block w-full text-center border border-[#286CD2] text-[#286CD2] hover:bg-blue-50 text-[14px] font-bold py-3 rounded-xl transition-colors">
+                                    class="block w-full text-center border-2 border-[#286CD2] text-[#286CD2] hover:bg-[#286CD2] hover:text-white text-[14px] font-bold py-2.5 rounded-xl transition-colors">
                                     Message landlord
                                 </button>
                             </form>
                         @else
-                            <div class="block w-full text-center border border-gray-200 text-gray-400 text-[14px] font-bold py-3 rounded-xl cursor-not-allowed">
+                            <div class="block w-full text-center border-2 border-gray-200 text-gray-400 text-[14px] font-bold py-2.5 rounded-xl cursor-not-allowed">
                                 This is your listing
                             </div>
                         @endif
                     @else
-                        <a href="{{ route('login') }}"
-                            class="block w-full text-center border border-[#286CD2] text-[#286CD2] hover:bg-blue-50 text-[14px] font-bold py-3 rounded-xl transition-colors">
+                        <button type="button" x-data x-on:click="$dispatch('open-modal', 'login-modal')"
+                            class="block w-full text-center border-2 border-[#286CD2] text-[#286CD2] hover:bg-[#286CD2] hover:text-white text-[14px] font-bold py-2.5 rounded-xl transition-colors">
                             Message landlord
-                        </a>
+                        </button>
                     @endauth
 
                     <p class="text-center text-[11px] text-gray-400 mt-4">
@@ -293,11 +292,11 @@
                 <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
                     <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-3">Hosted by</p>
                     <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-full bg-[#286CD2] text-white text-[15px] font-bold flex items-center justify-center flex-shrink-0">
+                        <div class="w-11 h-11 rounded-full bg-[#61B2F0] text-[#2A2523] text-[15px] font-bold flex items-center justify-center flex-shrink-0">
                             {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}
                         </div>
                         <div>
-                            <div class="text-[14px] font-bold text-[#1A1A2E]">
+                            <div class="text-[14px] font-bold text-[#2A2523]">
                                 {{ $property->landlord->first_name }} {{ $property->landlord->last_name }}
                             </div>
                             @if(optional($property->landlord->verificationApplication)->verification_status === 'Approved')
@@ -403,10 +402,10 @@
 
                 document.querySelectorAll('[id^="thumb-"]').forEach((thumb, i) => {
                     if (i === index) {
-                        thumb.classList.add('border-[#286CD2]');
+                        thumb.classList.add('border-[#61B2F0]');
                         thumb.classList.remove('border-transparent', 'opacity-60');
                     } else {
-                        thumb.classList.remove('border-[#286CD2]');
+                        thumb.classList.remove('border-[#61B2F0]');
                         thumb.classList.add('border-transparent', 'opacity-60');
                     }
                 });

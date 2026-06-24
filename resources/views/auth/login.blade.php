@@ -24,7 +24,7 @@
                 <div
                     class="flex items-center gap-4 bg-slate-950/45 backdrop-blur-sm p-4 rounded-xl border border-white/5 shadow-md">
                     <div
-                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                        class="w-10 h-10 rounded-xl bg-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -42,7 +42,7 @@
                 <div
                     class="flex items-center gap-4 bg-slate-950/45 backdrop-blur-sm p-4 rounded-xl border border-white/5 shadow-md">
                     <div
-                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                        class="w-10 h-10 rounded-xl bg-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -60,7 +60,7 @@
                 <div
                     class="flex items-center gap-4 bg-slate-950/45 backdrop-blur-sm p-4 rounded-xl border border-white/5 shadow-md">
                     <div
-                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                        class="w-10 h-10 rounded-xl bg-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -79,7 +79,7 @@
             <div
                 class="mt-6 flex items-center gap-4 bg-slate-950/50 backdrop-blur-sm p-4 rounded-xl border border-white/10 shadow-lg">
                 <div
-                    class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-600/20 select-none">
+                    class="w-12 h-12 rounded-xl bg-[#286CD2] flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-600/20 select-none">
                     <span class="text-white text-[10px] font-black tracking-tighter leading-none">SDG</span>
                     <span class="text-white text-base font-black leading-none mt-0.5">16</span>
                 </div>
@@ -104,17 +104,17 @@
             <div class="mb-6">
                 <a href="/" class="flex items-center gap-2 mb-5 group inline-flex">
                     <div
-                        class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shadow-md shadow-blue-500/10 transition-transform duration-300 group-hover:scale-105">
+                        class="w-9 h-9 rounded-lg bg-[#286CD2] flex items-center justify-center shadow-md shadow-blue-500/10 transition-transform duration-300 group-hover:scale-105">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
-                    <span class="text-[#2A2523] font-bold text-lg tracking-tight">Abanganan<span
+                    <span class="text-[#1A1A2E] font-bold text-lg tracking-tight">Abanganan<span
                             class="text-[#61B2F0]">Hub</span></span>
                 </a>
-                <h2 class="text-2xl font-black text-[#2A2523] tracking-tight">Welcome Back!</h2>
+                <h2 class="text-2xl font-black text-[#1A1A2E] tracking-tight">Welcome Back!</h2>
                 <p class="text-[#9B9F98] text-sm font-medium mt-0.5">Login to continue to AbangananHub</p>
             </div>
 
@@ -140,22 +140,22 @@
 
                 {{-- Email --}}
                 <div>
-                    <label for="email" class="block text-sm font-bold text-[#2A2523] mb-1">Email Address</label>
+                    <label for="email" class="block text-sm font-bold text-[#1A1A2E] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required
                         autocomplete="username" placeholder="Enter your email"
-                        class="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-sm text-[#2A2523] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
+                        class="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-sm text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
 
                 </div>
 
                 {{-- Password --}}
                 <div>
-                    <label for="password" class="block text-sm font-bold text-[#2A2523] mb-1">Password</label>
+                    <label for="password" class="block text-sm font-bold text-[#1A1A2E] mb-1">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="current-password"
                             placeholder="Enter your password"
-                            class="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-sm text-[#2A2523] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
+                            class="w-full px-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-sm text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
                         <button type="button" onclick="togglePassword('password', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9F98] hover:text-[#2A2523] transition-colors focus:outline-none">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9F98] hover:text-[#1A1A2E] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -186,7 +186,7 @@
                 {{-- Submit Button --}}
                 <div class="pt-2">
                     <button type="submit"
-                        class="w-full py-2.5 bg-gradient-to-r from-[#286CD2] via-[#3B82F6] to-[#61B2F0] hover:opacity-95 text-white font-bold text-sm rounded-lg shadow-md shadow-blue-600/10 transition-all duration-300 transform active:scale-[0.995]">
+                        class="w-full py-2.5 bg-[#286CD2] hover:opacity-95 text-white font-bold text-sm rounded-lg shadow-md shadow-blue-600/10 transition-all duration-300 transform active:scale-[0.995]">
                         Login
                     </button>
                 </div>
@@ -194,7 +194,7 @@
 
             <p class="text-center text-sm text-[#9B9F98] font-medium mt-6">
                 Don't have an account?
-                <a href="{{ route('register') }}" class="text-[#DF4D1B] font-bold hover:underline ml-1">Register
+                <a href="{{ route('register') }}" class="text-[#286CD2] font-bold hover:underline ml-1">Register
                     here</a>
             </p>
 

@@ -194,7 +194,7 @@
                 <div class="bg-white border border-gray-200 rounded-[20px] p-6 shadow-sm">
                     @forelse($recentActivity ?? [] as $activity)
                         <div class="flex items-start gap-4 py-3.5 border-b border-gray-100 last:border-0 last:pb-0">
-                            <div class="w-2 h-2 rounded-full bg-[#ff385c] flex-shrink-0 mt-2"></div>
+                            <div class="w-2 h-2 rounded-full bg-[#286CD2] flex-shrink-0 mt-2"></div>
                             <div class="flex-1 text-[14px] text-gray-700 leading-relaxed">
                                 {!! preg_replace('/(\w+)/', '<strong class="text-gray-900">$1</strong>', $activity->message, 1) !!}
                             </div>
@@ -204,7 +204,7 @@
                         </div>
                     @empty
                         <div class="flex items-start gap-4 py-3.5 border-b border-gray-100 last:border-0 last:pb-0">
-                            <div class="w-2 h-2 rounded-full bg-[#ff385c] flex-shrink-0 mt-2"></div>
+                            <div class="w-2 h-2 rounded-full bg-[#286CD2] flex-shrink-0 mt-2"></div>
                             <div class="flex-1 text-[14px] text-gray-700 leading-relaxed">
                                 Welcome to <strong class="text-gray-900">AbangananHub</strong>! Start by browsing verified
                                 properties.
@@ -219,7 +219,7 @@
             @if(!auth()->user()->hasRole('Landlord'))
                 <div>
                     <div
-                        class="rounded-[24px] p-8 bg-gradient-to-br from-[#ff385c] to-[#e00b41] relative overflow-hidden shadow-[0_8px_30px_rgba(255,56,92,0.3)] text-white">
+                        class="rounded-[24px] p-8 bg-gradient-to-br from-[#1A1A2E] to-[#286CD2] relative overflow-hidden shadow-[0_8px_30px_rgba(40,108,210,0.3)] text-white">
                         <div class="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-white opacity-10"></div>
                         <div class="absolute -left-5 -bottom-8 w-[110px] h-[110px] rounded-full bg-white opacity-5"></div>
 

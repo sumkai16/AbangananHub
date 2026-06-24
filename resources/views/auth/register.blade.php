@@ -15,7 +15,7 @@
             <div class="space-y-3">
                 {{-- Feature 1 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                    <div class="w-9 h-9 rounded-xl bg-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
@@ -28,7 +28,7 @@
 
                 {{-- Feature 2 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                    <div class="w-9 h-9 rounded-xl bg-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
@@ -41,7 +41,7 @@
 
                 {{-- Feature 3 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                    <div class="w-9 h-9 rounded-xl bg-[#286CD2] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
@@ -54,7 +54,7 @@
 
                 {{-- Feature 4 (SDG Content matched cleanly inside the card layout) --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-600/20 select-none">
+                    <div class="w-9 h-9 rounded-xl bg-[#286CD2] flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-600/20 select-none">
                         <span class="text-white text-[8px] font-black tracking-tighter leading-none">SDG</span>
                         <span class="text-white text-xs font-black leading-none mt-0.5">16</span>
                     </div>
@@ -74,14 +74,14 @@
             {{-- Branding --}}
             <div class="mb-4">
                 <a href="/" class="flex items-center gap-2 mb-3 group inline-flex">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shadow-md shadow-blue-500/10 transition-transform duration-300 group-hover:scale-105">
+                    <div class="w-8 h-8 rounded-lg bg-[#286CD2] flex items-center justify-center shadow-md shadow-blue-500/10 transition-transform duration-300 group-hover:scale-105">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
-                    <span class="text-[#2A2523] font-bold text-base tracking-tight">Abanganan<span class="text-[#61B2F0]">Hub</span></span>
+                    <span class="text-[#222222] font-bold text-base tracking-tight">Abanganan<span class="text-[#61B2F0]">Hub</span></span>
                 </a>
-                <h2 class="text-xl font-black text-[#2A2523] tracking-tight">Create Your <span class="bg-gradient-to-r from-[#286CD2] to-[#61B2F0] bg-clip-text text-transparent">Account</span></h2>
+                <h2 class="text-xl font-black text-[#222222] tracking-tight">Create Your <span class="bg-gradient-to-r from-[#286CD2] to-[#61B2F0] bg-clip-text text-transparent">Account</span></h2>
                 <p class="text-[#9B9F98] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
             </div>
 
@@ -91,19 +91,19 @@
                 {{-- First Name + Last Name Grid Layout --}}
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="first_name" class="block text-xs font-bold text-[#2A2523] mb-0.5">First Name</label>
+                        <label for="first_name" class="block text-xs font-bold text-[#222222] mb-0.5">First Name</label>
                         <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" required
                             autofocus autocomplete="given-name" placeholder="First name"
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#2A2523] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
+                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
                         @error('first_name')
                             <p class="mt-0.5 text-[11px] text-[#BD5434] font-semibold">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="last_name" class="block text-xs font-bold text-[#2A2523] mb-0.5">Last Name</label>
+                        <label for="last_name" class="block text-xs font-bold text-[#222222] mb-0.5">Last Name</label>
                         <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" required
                             autocomplete="family-name" placeholder="Last name"
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#2A2523] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
+                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
                         @error('last_name')
                             <p class="mt-0.5 text-[11px] text-[#BD5434] font-semibold">{{ $message }}</p>
                         @enderror
@@ -112,10 +112,10 @@
 
                 {{-- Email Address --}}
                 <div>
-                    <label for="email" class="block text-xs font-bold text-[#2A2523] mb-0.5">Email Address</label>
+                    <label for="email" class="block text-xs font-bold text-[#222222] mb-0.5">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
                         placeholder="Enter your email address"
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#2A2523] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
+                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
                     @error('email')
                         <p class="mt-0.5 text-[11px] text-[#BD5434] font-semibold">{{ $message }}</p>
                     @enderror
@@ -123,10 +123,10 @@
 
                 {{-- Contact Number --}}
                 <div>
-                    <label for="contact_number" class="block text-xs font-bold text-[#2A2523] mb-0.5">Contact Number</label>
+                    <label for="contact_number" class="block text-xs font-bold text-[#222222] mb-0.5">Contact Number</label>
                     <input id="contact_number" type="text" name="contact_number" value="{{ old('contact_number') }}"
                         required autocomplete="tel" placeholder="Enter your contact number"
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#2A2523] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
+                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
                     @error('contact_number')
                         <p class="mt-0.5 text-[11px] text-[#BD5434] font-semibold">{{ $message }}</p>
                     @enderror
@@ -134,13 +134,13 @@
 
                 {{-- Password Input Module --}}
                 <div>
-                    <label for="password" class="block text-xs font-bold text-[#2A2523] mb-0.5">Password</label>
+                    <label for="password" class="block text-xs font-bold text-[#222222] mb-0.5">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="new-password"
                             placeholder="Create a password"
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#2A2523] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
+                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
                         <button type="button" onclick="togglePassword('password', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9F98] hover:text-[#2A2523] transition-colors focus:outline-none">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9F98] hover:text-[#222222] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -154,13 +154,13 @@
 
                 {{-- Confirm Password Input Module --}}
                 <div>
-                    <label for="password_confirmation" class="block text-xs font-bold text-[#2A2523] mb-0.5">Confirm Password</label>
+                    <label for="password_confirmation" class="block text-xs font-bold text-[#222222] mb-0.5">Confirm Password</label>
                     <div class="relative">
                         <input id="password_confirmation" type="password" name="password_confirmation" required
                             autocomplete="new-password" placeholder="Confirm your password"
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#2A2523] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
+                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#61B2F0] focus:ring-4 focus:ring-[#61B2F0]/10" />
                         <button type="button" onclick="togglePassword('password_confirmation', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9F98] hover:text-[#2A2523] transition-colors focus:outline-none">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9F98] hover:text-[#222222] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -174,13 +174,13 @@
 
                 {{-- Security Banner --}}
                 <div class="flex items-start gap-2.5 bg-blue-50/60 border border-blue-100/80 rounded-xl p-2.5 shadow-sm">
-                    <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-[#61B2F0] to-[#286CD2] flex items-center justify-center shrink-0 mt-0.5">
+                    <div class="w-6 h-6 rounded-lg bg-[#286CD2] flex items-center justify-center shrink-0 mt-0.5">
                         <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-[#2A2523] text-[11px] font-bold uppercase tracking-wide">Your security is our priority</p>
+                        <p class="text-[#222222] text-[11px] font-bold uppercase tracking-wide">Your security is our priority</p>
                         <p class="text-[#5E6968] text-[11px] font-semibold leading-tight text-[#5E6968]/90">We protect your data and identity seamlessly.</p>
                     </div>
                 </div>
@@ -188,7 +188,7 @@
                 {{-- Action Submit Button --}}
                 <div class="pt-0.5">
                     <button type="submit"
-                        class="w-full py-2 bg-gradient-to-r from-[#286CD2] via-[#3B82F6] to-[#61B2F0] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md transition-all duration-300 transform active:scale-[0.995]">
+                        class="w-full py-2 bg-[#286CD2] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md transition-all duration-300 transform active:scale-[0.995]">
                         Create Account
                     </button>
                 </div>
@@ -203,7 +203,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-[#2A2523] text-[11px] font-bold uppercase tracking-wide">Listing a property?</p>
+                        <p class="text-[#222222] text-[11px] font-bold uppercase tracking-wide">Listing a property?</p>
                         <p class="text-[#9B9F98] text-[10px] font-semibold">Apply as a landlord later.</p>
                     </div>
                 </div>

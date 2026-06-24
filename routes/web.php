@@ -8,11 +8,14 @@ use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Landlord\ListingController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\MessageController;
 
-Route::get('/', [WelcomeController::class, 'index']);
+Route::get('/', [PropertyController::class, 'index'])->name('home');
+
+// Publicly accessible property routes
+Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 
 Route::get('/dashboard', [TenantDashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -30,8 +33,6 @@ Route::middleware('auth')->group(function () {
     });
 
     // Tenant-accessible routes
-    Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
-    Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/{propertyId}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');

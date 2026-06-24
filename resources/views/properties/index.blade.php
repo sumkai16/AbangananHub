@@ -78,14 +78,14 @@
         @if($properties->count() > 0)
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
                 @foreach($properties as $property)
-                    <div class="group relative cursor-pointer"
+                    <div class="group relative cursor-pointer transition-all duration-300 hover:-translate-y-1"
                         onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
 
                         {{-- IMAGE --}}
-                        <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-gray-100">
+                        <div class="relative w-full aspect-square rounded-3xl overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-lg transition-all duration-500">
                             @if($property->media->first())
                                 <img src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
                             @else
                                 <div class="w-full h-full flex items-center justify-center bg-[#EBF3FF]">
                                     <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#286CD2" stroke-width="1.5">
@@ -107,7 +107,7 @@
                             <button type="button" data-property-id="{{ $property->property_id }}"
                                 data-favorited="{{ in_array($property->property_id, $favoritedIds) ? 'true' : 'false' }}"
                                 onclick="event.stopPropagation(); toggleFavorite(this)"
-                                class="favorite-btn absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 transition-colors">
+                                class="favorite-btn absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 hover:scale-110 active:scale-95 transition-all duration-200">
                                 {{-- Outline heart (not favorited) --}}
                                 <svg class="heart-outline {{ in_array($property->property_id, $favoritedIds) ? 'hidden' : '' }}"
                                     width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5">
@@ -116,7 +116,7 @@
                                 </svg>
                                 {{-- Filled heart (favorited) --}}
                                 <svg class="heart-filled {{ in_array($property->property_id, $favoritedIds) ? '' : 'hidden' }}"
-                                    width="20" height="20" viewBox="0 0 24 24" fill="#ff385c" stroke="#ff385c" stroke-width="1">
+                                    width="20" height="20" viewBox="0 0 24 24" fill="#286CD2" stroke="#286CD2" stroke-width="1">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>

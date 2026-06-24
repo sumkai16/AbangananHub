@@ -4,13 +4,7 @@
 
 @section('content')
 <!-- 1. Upgrade the page background -->
-<div class="relative min-h-screen overflow-hidden bg-slate-50 py-12">
-
-    <div class="absolute inset-0 -z-10">
-        <div class="absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-blue-100/40 blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-indigo-100/30 blur-3xl"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.08),_transparent_40%)]"></div>
-    </div>
+<div class="min-h-screen bg-[#F7F8FA] py-12">
 
     <!-- 2. Increase content width -->
     <div class="max-w-7xl mx-auto px-6 lg:px-8">
@@ -74,7 +68,7 @@
         @endif
 
         <!-- 3. Add a property summary card at the top -->
-        <div class="mb-8 rounded-[28px] border border-white/70 bg-white/80 backdrop-blur-xl shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] overflow-hidden">
+        <div class="mb-8 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
             <div class="p-6 flex flex-col md:flex-row md:items-center gap-6">
                 <div class="h-20 w-20 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                     <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +105,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
                 <!-- 4. Make the form cards look premium (Core Info Panel) -->
-                <div class="lg:col-span-7 bg-white/80 backdrop-blur-xl border border-white/70 rounded-[28px] p-8 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] space-y-6">
+                <div class="lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm space-y-6">
                     
                     <!-- 5. Improve section headers -->
                     <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
@@ -185,7 +179,7 @@
                     <div class="sticky top-8 space-y-6">
                         
                         <!-- 4. Make the form cards look premium (Active Gallery Card) -->
-                        <div class="bg-white/80 backdrop-blur-xl border border-white/70 rounded-[28px] p-6 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)]">
+                        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
                                 <div class="flex items-center gap-2">
                                     <div class="h-8 w-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
@@ -215,7 +209,7 @@
                         </div>
 
                         <!-- 4. Make the form cards look premium (Upload Card) -->
-                        <div class="bg-white/80 backdrop-blur-xl border border-white/70 rounded-[28px] p-6 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] space-y-4">
+                        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                             <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
                                 <div class="h-8 w-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -223,7 +217,7 @@
                                 <h3 class="text-sm font-bold text-slate-900">Inject Media Updates</h3>
                             </div>
                             
-                            <div class="border-2 border-dashed border-slate-200/80 hover:border-blue-400 rounded-2xl p-6 bg-gradient-to-b from-slate-50/40 to-slate-50 hover:from-white hover:to-blue-50/10 text-center transition-all duration-300 group relative shadow-inner">
+                            <div class="border-2 border-dashed border-gray-200 hover:border-[#286CD2] rounded-2xl p-6 bg-gray-50 text-center transition-all duration-300 group relative">
                                 <label class="cursor-pointer block">
                                     <div class="w-12 h-12 rounded-2xl bg-white shadow-md border border-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400 group-hover:text-blue-600 group-hover:scale-110 group-hover:shadow-blue-500/5 transition-all duration-300">
                                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -264,7 +258,7 @@
                             <a href="{{ route('landlord.listings.index') }}" class="w-full sm:w-1/3 h-12 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur hover:bg-slate-50 font-semibold shadow-sm transition-all flex items-center justify-center text-slate-700">
                                 Cancel
                             </a>
-                            <button type="submit" class="w-full sm:w-2/3 h-12 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 text-white font-extrabold hover:shadow-xl hover:shadow-blue-500/25 hover:-translate-y-0.5 transition-all duration-300">
+                            <button type="submit" class="w-full sm:w-2/3 h-12 rounded-xl bg-[#286CD2] text-white font-bold hover:bg-[#1D4ED8] shadow-sm transition-all duration-300">
                                 Save Structural Changes
                             </button>
                         </div>

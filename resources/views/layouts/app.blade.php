@@ -17,29 +17,31 @@
     });
 </script>
 
-<body class="font-sans bg-[#F7F8FA] text-[#1A1A2E] min-h-screen flex flex-col">
+<body class="font-sans bg-[#F7F8FA] text-[#1A1A2E] min-h-screen flex flex-col" x-data="{}">
 
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-[100]">
+    <header class="bg-white/85 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-[100] supports-[backdrop-filter]:bg-white/60">
 
         {{-- 1. Nav Row --}}
-        <div class="flex items-center justify-between px-6 lg:px-10 h-[72px]">
+        <div class="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-[72px]">
 
             {{-- Logo --}}
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 no-underline flex-shrink-0 group">
+            <a href="{{ route('properties.index') }}"
+                class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group">
                 <div
-                    class="w-10 h-10 rounded-[12px] bg-[#286CD2] flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                    class="w-8 h-8 sm:w-10 sm:h-10 rounded-[10px] sm:rounded-[12px] bg-[#286CD2] flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" class="sm:w-[22px] sm:h-[22px]">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 12l2-2m0 0l7-7 7-7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                 </div>
-                <span class="text-[18px] font-extrabold text-[#1A1A2E] tracking-tight">
+                <span class="text-[16px] sm:text-[18px] font-extrabold text-[#1A1A2E] tracking-tight">
                     Abanganan<span class="text-[#286CD2]">Hub</span>
                 </span>
             </a>
 
             {{-- Right Actions --}}
             <div class="flex items-center gap-3">
+                @auth
 
                 {{-- Become a Landlord / My Listings --}}
                 <div class="relative hidden sm:block">
@@ -83,7 +85,7 @@
                     class="relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:shadow-md transition-all">
                     @if($unread > 0)
                         <div
-                            class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#ff385c] border-2 border-white">
+                            class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#286CD2] border-2 border-white">
                         </div>
                     @endif
                     <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -189,29 +191,35 @@
                         </form>
                     </div>
                 </div>
-
+                @else
+                    {{-- Guest Actions --}}
+                    <div class="flex items-center gap-1 sm:gap-2">
+                        <button x-on:click="$dispatch('open-modal', 'login-modal')" class="text-[13px] sm:text-[14px] font-bold text-[#1A1A2E] hover:bg-gray-100 px-3 sm:px-4 py-2 rounded-full transition-colors focus:outline-none whitespace-nowrap">Log in</button>
+                        <button x-on:click="$dispatch('open-modal', 'register-modal')" class="text-[13px] sm:text-[14px] font-bold text-white bg-[#286CD2] hover:bg-[#1D4ED8] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap">Sign up</button>
+                    </div>
+                @endauth
             </div>
         </div>
 
         {{-- 2. Search Pill + Category Strip (Modified to check for hide_search flag overrides) --}}
         @if(($searchBar ?? true) && !View::hasSection('hide_search'))
 
-            <div class="flex justify-center pb-5 pt-1">
+            <div class="flex justify-center pb-4 pt-1 px-4 sm:px-6">
                 <form action="{{ route('properties.index') }}" method="GET"
-                    class="flex items-center w-full max-w-[820px] bg-white rounded-full shadow-[0_4px_18px_rgba(0,0,0,0.08)] border border-gray-100 hover:shadow-md transition-shadow mx-6">
+                    class="flex items-center w-full max-w-[820px] bg-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)] border border-gray-100 transition-all duration-300">
 
                     <div
-                        class="flex-1 flex flex-col justify-center px-7 py-3 border-r border-gray-200 cursor-pointer hover:bg-gray-50 rounded-l-full transition-colors">
-                        <span class="text-[11px] font-bold text-gray-800 tracking-wide uppercase">Where</span>
-                        <input type="text" name="location" placeholder="Barangay, city in Cebu"
-                            class="p-0 border-none bg-transparent text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5">
+                        class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-gray-200 cursor-pointer hover:bg-gray-50 rounded-l-full transition-colors w-[33%] overflow-hidden">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Where</span>
+                        <input type="text" name="location" placeholder="Search..."
+                            class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
                     </div>
 
                     <div
-                        class="flex-1 flex flex-col justify-center px-7 py-3 border-r border-gray-200 hover:bg-gray-50 transition-colors">
-                        <span class="text-[11px] font-bold text-gray-800 tracking-wide uppercase">Type</span>
+                        class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-gray-200 hover:bg-gray-50 transition-colors w-[33%] overflow-hidden">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Type</span>
                         <select name="type"
-                            class="p-0 border-none bg-transparent text-[13.5px] text-gray-600 focus:ring-0 w-full outline-none appearance-none cursor-pointer mt-0.5">
+                            class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 w-full outline-none appearance-none cursor-pointer mt-0.5 truncate">
                             <option value="">Any type</option>
                             <option value="Bedspace">Bedspace</option>
                             <option value="Room">Room</option>
@@ -221,16 +229,16 @@
                     </div>
 
                     <div
-                        class="flex-1 flex items-center justify-between pl-7 pr-2 py-2 hover:bg-gray-50 rounded-r-full transition-colors">
-                        <div class="flex flex-col justify-center">
-                            <span class="text-[11px] font-bold text-gray-800 tracking-wide uppercase">Budget</span>
-                            <input type="number" name="price_max" placeholder="Max rent (₱)"
-                                class="p-0 border-none bg-transparent text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5">
+                        class="flex-1 flex items-center justify-between pl-3 pr-2 sm:pl-7 sm:pr-2 py-2 hover:bg-gray-50 rounded-r-full transition-colors w-[33%] overflow-hidden">
+                        <div class="flex flex-col justify-center w-[calc(100%-36px)] sm:w-auto overflow-hidden">
+                            <span class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Budget</span>
+                            <input type="number" name="price_max" placeholder="Max ₱"
+                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
                         </div>
                         <button type="submit"
-                            class="w-11 h-11 rounded-full bg-[#ff385c] flex items-center justify-center text-white flex-shrink-0 hover:bg-[#e03150] transition-colors ml-3 shadow-md">
-                            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="3">
+                            class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#286CD2] flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1D4ED8] transition-colors ml-1 sm:ml-3 shadow-md">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="3" class="sm:w-[17px] sm:h-[17px]">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
@@ -240,7 +248,7 @@
                 </form>
             </div>
 
-            <div class="flex items-center justify-center gap-8 px-6 overflow-x-auto pb-1"
+            <div class="flex items-center justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6 overflow-x-auto pb-1"
                 style="-ms-overflow-style:none; scrollbar-width:none;">
 
                 <a href="{{ route('properties.index') }}"
@@ -411,6 +419,10 @@
     </script>
 
     @stack('scripts')
+    @guest
+        <x-login-modal />
+        <x-register-modal />
+    @endguest
 </body>
 
 </html>

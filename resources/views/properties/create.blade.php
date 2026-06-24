@@ -3,13 +3,7 @@
 @section('hide_search', true) {{-- This line intercepts and hides the navigation search block --}}
 
 @section('content')
-<div class="relative min-h-screen overflow-hidden bg-slate-50 py-12">
-
-    <div class="absolute inset-0 -z-10">
-        <div class="absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-blue-100/40 blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-indigo-100/30 blur-3xl"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.08),_transparent_40%)]"></div>
-    </div>
+<div class="min-h-screen bg-[#F7F8FA] py-12">
 
     <div class="max-w-7xl mx-auto px-6 lg:px-8">
         
@@ -59,7 +53,7 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                <div class="lg:col-span-7 bg-white/80 backdrop-blur-xl border border-white/70 rounded-[28px] p-8 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] space-y-6">
+                <div class="lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm space-y-6">
                     
                     <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
                         <div class="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
@@ -154,7 +148,7 @@
                 <div class="lg:col-span-5">
                     <div class="sticky top-8 space-y-6">
                         
-                        <div class="bg-white/80 backdrop-blur-xl border border-white/70 rounded-[28px] p-6 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] space-y-4">
+                        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                             <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
                                 <div class="h-8 w-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -162,7 +156,7 @@
                                 <h3 class="text-sm font-bold text-slate-900">Media System Attachments</h3>
                             </div>
                             
-                            <div class="border-2 border-dashed @error('photos') border-red-300 bg-red-50/10 @else border-slate-200/80 @enderror hover:border-blue-400 rounded-2xl p-6 bg-gradient-to-b from-slate-50/40 to-slate-50 hover:from-white hover:to-blue-50/10 text-center transition-all duration-300 group relative shadow-inner">
+                            <div class="border-2 border-dashed @error('photos') border-red-300 bg-red-50/10 @else border-gray-200 @enderror hover:border-[#286CD2] rounded-2xl p-6 bg-gray-50 text-center transition-all duration-300 group relative">
                                 <label class="cursor-pointer block">
                                     <div class="w-12 h-12 rounded-2xl bg-white shadow-md border border-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400 group-hover:text-blue-600 group-hover:scale-110 group-hover:shadow-blue-500/5 transition-all duration-300">
                                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -206,7 +200,7 @@
                             <a href="{{ route('landlord.listings.index') }}" class="w-full sm:w-1/3 h-12 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur hover:bg-slate-50 font-semibold shadow-sm transition-all flex items-center justify-center text-slate-700">
                                 Cancel
                             </a>
-                            <button type="submit" class="w-full sm:w-2/3 h-12 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 text-white font-extrabold hover:shadow-xl hover:shadow-blue-500/25 hover:-translate-y-0.5 transition-all duration-300">
+                            <button type="submit" class="w-full sm:w-2/3 h-12 rounded-xl bg-[#286CD2] text-white font-bold hover:bg-[#1D4ED8] shadow-sm transition-all duration-300">
                                 Create Listing
                             </button>
                         </div>
