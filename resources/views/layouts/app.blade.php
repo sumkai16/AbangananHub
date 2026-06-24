@@ -129,15 +129,31 @@
                             </svg>
                             Account Settings
                         </a>
-                        <a href="{{ route('reservations.index') }}"
-                            class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
-                            </svg>
-                            My Reservations
-                        </a>
+                        @php $userRoles = auth()->user()->roles->pluck('role'); @endphp
+
+                        @if($userRoles->contains('Tenant'))
+                            <a href="{{ route('reservations.index') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
+                                </svg>
+                                My Reservations
+                            </a>
+                        @endif
+
+                        @if($userRoles->contains('Landlord'))
+                            <a href="{{ route('landlord.reservations.index') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
+                                </svg>
+                                Reservation Requests
+                            </a>
+                        @endif
                         <a href="{{ route('favorites.index') }}"
                             class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -302,16 +318,6 @@
     </header>
 
     {{-- Flash Messages --}}
-    @if(session('success'))
-        <div class="max-w-[1280px] mx-auto mt-4 px-5 md:px-10 w-full">
-            <div
-                class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 text-[13px] font-medium flex items-center justify-between shadow-sm">
-                <span>{{ session('success') }}</span>
-                <button class="opacity-60 hover:opacity-100 pl-3 focus:outline-none"
-                    onclick="this.parentElement.remove()">✕</button>
-            </div>
-        </div>
-    @endif
 
     @if(session('error'))
         <div class="max-w-[1280px] mx-auto mt-4 px-5 md:px-10 w-full">
