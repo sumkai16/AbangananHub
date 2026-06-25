@@ -56,16 +56,23 @@ Route::middleware('auth')->group(function () {
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
     });
 
-    // Admin-specific routes (FIXES: RouteNotFoundException)
-    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/listings/approval', [AdminListingController::class, 'approval'])->name('listings.approval');
-    });
+    // // Admin-specific routes (FIXES: RouteNotFoundException)
+    // Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    //     Route::get('/listings/approval', [AdminListingController::class, 'approval'])->name('listings.approval');
+    // });
 
     // Conversations and messages
     Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+    
+
+    //notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
 });
 
 require __DIR__.'/auth.php';
