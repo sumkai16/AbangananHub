@@ -17,10 +17,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
 
-// Publicly accessible property routes
-Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
-Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
-
 Route::get('/dashboard', [TenantDashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -35,6 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('landlord')->group(function () {
         Route::resource('properties', PropertyController::class)->except(['index', 'show']);
         Route::get('/landlord/listings', [LandlordListingController::class, 'index'])->name('landlord.listings.index');
+        Route::delete('/properties/{property}/media/{media}', [PropertyController::class, 'destroyMedia'])->name('properties.media.destroy');
     });
 
     // Tenant-accessible routes
@@ -54,6 +51,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
         Route::patch('/reservations/{reservation}/approve', [App\Http\Controllers\Landlord\ReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
+        
     });
 
     // // Admin-specific routes (FIXES: RouteNotFoundException)
@@ -74,5 +72,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
 });
+
+// Publicly accessible property routes
+Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 
 require __DIR__.'/auth.php';

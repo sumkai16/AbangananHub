@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<meta name="user-authenticated" content="{{ auth()->check() ? '1' : '0' }}">
 
 <head>
     <meta charset="UTF-8" />

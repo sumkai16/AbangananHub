@@ -82,7 +82,8 @@
                         onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
 
                         {{-- IMAGE --}}
-                        <div class="relative w-full aspect-square rounded-3xl overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-lg transition-all duration-500">
+                        <div
+                            class="relative w-full aspect-square rounded-3xl overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-lg transition-all duration-500">
                             @if($property->media->first())
                                 <img src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
@@ -116,7 +117,7 @@
                                 </svg>
                                 {{-- Filled heart (favorited) --}}
                                 <svg class="heart-filled {{ in_array($property->property_id, $favoritedIds) ? '' : 'hidden' }}"
-                                    width="20" height="20" viewBox="0 0 24 24" fill="#286CD2" stroke="#286CD2" stroke-width="1">
+                                    width="20" height="20" viewBox="0 0 24 24" fill="#61B2F0" stroke="#61B2F0" stroke-width="1">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
@@ -131,7 +132,7 @@
                                 </h3>
                                 <span
                                     class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0
-                                                                                                                                            {{ $property->availability_status === 'Available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
+                                                                                                                                                                                                        {{ $property->availability_status === 'Available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
                                     {{ $property->availability_status }}
                                 </span>
                             </div>
@@ -178,29 +179,39 @@
     @push('scripts')
         <script>
             (function () {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                function toggleFavorite(button) {
+                    const isAuthenticated = document.querySelector('meta[name="user-authenticated"]').content === '1';
 
-                window.toggleFavorite = function (btn) {
-                    const propertyId = btn.dataset.propertyId;
-                    const isFavorited = btn.dataset.favorited === 'true';
+                    if (!isAuthenticated) {
+                        window.location.href = "{{ route('login') }}";
+                        return;
+                    }
+
+                    const propertyId = button.dataset.propertyId;
+                    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+                    const outline = button.querySelector('.heart-outline');
+                    const filled = button.querySelector('.heart-filled');
 
                     fetch(`/favorites/${propertyId}/toggle`, {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': csrfToken,
                             'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrf,
                         },
                     })
-                        .then(res => res.json())
-                        .then(data => {
-                            btn.dataset.favorited = data.favorited ? 'true' : 'false';
-                            btn.querySelector('.heart-outline').classList.toggle('hidden', data.favorited);
-                            btn.querySelector('.heart-filled').classList.toggle('hidden', !data.favorited);
+                        .then(response => {
+                            if (!response.ok) throw new Error('Favorite toggle failed: ' + response.status);
+                            return response.json();
                         })
-                        .catch(() => {
-                            // Silently fail — don't crash the page over a heart toggle
-                        });
-                };
+                        .then(data => {
+                            button.dataset.favorited = data.favorited ? 'true' : 'false';
+                            outline.classList.toggle('hidden', data.favorited);
+                            filled.classList.toggle('hidden', !data.favorited);
+                        })
+                        .catch(err => console.error(err));
+                }
+
+                window.toggleFavorite = toggleFavorite;
             })();
         </script>
     @endpush

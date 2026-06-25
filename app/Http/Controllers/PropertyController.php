@@ -6,6 +6,7 @@ use App\Models\Favorite;
 use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PropertyController extends Controller
@@ -75,30 +76,31 @@ class PropertyController extends Controller
             'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        $property = new Property();
-        $property->landlord_id = Auth::user()->user_id;
-        $property->title = $validated['title'];
-        $property->description = $validated['description'];
-        $property->property_type = $validated['property_type'];
-        $property->address = $validated['address'];
-        $property->latitude = $validated['latitude'] ?? 10.3157;
-        $property->longitude = $validated['longitude'] ?? 123.8854;
-        $property->rental_fee = $validated['rental_fee'];
-        $property->occupancy_limit = $validated['occupancy_limit'];
-        $property->availability_status = 'Available';
-        $property->verification_status = 'Pending';
-        $property->save();
+        DB::transaction(function () use ($validated, $request) {
+            $property = new Property();
+            $property->landlord_id = Auth::user()->user_id;
+            $property->title = $validated['title'];
+            $property->description = $validated['description'];
+            $property->property_type = $validated['property_type'];
+            $property->address = $validated['address'];
+            // TODO: real per-property coordinates once Maps is built — see properties.create note.
+            $property->latitude = $validated['latitude'] ?? 10.3157;
+            $property->longitude = $validated['longitude'] ?? 123.8854;
+            $property->rental_fee = $validated['rental_fee'];
+            $property->occupancy_limit = $validated['occupancy_limit'];
+            $property->availability_status = 'Available';
+            $property->verification_status = 'Pending';
+            $property->save();
 
-        if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $photo) {
                 $path = $photo->store('properties', 'public');
                 $property->media()->create([
-                    'media_url' => $path, // Match the database column name exactly
+                    'media_url' => $path,
                 ]);
             }
-        }
+        });
 
-        return redirect()->route('landlord.listings.index')->with('success', 'Property listed successfully!');
+        return redirect()->route('landlord.listings.index')->with('success', 'Property listed successfully! It’s pending admin approval before it goes live.');
     }
 
     public function edit(Property $property)
@@ -106,6 +108,8 @@ class PropertyController extends Controller
         if ($property->landlord_id !== Auth::user()->user_id) {
             abort(403, 'Unauthorized access.');
         }
+
+        $property->load('media');
         return view('properties.edit', compact('property'));
     }
 
@@ -114,6 +118,8 @@ class PropertyController extends Controller
         if ($property->landlord_id !== Auth::user()->user_id) {
             abort(403, 'Unauthorized action.');
         }
+
+        $existingPhotoCount = $property->media()->count();
 
         $validated = $request->validate([
             'title' => 'required|string|min:10|max:150',
@@ -124,20 +130,43 @@ class PropertyController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
             'rental_fee' => 'required|numeric|min:500|max:999999.99',
             'occupancy_limit' => 'required|integer|min:1|max:100',
+            'photos' => [
+                'nullable',
+                'array',
+                function ($attribute, $value, $fail) use ($existingPhotoCount) {
+                    if ($existingPhotoCount + count($value) > 10) {
+                        $fail('A property can have at most 10 photos total. Remove some before adding more.');
+                    }
+                },
+            ],
+            'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        $property->update($validated);
+        DB::transaction(function () use ($validated, $request, $property) {
+            $photosAdded = $request->hasFile('photos');
 
-        if ($request->hasFile('photos')) {
-            foreach ($request->file('photos') as $photo) {
-                $path = $photo->store('properties', 'public');
-                $property->media()->create([
-                    'media_url' => $path,
-                ]);
+            $property->fill($validated);
+            $detailsChanged = $property->isDirty();
+            $property->save();
+
+            // Any real edit sends the listing back for re-review — content shown
+            // to tenants as "Approved" should match what was actually approved.
+            if ($detailsChanged || $photosAdded) {
+                $property->verification_status = 'Pending';
+                $property->save();
             }
-        }
 
-        return redirect()->route('landlord.listings.index')->with('success', 'Property updated successfully!');
+            if ($photosAdded) {
+                foreach ($request->file('photos') as $photo) {
+                    $path = $photo->store('properties', 'public');
+                    $property->media()->create([
+                        'media_url' => $path,
+                    ]);
+                }
+            }
+        });
+
+        return redirect()->route('landlord.listings.index')->with('success', 'Property updated. It’s back in the approval queue.');
     }
 
     public function destroy(Property $property)
@@ -147,11 +176,33 @@ class PropertyController extends Controller
         }
 
         foreach ($property->media as $media) {
-            Storage::disk('public')->delete($media->media_url);
+            if (!str_starts_with($media->media_url, 'http')) {
+                Storage::disk('public')->delete($media->media_url);
+            }
             $media->delete();
         }
 
         $property->delete();
         return redirect()->route('landlord.listings.index')->with('success', 'Property removed successfully.');
+    }
+
+    public function destroyMedia(Property $property, int $media)
+    {
+        if ($property->landlord_id !== Auth::user()->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($property->media()->count() <= 1) {
+            return back()->withErrors(['photos' => 'A listing needs at least one photo — upload a replacement before removing the last one.']);
+        }
+
+        $photo = $property->media()->where('media_id', $media)->firstOrFail();
+
+        if (!str_starts_with($photo->media_url, 'http')) {
+            Storage::disk('public')->delete($photo->media_url);
+        }
+        $photo->delete();
+
+        return back()->with('success', 'Photo removed.');
     }
 }
