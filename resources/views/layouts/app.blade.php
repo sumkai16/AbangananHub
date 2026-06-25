@@ -51,12 +51,13 @@
                              My Listings
                         </a>
                     @else
-                        <button id="landlord-btn" aria-expanded="false"
+                        <button id="landlord-btn" aria-expanded="false" type="button"
                             class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all focus:outline-none">
                             {{ auth()->user()->hasRole('Admin') ? 'Admin Actions' : 'Become a Landlord' }}
                         </button>
                         <div id="landlord-menu"
                             class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
+
                             
                             @if(auth()->user()->hasRole('Admin'))
                                 <a href="{{ route('admin.listings.approval') }}"
@@ -469,6 +470,44 @@
     </div>
 
     <script>
+        // Admin/landlord dropdown
+        (function () {
+            const btn = document.getElementById('landlord-btn');
+            const menu = document.getElementById('landlord-menu');
+            if (!btn || !menu) return;
+
+            const toggle = () => {
+                const isHidden = menu.classList.contains('hidden');
+                menu.classList.toggle('hidden', !isHidden);
+                btn.setAttribute('aria-expanded', String(isHidden));
+            };
+
+            // Click on any part of the wrapper should toggle
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggle();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (menu.classList.contains('hidden')) return;
+                const clickedInside = menu.contains(e.target) || btn.contains(e.target);
+                if (!clickedInside) {
+                    menu.classList.add('hidden');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                if (!menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        })();
+
+
         function openAuthModal(mode) {
             const modal = document.getElementById('auth-modal');
             const loginView = document.getElementById('login-form-view');
