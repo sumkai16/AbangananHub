@@ -114,119 +114,19 @@
 
                     {{-- Notifications --}}
                     @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
-                    <div class="relative" id="notif-wrapper" data-unread="{{ $unread }}">
-                        <button type="button" id="notif-bell"
-                            class="relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:shadow-md transition-all">
-                            @if($unread > 0)
-                                <span id="notif-dot"
-                                    class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#61B2F0] border-2 border-white">
-                                </span>
-                            @endif
-                            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                        </button>
-
-                        <div id="notif-panel"
-                            class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-gray-100 shadow-xl z-50 overflow-hidden">
-                            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                                <span class="text-sm font-semibold text-[#2A2523]">Notifications</span>
-                                <div class="flex items-center gap-3">
-                                    <button type="button" id="notif-mark-all"
-                                        class="text-xs font-semibold text-[#2A2523] hover:underline">
-                                        Mark all read
-                                    </button>
-                                    <a href="{{ route('notifications.index') }}"
-                                        class="text-xs font-semibold text-[#2A2523] hover:underline">
-                                        See all
-                                    </a>
-                                </div>
+                    <a href="{{ route('notifications.index') }}"
+                        class="relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:shadow-md transition-all">
+                        @if($unread > 0)
+                            <div
+                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#286CD2] border-2 border-white">
                             </div>
-                            <div id="notif-list" class="max-h-96 overflow-y-auto">
-                                <div class="px-4 py-8 text-center text-sm text-[#9B9F98]">Loading…</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <script>
-                        (function () {
-                            const wrapper = document.getElementById('notif-wrapper');
-                            const bell = document.getElementById('notif-bell');
-                            const panel = document.getElementById('notif-panel');
-                            const list = document.getElementById('notif-list');
-                            const dot = document.getElementById('notif-dot');
-                            const markAllBtn = document.getElementById('notif-mark-all');
-                            const csrf = document.querySelector('meta[name="csrf-token"]').content;
-                            let loaded = false;
-                            let unreadCount = parseInt(wrapper.dataset.unread || '0', 10);
-
-                            bell.addEventListener('click', function (e) {
-                                e.stopPropagation();
-                                panel.classList.toggle('hidden');
-                                if (!panel.classList.contains('hidden') && !loaded) {
-                                    fetch("{{ route('notifications.recent') }}")
-                                        .then(r => r.text())
-                                        .then(html => {
-                                            list.innerHTML = html;
-                                            loaded = true;
-                                            attachItemHandlers();
-                                        });
-                                }
-                            });
-
-                            document.addEventListener('click', function (e) {
-                                if (!wrapper.contains(e.target)) {
-                                    panel.classList.add('hidden');
-                                }
-                            });
-
-                            function attachItemHandlers() {
-                                list.querySelectorAll('.notif-item').forEach(function (item) {
-                                    item.addEventListener('click', function () {
-                                        const id = item.dataset.id;
-                                        const href = item.dataset.href;
-                                        const wasUnread = item.dataset.read === '0';
-
-                                        fetch(`/notifications/${id}/read`, {
-                                            method: 'POST',
-                                            headers: { 'X-CSRF-TOKEN': csrf }
-                                        });
-
-                                        if (wasUnread) {
-                                            item.dataset.read = '1';
-                                            unreadCount = Math.max(0, unreadCount - 1);
-                                            if (unreadCount === 0 && dot) dot.remove();
-                                        }
-
-                                        if (href) window.location.href = href;
-                                    });
-                                });
-                            }
-
-                            if (markAllBtn) {
-                                markAllBtn.addEventListener('click', function () {
-                                    fetch("{{ route('notifications.readAll') }}", {
-                                        method: 'POST',
-                                        headers: { 'X-CSRF-TOKEN': csrf }
-                                    }).then(() => {
-                                        unreadCount = 0;
-                                        if (dot) dot.remove();
-                                        list.querySelectorAll('.notif-item').forEach(function (item) {
-                                            item.dataset.read = '1';
-                                            item.classList.remove('bg-[#D7E8F3]/20');
-                                            const itemDot = item.querySelector('.unread-dot');
-                                            if (itemDot) {
-                                                itemDot.classList.remove('bg-[#61B2F0]');
-                                                itemDot.classList.add('bg-transparent');
-                                            }
-                                        });
-                                    });
-                                });
-                            }
-                        })();
-                    </script>
+                        @endif
+                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </a>
 
                     {{-- Avatar Dropdown --}}
                     <div class="relative">
@@ -338,7 +238,7 @@
             </div>
         </div>
 
-        {{-- 2. Search Pill + Category Strip (Modified to check for hide_search flag overrides) --}}
+        {{-- 2. Search Pill + Category Strip --}}
         @if(($searchBar ?? true) && !View::hasSection('hide_search'))
 
             <div class="flex justify-center pb-4 pt-1 px-4 sm:px-6">
@@ -390,7 +290,6 @@
 
             <div class="flex items-center justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6 overflow-x-auto pb-1"
                 style="-ms-overflow-style:none; scrollbar-width:none;">
-
                 <a href="{{ route('properties.index') }}"
                     class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
                     data-type="all">
@@ -400,7 +299,6 @@
                     </svg>
                     <span class="text-[12px] font-semibold">All</span>
                 </a>
-
                 <a href="{{ route('properties.index', ['type' => 'Bedspace']) }}"
                     class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
                     data-type="Bedspace">
@@ -410,7 +308,6 @@
                     </svg>
                     <span class="text-[12px] font-semibold">Bedspace</span>
                 </a>
-
                 <a href="{{ route('properties.index', ['type' => 'Room']) }}"
                     class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
                     data-type="Room">
@@ -420,7 +317,6 @@
                     </svg>
                     <span class="text-[12px] font-semibold">Room</span>
                 </a>
-
                 <a href="{{ route('properties.index', ['type' => 'Apartment']) }}"
                     class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
                     data-type="Apartment">
@@ -430,7 +326,6 @@
                     </svg>
                     <span class="text-[12px] font-semibold">Apartment</span>
                 </a>
-
                 <a href="{{ route('properties.index', ['type' => 'House']) }}"
                     class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
                     data-type="House">
@@ -440,7 +335,6 @@
                     </svg>
                     <span class="text-[12px] font-semibold">House</span>
                 </a>
-
                 <a href="{{ route('favorites.index') }}"
                     class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link">
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -449,7 +343,6 @@
                     </svg>
                     <span class="text-[12px] font-semibold">Saved</span>
                 </a>
-
                 <a href="{{ route('properties.index', ['verified' => 1]) }}"
                     class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link">
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -458,7 +351,6 @@
                     </svg>
                     <span class="text-[12px] font-semibold">Verified</span>
                 </a>
-
             </div>
 
         @endif
@@ -466,7 +358,6 @@
     </header>
 
     {{-- Flash Messages --}}
-
     @if(session('error'))
         <div class="max-w-[1280px] mx-auto mt-4 px-5 md:px-10 w-full">
             <div
@@ -500,65 +391,244 @@
         </div>
     </footer>
 
-    <script>
-        (function () {
-            const btn = document.getElementById('abg-avatar-btn');
-            const menu = document.getElementById('abg-avatar-menu');
-            const landlordBtn = document.getElementById('landlord-btn');
-            const landlordMenu = document.getElementById('landlord-menu');
+    {{-- ========================================== --}}
+    {{-- UNIFIED DYNAMIC AUTH MODAL (AJAX/FETCH) --}}
+    {{-- ========================================== --}}
+    @guest
+        <div id="auth-modal"
+            class="hidden fixed inset-0 z-[9999] bg-[#1A1A2E]/40 backdrop-blur-sm items-center justify-center p-4">
 
-            if (btn && menu) {
-                btn.addEventListener('click', e => {
-                    e.stopPropagation();
-                    const isHidden = menu.classList.contains('hidden');
-                    menu.classList.toggle('hidden', !isHidden);
-                    btn.setAttribute('aria-expanded', String(!isHidden));
-                });
-                btn.addEventListener('keydown', e => {
-                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
-                });
+            <div class="bg-white rounded-[24px] shadow-2xl max-w-md w-full p-6 md:p-8 relative transition-all transform scale-100 opacity-100 duration-300 max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                id="auth-modal-content">
+
+                <button type="button" onclick="closeAuthModal()"
+                    class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
+                <div id="modal-error-bag"
+                    class="hidden mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100"></div>
+
+                {{-- Login View --}}
+                <div id="login-form-view" class="hidden">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-[#286CD2] rounded-xl flex items-center justify-center shadow-sm">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25">
+                                </path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-[#1A1A2E]">Abanganan<span
+                                class="text-[#286CD2]">Hub</span></span>
+                    </div>
+
+                    <h2 class="text-[24px] font-bold text-[#1A1A2E] tracking-tight leading-tight">Welcome Back!</h2>
+                    <p class="text-[14px] text-gray-400 mt-1 mb-6">Login to continue to AbangananHub</p>
+
+                    <form id="ajax-login-form" onsubmit="handleAuthSubmit(event, '{{ route('login') }}')">
+                        @csrf
+                        <div class="mb-4">
+                            <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Email Address</label>
+                            <input type="email" name="email" required placeholder="Enter your email"
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-login-email"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Password</label>
+                            <div class="relative">
+                                <input type="password" name="password" required placeholder="Enter your password"
+                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
+                                <button type="button"
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z">
+                                        </path>
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-login-password"></span>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[13px] mb-6">
+                            <label class="flex items-center gap-2 text-gray-500 cursor-pointer select-none">
+                                <input type="checkbox" name="remember"
+                                    class="w-4 h-4 rounded text-[#286CD2] border-gray-300 focus:ring-[#286CD2]">
+                                Remember me
+                            </label>
+                            <a href="#" class="text-[#286CD2] font-semibold hover:underline">Forgot Password?</a>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-[#286CD2] text-white font-bold py-3 rounded-xl hover:bg-[#1D4ED8] active:scale-[0.99] transition-all shadow-md shadow-[#286CD2]/10 text-[15px]">
+                            Login
+                        </button>
+                    </form>
+
+                    <p class="text-[13px] text-center text-gray-500 mt-6">
+                        Don't have an account? <a href="#" onclick="openAuthModal('register')"
+                            class="text-[#286CD2] font-bold hover:underline">Register here</a>
+                    </p>
+
+                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-gray-300 font-bold uppercase">
+                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
+                    </div>
+                </div>
+
+                {{-- Register View --}}
+                <div id="register-form-view" class="hidden">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-[#286CD2] rounded-xl flex items-center justify-center shadow-sm">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25">
+                                </path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-[#1A1A2E]">Abanganan<span
+                                class="text-[#286CD2]">Hub</span></span>
+                    </div>
+
+                    <h2 class="text-[24px] font-bold text-[#1A1A2E] tracking-tight leading-tight">Create an Account</h2>
+                    <p class="text-[14px] text-gray-400 mt-1 mb-6">Join AbangananHub today</p>
+
+                    <form id="ajax-register-form" onsubmit="handleAuthSubmit(event, '{{ route('register') }}')">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Name</label>
+                            <input type="text" name="name" required placeholder="Enter your full name"
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-name"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Email Address</label>
+                            <input type="email" name="email" required placeholder="Enter your email address"
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-email"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Password</label>
+                            <input type="password" name="password" required placeholder="Create a password"
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-password"></span>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Confirm Password</label>
+                            <input type="password" name="password_confirmation" required placeholder="Confirm your password"
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-[#286CD2] text-white font-bold py-3 rounded-xl hover:bg-[#1D4ED8] active:scale-[0.99] transition-all shadow-md shadow-[#286CD2]/10 text-[15px]">
+                            Sign Up
+                        </button>
+                    </form>
+
+                    <p class="text-[13px] text-center text-gray-500 mt-6">
+                        Already have an account? <a href="#" onclick="openAuthModal('login')"
+                            class="text-[#286CD2] font-bold hover:underline">Login here</a>
+                    </p>
+
+                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-gray-300 font-bold uppercase">
+                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+            function openAuthModal(mode) {
+                const modal = document.getElementById('auth-modal');
+                const loginView = document.getElementById('login-form-view');
+                const registerView = document.getElementById('register-form-view');
+
+                if (!modal || !loginView || !registerView) return;
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+
+                if (mode === 'login') {
+                    loginView.classList.remove('hidden');
+                    registerView.classList.add('hidden');
+                } else {
+                    registerView.classList.remove('hidden');
+                    loginView.classList.add('hidden');
+                }
             }
 
-            if (landlordBtn && landlordMenu) {
-                landlordBtn.setAttribute('aria-expanded', 'false');
-                landlordBtn.addEventListener('click', e => {
-                    e.stopPropagation();
-                    const isHidden = landlordMenu.classList.contains('hidden');
-                    landlordMenu.classList.toggle('hidden', !isHidden);
-                    landlordBtn.setAttribute('aria-expanded', String(!isHidden));
-                });
-                landlordBtn.addEventListener('keydown', e => {
-                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); landlordBtn.click(); }
-                });
+            function closeAuthModal() {
+                const modal = document.getElementById('auth-modal');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
             }
 
-            document.addEventListener('click', () => {
-                if (menu) {
-                    menu.classList.add('hidden');
-                    btn.setAttribute('aria-expanded', 'false');
-                }
-                if (landlordMenu) {
-                    landlordMenu.classList.add('hidden');
-                    landlordBtn.setAttribute('aria-expanded', 'false');
-                }
+            window.addEventListener('click', function (event) {
+                const modal = document.getElementById('auth-modal');
+                if (event.target === modal) closeAuthModal();
             });
 
-            if (menu) menu.addEventListener('click', e => e.stopPropagation());
-            if (landlordMenu) landlordMenu.addEventListener('click', e => e.stopPropagation());
+            window.handleAuthSubmit = async function (event, endpoint) {
+                event.preventDefault();
 
-            const currentType = new URLSearchParams(window.location.search).get('type');
-            document.querySelectorAll('.category-link[data-type]').forEach(link => {
-                const isAll = !currentType && link.dataset.type === 'all';
-                const isMatch = currentType && link.dataset.type === currentType;
-                if (isAll || isMatch) {
-                    link.classList.remove('text-gray-400', 'border-transparent');
-                    link.classList.add('text-[#286CD2]', 'border-[#286CD2]', 'font-bold');
+                const form = event.target;
+                const errorBag = document.getElementById('modal-error-bag');
+                errorBag?.classList.add('hidden');
+                errorBag && (errorBag.innerText = '');
+
+                const formData = new FormData(form);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken || '',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+
+                    if (!res.ok) {
+                        if (data?.errors) {
+                            errorBag.classList.remove('hidden');
+                            errorBag.innerText = Object.values(data.errors).flat().join(' ');
+                            return;
+                        }
+                        errorBag.classList.remove('hidden');
+                        errorBag.innerText = data?.message || 'Authentication failed.';
+                        return;
+                    }
+
+                    closeAuthModal();
+                    if (data?.redirect_url) window.location.href = data.redirect_url;
+                    else window.location.reload();
+                } catch (e) {
+                    errorBag?.classList.remove('hidden');
+                    errorBag && (errorBag.innerText = 'Network error. Please try again.');
                 }
-            });
-        })();
-    </script>
+            };
+        </script>
+    @endguest
 
     @stack('scripts')
+
 </body>
 
 </html>
