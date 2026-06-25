@@ -17,10 +17,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
 
-// Publicly accessible property routes
-Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
-Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
-
 Route::get('/dashboard', [TenantDashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -35,6 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('landlord')->group(function () {
         Route::resource('properties', PropertyController::class)->except(['index', 'show']);
         Route::get('/landlord/listings', [LandlordListingController::class, 'index'])->name('landlord.listings.index');
+        Route::delete('/properties/{property}/media/{media}', [PropertyController::class, 'destroyMedia'])->name('properties.media.destroy');
     });
 
     // Tenant-accessible routes
@@ -54,18 +51,30 @@ Route::middleware('auth')->group(function () {
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
         Route::patch('/reservations/{reservation}/approve', [App\Http\Controllers\Landlord\ReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
+        
     });
 
-    // Admin-specific routes (FIXES: RouteNotFoundException)
-    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/listings/approval', [AdminListingController::class, 'approval'])->name('listings.approval');
-    });
+    // // Admin-specific routes (FIXES: RouteNotFoundException)
+    // Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    //     Route::get('/listings/approval', [AdminListingController::class, 'approval'])->name('listings.approval');
+    // });
 
     // Conversations and messages
     Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+    
+
+    //notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
 });
+
+// Publicly accessible property routes
+Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 
 require __DIR__.'/auth.php';
