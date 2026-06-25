@@ -627,6 +627,57 @@
         </script>
     @endguest
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Dropdown toggle logic
+            const setupDropdown = (btnId, menuId) => {
+                const btn = document.getElementById(btnId);
+                const menu = document.getElementById(menuId);
+                
+                if (btn && menu) {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const isHidden = menu.classList.contains('hidden');
+                        
+                        // Close other dropdowns if needed
+                        
+                        if (isHidden) {
+                            menu.classList.remove('hidden');
+                            btn.setAttribute('aria-expanded', 'true');
+                        } else {
+                            menu.classList.add('hidden');
+                            btn.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+                }
+            };
+
+            setupDropdown('abg-avatar-btn', 'abg-avatar-menu');
+            setupDropdown('landlord-btn', 'landlord-menu');
+
+            // Close dropdowns when clicking outside
+            window.addEventListener('click', (e) => {
+                const avatarMenu = document.getElementById('abg-avatar-menu');
+                const avatarBtn = document.getElementById('abg-avatar-btn');
+                if (avatarMenu && !avatarMenu.classList.contains('hidden')) {
+                    if (!avatarMenu.contains(e.target) && !avatarBtn.contains(e.target)) {
+                        avatarMenu.classList.add('hidden');
+                        avatarBtn.setAttribute('aria-expanded', 'false');
+                    }
+                }
+
+                const landlordMenu = document.getElementById('landlord-menu');
+                const landlordBtn = document.getElementById('landlord-btn');
+                if (landlordMenu && !landlordMenu.classList.contains('hidden')) {
+                    if (!landlordMenu.contains(e.target) && !landlordBtn.contains(e.target)) {
+                        landlordMenu.classList.add('hidden');
+                        landlordBtn.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            });
+        });
+    </script>
+
     @stack('scripts')
 
 </body>

@@ -54,10 +54,10 @@ Route::middleware('auth')->group(function () {
         
     });
 
-    // // Admin-specific routes (FIXES: RouteNotFoundException)
-    // Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-    //     Route::get('/listings/approval', [AdminListingController::class, 'approval'])->name('listings.approval');
-    // });
+    // Admin-specific routes (FIXES: RouteNotFoundException)
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/listings/approval', [AdminListingController::class, 'approval'])->name('listings.approval');
+    });
 
     // Conversations and messages
     Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
