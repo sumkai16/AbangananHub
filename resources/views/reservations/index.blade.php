@@ -2,143 +2,206 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="max-w-[900px] mx-auto px-6 py-10">
+    <div class="max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+        {{-- Subtle background ambient gradient blob for a modern UI vibe --}}
+        <div class="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-tr from-blue-400/5 to-purple-400/5 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="mb-8">
-            <h1 class="text-[24px] font-extrabold text-[#1A1A2E] mb-1">My Reservations</h1>
-            <p class="text-gray-500">Track the status of your reservation requests.</p>
+        {{-- Premium Modern Header with Gradient Accent --}}
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12 pb-8 border-b border-slate-200/60 relative z-10">
+            <div>
+                <div class="flex items-center gap-2.5 text-xs font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent uppercase tracking-widest mb-2">
+                    <span class="h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
+                    Tenant Portal Dashboard
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mb-2">My Reservations</h1>
+                <p class="text-[15px] text-slate-500 font-medium">Review real-time processing status, scheduling details, and lease inquiries.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('properties.index') }}" class="inline-flex items-center justify-center px-5 py-3 text-sm font-bold text-slate-700 bg-white border border-slate-200/80 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                    Browse Properties
+                </a>
+            </div>
         </div>
 
         @if (session('success'))
-            <div
-                class="mb-6 px-4 py-3 rounded-lg bg-emerald-50 text-emerald-800 text-[14px] font-medium border border-emerald-200">
+            <div class="mb-8 p-4.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-900 text-sm font-semibold border border-emerald-100 shadow-[0_4px_12px_rgba(16,185,129,0.05)] flex items-center gap-3">
+                <div class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg>
+                </div>
                 {{ session('success') }}
             </div>
         @endif
 
         @if($errors->any())
-            <div class="mb-6 px-4 py-3 rounded-lg bg-red-50 text-red-800 text-[14px] font-medium border border-red-200">
+            <div class="mb-8 p-4.5 rounded-2xl bg-gradient-to-r from-rose-50 to-orange-50 text-rose-900 text-sm font-semibold border border-rose-100 shadow-[0_4px_12px_rgba(244,63,94,0.05)] flex items-center gap-3">
+                <div class="p-1.5 rounded-lg bg-rose-500/10 text-rose-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </div>
                 {{ $errors->first() }}
             </div>
         @endif
 
         @if($reservations->isEmpty())
-            <x-empty-state title="No reservations yet" message="Once you reserve a property, it will show up here."
-                href="{{ route('properties.index') }}" cta="Browse listings" />
+            <x-empty-state title="No active inquiries" message="Your submission queue is currently clear. Once you request a lease window, it will process directly here."
+                href="{{ route('properties.index') }}" cta="Explore Available Listings" />
         @else
-            <div class="flex flex-col gap-4">
+            <div class="space-y-8 relative z-10">
                 @foreach($reservations as $reservation)
                     @continue(!$reservation->property)
                     @php
                         $statusStyles = match ($reservation->reservation_status) {
-                            'Pending' => ['badge' => 'bg-amber-50 text-amber-700 border-amber-200', 'icon' => 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
-                            'Approved' => ['badge' => 'bg-emerald-50 text-emerald-800 border-emerald-200', 'icon' => 'm9 12.75 2.25 2.25 6-6m4.5 3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
-                            'Rejected' => ['badge' => 'bg-red-50 text-red-800 border-red-200', 'icon' => 'm9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
-                            'Cancelled' => ['badge' => 'bg-gray-100 text-gray-500 border-gray-200', 'icon' => 'M15 12H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
-                            default => ['badge' => 'bg-gray-100 text-gray-500 border-gray-200', 'icon' => 'M15 12H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
+                            'Pending' => [
+                                'badge' => 'bg-amber-500/10 text-amber-800 border-amber-200/50', 
+                                'bg' => 'bg-amber-500',
+                                'text' => 'Awaiting Verification'
+                            ],
+                            'Approved' => [
+                                'badge' => 'bg-emerald-500/10 text-emerald-800 border-emerald-200/50', 
+                                'bg' => 'bg-emerald-500',
+                                'text' => 'Offer Approved'
+                            ],
+                            'Rejected' => [
+                                'badge' => 'bg-rose-500/10 text-rose-800 border-rose-200/50', 
+                                'bg' => 'bg-rose-500',
+                                'text' => 'Declined'
+                            ],
+                            'Cancelled' => [
+                                'badge' => 'bg-slate-500/10 text-slate-600 border-slate-200/50', 
+                                'bg' => 'bg-slate-400',
+                                'text' => 'Withdrawn'
+                            ],
+                            default => [
+                                'badge' => 'bg-slate-500/10 text-slate-600 border-slate-200/50', 
+                                'bg' => 'bg-slate-400',
+                                'text' => 'Archived'
+                            ],
                         };
                         $thumbnail = $reservation->property->media->firstWhere('media_type', 'Image');
                     @endphp
 
-                    <div class="flex gap-4 border border-gray-200 rounded-2xl p-4 bg-white">
-
-                        <a href="{{ route('properties.show', $reservation->property) }}"
-                            class="flex-shrink-0 w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-gray-100">
-                            @if($thumbnail)
-                                <img src="{{ $thumbnail->media_url }}" alt="{{ $reservation->property->title }}"
-                                    class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center text-gray-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                        stroke="currentColor" class="w-8 h-8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                                    </svg>
-                                </div>
-                            @endif
-                        </a>
-
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-3 mb-2 flex-wrap">
-                                <div class="min-w-0">
-                                    <a href="{{ route('properties.show', $reservation->property) }}"
-                                        class="text-[15px] font-bold text-[#1A1A2E] hover:underline truncate block">
-                                        {{ $reservation->property->title }}
-                                    </a>
-                                    <p class="flex items-center gap-1 text-[12.5px] text-gray-500 mt-0.5">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                            stroke="currentColor" class="w-3.5 h-3.5 flex-shrink-0">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                    {{-- Next-Gen Asymmetric Dashboard Card Architecture with Rich Gradients & Shadows --}}
+                    <div class="group bg-white rounded-3xl border border-slate-200/60 shadow-[0_8px_30px_rgba(30,41,59,0.02)] hover:shadow-[0_20px_50px_rgba(30,41,59,0.07)] hover:border-slate-300/80 transition-all duration-300 ease-out overflow-hidden">
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-12">
+                            
+                            {{-- Widescreen Left Image Section with Gradient Overlay --}}
+                            <div class="lg:col-span-4 relative h-56 lg:h-full min-h-[240px] bg-slate-100 overflow-hidden">
+                                @if($thumbnail)
+                                    <img src="{{ $thumbnail->media_url }}" alt="{{ $reservation->property->title }}"
+                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-slate-300 bg-gradient-to-br from-slate-50 to-slate-100">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-12 h-12">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                         </svg>
-                                        <span class="truncate">{{ $reservation->property->address }}</span>
-                                    </p>
-                                </div>
-                                <span
-                                    class="flex-shrink-0 inline-flex items-center gap-1 text-[11.5px] font-bold px-3 py-1 rounded-full border {{ $statusStyles['badge'] }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                                        stroke="currentColor" class="w-3 h-3">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $statusStyles['icon'] }}" />
-                                    </svg>
-                                    {{ $reservation->reservation_status }}
-                                </span>
+                                    </div>
+                                @endif
+                                {{-- Vignette gradient panel layered on top of image --}}
+                                <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950/30 via-slate-950/5 to-transparent"></div>
                             </div>
 
-                            <div class="flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-gray-600 mb-3">
-                                <span class="flex items-center gap-1.5">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                        stroke="currentColor" class="w-4 h-4 text-gray-400">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                    </svg>
-                                    {{ $reservation->reservation_date->format('M d, Y') }}
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                        stroke="currentColor" class="w-4 h-4 text-gray-400">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                                    </svg>
-                                    {{ trim($reservation->property->landlord->first_name . ' ' . $reservation->property->landlord->last_name) }}
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                        stroke="currentColor" class="w-4 h-4 text-gray-400">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                                    </svg>
-                                    {{ $reservation->property->landlord->contact_number ?? 'Not provided' }}
-                                </span>
-                            </div>
+                            {{-- Right Information Panel Workspace --}}
+                            <div class="lg:col-span-8 p-6 sm:p-8 flex flex-col justify-between bg-gradient-to-br from-white via-white to-slate-50/40">
+                                
+                                <div>
+                                    <div class="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap mb-5">
+                                        <div class="min-w-0">
+                                            <a href="{{ route('properties.show', $reservation->property) }}"
+                                                class="text-xl font-extrabold text-slate-900 hover:text-blue-600 transition-colors tracking-tight truncate block mb-1">
+                                                {{ $reservation->property->title }}
+                                            </a>
+                                            <div class="flex items-center gap-1.5 text-slate-400 font-medium text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" class="w-3.5 h-3.5 flex-shrink-0 text-slate-400">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                                </svg>
+                                                <span class="truncate max-w-sm sm:max-w-md text-slate-500">{{ $reservation->property->address }}</span>
+                                            </div>
+                                        </div>
 
-                            @if($reservation->remarks)
-                                <p class="text-[13px] text-gray-600 bg-gray-50 rounded-lg px-3 py-2 mb-3">
-                                    "{{ $reservation->remarks }}"
-                                </p>
-                            @endif
+                                        {{-- Dynamic Floating Process Badge with Fine Micro-shadows --}}
+                                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-[11px] font-black uppercase tracking-wider transition-all {{ $statusStyles['badge'] }} shadow-sm">
+                                            <span class="h-2 w-2 rounded-full ring-4 ring-white {{ $statusStyles['bg'] }}"></span>
+                                            {{ $statusStyles['text'] }}
+                                        </span>
+                                    </div>
 
-                            @if($reservation->isPending() || $reservation->isApproved())
-                                <div class="flex justify-end">
-                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
-                                        onsubmit="return confirm('Cancel this reservation?');">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit"
-                                            class="px-5 py-2 rounded-lg border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-700 text-[13px] font-bold transition-colors">
-                                            Cancel reservation
-                                        </button>
-                                    </form>
+                                    {{-- Geometric Frosted Metric Subgrid with Radial Backdrops --}}
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-2xl bg-gradient-to-br from-slate-50/90 to-slate-100/40 border border-slate-200/50 shadow-inner mb-6">
+                                        <div class="space-y-1">
+                                            <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase block">Move-In Target</span>
+                                            <p class="text-[13.5px] text-slate-800 font-bold flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                {{ $reservation->reservation_date->format('M d, Y') }}
+                                            </p>
+                                        </div>
+                                        <div class="space-y-1 border-l border-slate-200/80 pl-4">
+                                            <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase block">Lease Span</span>
+                                            <p class="text-[13.5px] text-blue-700 font-bold flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                {{ $reservation->duration_of_stay }}
+                                            </p>
+                                        </div>
+                                        <div class="space-y-1 border-l border-slate-200/80 pl-4 col-span-1">
+                                            <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase block">Total Group</span>
+                                            <p class="text-[13.5px] text-purple-700 font-bold flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                                {{ $reservation->occupants_count }} {{ Str::plural('Person', $reservation->occupants_count) }}
+                                            </p>
+                                        </div>
+                                        <div class="space-y-1 border-l border-slate-200/80 pl-4 col-span-1">
+                                            <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase block">Host/Landlord</span>
+                                            <p class="text-[13.5px] text-slate-800 font-bold truncate">
+                                                {{ trim($reservation->property->landlord->first_name . ' ' . $reservation->property->landlord->last_name) }}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                            @endif
+
+                                {{-- Footnote / Utility Actions Footer --}}
+                                <div class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100/80">
+                                    <div class="min-w-0 flex items-center gap-2">
+                                        @if($reservation->remarks)
+                                            <div class="p-1 rounded bg-slate-100 text-slate-400 flex-shrink-0">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                                            </div>
+                                            <p class="text-[13.5px] font-medium text-slate-500 italic truncate max-w-md md:max-w-xl">
+                                                "{{ $reservation->remarks }}"
+                                            </p>
+                                        @else
+                                            <p class="text-[13px] text-slate-400 font-medium italic">No custom messaging parameters attached.</p>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex items-center gap-3 sm:ml-auto flex-shrink-0">
+                                        {{-- Secondary Action Contact Info with Soft Shadow Profile --}}
+                                        <span class="text-xs font-semibold text-slate-500 border border-slate-200/80 rounded-xl px-3 py-2 bg-white flex items-center gap-1.5 shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                            {{ $reservation->property->landlord->contact_number ?? 'No Line' }}
+                                        </span>
+
+                                        @if($reservation->isPending() || $reservation->isApproved())
+                                            <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
+                                                onsubmit="return confirm('Withdraw this reservation proposal?');" class="inline-block">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit"
+                                                    class="px-4 py-2 text-xs font-bold text-slate-500 bg-white border border-slate-200 hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-50 hover:text-rose-600 hover:border-rose-200/80 rounded-xl shadow-sm transition-all duration-200">
+                                                    Withdraw
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
 
                     </div>
                 @endforeach
             </div>
 
-            <div class="mt-8">
+            {{-- Custom Paginated Control Segment --}}
+            <div class="mt-12 pt-6 border-t border-slate-200/60">
                 {{ $reservations->links() }}
             </div>
         @endif

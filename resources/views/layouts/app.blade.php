@@ -217,12 +217,19 @@
                 @else
                     {{-- Guest Actions --}}
                     <div class="flex items-center gap-1 sm:gap-2">
-                        <a href="{{ route('login') }}"
-                            class="text-[13px] sm:text-[14px] font-bold text-[#1A1A2E] hover:bg-gray-100 px-3 sm:px-4 py-2 rounded-full transition-colors focus:outline-none whitespace-nowrap no-underline">Log
-                            in</a>
-                        <a href="{{ route('register') }}"
-                            class="text-[13px] sm:text-[14px] font-bold text-white bg-[#286CD2] hover:bg-[#1D4ED8] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">Sign
-                            up</a>
+                        <button
+                            type="button"
+                            onclick="openAuthModal('login')"
+                            class="text-[13px] sm:text-[14px] font-bold text-[#1A1A2E] hover:bg-gray-100 px-3 sm:px-4 py-2 rounded-full transition-colors focus:outline-none whitespace-nowrap no-underline">
+                            Log in
+                        </button>
+
+                        <button
+                            type="button"
+                            onclick="openAuthModal('register')"
+                            class="text-[13px] sm:text-[14px] font-bold text-white bg-[#286CD2] hover:bg-[#1D4ED8] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">
+                            Sign up
+                        </button>
                     </div>
                 @endauth
             </div>

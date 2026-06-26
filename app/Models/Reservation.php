@@ -10,6 +10,8 @@ class Reservation extends Model
     protected $fillable = [
         'property_id',
         'tenant_id',
+        'duration_of_stay', // Add this
+    'occupants_count',  // Add this
         'reservation_date',
         'reservation_status',
         'remarks',

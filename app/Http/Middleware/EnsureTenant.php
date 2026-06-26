@@ -13,7 +13,7 @@ class EnsureTenant
         // Auth check first — middleware can run before auth middleware
         // if routes are misconfigured, so we guard against that.
         if (! $request->user()) {
-            return redirect()->route('login');
+            return redirect('/');
         }
 
         // hasRole() is the helper you wrote on the User model.

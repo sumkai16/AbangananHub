@@ -11,7 +11,7 @@ class EnsureLandlord
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user()) {
-            return redirect()->route('login');
+            return redirect('/');
         }
 
         // Having the Landlord role is not enough on its own —
