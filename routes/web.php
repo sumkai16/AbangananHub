@@ -51,7 +51,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
         Route::patch('/reservations/{reservation}/approve', [App\Http\Controllers\Landlord\ReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
-        
+    });
+
+    // Admin-specific routes (Guards the view dashboard and processing actions using explicit property_id parameters)
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/listings/approval', [AdminListingController::class, 'approval'])->name('listings.approval');
+        Route::post('/listings/{property_id}/approve', [AdminListingController::class, 'approve'])->name('listings.approve');
+        Route::post('/listings/{property_id}/reject', [AdminListingController::class, 'reject'])->name('listings.reject');
     });
 
     // Admin-specific routes (FIXES: RouteNotFoundException)
@@ -64,9 +70,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
-    
 
-    //notifications
+    // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');

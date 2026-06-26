@@ -46,27 +46,25 @@
             <div class="flex items-center gap-3">
                 @auth
 
-                    {{-- Become a Landlord / My Listings --}}
+                    {{-- Become a Landlord / My Listings / Admin Actions Button & Dropdown --}}
                     <div class="relative hidden sm:block">
-                        {{-- Force dropdown logic instead of a direct link if the user is an admin --}}
                         @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
                             <a href="{{ route('landlord.listings.index') }}"
                                 class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all">
-                                <span class="text-base leading-none"></span> My Listings
+                                My Listings
                             </a>
                         @else
                             <button id="landlord-btn" aria-expanded="false"
                                 class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all focus:outline-none">
-                                <span class="text-base leading-none"></span>
                                 {{ auth()->user()->hasRole('Admin') ? 'Admin Actions' : 'Become a Landlord' }}
                             </button>
+
                             <div id="landlord-menu"
                                 class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
 
-                                {{-- Admin Only Option --}}
+                                {{-- Admin Dropdown Features --}}
                                 @if(auth()->user()->hasRole('Admin'))
-                                    <a href="{{ route('admin.listings.approval') }}" {{-- NOTE: Ensure 'admin.listings.approval'
-                                        matches your actual route name --}}
+                                    <a href="{{ \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#' }}"
                                         class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#286CD2] hover:bg-blue-50 border-b border-gray-100 mb-1">
                                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2.5">
@@ -75,9 +73,11 @@
                                         </svg>
                                         Listing Approval
                                     </a>
+                                    {{-- Future admin features can easily be appended right here --}}
                                 @endif
 
-                                @if(!auth()->user()->hasRole('Landlord'))
+                                {{-- Regular Guest / Potential Landlord options --}}
+                                @if(!auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
                                     <a href="#"
                                         class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
                                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -86,16 +86,6 @@
                                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                         </svg>
                                         Apply as Landlord
-                                    </a>
-                                @else
-                                    <a href="{{ route('landlord.listings.index') }}"
-                                        class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
-                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                        </svg>
-                                        My Listings
                                     </a>
                                 @endif
 
@@ -627,52 +617,52 @@
         </script>
     @endguest
 
+    {{-- Interactive Layout Dropdown Handler Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Dropdown toggle logic
-            const setupDropdown = (btnId, menuId) => {
-                const btn = document.getElementById(btnId);
-                const menu = document.getElementById(menuId);
-                
-                if (btn && menu) {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const isHidden = menu.classList.contains('hidden');
-                        
-                        // Close other dropdowns if needed
-                        
-                        if (isHidden) {
-                            menu.classList.remove('hidden');
-                            btn.setAttribute('aria-expanded', 'true');
-                        } else {
-                            menu.classList.add('hidden');
-                            btn.setAttribute('aria-expanded', 'false');
-                        }
-                    });
+            const landlordBtn = document.getElementById('landlord-btn');
+            const landlordMenu = document.getElementById('landlord-menu');
+            const avatarBtn = document.getElementById('abg-avatar-btn');
+            const avatarMenu = document.getElementById('abg-avatar-menu');
+
+            function toggleDropdown(btn, menu) {
+                if (!btn || !menu) return;
+                const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+
+                // Automatically close alternate menus to prevent stacking layout bugs
+                if (landlordMenu && landlordMenu !== menu) landlordMenu.classList.add('hidden');
+                if (landlordBtn && landlordBtn !== btn) landlordBtn.setAttribute('aria-expanded', 'false');
+                if (avatarMenu && avatarMenu !== menu) avatarMenu.classList.add('hidden');
+                if (avatarBtn && avatarBtn !== btn) avatarBtn.setAttribute('aria-expanded', 'false');
+
+                // Toggle targeted menu view status
+                btn.setAttribute('aria-expanded', !isExpanded);
+                menu.classList.toggle('hidden');
+            }
+
+            if (landlordBtn && landlordMenu) {
+                landlordBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleDropdown(landlordBtn, landlordMenu);
+                });
+            }
+
+            if (avatarBtn && avatarMenu) {
+                avatarBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleDropdown(avatarBtn, avatarMenu);
+                });
+            }
+
+            // Document click listener to clear active menus when navigating outside layout controls
+            document.addEventListener('click', (e) => {
+                if (landlordMenu && !landlordMenu.classList.contains('hidden') && !landlordBtn.contains(e.target) && !landlordMenu.contains(e.target)) {
+                    landlordMenu.classList.add('hidden');
+                    landlordBtn.setAttribute('aria-expanded', 'false');
                 }
-            };
-
-            setupDropdown('abg-avatar-btn', 'abg-avatar-menu');
-            setupDropdown('landlord-btn', 'landlord-menu');
-
-            // Close dropdowns when clicking outside
-            window.addEventListener('click', (e) => {
-                const avatarMenu = document.getElementById('abg-avatar-menu');
-                const avatarBtn = document.getElementById('abg-avatar-btn');
-                if (avatarMenu && !avatarMenu.classList.contains('hidden')) {
-                    if (!avatarMenu.contains(e.target) && !avatarBtn.contains(e.target)) {
-                        avatarMenu.classList.add('hidden');
-                        avatarBtn.setAttribute('aria-expanded', 'false');
-                    }
-                }
-
-                const landlordMenu = document.getElementById('landlord-menu');
-                const landlordBtn = document.getElementById('landlord-btn');
-                if (landlordMenu && !landlordMenu.classList.contains('hidden')) {
-                    if (!landlordMenu.contains(e.target) && !landlordBtn.contains(e.target)) {
-                        landlordMenu.classList.add('hidden');
-                        landlordBtn.setAttribute('aria-expanded', 'false');
-                    }
+                if (avatarMenu && !avatarMenu.classList.contains('hidden') && !avatarBtn.contains(e.target) && !avatarMenu.contains(e.target)) {
+                    avatarMenu.classList.add('hidden');
+                    avatarBtn.setAttribute('aria-expanded', 'false');
                 }
             });
         });
