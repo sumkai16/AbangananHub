@@ -46,172 +46,174 @@
             <div class="flex items-center gap-3">
                 @auth
 
-                {{-- Become a Landlord / My Listings / Admin Actions Button & Dropdown --}}
-                <div class="relative hidden sm:block">
-                    @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
-                        <a href="{{ route('landlord.listings.index') }}"
-                            class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all">
-                             My Listings
-                        </a>
-                    @else
-                        <button id="landlord-btn" aria-expanded="false"
-                            class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all focus:outline-none">
-                            {{ auth()->user()->hasRole('Admin') ? 'Admin Actions' : 'Become a Landlord' }}
-                        </button>
-                        
-                        <div id="landlord-menu"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
-                            
-                            {{-- Admin Dropdown Features --}}
-                            @if(auth()->user()->hasRole('Admin'))
-                                <a href="{{ \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#' }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#286CD2] hover:bg-blue-50 border-b border-gray-100 mb-1">
-                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Listing Approval
-                                </a>
-                                {{-- Future admin features can easily be appended right here --}}
-                            @endif
+                    {{-- Become a Landlord / My Listings / Admin Actions Button & Dropdown --}}
+                    <div class="relative hidden sm:block">
+                        @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
+                            <a href="{{ route('landlord.listings.index') }}"
+                                class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all">
+                                My Listings
+                            </a>
+                        @else
+                            <button id="landlord-btn" aria-expanded="false"
+                                class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all focus:outline-none">
+                                {{ auth()->user()->hasRole('Admin') ? 'Admin Actions' : 'Become a Landlord' }}
+                            </button>
 
-                            {{-- Regular Guest / Potential Landlord options --}}
-                            @if(!auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
-                                <a href="#"
+                            <div id="landlord-menu"
+                                class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
+
+                                {{-- Admin Dropdown Features --}}
+                                @if(auth()->user()->hasRole('Admin'))
+                                    <a href="{{ \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#' }}"
+                                        class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#286CD2] hover:bg-blue-50 border-b border-gray-100 mb-1">
+                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Listing Approval
+                                    </a>
+                                    {{-- Future admin features can easily be appended right here --}}
+                                @endif
+
+                                {{-- Regular Guest / Potential Landlord options --}}
+                                @if(!auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
+                                    <a href="#"
+                                        class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
+                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                        Apply as Landlord
+                                    </a>
+                                @endif
+
+                                <a href="{{ route('properties.index') }}"
                                     class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                     </svg>
-                                    Apply as Landlord
+                                    Browse Properties
                                 </a>
-                            @endif
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Notifications --}}
+                    @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
+                    <a href="{{ route('notifications.index') }}"
+                        class="relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:shadow-md transition-all">
+                        @if($unread > 0)
+                            <div
+                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#286CD2] border-2 border-white">
+                            </div>
+                        @endif
+                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </a>
+
+                    {{-- Avatar Dropdown --}}
+                    <div class="relative">
+                        <button id="abg-avatar-btn" aria-expanded="false"
+                            class="flex items-center justify-center w-10 h-10 rounded-full bg-[#286CD2] text-white text-[15px] font-bold shadow-sm hover:shadow-md transition-all focus:outline-none">
+                            {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
+                        </button>
+
+                        <div id="abg-avatar-menu"
+                            class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
+                            <div class="px-4 py-3 border-b border-gray-100 mb-1">
+                                <div class="text-[13.5px] font-bold text-gray-900">
+                                    {{ trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) }}
+                                </div>
+                                <div class="text-[12px] text-gray-400 mt-0.5 truncate">
+                                    {{ auth()->user()->email }}
+                                </div>
+                            </div>
 
                             <a href="{{ route('properties.index') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
+                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-gray-800 hover:bg-gray-50">
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                     stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                Browse Properties
+                                Properties
                             </a>
-                        </div>
-                    @endif
-                </div>
+                            <a href="{{ route('profile.edit') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-gray-800 hover:bg-gray-50">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                Account Settings
+                            </a>
+                            @php $userRoles = auth()->user()->roles->pluck('role'); @endphp
 
-                {{-- Notifications --}}
-                @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
-                <a href="{{ route('notifications.index') }}"
-                    class="relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:shadow-md transition-all">
-                    @if($unread > 0)
-                        <div
-                            class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#286CD2] border-2 border-white">
-                        </div>
-                    @endif
-                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                </a>
+                            @if($userRoles->contains('Tenant'))
+                                <a href="{{ route('reservations.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    My Reservations
+                                </a>
+                            @endif
 
-                {{-- Avatar Dropdown --}}
-                <div class="relative">
-                    <button id="abg-avatar-btn" aria-expanded="false"
-                        class="flex items-center justify-center w-10 h-10 rounded-full bg-[#286CD2] text-white text-[15px] font-bold shadow-sm hover:shadow-md transition-all focus:outline-none">
-                        {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
-                    </button>
-
-                    <div id="abg-avatar-menu"
-                        class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
-                        <div class="px-4 py-3 border-b border-gray-100 mb-1">
-                            <div class="text-[13.5px] font-bold text-gray-900">
-                                {{ trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) }}
-                            </div>
-                            <div class="text-[12px] text-gray-400 mt-0.5 truncate">
-                                {{ auth()->user()->email }}
-                            </div>
-                        </div>
-
-                        <a href="{{ route('properties.index') }}"
-                            class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-gray-800 hover:bg-gray-50">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            Properties
-                        </a>
-                        <a href="{{ route('profile.edit') }}"
-                            class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-gray-800 hover:bg-gray-50">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            Account Settings
-                        </a>
-                        @php $userRoles = auth()->user()->roles->pluck('role'); @endphp
-
-                        @if($userRoles->contains('Tenant'))
-                            <a href="{{ route('reservations.index') }}"
+                            @if($userRoles->contains('Landlord'))
+                                <a href="{{ route('landlord.reservations.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Reservation Requests
+                                </a>
+                            @endif
+                            <a href="{{ route('favorites.index') }}"
                                 class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                     stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
+                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
-                                My Reservations
+                                Saved Listings
                             </a>
-                        @endif
-
-                        @if($userRoles->contains('Landlord'))
-                            <a href="{{ route('landlord.reservations.index') }}"
+                            <a href="{{ route('conversations.index') }}"
                                 class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                     stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
+                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                 </svg>
-                                Reservation Requests
+                                Messages
                             </a>
-                        @endif
-                        <a href="{{ route('favorites.index') }}"
-                            class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                            Saved Listings
-                        </a>
-                        <a href="{{ route('conversations.index') }}"
-                            class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            Messages
-                        </a>
 
-                        <div class="h-px bg-gray-100 my-2"></div>
+                            <div class="h-px bg-gray-100 my-2"></div>
 
-                        <form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit"
-                                class="w-full flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-red-500 hover:bg-red-50 font-semibold">
-                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                </svg>
-                                Sign out
-                            </button>
-                        </form>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-red-500 hover:bg-red-50 font-semibold">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    Sign out
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
                 @else
                     {{-- Guest Actions --}}
                     <div class="flex items-center gap-1 sm:gap-2">
@@ -537,82 +539,82 @@
             </div>
         </div>
 
-    <script>
-        function openAuthModal(mode) {
-            const modal = document.getElementById('auth-modal');
-            const loginView = document.getElementById('login-form-view');
-            const registerView = document.getElementById('register-form-view');
+        <script>
+            function openAuthModal(mode) {
+                const modal = document.getElementById('auth-modal');
+                const loginView = document.getElementById('login-form-view');
+                const registerView = document.getElementById('register-form-view');
 
-            if (!modal || !loginView || !registerView) return;
+                if (!modal || !loginView || !registerView) return;
 
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
 
-            if (mode === 'login') {
-                loginView.classList.remove('hidden');
-                registerView.classList.add('hidden');
-            } else {
-                registerView.classList.remove('hidden');
-                loginView.classList.add('hidden');
+                if (mode === 'login') {
+                    loginView.classList.remove('hidden');
+                    registerView.classList.add('hidden');
+                } else {
+                    registerView.classList.remove('hidden');
+                    loginView.classList.add('hidden');
+                }
             }
-        }
 
-        function closeAuthModal() {
-            const modal = document.getElementById('auth-modal');
-            if (!modal) return;
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
+            function closeAuthModal() {
+                const modal = document.getElementById('auth-modal');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
 
-        window.addEventListener('click', function (event) {
-            const modal = document.getElementById('auth-modal');
-            if (event.target === modal) closeAuthModal();
-        });
+            window.addEventListener('click', function (event) {
+                const modal = document.getElementById('auth-modal');
+                if (event.target === modal) closeAuthModal();
+            });
 
-        window.handleAuthSubmit = async function (event, endpoint) {
-            event.preventDefault();
+            window.handleAuthSubmit = async function (event, endpoint) {
+                event.preventDefault();
 
-            const form = event.target;
-            const errorBag = document.getElementById('modal-error-bag');
-            errorBag?.classList.add('hidden');
-            errorBag && (errorBag.innerText = '');
+                const form = event.target;
+                const errorBag = document.getElementById('modal-error-bag');
+                errorBag?.classList.add('hidden');
+                errorBag && (errorBag.innerText = '');
 
-            const formData = new FormData(form);
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const formData = new FormData(form);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-            try {
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken || '',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: formData
-                });
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken || '',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
 
-                const data = await res.json().catch(() => ({}));
+                    const data = await res.json().catch(() => ({}));
 
-                if (!res.ok) {
-                    if (data?.errors) {
+                    if (!res.ok) {
+                        if (data?.errors) {
+                            errorBag.classList.remove('hidden');
+                            errorBag.innerText = Object.values(data.errors).flat().join(' ');
+                            return;
+                        }
                         errorBag.classList.remove('hidden');
-                        errorBag.innerText = Object.values(data.errors).flat().join(' ');
+                        errorBag.innerText = data?.message || 'Authentication failed.';
                         return;
                     }
-                    errorBag.classList.remove('hidden');
-                    errorBag.innerText = data?.message || 'Authentication failed.';
-                    return;
-                }
 
-                closeAuthModal();
-                if (data?.redirect_url) window.location.href = data.redirect_url;
-                else window.location.reload();
-            } catch (e) {
-                errorBag?.classList.remove('hidden');
-                errorBag && (errorBag.innerText = 'Network error. Please try again.');
-            }
-        };
-    </script>
+                    closeAuthModal();
+                    if (data?.redirect_url) window.location.href = data.redirect_url;
+                    else window.location.reload();
+                } catch (e) {
+                    errorBag?.classList.remove('hidden');
+                    errorBag && (errorBag.innerText = 'Network error. Please try again.');
+                }
+            };
+        </script>
     @endguest
 
     {{-- Interactive Layout Dropdown Handler Script --}}
@@ -626,7 +628,7 @@
             function toggleDropdown(btn, menu) {
                 if (!btn || !menu) return;
                 const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-                
+
                 // Automatically close alternate menus to prevent stacking layout bugs
                 if (landlordMenu && landlordMenu !== menu) landlordMenu.classList.add('hidden');
                 if (landlordBtn && landlordBtn !== btn) landlordBtn.setAttribute('aria-expanded', 'false');
