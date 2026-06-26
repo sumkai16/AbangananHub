@@ -43,7 +43,20 @@ class PropertyController extends Controller
                 ->toArray();
         }
 
-        return view('properties.index', compact('properties', 'favoritedIds'));
+        // Map payload scoped to whatever's currently filtered/paginated —
+        // not the full table. Stays in sync with the list automatically.
+        $mapProperties = $properties->getCollection()->map(function ($property) {
+            return [
+                'property_id' => $property->property_id,
+                'title' => $property->title,
+                'latitude' => $property->latitude,
+                'longitude' => $property->longitude,
+                'rental_fee' => $property->rental_fee,
+                'url' => route('properties.show', $property->property_id),
+            ];
+        })->values();
+
+        return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties'));
     }
 
     public function show(Property $property)

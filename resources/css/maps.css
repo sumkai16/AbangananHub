@@ -64,3 +64,33 @@
     color: #2A2523;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
+/* Browse-page price pills */
+.map-price-pin-wrapper {
+    pointer-events: none;
+}
+
+.map-price-pin {
+    pointer-events: auto;
+    position: relative;
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    border: 1.5px solid #2A2523;
+    border-radius: 9999px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #2A2523;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.map-price-pin:hover,
+.map-price-pin.active {
+    background: #2A2523;
+    color: #ffffff;
+    transform: translate(-50%, -50%) scale(1.08);
+    z-index: 1000;
+}

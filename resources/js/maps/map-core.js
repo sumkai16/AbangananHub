@@ -53,6 +53,27 @@ export function createPin(map, lat, lng, type = 'property', popupHtml = null) {
     return marker;
 }
 
+// Price-pill marker for the browse page — content is dynamic text (price),
+// not a fixed dot, so it can't reuse createPin's fixed iconSize approach.
+// iconSize [0,0] anchors the wrapper exactly at the lat/lng point; the inner
+// .map-price-pin element self-centers via CSS transform, so it auto-sizes
+// to whatever price string it's given instead of clipping or overflowing.
+export function createPricePin(map, lat, lng, propertyId, label, popupHtml = null) {
+    const icon = L.divIcon({
+        className: 'map-price-pin-wrapper',
+        html: `<div class="map-price-pin" data-property-id="${propertyId}">${label}</div>`,
+        iconSize: [0, 0],
+    });
+
+    const marker = L.marker([lat, lng], { icon }).addTo(map);
+
+    if (popupHtml) {
+        marker.bindPopup(popupHtml, { closeButton: true });
+    }
+
+    return marker;
+}
+
 export function fitToMarkers(map, markers) {
     if (markers.length === 0) return;
     const group = L.featureGroup(markers);
