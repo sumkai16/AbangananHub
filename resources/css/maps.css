@@ -1,0 +1,66 @@
+/* Leaflet's own CSS (imported in map-core.js) handles map container/control
+   positioning. This file only styles our custom marker pins/popups — plain
+   CSS, not Tailwind, since classes built inside JS strings (Leaflet divIcons)
+   aren't visible to Tailwind's content scanner and would get silently purged
+   from the production build otherwise. */
+
+.map-pin__dot {
+    display: block;
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    border: 2px solid #2A2523;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.map-pin--property .map-pin__dot {
+    background: #61B2F0;
+    width: 26px;
+    height: 26px;
+    border-width: 3px;
+}
+
+.map-pin--origin .map-pin__dot {
+    background: #2A2523;
+    border-color: #61B2F0;
+}
+
+.map-pin--school .map-pin__dot {
+    background: #BD5434;
+}
+
+.map-pin--hospital .map-pin__dot {
+    background: #5E6968;
+}
+
+.map-pin--shopping .map-pin__dot {
+    background: #9B9F98;
+}
+
+.map-pin--transport .map-pin__dot {
+    background: #D7E8F3;
+    border-color: #2A2523;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    font-family: 'Figtree', sans-serif;
+}
+
+.leaflet-popup-content {
+    margin: 10px 14px;
+    font-size: 13px;
+    color: #2A2523;
+}
+
+.route-summary-badge {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2A2523;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}

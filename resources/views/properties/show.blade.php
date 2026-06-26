@@ -1,6 +1,8 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
+    @vite(['resources/js/maps/property-map.js'])
+
     <div class="max-w-[1200px] mx-auto px-5 md:px-10 py-8">
 
         {{-- Back --}}
@@ -197,6 +199,66 @@
                     @endforelse
                 </div>
 
+                {{-- LOCATION / MAP --}}
+                <div class="border-t border-gray-100 my-7"></div>
+                <div>
+                    <h2 class="text-[16px] font-bold text-[#2A2523] mb-1">Where you'll be</h2>
+                    <p class="text-[13.5px] text-gray-500 mb-4">{{ $property->address }}</p>
+
+                    <div id="property-map"
+                        data-lat="{{ $property->latitude }}"
+                        data-lng="{{ $property->longitude }}"
+                        data-title="{{ $property->title }}"
+                        class="w-full h-[380px] sm:h-[440px] rounded-2xl overflow-hidden border border-gray-200 bg-gray-100">
+                    </div>
+
+                    {{-- Legend --}}
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 text-[12px] text-gray-500">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#61B2F0] flex-shrink-0"></span>
+                            This property
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#BD5434] flex-shrink-0"></span>
+                            Schools
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#5E6968] flex-shrink-0"></span>
+                            Hospitals / clinics
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#9B9F98] flex-shrink-0"></span>
+                            Malls / groceries
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#D7E8F3] border border-[#2A2523] flex-shrink-0"></span>
+                            Transport
+                        </span>
+                    </div>
+
+                    {{-- Directions --}}
+                    <div class="mt-5 pt-5 border-t border-gray-100">
+                        <button type="button" id="get-directions-btn"
+                            class="inline-flex items-center gap-2 bg-[#2A2523] hover:brightness-95 text-white text-[13.5px] font-bold px-4 py-2.5 rounded-xl transition">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                            </svg>
+                            Get directions
+                        </button>
+
+                        <div id="directions-panel" class="mt-3"></div>
+
+                        <form id="manual-origin-form" class="hidden mt-3 flex gap-2">
+                            <input type="text" id="manual-origin-input" placeholder="Enter your starting address in Cebu"
+                                class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#61B2F0]/30 focus:border-[#61B2F0]">
+                            <button type="submit"
+                                class="bg-[#61B2F0] hover:brightness-95 text-[#2A2523] text-[13px] font-bold px-4 py-2 rounded-lg transition flex-shrink-0">
+                                Go
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
             </div>
 
             {{-- ===== RIGHT COLUMN (sticky sidebar) ===== --}}
@@ -310,22 +372,6 @@
                                 <div class="text-[12px] text-gray-400 mt-0.5">Landlord</div>
                             @endif
                         </div>
-                    </div>
-                </div>
-
-                {{-- Location stub (Maps module later) --}}
-                <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-3">Location</p>
-                    <div class="flex items-start gap-2 text-[13px] text-gray-600">
-                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="mt-0.5 flex-shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        {{ $property->address }}
-                    </div>
-                    {{-- Map placeholder — replace with Google Maps embed when that module is built --}}
-                    <div class="mt-3 rounded-xl bg-gray-100 h-[140px] flex items-center justify-center text-[12px] text-gray-400">
-                        Map coming soon
                     </div>
                 </div>
 
