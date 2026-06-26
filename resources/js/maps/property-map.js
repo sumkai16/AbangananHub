@@ -63,7 +63,7 @@ async function loadLandmarks(map, lat, lng, markersToFit) {
             });
             const type = matched ? matched.type : 'shopping';
 
-            const marker = createPin(map, el.lat, el.lon, type, `<strong>${escapeHtml(name)}</strong>`);
+            const marker = createPin(map, el.lat, el.lon, type, `<div class="p-3 bg-white min-w-[160px]"><strong class="block text-[14px] text-[#2A2523] leading-tight mb-0.5">${escapeHtml(name)}</strong><span class="block text-[#9B9F98] text-[12px] capitalize font-medium">${type}</span></div>`);
             markersToFit.push(marker);
         });
 

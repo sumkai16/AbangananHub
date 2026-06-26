@@ -19,12 +19,17 @@ export { L };
 
 export function createMap(elementId, centerLat, centerLng, zoom = 15) {
     const map = L.map(elementId, {
-        scrollWheelZoom: false, // prevents page-scroll from hijacking the map
+        scrollWheelZoom: true, // Allow zoom with scroll
+        zoomSnap: 0.25,        // Fractional zooming for smooth scrolling
+        zoomDelta: 0.5,        // Zoom steps per wheel click
+        wheelPxPerZoomLevel: 100 // How fast the scroll wheel zooms
     }).setView([centerLat, centerLng], zoom);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
+    // Use CartoDB Voyager tiles for a clean, modern, premium look (similar to Airbnb)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 20,
+        subdomains: 'abcd',
     }).addTo(map);
 
     // Re-enable scroll zoom once the user clicks into the map — standard
@@ -63,6 +68,7 @@ export function createPricePin(map, lat, lng, propertyId, label, popupHtml = nul
         className: 'map-price-pin-wrapper',
         html: `<div class="map-price-pin" data-property-id="${propertyId}">${label}</div>`,
         iconSize: [0, 0],
+        iconAnchor: [0, 0]
     });
 
     const marker = L.marker([lat, lng], { icon }).addTo(map);

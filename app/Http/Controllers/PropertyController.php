@@ -53,6 +53,8 @@ class PropertyController extends Controller
                 'longitude' => $property->longitude,
                 'rental_fee' => $property->rental_fee,
                 'url' => route('properties.show', $property->property_id),
+                'property_type' => $property->property_type,
+                'image' => $property->media->first() ? $property->media->first()->media_url : null,
             ];
         })->values();
 

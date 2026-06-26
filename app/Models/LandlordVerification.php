@@ -1,16 +1,20 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class LandlordVerification extends Model
 {
+    protected $primaryKey = 'verification_id';
+
     public $timestamps = false;
 
     protected $fillable = [
         'user_id',
         'government_id',
         'verification_status',
+        'admin_notes',
         'reviewed_by',
         'reviewed_at',
         'submitted_at',

@@ -117,12 +117,40 @@
                                 class="group relative cursor-pointer transition-all duration-300 hover:-translate-y-1"
                                 onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
 
-                                {{-- IMAGE --}}
-                                <div
+                                {{-- IMAGE CAROUSEL --}}
+                                <div x-data="{ activeSlide: 0, slides: {{ $property->media->count() }} }"
+                                    @mouseenter="$refs.nav.classList.remove('opacity-0')"
+                                    @mouseleave="$refs.nav.classList.add('opacity-0')"
                                     class="relative w-full aspect-square rounded-3xl overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-lg transition-all duration-500">
-                                    @if($property->media->first())
-                                        <img src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
-                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
+                                    
+                                    @if($property->media->count() > 0)
+                                        <div class="flex transition-transform duration-500 ease-out h-full"
+                                            :style="`transform: translateX(-${activeSlide * 100}%)`">
+                                            @foreach($property->media as $media)
+                                                <img src="{{ $media->media_url }}" alt="{{ $property->title }}"
+                                                    class="w-full h-full object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-700 ease-out">
+                                            @endforeach
+                                        </div>
+
+                                        {{-- Navigation Arrows (visible on hover) --}}
+                                        <div x-ref="nav" class="opacity-0 transition-opacity duration-300 absolute inset-0 flex items-center justify-between px-2" x-show="slides > 1">
+                                            <button @click.stop="activeSlide = activeSlide > 0 ? activeSlide - 1 : slides - 1"
+                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#2A2523]">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                                            </button>
+                                            <button @click.stop="activeSlide = activeSlide < slides - 1 ? activeSlide + 1 : 0"
+                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#2A2523]">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                            </button>
+                                        </div>
+
+                                        {{-- Pagination Dots --}}
+                                        <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10" x-show="slides > 1">
+                                            <template x-for="i in slides" :key="i">
+                                                <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 shadow-sm"
+                                                    :class="(i-1) === activeSlide ? 'bg-white scale-125' : 'bg-white/50'"></div>
+                                            </template>
+                                        </div>
                                     @else
                                         <div class="w-full h-full flex items-center justify-center bg-[#D7E8F3]">
                                             <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#61B2F0" stroke-width="1.5">
@@ -133,9 +161,8 @@
                                     @endif
 
                                     {{-- TYPE BADGE top-left --}}
-                                    <div class="absolute top-3 left-3">
-                                        <span
-                                            class="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[11px] font-bold text-[#2A2523] rounded-full shadow-sm">
+                                    <div class="absolute top-3 left-3 z-10">
+                                        <span class="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[11px] font-bold text-[#2A2523] rounded-full shadow-sm">
                                             {{ $property->property_type }}
                                         </span>
                                     </div>
@@ -144,7 +171,7 @@
                                     <button type="button" data-property-id="{{ $property->property_id }}"
                                         data-favorited="{{ in_array($property->property_id, $favoritedIds) ? 'true' : 'false' }}"
                                         onclick="event.stopPropagation(); toggleFavorite(this)"
-                                        class="favorite-btn absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 hover:scale-110 active:scale-95 transition-all duration-200">
+                                        class="favorite-btn absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 hover:scale-110 active:scale-95 transition-all duration-200">
                                         <svg class="heart-outline {{ in_array($property->property_id, $favoritedIds) ? 'hidden' : '' }}"
                                             width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round"
