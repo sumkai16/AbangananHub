@@ -8,8 +8,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('properties', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('landlord_id')->constrained('users')->onDelete('cascade');
+            $table->id('property_id');
+            $table->unsignedBigInteger('landlord_id');
+            $table->foreign('landlord_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->string('title');
             $table->text('description');
             $table->enum('property_type', ['Bedspace', 'Room', 'Apartment', 'House']);

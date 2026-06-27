@@ -1,16 +1,20 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class LandlordVerification extends Model
 {
+    protected $primaryKey = 'verification_id';
+
     public $timestamps = false;
 
     protected $fillable = [
         'user_id',
         'government_id',
         'verification_status',
+        'admin_notes',
         'reviewed_by',
         'reviewed_at',
         'submitted_at',
@@ -28,12 +32,12 @@ class LandlordVerification extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
     public function reviewer()
     {
-        return $this->belongsTo(User::class, 'reviewed_by');
+        return $this->belongsTo(User::class, 'reviewed_by', 'user_id');
     }
 
     // ─── Status Helpers ──────────────────────────────────────

@@ -8,8 +8,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('property_media', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('property_id')->constrained('properties')->onDelete('cascade');
+            $table->id('media_id');
+            $table->unsignedBigInteger('property_id');
+            $table->foreign('property_id')->references('property_id')->on('properties')->onDelete('cascade');
             $table->enum('media_type', ['Image', 'Video']);
             $table->string('media_url');
             $table->timestamps();

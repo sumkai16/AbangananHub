@@ -17,17 +17,17 @@ class Report extends Model
 
     public function reporter()
     {
-        return $this->belongsTo(User::class, 'reporter_id');
+        return $this->belongsTo(User::class, 'reporter_id', 'user_id');
     }
 
     public function property()
     {
-        return $this->belongsTo(Property::class);
+        return $this->belongsTo(Property::class, 'property_id', 'property_id');
     }
 
     public function reportedUser()
     {
-        return $this->belongsTo(User::class, 'reported_user_id');
+        return $this->belongsTo(User::class, 'reported_user_id', 'user_id');
     }
 
     // ─── Status Helpers ──────────────────────────────────────

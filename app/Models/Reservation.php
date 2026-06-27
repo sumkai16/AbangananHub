@@ -5,9 +5,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Reservation extends Model
 {
+    protected $primaryKey = 'reservation_id';
+
     protected $fillable = [
         'property_id',
         'tenant_id',
+        'duration_of_stay', // Add this
+    'occupants_count',  // Add this
         'reservation_date',
         'reservation_status',
         'remarks',
@@ -24,12 +28,12 @@ class Reservation extends Model
 
     public function property()
     {
-        return $this->belongsTo(Property::class);
+        return $this->belongsTo(Property::class, 'property_id', 'property_id');
     }
 
     public function tenant()
     {
-        return $this->belongsTo(User::class, 'tenant_id');
+        return $this->belongsTo(User::class, 'tenant_id', 'user_id');
     }
 
     // ─── Status Helpers ──────────────────────────────────────
@@ -76,13 +80,13 @@ class Reservation extends Model
         return $this->save();
     }
 
-    public function cancel(): bool
-    {
-        if (!$this->isPending() && !$this->isApproved()) {
-            return false;
-        }
-
-        $this->reservation_status = 'Cancelled';
-        return $this->save();
+public function cancel(): bool
+{
+    if (!$this->isPending() && !$this->isApproved()) {
+        return false;
     }
+
+    $this->reservation_status = 'Cancelled';
+    return $this->save();
+}
 }

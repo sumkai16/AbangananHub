@@ -28,7 +28,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('properties.index'));
     }
 
     /**
@@ -36,12 +36,14 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        // Logout from all guards to fully clear auth state.
+        Auth::logout();
 
+        // Invalidate session & regenerate CSRF token.
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
+        // Redirect directly to your home root landing page
         return redirect('/');
     }
 }

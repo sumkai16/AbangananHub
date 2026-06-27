@@ -8,14 +8,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('amenities', function (Blueprint $table) {
-            $table->id();
+            $table->id('amenity_id');
             $table->string('amenity_name')->unique();
             $table->timestamps();
         });
 
         Schema::create('property_amenities', function (Blueprint $table) {
-            $table->foreignId('property_id')->constrained('properties')->onDelete('cascade');
-            $table->foreignId('amenity_id')->constrained('amenities')->onDelete('cascade');
+            $table->unsignedBigInteger('property_id');
+            $table->foreign('property_id')->references('property_id')->on('properties')->onDelete('cascade');
+            $table->unsignedBigInteger('amenity_id');
+            $table->foreign('amenity_id')->references('amenity_id')->on('amenities')->onDelete('cascade');
             $table->primary(['property_id', 'amenity_id']);
         });
     }
