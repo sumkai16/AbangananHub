@@ -1,7 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-10 pb-16">
+<div class="w-full px-[50px] py-10 pb-16">
     <div class="flex items-center justify-between gap-4 mb-8">
         <x-section-header title="My Listings" sub="Manage, update, and monitor your rental properties registered on AbangananHub." />
         <a href="{{ route('properties.create') }}" class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#286CD2] hover:bg-[#1e5bb8] text-white text-[13.5px] font-bold shadow-sm hover:shadow transition-all duration-300">

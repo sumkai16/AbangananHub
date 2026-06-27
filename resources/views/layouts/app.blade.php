@@ -20,11 +20,11 @@
 
 <body class="font-sans bg-[#F7F8FA] text-[#1A1A2E] min-h-screen flex flex-col" x-data="{}">
 
-    <header
-        class="bg-white/85 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-[100] supports-[backdrop-filter]:bg-white/60">
+    <header id="site-header"
+        class="bg-white/85 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-[100] supports-[backdrop-filter]:bg-white/60 transition-all duration-300">
 
         {{-- 1. Nav Row --}}
-        <div class="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-[72px]">
+        <div class="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-[72px] relative">
 
             {{-- Logo --}}
             <a href="{{ route('properties.index') }}"
@@ -42,63 +42,77 @@
                 </span>
             </a>
 
+            {{-- Collapsed search pill (shown on scroll) --}}
+            @if(($searchBar ?? true) && !View::hasSection('hide_search'))
+                <div id="nav-search-collapsed"
+                    class="absolute left-1/2 -translate-x-1/2 hidden opacity-0 transition-all duration-300 pointer-events-none">
+                    <button type="button" id="nav-search-collapsed-btn"
+                        class="flex items-center gap-2 h-[42px] pl-4 pr-2 bg-white rounded-full shadow-[0_2px_16px_rgba(0,0,0,0.12)] border border-gray-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.16)] transition-all duration-200 group"
+                        onclick="document.getElementById('site-header').classList.remove('is-scrolled'); window.scrollTo({top:0,behavior:'smooth'})">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
+                            class="text-gray-500 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <span class="text-[13.5px] font-semibold text-gray-800 pr-1">Search</span>
+                        <span class="text-gray-300">·</span>
+                        <span class="text-[13px] text-gray-500 px-1">Any type</span>
+                        <span class="text-gray-300">·</span>
+                        <span class="text-[13px] text-gray-500 pl-1 pr-2">Any price</span>
+                        <span class="w-8 h-8 rounded-full bg-[#286CD2] flex items-center justify-center flex-shrink-0">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            @endif
+
             {{-- Right Actions --}}
             <div class="flex items-center gap-3">
                 @auth
 
-                    {{-- Become a Landlord / My Listings / Admin Actions Button & Dropdown --}}
+                    {{-- Become a Landlord / My Listings / Admin Actions --}}
                     <div class="relative hidden sm:block">
                         @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
                             <a href="{{ route('landlord.listings.index') }}"
                                 class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all">
                                 My Listings
                             </a>
-                        @else
+                        @elseif(auth()->user()->hasRole('Admin'))
                             <button id="landlord-btn" aria-expanded="false"
                                 class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all focus:outline-none">
-                                {{ auth()->user()->hasRole('Admin') ? 'Admin Actions' : 'Become a Landlord' }}
+                                Admin Actions
                             </button>
 
                             <div id="landlord-menu"
                                 class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
-
-                                {{-- Admin Dropdown Features --}}
-                                @if(auth()->user()->hasRole('Admin'))
-                                    <a href="{{ \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#' }}"
-                                        class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#286CD2] hover:bg-blue-50 border-b border-gray-100 mb-1">
-                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Listing Approval
-                                    </a>
-                                    {{-- Future admin features can easily be appended right here --}}
-                                @endif
-
-                                {{-- Regular Guest / Potential Landlord options --}}
-                                @if(!auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
-                                    <a href="#"
-                                        class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
-                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                        </svg>
-                                        Apply as Landlord
-                                    </a>
-                                @endif
-
-                                <a href="{{ route('properties.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-gray-700 hover:bg-gray-50">
+                                <a href="{{ \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#' }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#286CD2] hover:bg-blue-50 border-b border-gray-100 mb-1">
                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2">
+                                        stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    Browse Properties
+                                    Listing Approval
                                 </a>
+                                <a href="{{ route('admin.verifications.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#286CD2] hover:bg-blue-50">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    Verification Requests
+                                </a>
+                                {{-- Future admin features can easily be appended right here --}}
                             </div>
+                        @else
+                            <a href="{{ route('landlord.verification.create') }}"
+                                class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all">
+                                Become a Landlord
+                            </a>
                         @endif
                     </div>
 
@@ -217,16 +231,12 @@
                 @else
                     {{-- Guest Actions --}}
                     <div class="flex items-center gap-1 sm:gap-2">
-                        <button
-                            type="button"
-                            onclick="openAuthModal('login')"
+                        <button type="button" onclick="openAuthModal('login')"
                             class="text-[13px] sm:text-[14px] font-bold text-[#1A1A2E] hover:bg-gray-100 px-3 sm:px-4 py-2 rounded-full transition-colors focus:outline-none whitespace-nowrap no-underline">
                             Log in
                         </button>
 
-                        <button
-                            type="button"
-                            onclick="openAuthModal('register')"
+                        <button type="button" onclick="openAuthModal('register')"
                             class="text-[13px] sm:text-[14px] font-bold text-white bg-[#286CD2] hover:bg-[#1D4ED8] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">
                             Sign up
                         </button>
@@ -238,117 +248,122 @@
         {{-- 2. Search Pill + Category Strip --}}
         @if(($searchBar ?? true) && !View::hasSection('hide_search'))
 
-            <div class="flex justify-center pb-4 pt-1 px-4 sm:px-6">
-                <form action="{{ route('properties.index') }}" method="GET"
-                    class="flex items-center w-full max-w-[820px] bg-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)] border border-gray-100 transition-all duration-300">
+            <div id="header-search-expanded" class="transition-all duration-300 overflow-hidden"
+                style="max-height: 200px; opacity: 1;">
 
-                    <div
-                        class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-gray-200 cursor-pointer hover:bg-gray-50 rounded-l-full transition-colors w-[33%] overflow-hidden">
-                        <span
-                            class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Where</span>
-                        <input type="text" name="location" placeholder="Search..."
-                            class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
-                    </div>
+                <div class="flex justify-center pb-4 pt-1 px-4 sm:px-6">
+                    <form action="{{ route('properties.index') }}" method="GET"
+                        class="flex items-center w-full max-w-[820px] bg-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)] border border-gray-100 transition-all duration-300">
 
-                    <div
-                        class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-gray-200 hover:bg-gray-50 transition-colors w-[33%] overflow-hidden">
-                        <span
-                            class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Type</span>
-                        <select name="type"
-                            class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 w-full outline-none appearance-none cursor-pointer mt-0.5 truncate">
-                            <option value="">Any type</option>
-                            <option value="Bedspace">Bedspace</option>
-                            <option value="Room">Room</option>
-                            <option value="Apartment">Apartment</option>
-                            <option value="House">House</option>
-                        </select>
-                    </div>
-
-                    <div
-                        class="flex-1 flex items-center justify-between pl-3 pr-2 sm:pl-7 sm:pr-2 py-2 hover:bg-gray-50 rounded-r-full transition-colors w-[33%] overflow-hidden">
-                        <div class="flex flex-col justify-center w-[calc(100%-36px)] sm:w-auto overflow-hidden">
+                        <div
+                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-gray-200 cursor-pointer hover:bg-gray-50 rounded-l-full transition-colors w-[33%] overflow-hidden">
                             <span
-                                class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Budget</span>
-                            <input type="number" name="price_max" placeholder="Max ₱"
+                                class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Where</span>
+                            <input type="text" name="location" placeholder="Search..."
                                 class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
                         </div>
-                        <button type="submit"
-                            class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#286CD2] flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1D4ED8] transition-colors ml-1 sm:ml-3 shadow-md">
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="3" class="sm:w-[17px] sm:h-[17px]">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </button>
-                    </div>
 
-                </form>
-            </div>
+                        <div
+                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-gray-200 hover:bg-gray-50 transition-colors w-[33%] overflow-hidden">
+                            <span
+                                class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Type</span>
+                            <select name="type"
+                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 w-full outline-none appearance-none cursor-pointer mt-0.5 truncate">
+                                <option value="">Any type</option>
+                                <option value="Bedspace">Bedspace</option>
+                                <option value="Room">Room</option>
+                                <option value="Apartment">Apartment</option>
+                                <option value="House">House</option>
+                            </select>
+                        </div>
 
-            <div class="flex items-center justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6 overflow-x-auto pb-1"
-                style="-ms-overflow-style:none; scrollbar-width:none;">
-                <a href="{{ route('properties.index') }}"
-                    class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
-                    data-type="all">
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    <span class="text-[12px] font-semibold">All</span>
-                </a>
-                <a href="{{ route('properties.index', ['type' => 'Bedspace']) }}"
-                    class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
-                    data-type="Bedspace">
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 7h18M3 7v10m0-10V5m18 2v10m0-10V5M3 17h18M6 12h12M5 5h14" />
-                    </svg>
-                    <span class="text-[12px] font-semibold">Bedspace</span>
-                </a>
-                <a href="{{ route('properties.index', ['type' => 'Room']) }}"
-                    class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
-                    data-type="Room">
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 21h18M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4" />
-                    </svg>
-                    <span class="text-[12px] font-semibold">Room</span>
-                </a>
-                <a href="{{ route('properties.index', ['type' => 'Apartment']) }}"
-                    class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
-                    data-type="Apartment">
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <span class="text-[12px] font-semibold">Apartment</span>
-                </a>
-                <a href="{{ route('properties.index', ['type' => 'House']) }}"
-                    class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
-                    data-type="House">
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 21h18M3 10.5L12 3l9 7.5M5 21V10.5M19 21V10.5M9 21v-6h6v6" />
-                    </svg>
-                    <span class="text-[12px] font-semibold">House</span>
-                </a>
-                <a href="{{ route('favorites.index') }}"
-                    class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link">
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                    <span class="text-[12px] font-semibold">Saved</span>
-                </a>
-                <a href="{{ route('properties.index', ['verified' => 1]) }}"
-                    class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link">
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="text-[12px] font-semibold">Verified</span>
-                </a>
-            </div>
+                        <div
+                            class="flex-1 flex items-center justify-between pl-3 pr-2 sm:pl-7 sm:pr-2 py-2 hover:bg-gray-50 rounded-r-full transition-colors w-[33%] overflow-hidden">
+                            <div class="flex flex-col justify-center w-[calc(100%-36px)] sm:w-auto overflow-hidden">
+                                <span
+                                    class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Budget</span>
+                                <input type="number" name="price_max" placeholder="Max ₱"
+                                    class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
+                            </div>
+                            <button type="submit"
+                                class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#286CD2] flex items-center justify-center text-white flex-shrink-0 hover:bg-[#1D4ED8] transition-colors ml-1 sm:ml-3 shadow-md">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="3" class="sm:w-[17px] sm:h-[17px]">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="flex items-center justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6 overflow-x-auto pb-1"
+                    style="-ms-overflow-style:none; scrollbar-width:none;">
+                    <a href="{{ route('properties.index') }}"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        data-type="all">
+                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span class="text-[12px] font-semibold">All</span>
+                    </a>
+                    <a href="{{ route('properties.index', ['type' => 'Bedspace']) }}"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        data-type="Bedspace">
+                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 7h18M3 7v10m0-10V5m18 2v10m0-10V5M3 17h18M6 12h12M5 5h14" />
+                        </svg>
+                        <span class="text-[12px] font-semibold">Bedspace</span>
+                    </a>
+                    <a href="{{ route('properties.index', ['type' => 'Room']) }}"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        data-type="Room">
+                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 21h18M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4" />
+                        </svg>
+                        <span class="text-[12px] font-semibold">Room</span>
+                    </a>
+                    <a href="{{ route('properties.index', ['type' => 'Apartment']) }}"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        data-type="Apartment">
+                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span class="text-[12px] font-semibold">Apartment</span>
+                    </a>
+                    <a href="{{ route('properties.index', ['type' => 'House']) }}"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        data-type="House">
+                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 21h18M3 10.5L12 3l9 7.5M5 21V10.5M19 21V10.5M9 21v-6h6v6" />
+                        </svg>
+                        <span class="text-[12px] font-semibold">House</span>
+                    </a>
+                    <a href="{{ route('favorites.index') }}"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link">
+                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <span class="text-[12px] font-semibold">Saved</span>
+                    </a>
+                    <a href="{{ route('properties.index', ['verified' => 1]) }}"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link">
+                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-[12px] font-semibold">Verified</span>
+                    </a>
+                </div>
+
+            </div>{{-- /#header-search-expanded --}}
 
         @endif
 
@@ -356,7 +371,7 @@
 
     {{-- Flash Messages --}}
     @if(session('error'))
-        <div class="max-w-[1280px] mx-auto mt-4 px-5 md:px-10 w-full">
+        <div class="w-full mx-auto mt-4 px-[50px]">
             <div
                 class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium flex items-center justify-between shadow-sm">
                 <span>{{ session('error') }}</span>
@@ -371,8 +386,7 @@
     </main>
 
     <footer class="bg-white border-t border-gray-200 mt-auto">
-        <div
-            class="max-w-[1280px] mx-auto px-6 lg:px-10 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="w-full px-[50px] py-5 flex flex-col md:flex-row items-center justify-between gap-3">
             <a href="{{ route('dashboard') }}" class="text-[14px] font-bold text-[#1A1A2E] tracking-tight no-underline">
                 Abanganan<span class="text-[#286CD2]">Hub</span>
             </a>
@@ -673,6 +687,73 @@
                 }
             });
         });
+    </script>
+
+    {{-- Airbnb-style scroll-collapse search bar --}}
+    <script>
+        (function () {
+            const SCROLL_THRESHOLD = 80;
+            const header = document.getElementById('site-header');
+            const expanded = document.getElementById('header-search-expanded');
+            const collapsed = document.getElementById('nav-search-collapsed');
+
+            if (!header || !expanded || !collapsed) return;
+
+            let ticking = false;
+
+            function applyScrollState() {
+                const scrolled = window.scrollY > SCROLL_THRESHOLD;
+
+                if (scrolled) {
+                    // Collapse expanded search
+                    expanded.style.maxHeight = '0px';
+                    expanded.style.opacity = '0';
+                    expanded.style.pointerEvents = 'none';
+
+                    // Show compact pill
+                    collapsed.classList.remove('hidden');
+                    // Force reflow so transition fires
+                    collapsed.offsetHeight;
+                    collapsed.classList.remove('opacity-0');
+                    collapsed.classList.add('opacity-100');
+                    collapsed.classList.remove('pointer-events-none');
+                    collapsed.classList.add('pointer-events-auto');
+
+                    header.classList.add('is-scrolled');
+                } else {
+                    // Restore expanded search
+                    expanded.style.maxHeight = '200px';
+                    expanded.style.opacity = '1';
+                    expanded.style.pointerEvents = '';
+
+                    // Hide compact pill
+                    collapsed.classList.remove('opacity-100');
+                    collapsed.classList.add('opacity-0');
+                    collapsed.classList.add('pointer-events-none');
+                    collapsed.classList.remove('pointer-events-auto');
+                    // Hide after transition
+                    setTimeout(() => {
+                        if (window.scrollY <= SCROLL_THRESHOLD) {
+                            collapsed.classList.add('hidden');
+                        }
+                    }, 300);
+
+                    header.classList.remove('is-scrolled');
+                }
+
+                ticking = false;
+            }
+
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    requestAnimationFrame(applyScrollState);
+                    ticking = true;
+                }
+            }, { passive: true });
+
+            // Run once on load in case page is restored mid-scroll
+            applyScrollState();
+        })();
     </script>
 
     @stack('scripts')

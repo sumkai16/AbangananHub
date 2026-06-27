@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <div class="max-w-7xl mx-auto px-6 py-10 pb-16" x-data="{ mobileView: 'list' }">
+    <div class="w-full px-[50px] py-8 pb-16" x-data="{ mobileView: 'list' }">
 
         {{-- HEADER --}}
         <x-section-header title="Browse Properties"
@@ -107,7 +107,7 @@
         </div>
 
         @if($properties->count() > 0)
-            <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_875px] gap-6">
 
                 {{-- LIST COLUMN --}}
                 <div :class="mobileView === 'list' ? 'block' : 'hidden'" class="lg:!block">
@@ -225,9 +225,9 @@
                 </div>
 
                 {{-- MAP COLUMN --}}
-                <div :class="mobileView === 'map' ? 'block' : 'hidden'" class="lg:!block lg:sticky lg:top-24 lg:self-start">
+                <div :class="mobileView === 'map' ? 'block' : 'hidden'" class="lg:!block lg:sticky lg:top-[72px] lg:self-start">
                     <div id="browse-map"
-                        class="w-full h-[400px] lg:h-[calc(100vh-140px)] rounded-2xl overflow-hidden border border-[#9B9F98]/20"></div>
+                        class="w-full h-[400px] lg:h-[calc(100vh-72px)] rounded-2xl overflow-hidden border border-[#9B9F98]/20"></div>
                     <script type="application/json" id="browse-map-data">{!! json_encode($mapProperties) !!}</script>
                 </div>
 

@@ -1,69 +1,77 @@
-<div class="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm">
-    <h2 class="text-[16px] font-extrabold text-[#1A1A2E] tracking-tight">Update Password</h2>
-    <p class="text-[13px] text-gray-400 font-medium mt-1 mb-6 leading-relaxed">
-        Use a long, random password you don't use anywhere else.
-    </p>
+<div class="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8">
+
+    {{-- Section header --}}
+    <div class="mb-7 border-b border-slate-100 pb-6">
+        <h2 class="text-[15px] font-semibold text-slate-900">Password</h2>
+        <p class="mt-1 text-sm text-slate-500">Use a long, unique password you don't reuse elsewhere.</p>
+    </div>
 
     <form method="post" action="{{ route('password.update') }}">
         @csrf
         @method('put')
 
-        <div class="mb-4">
-            <label for="update_password_current_password"
-                class="block text-[11.5px] font-bold text-gray-600 uppercase tracking-wide mb-1.5">
-                Current Password
-            </label>
-            <input id="update_password_current_password" name="current_password" type="password"
-                autocomplete="current-password"
-                class="w-full h-11 px-4 bg-gray-50 border border-gray-200 rounded-xl text-[13.5px] font-medium text-[#1A1A2E] outline-none transition focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/10">
-            @if($errors->updatePassword->get('current_password'))
-                <span class="block mt-1.5 text-[11.5px] font-semibold text-red-500">
-                    {{ $errors->updatePassword->get('current_password')[0] }}
-                </span>
-            @endif
+        <div class="flex flex-col gap-5">
+            {{-- Current password --}}
+            <div>
+                <label for="update_password_current_password"
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    Current password
+                </label>
+                <input id="update_password_current_password" name="current_password" type="password"
+                    autocomplete="current-password" class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
+                           focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/15">
+                @if($errors->updatePassword->get('current_password'))
+                    <span class="mt-1.5 block text-xs font-medium text-red-500">
+                        {{ $errors->updatePassword->get('current_password')[0] }}
+                    </span>
+                @endif
+            </div>
+
+            {{-- New password --}}
+            <div>
+                <label for="update_password_password"
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    New password
+                </label>
+                <input id="update_password_password" name="password" type="password" autocomplete="new-password" class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
+                           focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/15">
+                @if($errors->updatePassword->get('password'))
+                    <span class="mt-1.5 block text-xs font-medium text-red-500">
+                        {{ $errors->updatePassword->get('password')[0] }}
+                    </span>
+                @endif
+            </div>
+
+            {{-- Confirm password --}}
+            <div>
+                <label for="update_password_password_confirmation"
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    Confirm password
+                </label>
+                <input id="update_password_password_confirmation" name="password_confirmation" type="password"
+                    autocomplete="new-password" class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
+                           focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/15">
+                @if($errors->updatePassword->get('password_confirmation'))
+                    <span class="mt-1.5 block text-xs font-medium text-red-500">
+                        {{ $errors->updatePassword->get('password_confirmation')[0] }}
+                    </span>
+                @endif
+            </div>
         </div>
 
-        <div class="mb-4">
-            <label for="update_password_password"
-                class="block text-[11.5px] font-bold text-gray-600 uppercase tracking-wide mb-1.5">
-                New Password
-            </label>
-            <input id="update_password_password" name="password" type="password" autocomplete="new-password"
-                class="w-full h-11 px-4 bg-gray-50 border border-gray-200 rounded-xl text-[13.5px] font-medium text-[#1A1A2E] outline-none transition focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/10">
-            @if($errors->updatePassword->get('password'))
-                <span class="block mt-1.5 text-[11.5px] font-semibold text-red-500">
-                    {{ $errors->updatePassword->get('password')[0] }}
-                </span>
-            @endif
-        </div>
-
-        <div class="mb-6">
-            <label for="update_password_password_confirmation"
-                class="block text-[11.5px] font-bold text-gray-600 uppercase tracking-wide mb-1.5">
-                Confirm Password
-            </label>
-            <input id="update_password_password_confirmation" name="password_confirmation" type="password"
-                autocomplete="new-password"
-                class="w-full h-11 px-4 bg-gray-50 border border-gray-200 rounded-xl text-[13.5px] font-medium text-[#1A1A2E] outline-none transition focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/10">
-            @if($errors->updatePassword->get('password_confirmation'))
-                <span class="block mt-1.5 text-[11.5px] font-semibold text-red-500">
-                    {{ $errors->updatePassword->get('password_confirmation')[0] }}
-                </span>
-            @endif
-        </div>
-
-        <div class="flex items-center gap-4">
+        {{-- Actions --}}
+        <div class="mt-7 flex items-center gap-4 border-t border-slate-100 pt-6">
             <button type="submit"
-                class="h-10 px-6 bg-[#286CD2] hover:bg-[#1e5ab8] text-white text-[13.5px] font-bold rounded-xl transition-colors shadow-sm">
+                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#286CD2] px-5 text-[13px] font-semibold text-white transition hover:bg-[#1e55a8] active:scale-[0.98]">
                 Update password
             </button>
             @if (session('status') === 'password-updated')
                 <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2500)"
-                    class="text-[12.5px] font-semibold text-emerald-600 flex items-center gap-1.5">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    Password updated.
+                    Updated
                 </p>
             @endif
         </div>
