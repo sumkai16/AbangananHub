@@ -14,9 +14,6 @@ class Property extends Model
         'address',
         'latitude',
         'longitude',
-        'rental_fee',
-        'occupancy_limit',
-        'availability_status',
         'verification_status',
     ];
 
@@ -25,7 +22,6 @@ class Property extends Model
         return [
             'latitude'   => 'decimal:7',
             'longitude'  => 'decimal:7',
-            'rental_fee' => 'decimal:2',
         ];
     }
 
@@ -77,11 +73,6 @@ class Property extends Model
 
     // ─── Status Helpers ──────────────────────────────────────
 
-    public function isAvailable(): bool
-    {
-        return $this->availability_status === 'Available';
-    }
-
     public function isApproved(): bool
     {
         return $this->verification_status === 'Approved';
@@ -102,10 +93,5 @@ class Property extends Model
     public function scopeApproved($query)
     {
         return $query->where('verification_status', 'Approved');
-    }
-
-    public function scopeAvailable($query)
-    {
-        return $query->where('availability_status', 'Available');
     }
 }

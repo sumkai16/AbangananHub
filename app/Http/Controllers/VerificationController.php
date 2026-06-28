@@ -24,13 +24,23 @@ class VerificationController extends Controller
     {
         $user = $request->user();
         $oldPath = $user->verificationApplication?->government_id;
+        $oldLogoPath = $user->verificationApplication?->logo_url;
 
         $path = $request->file('government_id')->store('government_ids', 'local');
+
+        $logoPath = $request->hasFile('logo')
+            ? $request->file('logo')->store('business_logos', 'public')
+            : null;
 
         $user->verificationApplication()->updateOrCreate(
             ['user_id' => $user->user_id],
             [
                 'government_id' => $path,
+                'business_name' => $request->validated('business_name'),
+                'description' => $request->validated('description'),
+                'logo_url' => $logoPath,
+                'contact_number' => $request->validated('contact_number'),
+                'business_address' => $request->validated('business_address'),
                 'verification_status' => 'Pending',
                 'admin_notes' => null,
                 'reviewed_by' => null,
@@ -41,6 +51,10 @@ class VerificationController extends Controller
 
         if ($oldPath) {
             Storage::disk('local')->delete($oldPath);
+        }
+
+        if ($oldLogoPath) {
+            Storage::disk('public')->delete($oldLogoPath);
         }
 
         return redirect()->route('landlord.verification.show')
