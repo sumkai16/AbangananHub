@@ -15,7 +15,7 @@ class ReservationController extends Controller
         $reservations = Reservation::whereHas('property', function ($query) {
                 $query->where('landlord_id', Auth::id());
             })
-            ->with(['property.media', 'tenant'])
+            ->with(['property.media', 'property.units', 'unit', 'tenant'])
             ->latest()
             ->paginate(10);
 
@@ -26,57 +26,40 @@ class ReservationController extends Controller
     {
         Gate::authorize('approve', $reservation);
 
-        // Update the custom status column to Approved
-        $reservation->update(['status' => 'Approved']);
-
-        // Optional custom model helper fallback if you have custom logic inside your model
-        if (method_exists($reservation, 'approve')) {
-            $reservation->approve();
+        if (!$reservation->approve()) {
+            return back()->withErrors(['reservation' => 'This reservation can no longer be approved.']);
         }
 
-        // Lock the property status down
-        $reservation->property->update(['availability_status' => 'Reserved']);
+        $reservation->unit->update(['availability_status' => 'Reserved']);
 
-        // Cascade reject all other pending overlapping reservation requests for this specific property
-        // Note: Check whether your primary key is 'reservation_id' or standard 'id'
-        $primaryKey = $reservation->getKeyName();
-        
-        Reservation::where('property_id', $reservation->property_id)
-            ->where($primaryKey, '!=', $reservation->$primaryKey)
-            ->where(function($query) {
-                $query->where('status', 'Pending')
-                      ->orWhere('reservation_status', 'Pending'); // Safeguard for older legacy setups
-            })
-            ->get()
-            ->each(function (Reservation $other) {
-                $other->update(['status' => 'Rejected', 'rejection_reason' => 'Another applicant was approved for this space.']);
-                if (method_exists($other, 'reject')) {
-                    $other->reject();
-                }
-            });
+        Reservation::where('unit_id', $reservation->unit_id)
+            ->where('reservation_id', '!=', $reservation->reservation_id)
+            ->where('reservation_status', 'Pending')
+            ->update([
+                'reservation_status' => 'Rejected',
+                'rejection_reason'   => 'Another applicant was approved for this unit.',
+            ]);
 
-        return back()->with('success', 'Reservation approved and cross-applications auto-declined.');
+        return back()->with('success', 'Reservation approved and competing requests auto-declined.');
     }
 
     public function reject(Request $request, Reservation $reservation)
     {
         Gate::authorize('reject', $reservation);
 
-        // Validate incoming rich context modal explanation field
-        $request->validate([
-            'rejection_reason' => 'nullable|string|max:500'
-        ]);
-
-        // Persist decline reason and state code
-        $reservation->update([
-            'status' => 'Rejected',
-            'rejection_reason' => $request->rejection_reason
-        ]);
-
-        if (method_exists($reservation, 'reject')) {
-            $reservation->reject();
+        if (!$reservation->isPending()) {
+            return back()->withErrors(['reservation' => 'This reservation can no longer be rejected.']);
         }
 
-        return back()->with('error', 'Reservation request has been rejected.');
+        $request->validate([
+            'rejection_reason' => 'nullable|string|max:500',
+        ]);
+
+        $reservation->update([
+            'reservation_status' => 'Rejected',
+            'rejection_reason'   => $request->rejection_reason,
+        ]);
+
+        return back()->with('success', 'Reservation rejected.');
     }
 }

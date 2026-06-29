@@ -14,6 +14,7 @@ class StoreReservationRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'unit_id'          => ['required', 'integer', 'exists:property_units,unit_id'],
             'reservation_date' => ['required', 'date', 'after_or_equal:today'],
             'duration_of_stay' => ['required', 'string', 'in:1-3 Months,6 Months,1 Year,Long Term (1+ Years)'],
             'occupants_count'  => ['required', 'integer', 'min:1'],

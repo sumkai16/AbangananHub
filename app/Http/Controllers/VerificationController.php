@@ -65,7 +65,9 @@ class VerificationController extends Controller
     {
         $verification = auth()->user()->verificationApplication;
 
-        abort_if(! $verification, 404);
+        if (! $verification) {
+            return redirect()->route('landlord.verification.create');
+        }
 
         return view('landlord.verification.show', compact('verification'));
     }

@@ -9,10 +9,12 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\VerificationController;
-
+use App\Http\Controllers\Landlord\PropertyUnitController;
+// Admin unit approval
+use App\Http\Controllers\Admin\PropertyUnitController as AdminPropertyUnitController;
 // Aliased to prevent naming collisions between roles
 use App\Http\Controllers\Landlord\ListingController as LandlordListingController;
-use App\Http\Controllers\Admin\ListingController as AdminListingController;
+use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
 
 use Illuminate\Support\Facades\Route;
@@ -59,18 +61,25 @@ Route::middleware('auth')->group(function () {
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
         Route::patch('/reservations/{reservation}/approve', [App\Http\Controllers\Landlord\ReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
+        Route::resource('properties.units', PropertyUnitController::class);
+        Route::delete('/properties/{property}/units/{unit}/media/{media}', [PropertyUnitController::class, 'destroyMedia'])->name('properties.units.media.destroy'); // ADD THIS
     });
 
     // Admin-specific routes
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/listings/approval', [AdminListingController::class, 'approval'])->name('listings.approval');
-        Route::post('/listings/{property_id}/approve', [AdminListingController::class, 'approve'])->name('listings.approve');
-        Route::post('/listings/{property_id}/reject', [AdminListingController::class, 'reject'])->name('listings.reject');
+        Route::get('/listings/approval', [ListingController::class, 'approval'])->name('listings.approval');
+        Route::post('/listings/{property_id}/approve', [ListingController::class, 'approve'])->name('listings.approve');
+        Route::post('/listings/{property_id}/reject', [ListingController::class, 'reject'])->name('listings.reject');
 
         Route::get('/verifications', [AdminVerificationController::class, 'index'])->name('verifications.index');
         Route::get('/verifications/{verification}', [AdminVerificationController::class, 'show'])->name('verifications.show');
         Route::post('/verifications/{verification}/approve', [AdminVerificationController::class, 'approve'])->name('verifications.approve');
         Route::post('/verifications/{verification}/reject', [AdminVerificationController::class, 'reject'])->name('verifications.reject');
+
+        Route::get('/units', [AdminPropertyUnitController::class, 'index'])->name('units.index');
+        Route::get('/properties/{property}/units/{unit}', [AdminPropertyUnitController::class, 'show'])->name('units.show');
+        Route::post('/properties/{property}/units/{unit}/approve', [AdminPropertyUnitController::class, 'approve'])->name('units.approve');
+        Route::post('/properties/{property}/units/{unit}/reject', [AdminPropertyUnitController::class, 'reject'])->name('units.reject');
     });
 
     // Conversations and messages

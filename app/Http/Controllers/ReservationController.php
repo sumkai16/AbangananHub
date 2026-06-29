@@ -26,22 +26,33 @@ public function store(StoreReservationRequest $request, Property $property)
         return back()->withErrors(['property' => 'You cannot reserve your own listing.']);
     }
 
-    if ($property->verification_status !== 'Approved' || $property->availability_status !== 'Available') {
-        return back()->withErrors(['property' => 'This property is not currently available for reservation.']);
+    if ($property->verification_status !== 'Approved') {
+        return back()->withErrors(['property' => 'This property is not available for reservation.']);
     }
 
-    $exists = Reservation::where('property_id', $property->property_id)
+    $unit = $property->units()
+        ->where('unit_id', $request->unit_id)
+        ->where('availability_status', 'Available')
+        ->first();
+
+    if (!$unit) {
+        return back()->withErrors(['unit' => 'This unit is not available for reservation.']);
+    }
+   if ($request->occupants_count > $unit->occupancy_limit) {
+        return back()->withErrors(['occupants_count' => "This unit fits a maximum of {$unit->occupancy_limit} occupants."]);
+    }
+    $exists = Reservation::where('unit_id', $unit->unit_id)
         ->where('tenant_id', Auth::id())
         ->whereIn('reservation_status', ['Pending', 'Approved'])
         ->exists();
 
     if ($exists) {
-        return back()->withErrors(['property' => 'You already have an active reservation request for this property.']);
+        return back()->withErrors(['unit' => 'You already have an active reservation for this unit.']);
     }
 
-    // Save all custom inquiry parameters cleanly into your database
     Reservation::create([
         'property_id'        => $property->property_id,
+        'unit_id'            => $unit->unit_id,
         'tenant_id'          => Auth::id(),
         'reservation_date'   => $request->validated('reservation_date'),
         'duration_of_stay'   => $request->validated('duration_of_stay'),
@@ -53,20 +64,22 @@ public function store(StoreReservationRequest $request, Property $property)
     return redirect()->route('reservations.index')->with('success', 'Reservation request submitted.');
 }
 
-    public function cancel(Reservation $reservation)
-    {
-        Gate::authorize('cancel', $reservation);
+public function cancel(Reservation $reservation)
+{
+    Gate::authorize('cancel', $reservation);
 
-        $wasApproved = $reservation->isApproved();
+    $wasApproved = $reservation->isApproved();
 
-        if (!$reservation->cancel()) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
-        }
-
-        if ($wasApproved && $reservation->property) {
-            $reservation->property->update(['availability_status' => 'Available']);
-        }
-
-        return back()->with('success', 'Reservation cancelled.');
+    if (!$reservation->cancel()) {
+        return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
     }
+
+    if ($wasApproved && $reservation->unit) {
+        $reservation->unit->update(['availability_status' => 'Available']);
+    }
+
+    return back()->with('success', 'Reservation cancelled.');
+}
+
+
 }

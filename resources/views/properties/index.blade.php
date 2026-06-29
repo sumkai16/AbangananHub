@@ -209,8 +209,12 @@
                                     </p>
 
                                     <p class="text-[14px] font-semibold text-[#2A2523] mt-1.5">
-                                        ₱{{ number_format($property->rental_fee) }}
-                                        <span class="text-[13px] font-normal text-[#9B9F98]">/month</span>
+                                        @if($property->min_rental_fee)
+                                            ₱{{ number_format($property->min_rental_fee) }}
+                                            <span class="text-[13px] font-normal text-[#9B9F98]">/month</span>
+                                        @else
+                                            <span class="text-[13px] font-normal text-[#9B9F98]">Price not set</span>
+                                        @endif
                                     </p>
                                 </div>
 

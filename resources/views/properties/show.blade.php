@@ -17,6 +17,7 @@
                 Back to listings
             </a>
         </div>
+        @php $firstUnit = $property->units->first(); @endphp
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
 
@@ -87,8 +88,10 @@
                             </span>
                         @endif
                         <span class="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm
-                            {{ $property->availability_status === 'Available' ? 'bg-green-50 text-green-700 border border-green-100/60' : 'bg-amber-50 text-amber-700 border border-amber-100/60' }}">
-                            {{ $property->availability_status }}
+                            {{ $property->units->where('availability_status', 'Available')->where('verification_status', 'Approved')->count() > 0
+                                 ? 'bg-green-50 text-green-700 border border-green-100/60' : 'bg-amber-50 text-amber-700 border border-amber-100/60' }}">
+                            {{ $property->units->where('availability_status', 'Available')->where('verification_status', 'Approved')->count() > 0 ? 'Available' : 'Unavailable' }}
+
                         </span>
                     </div>
 
@@ -105,12 +108,12 @@
                             {{ $property->address }}
                         </div>
 
-                        @if($property->occupancy_limit)
+                        @if($firstUnit?->occupancy_limit)
                             <div class="flex items-center gap-1.5">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
-                                Up to {{ $property->occupancy_limit }} {{ Str::plural('occupant', $property->occupancy_limit) }}
+                                Up to {{ $firstUnit->occupancy_limit }} {{ Str::plural('occupant', $firstUnit->occupancy_limit) }}
                             </div>
                         @endif
                     </div>
@@ -269,12 +272,17 @@
                     <div class="mb-5 pb-4 border-b border-slate-100">
                         <div class="flex items-baseline gap-1">
                             <span class="text-3xl font-black text-slate-900 tracking-tight">
-                                ₱{{ number_format($property->rental_fee) }}
+                                @if($property->min_rental_fee)
+                                    ₱{{ number_format($property->min_rental_fee) }}
+                                @else
+                                    —
+                                @endif
                             </span>
                             <span class="text-sm font-semibold text-slate-400">/ month</span>
                         </div>
                         <span class="text-xs font-bold text-slate-400 block mt-1 tracking-wide uppercase">
-                            Max Capacity: {{ $property->occupancy_limit }} {{ Str::plural('Occupant', $property->occupancy_limit) }}
+                            @php $firstUnit = $property->units->first(); @endphp
+                            Max Capacity: {{ $firstUnit?->occupancy_limit ?? '—' }} {{ $firstUnit?->occupancy_limit ? Str::plural('Occupant', $firstUnit->occupancy_limit) : 'Occupants' }}
                         </span>
                     </div>
 
@@ -282,15 +290,16 @@
                         $isOwner = auth()->check() && (int) auth()->id() === (int) $property->landlord_id;
                     @endphp
 
-                    @if($property->availability_status !== 'Available')
+                    @if($property->units->where('availability_status', 'Available')->where('verification_status', 'Approved')->count() === 0)
                         <div class="w-full text-center bg-slate-100 text-slate-400 text-sm font-bold py-3.5 rounded-xl mb-3 cursor-not-allowed border border-slate-200/40">
-                            Currently {{ $property->availability_status }}
+                           Currently Unavailable.
                         </div>
                     @elseif($isOwner)
                         {{-- Handled cleanly within bottom slot notice to clear up design overhead --}}
                     @elseif(auth()->check())
                         <form action="{{ route('reservations.store', $property) }}" method="POST" class="space-y-4 mb-3">
                             @csrf
+                                <input type="hidden" name="unit_id" value="{{ $property->units->where('availability_status', 'Available')->where('verification_status', 'Approved')->first()?->unit_id }}">
 
                             @error('property')
                                 <p class="text-xs text-red-600 font-bold bg-red-50 p-2.5 rounded-lg border border-red-100">{{ $message }}</p>

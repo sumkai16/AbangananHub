@@ -94,4 +94,33 @@ class Property extends Model
     {
         return $query->where('verification_status', 'Approved');
     }
+    public function units()
+    {
+        return $this->hasMany(PropertyUnit::class, 'property_id', 'property_id');
+    }
+    public function getMinRentalFeeAttribute(): ?string
+    {
+        return $this->units
+            ->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved')
+            ->min('rental_fee');
+    }
+
+    public function getOccupancyLimitAttribute(): ?int
+    {
+        return $this->units
+            ->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved')
+            ->max('occupancy_limit');
+    }
+
+    public function getAvailabilityStatusAttribute(): string
+    {
+        $hasAvailable = $this->units
+            ->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved')
+            ->isNotEmpty();
+
+        return $hasAvailable ? 'Available' : 'Unavailable';
+    }
 }

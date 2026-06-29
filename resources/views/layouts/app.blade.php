@@ -514,11 +514,26 @@
 
                     <form id="ajax-register-form" onsubmit="handleAuthSubmit(event, '{{ route('register') }}')">
                         @csrf
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">First Name</label>
+                                <input type="text" name="first_name" required placeholder="First name"
+                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
+                                <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-first_name"></span>
+                            </div>
+                            <div>
+                                <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Last Name</label>
+                                <input type="text" name="last_name" required placeholder="Last name"
+                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
+                                <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-last_name"></span>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
-                            <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Name</label>
-                            <input type="text" name="name" required placeholder="Enter your full name"
+                            <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Contact Number</label>
+                            <input type="text" name="contact_number" required placeholder="Enter your contact number"
                                 class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-name"></span>
+                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-contact_number"></span>
                         </div>
 
                         <div class="mb-3">

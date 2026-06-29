@@ -111,4 +111,8 @@ protected $primaryKey = 'user_id';
             $this->roles()->create(['role' => $role]);
         }
     }
+    public function rentalBusiness()
+    {
+        return $this->hasOne(RentalBusiness::class, 'user_id', 'user_id');
+    }
 }

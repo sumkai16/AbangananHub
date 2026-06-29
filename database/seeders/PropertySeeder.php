@@ -673,11 +673,21 @@ class PropertySeeder extends Seeder
 
         foreach ($properties as $data) {
             $mediaItems = $data['media'];
-            unset($data['media']);
+           $unitData = [
+                'unit_label'          => 'Unit 1',
+                'rental_fee'          => $data['rental_fee'],
+                'occupancy_limit'     => $data['occupancy_limit'],
+                'availability_status' => $data['availability_status'],
+                'verification_status' => 'Approved',   // ADD THIS
+            ];
+
+            unset($data['media'], $data['rental_fee'], $data['occupancy_limit'], $data['availability_status']);
 
             $property = Property::create(array_merge($data, [
                 'landlord_id' => $landlord->user_id,
             ]));
+
+            $property->units()->create($unitData);
 
             foreach ($mediaItems as $media) {
                 PropertyMedia::create([

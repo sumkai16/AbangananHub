@@ -77,7 +77,11 @@
                                 <div class="flex-1 rounded-2xl bg-gray-50/70 border border-gray-150 p-4 flex flex-col justify-center">
                                     <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Property Rate</span>
                                     <span class="text-[20px] font-black text-gray-900 mt-0.5">
-                                        ₱{{ number_format($reservation->property->price ?? 0) }}<span class="text-[12px] font-normal text-gray-400">/mo</span>
+                                        @if($reservation->property->min_rental_fee)
+                                            ₱{{ number_format($reservation->property->min_rental_fee) }}<span class="text-[12px] font-normal text-gray-400">/mo</span>
+                                        @else
+                                            <span class="text-[14px] font-normal text-gray-400">Not set</span>
+                                        @endif
                                     </span>
                                 </div>
                                 {{-- Metric Box 2: Time Context --}}

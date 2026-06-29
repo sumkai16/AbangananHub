@@ -7,14 +7,16 @@ class Reservation extends Model
 {
     protected $primaryKey = 'reservation_id';
 
-    protected $fillable = [
+   protected $fillable = [
         'property_id',
+        'unit_id',
         'tenant_id',
-        'duration_of_stay', // Add this
-    'occupants_count',  // Add this
         'reservation_date',
+        'duration_of_stay',
+        'occupants_count',
         'reservation_status',
         'remarks',
+        'rejection_reason',
     ];
 
     protected function casts(): array
@@ -30,7 +32,10 @@ class Reservation extends Model
     {
         return $this->belongsTo(Property::class, 'property_id', 'property_id');
     }
-
+    public function unit()
+    {
+        return $this->belongsTo(PropertyUnit::class, 'unit_id', 'unit_id');
+    }
     public function tenant()
     {
         return $this->belongsTo(User::class, 'tenant_id', 'user_id');
