@@ -8,16 +8,31 @@ use Illuminate\Http\Request;
 
 class FavoriteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $tenantId = auth()->user()->user_id;
+        $search = $request->query('search');
+        $type = $request->query('type');
+        $availability = $request->query('availability');
 
-        $favorites = Favorite::where('tenant_id', $tenantId)
+        $favoritesQuery = Favorite::where('tenant_id', $tenantId)
             ->with(['property.media', 'property.landlord.verificationApplication', 'property.amenities'])
-            ->latest('created_at')
-            ->get();
+            ->latest('created_at');
 
-        // Favorited IDs for heart state — same pattern as properties index
+        if ($search) {
+            $favoritesQuery->whereHas('property', fn($q) => $q->where('title', 'like', "%{$search}%")
+                ->orWhere('address', 'like', "%{$search}%"));
+        }
+
+        if ($type) {
+            $favoritesQuery->whereHas('property', fn($q) => $q->where('property_type', $type));
+        }
+
+        if ($availability) {
+            $favoritesQuery->whereHas('property', fn($q) => $q->where('availability_status', $availability));
+        }
+
+        $favorites = $favoritesQuery->get();
         $favoritedIds = $favorites->pluck('property_id')->toArray();
 
         return view('favorites.index', compact('favorites', 'favoritedIds'));

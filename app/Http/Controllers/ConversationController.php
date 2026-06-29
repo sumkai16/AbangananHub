@@ -10,17 +10,28 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\Notification;
 class ConversationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $userId = Auth::id();
+        $search = $request->query('search');
 
-        $conversations = Conversation::with(['tenant', 'landlord', 'property', 'latestMessage'])
-            ->where(function ($query) use ($userId) {
-                $query->where('tenant_id', $userId)
+        $query = Conversation::with(['tenant', 'landlord', 'property', 'latestMessage'])
+            ->where(function ($q) use ($userId) {
+                $q->where('tenant_id', $userId)
                     ->orWhere('landlord_id', $userId);
-            })
-            ->orderByDesc('updated_at')
-            ->get();
+            });
+
+        if ($search) {
+            $query->where(function ($q) use ($search, $userId) {
+                $q->whereHas('property', fn($pq) => $pq->where('title', 'like', "%{$search}%"))
+                  ->orWhereHas('tenant', fn($uq) => $uq->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"))
+                  ->orWhereHas('landlord', fn($uq) => $uq->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $conversations = $query->orderByDesc('updated_at')->get();
 
         return view('conversations.index', compact('conversations'));
     }

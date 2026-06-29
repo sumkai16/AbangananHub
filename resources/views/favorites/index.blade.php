@@ -9,6 +9,43 @@
         sub="Properties you've saved for later."
     />
 
+    {{-- Search & Filter Bar --}}
+    <form method="GET" action="{{ route('favorites.index') }}"
+        class="flex flex-col sm:flex-row gap-3 mb-8 p-4 bg-white rounded-2xl border border-[#9B9F98]/20 shadow-sm">
+        <div class="relative flex-1">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B9F98] pointer-events-none"
+                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" name="search" value="{{ request('search') }}"
+                placeholder="Search saved properties…"
+                class="w-full pl-9 pr-4 py-2.5 text-sm text-[#2A2523] bg-[#F7F8FA] border border-[#9B9F98]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#286CD2]/30 focus:border-[#286CD2] transition placeholder-[#9B9F98]" />
+        </div>
+        <select name="type"
+            class="px-4 py-2.5 text-sm font-semibold text-[#2A2523] bg-[#F7F8FA] border border-[#9B9F98]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#286CD2]/30 focus:border-[#286CD2] transition">
+            <option value="" {{ !request('type') ? 'selected' : '' }}>Any type</option>
+            @foreach(['Bedspace', 'Room', 'Apartment', 'House'] as $t)
+                <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
+            @endforeach
+        </select>
+        <select name="availability"
+            class="px-4 py-2.5 text-sm font-semibold text-[#2A2523] bg-[#F7F8FA] border border-[#9B9F98]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#286CD2]/30 focus:border-[#286CD2] transition">
+            <option value="" {{ !request('availability') ? 'selected' : '' }}>Any status</option>
+            <option value="Available" {{ request('availability') === 'Available' ? 'selected' : '' }}>Available</option>
+            <option value="Unavailable" {{ request('availability') === 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
+        </select>
+        <button type="submit"
+            class="px-5 py-2.5 text-sm font-bold text-white bg-[#286CD2] hover:bg-[#1e57b0] rounded-xl shadow-sm transition-all duration-200">
+            Search
+        </button>
+        @if(request()->hasAny(['search', 'type', 'availability']))
+            <a href="{{ route('favorites.index') }}"
+                class="px-4 py-2.5 text-sm font-semibold text-[#2A2523] bg-[#F7F8FA] border border-[#9B9F98]/30 hover:bg-[#D7E8F3] rounded-xl transition-all duration-200 text-center">
+                Clear
+            </a>
+        @endif
+    </form>
+
     @if($favorites->count() > 0)
 
         <p class="text-[13px] text-gray-400 font-medium mb-6">

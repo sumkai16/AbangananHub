@@ -16,10 +16,12 @@ use App\Http\Controllers\Admin\PropertyUnitController as AdminPropertyUnitContro
 use App\Http\Controllers\Landlord\ListingController as LandlordListingController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
+Route::get('/about', fn() => view('about'))->name('about');
 
 Route::get('/dashboard', [TenantDashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -75,6 +77,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/verifications/{verification}', [AdminVerificationController::class, 'show'])->name('verifications.show');
         Route::post('/verifications/{verification}/approve', [AdminVerificationController::class, 'approve'])->name('verifications.approve');
         Route::post('/verifications/{verification}/reject', [AdminVerificationController::class, 'reject'])->name('verifications.reject');
+
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
 
         Route::get('/units', [AdminPropertyUnitController::class, 'index'])->name('units.index');
         Route::get('/properties/{property}/units/{unit}', [AdminPropertyUnitController::class, 'show'])->name('units.show');

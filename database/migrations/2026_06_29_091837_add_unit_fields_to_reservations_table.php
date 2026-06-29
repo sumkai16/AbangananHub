@@ -9,9 +9,13 @@ return new class extends Migration
    public function up(): void
 {
     Schema::table('reservations', function (Blueprint $table) {
-        $table->unsignedBigInteger('unit_id')->nullable()->after('property_id');
-        $table->foreign('unit_id')->references('unit_id')->on('property_units')->onDelete('cascade');
-        $table->dropColumn('status');
+        if (!Schema::hasColumn('reservations', 'unit_id')) {
+            $table->unsignedBigInteger('unit_id')->nullable()->after('property_id');
+            $table->foreign('unit_id')->references('unit_id')->on('property_units')->onDelete('cascade');
+        }
+        if (Schema::hasColumn('reservations', 'status')) {
+            $table->dropColumn('status');
+        }
     });
 }
 

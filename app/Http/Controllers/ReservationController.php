@@ -5,17 +5,31 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreReservationRequest;
 use App\Models\Property;
 use App\Models\Reservation;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class ReservationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $reservations = Reservation::where('tenant_id', Auth::id())
+        $status = $request->query('status');
+        $search = $request->query('search');
+
+        $query = Reservation::where('tenant_id', Auth::id())
             ->with(['property.media', 'property.landlord'])
-            ->latest()
-            ->paginate(10);
+            ->latest();
+
+        if ($status && $status !== 'All') {
+            $query->where('reservation_status', $status);
+        }
+
+        if ($search) {
+            $query->whereHas('property', fn($q) => $q->where('title', 'like', "%{$search}%")
+                ->orWhere('address', 'like', "%{$search}%"));
+        }
+
+        $reservations = $query->paginate(10)->withQueryString();
 
         return view('reservations.index', compact('reservations'));
     }

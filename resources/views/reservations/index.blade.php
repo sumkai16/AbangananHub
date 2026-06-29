@@ -23,6 +23,37 @@
             </div>
         </div>
 
+        {{-- Search & Filter Bar --}}
+        <form method="GET" action="{{ route('reservations.index') }}"
+            class="flex flex-col sm:flex-row gap-3 mb-10 p-4 bg-white rounded-2xl border border-slate-200/60 shadow-sm">
+            <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" name="search" value="{{ request('search') }}"
+                    placeholder="Search property name or address…"
+                    class="w-full pl-9 pr-4 py-2.5 text-sm text-slate-800 bg-[#F7F8FA] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#286CD2]/30 focus:border-[#286CD2] transition placeholder-slate-400" />
+            </div>
+            <select name="status"
+                class="px-4 py-2.5 text-sm font-semibold text-slate-700 bg-[#F7F8FA] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#286CD2]/30 focus:border-[#286CD2] transition">
+                <option value="All" {{ request('status', 'All') === 'All' ? 'selected' : '' }}>All statuses</option>
+                @foreach(['Pending', 'Approved', 'Rejected', 'Cancelled'] as $s)
+                    <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $s }}</option>
+                @endforeach
+            </select>
+            <button type="submit"
+                class="px-5 py-2.5 text-sm font-bold text-white bg-[#286CD2] hover:bg-[#1e57b0] rounded-xl shadow-sm transition-all duration-200">
+                Search
+            </button>
+            @if(request()->hasAny(['search', 'status']))
+                <a href="{{ route('reservations.index') }}"
+                    class="px-4 py-2.5 text-sm font-semibold text-slate-500 bg-[#F7F8FA] border border-slate-200 hover:bg-slate-100 rounded-xl transition-all duration-200 text-center">
+                    Clear
+                </a>
+            @endif
+        </form>
+
         @if (session('success'))
             <div class="mb-8 p-4.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-900 text-sm font-semibold border border-emerald-100 shadow-[0_4px_12px_rgba(16,185,129,0.05)] flex items-center gap-3">
                 <div class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600">

@@ -106,7 +106,15 @@
                                     </svg>
                                     Verification Requests
                                 </a>
-                                {{-- Future admin features can easily be appended right here --}}
+                                <a href="{{ route('admin.users.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#286CD2] hover:bg-blue-50 border-t border-gray-100 mt-1">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Manage Users
+                                </a>
                             </div>
                         @else
                             <a href="{{ route('landlord.verification.create') }}"
@@ -392,6 +400,8 @@
             </a>
             <div class="flex items-center gap-5 text-[12.5px] text-gray-500">
                 <a href="{{ route('properties.index') }}" class="hover:text-gray-800 transition-colors">Properties</a>
+                <span class="text-gray-300">|</span>
+                <a href="{{ route('about') }}" class="hover:text-gray-800 transition-colors">About</a>
                 <span class="text-gray-300">|</span>
                 <a href="#" class="hover:text-gray-800 transition-colors">Privacy</a>
                 <span class="text-gray-300">|</span>

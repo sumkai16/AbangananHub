@@ -79,7 +79,7 @@
                         <span class="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100/60 shadow-sm">
                             {{ $property->property_type }}
                         </span>
-                        @if(optional($property->landlord->verificationApplication)->verification_status === 'Approved')
+                        @if($property->landlord->rentalBusiness)
                             <span class="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100/60 shadow-sm flex items-center gap-1">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -299,12 +299,31 @@
                     @elseif(auth()->check())
                         <form action="{{ route('reservations.store', $property) }}" method="POST" class="space-y-4 mb-3">
                             @csrf
-                                <input type="hidden" name="unit_id" value="{{ $property->units->where('availability_status', 'Available')->where('verification_status', 'Approved')->first()?->unit_id }}">
+                                @php $availableUnits = $property->units->where('availability_status', 'Available')->where('verification_status', 'Approved'); @endphp
+                                @if($availableUnits->count() === 1)
+                                    <input type="hidden" name="unit_id" value="{{ $availableUnits->first()->unit_id }}">
+                                @else
+                                    <div>
+                                        <label for="unit_id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Select Unit</label>
+                                        <select id="unit_id" name="unit_id" required
+                                            class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-sm font-medium focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none">
+                                            <option value="" disabled selected>Choose a unit...</option>
+                                            @foreach($availableUnits as $unit)
+                                                <option value="{{ $unit->unit_id }}" {{ old('unit_id') == $unit->unit_id ? 'selected' : '' }}>
+                                                    {{ $unit->unit_label }} — ₱{{ number_format($unit->rental_fee) }}/mo · Up to {{ $unit->occupancy_limit }} {{ Str::plural('occupant', $unit->occupancy_limit) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
 
                             @error('property')
                                 <p class="text-xs text-red-600 font-bold bg-red-50 p-2.5 rounded-lg border border-red-100">{{ $message }}</p>
                             @enderror
                             @error('reservation_date')
+                                <p class="text-xs text-red-600 font-bold bg-red-50 p-2.5 rounded-lg border border-red-100">{{ $message }}</p>
+                            @enderror
+                            @error('unit_id')
                                 <p class="text-xs text-red-600 font-bold bg-red-50 p-2.5 rounded-lg border border-red-100">{{ $message }}</p>
                             @enderror
 
@@ -333,6 +352,9 @@
                             <div>
                                 <label for="occupants_count" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Number of Occupants</label>
                                 <input type="number" id="occupants_count" name="occupants_count" min="1" placeholder="e.g., 2" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-sm font-medium focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" required>
+                                @error('occupants_count')
+                                    <p class="text-xs text-red-600 font-bold bg-red-50 p-2.5 rounded-lg border border-red-100 mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div>
@@ -397,7 +419,7 @@
                             <div class="text-sm font-bold text-slate-800">
                                 {{ $property->landlord->first_name }} {{ $property->landlord->last_name }}
                             </div>
-                            @if(optional($property->landlord->verificationApplication)->verification_status === 'Approved')
+                            @if($property->landlord->rentalBusiness)
                                 <div class="flex items-center gap-1 text-xs text-emerald-600 font-bold mt-0.5">
                                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
