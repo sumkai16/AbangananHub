@@ -40,7 +40,13 @@
 <body class="font-sans bg-[#F7F8FA] text-[#0F172A] min-h-screen" x-data="{
         sidebarOpen: false,
         sidebarCollapsed: localStorage.getItem('landlordSidebarCollapsed') === 'true'
-    }" x-init="$watch('sidebarCollapsed', value => localStorage.setItem('landlordSidebarCollapsed', value))">
+    }" x-init="
+        document.documentElement.classList.toggle('sidebar-pre-collapsed', sidebarCollapsed);
+        $watch('sidebarCollapsed', value => {
+            localStorage.setItem('landlordSidebarCollapsed', value);
+            document.documentElement.classList.toggle('sidebar-pre-collapsed', value);
+        });
+    ">
 
     <div class="flex min-h-screen">
 
@@ -122,9 +128,9 @@
                     </span>
                 </a>
 
-                {{-- Units — grayed, no global route yet --}}
+                {{-- Units — no global landing yet; accessible per-property. Axcee: once a global units index exists, swap this div for an <a> pointing there --}}
                 <div :class="sidebarCollapsed ? 'justify-center' : ''"
-                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/35 cursor-not-allowed select-none">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -132,10 +138,10 @@
                     </svg>
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Units</span>
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                        class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                        class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Via Property</span>
                     <span x-show="sidebarCollapsed" x-cloak
                         class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#0F172A] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                        Units · View from a property for now
+                        Units — open a property to manage units
                     </span>
                 </div>
 

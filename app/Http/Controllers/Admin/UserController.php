@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -30,5 +31,12 @@ class UserController extends Controller
             ->withQueryString();
 
         return view('admin.users.index', compact('users', 'search', 'role'));
+    }
+
+    public function show(User $user)
+    {
+        $user->load(['roles', 'verificationApplication', 'rentalBusiness', 'properties', 'reservations']);
+
+        return view('admin.users.show', compact('user'));
     }
 }

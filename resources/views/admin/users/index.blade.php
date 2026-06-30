@@ -68,6 +68,7 @@
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-[#9B9F98]">Role(s)</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-[#9B9F98]">Status</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-[#9B9F98]">Joined</th>
+                            <th class="px-4 py-3"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#9B9F98]/10 bg-white">
@@ -133,6 +134,15 @@
                                 </td>
                                 <td class="px-4 py-3 text-sm text-[#9B9F98]">
                                     {{ $user->created_at ? \Carbon\Carbon::parse($user->created_at)->format('M d, Y') : '—' }}
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{{ route('admin.users.show', $user->user_id) }}"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#F0EDE8] text-[#2A2523] hover:bg-[#286CD2] hover:text-white transition-colors">
+                                        View
+                                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
