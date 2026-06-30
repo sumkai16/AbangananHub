@@ -10,14 +10,13 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\Landlord\PropertyUnitController;
-// Admin unit approval
+use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
 use App\Http\Controllers\Admin\PropertyUnitController as AdminPropertyUnitController;
-// Aliased to prevent naming collisions between roles
 use App\Http\Controllers\Landlord\ListingController as LandlordListingController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-
+use App\Http\Controllers\Landlord\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
@@ -34,16 +33,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Landlord verification — open to any authenticated user, no role gate
-    // (gating this with 'landlord' middleware would be a chicken-and-egg problem)
     Route::get('/landlord/apply', [VerificationController::class, 'create'])->name('landlord.verification.create');
     Route::post('/landlord/apply', [VerificationController::class, 'store'])->name('landlord.verification.store');
     Route::get('/landlord/verification', [VerificationController::class, 'show'])->name('landlord.verification.show');
     Route::get('/verifications/{verification}/document', [VerificationController::class, 'download'])->name('verifications.document');
 
-    // Landlord-only routes (Placed BEFORE wildcards to prevent 404 collision)
+    // Landlord-only routes (property create/edit/delete — no prefix, uses /properties URIs)
     Route::middleware('landlord')->group(function () {
-        Route::resource('properties', PropertyController::class)->except(['index', 'show']);
-        Route::get('/landlord/listings', [LandlordListingController::class, 'index'])->name('landlord.listings.index');
+        Route::resource('properties', PropertyController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
         Route::delete('/properties/{property}/media/{media}', [PropertyController::class, 'destroyMedia'])->name('properties.media.destroy');
     });
 
@@ -60,11 +57,23 @@ Route::middleware('auth')->group(function () {
 
     // Landlord-specific prefix routes
     Route::middleware('landlord')->prefix('landlord')->name('landlord.')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        // Property management
+        Route::get('/properties', [LandlordPropertyController::class, 'index'])->name('properties.index');
+        Route::get('/properties/{property}', [LandlordPropertyController::class, 'show'])->name('properties.show');
+
+        // Listings (legacy — keep until confirmed removable)
+        Route::get('/listings', [LandlordListingController::class, 'index'])->name('listings.index');
+
+        // Reservations
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
         Route::patch('/reservations/{reservation}/approve', [App\Http\Controllers\Landlord\ReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
+
+        // Units
         Route::resource('properties.units', PropertyUnitController::class);
-        Route::delete('/properties/{property}/units/{unit}/media/{media}', [PropertyUnitController::class, 'destroyMedia'])->name('properties.units.media.destroy'); // ADD THIS
+        Route::delete('/properties/{property}/units/{unit}/media/{media}', [PropertyUnitController::class, 'destroyMedia'])->name('properties.units.media.destroy');
+
     });
 
     // Admin-specific routes

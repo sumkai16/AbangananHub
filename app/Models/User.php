@@ -113,6 +113,6 @@ protected $primaryKey = 'user_id';
     }
     public function rentalBusiness()
     {
-        return $this->hasOne(RentalBusiness::class, 'user_id', 'user_id');
+        return $this->hasOne(RentalBusiness::class, 'landlord_id', 'user_id');
     }
 }

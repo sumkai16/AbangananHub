@@ -76,9 +76,9 @@
                     {{-- Become a Landlord / My Listings / Admin Actions --}}
                     <div class="relative hidden sm:block">
                         @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
-                            <a href="{{ route('landlord.listings.index') }}"
+                            <a href="{{ route('landlord.properties.index') }}"
                                 class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all">
-                                My Listings
+                                Landlord Dashboard
                             </a>
                         @elseif(auth()->user()->hasRole('Admin'))
                             <button id="landlord-btn" aria-expanded="false"
@@ -529,13 +529,15 @@
                                 <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">First Name</label>
                                 <input type="text" name="first_name" required placeholder="First name"
                                     class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
-                                <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-first_name"></span>
+                                <span class="text-xs text-red-500 mt-1 hidden error-field"
+                                    id="error-register-first_name"></span>
                             </div>
                             <div>
                                 <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Last Name</label>
                                 <input type="text" name="last_name" required placeholder="Last name"
                                     class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
-                                <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-last_name"></span>
+                                <span class="text-xs text-red-500 mt-1 hidden error-field"
+                                    id="error-register-last_name"></span>
                             </div>
                         </div>
 
@@ -543,7 +545,8 @@
                             <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Contact Number</label>
                             <input type="text" name="contact_number" required placeholder="Enter your contact number"
                                 class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#286CD2] focus:ring-2 focus:ring-[#286CD2]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-contact_number"></span>
+                            <span class="text-xs text-red-500 mt-1 hidden error-field"
+                                id="error-register-contact_number"></span>
                         </div>
 
                         <div class="mb-3">
