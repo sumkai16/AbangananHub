@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
         Route::patch('/reservations/{reservation}/approve', [App\Http\Controllers\Landlord\ReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
+        Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
 
         // Units
         Route::resource('properties.units', PropertyUnitController::class);
