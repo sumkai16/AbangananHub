@@ -90,7 +90,6 @@ public function cancel(): bool
     if (!$this->isPending() && !$this->isApproved()) {
         return false;
     }
-
     $this->reservation_status = 'Cancelled';
     return $this->save();
 }

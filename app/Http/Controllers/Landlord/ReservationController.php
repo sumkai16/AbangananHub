@@ -34,13 +34,25 @@ class ReservationController extends Controller
 
         return view('landlord.reservations.index', compact('reservations', 'counts', 'status'));
     }
-    public function approve(Reservation $reservation)
+public function approve(Reservation $reservation)
     {
         Gate::authorize('approve', $reservation);
+
+        $hasCompetingApproved = Reservation::where('unit_id', $reservation->unit_id)
+            ->where('reservation_id', '!=', $reservation->reservation_id)
+            ->where('reservation_status', 'Approved')
+            ->exists();
+
+        if ($hasCompetingApproved) {
+            return back()->withErrors(['reservation' => 'This unit already has an approved reservation. Cancel it first before approving another.']);
+        }
+
         if (!$reservation->approve()) {
             return back()->withErrors(['reservation' => 'This reservation can no longer be approved.']);
         }
+
         $reservation->unit->update(['availability_status' => 'Reserved']);
+
         Reservation::where('unit_id', $reservation->unit_id)
             ->where('reservation_id', '!=', $reservation->reservation_id)
             ->where('reservation_status', 'Pending')
@@ -48,6 +60,7 @@ class ReservationController extends Controller
                 'reservation_status' => 'Rejected',
                 'rejection_reason'   => 'Another applicant was approved for this unit.',
             ]);
+
         return back()->with('success', 'Reservation approved and competing requests auto-declined.');
     }
     public function reject(Request $request, Reservation $reservation)
@@ -65,16 +78,27 @@ class ReservationController extends Controller
         ]);
         return back()->with('success', 'Reservation rejected.');
     }
-    public function cancel(Reservation $reservation)
+public function cancel(Reservation $reservation)
     {
         Gate::authorize('cancel', $reservation);
+
         $wasApproved = $reservation->isApproved();
+
         if (!$reservation->cancel()) {
             return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
         }
+
         if ($wasApproved && $reservation->unit_id) {
-            $reservation->unit->update(['availability_status' => 'Available']);
+            $otherApprovedExists = Reservation::where('unit_id', $reservation->unit_id)
+                ->where('reservation_id', '!=', $reservation->reservation_id)
+                ->where('reservation_status', 'Approved')
+                ->exists();
+
+            if (!$otherApprovedExists) {
+                $reservation->unit->update(['availability_status' => 'Available']);
+            }
         }
+
         return back()->with('success', 'Reservation cancelled.');
     }
 }

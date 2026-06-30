@@ -55,27 +55,27 @@ class PropertyUnitController extends Controller
             ]);
 
             foreach ($request->file('photos') as $photo) {
-                $result = cloudinary()->upload($photo->getRealPath(), [
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
                     'folder'        => 'abanganan/units',
                     'resource_type' => 'image',
                 ]);
                 $unit->media()->create([
                     'property_id'          => $property->property_id,
                     'media_type'           => 'Image',
-                    'media_url'            => $result->getSecurePath(),
-                    'cloudinary_public_id' => $result->getPublicId(),
+                    'media_url'            => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'],
                 ]);
             }
 
-            $result = cloudinary()->upload($request->file('video')->getRealPath(), [
+            $result = cloudinary()->uploadApi()->upload($request->file('video')->getRealPath(), [
                 'folder'        => 'abanganan/units/videos',
                 'resource_type' => 'video',
             ]);
             $unit->media()->create([
                 'property_id'          => $property->property_id,
                 'media_type'           => 'Video',
-                'media_url'            => $result->getSecurePath(),
-                'cloudinary_public_id' => $result->getPublicId(),
+                'media_url'            => $result['secure_url'],
+                'cloudinary_public_id' => $result['public_id'],
             ]);
         });
 
@@ -125,29 +125,29 @@ class PropertyUnitController extends Controller
 
             if ($request->hasFile('photos')) {
                 foreach ($request->file('photos') as $photo) {
-                    $result = cloudinary()->upload($photo->getRealPath(), [
+                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
                         'folder'        => 'abanganan/units',
                         'resource_type' => 'image',
                     ]);
                     $unit->media()->create([
                         'property_id'          => $property->property_id,
                         'media_type'           => 'Image',
-                        'media_url'            => $result->getSecurePath(),
-                        'cloudinary_public_id' => $result->getPublicId(),
+                        'media_url'            => $result['secure_url'],
+                        'cloudinary_public_id' => $result['public_id'],
                     ]);
                 }
             }
 
             if ($request->hasFile('video')) {
-                $result = cloudinary()->upload($request->file('video')->getRealPath(), [
+                $result = cloudinary()->uploadApi()->upload($request->file('video')->getRealPath(), [
                     'folder'        => 'abanganan/units/videos',
                     'resource_type' => 'video',
                 ]);
                 $unit->media()->create([
                     'property_id'          => $property->property_id,
                     'media_type'           => 'Video',
-                    'media_url'            => $result->getSecurePath(),
-                    'cloudinary_public_id' => $result->getPublicId(),
+                    'media_url'            => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'],
                 ]);
             }
         });
@@ -161,13 +161,9 @@ class PropertyUnitController extends Controller
     {
         $this->authorizeProperty($property);
 
-        if ($unit->property_id !== $property->property_id) {
-            abort(404);
-        }
-
         foreach ($unit->media as $media) {
             if ($media->cloudinary_public_id) {
-                cloudinary()->destroy($media->cloudinary_public_id);
+                cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);
             }
             $media->delete();
         }
@@ -195,7 +191,7 @@ class PropertyUnitController extends Controller
         $photo = $unit->media()->where('media_id', $media)->firstOrFail();
 
         if ($photo->cloudinary_public_id) {
-            cloudinary()->destroy($photo->cloudinary_public_id);
+            cloudinary()->uploadApi()->destroy($photo->cloudinary_public_id);
         }
         $photo->delete();
 
