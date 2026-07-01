@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-
+use Illuminate\Http\JsonResponse;
 class RegisteredUserController extends Controller
 {
     public function create(): View
@@ -20,7 +20,7 @@ class RegisteredUserController extends Controller
         return view('auth.register');
     }
 
-    public function store(Request $request): RedirectResponse
+  public function store(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
             'first_name'     => ['required', 'string', 'max:255'],
@@ -46,6 +46,12 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'redirect_url' => route('dashboard', absolute: false),
+            ]);
+        }
 
         return redirect(route('dashboard', absolute: false));
     }

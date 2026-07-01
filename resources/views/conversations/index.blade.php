@@ -1,20 +1,39 @@
-@extends('layouts.landlord')
-
+@extends(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
     <div class="max-w-4xl mx-auto px-4 py-10">
 
         <!-- Inbox Header Title -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Messages</h1>
                 <p class="text-sm text-gray-500 mt-1">Manage your active inquiries and conversation threads regarding
                     properties.</p>
             </div>
-            <span
-                class="bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1.5 rounded-xl border border-blue-100 shadow-sm">
-                {{ $conversations->count() }} {{ Str::plural('Chat', $conversations->count()) }}
-            </span>
+        </div>
+
+        <!-- Status Tabs -->
+        <div class="flex items-center gap-2 mb-6">
+            @php
+                $tabs = [
+                    'all' => ['label' => 'All', 'count' => $allCount],
+                    'unread' => ['label' => 'Unread', 'count' => $unreadCount],
+                    'resolved' => ['label' => 'Resolved', 'count' => $resolvedCount],
+                ];
+            @endphp
+            @foreach ($tabs as $key => $tab)
+                <a href="{{ route('conversations.index', array_filter(['status' => $key, 'search' => request('search')])) }}"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition
+                                {{ $status === $key ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
+                    {{ $tab['label'] }}
+                    @if($tab['count'] > 0)
+                        <span class="text-xs font-bold px-1.5 py-0.5 rounded-full
+                                        {{ $status === $key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500' }}">
+                            {{ $tab['count'] }}
+                        </span>
+                    @endif
+                </a>
+            @endforeach
         </div>
 
         <!-- Search Bar -->
@@ -56,7 +75,6 @@
 
                         <!-- Left Section: Avatar, Name, & Subtext -->
                         <div class="flex items-center space-x-4 min-w-0 flex-1">
-                            <!-- Custom Initials Circle Avatar (Matches the "J" styling in your top right navigation header) -->
                             <div
                                 class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0 transition group-hover:scale-105">
                                 {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
@@ -86,7 +104,6 @@
                                 </span>
                             </div>
 
-                            <!-- Premium Action Chevron Arrow Indicator -->
                             <svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 transform group-hover:translate-x-1 transition"
                                 fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -96,7 +113,6 @@
                     </div>
                 </a>
             @empty
-                <!-- Beautiful Empty State View -->
                 <div class="p-16 text-center">
                     <div
                         class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
