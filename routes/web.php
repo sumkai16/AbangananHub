@@ -16,6 +16,7 @@ use App\Http\Controllers\Landlord\ListingController as LandlordListingController
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Landlord\DashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -79,6 +80,8 @@ Route::middleware('auth')->group(function () {
 
     // Admin-specific routes
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
         Route::get('/listings/approval', [ListingController::class, 'approval'])->name('listings.approval');
         Route::post('/listings/{property_id}/approve', [ListingController::class, 'approve'])->name('listings.approve');
         Route::post('/listings/{property_id}/reject', [ListingController::class, 'reject'])->name('listings.reject');
