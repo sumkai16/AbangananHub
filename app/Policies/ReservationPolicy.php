@@ -27,4 +27,20 @@ class ReservationPolicy
     {
         return $this->approve($user, $reservation);
     }
+
+    /**
+     * Tenant can view the agreement for their own reservation.
+     */
+    public function viewAgreement(User $user, Reservation $reservation): bool
+    {
+        return $user->user_id === $reservation->tenant_id;
+    }
+
+    /**
+     * Tenant can sign the agreement for their own reservation.
+     */
+    public function sign(User $user, Reservation $reservation): bool
+    {
+        return $this->viewAgreement($user, $reservation);
+    }
 }

@@ -101,4 +101,29 @@ public function cancel(Reservation $reservation)
 
         return back()->with('success', 'Reservation cancelled.');
     }
+    public function advanceToNegotiation(Reservation $reservation)
+    {
+        Gate::authorize('approve', $reservation);
+
+        if (!$reservation->advanceToNegotiation()) {
+            return back()->withErrors(['reservation' => 'This reservation cannot move to negotiation right now.']);
+        }
+
+        return back()->with('success', 'Reservation moved to Under Negotiation.');
+    }
+
+    public function advanceToPendingAgreement(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('approve', $reservation);
+
+        $request->validate([
+            'agreement_terms_notes' => 'nullable|string|max:2000',
+        ]);
+
+        if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
+            return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
+        }
+
+        return back()->with('success', 'Agreement sent to tenant.');
+    }
 }
