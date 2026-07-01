@@ -161,6 +161,10 @@ class PropertyUnitController extends Controller
     {
         $this->authorizeProperty($property);
 
+        if ($unit->property_id !== $property->property_id) {
+            abort(404);
+        }
+
         foreach ($unit->media as $media) {
             if ($media->cloudinary_public_id) {
                 cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);
