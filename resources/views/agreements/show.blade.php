@@ -44,13 +44,8 @@
                     <tbody>
                         <tr class="border-b border-[#9B9F98]/15">
                             <td class="py-2 text-[#9B9F98]">Rental Fee</td>
-<<<<<<< HEAD
                             <td class="py-2 font-semibold text-[#2A2523]">
-                                ₱{{ number_format($reservation->property->rental_fee, 2) }} / month</td>
-=======
-                            <td class="py-2 font-semibold text-[#0F172A]">
                                 ₱{{ number_format($reservation->unit->rental_fee, 2) }} / month</td>
->>>>>>> 8e6ac5be663b639126b6572c8fcbddf7c365ea20
                         </tr>
                         <tr class="border-b border-[#9B9F98]/15">
                             <td class="py-2 text-[#9B9F98]">Reservation Date</td>

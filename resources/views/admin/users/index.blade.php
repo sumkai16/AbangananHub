@@ -11,8 +11,15 @@
             <h1 class="text-2xl font-extrabold text-[#1A1A2E] tracking-tight">System Users</h1>
             <p class="text-[13.5px] text-gray-500 mt-1">View and manage all registered accounts.</p>
         </div>
-        <div class="text-[13px] font-semibold text-gray-500">
-            {{ number_format($users->total()) }} total
+        <div class="flex items-center gap-3">
+            <span class="text-[13px] font-semibold text-gray-500">{{ number_format($users->total()) }} total</span>
+            <a href="{{ route('admin.users.create') }}"
+                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#286CD2] text-white rounded-xl hover:bg-[#1e5bb8] transition-colors shadow-sm">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Create User
+            </a>
         </div>
     </div>
 

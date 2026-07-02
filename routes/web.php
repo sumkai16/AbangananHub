@@ -16,6 +16,9 @@ use App\Http\Controllers\Landlord\ListingController as LandlordListingController
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\ConversationController as AdminConversationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Landlord\DashboardController;
 use Illuminate\Support\Facades\Route;
@@ -104,7 +107,24 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/verifications/{verification}/reject', [AdminVerificationController::class, 'reject'])->name('verifications.reject');
 
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
+        Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
         Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+        Route::patch('/users/{user}/status', [AdminUserController::class, 'updateStatus'])->name('users.updateStatus');
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+
+        Route::get('/reservations', [AdminReservationController::class, 'index'])->name('reservations.index');
+        Route::get('/reservations/{reservation}', [AdminReservationController::class, 'show'])->name('reservations.show');
+        Route::patch('/reservations/{reservation}/cancel', [AdminReservationController::class, 'forceCancel'])->name('reservations.forceCancel');
+        Route::patch('/reservations/{reservation}/reject', [AdminReservationController::class, 'forceReject'])->name('reservations.forceReject');
+
+        Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+        Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+
+        Route::get('/conversations', [AdminConversationController::class, 'index'])->name('conversations.index');
+        Route::get('/conversations/{conversation}', [AdminConversationController::class, 'show'])->name('conversations.show');
 
         Route::get('/units', [AdminPropertyUnitController::class, 'index'])->name('units.index');
         Route::get('/properties/{property}/units/{unit}', [AdminPropertyUnitController::class, 'show'])->name('units.show');
