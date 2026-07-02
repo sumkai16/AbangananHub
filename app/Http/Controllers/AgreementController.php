@@ -12,12 +12,15 @@ class AgreementController extends Controller
     {
         Gate::authorize('viewAgreement', $reservation);
 
-        if ($reservation->rental_status !== 'Pending Rental Agreement'
-            && $reservation->rental_status !== 'Rental Agreement Signed') {
+       if (!in_array($reservation->rental_status, [
+            'Pending Rental Agreement',
+            'Rental Agreement Signed',
+            'Occupied',
+        ])) {
             abort(404);
         }
 
-        $reservation->load(['property', 'tenant']);
+       $reservation->load(['property', 'property.landlord', 'tenant', 'unit']);
 
         return view('agreements.show', compact('reservation'));
     }

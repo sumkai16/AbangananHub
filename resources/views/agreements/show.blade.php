@@ -45,7 +45,7 @@
                         <tr class="border-b border-[#9B9F98]/15">
                             <td class="py-2 text-[#9B9F98]">Rental Fee</td>
                             <td class="py-2 font-semibold text-[#0F172A]">
-                                ₱{{ number_format($reservation->property->rental_fee, 2) }} / month</td>
+                                ₱{{ number_format($reservation->unit->rental_fee, 2) }} / month</td>
                         </tr>
                         <tr class="border-b border-[#9B9F98]/15">
                             <td class="py-2 text-[#9B9F98]">Reservation Date</td>
@@ -139,16 +139,38 @@
                     </div>
                 </div>
 
-                <!-- Pay Now placeholder — will be wired once PaymentController/route exists -->
-                <div class="mt-4 rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center justify-between gap-4">
-                    <div>
-                        <p class="text-sm font-bold text-[#0F172A]">Initial Payment</p>
-                        <p class="text-xs text-[#9B9F98] mt-0.5">Payment via GCash will be available once set up by the landlord.</p>
+                <!-- Pay Now — live form -->
+                <form action="{{ route('payments.checkout', $reservation) }}" method="POST" class="mt-4">
+                    @csrf
+                    <div class="rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-bold text-[#0F172A]">Initial Payment</p>
+                            <p class="text-xs text-[#9B9F98] mt-0.5">
+                                ₱{{ number_format($reservation->unit->rental_fee, 2) }} via GCash — you will be redirected to complete payment.
+                            </p>
+                        </div>
+                        <button type="submit"
+                            class="shrink-0 px-5 py-2.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-bold text-sm shadow-sm transition">
+                            Pay Now
+                        </button>
                     </div>
-                    <button type="button" disabled
-                        class="shrink-0 px-5 py-2.5 rounded-xl bg-[#9B9F98]/20 text-[#9B9F98] font-bold text-sm cursor-not-allowed select-none">
-                        Pay Now
-                    </button>
+                </form>
+
+            @elseif($reservation->isOccupied())
+                <!-- Occupied confirmation -->
+                <div class="mt-8 p-4 bg-green-50 border border-green-200/60 rounded-xl flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-green-800">Payment Confirmed — Unit Occupied</p>
+                        <p class="text-xs text-green-700 mt-0.5">
+                            Your initial payment has been received and the unit is now marked as occupied.
+                        </p>
+                    </div>
                 </div>
             @endif
         </div>
