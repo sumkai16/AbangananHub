@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant;
 
+use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\Message;
 use App\Models\Favorite;
@@ -10,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 
-class TenantDashboardController extends Controller
+class DashboardController extends Controller
 {
     public function index(Request $request)
     {

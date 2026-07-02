@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant;
 
+use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -12,13 +13,15 @@ class AgreementController extends Controller
     {
         Gate::authorize('viewAgreement', $reservation);
 
-        if ($reservation->rental_status !== 'Pending Rental Agreement'
-            && $reservation->rental_status !== 'Rental Agreement Signed') {
+       if (!in_array($reservation->rental_status, [
+            'Pending Rental Agreement',
+            'Rental Agreement Signed',
+            'Occupied',
+        ])) {
             abort(404);
         }
 
-        $reservation->load(['property', 'tenant']);
-
+        $reservation->load(['property', 'property.landlord', 'tenant', 'unit', 'payments']);
         return view('agreements.show', compact('reservation'));
     }
 

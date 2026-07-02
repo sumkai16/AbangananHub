@@ -44,8 +44,13 @@
                     <tbody>
                         <tr class="border-b border-[#9B9F98]/15">
                             <td class="py-2 text-[#9B9F98]">Rental Fee</td>
+<<<<<<< HEAD
                             <td class="py-2 font-semibold text-[#2A2523]">
                                 ₱{{ number_format($reservation->property->rental_fee, 2) }} / month</td>
+=======
+                            <td class="py-2 font-semibold text-[#0F172A]">
+                                ₱{{ number_format($reservation->unit->rental_fee, 2) }} / month</td>
+>>>>>>> 8e6ac5be663b639126b6572c8fcbddf7c365ea20
                         </tr>
                         <tr class="border-b border-[#9B9F98]/15">
                             <td class="py-2 text-[#9B9F98]">Reservation Date</td>
@@ -122,22 +127,55 @@
                     </button>
                 </form>
 
-            @elseif($reservation->isAgreementSigned())
-                <!-- Signed confirmation -->
-                <div class="mt-8 p-4 bg-green-50 border border-green-200/60 rounded-xl flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
+           @elseif($reservation->isAgreementSigned())
+            <!-- Signed confirmation -->
+            <div class="mt-8 p-4 bg-green-50 border border-green-200/60 rounded-xl flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-green-800">Agreement Signed</p>
+                    <p class="text-xs text-green-700 mt-0.5">
+                        Signed on {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}.
+                    </p>
+                </div>
+            </div>
+
+            @if($reservation->payments->whereIn('status', ['Pending', 'Paid'])->isEmpty())
+                <!-- Pay Now — no payment started yet -->
+                <form action="{{ route('payments.checkout', $reservation) }}" method="POST" class="mt-4">
+                    @csrf
+                    <div class="rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-bold text-[#2A2523]">Initial Payment</p>
+                            <p class="text-xs text-[#9B9F98] mt-0.5">
+                                ₱{{ number_format($reservation->unit->rental_fee, 2) }} via GCash — you will be redirected to complete payment.
+                            </p>
+                        </div>
+                        <button type="submit"
+                            class="shrink-0 px-5 py-2.5 rounded-xl bg-[#61B2F0] hover:brightness-95 text-white font-bold text-sm shadow-sm transition">
+                            Pay Now
+                        </button>
                     </div>
+                </form>
+            @else
+                <!-- Payment already initiated — waiting for confirmation -->
+                <div class="mt-4 rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center gap-3">
+                    <svg class="w-5 h-5 text-[#9B9F98] shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
                     <div>
-                        <p class="text-sm font-bold text-green-800">Agreement Signed</p>
-                        <p class="text-xs text-green-700 mt-0.5">
-                            Signed on {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}.
+                        <p class="text-sm font-bold text-[#2A2523]">Payment Processing</p>
+                        <p class="text-xs text-[#9B9F98] mt-0.5">
+                            Your payment is being confirmed. This page will update once the payment is verified.
                         </p>
                     </div>
                 </div>
+<<<<<<< HEAD
 
                 <!-- Pay Now placeholder — will be wired once PaymentController/route exists -->
                 <div class="mt-4 rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center justify-between gap-4">
@@ -150,6 +188,8 @@
                         Pay Now
                     </button>
                 </div>
+=======
+>>>>>>> 8e6ac5be663b639126b6572c8fcbddf7c365ea20
             @endif
         </div>
     </div>

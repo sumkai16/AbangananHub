@@ -9,17 +9,18 @@ class Payment extends Model
 {
     protected $primaryKey = 'payment_id';
 
-    protected $fillable = [
-        'reservation_id',
-        'payment_type',
-        'billing_period',
-        'amount',
-        'payment_method',
-        'paymongo_payment_intent_id',
-        'paymongo_payment_id',
-        'status',
-        'paid_at',
-    ];
+  protected $fillable = [
+    'reservation_id',
+    'payment_type',
+    'billing_period',
+    'amount',
+    'payment_method',
+    'paymongo_payment_intent_id',
+    'paymongo_payment_id',
+    'paymongo_checkout_session_id',
+    'status',
+    'paid_at',
+];
 
     protected $casts = [
         'billing_period' => 'date',

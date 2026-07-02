@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TenantDashboardController;
-use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
+use App\Http\Controllers\Tenant\FavoriteController;
+use App\Http\Controllers\Tenant\ReservationController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PropertyController;
@@ -19,6 +19,9 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Landlord\DashboardController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Tenant\AgreementController;
+use App\Http\Controllers\Tenant\PaymentController;
+use App\Http\Controllers\PayMongoWebhookController;
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
 Route::get('/about', fn() => view('about'))->name('about');
@@ -58,6 +61,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
         Route::get('/reservations/{reservation}/agreement', [AgreementController::class, 'show'])->name('agreements.show');
         Route::post('/reservations/{reservation}/agreement/sign', [AgreementController::class, 'sign'])->name('agreements.sign');
+        Route::post('/reservations/{reservation}/pay', [PaymentController::class, 'createCheckoutSession'])->name('payments.checkout');
+        Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
     });
 
     // Landlord-specific prefix routes
@@ -123,5 +128,6 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 // Publicly accessible property routes
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
-
+// PayMongo webhook — no auth, CSRF excluded in bootstrap/app.php
+Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
 require __DIR__.'/auth.php';

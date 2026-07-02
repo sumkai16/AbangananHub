@@ -1,19 +1,23 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
+
 class Reservation extends Model
 {
     protected $primaryKey = 'reservation_id';
-   protected $fillable = [
+
+    protected $fillable = [
         'property_id',
         'unit_id',
         'tenant_id',
+        'conversation_id',
         'reservation_date',
         'target_move_in_date',
         'target_move_out_date',
         'duration_of_stay',
         'occupants_count',
-        'reservation_status',
         'rental_status',
         'agreement_terms_notes',
         'agreed_at',
@@ -21,6 +25,7 @@ class Reservation extends Model
         'remarks',
         'rejection_reason',
     ];
+
     protected function casts(): array
     {
         return [
@@ -30,67 +35,36 @@ class Reservation extends Model
             'agreed_at' => 'datetime',
         ];
     }
+
     // ─── Relationships ───────────────────────────────────────
+
     public function property()
     {
         return $this->belongsTo(Property::class, 'property_id', 'property_id');
     }
+
     public function unit()
     {
         return $this->belongsTo(PropertyUnit::class, 'unit_id', 'unit_id');
     }
+
     public function tenant()
     {
         return $this->belongsTo(User::class, 'tenant_id', 'user_id');
     }
+
     public function payments()
     {
         return $this->hasMany(Payment::class, 'reservation_id', 'reservation_id');
     }
-    // ─── Status Helpers (reservation_status) ─────────────────
-    public function isPending(): bool
+
+    public function conversation()
     {
-        return $this->reservation_status === 'Pending';
-    }
-    public function isApproved(): bool
-    {
-        return $this->reservation_status === 'Approved';
-    }
-    public function isRejected(): bool
-    {
-        return $this->reservation_status === 'Rejected';
-    }
-    public function isCancelled(): bool
-    {
-        return $this->reservation_status === 'Cancelled';
-    }
-    // ─── State Transitions (reservation_status) ──────────────
-    public function approve(): bool
-    {
-        if (!$this->isPending()) {
-            return false;
-        }
-        $this->reservation_status = 'Approved';
-        return $this->save();
-    }
-    public function reject(): bool
-    {
-        if (!$this->isPending()) {
-            return false;
-        }
-        $this->reservation_status = 'Rejected';
-        return $this->save();
-    }
-    public function cancel(): bool
-    {
-        if (!$this->isPending() && !$this->isApproved()) {
-            return false;
-        }
-        $this->reservation_status = 'Cancelled';
-        return $this->save();
+        return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
     }
 
-    // ─── Aux Status Helpers (rental_status) ──────────────────
+    // ─── Status Helpers ──────────────────────────────────────
+
     public function isRentalStatus(string $status): bool
     {
         return $this->rental_status === $status;
@@ -106,12 +80,11 @@ class Reservation extends Model
         return $this->rental_status === 'Occupied';
     }
 
-    // ─── Aux State Transitions (rental_status) ───────────────
-    // All transitions past Inquiry require the reservation to be Approved first.
+    // ─── State Transitions ───────────────────────────────────
 
     public function advanceToNegotiation(): bool
     {
-        if (!$this->isApproved() || $this->rental_status !== 'Inquiry') {
+        if ($this->rental_status !== 'Inquiry') {
             return false;
         }
         $this->rental_status = 'Under Negotiation';
@@ -120,7 +93,7 @@ class Reservation extends Model
 
     public function advanceToPendingAgreement(?string $terms = null): bool
     {
-        if (!$this->isApproved() || $this->rental_status !== 'Under Negotiation') {
+        if ($this->rental_status !== 'Under Negotiation') {
             return false;
         }
         if ($terms !== null) {
@@ -132,7 +105,7 @@ class Reservation extends Model
 
     public function signAgreement(string $ip): bool
     {
-        if (!$this->isApproved() || $this->rental_status !== 'Pending Rental Agreement') {
+        if ($this->rental_status !== 'Pending Rental Agreement') {
             return false;
         }
         $this->rental_status = 'Rental Agreement Signed';
@@ -143,10 +116,38 @@ class Reservation extends Model
 
     public function markOccupied(): bool
     {
-        if (!$this->isApproved() || $this->rental_status !== 'Rental Agreement Signed') {
+        if ($this->rental_status !== 'Rental Agreement Signed') {
             return false;
         }
         $this->rental_status = 'Occupied';
+        $this->save();
+
+        if ($this->unit) {
+            $this->unit->availability_status = 'Occupied';
+            $this->unit->save();
+        }
+
+        return true;
+    }
+
+    public function reject(?string $reason = null): bool
+    {
+        if (in_array($this->rental_status, ['Occupied', 'Cancelled', 'Rejected'])) {
+            return false;
+        }
+        $this->rental_status = 'Rejected';
+        if ($reason !== null) {
+            $this->rejection_reason = $reason;
+        }
+        return $this->save();
+    }
+
+    public function cancel(): bool
+    {
+        if (in_array($this->rental_status, ['Occupied', 'Cancelled', 'Rejected'])) {
+            return false;
+        }
+        $this->rental_status = 'Cancelled';
         return $this->save();
     }
 }
