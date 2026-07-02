@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TenantDashboardController;
-use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
+use App\Http\Controllers\Tenant\FavoriteController;
+use App\Http\Controllers\Tenant\ReservationController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PropertyController;
@@ -19,8 +19,8 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Landlord\DashboardController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AgreementController;
-use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Tenant\AgreementController;
+use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\PayMongoWebhookController;
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');

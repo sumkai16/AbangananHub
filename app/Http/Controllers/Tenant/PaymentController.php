@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant;
 
+use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Reservation;
 use Illuminate\Http\Request;

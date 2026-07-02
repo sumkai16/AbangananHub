@@ -1,10 +1,13 @@
 <?php
+
 namespace App\Http\Controllers\Landlord;
+
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+
 class ReservationController extends Controller
 {
     public function index(Request $request)
@@ -14,107 +17,90 @@ class ReservationController extends Controller
         });
 
         $counts = [
-            'all'       => (clone $base)->count(),
-            'Pending'   => (clone $base)->where('reservation_status', 'Pending')->count(),
-            'Approved'  => (clone $base)->where('reservation_status', 'Approved')->count(),
-            'Rejected'  => (clone $base)->where('reservation_status', 'Rejected')->count(),
-            'Cancelled' => (clone $base)->where('reservation_status', 'Cancelled')->count(),
+            'all'                       => (clone $base)->count(),
+            'Inquiry'                   => (clone $base)->where('rental_status', 'Inquiry')->count(),
+            'Under Negotiation'         => (clone $base)->where('rental_status', 'Under Negotiation')->count(),
+            'Pending Rental Agreement'  => (clone $base)->where('rental_status', 'Pending Rental Agreement')->count(),
+            'Rental Agreement Signed'   => (clone $base)->where('rental_status', 'Rental Agreement Signed')->count(),
+            'Occupied'                  => (clone $base)->where('rental_status', 'Occupied')->count(),
+            'Cancelled'                 => (clone $base)->where('rental_status', 'Cancelled')->count(),
+            'Rejected'                  => (clone $base)->where('rental_status', 'Rejected')->count(),
         ];
 
         $status = $request->query('status', 'all');
-        if (in_array($status, ['Pending', 'Approved', 'Rejected', 'Cancelled'], true)) {
-            $base->where('reservation_status', $status);
+        $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected'];
+
+        if (in_array($status, $validStatuses, true)) {
+            $base->where('rental_status', $status);
         }
 
         $reservations = $base
-            ->with(['property.media', 'property.units', 'unit', 'tenant'])
+            ->with(['property.media', 'unit', 'tenant', 'conversation'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
         return view('landlord.reservations.index', compact('reservations', 'counts', 'status'));
     }
-public function approve(Reservation $reservation)
-    {
-        Gate::authorize('approve', $reservation);
 
-        $hasCompetingApproved = Reservation::where('unit_id', $reservation->unit_id)
-            ->where('reservation_id', '!=', $reservation->reservation_id)
-            ->where('reservation_status', 'Approved')
-            ->exists();
-
-        if ($hasCompetingApproved) {
-            return back()->withErrors(['reservation' => 'This unit already has an approved reservation. Cancel it first before approving another.']);
-        }
-
-        if (!$reservation->approve()) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be approved.']);
-        }
-
-        $reservation->unit->update(['availability_status' => 'Reserved']);
-
-        Reservation::where('unit_id', $reservation->unit_id)
-            ->where('reservation_id', '!=', $reservation->reservation_id)
-            ->where('reservation_status', 'Pending')
-            ->update([
-                'reservation_status' => 'Rejected',
-                'rejection_reason'   => 'Another applicant was approved for this unit.',
-            ]);
-
-        return back()->with('success', 'Reservation approved and competing requests auto-declined.');
-    }
     public function reject(Request $request, Reservation $reservation)
     {
         Gate::authorize('reject', $reservation);
-        if (!$reservation->isPending()) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be rejected.']);
-        }
+
         $request->validate([
             'rejection_reason' => 'nullable|string|max:500',
         ]);
-        $reservation->update([
-            'reservation_status' => 'Rejected',
-            'rejection_reason'   => $request->rejection_reason,
-        ]);
+
+        if (!$reservation->reject($request->rejection_reason)) {
+            return back()->withErrors(['reservation' => 'This reservation can no longer be rejected.']);
+        }
+
+        // Release unit if it was reserved
+        if ($reservation->unit && $reservation->unit->availability_status === 'Reserved') {
+            $reservation->unit->update(['availability_status' => 'Available']);
+        }
+
         return back()->with('success', 'Reservation rejected.');
     }
-public function cancel(Reservation $reservation)
+
+    public function cancel(Reservation $reservation)
     {
         Gate::authorize('cancel', $reservation);
 
-        $wasApproved = $reservation->isApproved();
+        $unitWasReserved = $reservation->unit && $reservation->unit->availability_status === 'Reserved';
 
         if (!$reservation->cancel()) {
             return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
         }
 
-        if ($wasApproved && $reservation->unit_id) {
-            $otherApprovedExists = Reservation::where('unit_id', $reservation->unit_id)
+        if ($unitWasReserved) {
+            $otherActiveExists = Reservation::where('unit_id', $reservation->unit_id)
                 ->where('reservation_id', '!=', $reservation->reservation_id)
-                ->where('reservation_status', 'Approved')
+                ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
                 ->exists();
 
-            if (!$otherApprovedExists) {
+            if (!$otherActiveExists) {
                 $reservation->unit->update(['availability_status' => 'Available']);
             }
         }
 
         return back()->with('success', 'Reservation cancelled.');
     }
+
     public function advanceToNegotiation(Reservation $reservation)
     {
-        Gate::authorize('approve', $reservation);
+        Gate::authorize('advanceStatus', $reservation);
 
         if (!$reservation->advanceToNegotiation()) {
             return back()->withErrors(['reservation' => 'This reservation cannot move to negotiation right now.']);
         }
 
-        return back()->with('success', 'Reservation moved to Under Negotiation.');
+        return back()->with('success', 'Moved to Under Negotiation.');
     }
 
     public function advanceToPendingAgreement(Request $request, Reservation $reservation)
     {
-        Gate::authorize('approve', $reservation);
+        Gate::authorize('advanceStatus', $reservation);
 
         $request->validate([
             'agreement_terms_notes' => 'nullable|string|max:2000',
