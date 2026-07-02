@@ -4,7 +4,7 @@
     <div class="max-w-3xl mx-auto px-4 py-10">
 
         <a href="{{ route('reservations.index') }}"
-            class="inline-flex items-center text-sm font-semibold text-[#3B82F6] hover:text-[#3B82F6]/80 transition mb-6">
+            class="inline-flex items-center text-sm font-semibold text-[#61B2F0] hover:text-[#61B2F0]/80 transition mb-6">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
@@ -24,7 +24,7 @@
         @endif
 
         <div class="bg-white border border-[#9B9F98]/15 rounded-2xl shadow-sm p-8">
-            <h1 class="text-2xl font-extrabold text-[#0F172A] tracking-tight mb-1">Rental Agreement</h1>
+            <h1 class="text-2xl font-extrabold text-[#2A2523] tracking-tight mb-1">Rental Agreement</h1>
             <p class="text-sm text-[#9B9F98] mb-8">Please read the terms below carefully before signing.</p>
 
             <!-- Populated Template -->
@@ -38,38 +38,38 @@
                     ("Tenant"), concerning the rental of the property located at:
                 </p>
 
-                <p class="font-semibold text-[#0F172A]">{{ $reservation->property->address }}</p>
+                <p class="font-semibold text-[#2A2523]">{{ $reservation->property->address }}</p>
 
                 <table class="w-full text-sm mt-4">
                     <tbody>
                         <tr class="border-b border-[#9B9F98]/15">
                             <td class="py-2 text-[#9B9F98]">Rental Fee</td>
-                            <td class="py-2 font-semibold text-[#0F172A]">
+                            <td class="py-2 font-semibold text-[#2A2523]">
                                 ₱{{ number_format($reservation->property->rental_fee, 2) }} / month</td>
                         </tr>
                         <tr class="border-b border-[#9B9F98]/15">
                             <td class="py-2 text-[#9B9F98]">Reservation Date</td>
-                            <td class="py-2 font-semibold text-[#0F172A]">
+                            <td class="py-2 font-semibold text-[#2A2523]">
                                 {{ $reservation->reservation_date->format('F j, Y') }}</td>
                         </tr>
                         @if($reservation->target_move_in_date)
                             <tr class="border-b border-[#9B9F98]/15">
                                 <td class="py-2 text-[#9B9F98]">Target Move-In</td>
-                                <td class="py-2 font-semibold text-[#0F172A]">
+                                <td class="py-2 font-semibold text-[#2A2523]">
                                     {{ $reservation->target_move_in_date->format('F j, Y') }}</td>
                             </tr>
                         @endif
                         @if($reservation->target_move_out_date)
                             <tr class="border-b border-[#9B9F98]/15">
                                 <td class="py-2 text-[#9B9F98]">Target Move-Out</td>
-                                <td class="py-2 font-semibold text-[#0F172A]">
+                                <td class="py-2 font-semibold text-[#2A2523]">
                                     {{ $reservation->target_move_out_date->format('F j, Y') }}</td>
                             </tr>
                         @endif
                         @if($reservation->occupants_count)
                             <tr class="border-b border-[#9B9F98]/15">
                                 <td class="py-2 text-[#9B9F98]">Occupants</td>
-                                <td class="py-2 font-semibold text-[#0F172A]">{{ $reservation->occupants_count }}</td>
+                                <td class="py-2 font-semibold text-[#2A2523]">{{ $reservation->occupants_count }}</td>
                             </tr>
                         @endif
                     </tbody>
@@ -110,14 +110,14 @@
                     <!-- Checkbox consent -->
                     <label class="flex items-start gap-3 mb-6 cursor-pointer group">
                         <input type="checkbox" name="agree" required
-                            class="mt-0.5 w-4 h-4 rounded border-[#9B9F98]/40 text-[#3B82F6] focus:ring-[#3B82F6] focus:ring-offset-0 transition">
-                        <span class="text-sm text-[#2A2523] leading-relaxed group-hover:text-[#0F172A] transition">
+                            class="mt-0.5 w-4 h-4 rounded border-[#9B9F98]/40 text-[#61B2F0] focus:ring-[#61B2F0] focus:ring-offset-0 transition">
+                        <span class="text-sm text-[#2A2523] leading-relaxed group-hover:text-[#2A2523]/80 transition">
                             I have read and agree to the terms of this Rental Agreement.
                         </span>
                     </label>
 
                     <button type="submit"
-                        class="w-full bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-bold text-sm py-3 rounded-xl shadow-sm transition">
+                        class="w-full bg-[#61B2F0] hover:brightness-95 text-white font-bold text-sm py-3 rounded-xl shadow-sm transition">
                         Sign Agreement
                     </button>
                 </form>
@@ -142,7 +142,7 @@
                 <!-- Pay Now placeholder — will be wired once PaymentController/route exists -->
                 <div class="mt-4 rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center justify-between gap-4">
                     <div>
-                        <p class="text-sm font-bold text-[#0F172A]">Initial Payment</p>
+                        <p class="text-sm font-bold text-[#2A2523]">Initial Payment</p>
                         <p class="text-xs text-[#9B9F98] mt-0.5">Payment via GCash will be available once set up by the landlord.</p>
                     </div>
                     <button type="button" disabled
