@@ -76,28 +76,29 @@ public function index(Request $request)
         return redirect()->route('conversations.show', $conversation);
     }
 
- public function show(Conversation $conversation)
-{
-    Gate::authorize('view', $conversation);
-    Notification::where('user_id', Auth::id())
-        ->where('type', 'message')
-        ->where('conversation_id', $conversation->conversation_id)
-        ->where('is_read', false)
-        ->update(['is_read' => true]);
+public function show(Conversation $conversation)
+    {
+        Gate::authorize('view', $conversation);
 
-    $conversation->messages()
-        ->where('sender_id', '!=', Auth::id())
-        ->where('is_read', false)
-        ->update(['is_read' => true]);
+        Notification::where('user_id', Auth::id())
+            ->where('type', 'message')
+            ->where('conversation_id', $conversation->conversation_id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
 
-    $conversation->load(['tenant', 'landlord', 'property', 'unit', 'messages.sender']);
+        $conversation->messages()
+            ->where('sender_id', '!=', Auth::id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
 
-    $otherParty = Auth::id() === $conversation->tenant_id
-        ? $conversation->landlord
-        : $conversation->tenant;
+        $conversation->load(['tenant', 'landlord', 'property', 'unit', 'messages.sender', 'activeReservation']);
 
-    return view('conversations.show', compact('conversation', 'otherParty'));
-}
+        $otherParty = Auth::id() === $conversation->tenant_id
+            ? $conversation->landlord
+            : $conversation->tenant;
+
+        return view('conversations.show', compact('conversation', 'otherParty'));
+    }
 
     public function resolve(Conversation $conversation)
     {

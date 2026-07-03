@@ -59,7 +59,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     // Tenant-specific routes
     Route::middleware('tenant')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
-        Route::post('/properties/{property}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+        Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
         Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
 
         Route::get('/reservations/{reservation}/agreement', [AgreementController::class, 'show'])->name('agreements.show');
@@ -78,14 +78,12 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         // Listings (legacy — keep until confirmed removable)
         Route::get('/listings', [LandlordListingController::class, 'index'])->name('listings.index');
 
-        // Reservations
+      // Reservations
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
-        Route::patch('/reservations/{reservation}/approve', [App\Http\Controllers\Landlord\ReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
         Route::patch('/reservations/{reservation}/advance-agreement', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToPendingAgreement'])->name('reservations.advanceAgreement');
-
 
         // Units
         Route::resource('properties.units', PropertyUnitController::class);

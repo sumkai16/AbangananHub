@@ -67,13 +67,12 @@ public function index(Request $request)
 
     return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties'));
 }
-    public function show(Property $property)
+  public function show(Property $property)
     {
         if ($property->verification_status !== 'Approved') {
             abort(404);
         }
-
-        $property->load(['media', 'landlord', 'amenities', 'reviews.tenant']);
+        $property->load(['media', 'landlord', 'amenities', 'reviews.tenant', 'units']);
         return view('properties.show', compact('property'));
     }
 

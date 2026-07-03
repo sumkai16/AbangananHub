@@ -8,7 +8,7 @@ use App\Models\Property;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\PropertyUnit;
 class ReservationController extends Controller
 {
     public function index(Request $request)
@@ -42,28 +42,29 @@ class ReservationController extends Controller
         return view('tenant.reservations.index', compact('reservations', 'counts', 'status'));
     }
 
-    public function store(Request $request, Property $property)
+public function store(Request $request)
     {
-        if ($property->landlord_id === Auth::id()) {
-            return back()->withErrors(['property' => 'You cannot inquire on your own listing.']);
-        }
-
-        if ($property->verification_status !== 'Approved') {
-            return back()->withErrors(['property' => 'This property is not available.']);
-        }
-
         $request->validate([
-            'unit_id' => 'required|integer',
+            'unit_id' => 'required|integer|exists:property_units,unit_id',
         ]);
 
-        $unit = $property->units()
-            ->where('unit_id', $request->unit_id)
+        $unit = \App\Models\PropertyUnit::where('unit_id', $request->unit_id)
             ->where('availability_status', 'Available')
             ->where('verification_status', 'Approved')
             ->first();
 
         if (!$unit) {
             return back()->withErrors(['unit' => 'This unit is not available.']);
+        }
+
+        $property = $unit->property;
+
+        if ($property->landlord_id === Auth::id()) {
+            return back()->withErrors(['property' => 'You cannot inquire on your own listing.']);
+        }
+
+        if ($property->verification_status !== 'Approved') {
+            return back()->withErrors(['property' => 'This property is not available.']);
         }
 
         // Check for existing active reservation on this unit by this tenant
@@ -76,7 +77,6 @@ class ReservationController extends Controller
             return back()->withErrors(['unit' => 'You already have an active inquiry or reservation for this unit.']);
         }
 
-        // Find or create conversation scoped to tenant + landlord + property + unit
         $conversation = Conversation::firstOrCreate([
             'tenant_id'   => Auth::id(),
             'landlord_id' => $property->landlord_id,
@@ -84,14 +84,13 @@ class ReservationController extends Controller
             'unit_id'     => $unit->unit_id,
         ]);
 
-        // Create reservation linked to conversation
-        $reservation = Reservation::create([
-            'property_id'     => $property->property_id,
-            'unit_id'         => $unit->unit_id,
-            'tenant_id'       => Auth::id(),
-            'conversation_id' => $conversation->conversation_id,
+        Reservation::create([
+            'property_id'      => $property->property_id,
+            'unit_id'          => $unit->unit_id,
+            'tenant_id'        => Auth::id(),
+            'conversation_id'  => $conversation->conversation_id,
             'reservation_date' => now(),
-            'rental_status'   => 'Inquiry',
+            'rental_status'    => 'Inquiry',
         ]);
 
         return redirect()->route('conversations.show', $conversation)
