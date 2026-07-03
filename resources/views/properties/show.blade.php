@@ -138,7 +138,7 @@
                         <h2 class="text-base font-bold text-[#2A2523] mb-1">Available units</h2>
                         <p class="text-sm text-[#9B9F98] mb-4">{{ $approvedUnits->count() }} {{ Str::plural('unit', $approvedUnits->count()) }} in this property</p>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                             @foreach($approvedUnits as $unit)
                                 @php
                                     $isAvailable = $unit->availability_status === 'Available';
@@ -148,20 +148,20 @@
                                         ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
                                         ->exists();
                                 @endphp
-                                <div class="rounded-2xl border {{ $isAvailable ? 'border-[#D7E8F3] bg-white' : 'border-[#F0EDE8] bg-[#F0EDE8]/50' }} p-4 flex flex-col justify-between">
+                                <div class="rounded-2xl border {{ $isAvailable ? 'border-[#D7E8F3] bg-white hover:border-[#61B2F0]/40 hover:shadow-md' : 'border-[#F0EDE8] bg-[#F0EDE8]/50' }} p-4 flex flex-col justify-between shadow-sm transition-all duration-200">
                                     <div>
-                                        <div class="flex items-center justify-between mb-2">
-                                            <h3 class="text-sm font-bold text-[#2A2523]">{{ $unit->unit_label }}</h3>
-                                            <span class="text-xs font-bold px-2 py-0.5 rounded-md {{ $isAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-[#F0EDE8] text-[#9B9F98]' }}">
+                                        <div class="flex items-center justify-between gap-2 mb-2.5">
+                                            <h3 class="text-sm font-bold text-[#2A2523] truncate">{{ $unit->unit_label }}</h3>
+                                            <span class="shrink-0 text-xs font-bold px-2 py-0.5 rounded-md {{ $isAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-[#F0EDE8] text-[#9B9F98]' }}">
                                                 {{ $unit->availability_status }}
                                             </span>
                                         </div>
-                                        <div class="flex items-baseline gap-1 mb-1">
+                                        <div class="flex items-baseline gap-1 mb-1.5">
                                             <span class="text-lg font-black text-[#2A2523]">₱{{ number_format($unit->rental_fee) }}</span>
                                             <span class="text-xs font-semibold text-[#9B9F98]">/ month</span>
                                         </div>
-                                        <div class="flex items-center gap-1 text-xs font-medium text-[#9B9F98] mb-3">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <div class="flex items-center gap-1.5 text-xs font-medium text-[#9B9F98] mb-4">
+                                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                                             </svg>
                                             Up to {{ $unit->occupancy_limit }} {{ Str::plural('occupant', $unit->occupancy_limit) }}

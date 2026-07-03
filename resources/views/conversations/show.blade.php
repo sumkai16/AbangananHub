@@ -137,25 +137,25 @@
                                         $isCurrent = $currentStageIndex !== false && $i === $currentStageIndex;
                                         $isLast = $i === count($stages) - 1;
                                     @endphp
-                                    <div class="flex gap-3 {{ !$isLast ? 'pb-4' : '' }}" style="position: relative;">
+                                    <div class="relative flex gap-3 {{ !$isLast ? 'pb-5' : '' }}">
+                                        {{-- Connector (drawn first, behind the dot) --}}
+                                        @if(!$isLast)
+                                            <div class="absolute left-[9px] top-5 bottom-0 w-0.5 rounded-full {{ $isDone ? 'bg-[#61B2F0]' : 'bg-[#D7E8F3]' }} transition-colors duration-300"></div>
+                                        @endif
                                         {{-- Dot --}}
                                         <div class="relative z-10 flex-shrink-0">
                                             @if($isDone)
-                                                <div class="w-5 h-5 rounded-full bg-[#61B2F0] flex items-center justify-center">
+                                                <div class="w-5 h-5 rounded-full bg-[#61B2F0] flex items-center justify-center shadow-sm">
                                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                 </div>
                                             @elseif($isCurrent)
-                                                <div class="w-5 h-5 rounded-full bg-[#61B2F0] flex items-center justify-center" style="box-shadow: 0 0 0 4px #D7E8F3;">
+                                                <div class="w-5 h-5 rounded-full bg-[#61B2F0] flex items-center justify-center ring-4 ring-[#D7E8F3]">
                                                     <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
                                                 </div>
                                             @else
                                                 <div class="w-5 h-5 rounded-full border-2 border-[#D7E8F3] bg-white"></div>
                                             @endif
                                         </div>
-                                        {{-- Connector --}}
-                                        @if(!$isLast)
-                                            <div class="absolute left-[9px] top-5 bottom-0 w-0.5 {{ $isDone ? 'bg-[#61B2F0]' : 'bg-[#D7E8F3]' }}"></div>
-                                        @endif
                                         {{-- Label --}}
                                         <div class="pt-0.5">
                                             <div class="text-xs {{ $isCurrent ? 'font-bold text-[#2A2523]' : ($isDone ? 'font-medium text-[#2A2523]' : 'text-[#9B9F98]') }}">
@@ -193,13 +193,13 @@
                                         @csrf
                                         @method('PATCH')
                                         <button type="button" @click="open = !open"
-                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-medium py-2.5 rounded-xl transition hover:bg-[#BD5434]/5">
+                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#BD5434]/5">
                                             Reject
                                         </button>
                                         <div x-show="open" x-cloak class="mt-2 space-y-2">
                                             <textarea name="rejection_reason" rows="2" placeholder="Reason (optional)"
                                                 class="w-full text-xs border border-[#D7E8F3] rounded-lg px-3 py-2 text-[#2A2523] placeholder-[#9B9F98] focus:border-[#61B2F0] focus:ring-1 focus:ring-[#61B2F0]/10 outline-none resize-none"></textarea>
-                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 text-white text-xs font-bold py-2 rounded-lg transition">
+                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
                                                 Confirm rejection
                                             </button>
                                         </div>
@@ -221,13 +221,13 @@
                                         @csrf
                                         @method('PATCH')
                                         <button type="button" @click="open = !open"
-                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-medium py-2.5 rounded-xl transition hover:bg-[#BD5434]/5">
+                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#BD5434]/5">
                                             Reject
                                         </button>
                                         <div x-show="open" x-cloak class="mt-2 space-y-2">
                                             <textarea name="rejection_reason" rows="2" placeholder="Reason (optional)"
                                                 class="w-full text-xs border border-[#D7E8F3] rounded-lg px-3 py-2 text-[#2A2523] placeholder-[#9B9F98] focus:border-[#61B2F0] focus:ring-1 focus:ring-[#61B2F0]/10 outline-none resize-none"></textarea>
-                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 text-white text-xs font-bold py-2 rounded-lg transition">
+                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
                                                 Confirm rejection
                                             </button>
                                         </div>
@@ -268,11 +268,11 @@
                                         @csrf
                                         @method('PATCH')
                                         <button type="button" @click="open = !open"
-                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-medium py-2.5 rounded-xl transition hover:bg-[#BD5434]/5">
+                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#BD5434]/5">
                                             Cancel
                                         </button>
                                         <div x-show="open" x-cloak class="mt-2">
-                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 text-white text-xs font-bold py-2 rounded-lg transition">
+                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
                                                 Confirm cancellation
                                             </button>
                                         </div>
@@ -291,11 +291,11 @@
                                         @csrf
                                         @method('PATCH')
                                         <button type="button" @click="open = !open"
-                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-medium py-2.5 rounded-xl transition hover:bg-[#BD5434]/5">
+                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#BD5434]/5">
                                             Cancel
                                         </button>
                                         <div x-show="open" x-cloak class="mt-2">
-                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 text-white text-xs font-bold py-2 rounded-lg transition">
+                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
                                                 Confirm cancellation
                                             </button>
                                         </div>
