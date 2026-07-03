@@ -1,18 +1,29 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        // No-op: unit_id and status already existed on conversations
-        // prior to this migration (added outside tracked migration history).
-        // Confirmed matching shape: unit_id (FK, nullable), status enum('Open','Resolved') default 'Open'.
+        Schema::table('conversations', function (Blueprint $table) {
+            $table->unsignedBigInteger('unit_id')->nullable()->after('property_id');
+            $table->string('status')->default('Open')->after('unit_id');
+
+            $table->foreign('unit_id')
+                  ->references('unit_id')
+                  ->on('property_units')
+                  ->nullOnDelete();
+        });
     }
 
     public function down(): void
     {
-        // Intentionally left as no-op — see up().
+        Schema::table('conversations', function (Blueprint $table) {
+            $table->dropForeign(['unit_id']);
+            $table->dropColumn(['unit_id', 'status']);
+        });
     }
 };

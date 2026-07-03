@@ -14,13 +14,11 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $landlordId = Auth::id();
-
         $propertyIds = Property::where('landlord_id', $landlordId)->pluck('property_id');
 
         $totalProperties = $propertyIds->count();
 
         $units = PropertyUnit::whereIn('property_id', $propertyIds)->get();
-
         $totalUnits = $units->count();
         $occupiedUnits = $units->where('availability_status', 'Occupied')->count();
         $availableUnits = $units->where('availability_status', 'Available')->count();
@@ -28,7 +26,7 @@ class DashboardController extends Controller
         $maintenanceUnits = $units->where('availability_status', 'Maintenance')->count();
 
         $totalTenants = Reservation::whereIn('property_id', $propertyIds)
-            ->where('reservation_status', 'Approved')
+            ->where('rental_status', 'Occupied')
             ->distinct('tenant_id')
             ->count('tenant_id');
 
@@ -57,8 +55,8 @@ class DashboardController extends Controller
                     'type' => 'reservation',
                     'description' => "Reservation for {$reservation->property->title}"
                         . ($reservation->unit ? " ({$reservation->unit->unit_label})" : '')
-                        . " by {$reservation->tenant->first_name} {$reservation->tenant->last_name} is {$reservation->reservation_status}",
-                    'status' => $reservation->reservation_status,
+                        . " by {$reservation->tenant->first_name} {$reservation->tenant->last_name} is {$reservation->rental_status}",
+                    'status' => $reservation->rental_status,
                     'timestamp' => $reservation->updated_at,
                 ];
             });

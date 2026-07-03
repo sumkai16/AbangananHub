@@ -17,7 +17,6 @@ class MessageController extends Controller
             'sender_id' => Auth::id(),
             'message' => $request->validated('message'),
         ]);
-
         $message->load('sender');
 
         $recipientId = $message->sender_id === $conversation->tenant_id
@@ -33,7 +32,9 @@ class MessageController extends Controller
             'is_read' => false,
         ]);
 
+        \Log::info('About to broadcast MessageSent for message #' . $message->message_id);
         broadcast(new MessageSent($message))->toOthers();
+        \Log::info('Broadcast dispatched');
 
         return response()->json([
             'message_id' => $message->message_id,
@@ -43,4 +44,5 @@ class MessageController extends Controller
             'sent_at' => $message->sent_at->toIso8601String(),
         ]);
     }
+
 }

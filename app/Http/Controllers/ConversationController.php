@@ -91,8 +91,7 @@ public function show(Conversation $conversation)
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        $conversation->load(['tenant', 'landlord', 'property', 'unit', 'messages.sender', 'activeReservation']);
-
+$conversation->load(['tenant', 'landlord', 'property.media', 'unit', 'messages.sender', 'activeReservation']);
         $otherParty = Auth::id() === $conversation->tenant_id
             ? $conversation->landlord
             : $conversation->tenant;

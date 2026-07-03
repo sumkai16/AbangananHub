@@ -1,20 +1,34 @@
 @extends(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
+
 @section('content')
+    @php
+        $reservation = $conversation->activeReservation;
+        $rentalStatus = $reservation?->rental_status;
+        $isLandlord = auth()->id() === $conversation->landlord_id;
+        $isTenant = auth()->id() === $conversation->tenant_id;
+
+        $stages = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied'];
+        $stageLabels = ['Inquiry', 'Negotiation', 'Agreement', 'Signed', 'Occupied'];
+        $currentStageIndex = $rentalStatus ? array_search($rentalStatus, $stages) : false;
+        $isTerminal = in_array($rentalStatus, ['Cancelled', 'Rejected']);
+    @endphp
+
     <div class="max-w-6xl mx-auto px-4 py-8">
+        {{-- Back nav --}}
         <div class="mb-6 flex items-center justify-between">
             <a href="{{ route('conversations.index') }}"
-                class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-700 transition">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                class="inline-flex items-center text-sm font-semibold text-[#9B9F98] hover:text-[#2A2523] transition-colors group">
+                <svg class="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
                 Back to Messages
             </a>
 
-            @if(auth()->id() === $conversation->landlord_id && !$conversation->isResolved())
+            @if($isLandlord && !$conversation->isResolved())
                 <form action="{{ route('conversations.resolve', $conversation) }}" method="POST">
                     @csrf
                     <button type="submit"
-                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition">
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-[#2A2523] bg-[#D7E8F3] border border-[#61B2F0]/20 rounded-xl hover:brightness-95 transition">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                         </svg>
@@ -22,124 +36,315 @@
                     </button>
                 </form>
             @elseif($conversation->isResolved())
-                <span
-                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-green-700 bg-green-50 border border-green-100 rounded-xl">
+                <span class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl">
                     Resolved
                 </span>
             @endif
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-            <div
-                class="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col overflow-hidden h-[600px]">
+            {{-- ===== CHAT PANEL ===== --}}
+            <div class="lg:col-span-2 bg-white border border-[#D7E8F3] rounded-2xl flex flex-col overflow-hidden h-[600px]">
 
-                <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div
-                            class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                {{-- Chat header with property context + stage pill --}}
+                <div class="p-4 border-b border-[#D7E8F3] flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#61B2F0] text-white flex items-center justify-center font-bold text-sm">
                             {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
                         </div>
                         <div>
-                            <h1 class="text-base font-bold text-gray-900 leading-tight">
+                            <h1 class="text-sm font-bold text-[#2A2523] leading-tight">
                                 {{ $otherParty->first_name }} {{ $otherParty->last_name }}
                             </h1>
-                            <p class="text-xs font-medium text-gray-400 mt-0.5">
-                                Active Conversation
+                            <p class="text-xs text-[#9B9F98] mt-0.5">
+                                {{ $conversation->property->title }}
+                                @if($conversation->unit)
+                                    &middot; {{ $conversation->unit->unit_label }}
+                                @endif
                             </p>
                         </div>
                     </div>
-                    <span
-                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                        <span class="w-1.5 h-1.5 mr-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                        Online
-                    </span>
+
+                    @if($rentalStatus && !$isTerminal)
+                        <div class="bg-[#D7E8F3] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+                            <div class="w-1.5 h-1.5 rounded-full bg-[#61B2F0]"></div>
+                            <span class="text-[10px] font-bold text-[#2A2523] tracking-wide">{{ $stageLabels[$currentStageIndex] ?? $rentalStatus }}</span>
+                        </div>
+                    @elseif($isTerminal)
+                        <div class="bg-[#F0EDE8] rounded-lg px-3 py-1.5">
+                            <span class="text-[10px] font-bold text-[#BD5434] tracking-wide">{{ $rentalStatus }}</span>
+                        </div>
+                    @endif
                 </div>
 
-                <div id="message-list" class="flex-1 p-6 overflow-y-auto bg-gray-50/30 flex flex-col gap-4 scroll-smooth">
+                {{-- Messages --}}
+                <div id="message-list" class="flex-1 p-6 overflow-y-auto flex flex-col gap-3 scroll-smooth" style="background: #FAFAF8;">
                     @foreach ($conversation->messages as $message)
                         @php $isSelf = $message->sender_id === auth()->id(); @endphp
-                        <div
-                            class="max-w-[75%] {{ $isSelf ? 'self-end bg-blue-600 text-white rounded-2xl rounded-tr-none' : 'self-start bg-white text-gray-900 border border-gray-100 rounded-2xl rounded-tl-none' }} px-4 py-2.5 shadow-sm transition-all">
+                        <div class="max-w-[75%] {{ $isSelf ? 'self-end bg-[#2A2523] text-white rounded-2xl rounded-tr-sm' : 'self-start bg-white text-[#2A2523] border border-[#D7E8F3] rounded-2xl rounded-tl-sm' }} px-4 py-2.5 shadow-sm">
                             @if(!$isSelf)
-                                <p class="text-[11px] font-bold text-blue-600 mb-1 tracking-wide uppercase">
+                                <p class="text-[10px] font-bold text-[#9B9F98] mb-1 tracking-wide uppercase">
                                     {{ $message->sender->first_name }}
                                 </p>
                             @endif
                             <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>
                             <div class="flex items-center justify-end mt-1">
-                                <p class="text-[10px] tracking-wide {{ $isSelf ? 'text-blue-200' : 'text-gray-400 font-medium' }} message-time"
+                                <p class="text-[10px] tracking-wide {{ $isSelf ? 'text-white/40' : 'text-[#9B9F98]' }} message-time"
                                     data-sent-at="{{ $message->sent_at->toIso8601String() }}"></p>
                             </div>
                         </div>
                     @endforeach
                 </div>
 
-                <div class="p-4 bg-white border-t border-gray-100">
-                    <form id="message-form" class="flex items-center gap-3 relative">
+                {{-- Input --}}
+                <div class="p-4 bg-white border-t border-[#D7E8F3]">
+                    <form id="message-form" class="flex items-center gap-3">
                         <input type="text" id="message-input" name="message" required maxlength="2000" autofocus
-                            class="flex-1 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-3 text-sm text-gray-900 transition outline-none placeholder-gray-400"
-                            placeholder="Write a warm message to {{ $otherParty->first_name }}...">
-
+                            class="flex-1 bg-[#F0EDE8] border border-[#D7E8F3] focus:border-[#61B2F0] focus:bg-white focus:ring-2 focus:ring-[#61B2F0]/10 rounded-xl px-4 py-3 text-sm text-[#2A2523] transition outline-none placeholder-[#9B9F98]"
+                            placeholder="Message {{ $otherParty->first_name }}...">
                         <button type="submit"
-                            class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-sm px-5 py-3 rounded-xl shadow-sm transition inline-flex items-center justify-center space-x-1.5">
+                            class="bg-[#2A2523] hover:brightness-95 active:scale-[0.98] text-white font-semibold text-sm px-5 py-3 rounded-xl shadow-sm transition inline-flex items-center gap-1.5">
                             <span>Send</span>
-                            <svg class="w-4 h-4 transform rotate-45" fill="none" stroke="currentColor" stroke-width="2"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                            <svg class="w-4 h-4 rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                             </svg>
                         </button>
                     </form>
                 </div>
             </div>
 
-            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 lg:col-span-1 space-y-4">
-                <h3 class="text-sm font-bold text-gray-400 tracking-wider uppercase">Contextual Listing</h3>
-                @if($conversation->unit)
-                    <p class="text-xs text-gray-500 mt-0.5">{{ $conversation->unit->unit_name ?? $conversation->unit->name }}
-                    </p>
+            {{-- ===== RIGHT SIDEBAR ===== --}}
+            <div class="lg:col-span-1 space-y-3">
+
+                {{-- RENTAL PROGRESS --}}
+                @if($reservation)
+                    <div class="bg-white border border-[#D7E8F3] rounded-2xl p-4">
+                        <div class="text-[10px] font-bold text-[#9B9F98] uppercase tracking-wider mb-3">Rental Progress</div>
+
+                        @if($isTerminal)
+                            <div class="bg-[#F0EDE8] rounded-xl p-3 text-center">
+                                <span class="text-sm font-bold text-[#BD5434]">{{ $rentalStatus }}</span>
+                                @if($rentalStatus === 'Rejected' && $reservation->rejection_reason)
+                                    <p class="text-xs text-[#9B9F98] mt-1">{{ $reservation->rejection_reason }}</p>
+                                @endif
+                            </div>
+                        @else
+                            <div class="flex flex-col ml-0.5">
+                                @foreach($stages as $i => $stage)
+                                    @php
+                                        $isDone = $currentStageIndex !== false && $i < $currentStageIndex;
+                                        $isCurrent = $currentStageIndex !== false && $i === $currentStageIndex;
+                                        $isLast = $i === count($stages) - 1;
+                                    @endphp
+                                    <div class="flex gap-3 {{ !$isLast ? 'pb-4' : '' }}" style="position: relative;">
+                                        {{-- Dot --}}
+                                        <div class="relative z-10 flex-shrink-0">
+                                            @if($isDone)
+                                                <div class="w-5 h-5 rounded-full bg-[#61B2F0] flex items-center justify-center">
+                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                </div>
+                                            @elseif($isCurrent)
+                                                <div class="w-5 h-5 rounded-full bg-[#61B2F0] flex items-center justify-center" style="box-shadow: 0 0 0 4px #D7E8F3;">
+                                                    <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                                                </div>
+                                            @else
+                                                <div class="w-5 h-5 rounded-full border-2 border-[#D7E8F3] bg-white"></div>
+                                            @endif
+                                        </div>
+                                        {{-- Connector --}}
+                                        @if(!$isLast)
+                                            <div class="absolute left-[9px] top-5 bottom-0 w-0.5 {{ $isDone ? 'bg-[#61B2F0]' : 'bg-[#D7E8F3]' }}"></div>
+                                        @endif
+                                        {{-- Label --}}
+                                        <div class="pt-0.5">
+                                            <div class="text-xs {{ $isCurrent ? 'font-bold text-[#2A2523]' : ($isDone ? 'font-medium text-[#2A2523]' : 'text-[#9B9F98]') }}">
+                                                {{ $stageLabels[$i] }}
+                                            </div>
+                                            @if($isCurrent)
+                                                <div class="text-[10px] text-[#9B9F98] mt-0.5">In progress</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                 @endif
-                <div class="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 p-3 flex flex-col space-y-3">
-                    <div class="w-full h-32 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500">
-                        <svg class="w-10 h-10 opacity-70" fill="none" stroke="currentColor" stroke-width="1.5"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M2.25 21h19.5m-18-10.5l8.5-6.75 8.5 6.75M4.5 9v12m15-12v12M9 21v-6a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0115 15v6M9 9.75h.008v.008H9V9.75zm.375 0h.008v.008H9.375V9.75zm-.375 2.25h.008v.008H9v-.008zm.375 0h.008v.008H9.375v-.008zm-.375 2.25h.008v.008H9v-.008zm.375 0h.008v.008H9.375v-.008zm2.25-4.5h.008v.008h-.008V9.75zm.375 0h.008v.008H12.375V9.75zm-.375 2.25h.008v.008h-.008v-.008zm.375 0h.008v.008H12.375v-.008zm-.375 2.25h.008v.008h-.008v-.008zm.375 0h.008v.008H12.375v-.008zm2.25-4.5h.008v.008h-.008V9.75zm.375 0h.008v.008H15.375V9.75zm-.375 2.25h.008v.008h-.008v-.008zm.375 0h.008v.008H15.375v-.008zm-.375 2.25h.008v.008h-.008v-.008zm.375 0h.008v.008H15.375v-.008z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-900 text-sm leading-snug hover:text-blue-600 transition">
-                            <a href="{{ route('properties.show', $conversation->property) }}" target="_blank">
-                                {{ $conversation->property->title }}
-                            </a>
-                        </h4>
-                        <p class="text-xs text-gray-500 mt-1 flex items-center">
-                            <svg class="w-3.5 h-3.5 text-gray-400 mr-1" fill="none" stroke="currentColor" stroke-width="2"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                            </svg>
-                            Cebu City, Philippines
-                        </p>
-                    </div>
-                </div>
 
-                <div class="border-t border-gray-100 pt-4 space-y-2.5">
-                    <a href="{{ route('properties.show', $conversation->property) }}"
-                        class="w-full text-center bg-white border border-blue-600 text-blue-600 font-bold text-xs py-3 rounded-xl block hover:bg-blue-50 transition tracking-wide">
-                        View Complete Property Details
-                    </a>
-                </div>
+                {{-- ACTIONS --}}
+                @if($reservation && !$isTerminal)
+                    <div class="bg-white border border-[#D7E8F3] rounded-2xl p-4">
+
+                        {{-- LANDLORD ACTIONS --}}
+                        @if($isLandlord)
+                            @if($rentalStatus === 'Inquiry')
+                                <div class="space-y-2">
+                                    <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="w-full bg-[#2A2523] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                            Accept &amp; negotiate
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST"
+                                        x-data="{ open: false }">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="button" @click="open = !open"
+                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-medium py-2.5 rounded-xl transition hover:bg-[#BD5434]/5">
+                                            Reject
+                                        </button>
+                                        <div x-show="open" x-cloak class="mt-2 space-y-2">
+                                            <textarea name="rejection_reason" rows="2" placeholder="Reason (optional)"
+                                                class="w-full text-xs border border-[#D7E8F3] rounded-lg px-3 py-2 text-[#2A2523] placeholder-[#9B9F98] focus:border-[#61B2F0] focus:ring-1 focus:ring-[#61B2F0]/10 outline-none resize-none"></textarea>
+                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 text-white text-xs font-bold py-2 rounded-lg transition">
+                                                Confirm rejection
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                            @elseif($rentalStatus === 'Under Negotiation')
+                                <div class="space-y-2">
+                                    <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="w-full bg-[#2A2523] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                            Send agreement
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST"
+                                        x-data="{ open: false }">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="button" @click="open = !open"
+                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-medium py-2.5 rounded-xl transition hover:bg-[#BD5434]/5">
+                                            Reject
+                                        </button>
+                                        <div x-show="open" x-cloak class="mt-2 space-y-2">
+                                            <textarea name="rejection_reason" rows="2" placeholder="Reason (optional)"
+                                                class="w-full text-xs border border-[#D7E8F3] rounded-lg px-3 py-2 text-[#2A2523] placeholder-[#9B9F98] focus:border-[#61B2F0] focus:ring-1 focus:ring-[#61B2F0]/10 outline-none resize-none"></textarea>
+                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 text-white text-xs font-bold py-2 rounded-lg transition">
+                                                Confirm rejection
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                            @elseif($rentalStatus === 'Pending Rental Agreement')
+                                <div class="bg-[#D7E8F3] rounded-xl p-3 text-center">
+                                    <p class="text-xs text-[#2A2523] font-medium">Waiting for tenant to sign the agreement</p>
+                                </div>
+
+                            @elseif($rentalStatus === 'Rental Agreement Signed')
+                                <div class="bg-[#D7E8F3] rounded-xl p-3 text-center">
+                                    <p class="text-xs text-[#2A2523] font-medium">Agreement signed — waiting for payment</p>
+                                </div>
+
+                            @elseif($rentalStatus === 'Occupied')
+                                <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                                    <p class="text-xs text-emerald-700 font-medium">Tenant is now occupying this unit</p>
+                                </div>
+                            @endif
+                        @endif
+
+                        {{-- TENANT ACTIONS --}}
+                        @if($isTenant)
+                            @if($rentalStatus === 'Inquiry')
+                                <div class="bg-[#D7E8F3] rounded-xl p-3 text-center">
+                                    <p class="text-xs text-[#2A2523] font-medium">Waiting for landlord to respond</p>
+                                </div>
+
+                            @elseif($rentalStatus === 'Under Negotiation')
+                                <div class="space-y-2">
+                                    <div class="bg-[#D7E8F3] rounded-xl p-3 text-center">
+                                        <p class="text-xs text-[#2A2523] font-medium">Discuss terms with the landlord</p>
+                                    </div>
+                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
+                                        x-data="{ open: false }">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="button" @click="open = !open"
+                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-medium py-2.5 rounded-xl transition hover:bg-[#BD5434]/5">
+                                            Cancel
+                                        </button>
+                                        <div x-show="open" x-cloak class="mt-2">
+                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 text-white text-xs font-bold py-2 rounded-lg transition">
+                                                Confirm cancellation
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                            @elseif($rentalStatus === 'Pending Rental Agreement')
+                                <div class="space-y-2">
+                                    <a href="{{ route('agreements.show', $reservation) }}"
+                                        class="w-full bg-[#2A2523] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                                        View &amp; sign agreement
+                                    </a>
+                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
+                                        x-data="{ open: false }">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="button" @click="open = !open"
+                                            class="w-full border border-[#BD5434] text-[#BD5434] text-xs font-medium py-2.5 rounded-xl transition hover:bg-[#BD5434]/5">
+                                            Cancel
+                                        </button>
+                                        <div x-show="open" x-cloak class="mt-2">
+                                            <button type="submit" class="w-full bg-[#BD5434] hover:brightness-95 text-white text-xs font-bold py-2 rounded-lg transition">
+                                                Confirm cancellation
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                            @elseif($rentalStatus === 'Rental Agreement Signed')
+                                <a href="{{ route('agreements.show', $reservation) }}"
+                                    class="w-full bg-[#2A2523] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
+                                    Proceed to payment
+                                </a>
+
+                            @elseif($rentalStatus === 'Occupied')
+                                <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                                    <p class="text-xs text-emerald-700 font-medium">You are now occupying this unit</p>
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+                @endif
+
+                {{-- PROPERTY CARD --}}
+                <a href="{{ route('properties.show', $conversation->property) }}" target="_blank"
+                    class="bg-white border border-[#D7E8F3] rounded-2xl p-4 flex items-center gap-3 hover:bg-[#F0EDE8] transition block">
+                    <div class="w-12 h-12 rounded-xl bg-[#D7E8F3] flex items-center justify-center flex-shrink-0">
+                        @if($conversation->property->media->count() > 0)
+                            <img src="{{ $conversation->property->media->first()->media_url }}" alt="" class="w-12 h-12 rounded-xl object-cover">
+                        @else
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#9B9F98" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5l8.5-6.75 8.5 6.75M4.5 9v12m15-12v12M9 21v-6a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0115 15v6"/></svg>
+                        @endif
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-xs font-bold text-[#2A2523] truncate">{{ $conversation->property->title }}</div>
+                        <div class="text-[11px] text-[#9B9F98] mt-0.5">
+                            @if($conversation->unit)
+                                {{ $conversation->unit->unit_label }} &middot; ₱{{ number_format($conversation->unit->rental_fee) }}/mo
+                            @else
+                                {{ $conversation->property->address }}
+                            @endif
+                        </div>
+                    </div>
+                </a>
+
             </div>
-
         </div>
     </div>
 
     <script type="module">
-        // 1. Format existing message times on page load
         document.querySelectorAll('.message-time').forEach((el) => {
             el.textContent = new Date(el.dataset.sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
         });
@@ -150,23 +355,24 @@
         const messageForm = document.getElementById('message-form');
         const messageInput = document.getElementById('message-input');
 
-        // Auto-scroll to bottom immediately on load
         messageList.scrollTop = messageList.scrollHeight;
 
         function appendMessage({ sender_id, sender_name, message, sent_at }) {
             const isSelf = sender_id === currentUserId;
             const bubble = document.createElement('div');
 
-            // Applying the matching Tailwind redesign variables dynamically to appends
-            bubble.className = `max-w-[75%] ${isSelf ? 'self-end bg-blue-600 text-white rounded-2xl rounded-tr-none' : 'self-start bg-white text-gray-900 border border-gray-100 rounded-2xl rounded-tl-none'} px-4 py-2.5 shadow-sm transition-all duration-200`;
+            bubble.className = `max-w-[75%] ${isSelf
+                ? 'self-end bg-[#2A2523] text-white rounded-2xl rounded-tr-sm'
+                : 'self-start bg-white text-[#2A2523] border border-[#D7E8F3] rounded-2xl rounded-tl-sm'
+            } px-4 py-2.5 shadow-sm`;
 
             bubble.innerHTML = `
-                        ${!isSelf ? `<p class="text-[11px] font-bold text-blue-600 mb-1 tracking-wide uppercase">${sender_name.split(' ')[0]}</p>` : ''}
-                        <p class="text-sm leading-relaxed whitespace-pre-wrap">${message}</p>
-                        <div class="flex items-center justify-end mt-1">
-                            <p class="text-[10px] tracking-wide ${isSelf ? 'text-blue-200' : 'text-gray-400 font-medium'}">${new Date(sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
-                        </div>
-                    `;
+                ${!isSelf ? `<p class="text-[10px] font-bold text-[#9B9F98] mb-1 tracking-wide uppercase">${sender_name.split(' ')[0]}</p>` : ''}
+                <p class="text-sm leading-relaxed whitespace-pre-wrap">${message}</p>
+                <div class="flex items-center justify-end mt-1">
+                    <p class="text-[10px] tracking-wide ${isSelf ? 'text-white/40' : 'text-[#9B9F98]'}">${new Date(sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+                </div>
+            `;
             messageList.appendChild(bubble);
             messageList.scrollTop = messageList.scrollHeight;
         }
@@ -176,13 +382,18 @@
             const text = messageInput.value.trim();
             if (!text) return;
 
+          const headers = {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            };
+            const socketId = window.Echo?.socketId?.();
+            if (socketId) {
+                headers['X-Socket-ID'] = socketId;
+            }
+
             const response = await fetch(`/conversations/${conversationId}/messages`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'X-Socket-ID': window.Echo.socketId(),
-                },
+                headers,
                 body: JSON.stringify({ message: text }),
             });
 
@@ -197,12 +408,12 @@
         });
 
         window.Echo.private(`conversation.${conversationId}`)
-            .listen('MessageSent', (e) => {
+            .listen('.MessageSent', (e) => {
                 appendMessage({
-                    sender_id: e.message.sender_id,
-                    sender_name: `${e.message.sender.first_name} ${e.message.sender.last_name}`,
-                    message: e.message.message,
-                    sent_at: e.message.sent_at || e.message.created_at
+                    sender_id: e.sender_id,
+                    sender_name: e.sender_name,
+                    message: e.message,
+                    sent_at: e.sent_at
                 });
             });
     </script>
