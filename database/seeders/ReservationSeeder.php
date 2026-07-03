@@ -24,7 +24,7 @@ class ReservationSeeder extends Seeder
                 'tenant_id'          => $tenant->user_id,
                 'property_id'        => $unit->property_id,
                 'unit_id'            => $unit->unit_id,
-                'reservation_status' => 'Pending',
+                'rental_status'      => 'Inquiry',
                 'duration_of_stay' => '6 Months',
                 'occupants_count'    => 1,
             ]);

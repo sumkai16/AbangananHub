@@ -80,29 +80,44 @@
                 @foreach($reservations as $reservation)
                     @continue(!$reservation->property)
                     @php
-                        $statusStyles = match ($reservation->reservation_status) {
-                            'Pending' => [
-                                'badge' => 'bg-amber-500/10 text-amber-800 border-amber-200/50', 
+                        $statusStyles = match ($reservation->rental_status) {
+                            'Inquiry' => [
+                                'badge' => 'bg-amber-500/10 text-amber-800 border-amber-200/50',
                                 'bg' => 'bg-amber-500',
-                                'text' => 'Awaiting Verification'
+                                'text' => 'Awaiting Response'
                             ],
-                            'Approved' => [
-                                'badge' => 'bg-emerald-500/10 text-emerald-800 border-emerald-200/50', 
+                            'Under Negotiation' => [
+                                'badge' => 'bg-amber-500/10 text-amber-800 border-amber-200/50',
+                                'bg' => 'bg-amber-500',
+                                'text' => 'Under Negotiation'
+                            ],
+                            'Pending Rental Agreement' => [
+                                'badge' => 'bg-blue-500/10 text-blue-800 border-blue-200/50',
+                                'bg' => 'bg-blue-500',
+                                'text' => 'Agreement Pending'
+                            ],
+                            'Rental Agreement Signed' => [
+                                'badge' => 'bg-blue-500/10 text-blue-800 border-blue-200/50',
+                                'bg' => 'bg-blue-500',
+                                'text' => 'Awaiting Payment'
+                            ],
+                            'Occupied' => [
+                                'badge' => 'bg-emerald-500/10 text-emerald-800 border-emerald-200/50',
                                 'bg' => 'bg-emerald-500',
-                                'text' => 'Offer Approved'
+                                'text' => 'Occupied'
                             ],
                             'Rejected' => [
-                                'badge' => 'bg-rose-500/10 text-rose-800 border-rose-200/50', 
+                                'badge' => 'bg-rose-500/10 text-rose-800 border-rose-200/50',
                                 'bg' => 'bg-rose-500',
                                 'text' => 'Declined'
                             ],
                             'Cancelled' => [
-                                'badge' => 'bg-slate-500/10 text-slate-600 border-slate-200/50', 
+                                'badge' => 'bg-slate-500/10 text-slate-600 border-slate-200/50',
                                 'bg' => 'bg-slate-400',
                                 'text' => 'Withdrawn'
                             ],
                             default => [
-                                'badge' => 'bg-slate-500/10 text-slate-600 border-slate-200/50', 
+                                'badge' => 'bg-slate-500/10 text-slate-600 border-slate-200/50',
                                 'bg' => 'bg-slate-400',
                                 'text' => 'Archived'
                             ],
@@ -210,7 +225,7 @@
                                             {{ $reservation->property->landlord->contact_number ?? 'No Line' }}
                                         </span>
 
-                                        @if($reservation->isPending() || $reservation->isApproved())
+                                        @if(!in_array($reservation->rental_status, ['Cancelled', 'Rejected', 'Occupied']))
                                             <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
                                                 onsubmit="return confirm('Withdraw this reservation proposal?');" class="inline-block">
                                                 @csrf

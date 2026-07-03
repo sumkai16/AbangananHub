@@ -41,16 +41,16 @@ class Review extends Model
 
     public static function canReview(int $tenantId, int $propertyId): bool
     {
-        $hasApprovedReservation = Reservation::where('tenant_id', $tenantId)
+        $hasOccupiedReservation = Reservation::where('tenant_id', $tenantId)
             ->where('property_id', $propertyId)
-            ->where('reservation_status', 'Approved')
+            ->where('rental_status', 'Occupied')
             ->exists();
 
         $alreadyReviewed = static::where('tenant_id', $tenantId)
             ->where('property_id', $propertyId)
             ->exists();
 
-        return $hasApprovedReservation && !$alreadyReviewed;
+        return $hasOccupiedReservation && !$alreadyReviewed;
     }
 
     public static function averageRatingFor(int $propertyId): float

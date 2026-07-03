@@ -13,7 +13,7 @@
         {{-- Header --}}
         <div class="flex items-start justify-between mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-[#0F172A]">Reservations</h1>
+                <h1 class="text-2xl font-bold text-[#2A2523]">Reservations</h1>
                 <p class="text-sm text-[#9B9F98] mt-1">Manage and respond to reservation requests from tenants.</p>
             </div>
         </div>
@@ -38,13 +38,15 @@
                 <p class="text-[11px] text-[#9B9F98] mt-1">All time</p>
             </div>
             <div class="bg-amber-50 border border-amber-200/60 rounded-2xl p-4">
-                <p class="text-[12px] font-semibold text-amber-700 mb-1">Pending</p>
-                <p class="text-2xl font-bold text-amber-800">{{ $counts['Pending'] }}</p>
-                <p class="text-[11px] text-amber-700 mt-1">Awaiting your response</p>
+                <p class="text-[12px] font-semibold text-amber-700 mb-1">In progress</p>
+                <p class="text-2xl font-bold text-amber-800">
+                    {{ $counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'] }}
+                </p>
+                <p class="text-[11px] text-amber-700 mt-1">Awaiting action</p>
             </div>
             <div class="bg-green-50 border border-green-200/60 rounded-2xl p-4">
-                <p class="text-[12px] font-semibold text-green-700 mb-1">Approved</p>
-                <p class="text-2xl font-bold text-green-800">{{ $counts['Approved'] }}</p>
+                <p class="text-[12px] font-semibold text-green-700 mb-1">Occupied</p>
+                <p class="text-2xl font-bold text-green-800">{{ $counts['Occupied'] }}</p>
                 <p class="text-[11px] text-green-700 mt-1">All time</p>
             </div>
             <div class="bg-red-50 border border-red-200/60 rounded-2xl p-4">
@@ -56,13 +58,22 @@
 
         {{-- Status tabs --}}
         <div class="flex items-center gap-1 border-b border-[#9B9F98]/15 mb-5 overflow-x-auto">
-            @foreach(['all' => 'All', 'Pending' => 'Pending', 'Approved' => 'Approved', 'Rejected' => 'Rejected', 'Cancelled' => 'Cancelled'] as $key => $label)
+            @foreach([
+                'all' => 'All',
+                'Inquiry' => 'Inquiry',
+                'Under Negotiation' => 'Negotiation',
+                'Pending Rental Agreement' => 'Pending Agreement',
+                'Rental Agreement Signed' => 'Signed',
+                'Occupied' => 'Occupied',
+                'Rejected' => 'Rejected',
+                'Cancelled' => 'Cancelled',
+            ] as $key => $label)
                 <a href="{{ route('landlord.reservations.index', $key === 'all' ? [] : ['status' => $key]) }}"
                     class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors duration-150 whitespace-nowrap
-                              {{ $status === $key ? 'border-[#3B82F6] text-[#0F172A]' : 'border-transparent text-[#9B9F98] hover:text-[#0F172A]' }}">
+                              {{ $status === $key ? 'border-[#61B2F0] text-[#2A2523]' : 'border-transparent text-[#9B9F98] hover:text-[#2A2523]' }}">
                     {{ $label }}
-                    <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#3B82F6]' : 'text-[#9B9F98]' }}">
-                        {{ $counts[$key] }}
+                    <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#61B2F0]' : 'text-[#9B9F98]' }}">
+                        {{ $key === 'all' ? $counts['all'] : $counts[$key] }}
                     </span>
                 </a>
             @endforeach
@@ -97,10 +108,12 @@
                         @foreach($reservations as $reservation)
                             @continue(!$reservation->property)
                             @php
-                                $photo = $reservation->property->media->first();
                                 $statusStyles = [
-                                    'Pending' => 'bg-amber-100 text-amber-700',
-                                    'Approved' => 'bg-green-100 text-green-700',
+                                    'Inquiry' => 'bg-amber-100 text-amber-700',
+                                    'Under Negotiation' => 'bg-amber-100 text-amber-700',
+                                    'Pending Rental Agreement' => 'bg-blue-100 text-blue-700',
+                                    'Rental Agreement Signed' => 'bg-blue-100 text-blue-700',
+                                    'Occupied' => 'bg-green-100 text-green-700',
                                     'Rejected' => 'bg-red-100 text-red-700',
                                     'Cancelled' => 'bg-[#9B9F98]/15 text-[#9B9F98]',
                                 ];
@@ -110,15 +123,14 @@
                                     'duration_of_stay' => $reservation->duration_of_stay,
                                     'occupants_count' => $reservation->occupants_count,
                                     'remarks' => $reservation->remarks,
-                                    'reservation_status' => $reservation->reservation_status,
-                                    'rejection_reason' => $reservation->rejection_reason,
+                                    'rental_status' => $reservation->rental_status,
                                     'tenant_name' => trim(($reservation->tenant->first_name ?? '') . ' ' . ($reservation->tenant->last_name ?? '')),
                                     'tenant_contact' => $reservation->tenant->contact_number ?? '—',
                                     'property_title' => $reservation->property->title,
                                     'unit_label' => $reservation->unit->unit_label ?? 'No unit',
                                 ];
                             @endphp
-                            <tr class="border-t border-[#9B9F98]/10 hover:bg-[#F7F8FA] transition-colors duration-150">
+                            <tr class="border-t border-[#9B9F98]/10 hover:bg-[#F0EDE8]/40 transition-colors duration-150">
                                 <td class="px-5 py-4">
                                     <p class="text-sm font-semibold text-[#2A2523]">
                                         {{ $reservation->tenant->first_name ?? 'Unknown' }}
@@ -129,7 +141,7 @@
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-2.5">
                                         <div class="w-10 h-10 rounded-lg bg-[#F0EDE8] overflow-hidden shrink-0">
-                                            @if($photo)
+                                            @if($photo = $reservation->property->media->first())
                                                 <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
                                             @endif
                                         </div>
@@ -150,23 +162,23 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     <span
-                                        class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-bold {{ $statusStyles[$reservation->reservation_status] ?? '' }}">
-                                        {{ $reservation->reservation_status }}
+                                        class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-bold {{ $statusStyles[$reservation->rental_status] ?? '' }}">
+                                        {{ $reservation->rental_status }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-4">
                                     <div class="flex items-center justify-end gap-2">
                                         <button @click="openModal({{ Js::from($modalData) }})"
-                                            class="text-[12px] font-semibold text-[#3B82F6] hover:underline px-2 py-1.5">
+                                            class="text-[12px] font-semibold text-[#61B2F0] hover:underline px-2 py-1.5">
                                             View Details
                                         </button>
 
-                                        @if($reservation->isPending())
-                                            <form action="{{ route('landlord.reservations.approve', $reservation) }}" method="POST">
+                                        @if($reservation->rental_status === 'Inquiry')
+                                            <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST">
                                                 @csrf @method('PATCH')
                                                 <button type="submit"
                                                     class="text-[12px] font-semibold text-white bg-green-600 hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
-                                                    Approve
+                                                    Accept &amp; negotiate
                                                 </button>
                                             </form>
                                             <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
@@ -176,7 +188,22 @@
                                                     Reject
                                                 </button>
                                             </form>
-                                        @elseif($reservation->isApproved())
+                                        @elseif($reservation->rental_status === 'Under Negotiation')
+                                            <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
+                                                @csrf @method('PATCH')
+                                                <button type="submit"
+                                                    class="text-[12px] font-semibold text-white bg-green-600 hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
+                                                    Send agreement
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
+                                                @csrf @method('PATCH')
+                                                <button type="submit"
+                                                    class="text-[12px] font-semibold text-white bg-[#BD5434] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
+                                                    Reject
+                                                </button>
+                                            </form>
+                                        @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
                                             <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                                 onsubmit="return confirm('Cancel this reservation? The unit will be marked Available again.')">
                                                 @csrf @method('PATCH')
@@ -186,6 +213,11 @@
                                                 </button>
                                             </form>
                                         @endif
+
+                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                            class="text-[12px] font-semibold text-[#2A2523] border border-[#9B9F98]/20 rounded-lg px-3 py-1.5 hover:bg-[#F0EDE8] transition-all duration-150">
+                                            Chat
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -246,18 +278,12 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-[#9B9F98]">Status</span>
-                            <span class="font-semibold text-[#2A2523]" x-text="selected.reservation_status"></span>
+                            <span class="font-semibold text-[#2A2523]" x-text="selected.rental_status"></span>
                         </div>
                         <template x-if="selected.remarks">
                             <div class="pt-2 border-t border-[#9B9F98]/15">
                                 <p class="text-[#9B9F98] mb-1">Tenant's remarks</p>
                                 <p class="text-[#2A2523]" x-text="selected.remarks"></p>
-                            </div>
-                        </template>
-                        <template x-if="selected.rejection_reason">
-                            <div class="pt-2 border-t border-[#9B9F98]/15">
-                                <p class="text-[#9B9F98] mb-1">Rejection reason</p>
-                                <p class="text-[#2A2523]" x-text="selected.rejection_reason"></p>
                             </div>
                         </template>
                     </div>

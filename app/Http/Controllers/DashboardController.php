@@ -23,7 +23,7 @@ class DashboardController extends Controller
 
         // Stat counters
         $upcomingCount = $user->reservations()
-            ->where('reservation_status', 'Approved')
+            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
             ->count();
 
         $messagesCount = Notification::where('user_id', $user->user_id)

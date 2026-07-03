@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $userId = $user->user_id; // Custom PK — $user->id returns null
 
         $upcomingCount = Reservation::where('tenant_id', $userId)
-            ->where('reservation_status', 'Approved')
+            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
             ->count();
 
         $messagesCount = Message::where('sender_id', '!=', $userId)

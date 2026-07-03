@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $verifiedLandlords   = LandlordVerification::where('verification_status', 'Approved')->count();
         $totalProperties     = Property::count();
         $totalUnits          = PropertyUnit::count();
-        $activeReservations  = Reservation::where('reservation_status', 'Approved')->count();
+        $activeReservations  = Reservation::whereNotIn('rental_status', ['Cancelled', 'Rejected'])->count();
 
         $pendingVerifications = LandlordVerification::where('verification_status', 'Pending')->count();
         $pendingListings      = Property::where('verification_status', 'Pending')->count();
@@ -29,9 +29,9 @@ class DashboardController extends Controller
         $pendingItems         = $pendingVerifications + $pendingListings + $pendingUnits;
 
         // ── Reservation breakdown ─────────────────────────────────
-        $reservationStats = Reservation::selectRaw('reservation_status, COUNT(*) as total')
-            ->groupBy('reservation_status')
-            ->pluck('total', 'reservation_status');
+        $reservationStats = Reservation::selectRaw('rental_status, COUNT(*) as total')
+            ->groupBy('rental_status')
+            ->pluck('total', 'rental_status');
 
         // ── User distribution ─────────────────────────────────────
         $totalLandlords        = UserRole::where('role', 'Landlord')->count();

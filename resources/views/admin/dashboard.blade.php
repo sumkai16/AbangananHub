@@ -357,9 +357,9 @@
                 <div class="divide-y divide-gray-50">
                     @forelse($recentReservations as $res)
                         @php
-                            $rStatusCls = match ($res->reservation_status) {
-                                'Approved' => 'bg-emerald-50 text-emerald-700',
-                                'Pending' => 'bg-amber-50 text-amber-700',
+                            $rStatusCls = match ($res->rental_status) {
+                                'Occupied' => 'bg-emerald-50 text-emerald-700',
+                                'Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed' => 'bg-amber-50 text-amber-700',
                                 'Cancelled' => 'bg-gray-100 text-gray-500',
                                 'Rejected' => 'bg-red-50 text-red-600',
                                 default => 'bg-gray-50 text-gray-500',
@@ -378,7 +378,7 @@
                                 <p class="text-[11.5px] text-gray-400 truncate">{{ $res->property?->title ?? '—' }}</p>
                             </div>
                             <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full shrink-0 {{ $rStatusCls }}">
-                                {{ $res->reservation_status }}
+                                {{ $res->rental_status }}
                             </span>
                         </div>
                     @empty
@@ -400,10 +400,10 @@
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     @php
                         $resOverview = [
-                            ['label' => 'Pending', 'value' => $reservationStats['Pending'] ?? 0, 'cls' => 'bg-amber-50 border-amber-100 text-amber-700'],
-                            ['label' => 'Approved', 'value' => $reservationStats['Approved'] ?? 0, 'cls' => 'bg-emerald-50 border-emerald-100 text-emerald-700'],
+                            ['label' => 'In Progress', 'value' => ($reservationStats['Inquiry'] ?? 0) + ($reservationStats['Under Negotiation'] ?? 0) + ($reservationStats['Pending Rental Agreement'] ?? 0) + ($reservationStats['Rental Agreement Signed'] ?? 0), 'cls' => 'bg-amber-50 border-amber-100 text-amber-700'],
+                            ['label' => 'Occupied', 'value' => $reservationStats['Occupied'] ?? 0, 'cls' => 'bg-emerald-50 border-emerald-100 text-emerald-700'],
                             ['label' => 'Cancelled', 'value' => $reservationStats['Cancelled'] ?? 0, 'cls' => 'bg-gray-50 border-gray-100 text-gray-500'],
-                            ['label' => 'Completed', 'value' => $reservationStats['Completed'] ?? 0, 'cls' => 'bg-blue-50 border-blue-100 text-[#286CD2]'],
+                            ['label' => 'Rejected', 'value' => $reservationStats['Rejected'] ?? 0, 'cls' => 'bg-blue-50 border-blue-100 text-[#286CD2]'],
                         ];
                     @endphp
                     @foreach($resOverview as $item)
