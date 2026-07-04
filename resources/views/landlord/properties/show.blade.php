@@ -2,7 +2,7 @@
 @section('content')
 @vite(['resources/js/maps/property-map.js'])
 
-<div class="w-full px-4 sm:px-8 lg:px-[50px] py-8 pb-16">
+<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
 
     {{-- Back --}}
     <a href="{{ route('landlord.properties.index') }}"

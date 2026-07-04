@@ -25,7 +25,7 @@
     ];
 @endphp
 
-<div class="max-w-7xl">
+<div class="max-w-[1400px]">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">

@@ -3,7 +3,7 @@
 @section('page-title', 'Unit Approvals')
 
 @section('content')
-    <div class="max-w-6xl">
+    <div class="max-w-[1400px]">
 
         {{-- Page header --}}
         <div class="mb-6">

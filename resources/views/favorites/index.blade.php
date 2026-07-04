@@ -1,7 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-<div class="w-full px-[50px] py-10 pb-16">
+<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-10 pb-16">
 
     {{-- HEADER --}}
     <x-section-header

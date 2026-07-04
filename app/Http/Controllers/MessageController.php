@@ -32,9 +32,7 @@ class MessageController extends Controller
             'is_read' => false,
         ]);
 
-        \Log::info('About to broadcast MessageSent for message #' . $message->message_id);
-        broadcast(new MessageSent($message))->toOthers();
-        \Log::info('Broadcast dispatched');
+      
 
         return response()->json([
             'message_id' => $message->message_id,

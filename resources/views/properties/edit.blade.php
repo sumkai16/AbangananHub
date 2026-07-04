@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="min-h-screen bg-gray-50/50 py-12">
-        <div class="max-w-6xl mx-auto px-6 lg:px-8">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px]">
 
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-150 pb-6 mb-8">
                 <div>

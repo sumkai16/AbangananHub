@@ -20,7 +20,7 @@
         $maintenanceLen = $circumference * ($maintenanceUnits / $occupancyTotal);
     @endphp
 
-    <div class="px-4 sm:px-8 lg:px-[50px] py-6">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8">
 
         <div class="mb-6">
             <h1 class="text-[22px] font-bold text-[#0F172A]">Good morning, {{ $greetingName }}!</h1>

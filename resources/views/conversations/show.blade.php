@@ -13,7 +13,7 @@
         $isTerminal = in_array($rentalStatus, ['Cancelled', 'Rejected']);
     @endphp
 
-    <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8">
         {{-- Back nav --}}
         <div class="mb-6 flex items-center justify-between">
             <a href="{{ route('conversations.index') }}"

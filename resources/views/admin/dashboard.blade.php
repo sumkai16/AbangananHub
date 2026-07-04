@@ -3,7 +3,7 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
-    <div class="max-w-7xl space-y-6">
+    <div class="max-w-[1400px] space-y-6">
 
         {{-- ── Page Header ─────────────────────────────────────────── --}}
         <div class="flex items-center justify-between">

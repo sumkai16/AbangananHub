@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="min-h-screen bg-gray-50/50 py-12">
-    <div class="max-w-6xl mx-auto px-6 lg:px-8">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px]">
 
         {{-- Page header --}}
         <div class="flex flex-col gap-4 border-b border-gray-100 pb-6 mb-8">
