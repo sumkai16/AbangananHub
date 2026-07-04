@@ -18,6 +18,7 @@ class MessageController extends Controller
             'message' => $request->validated('message'),
         ]);
         $message->load('sender');
+        broadcast(new MessageSent($message))->toOthers();
 
         $recipientId = $message->sender_id === $conversation->tenant_id
             ? $conversation->landlord_id
