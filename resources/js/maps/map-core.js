@@ -1,5 +1,8 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import '../../css/maps.css';
 
 // Default Leaflet marker icons reference image paths that break under Vite
@@ -63,7 +66,7 @@ export function createPin(map, lat, lng, type = 'property', popupHtml = null) {
 // iconSize [0,0] anchors the wrapper exactly at the lat/lng point; the inner
 // .map-price-pin element self-centers via CSS transform, so it auto-sizes
 // to whatever price string it's given instead of clipping or overflowing.
-export function createPricePin(map, lat, lng, propertyId, label, popupHtml = null) {
+export function createPricePin(map, lat, lng, propertyId, label, popupHtml = null, addToMap = true) {
     const icon = L.divIcon({
         className: 'map-price-pin-wrapper',
         html: `<div class="map-price-pin" data-property-id="${propertyId}">${label}</div>`,
@@ -71,13 +74,31 @@ export function createPricePin(map, lat, lng, propertyId, label, popupHtml = nul
         iconAnchor: [0, 0]
     });
 
-    const marker = L.marker([lat, lng], { icon }).addTo(map);
+    const marker = L.marker([lat, lng], { icon });
+    if (addToMap) marker.addTo(map);
 
     if (popupHtml) {
         marker.bindPopup(popupHtml, { closeButton: true });
     }
 
     return marker;
+}
+
+// Groups price-pin markers into clusters at low zoom so dense areas (e.g.
+// downtown Cebu) don't collapse into an unreadable stack of overlapping pins.
+export function createClusterGroup() {
+    return L.markerClusterGroup({
+        maxClusterRadius: 50,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        iconCreateFunction(cluster) {
+            return L.divIcon({
+                html: `<div class="map-cluster-pin">${cluster.getChildCount()}</div>`,
+                className: 'map-cluster-pin-wrapper',
+                iconSize: [36, 36],
+            });
+        },
+    });
 }
 
 export function fitToMarkers(map, markers) {

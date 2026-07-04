@@ -1,4 +1,4 @@
-import { createMap, createPricePin, fitToMarkers } from './map-core.js';
+import { createMap, createPricePin, createClusterGroup, fitToMarkers } from './map-core.js';
 
 function init() {
     const container = document.getElementById('browse-map');
@@ -26,6 +26,8 @@ function init() {
 
     const center = valid[0];
     const map = createMap('browse-map', center.latitude, center.longitude, 13);
+    const clusterGroup = createClusterGroup();
+    map.addLayer(clusterGroup);
 
     const markers = new Map(); // property_id -> marker
     const fitList = [];
@@ -54,7 +56,8 @@ function init() {
                 </a>
             </div>
         `;
-        const marker = createPricePin(map, p.latitude, p.longitude, p.property_id, priceLabel, popupHtml);
+        const marker = createPricePin(map, p.latitude, p.longitude, p.property_id, priceLabel, popupHtml, false);
+        clusterGroup.addLayer(marker);
         markers.set(String(p.property_id), marker);
         fitList.push(marker);
     });
@@ -69,18 +72,31 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-// Hovering a list card highlights its pin on the map — Airbnb's pattern.
+// Hovering a list card highlights its pin on the map, and vice versa —
+// Airbnb's cross-highlighting pattern, now bidirectional.
 function wireListSync(markers) {
+    const cards = new Map();
     document.querySelectorAll('[data-property-card]').forEach(card => {
-        const id = card.dataset.propertyCard;
-        const marker = markers.get(String(id));
-        if (!marker) return;
+        cards.set(String(card.dataset.propertyCard), card);
+    });
+
+    markers.forEach((marker, id) => {
+        const card = cards.get(id);
+        if (!card) return;
 
         card.addEventListener('mouseenter', () => {
             marker.getElement()?.querySelector('.map-price-pin')?.classList.add('active');
         });
         card.addEventListener('mouseleave', () => {
             marker.getElement()?.querySelector('.map-price-pin')?.classList.remove('active');
+        });
+
+        marker.on('mouseover', () => {
+            card.classList.add('map-highlighted');
+            card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        });
+        marker.on('mouseout', () => {
+            card.classList.remove('map-highlighted');
         });
     });
 }

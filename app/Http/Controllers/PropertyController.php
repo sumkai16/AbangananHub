@@ -39,7 +39,18 @@ public function index(Request $request)
         $query->whereHas('landlord.rentalBusiness');
     }
 
-    $properties = $query->latest('created_at')->paginate(12)->withQueryString();
+    $query->withMin(['units as min_rental_fee' => function ($q) {
+        $q->where('availability_status', 'Available')
+          ->where('verification_status', 'Approved');
+    }], 'rental_fee');
+
+    match ($request->query('sort')) {
+        'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
+        'price_high' => $query->orderByDesc('min_rental_fee'),
+        default      => $query->latest('created_at'),
+    };
+
+    $properties = $query->paginate(12)->withQueryString();
 
     $favoritedIds = [];
     if (auth()->check()) {
