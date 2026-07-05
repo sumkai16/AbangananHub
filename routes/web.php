@@ -130,10 +130,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/properties/{property}/units/{unit}/reject', [AdminPropertyUnitController::class, 'reject'])->name('units.reject');
     });
 
-    // Conversations and messages
+   // Conversations and messages
+    Route::get('/conversations/recent-messages', [ConversationController::class, 'recentMessages'])->name('conversations.recentMessages');
+    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
-    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
 
     // Notifications

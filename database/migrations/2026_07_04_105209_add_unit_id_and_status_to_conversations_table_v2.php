@@ -1,25 +1,23 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+
+/**
+ * NO-OP: unit_id and status columns are already added by
+ * 2026_07_01_114510_add_unit_id_and_status_to_conversations_table.
+ * This v2 migration was only needed to patch databases where the
+ * original had been edited after running. On migrate:fresh the
+ * original runs first, making this redundant.
+ */
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('conversations', function (Blueprint $table) {
-            $table->unsignedBigInteger('unit_id')->nullable()->after('property_id');
-            $table->string('status')->default('Open')->after('unit_id');
-            $table->foreign('unit_id')
-                  ->references('unit_id')
-                  ->on('property_units')
-                  ->nullOnDelete();
-        });
+        // Intentionally empty — see docblock above.
     }
+
     public function down(): void
     {
-        Schema::table('conversations', function (Blueprint $table) {
-            $table->dropForeign(['unit_id']);
-            $table->dropColumn(['unit_id', 'status']);
-        });
+        // Intentionally empty.
     }
 };

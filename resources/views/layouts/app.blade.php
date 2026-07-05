@@ -156,9 +156,7 @@
                     {{-- Avatar Dropdown --}}
                     <div class="relative">
                         <button id="abg-avatar-btn" aria-expanded="false"
-                            class="flex items-center justify-center w-10 h-10 rounded-full bg-[#61B2F0] text-white text-[15px] font-bold shadow-sm hover:shadow-md transition-all focus:outline-none">
-                            class="flex items-center justify-center w-10 h-10 rounded-full bg-[#2A2523] text-white
-                            text-[14px] font-bold shadow-sm hover:shadow-md transition-all focus:outline-none">
+                            class="flex items-center justify-center w-10 h-10 rounded-full bg-[#2A2523] text-white text-[14px] font-bold shadow-sm hover:shadow-md transition-all focus:outline-none">
                             {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
                         </button>
 
@@ -893,6 +891,7 @@
             }
         </script>
     @endauth
+    @include('partials.message-notifications')
     @stack('scripts')
 
 </body>

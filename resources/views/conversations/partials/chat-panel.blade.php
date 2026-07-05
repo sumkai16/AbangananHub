@@ -195,9 +195,20 @@
                         @endif
 
                         @if($isTenant)
-                            @if($rentalStatus === 'Inquiry')
-                                <p class="text-[12px] text-[#9B9F98] font-medium text-center bg-[#F0EDE8] rounded-xl py-2">Waiting for landlord to respond</p>
-
+                           @if($rentalStatus === 'Inquiry')
+                                <div class="flex items-center gap-2">
+                                    <p class="flex-1 text-[12px] text-[#9B9F98] font-medium text-center bg-[#F0EDE8] rounded-xl py-2">Waiting for landlord to respond</p>
+                                    <button type="button" @click="showCancel = !showCancel"
+                                        class="px-3 py-2 border border-[#BD5434] text-[#BD5434] text-[12px] font-semibold rounded-xl hover:bg-[#BD5434]/5 transition">
+                                        Cancel
+                                    </button>
+                                </div>
+                                <div x-show="showCancel" x-cloak class="mt-2 flex justify-end">
+                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST">
+                                        @csrf @method('PATCH')
+                                        <button type="submit" class="bg-[#BD5434] hover:brightness-95 text-white text-[12px] font-bold px-4 py-2 rounded-lg transition">Confirm cancellation</button>
+                                    </form>
+                                </div>
                             @elseif($rentalStatus === 'Under Negotiation')
                                 <div class="flex items-center gap-2">
                                     <p class="flex-1 text-[12px] text-[#9B9F98] font-medium bg-[#F0EDE8] rounded-xl py-2 text-center">Discuss terms with the landlord</p>
@@ -321,9 +332,30 @@
         @endforeach
     </div>
 
-    {{-- Message input --}}
-    <div class="px-5 py-3 bg-white border-t border-[#F0EDE8] flex-shrink-0">
-        <form id="message-form" class="flex items-center gap-2.5">
+    {{-- Nudge banner for landlord at Inquiry stage --}}
+        @if($isLandlord && $rentalStatus === 'Inquiry')
+            <div class="px-5 py-2.5 bg-[#D7E8F3]/40 border-t border-[#61B2F0]/15 flex items-center gap-2.5 flex-shrink-0">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#61B2F0" stroke-width="2" class="shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3.75h.008v.008h-.008v-.008z"/>
+                </svg>
+                <p class="text-[12px] text-[#2A2523]">
+                    New inquiry — <button type="button" @click="detailsOpen = true" class="font-bold text-[#61B2F0] hover:underline">review the details above</button> and accept or reject to proceed.
+                </p>
+            </div>
+        @endif
+
+        {{-- Nudge banner for tenant at Inquiry stage --}}
+        @if($isTenant && $rentalStatus === 'Inquiry')
+            <div class="px-5 py-2.5 bg-[#F0EDE8]/50 border-t border-[#F0EDE8] flex items-center gap-2.5 flex-shrink-0">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#9B9F98" stroke-width="2" class="shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-[12px] text-[#9B9F98]">Your inquiry has been sent. The landlord will review and respond.</p>
+            </div>
+        @endif
+
+        {{-- Message input --}}
+    <div class="px-5 py-3 bg-white border-t border-[#F0EDE8] flex-shrink-0">        <form id="message-form" class="flex items-center gap-2.5">
             <input type="text" id="message-input" name="message" required maxlength="2000" autocomplete="off"
                 class="flex-1 bg-[#F0EDE8] border border-transparent focus:border-[#61B2F0] focus:bg-white focus:ring-2 focus:ring-[#61B2F0]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#2A2523] transition outline-none placeholder-[#9B9F98]"
                 placeholder="Message {{ $otherParty->first_name }}...">

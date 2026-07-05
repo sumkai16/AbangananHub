@@ -80,12 +80,21 @@ public function store(Request $request)
             return back()->withErrors(['unit' => 'You already have an active inquiry or reservation for this unit.']);
         }
 
-        $conversation = Conversation::firstOrCreate([
-            'tenant_id'   => Auth::id(),
-            'landlord_id' => $property->landlord_id,
-            'property_id' => $property->property_id,
-            'unit_id'     => $unit->unit_id,
-        ]);
+        $conversation = Conversation::firstOrCreate(
+            [
+                'tenant_id'   => Auth::id(),
+                'landlord_id' => $property->landlord_id,
+                'property_id' => $property->property_id,
+            ],
+            [
+                'unit_id' => $unit->unit_id,
+            ]
+        );
+
+        // Update unit_id if conversation already existed with a different unit
+        if ($conversation->unit_id !== $unit->unit_id) {
+            $conversation->update(['unit_id' => $unit->unit_id]);
+        }
 
        Reservation::create([
             'property_id'          => $property->property_id,

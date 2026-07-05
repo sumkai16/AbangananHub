@@ -9,14 +9,27 @@ class NotificationController extends Controller
 {
     public function index()
     {
-        $notifications = auth()->user()->notifications()->latest()->paginate(15);
+        $notifications = auth()->user()->notifications()
+            ->where('type', '!=', 'message')
+            ->latest()
+            ->paginate(15);
+
         return view('notifications.index', compact('notifications'));
     }
 
     public function recent()
     {
-        $notifications = auth()->user()->notifications()->latest()->take(8)->get();
-        $unreadCount = Notification::unreadCount(auth()->id());
+        $notifications = auth()->user()->notifications()
+            ->where('type', '!=', 'message')
+            ->latest()
+            ->take(8)
+            ->get();
+
+        $unreadCount = auth()->user()->notifications()
+            ->where('type', '!=', 'message')
+            ->where('is_read', false)
+            ->count();
+
         return view('notifications.partials.dropdown', compact('notifications', 'unreadCount'));
     }
 
@@ -29,7 +42,10 @@ class NotificationController extends Controller
 
     public function markAllRead()
     {
-        Notification::markAllAsRead(auth()->id());
+        Notification::where('user_id', auth()->id())
+            ->where('type', '!=', 'message')
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
 
         if (request()->expectsJson() || request()->ajax()) {
             return response()->noContent();

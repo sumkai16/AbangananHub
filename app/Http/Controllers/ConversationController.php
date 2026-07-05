@@ -137,4 +137,29 @@ class ConversationController extends Controller
         return redirect()->route('conversations.show', $conversation)
             ->with('status', 'Conversation marked as resolved.');
     }
+    public function recentMessages()
+{
+    $userId = Auth::id();
+
+    $conversations = Conversation::where(function ($q) use ($userId) {
+            $q->where('tenant_id', $userId)
+              ->orWhere('landlord_id', $userId);
+        })
+        ->with(['tenant', 'landlord', 'property', 'unit', 'latestMessage'])
+        ->orderByDesc('updated_at')
+        ->take(5)
+        ->get();
+
+    $unreadCount = Conversation::where(function ($q) use ($userId) {
+            $q->where('tenant_id', $userId)
+              ->orWhere('landlord_id', $userId);
+        })
+        ->whereHas('latestMessage', function ($q) use ($userId) {
+            $q->where('sender_id', '!=', $userId)
+              ->where('is_read', false);
+        })
+        ->count();
+
+    return view('conversations.partials.bubble-panel', compact('conversations', 'unreadCount'));
+}
 }

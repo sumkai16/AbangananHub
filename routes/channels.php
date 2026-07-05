@@ -17,3 +17,6 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
     return (int) $user->user_id === (int) $conversation->tenant_id
         || (int) $user->user_id === (int) $conversation->landlord_id;
 });
+Broadcast::channel('user.{id}', function ($user, $id) {
+    return (int) $user->user_id === (int) $id;
+});
