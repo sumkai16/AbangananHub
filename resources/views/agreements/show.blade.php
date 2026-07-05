@@ -12,13 +12,13 @@
         </a>
 
         @if(session('success'))
-            <div class="mb-6 bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-[13px] font-medium">
+            <div class="mb-6 bg-[#D7E8F3]/50 border border-[#61B2F0]/30 text-[#2A2523] rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ session('success') }}
             </div>
         @endif
 
         @if($errors->any())
-            <div class="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium">
+            <div class="mb-6 bg-[#BD5434]/8 border border-[#BD5434]/30 text-[#BD5434] rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ $errors->first() }}
             </div>
         @endif
@@ -99,13 +99,13 @@
                     @csrf
 
                     <!-- Warning banner -->
-                    <div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200/60 rounded-xl mb-6">
-                        <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2"
+                    <div class="flex items-start gap-3 p-4 bg-[#BD5434]/8 border border-[#BD5434]/25 rounded-xl mb-6">
+                        <svg class="w-5 h-5 text-[#BD5434] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3.75h.008v.008h-.008v-.008z" />
                         </svg>
-                        <p class="text-xs text-amber-800 leading-relaxed">
+                        <p class="text-xs text-[#BD5434] leading-relaxed">
                             Please read the entire agreement above before proceeding. Signing is a binding acknowledgment
                             of the terms stated.
                         </p>
@@ -126,57 +126,54 @@
                     </button>
                 </form>
 
-            @elseif($reservation->isAgreementSigned())
-                <!-- Signed confirmation -->
-                <div class="mt-8 p-4 bg-green-50 border border-green-200/60 rounded-xl flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
+           @elseif($reservation->isAgreementSigned())
+            <!-- Signed confirmation -->
+            <div class="mt-8 p-4 bg-[#D7E8F3]/50 border border-[#61B2F0]/25 rounded-xl flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-[#61B2F0]/15 flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-[#61B2F0]" fill="none" stroke="currentColor" stroke-width="2.5"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-[#2A2523]">Agreement Signed</p>
+                    <p class="text-xs text-[#2A2523]/70 mt-0.5">
+                        Signed on {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}.
+                    </p>
+                </div>
+            </div>
+
+            @if($reservation->payments->whereIn('status', ['Pending', 'Paid'])->isEmpty())
+                <!-- Pay Now — no payment started yet -->
+                <form action="{{ route('payments.checkout', $reservation) }}" method="POST" class="mt-4">
+                    @csrf
+                    <div class="rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-bold text-[#2A2523]">Initial Payment</p>
+                            <p class="text-xs text-[#9B9F98] mt-0.5">
+                                ₱{{ number_format($reservation->unit->rental_fee, 2) }} via GCash — you will be redirected to complete payment.
+                            </p>
+                        </div>
+                        <button type="submit"
+                            class="shrink-0 px-5 py-2.5 rounded-xl bg-[#61B2F0] hover:brightness-95 text-white font-bold text-sm shadow-sm transition">
+                            Pay Now
+                        </button>
                     </div>
+                </form>
+            @else
+                <!-- Payment already initiated — waiting for confirmation -->
+                <div class="mt-4 rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center gap-3">
+                    <svg class="w-5 h-5 text-[#9B9F98] shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
                     <div>
-                        <p class="text-sm font-bold text-green-800">Agreement Signed</p>
-                        <p class="text-xs text-green-700 mt-0.5">
-                            Signed on {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}.
+                        <p class="text-sm font-bold text-[#2A2523]">Payment Processing</p>
+                        <p class="text-xs text-[#9B9F98] mt-0.5">
+                            Your payment is being confirmed. This page will update once the payment is verified.
                         </p>
                     </div>
                 </div>
-
-                @if($reservation->payments->whereIn('status', ['Pending', 'Paid'])->isEmpty())
-                    <!-- Pay Now — no payment started yet -->
-                    <form action="{{ route('payments.checkout', $reservation) }}" method="POST" class="mt-4">
-                        @csrf
-                        <div
-                            class="rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center justify-between gap-4">
-                            <div>
-                                <p class="text-sm font-bold text-[#2A2523]">Initial Payment</p>
-                                <p class="text-xs text-[#9B9F98] mt-0.5">
-                                    ₱{{ number_format($reservation->unit->rental_fee, 2) }} via GCash — you will be redirected to
-                                    complete payment.
-                                </p>
-                            </div>
-                            <button type="submit"
-                                class="shrink-0 px-5 py-2.5 rounded-xl bg-[#61B2F0] hover:brightness-95 text-white font-bold text-sm shadow-sm transition">
-                                Pay Now
-                            </button>
-                        </div>
-                    </form>
-                @else
-                    <!-- Payment already initiated — waiting for confirmation -->
-                    <div class="mt-4 rounded-xl border border-[#9B9F98]/15 bg-[#F0EDE8]/40 p-4 flex items-center gap-3">
-                        <svg class="w-5 h-5 text-[#9B9F98] shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                        <div>
-                            <p class="text-sm font-bold text-[#2A2523]">Payment Processing</p>
-                            <p class="text-xs text-[#9B9F98] mt-0.5">
-                                Your payment is being confirmed. This page will update once the payment is verified.
-                            </p>
-                        </div>
-                    </div>
-                @endif
             @endif
         </div>
     </div>

@@ -100,6 +100,7 @@ class Property extends Model
     {
         return $this->hasMany(PropertyUnit::class, 'property_id', 'property_id');
     }
+
     public function getMinRentalFeeAttribute(): ?string
     {
         return $this->units

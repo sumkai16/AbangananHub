@@ -87,10 +87,25 @@
             </div>
         @endif
 
-        {{-- RESULTS COUNT --}}
-        <p class="text-[13px] text-[#9B9F98] font-medium mb-4">
-            {{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found
-        </p>
+        {{-- RESULTS COUNT + SORT --}}
+        <div class="flex items-center justify-between gap-3 mb-4">
+            <p class="text-[13px] text-[#9B9F98] font-medium">
+                {{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found
+            </p>
+
+            <form method="GET" class="flex items-center gap-2">
+                @foreach(request()->except(['sort', 'page']) as $key => $value)
+                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                @endforeach
+                <label for="sort" class="text-[13px] text-[#9B9F98] font-medium hidden sm:inline">Sort by</label>
+                <select id="sort" name="sort" onchange="this.form.submit()"
+                    class="h-9 text-[13px] font-semibold rounded-full border border-[#9B9F98]/30 bg-white text-[#2A2523] pl-3.5 pr-8 focus:outline-none focus:ring-2 focus:ring-[#61B2F0]/20 focus:border-[#61B2F0] transition-all">
+                    <option value="newest" {{ request('sort', 'newest') === 'newest' ? 'selected' : '' }}>Newest</option>
+                    <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>Price: Low to High</option>
+                    <option value="price_high" {{ request('sort') === 'price_high' ? 'selected' : '' }}>Price: High to Low</option>
+                </select>
+            </form>
+        </div>
 
         {{-- MOBILE LIST/MAP TOGGLE — desktop shows both columns, this is mobile-only --}}
         <div class="flex lg:hidden gap-2 mb-5">
@@ -111,7 +126,7 @@
 
                 {{-- LIST COLUMN --}}
                 <div :class="mobileView === 'list' ? 'block' : 'hidden'" class="lg:!block">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                         @foreach($properties as $property)
                             <div data-property-card="{{ $property->property_id }}"
                                 class="group relative cursor-pointer transition-all duration-300 hover:-translate-y-1"
@@ -160,13 +175,6 @@
                                         </div>
                                     @endif
 
-                                    {{-- TYPE BADGE top-left --}}
-                                    <div class="absolute top-3 left-3 z-10">
-                                        <span class="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[11px] font-bold text-[#2A2523] rounded-full shadow-sm">
-                                            {{ $property->property_type }}
-                                        </span>
-                                    </div>
-
                                     {{-- HEART top-right --}}
                                     <button type="button" data-property-id="{{ $property->property_id }}"
                                         data-favorited="{{ in_array($property->property_id, $favoritedIds) ? 'true' : 'false' }}"
@@ -187,16 +195,13 @@
 
                                 {{-- TEXT BELOW IMAGE — no card box --}}
                                 <div class="mt-3 px-1">
-                                    <div class="flex items-start justify-between gap-2">
-                                        <h3 class="text-[14px] font-semibold text-[#2A2523] leading-snug line-clamp-1">
-                                            {{ $property->title }}
-                                        </h3>
-                                        <span
-                                            class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0
-                                                {{ $property->availability_status === 'Available' ? 'bg-[#D7E8F3] text-[#2A2523]' : 'bg-[#BD5434]/10 text-[#BD5434]' }}">
-                                            {{ $property->availability_status }}
-                                        </span>
-                                    </div>
+                                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#61B2F0] mb-0.5">
+                                        {{ $property->property_type }}
+                                    </p>
+
+                                    <h3 class="text-[14px] font-semibold text-[#2A2523] leading-snug line-clamp-1">
+                                        {{ $property->title }}
+                                    </h3>
 
                                     <p class="text-[13px] text-[#9B9F98] mt-0.5 line-clamp-1 flex items-center gap-1">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
