@@ -15,11 +15,7 @@
 
                 @if(request('location'))
                     <span
-<<<<<<< HEAD
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F7FCFC] text-[#156F8C] border border-[#FF8A65]/40 rounded-full text-[13px] font-semibold">
-=======
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -37,11 +33,7 @@
 
                 @if(request('type'))
                     <span
-<<<<<<< HEAD
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F7FCFC] text-[#156F8C] border border-[#FF8A65]/40 rounded-full text-[13px] font-semibold">
-=======
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -58,11 +50,7 @@
 
                 @if(request('price_max'))
                     <span
-<<<<<<< HEAD
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F7FCFC] text-[#156F8C] border border-[#FF8A65]/40 rounded-full text-[13px] font-semibold">
-=======
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -79,11 +67,7 @@
 
                 @if(request('verified'))
                     <span
-<<<<<<< HEAD
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F7FCFC] text-[#156F8C] border border-[#FF8A65]/40 rounded-full text-[13px] font-semibold">
-=======
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
@@ -97,11 +81,7 @@
                 @endif
 
                 <a href="{{ route('properties.index') }}"
-<<<<<<< HEAD
-                    class="text-[13px] text-[#DC2626] hover:brightness-95 font-semibold ml-2">
-=======
                     class="text-[13px] text-[#EF4444] hover:brightness-95 font-semibold ml-2">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     Clear all
                 </a>
             </div>
@@ -119,11 +99,7 @@
                 @endforeach
                 <label for="sort" class="text-[13px] text-[#64748B] font-medium hidden sm:inline">Sort by</label>
                 <select id="sort" name="sort" onchange="this.form.submit()"
-<<<<<<< HEAD
-                    class="h-9 text-[13px] font-semibold rounded-full border border-[#9B9F98]/30 bg-white text-[#156F8C] pl-3.5 pr-8 focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all">
-=======
                     class="h-9 text-[13px] font-semibold rounded-full border border-[#64748B]/30 bg-white text-[#1F2937] pl-3.5 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     <option value="newest" {{ request('sort', 'newest') === 'newest' ? 'selected' : '' }}>Newest</option>
                     <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>Price: Low to High</option>
                     <option value="price_high" {{ request('sort') === 'price_high' ? 'selected' : '' }}>Price: High to Low</option>
@@ -134,20 +110,12 @@
         {{-- MOBILE LIST/MAP TOGGLE — desktop shows both columns, this is mobile-only --}}
         <div class="flex lg:hidden gap-2 mb-5">
             <button type="button" @click="mobileView = 'list'"
-<<<<<<< HEAD
-                :class="mobileView === 'list' ? 'bg-[#156F8C] text-white' : 'bg-white text-[#156F8C] border border-[#9B9F98]/30'"
-=======
                 :class="mobileView === 'list' ? 'bg-[#1F2937] text-white' : 'bg-white text-[#1F2937] border border-[#64748B]/30'"
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition">
                 List
             </button>
             <button type="button" @click="mobileView = 'map'"
-<<<<<<< HEAD
-                :class="mobileView === 'map' ? 'bg-[#156F8C] text-white' : 'bg-white text-[#156F8C] border border-[#9B9F98]/30'"
-=======
                 :class="mobileView === 'map' ? 'bg-[#1F2937] text-white' : 'bg-white text-[#1F2937] border border-[#64748B]/30'"
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition">
                 Map
             </button>
@@ -182,19 +150,11 @@
                                         {{-- Navigation Arrows (visible on hover) --}}
                                         <div x-ref="nav" class="opacity-0 transition-opacity duration-300 absolute inset-0 flex items-center justify-between px-2" x-show="slides > 1">
                                             <button @click.stop="activeSlide = activeSlide > 0 ? activeSlide - 1 : slides - 1"
-<<<<<<< HEAD
-                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#156F8C]">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                                            </button>
-                                            <button @click.stop="activeSlide = activeSlide < slides - 1 ? activeSlide + 1 : 0"
-                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#156F8C]">
-=======
                                                 class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#1F2937]">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
                                             </button>
                                             <button @click.stop="activeSlide = activeSlide < slides - 1 ? activeSlide + 1 : 0"
                                                 class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#1F2937]">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                                             </button>
                                         </div>
@@ -207,13 +167,8 @@
                                             </template>
                                         </div>
                                     @else
-<<<<<<< HEAD
-                                        <div class="w-full h-full flex items-center justify-center bg-[#F7FCFC]">
-                                            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#FF8A65" stroke-width="1.5">
-=======
                                         <div class="w-full h-full flex items-center justify-center bg-[#EEF8F8]">
                                             <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                             </svg>
@@ -231,11 +186,7 @@
                                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                         </svg>
                                         <svg class="heart-filled {{ in_array($property->property_id, $favoritedIds) ? '' : 'hidden' }}"
-<<<<<<< HEAD
-                                            width="20" height="20" viewBox="0 0 24 24" fill="#FF8A65" stroke="#FF8A65" stroke-width="1">
-=======
-                                            width="20" height="20" viewBox="0 0 24 24" fill="#2AA7A1" stroke="#2AA7A1" stroke-width="1">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                                            width="20" height="20" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="1">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                         </svg>
@@ -244,19 +195,11 @@
 
                                 {{-- TEXT BELOW IMAGE — no card box --}}
                                 <div class="mt-3 px-1">
-<<<<<<< HEAD
-                                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#FF8A65] mb-0.5">
-                                        {{ $property->property_type }}
-                                    </p>
-
-                                    <h3 class="text-[14px] font-semibold text-[#156F8C] leading-snug line-clamp-1">
-=======
                                     <p class="text-[11px] font-bold uppercase tracking-wide text-[#156F8C] mb-0.5">
                                         {{ $property->property_type }}
                                     </p>
 
                                     <h3 class="text-[14px] font-semibold text-[#1F2937] leading-snug line-clamp-1">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         {{ $property->title }}
                                     </h3>
 
@@ -270,11 +213,7 @@
                                         {{ $property->address }}
                                     </p>
 
-<<<<<<< HEAD
-                                    <p class="text-[14px] font-semibold text-[#156F8C] mt-1.5">
-=======
                                     <p class="text-[14px] font-semibold text-[#1F2937] mt-1.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         @if($property->min_rental_fee)
                                             ₱{{ number_format($property->min_rental_fee) }}
                                             <span class="text-[13px] font-normal text-[#64748B]">/month</span>

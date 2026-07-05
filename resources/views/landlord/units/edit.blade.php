@@ -67,11 +67,7 @@
                 <div class="grid sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-[12px] font-semibold text-[#0F172A] mb-1.5">
-<<<<<<< HEAD
-                            Unit Name / Number <span class="text-[#DC2626]">*</span>
-=======
                             Unit Name / Number <span class="text-[#EF4444]">*</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         </label>
                         <input type="text" name="unit_label" value="{{ old('unit_label', $unit->unit_label) }}" required
                             maxlength="100" placeholder="e.g. Room 101, Bed A, Unit 201"
@@ -80,11 +76,7 @@
 
                     <div>
                         <label class="block text-[12px] font-semibold text-[#0F172A] mb-1.5">
-<<<<<<< HEAD
-                            Capacity <span class="text-[#DC2626]">*</span>
-=======
                             Capacity <span class="text-[#EF4444]">*</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         </label>
                         <input type="number" name="occupancy_limit"
                             value="{{ old('occupancy_limit', $unit->occupancy_limit) }}" required min="1" max="100"
@@ -96,11 +88,7 @@
                 <div class="grid sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-[12px] font-semibold text-[#0F172A] mb-1.5">
-<<<<<<< HEAD
-                            Monthly Rent (₱) <span class="text-[#DC2626]">*</span>
-=======
                             Monthly Rent (₱) <span class="text-[#EF4444]">*</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         </label>
                         <input type="number" name="rental_fee" value="{{ old('rental_fee', $unit->rental_fee) }}" required
                             min="500" max="999999.99" step="0.01" placeholder="e.g. 3500"
@@ -110,11 +98,7 @@
 
                 <div>
                     <label class="block text-[12px] font-semibold text-[#0F172A] mb-2">
-<<<<<<< HEAD
-                        Status <span class="text-[#DC2626]">*</span>
-=======
                         Status <span class="text-[#EF4444]">*</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     </label>
                     @php
                         $statusOptions = [
@@ -134,11 +118,7 @@
                                 <div class="flex items-center gap-1.5 mb-0.5">
                                     <span
                                         class="w-1.5 h-1.5 rounded-full shrink-0
-<<<<<<< HEAD
-                                                {{ $value === 'Available' ? 'bg-emerald-500' : ($value === 'Reserved' ? 'bg-amber-500' : 'bg-[#DC2626]') }}"></span>
-=======
                                                 {{ $value === 'Available' ? 'bg-[#22C55E]' : ($value === 'Reserved' ? 'bg-[#FBBF24]' : 'bg-[#EF4444]') }}"></span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                     <p class="text-[13px] font-semibold text-[#0F172A]">{{ $opt['label'] }}</p>
                                 </div>
                                 <p class="text-[10.5px] text-[#64748B] leading-snug">{{ $opt['desc'] }}</p>
@@ -182,7 +162,7 @@
                 @if($existingPhotos->isNotEmpty())
                     <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-3">
                         @foreach($existingPhotos as $photo)
-                            <div class="aspect-square rounded-lg overflow-hidden bg-[#F7F8FA] ring-1 ring-[#64748B]/15">
+                            <div class="aspect-square rounded-lg overflow-hidden bg-[#F7FCFC] ring-1 ring-[#64748B]/15">
                                 <img src="{{ $photo->media_url }}" alt="Unit photo" class="w-full h-full object-cover">
                             </div>
                         @endforeach
@@ -190,7 +170,7 @@
                 @endif
 
                 @if($existingVideo)
-                    <div class="rounded-lg overflow-hidden bg-[#F7F8FA] ring-1 ring-[#64748B]/15 max-w-xs">
+                    <div class="rounded-lg overflow-hidden bg-[#F7FCFC] ring-1 ring-[#64748B]/15 max-w-xs">
                         <video src="{{ $existingVideo->media_url }}" controls class="w-full h-auto"></video>
                     </div>
                 @endif

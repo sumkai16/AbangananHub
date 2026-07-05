@@ -17,7 +17,7 @@
 <div
     x-data="cameraCaptureVideo({ inputName: '{{ $name }}' })"
     x-init="init()"
-    class="rounded-2xl border border-[#64748B]/20 bg-[#F7F8FA] p-4"
+    class="rounded-2xl border border-[#64748B]/20 bg-[#F7FCFC] p-4"
 >
     <input type="file" x-ref="fileInput" name="{{ $name }}" class="hidden" accept="video/*">
 

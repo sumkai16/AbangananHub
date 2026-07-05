@@ -14,53 +14,6 @@
                 </p>
             </div>
 
-<<<<<<< HEAD
-        <!-- Status Tabs -->
-        <div class="flex items-center gap-2 mb-6">
-            @php
-                $tabs = [
-                    'all' => ['label' => 'All', 'count' => $allCount],
-                    'unread' => ['label' => 'Unread', 'count' => $unreadCount],
-                    'resolved' => ['label' => 'Resolved', 'count' => $resolvedCount],
-                ];
-            @endphp
-            @foreach ($tabs as $key => $tab)
-                <a href="{{ route('conversations.index', array_filter(['status' => $key, 'search' => request('search')])) }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition
-                                {{ $status === $key ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
-                    {{ $tab['label'] }}
-                    @if($tab['count'] > 0)
-                        <span class="text-xs font-bold px-1.5 py-0.5 rounded-full
-                                        {{ $status === $key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500' }}">
-                            {{ $tab['count'] }}
-                        </span>
-                    @endif
-                </a>
-            @endforeach
-        </div>
-
-        <!-- Search Bar -->
-        <form method="GET" action="{{ route('conversations.index') }}"
-            class="flex gap-3 mb-6 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
-            <div class="relative flex-1">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none"
-                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input type="text" name="search" value="{{ request('search') }}"
-                    placeholder="Search by person or property name…"
-                    class="w-full pl-9 pr-4 py-2.5 text-sm text-gray-800 bg-[#F7F8FA] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/30 focus:border-[#FF8A65] transition placeholder-gray-400" />
-            </div>
-            <button type="submit"
-                class="px-5 py-2.5 text-sm font-bold text-white bg-[#FF8A65] hover:bg-[#1e57b0] rounded-xl shadow-sm transition-all duration-200">
-                Search
-            </button>
-            @if(request('search'))
-                <a href="{{ route('conversations.index') }}"
-                    class="px-4 py-2.5 text-sm font-semibold text-gray-500 bg-[#F7F8FA] border border-gray-200 hover:bg-gray-100 rounded-xl transition-all duration-200">
-                    Clear
-                </a>
-=======
             @if($isLandlord && $landlordProperties->isNotEmpty())
                 <div class="relative" x-data="{ filterOpen: false }">
                     <button @click="filterOpen = !filterOpen" type="button"
@@ -90,7 +43,6 @@
                         @endforeach
                     </div>
                 </div>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             @endif
         </div>
 

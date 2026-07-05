@@ -21,7 +21,7 @@
 <div
     x-data="cameraCapturePhoto({ min: {{ $min }}, max: {{ $max }}, inputName: '{{ $name }}' })"
     x-init="init()"
-    class="rounded-2xl border border-[#64748B]/20 bg-[#F7F8FA] p-4"
+    class="rounded-2xl border border-[#64748B]/20 bg-[#F7FCFC] p-4"
 >
     {{-- Hidden input the form actually submits --}}
     <input type="file" x-ref="fileInput" name="{{ $name }}[]" multiple class="hidden" accept="image/*">
@@ -99,11 +99,7 @@
                 <button
                     type="button"
                     @click="remove(index)"
-<<<<<<< HEAD
-                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-[#DC2626] transition-colors duration-150 opacity-0 group-hover:opacity-100"
-=======
                     class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-[#EF4444] transition-colors duration-150 opacity-0 group-hover:opacity-100"
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     aria-label="Remove photo"
                 >
                     <svg width="8" height="8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">

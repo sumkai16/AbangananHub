@@ -17,11 +17,7 @@
         {{-- Back nav --}}
         <div class="mb-6 flex items-center justify-between">
             <a href="{{ route('conversations.index') }}"
-<<<<<<< HEAD
-                class="inline-flex items-center text-sm font-semibold text-[#9B9F98] hover:text-[#156F8C] transition-colors group">
-=======
                 class="inline-flex items-center text-sm font-semibold text-[#64748B] hover:text-[#1F2937] transition-colors group">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 <svg class="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
@@ -32,11 +28,7 @@
                 <form action="{{ route('conversations.resolve', $conversation) }}" method="POST">
                     @csrf
                     <button type="submit"
-<<<<<<< HEAD
-                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-[#156F8C] bg-[#F7FCFC] border border-[#FF8A65]/20 rounded-xl hover:brightness-95 transition">
-=======
                         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-[#1F2937] bg-[#EEF8F8] border border-[#2AA7A1]/20 rounded-xl hover:brightness-95 transition">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                         </svg>
@@ -53,18 +45,6 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
             {{-- ===== CHAT PANEL ===== --}}
-<<<<<<< HEAD
-            <div class="lg:col-span-2 bg-white border border-[#F7FCFC] rounded-2xl flex flex-col overflow-hidden h-[600px]">
-
-                {{-- Chat header with property context + stage pill --}}
-                <div class="p-4 border-b border-[#F7FCFC] flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#FF8A65] text-white flex items-center justify-center font-bold text-sm">
-                            {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
-                        </div>
-                        <div>
-                            <h1 class="text-sm font-bold text-[#156F8C] leading-tight">
-=======
             <div class="lg:col-span-2 bg-white border border-[#EEF8F8] rounded-2xl flex flex-col overflow-hidden h-[600px]">
 
                 {{-- Chat header with property context + stage pill --}}
@@ -75,7 +55,6 @@
                         </div>
                         <div>
                             <h1 class="text-sm font-bold text-[#1F2937] leading-tight">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                 {{ $otherParty->first_name }} {{ $otherParty->last_name }}
                             </h1>
                             <p class="text-xs text-[#64748B] mt-0.5">
@@ -88,15 +67,6 @@
                     </div>
 
                     @if($rentalStatus && !$isTerminal)
-<<<<<<< HEAD
-                        <div class="bg-[#F7FCFC] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-                            <div class="w-1.5 h-1.5 rounded-full bg-[#FF8A65]"></div>
-                            <span class="text-[10px] font-bold text-[#156F8C] tracking-wide">{{ $stageLabels[$currentStageIndex] ?? $rentalStatus }}</span>
-                        </div>
-                    @elseif($isTerminal)
-                        <div class="bg-[#F7FCFC] rounded-lg px-3 py-1.5">
-                            <span class="text-[10px] font-bold text-[#DC2626] tracking-wide">{{ $rentalStatus }}</span>
-=======
                         <div class="bg-[#EEF8F8] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
                             <div class="w-1.5 h-1.5 rounded-full bg-[#2AA7A1]"></div>
                             <span class="text-[10px] font-bold text-[#1F2937] tracking-wide">{{ $stageLabels[$currentStageIndex] ?? $rentalStatus }}</span>
@@ -104,7 +74,6 @@
                     @elseif($isTerminal)
                         <div class="bg-[#E2E8F0] rounded-lg px-3 py-1.5">
                             <span class="text-[10px] font-bold text-[#EF4444] tracking-wide">{{ $rentalStatus }}</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         </div>
                     @endif
                 </div>
@@ -113,11 +82,7 @@
                 <div id="message-list" class="flex-1 p-6 overflow-y-auto flex flex-col gap-3 scroll-smooth" style="background: #F7FCFC;">
                     @foreach ($conversation->messages as $message)
                         @php $isSelf = $message->sender_id === auth()->id(); @endphp
-<<<<<<< HEAD
-                        <div class="max-w-[75%] {{ $isSelf ? 'self-end bg-[#156F8C] text-white rounded-2xl rounded-tr-sm' : 'self-start bg-white text-[#156F8C] border border-[#F7FCFC] rounded-2xl rounded-tl-sm' }} px-4 py-2.5 shadow-sm">
-=======
                         <div class="max-w-[75%] {{ $isSelf ? 'self-end bg-[#1F2937] text-white rounded-2xl rounded-tr-sm' : 'self-start bg-white text-[#1F2937] border border-[#EEF8F8] rounded-2xl rounded-tl-sm' }} px-4 py-2.5 shadow-sm">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             @if(!$isSelf)
                                 <p class="text-[10px] font-bold text-[#64748B] mb-1 tracking-wide uppercase">
                                     {{ $message->sender->first_name }}
@@ -133,15 +98,6 @@
                 </div>
 
                 {{-- Input --}}
-<<<<<<< HEAD
-                <div class="p-4 bg-white border-t border-[#F7FCFC]">
-                    <form id="message-form" class="flex items-center gap-3">
-                        <input type="text" id="message-input" name="message" required maxlength="2000" autofocus
-                            class="flex-1 bg-[#F7FCFC] border border-[#F7FCFC] focus:border-[#FF8A65] focus:bg-white focus:ring-2 focus:ring-[#FF8A65]/10 rounded-xl px-4 py-3 text-sm text-[#156F8C] transition outline-none placeholder-[#9B9F98]"
-                            placeholder="Message {{ $otherParty->first_name }}...">
-                        <button type="submit"
-                            class="bg-[#156F8C] hover:brightness-95 active:scale-[0.98] text-white font-semibold text-sm px-5 py-3 rounded-xl shadow-sm transition inline-flex items-center gap-1.5">
-=======
                 <div class="p-4 bg-white border-t border-[#EEF8F8]">
                     <form id="message-form" class="flex items-center gap-3">
                         <input type="text" id="message-input" name="message" required maxlength="2000" autofocus
@@ -149,7 +105,6 @@
                             placeholder="Message {{ $otherParty->first_name }}...">
                         <button type="submit"
                             class="bg-[#1F2937] hover:brightness-95 active:scale-[0.98] text-white font-semibold text-sm px-5 py-3 rounded-xl shadow-sm transition inline-flex items-center gap-1.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             <span>Send</span>
                             <svg class="w-4 h-4 rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
@@ -164,21 +119,12 @@
 
                 {{-- RENTAL PROGRESS --}}
                 @if($reservation)
-<<<<<<< HEAD
-                    <div class="bg-white border border-[#F7FCFC] rounded-2xl p-4">
-                        <div class="text-[10px] font-bold text-[#9B9F98] uppercase tracking-wider mb-3">Rental Progress</div>
-
-                        @if($isTerminal)
-                            <div class="bg-[#F7FCFC] rounded-xl p-3 text-center">
-                                <span class="text-sm font-bold text-[#DC2626]">{{ $rentalStatus }}</span>
-=======
                     <div class="bg-white border border-[#EEF8F8] rounded-2xl p-4">
                         <div class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-3">Rental Progress</div>
 
                         @if($isTerminal)
                             <div class="bg-[#E2E8F0] rounded-xl p-3 text-center">
                                 <span class="text-sm font-bold text-[#EF4444]">{{ $rentalStatus }}</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                 @if($rentalStatus === 'Rejected' && $reservation->rejection_reason)
                                     <p class="text-xs text-[#64748B] mt-1">{{ $reservation->rejection_reason }}</p>
                                 @endif
@@ -194,26 +140,11 @@
                                     <div class="relative flex gap-3 {{ !$isLast ? 'pb-5' : '' }}">
                                         {{-- Connector (drawn first, behind the dot) --}}
                                         @if(!$isLast)
-<<<<<<< HEAD
-                                            <div class="absolute left-[9px] top-5 bottom-0 w-0.5 rounded-full {{ $isDone ? 'bg-[#FF8A65]' : 'bg-[#F7FCFC]' }} transition-colors duration-300"></div>
-=======
                                             <div class="absolute left-[9px] top-5 bottom-0 w-0.5 rounded-full {{ $isDone ? 'bg-[#2AA7A1]' : 'bg-[#EEF8F8]' }} transition-colors duration-300"></div>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         @endif
                                         {{-- Dot --}}
                                         <div class="relative z-10 flex-shrink-0">
                                             @if($isDone)
-<<<<<<< HEAD
-                                                <div class="w-5 h-5 rounded-full bg-[#FF8A65] flex items-center justify-center shadow-sm">
-                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                </div>
-                                            @elseif($isCurrent)
-                                                <div class="w-5 h-5 rounded-full bg-[#FF8A65] flex items-center justify-center ring-4 ring-[#F7FCFC]">
-                                                    <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
-                                                </div>
-                                            @else
-                                                <div class="w-5 h-5 rounded-full border-2 border-[#F7FCFC] bg-white"></div>
-=======
                                                 <div class="w-5 h-5 rounded-full bg-[#2AA7A1] flex items-center justify-center shadow-sm">
                                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                 </div>
@@ -223,16 +154,11 @@
                                                 </div>
                                             @else
                                                 <div class="w-5 h-5 rounded-full border-2 border-[#EEF8F8] bg-white"></div>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                             @endif
                                         </div>
                                         {{-- Label --}}
                                         <div class="pt-0.5">
-<<<<<<< HEAD
-                                            <div class="text-xs {{ $isCurrent ? 'font-bold text-[#156F8C]' : ($isDone ? 'font-medium text-[#156F8C]' : 'text-[#9B9F98]') }}">
-=======
                                             <div class="text-xs {{ $isCurrent ? 'font-bold text-[#1F2937]' : ($isDone ? 'font-medium text-[#1F2937]' : 'text-[#64748B]') }}">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                 {{ $stageLabels[$i] }}
                                             </div>
                                             @if($isCurrent)
@@ -248,11 +174,7 @@
 
                 {{-- ACTIONS --}}
                 @if($reservation && !$isTerminal)
-<<<<<<< HEAD
-                    <div class="bg-white border border-[#F7FCFC] rounded-2xl p-4">
-=======
                     <div class="bg-white border border-[#EEF8F8] rounded-2xl p-4">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
 
                         {{-- LANDLORD ACTIONS --}}
                         @if($isLandlord)
@@ -261,11 +183,7 @@
                                     <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST">
                                         @csrf
                                         @method('PATCH')
-<<<<<<< HEAD
-                                        <button type="submit" class="w-full bg-[#156F8C] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
-=======
                                         <button type="submit" class="w-full bg-[#1F2937] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                                             Accept &amp; negotiate
                                         </button>
@@ -275,22 +193,13 @@
                                         @csrf
                                         @method('PATCH')
                                         <button type="button" @click="open = !open"
-<<<<<<< HEAD
-                                            class="w-full border border-[#DC2626] text-[#DC2626] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#DC2626]/5">
-=======
                                             class="w-full border border-[#EF4444] text-[#EF4444] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#EF4444]/5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                             Reject
                                         </button>
                                         <div x-show="open" x-cloak class="mt-2 space-y-2">
                                             <textarea name="rejection_reason" rows="2" placeholder="Reason (optional)"
-<<<<<<< HEAD
-                                                class="w-full text-xs border border-[#F7FCFC] rounded-lg px-3 py-2 text-[#156F8C] placeholder-[#9B9F98] focus:border-[#FF8A65] focus:ring-1 focus:ring-[#FF8A65]/10 outline-none resize-none"></textarea>
-                                            <button type="submit" class="w-full bg-[#DC2626] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
-=======
                                                 class="w-full text-xs border border-[#EEF8F8] rounded-lg px-3 py-2 text-[#1F2937] placeholder-[#64748B] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1]/10 outline-none resize-none"></textarea>
                                             <button type="submit" class="w-full bg-[#EF4444] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                 Confirm rejection
                                             </button>
                                         </div>
@@ -302,11 +211,7 @@
                                     <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
                                         @csrf
                                         @method('PATCH')
-<<<<<<< HEAD
-                                        <button type="submit" class="w-full bg-[#156F8C] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
-=======
                                         <button type="submit" class="w-full bg-[#1F2937] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                                             Send agreement
                                         </button>
@@ -316,22 +221,13 @@
                                         @csrf
                                         @method('PATCH')
                                         <button type="button" @click="open = !open"
-<<<<<<< HEAD
-                                            class="w-full border border-[#DC2626] text-[#DC2626] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#DC2626]/5">
-=======
                                             class="w-full border border-[#EF4444] text-[#EF4444] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#EF4444]/5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                             Reject
                                         </button>
                                         <div x-show="open" x-cloak class="mt-2 space-y-2">
                                             <textarea name="rejection_reason" rows="2" placeholder="Reason (optional)"
-<<<<<<< HEAD
-                                                class="w-full text-xs border border-[#F7FCFC] rounded-lg px-3 py-2 text-[#156F8C] placeholder-[#9B9F98] focus:border-[#FF8A65] focus:ring-1 focus:ring-[#FF8A65]/10 outline-none resize-none"></textarea>
-                                            <button type="submit" class="w-full bg-[#DC2626] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
-=======
                                                 class="w-full text-xs border border-[#EEF8F8] rounded-lg px-3 py-2 text-[#1F2937] placeholder-[#64748B] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1]/10 outline-none resize-none"></textarea>
                                             <button type="submit" class="w-full bg-[#EF4444] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                 Confirm rejection
                                             </button>
                                         </div>
@@ -339,15 +235,6 @@
                                 </div>
 
                             @elseif($rentalStatus === 'Pending Rental Agreement')
-<<<<<<< HEAD
-                                <div class="bg-[#F7FCFC] rounded-xl p-3 text-center">
-                                    <p class="text-xs text-[#156F8C] font-medium">Waiting for tenant to sign the agreement</p>
-                                </div>
-
-                            @elseif($rentalStatus === 'Rental Agreement Signed')
-                                <div class="bg-[#F7FCFC] rounded-xl p-3 text-center">
-                                    <p class="text-xs text-[#156F8C] font-medium">Agreement signed — waiting for payment</p>
-=======
                                 <div class="bg-[#EEF8F8] rounded-xl p-3 text-center">
                                     <p class="text-xs text-[#1F2937] font-medium">Waiting for tenant to sign the agreement</p>
                                 </div>
@@ -355,7 +242,6 @@
                             @elseif($rentalStatus === 'Rental Agreement Signed')
                                 <div class="bg-[#EEF8F8] rounded-xl p-3 text-center">
                                     <p class="text-xs text-[#1F2937] font-medium">Agreement signed — waiting for payment</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                 </div>
 
                             @elseif($rentalStatus === 'Occupied')
@@ -368,43 +254,25 @@
                         {{-- TENANT ACTIONS --}}
                         @if($isTenant)
                             @if($rentalStatus === 'Inquiry')
-<<<<<<< HEAD
-                                <div class="bg-[#F7FCFC] rounded-xl p-3 text-center">
-                                    <p class="text-xs text-[#156F8C] font-medium">Waiting for landlord to respond</p>
-=======
                                 <div class="bg-[#EEF8F8] rounded-xl p-3 text-center">
                                     <p class="text-xs text-[#1F2937] font-medium">Waiting for landlord to respond</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                 </div>
 
                             @elseif($rentalStatus === 'Under Negotiation')
                                 <div class="space-y-2">
-<<<<<<< HEAD
-                                    <div class="bg-[#F7FCFC] rounded-xl p-3 text-center">
-                                        <p class="text-xs text-[#156F8C] font-medium">Discuss terms with the landlord</p>
-=======
                                     <div class="bg-[#EEF8F8] rounded-xl p-3 text-center">
                                         <p class="text-xs text-[#1F2937] font-medium">Discuss terms with the landlord</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                     </div>
                                     <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
                                         x-data="{ open: false }">
                                         @csrf
                                         @method('PATCH')
                                         <button type="button" @click="open = !open"
-<<<<<<< HEAD
-                                            class="w-full border border-[#DC2626] text-[#DC2626] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#DC2626]/5">
-                                            Cancel
-                                        </button>
-                                        <div x-show="open" x-cloak class="mt-2">
-                                            <button type="submit" class="w-full bg-[#DC2626] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
-=======
                                             class="w-full border border-[#EF4444] text-[#EF4444] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#EF4444]/5">
                                             Cancel
                                         </button>
                                         <div x-show="open" x-cloak class="mt-2">
                                             <button type="submit" class="w-full bg-[#EF4444] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                 Confirm cancellation
                                             </button>
                                         </div>
@@ -414,11 +282,7 @@
                             @elseif($rentalStatus === 'Pending Rental Agreement')
                                 <div class="space-y-2">
                                     <a href="{{ route('agreements.show', $reservation) }}"
-<<<<<<< HEAD
-                                        class="w-full bg-[#156F8C] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
-=======
                                         class="w-full bg-[#1F2937] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                                         View &amp; sign agreement
                                     </a>
@@ -427,19 +291,11 @@
                                         @csrf
                                         @method('PATCH')
                                         <button type="button" @click="open = !open"
-<<<<<<< HEAD
-                                            class="w-full border border-[#DC2626] text-[#DC2626] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#DC2626]/5">
-                                            Cancel
-                                        </button>
-                                        <div x-show="open" x-cloak class="mt-2">
-                                            <button type="submit" class="w-full bg-[#DC2626] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
-=======
                                             class="w-full border border-[#EF4444] text-[#EF4444] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#EF4444]/5">
                                             Cancel
                                         </button>
                                         <div x-show="open" x-cloak class="mt-2">
                                             <button type="submit" class="w-full bg-[#EF4444] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                 Confirm cancellation
                                             </button>
                                         </div>
@@ -448,11 +304,7 @@
 
                             @elseif($rentalStatus === 'Rental Agreement Signed')
                                 <a href="{{ route('agreements.show', $reservation) }}"
-<<<<<<< HEAD
-                                    class="w-full bg-[#156F8C] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
-=======
                                     class="w-full bg-[#1F2937] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
                                     Proceed to payment
                                 </a>
@@ -468,13 +320,8 @@
 
                 {{-- PROPERTY CARD --}}
                 <a href="{{ route('properties.show', $conversation->property) }}" target="_blank"
-<<<<<<< HEAD
-                    class="bg-white border border-[#F7FCFC] rounded-2xl p-4 flex items-center gap-3 hover:bg-[#F7FCFC] transition block">
-                    <div class="w-12 h-12 rounded-xl bg-[#F7FCFC] flex items-center justify-center flex-shrink-0">
-=======
                     class="bg-white border border-[#EEF8F8] rounded-2xl p-4 flex items-center gap-3 hover:bg-[#E2E8F0] transition block">
                     <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center flex-shrink-0">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         @if($conversation->property->media->count() > 0)
                             <img src="{{ $conversation->property->media->first()->media_url }}" alt="" class="w-12 h-12 rounded-xl object-cover">
                         @else
@@ -482,13 +329,8 @@
                         @endif
                     </div>
                     <div class="min-w-0">
-<<<<<<< HEAD
-                        <div class="text-xs font-bold text-[#156F8C] truncate">{{ $conversation->property->title }}</div>
-                        <div class="text-[11px] text-[#9B9F98] mt-0.5">
-=======
                         <div class="text-xs font-bold text-[#1F2937] truncate">{{ $conversation->property->title }}</div>
                         <div class="text-[11px] text-[#64748B] mt-0.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             @if($conversation->unit)
                                 {{ $conversation->unit->unit_label }} &middot; ₱{{ number_format($conversation->unit->rental_fee) }}/mo
                             @else
@@ -520,13 +362,8 @@
             const bubble = document.createElement('div');
 
             bubble.className = `max-w-[75%] ${isSelf
-<<<<<<< HEAD
-                ? 'self-end bg-[#156F8C] text-white rounded-2xl rounded-tr-sm'
-                : 'self-start bg-white text-[#156F8C] border border-[#F7FCFC] rounded-2xl rounded-tl-sm'
-=======
                 ? 'self-end bg-[#1F2937] text-white rounded-2xl rounded-tr-sm'
                 : 'self-start bg-white text-[#1F2937] border border-[#EEF8F8] rounded-2xl rounded-tl-sm'
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             } px-4 py-2.5 shadow-sm`;
 
             bubble.innerHTML = `

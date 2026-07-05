@@ -145,11 +145,7 @@
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <a href="{{ route('landlord.properties.show', $property) }}"
-<<<<<<< HEAD
-                                        class="block text-[15px] font-bold text-[#0F172A] leading-snug line-clamp-1 hover:text-[#DC2626] transition-colors duration-200">
-=======
                                         class="block text-[15px] font-bold text-[#0F172A] leading-snug line-clamp-1 hover:text-[#EF4444] transition-colors duration-200">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         {{ $property->title }}
                                     </a>
                                     <p class="text-[12px] text-[#64748B] mt-0.5 line-clamp-1 flex items-center gap-1">
@@ -185,13 +181,8 @@
                                     <span class="text-[10px] text-[#64748B] font-medium">Reserved</span>
                                 </div>
                                 <div class="flex flex-col items-center gap-0.5">
-<<<<<<< HEAD
-                                    <span class="text-[14px] font-bold text-[#DC2626]">{{ $property->occupied_units_count }}</span>
-                                    <span class="text-[10px] text-[#9B9F98] font-medium">Occupied</span>
-=======
                                     <span class="text-[14px] font-bold text-[#EF4444]">{{ $property->occupied_units_count }}</span>
                                     <span class="text-[10px] text-[#64748B] font-medium">Occupied</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                 </div>
                             </div>
 

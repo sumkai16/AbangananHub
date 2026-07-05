@@ -26,7 +26,7 @@
     </div>
 
     <div class="flex-1 min-w-0">
-        <div class="text-[16px] font-bold text-[#1A1A2E] mb-1.5 truncate property-title">
+        <div class="text-[16px] font-bold text-[#156F8C] mb-1.5 truncate property-title">
             {{ $reservation->property->title ?? 'Property' }}
         </div>
         <div class="text-[14px] text-gray-500">

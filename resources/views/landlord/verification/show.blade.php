@@ -53,19 +53,11 @@
 
         @elseif ($verification->verification_status === 'Rejected')
 
-<<<<<<< HEAD
-            <div class="rounded-xl border border-[#DC2626]/30 bg-white p-8">
-                <div class="flex items-start gap-4">
-                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#DC2626]/10 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="#DC2626" class="w-6 h-6">
-=======
             <div class="rounded-xl border border-[#EF4444]/30 bg-white p-8">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#EF4444]/10 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="#EF4444" class="w-6 h-6">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>

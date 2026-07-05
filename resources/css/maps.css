@@ -24,11 +24,7 @@
 }
 
 .map-pin--property .map-pin__dot {
-<<<<<<< HEAD
-    background: #FF8A65;
-=======
     background: #2AA7A1;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     width: 28px;
     height: 28px;
     border-width: 3px;
@@ -45,19 +41,11 @@
 }
 
 .map-pin--origin .map-pin__dot {
-<<<<<<< HEAD
-    background: #156F8C;
-}
-
-.map-pin--school .map-pin__dot {
-    background: #DC2626;
-=======
     background: #1F2937;
 }
 
 .map-pin--school .map-pin__dot {
     background: #EF4444;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
 }
 
 .map-pin--hospital .map-pin__dot {
@@ -69,11 +57,7 @@
 }
 
 .map-pin--transport .map-pin__dot {
-<<<<<<< HEAD
-    background: #F7FCFC;
-=======
     background: #EEF8F8;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
 }
 
 .leaflet-popup-content-wrapper {
@@ -91,11 +75,7 @@
 
 /* Custom close button over the image */
 .leaflet-container a.leaflet-popup-close-button {
-<<<<<<< HEAD
-    color: #156F8C;
-=======
     color: #1F2937;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     background: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
     width: 26px;
@@ -123,11 +103,7 @@
     padding: 10px 14px;
     font-size: 13px;
     font-weight: 600;
-<<<<<<< HEAD
-    color: #156F8C;
-=======
     color: #1F2937;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -143,20 +119,12 @@
     top: 0;
     transform: translate(-50%, -100%) translateY(-8px);
     background: #ffffff;
-<<<<<<< HEAD
-    border: 2px solid #156F8C;
-=======
     border: 2px solid #1F2937;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     border-radius: 9999px;
     padding: 6px 12px;
     font-size: 13px;
     font-weight: 700;
-<<<<<<< HEAD
-    color: #156F8C;
-=======
     color: #1F2937;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     white-space: nowrap;
     width: max-content;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
@@ -173,11 +141,7 @@
     transform: translateX(-50%);
     border-width: 6px 6px 0;
     border-style: solid;
-<<<<<<< HEAD
-    border-color: #156F8C transparent transparent transparent;
-=======
     border-color: #1F2937 transparent transparent transparent;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     display: block;
     width: 0;
 }
@@ -211,11 +175,7 @@
 
 .map-price-pin:hover,
 .map-price-pin.active {
-<<<<<<< HEAD
-    background: #156F8C;
-=======
     background: #1F2937;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     color: #ffffff;
     transform: translate(-50%, -100%) translateY(-8px) scale(1.1);
     z-index: 1000;
@@ -224,11 +184,7 @@
 
 .map-price-pin:hover::before,
 .map-price-pin.active::before {
-<<<<<<< HEAD
-    border-color: #156F8C transparent transparent transparent;
-=======
     border-color: #1F2937 transparent transparent transparent;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
 }
 
 /* Cluster bubble — replaces overlapping price pins at low zoom */
@@ -244,11 +200,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-<<<<<<< HEAD
-    background: #FF8A65;
-=======
     background: #2AA7A1;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     color: #ffffff;
     font-size: 13px;
     font-weight: 700;
@@ -265,11 +217,7 @@
 /* Applied to a browse-page property card when its map pin is hovered —
    the reverse direction of the card-hover-highlights-pin behavior. */
 [data-property-card].map-highlighted {
-<<<<<<< HEAD
-    outline: 2px solid #FF8A65;
-=======
     outline: 2px solid #2AA7A1;
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     outline-offset: 4px;
     border-radius: 24px;
 }

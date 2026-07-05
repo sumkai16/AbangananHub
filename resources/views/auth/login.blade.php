@@ -9,11 +9,7 @@
         <div class="bg-slate-950/25 backdrop-blur-lg border border-white/15 rounded-2xl p-6 shadow-2xl max-w-xl mx-auto transform transition-all duration-300 hover:border-white/25">
             <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
-<<<<<<< HEAD
-                for Verified Rental <span class="bg-gradient-to-r from-[#9cd4ff] via-[#FF8A65] to-[#FF8A65] bg-clip-text text-transparent font-black">Properties.</span>
-=======
                 for Verified Rental <span class="bg-gradient-to-r from-[#9cd4ff] via-[#2AA7A1] to-[#156F8C] bg-clip-text text-transparent font-black">Properties.</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
@@ -22,11 +18,7 @@
             <div class="space-y-3">
                 {{-- Feature 1 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
-<<<<<<< HEAD
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A65] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
-=======
                     <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
@@ -39,11 +31,7 @@
 
                 {{-- Feature 2 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
-<<<<<<< HEAD
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A65] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
-=======
                     <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
@@ -56,11 +44,7 @@
 
                 {{-- Feature 3 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
-<<<<<<< HEAD
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A65] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
-=======
                     <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
@@ -73,11 +57,7 @@
 
                 {{-- Feature 4 (SDG 16 integrated clean into list container) --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
-<<<<<<< HEAD
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A65] flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-600/20 select-none">
-=======
                     <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-600/20 select-none">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <span class="text-white text-[8px] font-black tracking-tighter leading-none">SDG</span>
                         <span class="text-white text-xs font-black leading-none mt-0.5">16</span>
                     </div>
@@ -97,22 +77,14 @@
             {{-- Branding --}}
             <div class="mb-5">
                 <a href="/" class="flex items-center gap-2 mb-4 group inline-flex">
-<<<<<<< HEAD
-                    <div class="w-8 h-8 rounded-lg bg-[#FF8A65] flex items-center justify-center shadow-md shadow-blue-500/10 transition-transform duration-300 group-hover:scale-105">
-=======
                     <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-blue-500/10 transition-transform duration-300 group-hover:scale-105">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
-<<<<<<< HEAD
-                    <span class="text-[#1A1A2E] font-bold text-base tracking-tight">Abanganan<span class="text-[#FF8A65]">Hub</span></span>
-=======
-                    <span class="text-[#1A1A2E] font-bold text-base tracking-tight">Abanganan<span class="text-[#2AA7A1]">Hub</span></span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                    <span class="text-[#156F8C] font-bold text-base tracking-tight">Abanganan<span class="text-[#156F8C]">Hub</span></span>
                 </a>
-                <h2 class="text-xl font-black text-[#1A1A2E] tracking-tight">Welcome Back!</h2>
+                <h2 class="text-xl font-black text-[#156F8C] tracking-tight">Welcome Back!</h2>
                 <p class="text-[#64748B] text-xs font-medium mt-0.5">Login to continue to AbangananHub</p>
             </div>
 
@@ -123,19 +95,11 @@
                 </div>
             @endif
             @if ($errors->any())
-<<<<<<< HEAD
-                <div class="mb-4 flex items-start gap-3 bg-[#DC2626]/10 border border-[#DC2626]/30 rounded-lg px-4 py-2.5">
-                    <svg class="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                    </svg>
-                    <p class="text-xs text-[#DC2626] font-semibold">{{ $errors->first() }}</p>
-=======
                 <div class="mb-4 flex items-start gap-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg px-4 py-2.5">
                     <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                     </svg>
                     <p class="text-xs text-[#EF4444] font-semibold">{{ $errors->first() }}</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 </div>
             @endif
 
@@ -144,27 +108,19 @@
 
                 {{-- Email Address --}}
                 <div>
-                    <label for="email" class="block text-xs font-bold text-[#1A1A2E] mb-1">Email Address</label>
+                    <label for="email" class="block text-xs font-bold text-[#156F8C] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email"
-<<<<<<< HEAD
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
-=======
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                 </div>
 
                 {{-- Password Input --}}
                 <div>
-                    <label for="password" class="block text-xs font-bold text-[#1A1A2E] mb-1">Password</label>
+                    <label for="password" class="block text-xs font-bold text-[#156F8C] mb-1">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password"
-<<<<<<< HEAD
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
-=======
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                         <button type="button" onclick="togglePassword('password', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#1A1A2E] transition-colors focus:outline-none">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#156F8C] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -176,19 +132,11 @@
                 {{-- Remember Me & Forgot Password Layout --}}
                 <div class="flex items-center justify-between pt-0.5">
                     <label class="flex items-center gap-2 text-xs text-[#5E6968] font-semibold cursor-pointer select-none">
-<<<<<<< HEAD
-                        <input type="checkbox" name="remember" class="rounded border-slate-300 text-[#FF8A65] focus:ring-[#FF8A65] transition-colors w-3.5 h-3.5" />
-                        Remember me
-                    </label>
-                    @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" class="text-xs text-[#FF8A65] hover:text-[#FF8A65] font-bold transition-colors hover:underline">
-=======
                         <input type="checkbox" name="remember" class="rounded border-slate-300 text-[#2AA7A1] focus:ring-[#2AA7A1] transition-colors w-3.5 h-3.5" />
                         Remember me
                     </label>
                     @if (Route::has('password.request'))
                         <a href="{{ route('password.request') }}" class="text-xs text-[#156F8C] hover:text-[#156F8C] font-bold transition-colors hover:underline">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             Forgot Password?
                         </a>
                     @endif
@@ -196,11 +144,7 @@
 
                 {{-- Action Submission Button --}}
                 <div class="pt-1">
-<<<<<<< HEAD
-                    <button type="submit" class="w-full py-2 bg-[#FF8A65] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md shadow-blue-600/10 transition-all duration-300 transform active:scale-[0.995]">
-=======
                     <button type="submit" class="w-full py-2 bg-[#2AA7A1] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md shadow-blue-600/10 transition-all duration-300 transform active:scale-[0.995]">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         Login
                     </button>
                 </div>
@@ -208,11 +152,7 @@
 
             <p class="text-center text-xs text-[#64748B] font-medium mt-5">
                 Don't have an account?
-<<<<<<< HEAD
-                <a href="{{ route('register') }}" class="text-[#FF8A65] font-bold hover:underline ml-1">Register here</a>
-=======
                 <a href="{{ route('register') }}" class="text-[#156F8C] font-bold hover:underline ml-1">Register here</a>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             </p>
 
             <p class="text-center text-[10px] font-bold text-[#64748B]/70 mt-5 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>

@@ -11,11 +11,7 @@
             labelText.textContent = input.files.length === 1
                 ? '1 photo selected'
                 : `${input.files.length} photos selected`;
-<<<<<<< HEAD
-            labelText.classList.add('text-[#FF8A65]');
-=======
             labelText.classList.add('text-[#156F8C]');
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
 
             Array.from(input.files).forEach(file => {
                 if (!file.type.startsWith('image/')) return;
@@ -37,11 +33,7 @@
         } else {
             previewGrid.classList.add('hidden');
             labelText.textContent = defaultLabel;
-<<<<<<< HEAD
-            labelText.classList.remove('text-[#FF8A65]');
-=======
             labelText.classList.remove('text-[#156F8C]');
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
         }
     }
 </script>

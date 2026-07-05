@@ -16,21 +16,15 @@
         </button>
 
         <!-- Animated Checkmark Icon -->
-<<<<<<< HEAD
-        <div class="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-[#FF8A65]/10 mb-5 relative">
-            <div class="absolute inset-0 rounded-full animate-ping bg-[#FF8A65]/20" style="animation-duration: 2s;"></div>
-            <svg class="w-8 h-8 text-[#FF8A65]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-=======
         <div class="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-[#2AA7A1]/10 mb-5 relative">
             <div class="absolute inset-0 rounded-full animate-ping bg-[#2AA7A1]/20" style="animation-duration: 2s;"></div>
             <svg class="w-8 h-8 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
         </div>
 
         <!-- Text Content -->
-        <h3 class="text-xl font-black text-[#1A1A2E] mb-2 tracking-tight">
+        <h3 class="text-xl font-black text-[#156F8C] mb-2 tracking-tight">
             {{ $title }}
         </h3>
         <p class="text-[14px] text-gray-500 font-medium mb-6 leading-relaxed px-2">
@@ -38,11 +32,7 @@
         </p>
 
         <!-- Action Button -->
-<<<<<<< HEAD
-        <button x-on:click="$dispatch('close')" class="w-full inline-flex justify-center items-center px-5 py-3 bg-[#FF8A65] hover:bg-[#1D4ED8] active:bg-[#1E3A8A] text-white text-[15px] font-bold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#FF8A65] focus:ring-offset-2">
-=======
         <button x-on:click="$dispatch('close')" class="w-full inline-flex justify-center items-center px-5 py-3 bg-[#2AA7A1] hover:brightness-95 active:brightness-90 text-white text-[15px] font-bold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1] focus:ring-offset-2">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             {{ $buttonText }}
         </button>
     </div>

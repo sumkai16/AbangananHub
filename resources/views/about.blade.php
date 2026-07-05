@@ -36,11 +36,7 @@
         left: 100%;
         width: 100%;
         height: 2px;
-<<<<<<< HEAD
-        background: linear-gradient(90deg, #FF8A65 0%, #e5e7eb 100%);
-=======
         background: linear-gradient(90deg, #2AA7A1 0%, #e5e7eb 100%);
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
         transform: translateY(-50%);
     }
 </style>
@@ -49,17 +45,10 @@
 @section('content')
 
 {{-- ── HERO ─────────────────────────────────────────────────────────────────── --}}
-<<<<<<< HEAD
-<section class="relative overflow-hidden bg-gradient-to-br from-[#1A1A2E] via-[#1e2d50] to-[#FF8A65] text-white">
-
-    {{-- decorative circles --}}
-    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#FF8A65]/20 blur-3xl pointer-events-none"></div>
-=======
-<section class="relative overflow-hidden bg-gradient-to-br from-[#1A1A2E] via-[#1e2d50] to-[#156F8C] text-white">
+<section class="relative overflow-hidden bg-gradient-to-br from-[#156F8C] via-[#1e2d50] to-[#156F8C] text-white">
 
     {{-- decorative circles --}}
     <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#2AA7A1]/20 blur-3xl pointer-events-none"></div>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
     <div class="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-white/5 blur-2xl pointer-events-none"></div>
 
     <div class="relative max-w-5xl mx-auto px-6 py-24 text-center">
@@ -72,7 +61,7 @@
         </div>
 
         <h1 class="text-[38px] sm:text-[52px] font-extrabold leading-tight tracking-tight mb-5 fade-up" style="transition-delay:.08s">
-            Renting in Cebu,<br class="hidden sm:block"> <span class="text-[#69D2C6]">done right.</span>
+            Renting in Cebu,<br class="hidden sm:block"> <span class="text-[#156F8C]">done right.</span>
         </h1>
 
         <p class="text-[16px] sm:text-[18px] text-white/75 max-w-2xl mx-auto leading-relaxed fade-up" style="transition-delay:.16s">
@@ -82,11 +71,7 @@
 
         <div class="flex flex-wrap justify-center gap-3 mt-8 fade-up" style="transition-delay:.24s">
             <a href="{{ route('properties.index') }}"
-<<<<<<< HEAD
-               class="h-11 px-7 bg-[#FF8A65] hover:bg-[#1D4ED8] text-white font-bold text-[14px] rounded-full transition-all shadow-lg shadow-[#FF8A65]/30 flex items-center gap-2">
-=======
                class="h-11 px-7 bg-[#2AA7A1] hover:brightness-95 text-white font-bold text-[14px] rounded-full transition-all shadow-lg shadow-[#2AA7A1]/30 flex items-center gap-2">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 Browse Properties
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
@@ -111,17 +96,12 @@
             ['label' => 'SDG Aligned', 'value' => 'SDG 16', 'icon' => 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064'],
         ] as $stat)
         <div class="stat-card text-center transition-transform duration-300 fade-up">
-<<<<<<< HEAD
-            <div class="w-11 h-11 rounded-2xl bg-[#FF8A65]/10 flex items-center justify-center mx-auto mb-3">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#FF8A65" stroke-width="2">
-=======
             <div class="w-11 h-11 rounded-2xl bg-[#2AA7A1]/10 flex items-center justify-center mx-auto mb-3">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="2">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $stat['icon'] }}"/>
                 </svg>
             </div>
-            <div class="text-[24px] font-extrabold text-[#1A1A2E]">{{ $stat['value'] }}</div>
+            <div class="text-[24px] font-extrabold text-[#156F8C]">{{ $stat['value'] }}</div>
             <div class="text-[12.5px] text-gray-500 font-medium mt-0.5">{{ $stat['label'] }}</div>
         </div>
         @endforeach
@@ -129,31 +109,23 @@
 </section>
 
 {{-- ── MISSION & VISION ─────────────────────────────────────────────────────── --}}
-<section class="bg-[#F7F8FA] py-20">
+<section class="bg-[#F7FCFC] py-20">
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-<<<<<<< HEAD
-            <span class="text-[12px] font-bold uppercase tracking-widest text-[#FF8A65]">Our Purpose</span>
-=======
             <span class="text-[12px] font-bold uppercase tracking-widest text-[#156F8C]">Our Purpose</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
-            <h2 class="text-[30px] sm:text-[36px] font-extrabold text-[#1A1A2E] mt-2 tracking-tight">Mission & Vision</h2>
+            <h2 class="text-[30px] sm:text-[36px] font-extrabold text-[#156F8C] mt-2 tracking-tight">Mission & Vision</h2>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
 
             <div class="feature-card bg-white rounded-3xl p-8 border border-gray-100 shadow-sm transition-all duration-300 fade-up">
-<<<<<<< HEAD
-                <div class="w-12 h-12 rounded-2xl bg-[#FF8A65] flex items-center justify-center mb-5 shadow-md shadow-[#FF8A65]/30">
-=======
                 <div class="w-12 h-12 rounded-2xl bg-[#2AA7A1] flex items-center justify-center mb-5 shadow-md shadow-[#2AA7A1]/30">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                 </div>
-                <h3 class="text-[19px] font-extrabold text-[#1A1A2E] mb-3">Our Mission</h3>
+                <h3 class="text-[19px] font-extrabold text-[#156F8C] mb-3">Our Mission</h3>
                 <p class="text-[14.5px] text-gray-500 leading-relaxed">
                     To provide a safe, transparent, and efficient platform where tenants in Cebu can discover
                     verified rental properties and connect directly with trusted landlords — eliminating
@@ -162,13 +134,13 @@
             </div>
 
             <div class="feature-card bg-white rounded-3xl p-8 border border-gray-100 shadow-sm transition-all duration-300 fade-up" style="transition-delay:.1s">
-                <div class="w-12 h-12 rounded-2xl bg-[#1A1A2E] flex items-center justify-center mb-5 shadow-md shadow-[#1A1A2E]/20">
+                <div class="w-12 h-12 rounded-2xl bg-[#156F8C] flex items-center justify-center mb-5 shadow-md shadow-[#156F8C]/20">
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
                 </div>
-                <h3 class="text-[19px] font-extrabold text-[#1A1A2E] mb-3">Our Vision</h3>
+                <h3 class="text-[19px] font-extrabold text-[#156F8C] mb-3">Our Vision</h3>
                 <p class="text-[14.5px] text-gray-500 leading-relaxed">
                     To become Cebu's most trusted rental ecosystem — where every tenant finds a home they
                     can rely on, every landlord grows a reputable portfolio, and the entire process is
@@ -185,33 +157,20 @@
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-<<<<<<< HEAD
-            <span class="text-[12px] font-bold uppercase tracking-widest text-[#FF8A65]">The Process</span>
-=======
             <span class="text-[12px] font-bold uppercase tracking-widest text-[#156F8C]">The Process</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
-            <h2 class="text-[30px] sm:text-[36px] font-extrabold text-[#1A1A2E] mt-2 tracking-tight">How AbangananHub Works</h2>
+            <h2 class="text-[30px] sm:text-[36px] font-extrabold text-[#156F8C] mt-2 tracking-tight">How AbangananHub Works</h2>
             <p class="text-[14.5px] text-gray-400 mt-3 max-w-xl mx-auto">From finding a rental to moving in — the whole journey in one platform.</p>
         </div>
 
         {{-- Tenant Flow --}}
         <div class="mb-12 fade-up">
             <div class="flex items-center gap-2 mb-6">
-<<<<<<< HEAD
-                <div class="w-7 h-7 rounded-full bg-[#FF8A65]/10 flex items-center justify-center">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#FF8A65" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                </div>
-                <span class="text-[13px] font-bold text-[#FF8A65] uppercase tracking-wider">For Tenants</span>
-=======
                 <div class="w-7 h-7 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
                 </div>
                 <span class="text-[13px] font-bold text-[#156F8C] uppercase tracking-wider">For Tenants</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             </div>
             <div class="grid sm:grid-cols-4 gap-4">
                 @foreach([
@@ -220,13 +179,9 @@
                     ['n'=>'3','title'=>'Reserve','desc'=>'Submit a reservation request directly to the landlord with one click.'],
                     ['n'=>'4','title'=>'Move In','desc'=>'Once approved, coordinate with your landlord and settle your new home.'],
                 ] as $step)
-                <div class="bg-[#F7F8FA] rounded-2xl p-5 border border-gray-100">
-<<<<<<< HEAD
-                    <div class="w-8 h-8 rounded-full bg-[#FF8A65] text-white text-[13px] font-extrabold flex items-center justify-center mb-3 shadow-sm">{{ $step['n'] }}</div>
-=======
+                <div class="bg-[#F7FCFC] rounded-2xl p-5 border border-gray-100">
                     <div class="w-8 h-8 rounded-full bg-[#2AA7A1] text-white text-[13px] font-extrabold flex items-center justify-center mb-3 shadow-sm">{{ $step['n'] }}</div>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
-                    <div class="text-[14px] font-bold text-[#1A1A2E] mb-1">{{ $step['title'] }}</div>
+                    <div class="text-[14px] font-bold text-[#156F8C] mb-1">{{ $step['title'] }}</div>
                     <div class="text-[12.5px] text-gray-500 leading-relaxed">{{ $step['desc'] }}</div>
                 </div>
                 @endforeach
@@ -236,12 +191,12 @@
         {{-- Landlord Flow --}}
         <div class="fade-up">
             <div class="flex items-center gap-2 mb-6">
-                <div class="w-7 h-7 rounded-full bg-[#1A1A2E]/10 flex items-center justify-center">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1A1A2E" stroke-width="2.5">
+                <div class="w-7 h-7 rounded-full bg-[#156F8C]/10 flex items-center justify-center">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                 </div>
-                <span class="text-[13px] font-bold text-[#1A1A2E] uppercase tracking-wider">For Landlords</span>
+                <span class="text-[13px] font-bold text-[#156F8C] uppercase tracking-wider">For Landlords</span>
             </div>
             <div class="grid sm:grid-cols-4 gap-4">
                 @foreach([
@@ -250,9 +205,9 @@
                     ['n'=>'3','title'=>'Review Requests','desc'=>'Receive tenant reservation requests and approve or reject them from your dashboard.'],
                     ['n'=>'4','title'=>'Manage Listings','desc'=>'Keep listings up to date, track reservations, and build your reputation.'],
                 ] as $step)
-                <div class="bg-[#F7F8FA] rounded-2xl p-5 border border-gray-100">
-                    <div class="w-8 h-8 rounded-full bg-[#1A1A2E] text-white text-[13px] font-extrabold flex items-center justify-center mb-3 shadow-sm">{{ $step['n'] }}</div>
-                    <div class="text-[14px] font-bold text-[#1A1A2E] mb-1">{{ $step['title'] }}</div>
+                <div class="bg-[#F7FCFC] rounded-2xl p-5 border border-gray-100">
+                    <div class="w-8 h-8 rounded-full bg-[#156F8C] text-white text-[13px] font-extrabold flex items-center justify-center mb-3 shadow-sm">{{ $step['n'] }}</div>
+                    <div class="text-[14px] font-bold text-[#156F8C] mb-1">{{ $step['title'] }}</div>
                     <div class="text-[12.5px] text-gray-500 leading-relaxed">{{ $step['desc'] }}</div>
                 </div>
                 @endforeach
@@ -263,34 +218,22 @@
 </section>
 
 {{-- ── KEY FEATURES ─────────────────────────────────────────────────────────── --}}
-<section class="bg-[#F7F8FA] py-20">
+<section class="bg-[#F7FCFC] py-20">
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-<<<<<<< HEAD
-            <span class="text-[12px] font-bold uppercase tracking-widest text-[#FF8A65]">Platform Features</span>
-=======
             <span class="text-[12px] font-bold uppercase tracking-widest text-[#156F8C]">Platform Features</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
-            <h2 class="text-[30px] sm:text-[36px] font-extrabold text-[#1A1A2E] mt-2 tracking-tight">Built for Trust & Transparency</h2>
+            <h2 class="text-[30px] sm:text-[36px] font-extrabold text-[#156F8C] mt-2 tracking-tight">Built for Trust & Transparency</h2>
         </div>
 
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach([
-<<<<<<< HEAD
-                ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'title'=>'Verified Landlords', 'desc'=>'Every landlord is vetted through a document verification process before their listings go live.', 'color'=>'#FF8A65'],
-                ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title'=>'Smart Search & Filter', 'desc'=>'Find rentals by location, property type (Bedspace, Room, Apartment, House), and maximum budget.', 'color'=>'#FF8A65'],
-                ['icon'=>'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 'title'=>'Direct Reservations', 'desc'=>'Tenants can reserve a unit in real time. Landlords approve or reject from their dashboard instantly.', 'color'=>'#1A1A2E'],
-                ['icon'=>'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'title'=>'In-App Messaging', 'desc'=>'Communicate directly between tenant and landlord without sharing personal contact info upfront.', 'color'=>'#1A1A2E'],
-                ['icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', 'title'=>'Saved Listings', 'desc'=>'Bookmark your favourite properties and revisit them any time from your Saved Listings tab.', 'color'=>'#FF8A65'],
-=======
                 ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'title'=>'Verified Landlords', 'desc'=>'Every landlord is vetted through a document verification process before their listings go live.', 'color'=>'#2AA7A1'],
                 ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title'=>'Smart Search & Filter', 'desc'=>'Find rentals by location, property type (Bedspace, Room, Apartment, House), and maximum budget.', 'color'=>'#2AA7A1'],
-                ['icon'=>'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 'title'=>'Direct Reservations', 'desc'=>'Tenants can reserve a unit in real time. Landlords approve or reject from their dashboard instantly.', 'color'=>'#1A1A2E'],
-                ['icon'=>'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'title'=>'In-App Messaging', 'desc'=>'Communicate directly between tenant and landlord without sharing personal contact info upfront.', 'color'=>'#1A1A2E'],
+                ['icon'=>'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 'title'=>'Direct Reservations', 'desc'=>'Tenants can reserve a unit in real time. Landlords approve or reject from their dashboard instantly.', 'color'=>'#156F8C'],
+                ['icon'=>'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'title'=>'In-App Messaging', 'desc'=>'Communicate directly between tenant and landlord without sharing personal contact info upfront.', 'color'=>'#156F8C'],
                 ['icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', 'title'=>'Saved Listings', 'desc'=>'Bookmark your favourite properties and revisit them any time from your Saved Listings tab.', 'color'=>'#2AA7A1'],
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
-                ['icon'=>'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', 'title'=>'Real-time Notifications', 'desc'=>'Get notified on reservation approvals, rejections, messages, and listing status updates instantly.', 'color'=>'#1A1A2E'],
+                ['icon'=>'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', 'title'=>'Real-time Notifications', 'desc'=>'Get notified on reservation approvals, rejections, messages, and listing status updates instantly.', 'color'=>'#156F8C'],
             ] as $i => $feature)
             <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm transition-all duration-300 fade-up" style="transition-delay:{{ $i * 0.07 }}s">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:{{ $feature['color'] }}1a">
@@ -298,7 +241,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $feature['icon'] }}"/>
                     </svg>
                 </div>
-                <h3 class="text-[15px] font-bold text-[#1A1A2E] mb-1.5">{{ $feature['title'] }}</h3>
+                <h3 class="text-[15px] font-bold text-[#156F8C] mb-1.5">{{ $feature['title'] }}</h3>
                 <p class="text-[13px] text-gray-500 leading-relaxed">{{ $feature['desc'] }}</p>
             </div>
             @endforeach
@@ -310,11 +253,7 @@
 {{-- ── SDG SECTION ──────────────────────────────────────────────────────────── --}}
 <section class="bg-white py-20">
     <div class="max-w-5xl mx-auto px-6">
-<<<<<<< HEAD
-        <div class="bg-gradient-to-br from-[#1A1A2E] to-[#FF8A65] rounded-3xl p-10 md:p-14 text-white overflow-hidden relative fade-up">
-=======
-        <div class="bg-gradient-to-br from-[#1A1A2E] to-[#156F8C] rounded-3xl p-10 md:p-14 text-white overflow-hidden relative fade-up">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+        <div class="bg-gradient-to-br from-[#156F8C] to-[#156F8C] rounded-3xl p-10 md:p-14 text-white overflow-hidden relative fade-up">
 
             <div class="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
 
@@ -352,9 +291,9 @@
 </section>
 
 {{-- ── CTA ──────────────────────────────────────────────────────────────────── --}}
-<section class="bg-[#F7F8FA] py-20">
+<section class="bg-[#F7FCFC] py-20">
     <div class="max-w-2xl mx-auto px-6 text-center fade-up">
-        <h2 class="text-[28px] sm:text-[34px] font-extrabold text-[#1A1A2E] tracking-tight mb-4">
+        <h2 class="text-[28px] sm:text-[34px] font-extrabold text-[#156F8C] tracking-tight mb-4">
             Ready to find your next home?
         </h2>
         <p class="text-[15px] text-gray-500 mb-8 leading-relaxed">
@@ -362,11 +301,7 @@
         </p>
         <div class="flex flex-wrap justify-center gap-3">
             <a href="{{ route('properties.index') }}"
-<<<<<<< HEAD
-               class="h-12 px-8 bg-[#FF8A65] hover:bg-[#1D4ED8] text-white font-bold text-[14.5px] rounded-full transition-all shadow-lg shadow-[#FF8A65]/25 flex items-center gap-2">
-=======
                class="h-12 px-8 bg-[#2AA7A1] hover:brightness-95 text-white font-bold text-[14.5px] rounded-full transition-all shadow-lg shadow-[#2AA7A1]/25 flex items-center gap-2">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 Browse Listings
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
@@ -374,7 +309,7 @@
             </a>
             @guest
             <button type="button" onclick="openAuthModal('register')"
-               class="h-12 px-8 bg-white border border-gray-200 text-[#1A1A2E] hover:shadow-md font-bold text-[14.5px] rounded-full transition-all flex items-center gap-2">
+               class="h-12 px-8 bg-white border border-gray-200 text-[#156F8C] hover:shadow-md font-bold text-[14.5px] rounded-full transition-all flex items-center gap-2">
                 Create Free Account
             </button>
             @endguest

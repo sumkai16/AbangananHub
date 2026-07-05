@@ -7,18 +7,14 @@
         {{-- Page header --}}
         <div class="flex flex-col gap-4 border-b border-gray-100 pb-6 mb-8">
             <a href="{{ route('properties.index') }}"
-<<<<<<< HEAD
-                class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#FF8A65] transition-colors w-fit">
-=======
                 class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors w-fit">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
                 Back
             </a>
             <div>
-                <h1 class="text-3xl font-extrabold text-[#1A1A2E] tracking-tight">Landlord Verification</h1>
+                <h1 class="text-3xl font-extrabold text-[#156F8C] tracking-tight">Landlord Verification</h1>
                 <p class="text-[14px] text-gray-500 mt-1.5">
                     Tell us about your rental business and upload a valid government-issued ID so we can verify your
                     identity before you start listing properties.
@@ -28,18 +24,14 @@
 
         @if ($verification?->isPending())
             <div class="rounded-3xl bg-blue-50/60 border border-blue-100 p-6 flex gap-4">
-<<<<<<< HEAD
-                <div class="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0 text-[#FF8A65]">
-=======
                 <div class="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0 text-[#156F8C]">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <div>
-                    <p class="font-bold text-[#1A1A2E] text-[14px]">Your application is under review</p>
+                    <p class="font-bold text-[#156F8C] text-[14px]">Your application is under review</p>
                     <p class="mt-1 text-[13px] text-gray-500 leading-relaxed">
                         Submitted on {{ $verification->submitted_at->format('M j, Y \a\t g:i A') }}. We'll notify you
                         once it's been reviewed — this usually takes 1–2 business days.
@@ -56,7 +48,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="font-bold text-[#1A1A2E] text-[14px]">Your previous application was not approved</p>
+                        <p class="font-bold text-[#156F8C] text-[14px]">Your previous application was not approved</p>
                         <p class="mt-1 text-[13px] text-gray-500">{{ $verification->admin_notes }}</p>
                         <p class="mt-2 text-[13px] text-gray-500">Please address the issue above and resubmit your ID below.</p>
                     </div>
@@ -72,7 +64,7 @@
                     {{-- Left: Business information --}}
                     <div class="lg:col-span-7 bg-white border border-gray-100 rounded-3xl p-8 shadow-sm space-y-6">
 
-                        <h3 class="text-[16px] font-bold text-[#1A1A2E] border-b border-gray-50 pb-4">Business
+                        <h3 class="text-[16px] font-bold text-[#156F8C] border-b border-gray-50 pb-4">Business
                             information</h3>
 
                         <div>
@@ -82,11 +74,7 @@
                             </label>
                             <input type="text" name="business_name" id="business_name"
                                 value="{{ old('business_name') }}" placeholder="e.g. Emman's Apartment"
-<<<<<<< HEAD
-                                class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('business_name') ? 'border-red-300' : 'border-gray-200' }} text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all">
-=======
-                                class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('business_name') ? 'border-red-300' : 'border-gray-200' }} text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                                class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('business_name') ? 'border-red-300' : 'border-gray-200' }} text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                             @error('business_name')
                                 <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
                             @enderror
@@ -99,11 +87,7 @@
                             </label>
                             <textarea name="description" id="description" rows="4"
                                 placeholder="A short description tenants will see on your business profile"
-<<<<<<< HEAD
-                                class="w-full p-4 rounded-2xl border {{ $errors->has('description') ? 'border-red-300' : 'border-gray-200' }} text-[14px] text-[#1A1A2E] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all">{{ old('description') }}</textarea>
-=======
-                                class="w-full p-4 rounded-2xl border {{ $errors->has('description') ? 'border-red-300' : 'border-gray-200' }} text-[14px] text-[#1A1A2E] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">{{ old('description') }}</textarea>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                                class="w-full p-4 rounded-2xl border {{ $errors->has('description') ? 'border-red-300' : 'border-gray-200' }} text-[14px] text-[#156F8C] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">{{ old('description') }}</textarea>
                             @error('description')
                                 <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
                             @enderror
@@ -117,11 +101,7 @@
                                 </label>
                                 <input type="text" name="contact_number" id="contact_number"
                                     value="{{ old('contact_number') }}" placeholder="09XX XXX XXXX"
-<<<<<<< HEAD
-                                    class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('contact_number') ? 'border-red-300' : 'border-gray-200' }} text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all">
-=======
-                                    class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('contact_number') ? 'border-red-300' : 'border-gray-200' }} text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                                    class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('contact_number') ? 'border-red-300' : 'border-gray-200' }} text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                                 @error('contact_number')
                                     <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
                                 @enderror
@@ -134,11 +114,7 @@
                                 </label>
                                 <input type="text" name="business_address" id="business_address"
                                     value="{{ old('business_address') }}" placeholder="e.g. Talisay City, Cebu"
-<<<<<<< HEAD
-                                    class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('business_address') ? 'border-red-300' : 'border-gray-200' }} text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all">
-=======
-                                    class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('business_address') ? 'border-red-300' : 'border-gray-200' }} text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                                    class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('business_address') ? 'border-red-300' : 'border-gray-200' }} text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                                 @error('business_address')
                                     <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
                                 @enderror
@@ -152,22 +128,16 @@
                             </label>
 
                             <label for="logo"
-<<<<<<< HEAD
-                                class="flex items-center justify-between gap-4 rounded-2xl border-2 border-dashed border-gray-200 px-5 py-4 cursor-pointer hover:border-[#FF8A65] transition-colors group">
-                                <span class="flex items-center gap-3">
-                                    <svg class="w-5 h-5 text-gray-400 group-hover:text-[#FF8A65] transition-colors shrink-0"
-=======
                                 class="flex items-center justify-between gap-4 rounded-2xl border-2 border-dashed border-gray-200 px-5 py-4 cursor-pointer hover:border-[#2AA7A1] transition-colors group">
                                 <span class="flex items-center gap-3">
                                     <svg class="w-5 h-5 text-gray-400 group-hover:text-[#156F8C] transition-colors shrink-0"
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                     <span class="text-[13.5px]"
                                         x-text="logoName || 'Click to choose a logo image (JPG or PNG)'"
-                                        :class="logoName ? 'text-[#1A1A2E] font-medium' : 'text-gray-400'"></span>
+                                        :class="logoName ? 'text-[#156F8C] font-medium' : 'text-gray-400'"></span>
                                 </span>
                                 <span class="text-xs text-gray-400 whitespace-nowrap shrink-0">Max 2MB</span>
                             </label>
@@ -188,15 +158,11 @@
 
                             {{-- Government ID card --}}
                             <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
-                                <h3 class="text-[14px] font-bold text-[#1A1A2E] border-b border-gray-50 pb-3">
+                                <h3 class="text-[14px] font-bold text-[#156F8C] border-b border-gray-50 pb-3">
                                     Government-issued ID</h3>
 
                                 <div class="rounded-2xl bg-blue-50/50 border border-blue-100 p-4 flex gap-3">
-<<<<<<< HEAD
-                                    <svg class="w-4 h-4 text-[#FF8A65] shrink-0 mt-0.5" fill="none"
-=======
                                     <svg class="w-4 h-4 text-[#156F8C] shrink-0 mt-0.5" fill="none"
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0Zm-9-3.75h.008v.008H12V8.25Z" />
@@ -208,15 +174,9 @@
                                 </div>
 
                                 <label for="government_id"
-<<<<<<< HEAD
-                                    class="flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-gray-200 px-6 py-8 cursor-pointer hover:border-[#FF8A65] transition-colors group text-center">
-                                    <div
-                                        class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-[#FF8A65] transition-all">
-=======
                                     class="flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-gray-200 px-6 py-8 cursor-pointer hover:border-[#2AA7A1] transition-colors group text-center">
                                     <div
                                         class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-[#156F8C] transition-all">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="1.8">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -224,11 +184,7 @@
                                         </svg>
                                     </div>
                                     <div>
-<<<<<<< HEAD
-                                        <p class="text-[13.5px] font-bold text-[#1A1A2E] group-hover:text-[#FF8A65] transition-colors"
-=======
-                                        <p class="text-[13.5px] font-bold text-[#1A1A2E] group-hover:text-[#156F8C] transition-colors"
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                                        <p class="text-[13.5px] font-bold text-[#156F8C] group-hover:text-[#156F8C] transition-colors"
                                             x-text="fileName || 'Select ID to upload'"></p>
                                         <p class="text-xs text-gray-400 mt-1">JPG, PNG, or PDF &middot; Max 5MB</p>
                                     </div>
@@ -245,7 +201,7 @@
 
                             {{-- What happens next --}}
                             <div class="rounded-3xl bg-blue-50/50 border border-blue-100 p-5 space-y-3">
-                                <p class="text-sm font-bold text-[#1A1A2E]">What happens next?</p>
+                                <p class="text-sm font-bold text-[#156F8C]">What happens next?</p>
                                 <ul class="space-y-2.5">
                                     @foreach ([
                                         ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'text' => 'Our team reviews your submission within 1–2 business days.'],
@@ -253,11 +209,7 @@
                                         ['icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'text' => 'Start listing properties and managing tenants right away.'],
                                     ] as $step)
                                         <li class="flex items-start gap-2.5">
-<<<<<<< HEAD
-                                            <svg class="w-4 h-4 text-[#FF8A65] shrink-0 mt-0.5" fill="none"
-=======
                                             <svg class="w-4 h-4 text-[#156F8C] shrink-0 mt-0.5" fill="none"
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="{{ $step['icon'] }}" />
@@ -275,11 +227,7 @@
                                     Cancel
                                 </a>
                                 <button type="submit"
-<<<<<<< HEAD
-                                    class="flex-1 h-12 rounded-full bg-[#FF8A65] text-white font-bold text-[13.5px] shadow-sm hover:bg-[#1e5bb8] transition-all duration-300">
-=======
                                     class="flex-1 h-12 rounded-full bg-[#2AA7A1] text-white font-bold text-[13.5px] shadow-sm hover:brightness-95 transition-all duration-300">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                     Submit for Review
                                 </button>
                             </div>

@@ -13,13 +13,8 @@
         {{-- Header --}}
         <div class="flex items-start justify-between mb-6">
             <div>
-<<<<<<< HEAD
-                <h1 class="text-2xl font-bold text-[#156F8C]">Reservations</h1>
-                <p class="text-sm text-[#9B9F98] mt-1">Manage and respond to reservation requests from tenants.</p>
-=======
                 <h1 class="text-2xl font-bold text-[#1F2937]">Reservations</h1>
                 <p class="text-sm text-[#64748B] mt-1">Manage and respond to reservation requests from tenants.</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             </div>
         </div>
 
@@ -37,17 +32,10 @@
 
         {{-- Summary cards --}}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-<<<<<<< HEAD
-            <div class="bg-white border border-[#9B9F98]/15 rounded-2xl p-4">
-                <p class="text-[12px] font-semibold text-[#9B9F98] mb-1">Total reservations</p>
-                <p class="text-2xl font-bold text-[#156F8C]">{{ $counts['all'] }}</p>
-                <p class="text-[11px] text-[#9B9F98] mt-1">All time</p>
-=======
             <div class="bg-white border border-[#64748B]/15 rounded-2xl p-4">
                 <p class="text-[12px] font-semibold text-[#64748B] mb-1">Total reservations</p>
                 <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['all'] }}</p>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             </div>
             <div class="bg-amber-50 border border-amber-200/60 rounded-2xl p-4">
                 <p class="text-[12px] font-semibold text-amber-700 mb-1">In progress</p>
@@ -82,15 +70,9 @@
             ] as $key => $label)
                 <a href="{{ route('landlord.reservations.index', $key === 'all' ? [] : ['status' => $key]) }}"
                     class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors duration-150 whitespace-nowrap
-<<<<<<< HEAD
-                              {{ $status === $key ? 'border-[#FF8A65] text-[#156F8C]' : 'border-transparent text-[#9B9F98] hover:text-[#156F8C]' }}">
-                    {{ $label }}
-                    <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#FF8A65]' : 'text-[#9B9F98]' }}">
-=======
                               {{ $status === $key ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#64748B] hover:text-[#1F2937]' }}">
                     {{ $label }}
                     <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#156F8C]' : 'text-[#64748B]' }}">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         {{ $key === 'all' ? $counts['all'] : $counts[$key] }}
                     </span>
                 </a>
@@ -106,22 +88,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                     </svg>
-<<<<<<< HEAD
-                    <p class="text-sm font-semibold text-[#156F8C] mb-1">No reservations
-=======
                     <p class="text-sm font-semibold text-[#1F2937] mb-1">No reservations
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         {{ $status !== 'all' ? 'with this status' : 'yet' }}</p>
                     <p class="text-[13px] text-[#64748B]">Reservation requests from tenants will show up here.</p>
                 </div>
             @else
                 <table class="w-full text-left">
                     <thead>
-<<<<<<< HEAD
-                        <tr class="bg-[#F7FCFC] text-[11px] font-bold text-[#9B9F98] uppercase tracking-wider">
-=======
                         <tr class="bg-[#E2E8F0] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             <th class="px-5 py-3">Tenant</th>
                             <th class="px-5 py-3">Property / Unit</th>
                             <th class="px-5 py-3">Move-in date</th>
@@ -156,15 +130,9 @@
                                     'unit_label' => $reservation->unit->unit_label ?? 'No unit',
                                 ];
                             @endphp
-<<<<<<< HEAD
-                            <tr class="border-t border-[#9B9F98]/10 hover:bg-[#F7FCFC]/40 transition-colors duration-150">
-                                <td class="px-5 py-4">
-                                    <p class="text-sm font-semibold text-[#156F8C]">
-=======
                             <tr class="border-t border-[#64748B]/10 hover:bg-[#E2E8F0]/40 transition-colors duration-150">
                                 <td class="px-5 py-4">
                                     <p class="text-sm font-semibold text-[#1F2937]">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         {{ $reservation->tenant->first_name ?? 'Unknown' }}
                                         {{ $reservation->tenant->last_name ?? '' }}
                                     </p>
@@ -172,21 +140,13 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-2.5">
-<<<<<<< HEAD
-                                        <div class="w-10 h-10 rounded-lg bg-[#F7FCFC] overflow-hidden shrink-0">
-=======
                                         <div class="w-10 h-10 rounded-lg bg-[#E2E8F0] overflow-hidden shrink-0">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                             @if($photo = $reservation->property->media->first())
                                                 <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
                                             @endif
                                         </div>
                                         <div class="min-w-0">
-<<<<<<< HEAD
-                                            <p class="text-sm font-medium text-[#156F8C] truncate">
-=======
                                             <p class="text-sm font-medium text-[#1F2937] truncate">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                 {{ $reservation->property->title }}</p>
                                             <p class="text-[12px] text-[#64748B] truncate">
                                                 {{ $reservation->unit->unit_label ?? 'No unit' }}</p>
@@ -194,19 +154,11 @@
                                     </div>
                                 </td>
                                 <td class="px-5 py-4">
-<<<<<<< HEAD
-                                    <p class="text-sm text-[#156F8C]">{{ $reservation->reservation_date?->format('M d, Y') ?? '—' }}
-                                    </p>
-                                </td>
-                                <td class="px-5 py-4">
-                                    <p class="text-sm text-[#156F8C]">{{ $reservation->duration_of_stay ?? '—' }}</p>
-=======
                                     <p class="text-sm text-[#1F2937]">{{ $reservation->reservation_date?->format('M d, Y') ?? '—' }}
                                     </p>
                                 </td>
                                 <td class="px-5 py-4">
                                     <p class="text-sm text-[#1F2937]">{{ $reservation->duration_of_stay ?? '—' }}</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                 </td>
                                 <td class="px-5 py-4">
                                     <span
@@ -217,11 +169,7 @@
                                 <td class="px-5 py-4">
                                     <div class="flex items-center justify-end gap-2">
                                         <button @click="openModal({{ Js::from($modalData) }})"
-<<<<<<< HEAD
-                                            class="text-[12px] font-semibold text-[#FF8A65] hover:underline px-2 py-1.5">
-=======
                                             class="text-[12px] font-semibold text-[#156F8C] hover:underline px-2 py-1.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                             View Details
                                         </button>
 
@@ -236,11 +184,7 @@
                                             <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
                                                 @csrf @method('PATCH')
                                                 <button type="submit"
-<<<<<<< HEAD
-                                                    class="text-[12px] font-semibold text-white bg-[#DC2626] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
-=======
                                                     class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                     Reject
                                                 </button>
                                             </form>
@@ -255,11 +199,7 @@
                                             <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
                                                 @csrf @method('PATCH')
                                                 <button type="submit"
-<<<<<<< HEAD
-                                                    class="text-[12px] font-semibold text-white bg-[#DC2626] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
-=======
                                                     class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                     Reject
                                                 </button>
                                             </form>
@@ -268,22 +208,14 @@
                                                 onsubmit="return confirm('Cancel this reservation? The unit will be marked Available again.')">
                                                 @csrf @method('PATCH')
                                                 <button type="submit"
-<<<<<<< HEAD
-                                                    class="text-[12px] font-semibold text-white bg-[#DC2626] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
-=======
                                                     class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                                     Cancel
                                                 </button>
                                             </form>
                                         @endif
 
                                         <a href="{{ route('conversations.show', $reservation->conversation) }}"
-<<<<<<< HEAD
-                                            class="text-[12px] font-semibold text-[#156F8C] border border-[#9B9F98]/20 rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
-=======
                                             class="text-[12px] font-semibold text-[#1F2937] border border-[#64748B]/20 rounded-lg px-3 py-1.5 hover:bg-[#E2E8F0] transition-all duration-150">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                             Chat
                                         </a>
                                     </div>
@@ -306,13 +238,8 @@
             <div @click="modalOpen = false" class="absolute inset-0 bg-black/40"></div>
             <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6" x-show="modalOpen" x-transition>
                 <div class="flex items-start justify-between mb-4">
-<<<<<<< HEAD
-                    <h2 class="text-lg font-bold text-[#156F8C]">Reservation details</h2>
-                    <button @click="modalOpen = false" class="text-[#9B9F98] hover:text-[#156F8C]">
-=======
                     <h2 class="text-lg font-bold text-[#1F2937]">Reservation details</h2>
                     <button @click="modalOpen = false" class="text-[#64748B] hover:text-[#1F2937]">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -322,43 +249,6 @@
                 <template x-if="selected">
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between">
-<<<<<<< HEAD
-                            <span class="text-[#9B9F98]">Tenant</span>
-                            <span class="font-semibold text-[#156F8C]" x-text="selected.tenant_name"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#9B9F98]">Contact</span>
-                            <span class="text-[#156F8C]" x-text="selected.tenant_contact"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#9B9F98]">Property</span>
-                            <span class="text-[#156F8C]" x-text="selected.property_title"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#9B9F98]">Unit</span>
-                            <span class="text-[#156F8C]" x-text="selected.unit_label"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#9B9F98]">Move-in date</span>
-                            <span class="text-[#156F8C]" x-text="selected.reservation_date"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#9B9F98]">Duration of stay</span>
-                            <span class="text-[#156F8C]" x-text="selected.duration_of_stay || '—'"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#9B9F98]">Occupants</span>
-                            <span class="text-[#156F8C]" x-text="selected.occupants_count || '—'"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#9B9F98]">Status</span>
-                            <span class="font-semibold text-[#156F8C]" x-text="selected.rental_status"></span>
-                        </div>
-                        <template x-if="selected.remarks">
-                            <div class="pt-2 border-t border-[#9B9F98]/15">
-                                <p class="text-[#9B9F98] mb-1">Tenant's remarks</p>
-                                <p class="text-[#156F8C]" x-text="selected.remarks"></p>
-=======
                             <span class="text-[#64748B]">Tenant</span>
                             <span class="font-semibold text-[#1F2937]" x-text="selected.tenant_name"></span>
                         </div>
@@ -394,7 +284,6 @@
                             <div class="pt-2 border-t border-[#64748B]/15">
                                 <p class="text-[#64748B] mb-1">Tenant's remarks</p>
                                 <p class="text-[#1F2937]" x-text="selected.remarks"></p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             </div>
                         </template>
                     </div>

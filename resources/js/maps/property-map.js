@@ -1,18 +1,7 @@
-import { createMap, createPin, fitToMarkers, L } from './map-core.js';
+import { createMap, createPin, L } from './map-core.js';
 
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving';
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
-const LANDMARK_RADIUS_M = 1200;
-
-const LANDMARK_QUERIES = [
-    { type: 'school', tag: 'amenity=school' },
-    { type: 'hospital', tag: 'amenity=hospital' },
-    { type: 'hospital', tag: 'amenity=clinic' },
-    { type: 'shopping', tag: 'shop=supermarket' },
-    { type: 'shopping', tag: 'shop=mall' },
-    { type: 'transport', tag: 'amenity=bus_station' },
-];
 
 function init() {
     const container = document.getElementById('property-map');
@@ -28,9 +17,8 @@ function init() {
     }
 
     const map = createMap('property-map', lat, lng, 15);
-    const propertyMarker = createPin(map, lat, lng, 'property', `<strong>${escapeHtml(title)}</strong>`);
+    createPin(map, lat, lng, 'property', `<strong>${escapeHtml(title)}</strong>`);
 
-    loadLandmarks(map, lat, lng, [propertyMarker]);
     wireDirections(map, lat, lng);
 }
 
@@ -38,44 +26,6 @@ function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
-}
-
-async function loadLandmarks(map, lat, lng, markersToFit) {
-    const filters = LANDMARK_QUERIES
-        .map(q => `node[${q.tag}](around:${LANDMARK_RADIUS_M},${lat},${lng});`)
-        .join('\n');
-
-    const query = `[out:json][timeout:10];(${filters});out 20;`;
-
-    try {
-        const res = await fetch(OVERPASS_URL, {
-            method: 'POST',
-            body: `data=${encodeURIComponent(query)}`,
-        });
-        if (!res.ok) throw new Error('Overpass request failed: ' + res.status);
-        const data = await res.json();
-
-        data.elements.slice(0, 20).forEach(el => {
-            const name = el.tags?.name || 'Unnamed location';
-            const matched = LANDMARK_QUERIES.find(q => {
-                const [k, v] = q.tag.split('=');
-                return el.tags?.[k] === v;
-            });
-            const type = matched ? matched.type : 'shopping';
-
-<<<<<<< HEAD
-            const marker = createPin(map, el.lat, el.lon, type, `<div class="p-3 bg-white min-w-[160px]"><strong class="block text-[14px] text-[#156F8C] leading-tight mb-0.5">${escapeHtml(name)}</strong><span class="block text-[#9B9F98] text-[12px] capitalize font-medium">${type}</span></div>`);
-=======
-            const marker = createPin(map, el.lat, el.lon, type, `<div class="p-3 bg-white min-w-[160px]"><strong class="block text-[14px] text-[#1F2937] leading-tight mb-0.5">${escapeHtml(name)}</strong><span class="block text-[#64748B] text-[12px] capitalize font-medium">${type}</span></div>`);
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
-            markersToFit.push(marker);
-        });
-
-        fitToMarkers(map, markersToFit);
-    } catch (err) {
-        console.error('Nearby landmarks failed to load:', err);
-        // Non-fatal — property pin still renders fine without landmarks.
-    }
 }
 
 function wireDirections(map, destLat, destLng) {
@@ -103,11 +53,7 @@ function wireDirections(map, destLat, destLng) {
             if (!route) throw new Error('No route found');
 
             const layer = L.geoJSON(route.geometry, {
-<<<<<<< HEAD
-                style: { color: '#FF8A65', weight: 4, opacity: 0.85 },
-=======
                 style: { color: '#2AA7A1', weight: 4, opacity: 0.85 },
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             }).addTo(map);
 
             createPin(map, fromLat, fromLng, 'origin', '<strong>Your starting point</strong>');

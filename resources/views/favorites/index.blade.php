@@ -19,47 +19,28 @@
             </svg>
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Search saved properties…"
-<<<<<<< HEAD
-                class="w-full pl-9 pr-4 py-2.5 text-sm text-[#156F8C] bg-[#F7F8FA] border border-[#9B9F98]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/30 focus:border-[#FF8A65] transition placeholder-[#9B9F98]" />
+                class="w-full pl-9 pr-4 py-2.5 text-sm text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition placeholder-[#64748B]" />
         </div>
         <select name="type"
-            class="px-4 py-2.5 text-sm font-semibold text-[#156F8C] bg-[#F7F8FA] border border-[#9B9F98]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/30 focus:border-[#FF8A65] transition">
-=======
-                class="w-full pl-9 pr-4 py-2.5 text-sm text-[#1F2937] bg-[#F7F8FA] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition placeholder-[#64748B]" />
-        </div>
-        <select name="type"
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7F8FA] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition">
             <option value="" {{ !request('type') ? 'selected' : '' }}>Any type</option>
             @foreach(['Bedspace', 'Room', 'Apartment', 'House'] as $t)
                 <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
             @endforeach
         </select>
         <select name="availability"
-<<<<<<< HEAD
-            class="px-4 py-2.5 text-sm font-semibold text-[#156F8C] bg-[#F7F8FA] border border-[#9B9F98]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/30 focus:border-[#FF8A65] transition">
-=======
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7F8FA] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition">
             <option value="" {{ !request('availability') ? 'selected' : '' }}>Any status</option>
             <option value="Available" {{ request('availability') === 'Available' ? 'selected' : '' }}>Available</option>
             <option value="Unavailable" {{ request('availability') === 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
         </select>
         <button type="submit"
-<<<<<<< HEAD
-            class="px-5 py-2.5 text-sm font-bold text-white bg-[#FF8A65] hover:bg-[#1e57b0] rounded-xl shadow-sm transition-all duration-200">
-=======
             class="px-5 py-2.5 text-sm font-bold text-white bg-[#2AA7A1] hover:brightness-95 rounded-xl shadow-sm transition-all duration-200">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             Search
         </button>
         @if(request()->hasAny(['search', 'type', 'availability']))
             <a href="{{ route('favorites.index') }}"
-<<<<<<< HEAD
-                class="px-4 py-2.5 text-sm font-semibold text-[#156F8C] bg-[#F7F8FA] border border-[#9B9F98]/30 hover:bg-[#F7FCFC] rounded-xl transition-all duration-200 text-center">
-=======
-                class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7F8FA] border border-[#64748B]/30 hover:bg-[#EEF8F8] rounded-xl transition-all duration-200 text-center">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 hover:bg-[#EEF8F8] rounded-xl transition-all duration-200 text-center">
                 Clear
             </a>
         @endif
@@ -92,11 +73,7 @@
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-[#EBF3FF]">
-<<<<<<< HEAD
-                                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#FF8A65" stroke-width="1.5">
-=======
                                 <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.5">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                                 </svg>
                             </div>
@@ -121,11 +98,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                             </svg>
                             <svg class="heart-filled"
-<<<<<<< HEAD
-                                width="20" height="20" viewBox="0 0 24 24" fill="#FF8A65" stroke="#FF8A65" stroke-width="1">
-=======
-                                width="20" height="20" viewBox="0 0 24 24" fill="#2AA7A1" stroke="#2AA7A1" stroke-width="1">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
+                                width="20" height="20" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                             </svg>
                         </button>
@@ -134,7 +107,7 @@
                     {{-- TEXT --}}
                     <div class="mt-3 px-1">
                         <div class="flex items-start justify-between gap-2">
-                            <h3 class="text-[14px] font-semibold text-[#1A1A2E] leading-snug line-clamp-1">
+                            <h3 class="text-[14px] font-semibold text-[#156F8C] leading-snug line-clamp-1">
                                 {{ $property->title }}
                             </h3>
                             <span class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0
@@ -151,7 +124,7 @@
                             {{ $property->address }}
                         </p>
 
-                        <p class="text-[14px] font-semibold text-[#1A1A2E] mt-1.5">
+                        <p class="text-[14px] font-semibold text-[#156F8C] mt-1.5">
                             ₱{{ number_format($property->rental_fee) }}
                             <span class="text-[13px] font-normal text-gray-400">/month</span>
                         </p>

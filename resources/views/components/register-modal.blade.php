@@ -3,7 +3,7 @@
 <x-modal name="register-modal" :show="$show" maxWidth="md">
     <div class="relative p-6 sm:p-8">
         {{-- Close Button --}}
-        <button x-on:click="$dispatch('close')" class="absolute top-4 right-4 text-gray-400 hover:text-[#1A1A2E] transition-colors focus:outline-none">
+        <button x-on:click="$dispatch('close')" class="absolute top-4 right-4 text-gray-400 hover:text-[#156F8C] transition-colors focus:outline-none">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -12,27 +12,16 @@
         {{-- Branding --}}
         <div class="mb-5">
             <div class="flex items-center gap-2 mb-3">
-<<<<<<< HEAD
-                <div class="w-8 h-8 rounded-lg bg-[#FF8A65] flex items-center justify-center shadow-md shadow-blue-500/10">
-=======
                 <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-blue-500/10">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                 </div>
-<<<<<<< HEAD
-                <span class="text-[#222222] font-bold text-base tracking-tight">Abanganan<span class="text-[#FF8A65]">Hub</span></span>
+                <span class="text-[#156F8C] font-bold text-base tracking-tight">Abanganan<span class="text-[#156F8C]">Hub</span></span>
             </div>
-            <h2 class="text-xl font-black text-[#222222] tracking-tight">Create Your <span class="bg-gradient-to-r from-[#FF8A65] to-[#FF8A65] bg-clip-text text-transparent">Account</span></h2>
-            <p class="text-[#9B9F98] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
-=======
-                <span class="text-[#222222] font-bold text-base tracking-tight">Abanganan<span class="text-[#2AA7A1]">Hub</span></span>
-            </div>
-            <h2 class="text-xl font-black text-[#222222] tracking-tight">Create Your <span class="bg-gradient-to-r from-[#2AA7A1] to-[#2AA7A1] bg-clip-text text-transparent">Account</span></h2>
+            <h2 class="text-xl font-black text-[#222222] tracking-tight">Create Your <span class="text-[#156F8C]">Account</span></h2>
             <p class="text-[#64748B] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
         </div>
 
         <form method="POST" action="{{ route('register') }}" class="space-y-3">
@@ -44,29 +33,17 @@
                 <div>
                     <label for="reg_first_name" class="block text-xs font-bold text-[#222222] mb-0.5">First Name</label>
                     <input id="reg_first_name" type="text" name="first_name" value="{{ old('first_name') }}" required autofocus autocomplete="given-name" placeholder="First name"
-<<<<<<< HEAD
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
-                    @error('first_name')
-                        <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
-=======
                         class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                     @error('first_name')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     @enderror
                 </div>
                 <div>
                     <label for="reg_last_name" class="block text-xs font-bold text-[#222222] mb-0.5">Last Name</label>
                     <input id="reg_last_name" type="text" name="last_name" value="{{ old('last_name') }}" required autocomplete="family-name" placeholder="Last name"
-<<<<<<< HEAD
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
-                    @error('last_name')
-                        <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
-=======
                         class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                     @error('last_name')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     @enderror
                 </div>
             </div>
@@ -75,15 +52,9 @@
             <div>
                 <label for="reg_email" class="block text-xs font-bold text-[#222222] mb-0.5">Email Address</label>
                 <input id="reg_email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email address"
-<<<<<<< HEAD
-                    class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
-                @error('email')
-                    <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
-=======
                     class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                 @error('email')
                     <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 @enderror
             </div>
 
@@ -91,15 +62,9 @@
             <div>
                 <label for="reg_contact_number" class="block text-xs font-bold text-[#222222] mb-0.5">Contact Number</label>
                 <input id="reg_contact_number" type="text" name="contact_number" value="{{ old('contact_number') }}" required autocomplete="tel" placeholder="Enter your contact number"
-<<<<<<< HEAD
-                    class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
-                @error('contact_number')
-                    <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
-=======
                     class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                 @error('contact_number')
                     <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 @enderror
             </div>
 
@@ -108,11 +73,7 @@
                 <label for="reg_password" class="block text-xs font-bold text-[#222222] mb-0.5">Password</label>
                 <div class="relative">
                     <input id="reg_password" :type="showPassword ? 'text' : 'password'" name="password" required autocomplete="new-password" placeholder="Create a password"
-<<<<<<< HEAD
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
-=======
                         class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     <button type="button" x-on:click="showPassword = !showPassword"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#222222] transition-colors focus:outline-none">
                         <svg x-show="!showPassword" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -125,11 +86,7 @@
                     </button>
                 </div>
                 @error('password')
-<<<<<<< HEAD
-                    <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
-=======
                     <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 @enderror
             </div>
 
@@ -138,11 +95,7 @@
                 <label for="reg_password_confirmation" class="block text-xs font-bold text-[#222222] mb-0.5">Confirm Password</label>
                 <div class="relative">
                     <input id="reg_password_confirmation" :type="showPassword ? 'text' : 'password'" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password"
-<<<<<<< HEAD
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
-=======
                         class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     <button type="button" x-on:click="showPassword = !showPassword"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#222222] transition-colors focus:outline-none">
                         <svg x-show="!showPassword" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -155,21 +108,13 @@
                     </button>
                 </div>
                 @error('password_confirmation')
-<<<<<<< HEAD
-                    <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
-=======
                     <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 @enderror
             </div>
 
             {{-- Action Submit Button --}}
             <div class="pt-2">
-<<<<<<< HEAD
-                <button type="submit" class="w-full py-2 bg-[#FF8A65] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md transition-all duration-300 transform active:scale-[0.995]">
-=======
                 <button type="submit" class="w-full py-2 bg-[#2AA7A1] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md transition-all duration-300 transform active:scale-[0.995]">
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     Create Account
                 </button>
             </div>
@@ -177,11 +122,7 @@
 
         <p class="text-center text-sm text-[#64748B] font-medium mt-4">
             Already have an account?
-<<<<<<< HEAD
-            <button x-on:click="$dispatch('close'); setTimeout(() => $dispatch('open-modal', 'login-modal'), 300)" class="text-[#FF8A65] font-bold hover:underline ml-1 focus:outline-none">Login</button>
-=======
             <button x-on:click="$dispatch('close'); setTimeout(() => $dispatch('open-modal', 'login-modal'), 300)" class="text-[#156F8C] font-bold hover:underline ml-1 focus:outline-none">Login</button>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
         </p>
     </div>
 </x-modal>

@@ -522,13 +522,8 @@
                                 <div class="flex items-start justify-between gap-2">
                                     <div>
                                         <p class="text-[13px] font-bold text-[#0F172A]">{{ $unit->unit_label }}</p>
-<<<<<<< HEAD
-                                        <p class="text-[12px] text-[#DC2626] font-semibold mt-0.5">
-                                            ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[#9B9F98] font-normal">/mo</span>
-=======
                                         <p class="text-[12px] text-[#EF4444] font-semibold mt-0.5">
                                             ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[#64748B] font-normal">/mo</span>
->>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         </p>
                                     </div>
                                     <span class="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full {{ $vrBg }}">
