@@ -16,7 +16,7 @@
             @foreach (['Pending', 'Approved', 'Rejected', 'All'] as $tab)
                 <a href="{{ route('admin.units.index', ['status' => $tab]) }}" class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-150
                             {{ $status === $tab
-                ? 'bg-[#286CD2] text-white shadow-sm'
+                ? 'bg-[#2AA7A1] text-white shadow-sm'
                 : 'text-gray-500 hover:text-[#1A1A2E] hover:bg-gray-50' }}">
                     {{ $tab }}
                 </a>
@@ -101,7 +101,7 @@
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <a href="{{ route('admin.units.show', [$unit->property, $unit]) }}"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#286CD2] hover:text-white hover:border-[#286CD2] transition-all">
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
                                             Review
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                                 stroke-width="2">

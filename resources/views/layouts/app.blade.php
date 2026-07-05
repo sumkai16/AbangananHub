@@ -18,7 +18,7 @@
     });
 </script>
 
-<body class="font-sans bg-[#F7F8FA] text-[#1A1A2E] min-h-screen flex flex-col" x-data="{}">
+<body class="font-sans bg-[#F7FCFC] text-[#1A1A2E] min-h-screen flex flex-col" x-data="{}">
 
     <header id="site-header"
         class="bg-white/85 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-[100] supports-[backdrop-filter]:bg-white/60 transition-all duration-300">
@@ -30,7 +30,7 @@
             <a href="{{ route('properties.index') }}"
                 class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group">
                 <div
-                    class="w-8 h-8 sm:w-10 sm:h-10 rounded-[10px] sm:rounded-[12px] bg-[#61B2F0] flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
+                    class="w-8 h-8 sm:w-10 sm:h-10 rounded-[10px] sm:rounded-[12px] bg-[#2AA7A1] flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"
                         class="sm:w-[22px] sm:h-[22px]">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -38,7 +38,7 @@
                     </svg>
                 </div>
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#1A1A2E] tracking-tight">
-                    Abanganan<span class="text-[#61B2F0]">Hub</span>
+                    Abanganan<span class="text-[#2AA7A1]">Hub</span>
                 </span>
             </a>
 
@@ -59,7 +59,7 @@
                         <span class="text-[13px] text-gray-500 px-1">Any type</span>
                         <span class="text-gray-300">·</span>
                         <span class="text-[13px] text-gray-500 pl-1 pr-2">Any price</span>
-                        <span class="w-8 h-8 rounded-full bg-[#61B2F0] flex items-center justify-center flex-shrink-0">
+                        <span class="w-8 h-8 rounded-full bg-[#2AA7A1] flex items-center justify-center flex-shrink-0">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -89,7 +89,7 @@
                             <div id="landlord-menu"
                                 class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
                                 <a href="{{ \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#' }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#61B2F0] hover:bg-[#D7E8F3] border-b border-gray-100 mb-1">
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-b border-gray-100 mb-1">
                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -98,7 +98,7 @@
                                     Listing Approval
                                 </a>
                                 <a href="{{ route('admin.verifications.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#61B2F0] hover:bg-[#D7E8F3]">
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8]">
                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -107,7 +107,7 @@
                                     Verification Requests
                                 </a>
                                 <a href="{{ route('admin.users.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#61B2F0] hover:bg-[#D7E8F3] border-t border-gray-100 mt-1">
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-t border-gray-100 mt-1">
                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -130,7 +130,7 @@
                         <button type="button" @click="toggle()"
                             class="relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:shadow-md transition-all focus:outline-none">
                             <span x-show="unreadCount > 0" x-cloak
-                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#61B2F0] border-2 border-white"></span>
+                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#2AA7A1] border-2 border-white"></span>
                             <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -146,7 +146,7 @@
                             <div x-ref="dropdownBody">
                                 <div class="px-4 py-8 text-center">
                                     <div
-                                        class="w-6 h-6 border-2 border-[#9B9F98] border-t-transparent rounded-full animate-spin mx-auto">
+                                        class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin mx-auto">
                                     </div>
                                 </div>
                             </div>
@@ -156,19 +156,19 @@
                     {{-- Avatar Dropdown --}}
                     <div class="relative">
                         <button id="abg-avatar-btn" aria-expanded="false"
-                            class="flex items-center justify-center w-10 h-10 rounded-full bg-[#2A2523] text-white text-[14px] font-bold shadow-sm hover:shadow-md transition-all focus:outline-none">
+                            class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1F2937] text-white text-[14px] font-bold shadow-sm hover:shadow-md transition-all focus:outline-none">
                             {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
                         </button>
 
                         <div id="abg-avatar-menu"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[256px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#F0EDE8] py-1 hidden z-50">
+                            class="absolute top-[calc(100%+10px)] right-0 w-[256px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E8F0] py-1 hidden z-50">
 
                             {{-- User header --}}
-                            <div class="px-4 py-3.5 border-b border-[#F0EDE8]">
-                                <div class="text-[14px] font-bold text-[#2A2523]">
+                            <div class="px-4 py-3.5 border-b border-[#E2E8F0]">
+                                <div class="text-[14px] font-bold text-[#1F2937]">
                                     {{ trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) }}
                                 </div>
-                                <div class="text-[12px] text-[#9B9F98] mt-0.5 truncate">
+                                <div class="text-[12px] text-[#64748B] mt-0.5 truncate">
                                     {{ auth()->user()->email }}
                                 </div>
                             </div>
@@ -176,12 +176,12 @@
                             {{-- Section: Activity --}}
                             @php $userRoles = auth()->user()->roles->pluck('role'); @endphp
                             <div class="py-1">
-                                <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#9B9F98] uppercase tracking-wider">
+                                <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                                     Activity</p>
 
                                 @if($userRoles->contains('Tenant'))
                                     <a href="{{ route('reservations.index') }}"
-                                        class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]/60 transition-colors">
+                                        class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="1.8">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -193,7 +193,7 @@
 
                                 @if($userRoles->contains('Landlord'))
                                     <a href="{{ route('landlord.reservations.index') }}"
-                                        class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]/60 transition-colors">
+                                        class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="1.8">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -204,7 +204,7 @@
                                 @endif
 
                                 <a href="{{ route('conversations.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]/60 transition-colors">
+                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -214,7 +214,7 @@
                                 </a>
 
                                 <a href="{{ route('notifications.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]/60 transition-colors">
+                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -224,7 +224,7 @@
                                 </a>
 
                                 <a href="{{ route('favorites.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]/60 transition-colors">
+                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -234,15 +234,15 @@
                                 </a>
                             </div>
 
-                            <div class="h-px bg-[#F0EDE8] mx-3"></div>
+                            <div class="h-px bg-[#E2E8F0] mx-3"></div>
 
                             {{-- Section: Account --}}
                             <div class="py-1">
-                                <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#9B9F98] uppercase tracking-wider">
+                                <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                                     Account</p>
 
                                 <a href="{{ route('profile.edit') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]/60 transition-colors">
+                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -252,14 +252,14 @@
                                 </a>
                             </div>
 
-                            <div class="h-px bg-[#F0EDE8] mx-3"></div>
+                            <div class="h-px bg-[#E2E8F0] mx-3"></div>
 
                             {{-- Sign out --}}
                             <div class="py-1">
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
                                     <button type="submit"
-                                        class="w-full flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#BD5434] hover:bg-[#F0EDE8]/60 transition-colors">
+                                        class="w-full flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#EF4444] hover:bg-[#E2E8F0]/60 transition-colors">
                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="1.8">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -281,7 +281,7 @@
                         </button>
 
                         <button type="button" onclick="openAuthModal('register')"
-                            class="text-[13px] sm:text-[14px] font-bold text-white bg-[#61B2F0] hover:brightness-95 px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">
+                            class="text-[13px] sm:text-[14px] font-bold text-white bg-[#2AA7A1] hover:brightness-95 px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">
                             Sign up
                         </button>
                     </div>
@@ -330,7 +330,7 @@
                                     class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
                             </div>
                             <button type="submit"
-                                class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#61B2F0] flex items-center justify-center text-white flex-shrink-0 hover:brightness-95 transition-colors ml-1 sm:ml-3 shadow-md">
+                                class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#2AA7A1] flex items-center justify-center text-white flex-shrink-0 hover:brightness-95 transition-colors ml-1 sm:ml-3 shadow-md">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                     stroke-width="3" class="sm:w-[17px] sm:h-[17px]">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -429,21 +429,21 @@
         @yield('content')
     </main>
 
-    <footer class="bg-white border-t border-gray-200 mt-auto">
+    <footer class="bg-[#156F8C] border-t border-white/10 mt-auto">
         <div class="w-full px-[50px] py-5 flex flex-col md:flex-row items-center justify-between gap-3">
-            <a href="{{ route('dashboard') }}" class="text-[14px] font-bold text-[#1A1A2E] tracking-tight no-underline">
-                Abanganan<span class="text-[#61B2F0]">Hub</span>
+            <a href="{{ route('dashboard') }}" class="text-[14px] font-bold text-white tracking-tight no-underline">
+                Abanganan<span class="text-[#69D2C6]">Hub</span>
             </a>
-            <div class="flex items-center gap-5 text-[12.5px] text-gray-500">
-                <a href="{{ route('properties.index') }}" class="hover:text-gray-800 transition-colors">Properties</a>
-                <span class="text-gray-300">|</span>
-                <a href="{{ route('about') }}" class="hover:text-gray-800 transition-colors">About</a>
-                <span class="text-gray-300">|</span>
-                <a href="#" class="hover:text-gray-800 transition-colors">Privacy</a>
-                <span class="text-gray-300">|</span>
-                <a href="#" class="hover:text-gray-800 transition-colors">Terms</a>
+            <div class="flex items-center gap-5 text-[12.5px] text-white/70">
+                <a href="{{ route('properties.index') }}" class="hover:text-white transition-colors">Properties</a>
+                <span class="text-white/30">|</span>
+                <a href="{{ route('about') }}" class="hover:text-white transition-colors">About</a>
+                <span class="text-white/30">|</span>
+                <a href="#" class="hover:text-white transition-colors">Privacy</a>
+                <span class="text-white/30">|</span>
+                <a href="#" class="hover:text-white transition-colors">Terms</a>
             </div>
-            <span class="text-[11.5px] text-gray-400">&copy; {{ date('Y') }} AbangananHub &middot; Cebu, Philippines
+            <span class="text-[11.5px] text-white/60">&copy; {{ date('Y') }} AbangananHub &middot; Cebu, Philippines
                 &middot; SDG 16</span>
         </div>
     </footer>
@@ -471,7 +471,7 @@
                 {{-- Login View --}}
                 <div id="login-form-view" class="hidden">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-[#61B2F0] rounded-xl flex items-center justify-center shadow-sm">
+                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -480,7 +480,7 @@
                             </svg>
                         </div>
                         <span class="text-xl font-bold text-[#1A1A2E]">Abanganan<span
-                                class="text-[#61B2F0]">Hub</span></span>
+                                class="text-[#2AA7A1]">Hub</span></span>
                     </div>
 
                     <h2 class="text-[24px] font-bold text-[#1A1A2E] tracking-tight leading-tight">Welcome Back!</h2>
@@ -491,7 +491,7 @@
                         <div class="mb-4">
                             <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Email Address</label>
                             <input type="email" name="email" required placeholder="Enter your email"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#61B2F0] focus:ring-2 focus:ring-[#61B2F0]/20 focus:outline-none transition-all">
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-login-email"></span>
                         </div>
 
@@ -499,7 +499,7 @@
                             <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Password</label>
                             <div class="relative">
                                 <input type="password" name="password" required placeholder="Enter your password"
-                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#61B2F0] focus:ring-2 focus:ring-[#61B2F0]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                                 <button type="button"
                                     class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
@@ -518,21 +518,21 @@
                         <div class="flex items-center justify-between text-[13px] mb-6">
                             <label class="flex items-center gap-2 text-gray-500 cursor-pointer select-none">
                                 <input type="checkbox" name="remember"
-                                    class="w-4 h-4 rounded text-[#61B2F0] border-gray-300 focus:ring-[#61B2F0]">
+                                    class="w-4 h-4 rounded text-[#2AA7A1] border-gray-300 focus:ring-[#2AA7A1]">
                                 Remember me
                             </label>
-                            <a href="#" class="text-[#61B2F0] font-semibold hover:underline">Forgot Password?</a>
+                            <a href="#" class="text-[#156F8C] font-semibold hover:underline">Forgot Password?</a>
                         </div>
 
                         <button type="submit"
-                            class="w-full bg-[#61B2F0] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#61B2F0]/10 text-[15px]">
+                            class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
                             Login
                         </button>
                     </form>
 
                     <p class="text-[13px] text-center text-gray-500 mt-6">
                         Don't have an account? <a href="#" onclick="openAuthModal('register')"
-                            class="text-[#61B2F0] font-bold hover:underline">Register here</a>
+                            class="text-[#156F8C] font-bold hover:underline">Register here</a>
                     </p>
 
                     <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-gray-300 font-bold uppercase">
@@ -543,7 +543,7 @@
                 {{-- Register View --}}
                 <div id="register-form-view" class="hidden">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-[#61B2F0] rounded-xl flex items-center justify-center shadow-sm">
+                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -552,7 +552,7 @@
                             </svg>
                         </div>
                         <span class="text-xl font-bold text-[#1A1A2E]">Abanganan<span
-                                class="text-[#61B2F0]">Hub</span></span>
+                                class="text-[#2AA7A1]">Hub</span></span>
                     </div>
 
                     <h2 class="text-[24px] font-bold text-[#1A1A2E] tracking-tight leading-tight">Create an Account</h2>
@@ -564,14 +564,14 @@
                             <div>
                                 <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">First Name</label>
                                 <input type="text" name="first_name" required placeholder="First name"
-                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#61B2F0] focus:ring-2 focus:ring-[#61B2F0]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-red-500 mt-1 hidden error-field"
                                     id="error-register-first_name"></span>
                             </div>
                             <div>
                                 <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Last Name</label>
                                 <input type="text" name="last_name" required placeholder="Last name"
-                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#61B2F0] focus:ring-2 focus:ring-[#61B2F0]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-red-500 mt-1 hidden error-field"
                                     id="error-register-last_name"></span>
                             </div>
@@ -580,7 +580,7 @@
                         <div class="mb-3">
                             <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Contact Number</label>
                             <input type="text" name="contact_number" required placeholder="Enter your contact number"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#61B2F0] focus:ring-2 focus:ring-[#61B2F0]/20 focus:outline-none transition-all">
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             <span class="text-xs text-red-500 mt-1 hidden error-field"
                                 id="error-register-contact_number"></span>
                         </div>
@@ -588,32 +588,32 @@
                         <div class="mb-3">
                             <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Email Address</label>
                             <input type="email" name="email" required placeholder="Enter your email address"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#61B2F0] focus:ring-2 focus:ring-[#61B2F0]/20 focus:outline-none transition-all">
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-email"></span>
                         </div>
 
                         <div class="mb-3">
                             <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Password</label>
                             <input type="password" name="password" required placeholder="Create a password"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#61B2F0] focus:ring-2 focus:ring-[#61B2F0]/20 focus:outline-none transition-all">
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-password"></span>
                         </div>
 
                         <div class="mb-5">
                             <label class="block text-[13px] font-bold text-[#1A1A2E] mb-1.5">Confirm Password</label>
                             <input type="password" name="password_confirmation" required placeholder="Confirm your password"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#61B2F0] focus:ring-2 focus:ring-[#61B2F0]/20 focus:outline-none transition-all">
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                         </div>
 
                         <button type="submit"
-                            class="w-full bg-[#61B2F0] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#61B2F0]/10 text-[15px]">
+                            class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
                             Sign Up
                         </button>
                     </form>
 
                     <p class="text-[13px] text-center text-gray-500 mt-6">
                         Already have an account? <a href="#" onclick="openAuthModal('login')"
-                            class="text-[#61B2F0] font-bold hover:underline">Login here</a>
+                            class="text-[#156F8C] font-bold hover:underline">Login here</a>
                     </p>
 
                     <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-gray-300 font-bold uppercase">
@@ -846,7 +846,7 @@
                             this.$refs.dropdownBody.innerHTML = await res.text();
                             this.loaded = true;
                         } catch (e) {
-                            this.$refs.dropdownBody.innerHTML = '<div class="px-4 py-6 text-center text-[13px] text-[#9B9F98]">Failed to load notifications.</div>';
+                            this.$refs.dropdownBody.innerHTML = '<div class="px-4 py-6 text-center text-[13px] text-[#64748B]">Failed to load notifications.</div>';
                         }
                     },
 

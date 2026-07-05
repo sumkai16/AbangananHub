@@ -4,7 +4,7 @@
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
 
         {{-- Breadcrumb --}}
-        <div class="flex items-center gap-1.5 text-sm text-[#9B9F98] mb-2">
+        <div class="flex items-center gap-1.5 text-sm text-[#64748B] mb-2">
             <a href="{{ route('landlord.properties.index') }}"
                 class="hover:text-[#0F172A] transition-colors duration-200">Properties</a>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -26,7 +26,7 @@
         {{-- Header --}}
         <div class="mb-6">
             <h1 class="text-2xl font-bold text-[#0F172A] leading-tight">Edit Unit</h1>
-            <p class="text-sm text-[#9B9F98] mt-1">Update details for {{ $unit->unit_label }} under {{ $property->title }}.
+            <p class="text-sm text-[#64748B] mt-1">Update details for {{ $unit->unit_label }} under {{ $property->title }}.
             </p>
         </div>
 
@@ -53,7 +53,7 @@
             @method('PUT')
 
             {{-- Unit Details --}}
-            <div class="bg-white rounded-2xl ring-1 ring-[#9B9F98]/15 p-6">
+            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-6">
                 <div class="flex items-center gap-2.5 mb-5">
                     <div class="w-8 h-8 rounded-lg bg-[#0F172A] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -67,38 +67,38 @@
                 <div class="grid sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-[12px] font-semibold text-[#0F172A] mb-1.5">
-                            Unit Name / Number <span class="text-[#BD5434]">*</span>
+                            Unit Name / Number <span class="text-[#EF4444]">*</span>
                         </label>
                         <input type="text" name="unit_label" value="{{ old('unit_label', $unit->unit_label) }}" required
                             maxlength="100" placeholder="e.g. Room 101, Bed A, Unit 201"
-                            class="h-11 w-full rounded-xl border border-[#9B9F98]/30 px-3.5 text-[13.5px] text-[#0F172A] placeholder-[#9B9F98] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 transition">
+                            class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#0F172A] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 transition">
                     </div>
 
                     <div>
                         <label class="block text-[12px] font-semibold text-[#0F172A] mb-1.5">
-                            Capacity <span class="text-[#BD5434]">*</span>
+                            Capacity <span class="text-[#EF4444]">*</span>
                         </label>
                         <input type="number" name="occupancy_limit"
                             value="{{ old('occupancy_limit', $unit->occupancy_limit) }}" required min="1" max="100"
                             placeholder="Maximum number of occupants"
-                            class="h-11 w-full rounded-xl border border-[#9B9F98]/30 px-3.5 text-[13.5px] text-[#0F172A] placeholder-[#9B9F98] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 transition">
+                            class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#0F172A] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 transition">
                     </div>
                 </div>
 
                 <div class="grid sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-[12px] font-semibold text-[#0F172A] mb-1.5">
-                            Monthly Rent (₱) <span class="text-[#BD5434]">*</span>
+                            Monthly Rent (₱) <span class="text-[#EF4444]">*</span>
                         </label>
                         <input type="number" name="rental_fee" value="{{ old('rental_fee', $unit->rental_fee) }}" required
                             min="500" max="999999.99" step="0.01" placeholder="e.g. 3500"
-                            class="h-11 w-full rounded-xl border border-[#9B9F98]/30 px-3.5 text-[13.5px] text-[#0F172A] placeholder-[#9B9F98] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 transition">
+                            class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#0F172A] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 transition">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-[12px] font-semibold text-[#0F172A] mb-2">
-                        Status <span class="text-[#BD5434]">*</span>
+                        Status <span class="text-[#EF4444]">*</span>
                     </label>
                     @php
                         $statusOptions = [
@@ -106,7 +106,7 @@
                             'Reserved' => ['label' => 'Reserved', 'desc' => 'On hold for a tenant', 'active' => 'border-amber-300 bg-amber-50'],
                             'Occupied' => ['label' => 'Occupied', 'desc' => 'Currently rented', 'active' => 'border-red-300 bg-red-50'],
                         ];
-                        $inactiveClass = 'border-[#9B9F98]/25 bg-white hover:border-[#9B9F98]/40';
+                        $inactiveClass = 'border-[#64748B]/25 bg-white hover:border-[#64748B]/40';
                     @endphp
                     <div class="grid grid-cols-3 gap-2"
                         x-data="{ status: '{{ old('availability_status', $unit->availability_status) }}' }">
@@ -118,10 +118,10 @@
                                 <div class="flex items-center gap-1.5 mb-0.5">
                                     <span
                                         class="w-1.5 h-1.5 rounded-full shrink-0
-                                                {{ $value === 'Available' ? 'bg-emerald-500' : ($value === 'Reserved' ? 'bg-amber-500' : 'bg-[#BD5434]') }}"></span>
+                                                {{ $value === 'Available' ? 'bg-[#22C55E]' : ($value === 'Reserved' ? 'bg-[#FBBF24]' : 'bg-[#EF4444]') }}"></span>
                                     <p class="text-[13px] font-semibold text-[#0F172A]">{{ $opt['label'] }}</p>
                                 </div>
-                                <p class="text-[10.5px] text-[#9B9F98] leading-snug">{{ $opt['desc'] }}</p>
+                                <p class="text-[10.5px] text-[#64748B] leading-snug">{{ $opt['desc'] }}</p>
                             </label>
                         @endforeach
                     </div>
@@ -129,7 +129,7 @@
             </div>
 
             {{-- Existing verification capture (read-only, captured at creation) --}}
-            <div class="bg-white rounded-2xl ring-1 ring-[#9B9F98]/15 p-6">
+            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-6">
                 <div class="flex items-center gap-2.5 mb-3">
                     <div class="w-8 h-8 rounded-lg bg-[#3B82F6] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -139,10 +139,10 @@
                     </div>
                     <div>
                         <h2 class="text-[13px] font-bold text-[#0F172A]">Verification Capture</h2>
-                        <p class="text-[11px] text-[#9B9F98] mt-0.5">Captured live at creation — not editable here.</p>
+                        <p class="text-[11px] text-[#64748B] mt-0.5">Captured live at creation — not editable here.</p>
                     </div>
                 </div>
-                <div class="mb-4 px-3.5 py-3 rounded-xl bg-[#DBEAFE] border border-[#3B82F6]/20 flex items-start gap-2.5">
+                <div class="mb-4 px-3.5 py-3 rounded-xl bg-[#EEF8F8] border border-[#3B82F6]/20 flex items-start gap-2.5">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#3B82F6" stroke-width="2"
                         class="shrink-0 mt-0.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -162,7 +162,7 @@
                 @if($existingPhotos->isNotEmpty())
                     <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-3">
                         @foreach($existingPhotos as $photo)
-                            <div class="aspect-square rounded-lg overflow-hidden bg-[#F7F8FA] ring-1 ring-[#9B9F98]/15">
+                            <div class="aspect-square rounded-lg overflow-hidden bg-[#F7F8FA] ring-1 ring-[#64748B]/15">
                                 <img src="{{ $photo->media_url }}" alt="Unit photo" class="w-full h-full object-cover">
                             </div>
                         @endforeach
@@ -170,7 +170,7 @@
                 @endif
 
                 @if($existingVideo)
-                    <div class="rounded-lg overflow-hidden bg-[#F7F8FA] ring-1 ring-[#9B9F98]/15 max-w-xs">
+                    <div class="rounded-lg overflow-hidden bg-[#F7F8FA] ring-1 ring-[#64748B]/15 max-w-xs">
                         <video src="{{ $existingVideo->media_url }}" controls class="w-full h-auto"></video>
                     </div>
                 @endif
@@ -179,7 +179,7 @@
             {{-- Actions --}}
             <div class="flex items-center gap-3">
                 <a href="{{ route('landlord.properties.units.index', $property) }}"
-                    class="h-11 px-6 inline-flex items-center justify-center rounded-full border border-[#9B9F98]/30 text-[#0F172A] text-sm font-semibold hover:bg-[#F1F5F9] transition-colors duration-200">
+                    class="h-11 px-6 inline-flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#0F172A] text-sm font-semibold hover:bg-[#F1F5F9] transition-colors duration-200">
                     Cancel
                 </a>
                 <button type="submit"

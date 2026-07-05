@@ -37,7 +37,7 @@
     </style>
 </head>
 
-<body class="font-sans bg-[#F0EDE8] text-[#2A2523] min-h-screen" x-data="{
+<body class="font-sans bg-[#E2E8F0] text-[#1F2937] min-h-screen" x-data="{
         sidebarOpen: false,
         sidebarCollapsed: localStorage.getItem('landlordSidebarCollapsed') === 'true'
     }" x-init="
@@ -57,11 +57,11 @@
 
         <aside id="landlord-sidebar"
             :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#2A2523] border-r border-white/10 flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0F172A] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
             {{-- Floating collapse toggle (desktop only) --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
-                class="hidden lg:flex absolute top-5 -right-3 w-6 h-6 rounded-full bg-[#61B2F0] text-white items-center justify-center shadow-md hover:brightness-95 transition-all duration-200 z-10"
+                class="hidden lg:flex absolute top-5 -right-3 w-6 h-6 rounded-full bg-[#2AA7A1] text-white items-center justify-center shadow-md hover:brightness-95 transition-all duration-200 z-10"
                 :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
                     :class="sidebarCollapsed ? 'rotate-180' : ''" class="transition-transform duration-300">
@@ -71,8 +71,8 @@
 
             {{-- Logo --}}
             <a href="{{ route('landlord.dashboard') }}"
-                class="flex items-center gap-2.5 px-5 h-[72px] border-b border-white/10 shrink-0 no-underline overflow-hidden">
-                <div class="w-9 h-9 rounded-xl bg-[#61B2F0] flex items-center justify-center shadow-sm shrink-0">
+                class="flex items-center gap-2.5 px-5 h-[72px] border-b border-white/[0.06] shrink-0 no-underline overflow-hidden">
+                <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shadow-sm shrink-0">
                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -80,14 +80,14 @@
                 </div>
                 <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                     class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
-                    Abanganan<span class="text-[#61B2F0]">Hub</span>
+                    Abanganan<span class="text-[#2AA7A1]">Hub</span>
                 </span>
             </a>
 
             {{-- Nav --}}
             <nav class="flex-1 overflow-hidden px-3 py-5">
                 <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="px-3 text-[11px] font-bold text-white/40 uppercase tracking-widest mb-2 whitespace-nowrap">
+                    class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 whitespace-nowrap">
                     Main</p>
 
                 @php
@@ -97,7 +97,7 @@
                 {{-- Dashboard --}}
                 <a href="{{ route('landlord.dashboard') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ $current === 'landlord.dashboard' ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                        {{ $current === 'landlord.dashboard' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -106,7 +106,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="whitespace-nowrap">Dashboard</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Dashboard
                     </span>
                 </a>
@@ -114,7 +114,7 @@
                 {{-- Properties --}}
                 <a href="{{ route('landlord.properties.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'landlord.properties') && !str_contains($current, 'units') ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                          {{ str_starts_with($current, 'landlord.properties') && !str_contains($current, 'units') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -123,7 +123,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="whitespace-nowrap">Properties</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Properties
                     </span>
                 </a>
@@ -131,7 +131,7 @@
                 {{-- Units — no global landing yet; accessible per-property. Axcee: once a global units index exists,
                 swap this div for an <a> pointing there --}}
                     <div :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/35 cursor-not-allowed select-none">
+                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                             stroke-width="2" class="shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -140,10 +140,10 @@
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                             class="whitespace-nowrap">Units</span>
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Via
+                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Via
                             Property</span>
                         <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                             Units — open a property to manage units
                         </span>
                     </div>
@@ -152,7 +152,7 @@
                     <a href="{{ route('landlord.reservations.index') }}"
                         :class="sidebarCollapsed ? 'justify-center' : ''"
                         class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'landlord.reservations') ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                          {{ str_starts_with($current, 'landlord.reservations') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                             stroke-width="2" class="shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -161,7 +161,7 @@
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                             class="whitespace-nowrap">Reservations</span>
                         <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                             Reservations
                         </span>
                     </a>
@@ -177,9 +177,9 @@
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                             class="whitespace-nowrap">Tenants</span>
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                         <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                             Tenants · Soon
                         </span>
                     </div>
@@ -187,7 +187,7 @@
                     {{-- Messages --}}
                     <a href="{{ route('conversations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                         class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'conversations') ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                          {{ str_starts_with($current, 'conversations') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                             stroke-width="2" class="shrink-0">
                             <circle cx="12" cy="12" r="9" />
@@ -198,13 +198,13 @@
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                             class="whitespace-nowrap">Messages</span>
                         <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                             Messages
                         </span>
                     </a>
 
                     <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                        class="px-3 text-[11px] font-bold text-white/40 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
+                        class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
                         Insights</p>
 
                     {{-- Occupancy — grayed --}}
@@ -219,9 +219,9 @@
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                             class="whitespace-nowrap">Occupancy</span>
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                         <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                             Occupancy · Soon
                         </span>
                     </div>
@@ -237,9 +237,9 @@
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                             class="whitespace-nowrap">Analytics</span>
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                         <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                             Analytics · Soon
                         </span>
                     </div>
@@ -255,9 +255,9 @@
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                             class="whitespace-nowrap">Reports</span>
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                         <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                             Reports · Soon
                         </span>
                     </div>
@@ -273,20 +273,20 @@
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                             class="whitespace-nowrap">Reviews</span>
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                         <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                             Reviews · Soon
                         </span>
                     </div>
 
                     <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                        class="px-3 text-[11px] font-bold text-white/40 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
+                        class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
                         Account</p>
 
                     <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                         class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'profile.edit' ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                          {{ $current === 'profile.edit' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                             stroke-width="2" class="shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -297,20 +297,20 @@
                         <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                             class="whitespace-nowrap">Settings</span>
                         <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                             Settings
                         </span>
                     </a>
             </nav>
 
             {{-- Help footer card --}}
-            <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="p-4 border-t border-white/10 shrink-0">
-                <div class="bg-white/10 rounded-xl p-3.5">
+            <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="p-4 border-t border-white/[0.06] shrink-0">
+                <div class="bg-white/[0.06] rounded-xl p-3.5">
                     <p class="text-[12px] font-bold text-white mb-1 whitespace-nowrap">Need Help?</p>
                     <p class="text-[11px] text-white/50 mb-2.5 leading-relaxed">Visit our Help Center or contact
                         support.</p>
                     <a href="{{ route('about') }}"
-                        class="block text-center text-[11px] font-semibold bg-[#61B2F0] text-white rounded-lg py-2 hover:brightness-95 transition-all duration-200 whitespace-nowrap">
+                        class="block text-center text-[11px] font-semibold bg-[#2AA7A1] text-white rounded-lg py-2 hover:brightness-95 transition-all duration-200 whitespace-nowrap">
                         Go to Help Center
                     </a>
                 </div>
@@ -323,11 +323,11 @@
 
             {{-- Slim top bar --}}
             <header
-                class="h-[72px] bg-white border-b border-[#9B9F98]/15 flex items-center justify-between px-4 sm:px-6 shrink-0 sticky top-0 z-30">
+                class="h-[72px] bg-white border-b border-[#64748B]/15 flex items-center justify-between px-4 sm:px-6 shrink-0 sticky top-0 z-30">
 
                 {{-- Mobile menu toggle --}}
                 <button @click="sidebarOpen = !sidebarOpen"
-                    class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#F0EDE8] text-[#2A2523] transition-colors duration-200">
+                    class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#E2E8F0] text-[#1F2937] transition-colors duration-200">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
@@ -341,9 +341,9 @@
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                         @keydown.escape.window="close()">
                         <button type="button" @click="toggle()"
-                            class="relative flex items-center justify-center w-10 h-10 rounded-full border border-[#9B9F98]/20 bg-white text-[#2A2523]/70 hover:bg-[#F0EDE8] transition-colors duration-200 focus:outline-none">
+                            class="relative flex items-center justify-center w-10 h-10 rounded-full border border-[#64748B]/20 bg-white text-[#1F2937]/70 hover:bg-[#E2E8F0] transition-colors duration-200 focus:outline-none">
                             <span x-show="unreadCount > 0" x-cloak
-                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#BD5434] border-2 border-white"></span>
+                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#EF4444] border-2 border-white"></span>
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -355,11 +355,11 @@
                             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#9B9F98]/15 z-50 overflow-hidden">
+                            class="absolute top-[calc(100%+10px)] right-0 w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
                             <div x-ref="dropdownBody">
                                 <div class="px-4 py-8 text-center">
                                     <div
-                                        class="w-6 h-6 border-2 border-[#9B9F98] border-t-transparent rounded-full animate-spin mx-auto">
+                                        class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin mx-auto">
                                     </div>
                                 </div>
                             </div>
@@ -368,33 +368,33 @@
 
                     <div class="relative">
                         <button id="landlord-avatar-btn" aria-expanded="false"
-                            class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-[#F0EDE8] transition-colors duration-200 focus:outline-none">
+                            class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-[#E2E8F0] transition-colors duration-200 focus:outline-none">
                             <span
-                                class="w-9 h-9 rounded-full bg-[#61B2F0] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
+                                class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
                                 {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
                             </span>
                             <span class="hidden sm:flex flex-col items-start leading-tight">
-                                <span class="text-[13px] font-semibold text-[#2A2523]">{{ auth()->user()->first_name }}
+                                <span class="text-[13px] font-semibold text-[#1F2937]">{{ auth()->user()->first_name }}
                                     {{ auth()->user()->last_name }}</span>
-                                <span class="text-[11px] text-[#9B9F98]">Landlord</span>
+                                <span class="text-[11px] text-[#64748B]">Landlord</span>
                             </span>
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2" class="text-[#9B9F98] hidden sm:block">
+                                stroke-width="2" class="text-[#64748B] hidden sm:block">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                             </svg>
                         </button>
 
                         <div id="landlord-avatar-menu"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[220px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#9B9F98]/15 py-2 hidden z-50">
+                            class="absolute top-[calc(100%+10px)] right-0 w-[220px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 py-2 hidden z-50">
                             <a href="{{ route('properties.index') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]">
+                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
                                 Browse as Tenant
                             </a>
                             <a href="{{ route('profile.edit') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]">
+                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
                                 Account Settings
                             </a>
-                            <div class="h-px bg-[#9B9F98]/15 my-2"></div>
+                            <div class="h-px bg-[#64748B]/15 my-2"></div>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
                                 <button type="submit"
@@ -472,7 +472,7 @@
                         this.$refs.dropdownBody.innerHTML = await res.text();
                         this.loaded = true;
                     } catch (e) {
-                        this.$refs.dropdownBody.innerHTML = '<div class="px-4 py-6 text-center text-[13px] text-[#9B9F98]">Failed to load notifications.</div>';
+                        this.$refs.dropdownBody.innerHTML = '<div class="px-4 py-6 text-center text-[13px] text-[#64748B]">Failed to load notifications.</div>';
                     }
                 },
 

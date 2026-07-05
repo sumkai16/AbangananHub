@@ -7,7 +7,7 @@
 
         {{-- HERO --}}
         <div
-            class="rounded-3xl mb-10 bg-gradient-to-br from-[#1A3A6E] via-[#286CD2] to-[#61B2F0] p-10 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-7 relative overflow-hidden shadow-[0_8px_32px_rgba(40,108,210,0.28)]">
+            class="rounded-3xl mb-10 bg-gradient-to-br from-[#1A3A6E] via-[#2AA7A1] to-[#2AA7A1] p-10 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-7 relative overflow-hidden shadow-[0_8px_32px_rgba(40,108,210,0.28)]">
             <div
                 class="absolute right-[-20px] bottom-[-40px] w-64 h-64 rounded-full bg-white opacity-5 pointer-events-none">
             </div>
@@ -28,7 +28,7 @@
             <div
                 class="flex flex-col md:flex-row items-start md:items-center gap-3 flex-shrink-0 relative z-10 w-full md:w-auto">
                 <a href="{{ route('properties.index') }}"
-                    class="h-12 px-7 bg-white text-[#286CD2] rounded-xl text-[14.5px] font-extrabold flex items-center gap-2 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap shadow-md">
+                    class="h-12 px-7 bg-white text-[#156F8C] rounded-xl text-[14.5px] font-extrabold flex items-center gap-2 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap shadow-md">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -45,10 +45,10 @@
 
         {{-- STAT CARDS --}}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-            <x-stat-card label="Upcoming Stays" :value="$upcomingCount" sub="Active reservations" color="#286CD2"
+            <x-stat-card label="Upcoming Stays" :value="$upcomingCount" sub="Active reservations" color="#2AA7A1"
                 bgColor="#EBF3FF">
                 <x-slot name="icon">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#286CD2" stroke-width="2">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -194,7 +194,7 @@
                 <div class="bg-white border border-gray-200 rounded-[20px] p-6 shadow-sm">
                     @forelse($recentActivity ?? [] as $activity)
                         <div class="flex items-start gap-4 py-3.5 border-b border-gray-100 last:border-0 last:pb-0">
-                            <div class="w-2 h-2 rounded-full bg-[#286CD2] flex-shrink-0 mt-2"></div>
+                            <div class="w-2 h-2 rounded-full bg-[#2AA7A1] flex-shrink-0 mt-2"></div>
                             <div class="flex-1 text-[14px] text-gray-700 leading-relaxed">
                                 {!! preg_replace('/(\w+)/', '<strong class="text-gray-900">$1</strong>', $activity->message, 1) !!}
                             </div>
@@ -204,7 +204,7 @@
                         </div>
                     @empty
                         <div class="flex items-start gap-4 py-3.5 border-b border-gray-100 last:border-0 last:pb-0">
-                            <div class="w-2 h-2 rounded-full bg-[#286CD2] flex-shrink-0 mt-2"></div>
+                            <div class="w-2 h-2 rounded-full bg-[#2AA7A1] flex-shrink-0 mt-2"></div>
                             <div class="flex-1 text-[14px] text-gray-700 leading-relaxed">
                                 Welcome to <strong class="text-gray-900">AbangananHub</strong>! Start by browsing verified
                                 properties.
@@ -219,7 +219,7 @@
             @if(!auth()->user()->hasRole('Landlord'))
                 <div>
                     <div
-                        class="rounded-[24px] p-8 bg-gradient-to-br from-[#1A1A2E] to-[#286CD2] relative overflow-hidden shadow-[0_8px_30px_rgba(40,108,210,0.3)] text-white">
+                        class="rounded-[24px] p-8 bg-gradient-to-br from-[#1A1A2E] to-[#156F8C] relative overflow-hidden shadow-[0_8px_30px_rgba(40,108,210,0.3)] text-white">
                         <div class="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-white opacity-10"></div>
                         <div class="absolute -left-5 -bottom-8 w-[110px] h-[110px] rounded-full bg-white opacity-5"></div>
 

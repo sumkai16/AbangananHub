@@ -73,10 +73,10 @@
             </svg>
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant name, email, or property…"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
         </div>
         <button type="submit"
-            class="h-10 px-5 text-[13.5px] font-bold bg-[#286CD2] text-white rounded-xl hover:bg-[#1e5bb8] transition-colors shadow-sm">
+            class="h-10 px-5 text-[13.5px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
             Search
         </button>
         @if($search)
@@ -91,16 +91,16 @@
     <div class="flex items-center gap-0.5 border-b border-gray-100 mb-5 overflow-x-auto">
         <a href="{{ route('admin.reservations.index', array_filter(['search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ $status === 'all' ? 'border-[#286CD2] text-[#1A1A2E]' : 'border-transparent text-gray-400 hover:text-[#1A1A2E]' }}">
+                {{ $status === 'all' ? 'border-[#2AA7A1] text-[#1A1A2E]' : 'border-transparent text-gray-400 hover:text-[#1A1A2E]' }}">
             All
-            <span class="ml-1 text-[11px] {{ $status === 'all' ? 'text-[#286CD2]' : 'text-gray-400' }}">{{ $counts['all'] }}</span>
+            <span class="ml-1 text-[11px] {{ $status === 'all' ? 'text-[#156F8C]' : 'text-gray-400' }}">{{ $counts['all'] }}</span>
         </a>
         @foreach($allStatuses as $key => $meta)
             <a href="{{ route('admin.reservations.index', array_filter(['status' => $key, 'search' => $search])) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $status === $key ? 'border-[#286CD2] text-[#1A1A2E]' : 'border-transparent text-gray-400 hover:text-[#1A1A2E]' }}">
+                    {{ $status === $key ? 'border-[#2AA7A1] text-[#1A1A2E]' : 'border-transparent text-gray-400 hover:text-[#1A1A2E]' }}">
                 {{ $meta['label'] }}
-                <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#286CD2]' : 'text-gray-400' }}">{{ $counts[$key] }}</span>
+                <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#156F8C]' : 'text-gray-400' }}">{{ $counts[$key] }}</span>
             </a>
         @endforeach
     </div>
@@ -191,7 +191,7 @@
                                 {{-- Actions --}}
                                 <td class="px-6 py-4 text-right">
                                     <a href="{{ route('admin.reservations.show', $res) }}"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#286CD2] hover:text-white hover:border-[#286CD2] transition-all">
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
                                         View
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />

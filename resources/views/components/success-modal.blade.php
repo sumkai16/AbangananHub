@@ -16,9 +16,9 @@
         </button>
 
         <!-- Animated Checkmark Icon -->
-        <div class="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-[#286CD2]/10 mb-5 relative">
-            <div class="absolute inset-0 rounded-full animate-ping bg-[#286CD2]/20" style="animation-duration: 2s;"></div>
-            <svg class="w-8 h-8 text-[#286CD2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+        <div class="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-[#2AA7A1]/10 mb-5 relative">
+            <div class="absolute inset-0 rounded-full animate-ping bg-[#2AA7A1]/20" style="animation-duration: 2s;"></div>
+            <svg class="w-8 h-8 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
         </div>
@@ -32,7 +32,7 @@
         </p>
 
         <!-- Action Button -->
-        <button x-on:click="$dispatch('close')" class="w-full inline-flex justify-center items-center px-5 py-3 bg-[#286CD2] hover:bg-[#1D4ED8] active:bg-[#1E3A8A] text-white text-[15px] font-bold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#286CD2] focus:ring-offset-2">
+        <button x-on:click="$dispatch('close')" class="w-full inline-flex justify-center items-center px-5 py-3 bg-[#2AA7A1] hover:brightness-95 active:brightness-90 text-white text-[15px] font-bold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1] focus:ring-offset-2">
             {{ $buttonText }}
         </button>
     </div>

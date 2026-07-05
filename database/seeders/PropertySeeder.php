@@ -13,6 +13,66 @@ class PropertySeeder extends Seeder
     {
         $landlord = User::where('email', 'landlord@abangananhub.com')->first();
 
+        // ─── House rules pools by property type ──────────────
+        $bedspaceRules = [
+            'No overnight visitors',
+            'Quiet hours from 10:00 PM to 6:00 AM',
+            'Keep your bedspace area clean and organized',
+            'No smoking inside the premises',
+            'No cooking inside the sleeping area',
+            'Lights out by 11:00 PM',
+            'Personal belongings must be stored in assigned lockers',
+            'No pets allowed',
+            'Shared bathroom must be cleaned after use',
+            'Report maintenance issues to the caretaker immediately',
+        ];
+
+        $roomRules = [
+            'No smoking inside the room',
+            'No pets allowed',
+            'Quiet hours from 10:00 PM to 6:00 AM',
+            'Visitors allowed until 9:00 PM only',
+            'Keep shared areas clean after use',
+            'No illegal activities on the premises',
+            'Electricity is billed separately based on sub-meter reading',
+            'One month advance and one month deposit required',
+            'No alterations to the room without landlord approval',
+            'Dispose of garbage properly using designated bins',
+        ];
+
+        $apartmentRules = [
+            'No smoking inside the unit',
+            'No pets unless approved in writing by the landlord',
+            'Quiet hours from 10:00 PM to 6:00 AM',
+            'No subletting or unauthorized occupants',
+            'Keep common areas clean and orderly',
+            'Report any maintenance issues immediately',
+            'Parking is limited to assigned slots only',
+            'Garbage must be segregated and disposed of on schedule',
+            'No modifications to walls, fixtures, or appliances without approval',
+            'Guests staying overnight must be registered with building admin',
+        ];
+
+        $houseRules = [
+            'No smoking inside the house',
+            'No pets unless approved by the landlord',
+            'Tenant is responsible for yard maintenance',
+            'No illegal activities on the premises',
+            'No subletting or sharing with unregistered occupants',
+            'Report plumbing or electrical issues immediately',
+            'Garbage must be disposed of on designated collection days',
+            'Gate must be locked by 10:00 PM',
+            'No structural modifications without written consent',
+            'Water and electricity are billed separately',
+        ];
+
+        $rulesByType = [
+            'Bedspace'  => $bedspaceRules,
+            'Room'      => $roomRules,
+            'Apartment' => $apartmentRules,
+            'House'     => $houseRules,
+        ];
+
         $properties = [
             [
                 'title'               => 'Cozy Bedspace in Labangon',
@@ -695,6 +755,10 @@ class PropertySeeder extends Seeder
             $mediaItems = $data['media'];
             $unitItems = $data['units'];
             unset($data['media'], $data['units']);
+
+            // Pick 4–6 random rules from the pool matching this property type
+            $pool = $rulesByType[$data['property_type']] ?? $roomRules;
+            $data['house_rules'] = collect($pool)->shuffle()->take(rand(4, 6))->values()->all();
 
             $property = Property::create(array_merge($data, [
                 'landlord_id' => $landlord->user_id,

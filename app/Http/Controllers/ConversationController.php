@@ -27,7 +27,7 @@ class ConversationController extends Controller
             $base->where('property_id', $propertyId);
         }
 
-        $allCount = (clone $base)->count();
+        $activeCount = (clone $base)->whereNotIn('status', ['Cancelled', 'Resolved'])->count();
         $resolvedCount = (clone $base)->where('status', 'Resolved')->count();
         $cancelledCount = (clone $base)->where('status', 'Cancelled')->count();
         $unreadCount = (clone $base)->where('status', '!=', 'Resolved')
@@ -60,6 +60,9 @@ class ConversationController extends Controller
                     $q->where('sender_id', '!=', $userId)
                         ->where('is_read', false);
                 });
+        } else {
+            // Default "active" tab — exclude terminal states
+            $query->whereNotIn('status', ['Cancelled', 'Resolved']);
         }
 
         $conversations = $query->orderByDesc('updated_at')->get();
@@ -72,7 +75,7 @@ class ConversationController extends Controller
             : collect();
 
         return view('conversations.index', compact(
-            'conversations', 'status', 'allCount', 'unreadCount', 'resolvedCount', 'cancelledCount',
+            'conversations', 'status', 'activeCount', 'unreadCount', 'resolvedCount', 'cancelledCount',
             'isLandlord', 'landlordProperties', 'propertyId'
         ));
     }

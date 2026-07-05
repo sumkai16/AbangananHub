@@ -22,7 +22,7 @@
     {{-- Back + actions --}}
     <div class="flex items-center justify-between mb-6">
         <a href="{{ route('admin.users.index') }}"
-            class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#286CD2] transition-colors">
+            class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -108,8 +108,8 @@
                     alt="{{ $fullName }}"
                     class="w-16 h-16 rounded-2xl object-cover border border-gray-100 shadow-sm shrink-0" />
             @else
-                <div class="w-16 h-16 rounded-2xl bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                    <span class="text-[#286CD2] text-[22px] font-extrabold">{{ $initials }}</span>
+                <div class="w-16 h-16 rounded-2xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                    <span class="text-[#156F8C] text-[22px] font-extrabold">{{ $initials }}</span>
                 </div>
             @endif
 
@@ -118,7 +118,7 @@
                 <div class="flex flex-wrap items-center gap-2.5 mb-1">
                     <h1 class="text-[22px] font-extrabold text-[#1A1A2E] tracking-tight leading-none">{{ $fullName }}</h1>
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border {{ $statusCls }}">
-                        <span class="w-1.5 h-1.5 rounded-full {{ strtolower($status) === 'active' ? 'bg-emerald-500' : (strtolower($status) === 'suspended' ? 'bg-red-500' : 'bg-gray-400') }}"></span>
+                        <span class="w-1.5 h-1.5 rounded-full {{ strtolower($status) === 'active' ? 'bg-[#22C55E]' : (strtolower($status) === 'suspended' ? 'bg-red-500' : 'bg-gray-400') }}"></span>
                         {{ ucfirst($status) }}
                     </span>
                 </div>
@@ -128,7 +128,7 @@
                         @php
                             $roleCls = match($userRole->role) {
                                 'Admin'    => 'bg-purple-50 text-purple-700 border-purple-200',
-                                'Landlord' => 'bg-blue-50 text-[#286CD2] border-blue-200',
+                                'Landlord' => 'bg-blue-50 text-[#156F8C] border-blue-200',
                                 'Tenant'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                 default    => 'bg-gray-50 text-gray-600 border-gray-200',
                             };
@@ -144,7 +144,7 @@
 
             {{-- Member stat --}}
             <div class="text-center bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 shrink-0">
-                <p class="text-[32px] font-extrabold text-[#286CD2] leading-none">{{ $daysAsMember }}</p>
+                <p class="text-[32px] font-extrabold text-[#156F8C] leading-none">{{ $daysAsMember }}</p>
                 <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">Days as member</p>
                 <p class="text-[11px] text-gray-400 mt-0.5">
                     Since {{ $user->created_at ? \Carbon\Carbon::parse($user->created_at)->format('M d, Y') : '—' }}
@@ -162,8 +162,8 @@
             {{-- Personal Information --}}
             <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4 text-[#286CD2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <div class="w-8 h-8 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
@@ -233,7 +233,7 @@
                                     {{ $v->verification_status }}
                                 </span>
                                 <a href="{{ route('admin.verifications.show', $v) }}"
-                                    class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#286CD2] hover:text-[#1e5bb8] transition-colors">
+                                    class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
                                     View full application
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                                 </a>
@@ -277,14 +277,14 @@
             {{-- User ID --}}
             <div class="bg-white border border-gray-100 rounded-3xl shadow-sm p-5">
                 <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">User ID</p>
-                <p class="text-[20px] font-extrabold text-[#286CD2] font-mono">#{{ $user->user_id }}</p>
+                <p class="text-[20px] font-extrabold text-[#156F8C] font-mono">#{{ $user->user_id }}</p>
             </div>
 
             {{-- Activity --}}
             <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-50 flex items-center gap-3">
-                    <div class="w-7 h-7 rounded-xl bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                        <svg class="w-3.5 h-3.5 text-[#286CD2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <div class="w-7 h-7 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                        <svg class="w-3.5 h-3.5 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
                         </svg>
                     </div>
@@ -294,13 +294,13 @@
 
                     @if ($user->hasRole('Landlord'))
                         <div class="rounded-2xl bg-blue-50/60 border border-blue-100 px-4 py-4 flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-[#286CD2] flex items-center justify-center shrink-0 shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-sm">
                                 <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-[24px] font-extrabold text-[#286CD2] leading-none">{{ $user->properties->count() }}</p>
+                                <p class="text-[24px] font-extrabold text-[#156F8C] leading-none">{{ $user->properties->count() }}</p>
                                 <p class="text-[12px] text-gray-400 mt-0.5">Properties listed</p>
                             </div>
                         </div>
@@ -308,7 +308,7 @@
 
                     @if ($user->hasRole('Tenant'))
                         <div class="rounded-2xl bg-emerald-50/60 border border-emerald-100 px-4 py-4 flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-[#22C55E] flex items-center justify-center shrink-0 shadow-sm">
                                 <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>

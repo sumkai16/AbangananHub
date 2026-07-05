@@ -17,7 +17,7 @@
             <a href="{{ route('admin.verifications.index', ['status' => $tab]) }}"
                 class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-150
                     {{ $status === $tab
-                        ? 'bg-[#286CD2] text-white shadow-sm'
+                        ? 'bg-[#2AA7A1] text-white shadow-sm'
                         : 'text-gray-500 hover:text-[#1A1A2E] hover:bg-gray-50' }}">
                 {{ $tab }}
             </a>
@@ -57,8 +57,8 @@
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-full bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                                            <span class="text-[#286CD2] text-[12px] font-bold">
+                                        <div class="w-9 h-9 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                                            <span class="text-[#156F8C] text-[12px] font-bold">
                                                 {{ strtoupper(substr($verification->user->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($verification->user->last_name ?? '', 0, 1)) }}
                                             </span>
                                         </div>
@@ -81,7 +81,7 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <a href="{{ route('admin.verifications.show', $verification) }}"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#286CD2] hover:text-white hover:border-[#286CD2] transition-all">
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
                                         Review
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />

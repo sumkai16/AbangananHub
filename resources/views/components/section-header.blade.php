@@ -14,7 +14,7 @@
     @endif
     </div>
     @if($href)
-        <a href="{{ $href }}" class="text-[14px] font-semibold text-[#286CD2] px-4 py-2 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors">
+        <a href="{{ $href }}" class="text-[14px] font-semibold text-[#156F8C] px-4 py-2 border border-blue-200 rounded-full hover:bg-blue-50 transition-colors">
             {{ $cta }}
         </a>
     @endif

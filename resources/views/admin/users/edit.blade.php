@@ -6,7 +6,7 @@
 <div class="max-w-2xl">
 
     <a href="{{ route('admin.users.show', $user) }}"
-        class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#286CD2] transition-colors mb-6">
+        class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors mb-6">
         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
@@ -16,8 +16,8 @@
     <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
         <div class="px-7 py-5 border-b border-gray-50 flex items-center gap-4">
             @php $initials = strtoupper(substr($user->first_name ?? '', 0, 1)) . strtoupper(substr($user->last_name ?? '', 0, 1)); @endphp
-            <div class="w-10 h-10 rounded-2xl bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                <span class="text-[#286CD2] text-[14px] font-extrabold">{{ $initials }}</span>
+            <div class="w-10 h-10 rounded-2xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                <span class="text-[#156F8C] text-[14px] font-extrabold">{{ $initials }}</span>
             </div>
             <div>
                 <h1 class="text-[18px] font-extrabold text-[#1A1A2E] tracking-tight">Edit User</h1>
@@ -34,13 +34,13 @@
                 <div>
                     <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">First Name <span class="text-red-400">*</span></label>
                     <input type="text" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
-                        class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('first_name') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+                        class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('first_name') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                     @error('first_name')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Last Name <span class="text-red-400">*</span></label>
                     <input type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}" required
-                        class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('last_name') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+                        class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('last_name') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                     @error('last_name')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
             </div>
@@ -49,7 +49,7 @@
             <div>
                 <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Email Address <span class="text-red-400">*</span></label>
                 <input type="email" name="email" value="{{ old('email', $user->email) }}" required
-                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('email') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('email') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                 @error('email')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
 
@@ -57,7 +57,7 @@
             <div>
                 <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Contact Number</label>
                 <input type="text" name="contact_number" value="{{ old('contact_number', $user->contact_number) }}"
-                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                 @error('contact_number')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
 
@@ -67,12 +67,12 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <input type="password" name="password" placeholder="New password"
-                            class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('password') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-white' }} focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+                            class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('password') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-white' }} focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                         @error('password')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <input type="password" name="password_confirmation" placeholder="Confirm new password"
-                            class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+                            class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                     </div>
                 </div>
             </div>
@@ -86,7 +86,7 @@
                         @php
                             $colors = [
                                 'Admin'    => 'peer-checked:border-purple-400 peer-checked:bg-purple-50 peer-checked:text-purple-700',
-                                'Landlord' => 'peer-checked:border-[#286CD2] peer-checked:bg-blue-50 peer-checked:text-[#286CD2]',
+                                'Landlord' => 'peer-checked:border-[#2AA7A1] peer-checked:bg-blue-50 peer-checked:text-[#156F8C]',
                                 'Tenant'   => 'peer-checked:border-emerald-400 peer-checked:bg-emerald-50 peer-checked:text-emerald-700',
                             ];
                         @endphp
@@ -107,7 +107,7 @@
             <div>
                 <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Account Status <span class="text-red-400">*</span></label>
                 <select name="account_status"
-                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                     @foreach (['active' => 'Active', 'suspended' => 'Suspended', 'inactive' => 'Inactive'] as $val => $label)
                         <option value="{{ $val }}" {{ old('account_status', $user->account_status ?? 'active') === $val ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
@@ -122,7 +122,7 @@
                     Cancel
                 </a>
                 <button type="submit"
-                    class="h-10 px-6 text-[13.5px] font-bold bg-[#286CD2] text-white rounded-xl hover:bg-[#1e5bb8] transition-colors shadow-sm">
+                    class="h-10 px-6 text-[13.5px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
                     Save Changes
                 </button>
             </div>

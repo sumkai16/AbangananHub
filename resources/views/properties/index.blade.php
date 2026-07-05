@@ -11,11 +11,11 @@
         {{-- ACTIVE FILTERS SUMMARY --}}
         @if(request()->hasAny(['location', 'type', 'price_max', 'verified']))
             <div class="flex flex-wrap items-center gap-2 mb-6">
-                <span class="text-[13px] text-[#9B9F98] font-medium">Filtering by:</span>
+                <span class="text-[13px] text-[#64748B] font-medium">Filtering by:</span>
 
                 @if(request('location'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#D7E8F3] text-[#2A2523] border border-[#61B2F0]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -33,7 +33,7 @@
 
                 @if(request('type'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#D7E8F3] text-[#2A2523] border border-[#61B2F0]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -50,7 +50,7 @@
 
                 @if(request('price_max'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#D7E8F3] text-[#2A2523] border border-[#61B2F0]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -67,7 +67,7 @@
 
                 @if(request('verified'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#D7E8F3] text-[#2A2523] border border-[#61B2F0]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
@@ -81,7 +81,7 @@
                 @endif
 
                 <a href="{{ route('properties.index') }}"
-                    class="text-[13px] text-[#BD5434] hover:brightness-95 font-semibold ml-2">
+                    class="text-[13px] text-[#EF4444] hover:brightness-95 font-semibold ml-2">
                     Clear all
                 </a>
             </div>
@@ -89,7 +89,7 @@
 
         {{-- RESULTS COUNT + SORT --}}
         <div class="flex items-center justify-between gap-3 mb-4">
-            <p class="text-[13px] text-[#9B9F98] font-medium">
+            <p class="text-[13px] text-[#64748B] font-medium">
                 {{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found
             </p>
 
@@ -97,9 +97,9 @@
                 @foreach(request()->except(['sort', 'page']) as $key => $value)
                     <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                 @endforeach
-                <label for="sort" class="text-[13px] text-[#9B9F98] font-medium hidden sm:inline">Sort by</label>
+                <label for="sort" class="text-[13px] text-[#64748B] font-medium hidden sm:inline">Sort by</label>
                 <select id="sort" name="sort" onchange="this.form.submit()"
-                    class="h-9 text-[13px] font-semibold rounded-full border border-[#9B9F98]/30 bg-white text-[#2A2523] pl-3.5 pr-8 focus:outline-none focus:ring-2 focus:ring-[#61B2F0]/20 focus:border-[#61B2F0] transition-all">
+                    class="h-9 text-[13px] font-semibold rounded-full border border-[#64748B]/30 bg-white text-[#1F2937] pl-3.5 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                     <option value="newest" {{ request('sort', 'newest') === 'newest' ? 'selected' : '' }}>Newest</option>
                     <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>Price: Low to High</option>
                     <option value="price_high" {{ request('sort') === 'price_high' ? 'selected' : '' }}>Price: High to Low</option>
@@ -110,12 +110,12 @@
         {{-- MOBILE LIST/MAP TOGGLE — desktop shows both columns, this is mobile-only --}}
         <div class="flex lg:hidden gap-2 mb-5">
             <button type="button" @click="mobileView = 'list'"
-                :class="mobileView === 'list' ? 'bg-[#2A2523] text-white' : 'bg-white text-[#2A2523] border border-[#9B9F98]/30'"
+                :class="mobileView === 'list' ? 'bg-[#1F2937] text-white' : 'bg-white text-[#1F2937] border border-[#64748B]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition">
                 List
             </button>
             <button type="button" @click="mobileView = 'map'"
-                :class="mobileView === 'map' ? 'bg-[#2A2523] text-white' : 'bg-white text-[#2A2523] border border-[#9B9F98]/30'"
+                :class="mobileView === 'map' ? 'bg-[#1F2937] text-white' : 'bg-white text-[#1F2937] border border-[#64748B]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition">
                 Map
             </button>
@@ -150,11 +150,11 @@
                                         {{-- Navigation Arrows (visible on hover) --}}
                                         <div x-ref="nav" class="opacity-0 transition-opacity duration-300 absolute inset-0 flex items-center justify-between px-2" x-show="slides > 1">
                                             <button @click.stop="activeSlide = activeSlide > 0 ? activeSlide - 1 : slides - 1"
-                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#2A2523]">
+                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#1F2937]">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
                                             </button>
                                             <button @click.stop="activeSlide = activeSlide < slides - 1 ? activeSlide + 1 : 0"
-                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#2A2523]">
+                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#1F2937]">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                                             </button>
                                         </div>
@@ -167,8 +167,8 @@
                                             </template>
                                         </div>
                                     @else
-                                        <div class="w-full h-full flex items-center justify-center bg-[#D7E8F3]">
-                                            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#61B2F0" stroke-width="1.5">
+                                        <div class="w-full h-full flex items-center justify-center bg-[#EEF8F8]">
+                                            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                             </svg>
@@ -186,7 +186,7 @@
                                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                         </svg>
                                         <svg class="heart-filled {{ in_array($property->property_id, $favoritedIds) ? '' : 'hidden' }}"
-                                            width="20" height="20" viewBox="0 0 24 24" fill="#61B2F0" stroke="#61B2F0" stroke-width="1">
+                                            width="20" height="20" viewBox="0 0 24 24" fill="#2AA7A1" stroke="#2AA7A1" stroke-width="1">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                         </svg>
@@ -195,15 +195,15 @@
 
                                 {{-- TEXT BELOW IMAGE — no card box --}}
                                 <div class="mt-3 px-1">
-                                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#61B2F0] mb-0.5">
+                                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#156F8C] mb-0.5">
                                         {{ $property->property_type }}
                                     </p>
 
-                                    <h3 class="text-[14px] font-semibold text-[#2A2523] leading-snug line-clamp-1">
+                                    <h3 class="text-[14px] font-semibold text-[#1F2937] leading-snug line-clamp-1">
                                         {{ $property->title }}
                                     </h3>
 
-                                    <p class="text-[13px] text-[#9B9F98] mt-0.5 line-clamp-1 flex items-center gap-1">
+                                    <p class="text-[13px] text-[#64748B] mt-0.5 line-clamp-1 flex items-center gap-1">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                                             class="flex-shrink-0">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -213,12 +213,12 @@
                                         {{ $property->address }}
                                     </p>
 
-                                    <p class="text-[14px] font-semibold text-[#2A2523] mt-1.5">
+                                    <p class="text-[14px] font-semibold text-[#1F2937] mt-1.5">
                                         @if($property->min_rental_fee)
                                             ₱{{ number_format($property->min_rental_fee) }}
-                                            <span class="text-[13px] font-normal text-[#9B9F98]">/month</span>
+                                            <span class="text-[13px] font-normal text-[#64748B]">/month</span>
                                         @else
-                                            <span class="text-[13px] font-normal text-[#9B9F98]">Price not set</span>
+                                            <span class="text-[13px] font-normal text-[#64748B]">Price not set</span>
                                         @endif
                                     </p>
                                 </div>
@@ -236,7 +236,7 @@
                 {{-- MAP COLUMN --}}
                 <div :class="mobileView === 'map' ? 'block' : 'hidden'" class="lg:!block lg:sticky lg:top-[72px] lg:self-start">
                     <div id="browse-map"
-                        class="w-full h-[400px] lg:h-[calc(100vh-72px)] rounded-2xl overflow-hidden border border-[#9B9F98]/20"></div>
+                        class="w-full h-[400px] lg:h-[calc(100vh-72px)] rounded-2xl overflow-hidden border border-[#64748B]/20"></div>
                     <script type="application/json" id="browse-map-data">{!! json_encode($mapProperties) !!}</script>
                 </div>
 
