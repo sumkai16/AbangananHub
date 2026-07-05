@@ -60,6 +60,7 @@
                             'all' => ['label' => 'All', 'count' => $allCount],
                             'unread' => ['label' => 'Unread', 'count' => $unreadCount],
                             'resolved' => ['label' => 'Resolved', 'count' => $resolvedCount],
+                            'cancelled' => ['label' => 'Cancelled', 'count' => $cancelledCount],
                         ];
                     @endphp
                     @foreach ($tabs as $key => $tab)
@@ -316,12 +317,12 @@
                         const senderFirst = (data.sender_name || '').split(' ')[0];
 
                         bubble.innerHTML = `
-                                        ${!self ? `<p class="text-[10px] font-bold text-[#9B9F98] mb-1 tracking-wide uppercase">${senderFirst}</p>` : ''}
-                                        <p class="text-[13px] leading-relaxed whitespace-pre-wrap">${this.escapeHtml(data.message)}</p>
-                                        <div class="flex items-center justify-end mt-1">
-                                            <p class="text-[10px] tracking-wide ${self ? 'text-white/40' : 'text-[#9B9F98]'}">${time}</p>
-                                        </div>
-                                    `;
+                                                ${!self ? `<p class="text-[10px] font-bold text-[#9B9F98] mb-1 tracking-wide uppercase">${senderFirst}</p>` : ''}
+                                                <p class="text-[13px] leading-relaxed whitespace-pre-wrap">${this.escapeHtml(data.message)}</p>
+                                                <div class="flex items-center justify-end mt-1">
+                                                    <p class="text-[10px] tracking-wide ${self ? 'text-white/40' : 'text-[#9B9F98]'}">${time}</p>
+                                                </div>
+                                            `;
                         msgList.appendChild(bubble);
                         msgList.scrollTop = msgList.scrollHeight;
 

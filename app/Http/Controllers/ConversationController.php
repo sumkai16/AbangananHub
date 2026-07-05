@@ -29,7 +29,9 @@ class ConversationController extends Controller
 
         $allCount = (clone $base)->count();
         $resolvedCount = (clone $base)->where('status', 'Resolved')->count();
+        $cancelledCount = (clone $base)->where('status', 'Cancelled')->count();
         $unreadCount = (clone $base)->where('status', '!=', 'Resolved')
+            ->where('status', '!=', 'Cancelled')
             ->whereHas('latestMessage', function ($q) use ($userId) {
                 $q->where('sender_id', '!=', $userId)
                     ->where('is_read', false);
@@ -49,8 +51,11 @@ class ConversationController extends Controller
 
         if ($status === 'resolved') {
             $query->where('status', 'Resolved');
+        } elseif ($status === 'cancelled') {
+            $query->where('status', 'Cancelled');
         } elseif ($status === 'unread') {
             $query->where('status', '!=', 'Resolved')
+                ->where('status', '!=', 'Cancelled')
                 ->whereHas('latestMessage', function ($q) use ($userId) {
                     $q->where('sender_id', '!=', $userId)
                         ->where('is_read', false);
@@ -67,7 +72,7 @@ class ConversationController extends Controller
             : collect();
 
         return view('conversations.index', compact(
-            'conversations', 'status', 'allCount', 'unreadCount', 'resolvedCount',
+            'conversations', 'status', 'allCount', 'unreadCount', 'resolvedCount', 'cancelledCount',
             'isLandlord', 'landlordProperties', 'propertyId'
         ));
     }

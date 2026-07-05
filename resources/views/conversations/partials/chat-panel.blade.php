@@ -353,19 +353,34 @@
                 <p class="text-[12px] text-[#9B9F98]">Your inquiry has been sent. The landlord will review and respond.</p>
             </div>
         @endif
-
-        {{-- Message input --}}
-    <div class="px-5 py-3 bg-white border-t border-[#F0EDE8] flex-shrink-0">        <form id="message-form" class="flex items-center gap-2.5">
-            <input type="text" id="message-input" name="message" required maxlength="2000" autocomplete="off"
-                class="flex-1 bg-[#F0EDE8] border border-transparent focus:border-[#61B2F0] focus:bg-white focus:ring-2 focus:ring-[#61B2F0]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#2A2523] transition outline-none placeholder-[#9B9F98]"
-                placeholder="Message {{ $otherParty->first_name }}...">
-            <button type="submit"
-                class="bg-[#2A2523] hover:brightness-95 active:scale-[0.98] text-white font-bold text-[13px] px-4 py-2.5 rounded-xl shadow-sm transition inline-flex items-center gap-1.5">
-                <svg class="w-4 h-4 rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+        {{-- Banner for cancelled conversations --}}
+        @if($conversation->isCancelled())
+            <div class="px-5 py-2.5 bg-[#F0EDE8]/50 border-t border-[#F0EDE8] flex items-center gap-2.5 flex-shrink-0">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#BD5434" stroke-width="2" class="shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-                Send
-            </button>
-        </form>
+                <p class="text-[12px] text-[#9B9F98]">This conversation has been cancelled. You can no longer send messages here.</p>
+            </div>
+        @endif
+    {{-- Message input --}}
+        @if($conversation->isCancelled())
+            <div class="px-5 py-3 bg-[#F0EDE8]/40 border-t border-[#F0EDE8] flex-shrink-0">
+                <p class="text-center text-[12px] text-[#9B9F98] font-medium">Messaging is disabled for cancelled conversations.</p>
+            </div>
+        @else
+            <div class="px-5 py-3 bg-white border-t border-[#F0EDE8] flex-shrink-0">        <form id="message-form" class="flex items-center gap-2.5">
+                <input type="text" id="message-input" name="message" required maxlength="2000" autocomplete="off"
+                    class="flex-1 bg-[#F0EDE8] border border-transparent focus:border-[#61B2F0] focus:bg-white focus:ring-2 focus:ring-[#61B2F0]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#2A2523] transition outline-none placeholder-[#9B9F98]"
+                    placeholder="Message {{ $otherParty->first_name }}...">
+                <button type="submit"
+                    class="bg-[#2A2523] hover:brightness-95 active:scale-[0.98] text-white font-bold text-[13px] px-4 py-2.5 rounded-xl shadow-sm transition inline-flex items-center gap-1.5">
+                    <svg class="w-4 h-4 rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                    </svg>
+                    Send
+                </button>
+            </form>
+            </div>
+        @endif
     </div>
 </div>
