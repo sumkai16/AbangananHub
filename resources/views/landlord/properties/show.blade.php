@@ -522,7 +522,7 @@
                                 <div class="flex items-start justify-between gap-2">
                                     <div>
                                         <p class="text-[13px] font-bold text-[#0F172A]">{{ $unit->unit_label }}</p>
-                                        <p class="text-[12px] text-[#BD5434] font-semibold mt-0.5">
+                                        <p class="text-[12px] text-[#DC2626] font-semibold mt-0.5">
                                             ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[#9B9F98] font-normal">/mo</span>
                                         </p>
                                     </div>

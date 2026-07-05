@@ -24,10 +24,10 @@
         class="notif-item group relative w-full text-left px-4 py-3 flex gap-3 items-start bg-white hover:bg-gray-50 transition-all duration-200 border-b border-gray-50 last:border-0 {{ $n->is_read ? 'opacity-85' : '' }}">
         
         @if(!$n->is_read)
-            <div class="absolute left-0 top-0 bottom-0 w-[3px] bg-[#286CD2]"></div>
+            <div class="absolute left-0 top-0 bottom-0 w-[3px] bg-[#FF8A65]"></div>
         @endif
         
-        <div class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden {{ $n->is_read ? 'bg-gray-100 text-gray-400' : 'bg-[#286CD2] text-white' }} shadow-sm">
+        <div class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden {{ $n->is_read ? 'bg-gray-100 text-gray-400' : 'bg-[#FF8A65] text-white' }} shadow-sm">
             @if($senderImage)
                 <img src="{{ asset('storage/' . $senderImage) }}" alt="{{ $senderName }}" class="w-full h-full object-cover">
             @else
@@ -37,8 +37,8 @@
         
         <span class="flex-1 min-w-0 flex flex-col justify-center">
             <span class="flex justify-between items-baseline gap-1.5 mb-0.5">
-                <span class="block text-[13.5px] font-semibold text-[#1A1A2E] truncate group-hover:text-[#286CD2] transition-colors {{ $n->is_read ? 'font-medium' : '' }}">{{ $n->title }}</span>
-                <span class="block text-[10px] font-medium whitespace-nowrap {{ $n->is_read ? 'text-gray-400' : 'text-[#286CD2]' }}">{{ $n->created_at->diffForHumans() }}</span>
+                <span class="block text-[13.5px] font-semibold text-[#1A1A2E] truncate group-hover:text-[#FF8A65] transition-colors {{ $n->is_read ? 'font-medium' : '' }}">{{ $n->title }}</span>
+                <span class="block text-[10px] font-medium whitespace-nowrap {{ $n->is_read ? 'text-gray-400' : 'text-[#FF8A65]' }}">{{ $n->created_at->diffForHumans() }}</span>
             </span>
             <span class="block text-[12px] leading-relaxed line-clamp-2 {{ $n->is_read ? 'text-gray-500' : 'text-gray-700' }}">{{ $n->message }}</span>
         </span>

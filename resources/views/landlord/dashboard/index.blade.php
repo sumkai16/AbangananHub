@@ -63,7 +63,7 @@
                         <circle cx="80" cy="80" r="{{ $radius }}" fill="none" stroke="#F1F5F9" stroke-width="16" />
 
                         @if($occupiedUnits > 0)
-                            <circle cx="80" cy="80" r="{{ $radius }}" fill="none" stroke="#BD5434" stroke-width="16"
+                            <circle cx="80" cy="80" r="{{ $radius }}" fill="none" stroke="#DC2626" stroke-width="16"
                                 stroke-dasharray="{{ $occupiedLen }} {{ $circumference }}" stroke-dashoffset="0" />
                         @endif
                         @if($availableUnits > 0)
@@ -91,7 +91,7 @@
                 <div class="space-y-2 text-[12px]">
                     <div class="flex items-center justify-between">
                         <span class="flex items-center gap-2"><span
-                                class="w-2.5 h-2.5 rounded-full bg-[#BD5434]"></span>Occupied</span>
+                                class="w-2.5 h-2.5 rounded-full bg-[#DC2626]"></span>Occupied</span>
                         <span class="font-semibold text-[#0F172A]">{{ $occupiedUnits }} ({{ $occupiedPct }}%)</span>
                     </div>
                     <div class="flex items-center justify-between">

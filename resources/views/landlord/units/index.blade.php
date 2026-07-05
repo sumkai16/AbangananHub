@@ -102,13 +102,13 @@
             <div class="bg-white rounded-xl ring-1 ring-[#9B9F98]/15 p-4">
                 <div class="flex items-center gap-2 mb-1">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                        class="text-[#BD5434]">
+                        class="text-[#DC2626]">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                     </svg>
                     <span class="text-[11px] font-medium text-[#9B9F98]">Occupied</span>
                 </div>
-                <span class="text-xl font-bold text-[#BD5434]">{{ $occupied }}</span>
+                <span class="text-xl font-bold text-[#DC2626]">{{ $occupied }}</span>
                 <p class="text-[10px] text-[#9B9F98] mt-0.5">{{ $total > 0 ? round($occupied / $total * 100) : 0 }}% of
                     total units</p>
             </div>

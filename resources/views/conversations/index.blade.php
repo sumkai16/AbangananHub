@@ -46,10 +46,10 @@
                 </svg>
                 <input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Search by person or property name…"
-                    class="w-full pl-9 pr-4 py-2.5 text-sm text-gray-800 bg-[#F7F8FA] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#286CD2]/30 focus:border-[#286CD2] transition placeholder-gray-400" />
+                    class="w-full pl-9 pr-4 py-2.5 text-sm text-gray-800 bg-[#F7F8FA] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/30 focus:border-[#FF8A65] transition placeholder-gray-400" />
             </div>
             <button type="submit"
-                class="px-5 py-2.5 text-sm font-bold text-white bg-[#286CD2] hover:bg-[#1e57b0] rounded-xl shadow-sm transition-all duration-200">
+                class="px-5 py-2.5 text-sm font-bold text-white bg-[#FF8A65] hover:bg-[#1e57b0] rounded-xl shadow-sm transition-all duration-200">
                 Search
             </button>
             @if(request('search'))

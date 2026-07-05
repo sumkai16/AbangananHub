@@ -99,7 +99,7 @@
                 <button
                     type="button"
                     @click="remove(index)"
-                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-[#BD5434] transition-colors duration-150 opacity-0 group-hover:opacity-100"
+                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-[#DC2626] transition-colors duration-150 opacity-0 group-hover:opacity-100"
                     aria-label="Remove photo"
                 >
                     <svg width="8" height="8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">

@@ -22,7 +22,7 @@
                 <input id="first_name" name="first_name" type="text" value="{{ old('first_name', $user->first_name) }}"
                     required autofocus autocomplete="given-name"
                     class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
-                           focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/15 placeholder:text-slate-300">
+                           focus:border-[#FF8A65] focus:bg-white focus:ring-2 focus:ring-[#FF8A65]/15 placeholder:text-slate-300">
                 @error('first_name')
                     <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
                 @enderror
@@ -37,7 +37,7 @@
                 <input id="last_name" name="last_name" type="text" value="{{ old('last_name', $user->last_name) }}"
                     required autocomplete="family-name"
                     class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
-                           focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/15 placeholder:text-slate-300">
+                           focus:border-[#FF8A65] focus:bg-white focus:ring-2 focus:ring-[#FF8A65]/15 placeholder:text-slate-300">
                 @error('last_name')
                     <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
                 @enderror
@@ -51,7 +51,7 @@
                 <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required
                     autocomplete="username"
                     class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
-                           focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/15 placeholder:text-slate-300">
+                           focus:border-[#FF8A65] focus:bg-white focus:ring-2 focus:ring-[#FF8A65]/15 placeholder:text-slate-300">
                 @error('email')
                     <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
                 @enderror
@@ -86,7 +86,7 @@
                     value="{{ old('contact_number', $user->contact_number) }}" placeholder="+63 912 345 6789"
                     autocomplete="tel"
                     class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
-                           focus:border-[#286CD2] focus:bg-white focus:ring-2 focus:ring-[#286CD2]/15 placeholder:text-slate-300">
+                           focus:border-[#FF8A65] focus:bg-white focus:ring-2 focus:ring-[#FF8A65]/15 placeholder:text-slate-300">
                 @error('contact_number')
                     <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
                 @enderror
@@ -96,7 +96,7 @@
         {{-- Actions --}}
         <div class="mt-7 flex items-center gap-4 border-t border-slate-100 pt-6">
             <button type="submit"
-                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#286CD2] px-5 text-[13px] font-semibold text-white transition hover:bg-[#1e55a8] active:scale-[0.98]">
+                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#FF8A65] px-5 text-[13px] font-semibold text-white transition hover:bg-[#1e55a8] active:scale-[0.98]">
                 Save changes
             </button>
             @if (session('status') === 'profile-updated')

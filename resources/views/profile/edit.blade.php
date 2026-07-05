@@ -8,7 +8,7 @@
         {{-- Page header --}}
         <div class="mb-8 flex items-center gap-4">
             <div
-                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#286CD2] text-lg font-bold text-white">
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FF8A65] text-lg font-bold text-white">
                 {{ strtoupper(substr(Auth::user()->first_name ?? 'U', 0, 1)) }}
             </div>
             <div>

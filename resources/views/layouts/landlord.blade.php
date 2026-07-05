@@ -37,7 +37,7 @@
     </style>
 </head>
 
-<body class="font-sans bg-[#F0EDE8] text-[#2A2523] min-h-screen" x-data="{
+<body class="font-sans bg-[#F7FCFC] text-[#156F8C] min-h-screen" x-data="{
         sidebarOpen: false,
         sidebarCollapsed: localStorage.getItem('landlordSidebarCollapsed') === 'true'
     }" x-init="
@@ -57,11 +57,11 @@
 
         <aside id="landlord-sidebar"
             :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#2A2523] border-r border-white/10 flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#156F8C] border-r border-white/10 flex flex-col transition-all duration-300 lg:translate-x-0">
 
             {{-- Floating collapse toggle (desktop only) --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
-                class="hidden lg:flex absolute top-5 -right-3 w-6 h-6 rounded-full bg-[#61B2F0] text-white items-center justify-center shadow-md hover:brightness-95 transition-all duration-200 z-10"
+                class="hidden lg:flex absolute top-5 -right-3 w-6 h-6 rounded-full bg-[#FF8A65] text-white items-center justify-center shadow-md hover:brightness-95 transition-all duration-200 z-10"
                 :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
                     :class="sidebarCollapsed ? 'rotate-180' : ''" class="transition-transform duration-300">
@@ -72,7 +72,7 @@
             {{-- Logo --}}
             <a href="{{ route('landlord.dashboard') }}"
                 class="flex items-center gap-2.5 px-5 h-[72px] border-b border-white/10 shrink-0 no-underline overflow-hidden">
-                <div class="w-9 h-9 rounded-xl bg-[#61B2F0] flex items-center justify-center shadow-sm shrink-0">
+                <div class="w-9 h-9 rounded-xl bg-[#FF8A65] flex items-center justify-center shadow-sm shrink-0">
                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -80,7 +80,7 @@
                 </div>
                 <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                     class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
-                    Abanganan<span class="text-[#61B2F0]">Hub</span>
+                    Abanganan<span class="text-[#FF8A65]">Hub</span>
                 </span>
             </a>
 
@@ -97,7 +97,7 @@
                 {{-- Dashboard --}}
                 <a href="{{ route('landlord.dashboard') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ $current === 'landlord.dashboard' ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                        {{ $current === 'landlord.dashboard' ? 'bg-[#FF8A65] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -106,7 +106,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="whitespace-nowrap">Dashboard</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Dashboard
                     </span>
                 </a>
@@ -114,7 +114,7 @@
                 {{-- Properties --}}
                 <a href="{{ route('landlord.properties.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'landlord.properties') && !str_contains($current, 'units') ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                          {{ str_starts_with($current, 'landlord.properties') && !str_contains($current, 'units') ? 'bg-[#FF8A65] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -123,7 +123,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="whitespace-nowrap">Properties</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Properties
                     </span>
                 </a>
@@ -140,7 +140,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Via Property</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Units — open a property to manage units
                     </span>
                 </div>
@@ -148,7 +148,7 @@
                 {{-- Reservations --}}
                 <a href="{{ route('landlord.reservations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'landlord.reservations') ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                          {{ str_starts_with($current, 'landlord.reservations') ? 'bg-[#FF8A65] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -157,7 +157,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="whitespace-nowrap">Reservations</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Reservations
                     </span>
                 </a>
@@ -174,7 +174,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Tenants · Soon
                     </span>
                 </div>
@@ -182,7 +182,7 @@
                 {{-- Messages --}}
                 <a href="{{ route('conversations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'conversations') ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                          {{ str_starts_with($current, 'conversations') ? 'bg-[#FF8A65] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <circle cx="12" cy="12" r="9" />
@@ -193,7 +193,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="whitespace-nowrap">Messages</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Messages
                     </span>
                 </a>
@@ -216,7 +216,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Occupancy · Soon
                     </span>
                 </div>
@@ -234,7 +234,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Analytics · Soon
                     </span>
                 </div>
@@ -251,7 +251,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Reports · Soon
                     </span>
                 </div>
@@ -268,7 +268,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Reviews · Soon
                     </span>
                 </div>
@@ -279,7 +279,7 @@
 
                 <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'profile.edit' ? 'bg-[#61B2F0] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
+                          {{ $current === 'profile.edit' ? 'bg-[#FF8A65] text-white font-semibold' : 'text-white/70 hover:bg-white/10' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -289,7 +289,7 @@
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="whitespace-nowrap">Settings</span>
                     <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#2A2523] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#156F8C] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Settings
                     </span>
                 </a>
@@ -302,7 +302,7 @@
                     <p class="text-[11px] text-white/50 mb-2.5 leading-relaxed">Visit our Help Center or contact
                         support.</p>
                     <a href="{{ route('about') }}"
-                        class="block text-center text-[11px] font-semibold bg-[#61B2F0] text-white rounded-lg py-2 hover:brightness-95 transition-all duration-200 whitespace-nowrap">
+                        class="block text-center text-[11px] font-semibold bg-[#FF8A65] text-white rounded-lg py-2 hover:brightness-95 transition-all duration-200 whitespace-nowrap">
                         Go to Help Center
                     </a>
                 </div>
@@ -319,7 +319,7 @@
 
                 {{-- Mobile menu toggle --}}
                 <button @click="sidebarOpen = !sidebarOpen"
-                    class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#F0EDE8] text-[#2A2523] transition-colors duration-200">
+                    class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#F7FCFC] text-[#156F8C] transition-colors duration-200">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
@@ -331,10 +331,10 @@
                 <div class="flex items-center gap-3">
                     @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
                     <a href="{{ route('notifications.index') }}"
-                        class="relative flex items-center justify-center w-10 h-10 rounded-full border border-[#9B9F98]/20 bg-white text-[#2A2523]/70 hover:bg-[#F0EDE8] transition-colors duration-200">
+                        class="relative flex items-center justify-center w-10 h-10 rounded-full border border-[#9B9F98]/20 bg-white text-[#156F8C]/70 hover:bg-[#F7FCFC] transition-colors duration-200">
                         @if($unread > 0)
                             <div
-                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#BD5434] border-2 border-white">
+                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#DC2626] border-2 border-white">
                             </div>
                         @endif
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -346,13 +346,13 @@
 
                     <div class="relative">
                         <button id="landlord-avatar-btn" aria-expanded="false"
-                            class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-[#F0EDE8] transition-colors duration-200 focus:outline-none">
+                            class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-[#F7FCFC] transition-colors duration-200 focus:outline-none">
                             <span
-                                class="w-9 h-9 rounded-full bg-[#61B2F0] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
+                                class="w-9 h-9 rounded-full bg-[#FF8A65] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
                                 {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
                             </span>
                             <span class="hidden sm:flex flex-col items-start leading-tight">
-                                <span class="text-[13px] font-semibold text-[#2A2523]">{{ auth()->user()->first_name }}
+                                <span class="text-[13px] font-semibold text-[#156F8C]">{{ auth()->user()->first_name }}
                                     {{ auth()->user()->last_name }}</span>
                                 <span class="text-[11px] text-[#9B9F98]">Landlord</span>
                             </span>
@@ -365,11 +365,11 @@
                         <div id="landlord-avatar-menu"
                             class="absolute top-[calc(100%+10px)] right-0 w-[220px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#9B9F98]/15 py-2 hidden z-50">
                             <a href="{{ route('properties.index') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]">
+                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#156F8C] hover:bg-[#F7FCFC]">
                                 Browse as Tenant
                             </a>
                             <a href="{{ route('profile.edit') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#2A2523] hover:bg-[#F0EDE8]">
+                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#156F8C] hover:bg-[#F7FCFC]">
                                 Account Settings
                             </a>
                             <div class="h-px bg-[#9B9F98]/15 my-2"></div>

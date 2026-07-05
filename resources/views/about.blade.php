@@ -36,7 +36,7 @@
         left: 100%;
         width: 100%;
         height: 2px;
-        background: linear-gradient(90deg, #286CD2 0%, #e5e7eb 100%);
+        background: linear-gradient(90deg, #FF8A65 0%, #e5e7eb 100%);
         transform: translateY(-50%);
     }
 </style>
@@ -45,10 +45,10 @@
 @section('content')
 
 {{-- ── HERO ─────────────────────────────────────────────────────────────────── --}}
-<section class="relative overflow-hidden bg-gradient-to-br from-[#1A1A2E] via-[#1e2d50] to-[#286CD2] text-white">
+<section class="relative overflow-hidden bg-gradient-to-br from-[#1A1A2E] via-[#1e2d50] to-[#FF8A65] text-white">
 
     {{-- decorative circles --}}
-    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#286CD2]/20 blur-3xl pointer-events-none"></div>
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#FF8A65]/20 blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-white/5 blur-2xl pointer-events-none"></div>
 
     <div class="relative max-w-5xl mx-auto px-6 py-24 text-center">
@@ -71,7 +71,7 @@
 
         <div class="flex flex-wrap justify-center gap-3 mt-8 fade-up" style="transition-delay:.24s">
             <a href="{{ route('properties.index') }}"
-               class="h-11 px-7 bg-[#286CD2] hover:bg-[#1D4ED8] text-white font-bold text-[14px] rounded-full transition-all shadow-lg shadow-[#286CD2]/30 flex items-center gap-2">
+               class="h-11 px-7 bg-[#FF8A65] hover:bg-[#1D4ED8] text-white font-bold text-[14px] rounded-full transition-all shadow-lg shadow-[#FF8A65]/30 flex items-center gap-2">
                 Browse Properties
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
@@ -96,8 +96,8 @@
             ['label' => 'SDG Aligned', 'value' => 'SDG 16', 'icon' => 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064'],
         ] as $stat)
         <div class="stat-card text-center transition-transform duration-300 fade-up">
-            <div class="w-11 h-11 rounded-2xl bg-[#286CD2]/10 flex items-center justify-center mx-auto mb-3">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#286CD2" stroke-width="2">
+            <div class="w-11 h-11 rounded-2xl bg-[#FF8A65]/10 flex items-center justify-center mx-auto mb-3">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#FF8A65" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $stat['icon'] }}"/>
                 </svg>
             </div>
@@ -113,14 +113,14 @@
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-            <span class="text-[12px] font-bold uppercase tracking-widest text-[#286CD2]">Our Purpose</span>
+            <span class="text-[12px] font-bold uppercase tracking-widest text-[#FF8A65]">Our Purpose</span>
             <h2 class="text-[30px] sm:text-[36px] font-extrabold text-[#1A1A2E] mt-2 tracking-tight">Mission & Vision</h2>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
 
             <div class="feature-card bg-white rounded-3xl p-8 border border-gray-100 shadow-sm transition-all duration-300 fade-up">
-                <div class="w-12 h-12 rounded-2xl bg-[#286CD2] flex items-center justify-center mb-5 shadow-md shadow-[#286CD2]/30">
+                <div class="w-12 h-12 rounded-2xl bg-[#FF8A65] flex items-center justify-center mb-5 shadow-md shadow-[#FF8A65]/30">
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
@@ -157,7 +157,7 @@
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-            <span class="text-[12px] font-bold uppercase tracking-widest text-[#286CD2]">The Process</span>
+            <span class="text-[12px] font-bold uppercase tracking-widest text-[#FF8A65]">The Process</span>
             <h2 class="text-[30px] sm:text-[36px] font-extrabold text-[#1A1A2E] mt-2 tracking-tight">How AbangananHub Works</h2>
             <p class="text-[14.5px] text-gray-400 mt-3 max-w-xl mx-auto">From finding a rental to moving in — the whole journey in one platform.</p>
         </div>
@@ -165,12 +165,12 @@
         {{-- Tenant Flow --}}
         <div class="mb-12 fade-up">
             <div class="flex items-center gap-2 mb-6">
-                <div class="w-7 h-7 rounded-full bg-[#286CD2]/10 flex items-center justify-center">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#286CD2" stroke-width="2.5">
+                <div class="w-7 h-7 rounded-full bg-[#FF8A65]/10 flex items-center justify-center">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#FF8A65" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
                 </div>
-                <span class="text-[13px] font-bold text-[#286CD2] uppercase tracking-wider">For Tenants</span>
+                <span class="text-[13px] font-bold text-[#FF8A65] uppercase tracking-wider">For Tenants</span>
             </div>
             <div class="grid sm:grid-cols-4 gap-4">
                 @foreach([
@@ -180,7 +180,7 @@
                     ['n'=>'4','title'=>'Move In','desc'=>'Once approved, coordinate with your landlord and settle your new home.'],
                 ] as $step)
                 <div class="bg-[#F7F8FA] rounded-2xl p-5 border border-gray-100">
-                    <div class="w-8 h-8 rounded-full bg-[#286CD2] text-white text-[13px] font-extrabold flex items-center justify-center mb-3 shadow-sm">{{ $step['n'] }}</div>
+                    <div class="w-8 h-8 rounded-full bg-[#FF8A65] text-white text-[13px] font-extrabold flex items-center justify-center mb-3 shadow-sm">{{ $step['n'] }}</div>
                     <div class="text-[14px] font-bold text-[#1A1A2E] mb-1">{{ $step['title'] }}</div>
                     <div class="text-[12.5px] text-gray-500 leading-relaxed">{{ $step['desc'] }}</div>
                 </div>
@@ -222,17 +222,17 @@
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-            <span class="text-[12px] font-bold uppercase tracking-widest text-[#286CD2]">Platform Features</span>
+            <span class="text-[12px] font-bold uppercase tracking-widest text-[#FF8A65]">Platform Features</span>
             <h2 class="text-[30px] sm:text-[36px] font-extrabold text-[#1A1A2E] mt-2 tracking-tight">Built for Trust & Transparency</h2>
         </div>
 
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach([
-                ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'title'=>'Verified Landlords', 'desc'=>'Every landlord is vetted through a document verification process before their listings go live.', 'color'=>'#286CD2'],
-                ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title'=>'Smart Search & Filter', 'desc'=>'Find rentals by location, property type (Bedspace, Room, Apartment, House), and maximum budget.', 'color'=>'#286CD2'],
+                ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'title'=>'Verified Landlords', 'desc'=>'Every landlord is vetted through a document verification process before their listings go live.', 'color'=>'#FF8A65'],
+                ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title'=>'Smart Search & Filter', 'desc'=>'Find rentals by location, property type (Bedspace, Room, Apartment, House), and maximum budget.', 'color'=>'#FF8A65'],
                 ['icon'=>'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 'title'=>'Direct Reservations', 'desc'=>'Tenants can reserve a unit in real time. Landlords approve or reject from their dashboard instantly.', 'color'=>'#1A1A2E'],
                 ['icon'=>'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'title'=>'In-App Messaging', 'desc'=>'Communicate directly between tenant and landlord without sharing personal contact info upfront.', 'color'=>'#1A1A2E'],
-                ['icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', 'title'=>'Saved Listings', 'desc'=>'Bookmark your favourite properties and revisit them any time from your Saved Listings tab.', 'color'=>'#286CD2'],
+                ['icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', 'title'=>'Saved Listings', 'desc'=>'Bookmark your favourite properties and revisit them any time from your Saved Listings tab.', 'color'=>'#FF8A65'],
                 ['icon'=>'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', 'title'=>'Real-time Notifications', 'desc'=>'Get notified on reservation approvals, rejections, messages, and listing status updates instantly.', 'color'=>'#1A1A2E'],
             ] as $i => $feature)
             <div class="feature-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm transition-all duration-300 fade-up" style="transition-delay:{{ $i * 0.07 }}s">
@@ -253,7 +253,7 @@
 {{-- ── SDG SECTION ──────────────────────────────────────────────────────────── --}}
 <section class="bg-white py-20">
     <div class="max-w-5xl mx-auto px-6">
-        <div class="bg-gradient-to-br from-[#1A1A2E] to-[#286CD2] rounded-3xl p-10 md:p-14 text-white overflow-hidden relative fade-up">
+        <div class="bg-gradient-to-br from-[#1A1A2E] to-[#FF8A65] rounded-3xl p-10 md:p-14 text-white overflow-hidden relative fade-up">
 
             <div class="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
 
@@ -301,7 +301,7 @@
         </p>
         <div class="flex flex-wrap justify-center gap-3">
             <a href="{{ route('properties.index') }}"
-               class="h-12 px-8 bg-[#286CD2] hover:bg-[#1D4ED8] text-white font-bold text-[14.5px] rounded-full transition-all shadow-lg shadow-[#286CD2]/25 flex items-center gap-2">
+               class="h-12 px-8 bg-[#FF8A65] hover:bg-[#1D4ED8] text-white font-bold text-[14.5px] rounded-full transition-all shadow-lg shadow-[#FF8A65]/25 flex items-center gap-2">
                 Browse Listings
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
