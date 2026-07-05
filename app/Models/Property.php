@@ -6,24 +6,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Property extends Model
 {
     protected $primaryKey = 'property_id';
-    protected $fillable = [
-        'landlord_id',
-        'title',
-        'description',
-        'property_type',
-        'address',
-        'latitude',
-        'longitude',
-        'verification_status',
-    ];
+   protected $fillable = [
+    'landlord_id',
+    'title',
+    'description',
+    'house_rules',
+    'property_type',
+    'address',
+    'latitude',
+    'longitude',
+    'verification_status',
+];
 
     protected function casts(): array
-    {
-        return [
-            'latitude'   => 'decimal:7',
-            'longitude'  => 'decimal:7',
-        ];
-    }
+{
+    return [
+        'latitude'    => 'decimal:7',
+        'longitude'   => 'decimal:7',
+        'house_rules' => 'array',
+    ];
+}
 
     // ─── Relationships ───────────────────────────────────────
 

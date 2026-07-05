@@ -3,7 +3,7 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
-    <div class="max-w-7xl space-y-6">
+    <div class="max-w-[1400px] space-y-6">
 
         {{-- ── Page Header ─────────────────────────────────────────── --}}
         <div class="flex items-center justify-between">
@@ -35,7 +35,7 @@
                     ['label' => 'Pending Items', 'value' => $pendingItems, 'icon' => 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z', 'color' => 'red', 'sub' => 'Requires your action'],
                 ];
                 $colorMap = [
-                    'blue' => ['icon_bg' => 'bg-blue-50', 'icon_text' => 'text-[#286CD2]', 'val_text' => 'text-[#286CD2]'],
+                    'blue' => ['icon_bg' => 'bg-blue-50', 'icon_text' => 'text-[#156F8C]', 'val_text' => 'text-[#156F8C]'],
                     'emerald' => ['icon_bg' => 'bg-emerald-50', 'icon_text' => 'text-emerald-600', 'val_text' => 'text-emerald-600'],
                     'purple' => ['icon_bg' => 'bg-purple-50', 'icon_text' => 'text-purple-600', 'val_text' => 'text-purple-600'],
                     'amber' => ['icon_bg' => 'bg-amber-50', 'icon_text' => 'text-amber-600', 'val_text' => 'text-amber-600'],
@@ -75,9 +75,9 @@
                     </div>
                     <div class="flex items-center gap-4 text-[12px] text-gray-400">
                         <span class="flex items-center gap-1.5"><span
-                                class="w-3 h-0.5 rounded-full bg-[#286CD2] inline-block"></span>Users</span>
+                                class="w-3 h-0.5 rounded-full bg-[#2AA7A1] inline-block"></span>Users</span>
                         <span class="flex items-center gap-1.5"><span
-                                class="w-3 h-0.5 rounded-full bg-emerald-500 inline-block"></span>Properties</span>
+                                class="w-3 h-0.5 rounded-full bg-[#22C55E] inline-block"></span>Properties</span>
                         <span class="flex items-center gap-1.5"><span
                                 class="w-3 h-0.5 rounded-full bg-amber-400 inline-block"></span>Reservations</span>
                     </div>
@@ -100,8 +100,8 @@
                     <div class="flex-1 space-y-3">
                         @php
                             $distItems = [
-                                ['label' => 'Tenants', 'value' => $totalTenants, 'dot' => 'bg-[#286CD2]'],
-                                ['label' => 'Landlords', 'value' => $totalLandlords, 'dot' => 'bg-emerald-500'],
+                                ['label' => 'Tenants', 'value' => $totalTenants, 'dot' => 'bg-[#2AA7A1]'],
+                                ['label' => 'Landlords', 'value' => $totalLandlords, 'dot' => 'bg-[#22C55E]'],
                                 ['label' => 'Admins', 'value' => $totalAdmins, 'dot' => 'bg-purple-500'],
                                 ['label' => 'Unverified Landlords', 'value' => $unverifiedLandlords, 'dot' => 'bg-amber-400'],
                             ];
@@ -208,7 +208,7 @@
                                         </td>
                                         <td class="px-6 py-3.5 text-right">
                                             <a href="{{ route('admin.verifications.show', $v) }}"
-                                                class="text-[12.5px] font-semibold text-[#286CD2] hover:text-[#1e5bb8] transition-colors">
+                                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
                                                 Review →
                                             </a>
                                         </td>
@@ -218,7 +218,7 @@
                         </table>
                         <div class="px-6 py-3 border-t border-gray-50">
                             <a href="{{ route('admin.verifications.index', ['status' => 'Pending']) }}"
-                                class="text-[12.5px] font-semibold text-[#286CD2] hover:text-[#1e5bb8] transition-colors">
+                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
                                 View all pending verifications →
                             </a>
                         </div>
@@ -260,7 +260,7 @@
                                         </td>
                                         <td class="px-6 py-3.5">
                                             <span
-                                                class="text-[11.5px] font-bold bg-[#286CD2]/10 text-[#286CD2] px-2 py-0.5 rounded-full">{{ $p->property_type ?? '—' }}</span>
+                                                class="text-[11.5px] font-bold bg-[#2AA7A1]/10 text-[#156F8C] px-2 py-0.5 rounded-full">{{ $p->property_type ?? '—' }}</span>
                                         </td>
                                         <td class="px-6 py-3.5 text-[13px] text-gray-600">{{ $p->landlord?->first_name }}
                                             {{ $p->landlord?->last_name }}</td>
@@ -273,7 +273,7 @@
                                         </td>
                                         <td class="px-6 py-3.5 text-right">
                                             <a href="{{ route('admin.listings.approval') }}"
-                                                class="text-[12.5px] font-semibold text-[#286CD2] hover:text-[#1e5bb8] transition-colors">
+                                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
                                                 Review →
                                             </a>
                                         </td>
@@ -283,7 +283,7 @@
                         </table>
                         <div class="px-6 py-3 border-t border-gray-50">
                             <a href="{{ route('admin.listings.approval') }}"
-                                class="text-[12.5px] font-semibold text-[#286CD2] hover:text-[#1e5bb8] transition-colors">
+                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
                                 View all pending properties →
                             </a>
                         </div>
@@ -329,7 +329,7 @@
                                         </td>
                                         <td class="px-6 py-3.5 text-right">
                                             <a href="{{ route('admin.units.index') }}"
-                                                class="text-[12.5px] font-semibold text-[#286CD2] hover:text-[#1e5bb8] transition-colors">
+                                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
                                                 Review →
                                             </a>
                                         </td>
@@ -339,7 +339,7 @@
                         </table>
                         <div class="px-6 py-3 border-t border-gray-50">
                             <a href="{{ route('admin.units.index') }}"
-                                class="text-[12.5px] font-semibold text-[#286CD2] hover:text-[#1e5bb8] transition-colors">
+                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
                                 View all pending units →
                             </a>
                         </div>
@@ -366,8 +366,8 @@
                             };
                         @endphp
                         <div class="px-5 py-3.5 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                                <span class="text-[#286CD2] text-[11px] font-bold">
+                            <div class="w-8 h-8 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                                <span class="text-[#156F8C] text-[11px] font-bold">
                                     {{ strtoupper(substr($res->tenant?->first_name ?? '?', 0, 1)) }}
                                 </span>
                             </div>
@@ -403,7 +403,7 @@
                             ['label' => 'In Progress', 'value' => ($reservationStats['Inquiry'] ?? 0) + ($reservationStats['Under Negotiation'] ?? 0) + ($reservationStats['Pending Rental Agreement'] ?? 0) + ($reservationStats['Rental Agreement Signed'] ?? 0), 'cls' => 'bg-amber-50 border-amber-100 text-amber-700'],
                             ['label' => 'Occupied', 'value' => $reservationStats['Occupied'] ?? 0, 'cls' => 'bg-emerald-50 border-emerald-100 text-emerald-700'],
                             ['label' => 'Cancelled', 'value' => $reservationStats['Cancelled'] ?? 0, 'cls' => 'bg-gray-50 border-gray-100 text-gray-500'],
-                            ['label' => 'Rejected', 'value' => $reservationStats['Rejected'] ?? 0, 'cls' => 'bg-blue-50 border-blue-100 text-[#286CD2]'],
+                            ['label' => 'Rejected', 'value' => $reservationStats['Rejected'] ?? 0, 'cls' => 'bg-blue-50 border-blue-100 text-[#156F8C]'],
                         ];
                     @endphp
                     @foreach($resOverview as $item)
@@ -422,15 +422,15 @@
                 <div class="grid grid-cols-2 gap-3">
                     @php
                         $quickActions = [
-                            ['label' => 'Review Landlords', 'sub' => $pendingVerifications . ' pending', 'href' => route('admin.verifications.index', ['status' => 'Pending']), 'icon' => 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z', 'color' => 'bg-[#286CD2]'],
-                            ['label' => 'Review Properties', 'sub' => $pendingListings . ' pending', 'href' => route('admin.listings.approval'), 'icon' => 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25', 'color' => 'bg-emerald-500'],
+                            ['label' => 'Review Landlords', 'sub' => $pendingVerifications . ' pending', 'href' => route('admin.verifications.index', ['status' => 'Pending']), 'icon' => 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z', 'color' => 'bg-[#2AA7A1]'],
+                            ['label' => 'Review Properties', 'sub' => $pendingListings . ' pending', 'href' => route('admin.listings.approval'), 'icon' => 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25', 'color' => 'bg-[#22C55E]'],
                             ['label' => 'Review Units', 'sub' => $pendingUnits . ' pending', 'href' => route('admin.units.index'), 'icon' => 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm9.75 0A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm-9.75 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75 0a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z', 'color' => 'bg-purple-500'],
-                            ['label' => 'Manage Users', 'sub' => number_format($totalUsers) . ' total', 'href' => route('admin.users.index'), 'icon' => 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0Z', 'color' => 'bg-amber-500'],
+                            ['label' => 'Manage Users', 'sub' => number_format($totalUsers) . ' total', 'href' => route('admin.users.index'), 'icon' => 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0Z', 'color' => 'bg-[#FBBF24]'],
                         ];
                     @endphp
                     @foreach($quickActions as $action)
                         <a href="{{ $action['href'] }}"
-                            class="group flex items-center gap-3 p-4 rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-[#286CD2]/20 hover:shadow-sm transition-all">
+                            class="group flex items-center gap-3 p-4 rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-[#2AA7A1]/20 hover:shadow-sm transition-all">
                             <div
                                 class="w-9 h-9 rounded-xl {{ $action['color'] }} flex items-center justify-center shrink-0 shadow-sm">
                                 <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -440,7 +440,7 @@
                             </div>
                             <div class="min-w-0">
                                 <p
-                                    class="text-[13px] font-bold text-[#1A1A2E] truncate group-hover:text-[#286CD2] transition-colors">
+                                    class="text-[13px] font-bold text-[#1A1A2E] truncate group-hover:text-[#156F8C] transition-colors">
                                     {{ $action['label'] }}</p>
                                 <p class="text-[11.5px] text-gray-400">{{ $action['sub'] }}</p>
                             </div>
@@ -470,10 +470,10 @@
                             {
                                 label: 'Users',
                                 data: {!! $chartUsers->toJson() !!},
-                                borderColor: '#286CD2',
+                                borderColor: '#2AA7A1',
                                 backgroundColor: 'rgba(40,108,210,0.08)',
                                 borderWidth: 2.5,
-                                pointBackgroundColor: '#286CD2',
+                                pointBackgroundColor: '#2AA7A1',
                                 pointRadius: 4,
                                 pointHoverRadius: 6,
                                 tension: 0.4,
@@ -548,7 +548,7 @@
                             {{ $totalAdmins }},
                             {{ $unverifiedLandlords }},
                             ],
-                            backgroundColor: ['#286CD2', '#10b981', '#a855f7', '#f59e0b'],
+                            backgroundColor: ['#2AA7A1', '#10b981', '#a855f7', '#f59e0b'],
                             borderWidth: 0,
                             hoverOffset: 4,
                         }],

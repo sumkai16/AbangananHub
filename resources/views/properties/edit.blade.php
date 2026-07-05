@@ -2,11 +2,15 @@
 
 @section('content')
     <div class="min-h-screen bg-gray-50/50 py-12">
-        <div class="max-w-6xl mx-auto px-6 lg:px-8">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px]">
 
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-150 pb-6 mb-8">
                 <div>
+<<<<<<< HEAD
                     <a href="{{ route('landlord.listings.index') }}" class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#FF8A65] transition-colors w-fit">
+=======
+                    <a href="{{ route('landlord.listings.index') }}" class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors w-fit">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                         </svg>
@@ -23,7 +27,11 @@
                         @else bg-red-50 text-red-700 border border-red-100 @endif">
                         {{ $property->verification_status }}
                     </span>
+<<<<<<< HEAD
                     <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase bg-blue-50 text-[#FF8A65] border border-blue-100">
+=======
+                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase bg-blue-50 text-[#156F8C] border border-blue-100">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         {{ $property->availability_status }}
                     </span>
                 </div>
@@ -60,13 +68,21 @@
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Title</label>
                             <input type="text" name="title" value="{{ old('title', $property->title) }}" minlength="10" maxlength="150"
+<<<<<<< HEAD
                                 class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all" required>
+=======
+                                class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" required>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Property type</label>
+<<<<<<< HEAD
                                 <select name="property_type" class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all" required>
+=======
+                                <select name="property_type" class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" required>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                     <option value="Bedspace" {{ old('property_type', $property->property_type) == 'Bedspace' ? 'selected' : '' }}>Bedspace</option>
                                     <option value="Room" {{ old('property_type', $property->property_type) == 'Room' ? 'selected' : '' }}>Room</option>
                                     <option value="Apartment" {{ old('property_type', $property->property_type) == 'Apartment' ? 'selected' : '' }}>Apartment</option>
@@ -78,7 +94,11 @@
                                 <div class="relative">
                                     <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 font-bold text-sm">₱</span>
                                     <input type="number" step="0.01" min="500" max="999999" name="rental_fee" value="{{ old('rental_fee', $property->rental_fee) }}"
+<<<<<<< HEAD
                                         class="w-full h-12 pl-8 pr-4 rounded-2xl border border-gray-200 text-[14px] font-bold text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all" required>
+=======
+                                        class="w-full h-12 pl-8 pr-4 rounded-2xl border border-gray-200 text-[14px] font-bold text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" required>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                 </div>
                             </div>
                         </div>
@@ -87,30 +107,50 @@
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Occupancy limit</label>
                                 <input type="number" name="occupancy_limit" value="{{ old('occupancy_limit', $property->occupancy_limit) }}" min="1" max="100"
+<<<<<<< HEAD
                                     class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all" required>
+=======
+                                    class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" required>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Latitude</label>
                                 <input type="number" step="any" min="-90" max="90" name="latitude" value="{{ old('latitude', $property->latitude) }}" placeholder="10.3157"
+<<<<<<< HEAD
                                     class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all">
+=======
+                                    class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Longitude</label>
                                 <input type="number" step="any" min="-180" max="180" name="longitude" value="{{ old('longitude', $property->longitude) }}" placeholder="123.8854"
+<<<<<<< HEAD
                                     class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all">
+=======
+                                    class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Address</label>
                             <input type="text" name="address" value="{{ old('address', $property->address) }}" minlength="10" maxlength="255"
+<<<<<<< HEAD
                                 class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all" required>
+=======
+                                class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" required>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Description</label>
                             <textarea name="description" rows="6" minlength="20" maxlength="3000"
+<<<<<<< HEAD
                                 class="w-full p-4 rounded-2xl border border-gray-200 text-[14px] text-[#1A1A2E] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all" required>{{ old('description', $property->description) }}</textarea>
+=======
+                                class="w-full p-4 rounded-2xl border border-gray-200 text-[14px] text-[#1A1A2E] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" required>{{ old('description', $property->description) }}</textarea>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         </div>
                     </div>
 
@@ -120,7 +160,11 @@
                             <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
                                 <div class="flex items-center justify-between border-b border-gray-50 pb-3 mb-4">
                                     <h3 class="text-[14px] font-bold text-[#1A1A2E]">Current photos</h3>
+<<<<<<< HEAD
                                     <span class="text-[10px] font-bold uppercase text-[#FF8A65] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
+=======
+                                    <span class="text-[10px] font-bold uppercase text-[#156F8C] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         {{ $property->media->count() }} photos
                                     </span>
                                 </div>
@@ -150,14 +194,24 @@
                             <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
                                 <h3 class="text-[14px] font-bold text-[#1A1A2E] border-b border-gray-50 pb-3">Add more photos</h3>
 
+<<<<<<< HEAD
                                 <div class="border-2 border-dashed border-gray-200 hover:border-[#FF8A65] rounded-3xl p-6 bg-gray-50/50 text-center transition-colors group">
                                     <label class="cursor-pointer block">
                                         <div class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center mx-auto mb-3 text-gray-400 group-hover:text-[#FF8A65] transition-all">
+=======
+                                <div class="border-2 border-dashed border-gray-200 hover:border-[#2AA7A1] rounded-3xl p-6 bg-gray-50/50 text-center transition-colors group">
+                                    <label class="cursor-pointer block">
+                                        <div class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center mx-auto mb-3 text-gray-400 group-hover:text-[#156F8C] transition-all">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                             </svg>
                                         </div>
+<<<<<<< HEAD
                                         <span id="upload-label" data-default-label="Upload new photos" class="text-[13.5px] font-bold text-[#1A1A2E] group-hover:text-[#FF8A65] transition-colors">Upload new photos</span>
+=======
+                                        <span id="upload-label" data-default-label="Upload new photos" class="text-[13.5px] font-bold text-[#1A1A2E] group-hover:text-[#156F8C] transition-colors">Upload new photos</span>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         <p class="text-xs text-gray-400 mt-1.5">JPEG, PNG, or WEBP. Max 5MB each.</p>
                                         <input type="file" name="photos[]" id="photo-input" class="hidden" multiple accept="image/jpeg,image/png,image/jpg,image/webp" onchange="previewSelectedPhotos(this)">
                                     </label>
@@ -177,7 +231,11 @@
                                 <a href="{{ route('landlord.listings.index') }}" class="w-1/3 h-12 rounded-full border border-gray-200 bg-white hover:bg-gray-50 font-bold text-[13.5px] text-gray-700 flex items-center justify-center transition-colors">
                                     Cancel
                                 </a>
+<<<<<<< HEAD
                                 <button type="submit" class="w-2/3 h-12 rounded-full bg-[#FF8A65] text-white font-bold text-[13.5px] shadow-sm hover:bg-[#1e5bb8] transition-all duration-300">
+=======
+                                <button type="submit" class="w-2/3 h-12 rounded-full bg-[#2AA7A1] text-white font-bold text-[13.5px] shadow-sm hover:brightness-95 transition-all duration-300">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                     Save Changes
                                 </button>
                             </div>

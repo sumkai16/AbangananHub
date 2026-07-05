@@ -7,7 +7,7 @@
 
     {{-- Back --}}
     <a href="{{ route('admin.verifications.index') }}"
-        class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#286CD2] transition-colors mb-6">
+        class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors mb-6">
         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
@@ -20,8 +20,8 @@
         {{-- Applicant header --}}
         <div class="px-7 py-6 border-b border-gray-50 flex items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                    <span class="text-[#286CD2] text-[16px] font-extrabold">
+                <div class="w-12 h-12 rounded-2xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                    <span class="text-[#156F8C] text-[16px] font-extrabold">
                         {{ strtoupper(substr($verification->user->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($verification->user->last_name ?? '', 0, 1)) }}
                     </span>
                 </div>
@@ -82,16 +82,16 @@
             <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-3">Government-issued ID</p>
             <a href="{{ route('verifications.document', $verification) }}" target="_blank"
                 class="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-blue-50/60 border border-blue-100 hover:bg-blue-50 transition-colors group">
-                <div class="w-9 h-9 rounded-xl bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                    <svg class="w-4.5 h-4.5 text-[#286CD2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="w-9 h-9 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                    <svg class="w-4.5 h-4.5 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                     </svg>
                 </div>
                 <div>
-                    <p class="text-[13.5px] font-bold text-[#1A1A2E] group-hover:text-[#286CD2] transition-colors">View submitted document</p>
+                    <p class="text-[13.5px] font-bold text-[#1A1A2E] group-hover:text-[#156F8C] transition-colors">View submitted document</p>
                     <p class="text-[12px] text-gray-400">Opens in a new tab</p>
                 </div>
-                <svg class="w-4 h-4 text-gray-400 group-hover:text-[#286CD2] transition-colors ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="w-4 h-4 text-gray-400 group-hover:text-[#156F8C] transition-colors ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                 </svg>
             </a>
@@ -123,7 +123,7 @@
                     onsubmit="return confirm('Approve this landlord application?');">
                     @csrf
                     <button type="submit"
-                        class="inline-flex items-center gap-2 h-11 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-[13.5px] font-bold transition-colors shadow-sm">
+                        class="inline-flex items-center gap-2 h-11 px-6 rounded-2xl bg-[#22C55E] hover:brightness-95 text-white text-[13.5px] font-bold transition-colors shadow-sm">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
@@ -152,7 +152,7 @@
                         Reason for rejection
                     </label>
                     <textarea name="admin_notes" id="admin_notes" rows="3" required
-                        class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all resize-none"
+                        class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all resize-none"
                         placeholder="Explain why — the applicant will see this message."></textarea>
                     @error('admin_notes')
                         <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>

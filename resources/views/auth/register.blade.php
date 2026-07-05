@@ -6,7 +6,11 @@
         <div class="bg-slate-950/25 backdrop-blur-md border border-white/15 rounded-2xl p-6 shadow-2xl max-w-xl mx-auto transform transition-all duration-300 hover:border-white/25">
             <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
+<<<<<<< HEAD
                 for Verified Rental <span class="bg-gradient-to-r from-[#9cd4ff] via-[#FF8A65] to-[#FF8A65] bg-clip-text text-transparent font-black">Properties.</span>
+=======
+                for Verified Rental <span class="bg-gradient-to-r from-[#9cd4ff] via-[#2AA7A1] to-[#156F8C] bg-clip-text text-transparent font-black">Properties.</span>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
@@ -15,7 +19,11 @@
             <div class="space-y-3">
                 {{-- Feature 1 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
+<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#FF8A65] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+=======
+                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
@@ -28,7 +36,11 @@
 
                 {{-- Feature 2 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
+<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#FF8A65] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+=======
+                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
@@ -41,7 +53,11 @@
 
                 {{-- Feature 3 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
+<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#FF8A65] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+=======
+                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
@@ -54,7 +70,11 @@
 
                 {{-- Feature 4 --}}
                 <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
+<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#FF8A65] flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-600/20 select-none">
+=======
+                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-600/20 select-none">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <span class="text-white text-[8px] font-black tracking-tighter leading-none">SDG</span>
                         <span class="text-white text-xs font-black leading-none mt-0.5">16</span>
                     </div>
@@ -74,15 +94,26 @@
             {{-- Branding --}}
             <div class="mb-4">
                 <a href="/" class="flex items-center gap-2 mb-3 group inline-flex">
+<<<<<<< HEAD
                     <div class="w-8 h-8 rounded-lg bg-[#FF8A65] flex items-center justify-center shadow-md shadow-blue-500/10 transition-transform duration-300 group-hover:scale-105">
+=======
+                    <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-blue-500/10 transition-transform duration-300 group-hover:scale-105">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
+<<<<<<< HEAD
                     <span class="text-[#1A1A2E] font-bold text-base tracking-tight">Abanganan<span class="text-[#FF8A65]">Hub</span></span>
                 </a>
                 <h2 class="text-xl font-black text-[#1A1A2E] tracking-tight">Create Your <span class="bg-gradient-to-r from-[#FF8A65] to-[#FF8A65] bg-clip-text text-transparent">Account</span></h2>
                 <p class="text-[#9B9F98] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
+=======
+                    <span class="text-[#1A1A2E] font-bold text-base tracking-tight">Abanganan<span class="text-[#2AA7A1]">Hub</span></span>
+                </a>
+                <h2 class="text-xl font-black text-[#1A1A2E] tracking-tight">Create Your <span class="bg-gradient-to-r from-[#2AA7A1] to-[#2AA7A1] bg-clip-text text-transparent">Account</span></h2>
+                <p class="text-[#64748B] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             </div>
 
             <form method="POST" action="{{ route('register') }}" class="space-y-3">
@@ -94,18 +125,30 @@
                         <label for="first_name" class="block text-xs font-bold text-[#1A1A2E] mb-0.5">First Name</label>
                         <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" required
                             autofocus autocomplete="given-name" placeholder="First name"
+<<<<<<< HEAD
                             class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
                         @error('first_name')
                             <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
+=======
+                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        @error('first_name')
+                            <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         @enderror
                     </div>
                     <div>
                         <label for="last_name" class="block text-xs font-bold text-[#1A1A2E] mb-0.5">Last Name</label>
                         <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" required
                             autocomplete="family-name" placeholder="Last name"
+<<<<<<< HEAD
                             class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
                         @error('last_name')
                             <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
+=======
+                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        @error('last_name')
+                            <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         @enderror
                     </div>
                 </div>
@@ -115,9 +158,15 @@
                     <label for="email" class="block text-xs font-bold text-[#1A1A2E] mb-0.5">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
                         placeholder="Enter your email address"
+<<<<<<< HEAD
                         class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
                     @error('email')
                         <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
+=======
+                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                    @error('email')
+                        <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     @enderror
                 </div>
 
@@ -126,9 +175,15 @@
                     <label for="contact_number" class="block text-xs font-bold text-[#1A1A2E] mb-0.5">Contact Number</label>
                     <input id="contact_number" type="text" name="contact_number" value="{{ old('contact_number') }}"
                         required autocomplete="tel" placeholder="Enter your contact number"
+<<<<<<< HEAD
                         class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
                     @error('contact_number')
                         <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
+=======
+                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                    @error('contact_number')
+                        <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     @enderror
                 </div>
 
@@ -138,9 +193,13 @@
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="new-password"
                             placeholder="Create a password"
+<<<<<<< HEAD
                             class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
+=======
+                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <button type="button" onclick="togglePassword('password', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9F98] hover:text-[#1A1A2E] transition-colors focus:outline-none">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#1A1A2E] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -148,7 +207,11 @@
                         </button>
                     </div>
                     @error('password')
+<<<<<<< HEAD
                         <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
+=======
+                        <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     @enderror
                 </div>
 
@@ -158,9 +221,13 @@
                     <div class="relative">
                         <input id="password_confirmation" type="password" name="password_confirmation" required
                             autocomplete="new-password" placeholder="Confirm your password"
+<<<<<<< HEAD
                             class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#9B9F98] transition-all focus:bg-white focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/10" />
+=======
+                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#1A1A2E] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <button type="button" onclick="togglePassword('password_confirmation', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9F98] hover:text-[#1A1A2E] transition-colors focus:outline-none">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#1A1A2E] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -168,13 +235,21 @@
                         </button>
                     </div>
                     @error('password_confirmation')
+<<<<<<< HEAD
                         <p class="mt-0.5 text-[11px] text-[#DC2626] font-semibold">{{ $message }}</p>
+=======
+                        <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     @enderror
                 </div>
 
                 {{-- Security Banner --}}
                 <div class="flex items-start gap-2.5 bg-blue-50/60 border border-blue-100/80 rounded-xl p-2.5 shadow-sm">
+<<<<<<< HEAD
                     <div class="w-6 h-6 rounded-lg bg-[#FF8A65] flex items-center justify-center shrink-0 mt-0.5">
+=======
+                    <div class="w-6 h-6 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0 mt-0.5">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
@@ -188,7 +263,11 @@
                 {{-- Action Submit Button --}}
                 <div class="pt-0.5">
                     <button type="submit"
+<<<<<<< HEAD
                         class="w-full py-2 bg-[#FF8A65] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md transition-all duration-300 transform active:scale-[0.995]">
+=======
+                        class="w-full py-2 bg-[#2AA7A1] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md transition-all duration-300 transform active:scale-[0.995]">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         Create Account
                     </button>
                 </div>
@@ -198,13 +277,17 @@
             <div class="mt-3.5 flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/60 rounded-xl p-2.5 shadow-inner">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
+<<<<<<< HEAD
                         <svg class="w-3.5 h-3.5 text-[#FF8A65]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+=======
+                        <svg class="w-3.5 h-3.5 text-[#156F8C]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                     </div>
                     <div>
                         <p class="text-[#1A1A2E] text-[11px] font-bold uppercase tracking-wide">Listing a property?</p>
-                        <p class="text-[#9B9F98] text-[10px] font-semibold">Apply as a landlord later.</p>
+                        <p class="text-[#64748B] text-[10px] font-semibold">Apply as a landlord later.</p>
                     </div>
                 </div>
                 <a href="#" class="text-[10px] text-[#DF4D1B] font-black border border-[#DF4D1B]/30 bg-white rounded-md px-2.5 py-1 hover:bg-[#DF4D1B] hover:text-white transition-all duration-200 shrink-0">
@@ -212,12 +295,16 @@
                 </a>
             </div>
 
-            <p class="text-center text-sm text-[#9B9F98] font-medium mt-4">
+            <p class="text-center text-sm text-[#64748B] font-medium mt-4">
                 Already have an account?
+<<<<<<< HEAD
                 <a href="{{ route('login') }}" class="text-[#FF8A65] font-bold hover:underline ml-1">Login</a>
+=======
+                <a href="{{ route('login') }}" class="text-[#156F8C] font-bold hover:underline ml-1">Login</a>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             </p>
 
-            <p class="text-center text-[10px] font-bold text-[#9B9F98]/70 mt-4 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
+            <p class="text-center text-[10px] font-bold text-[#64748B]/70 mt-4 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
         </div>
     </div>
 </x-guest-layout>

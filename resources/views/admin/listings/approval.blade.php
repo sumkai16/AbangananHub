@@ -12,8 +12,8 @@
             <p class="text-[13.5px] text-gray-500 mt-1">Review pending property listings before they go live.</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl px-5 py-3 shadow-sm flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-[#286CD2]/10 flex items-center justify-center">
-                <svg class="w-4.5 h-4.5 text-[#286CD2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="w-9 h-9 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center">
+                <svg class="w-4.5 h-4.5 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                 </svg>
             </div>
@@ -61,7 +61,7 @@
                                 <h3 class="text-[16px] font-bold text-[#1A1A2E]">
                                     {{ $property->title ?? 'Untitled' }}
                                 </h3>
-                                <span class="text-[11px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full bg-[#286CD2]/10 text-[#286CD2] border border-[#286CD2]/20">
+                                <span class="text-[11px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full bg-[#2AA7A1]/10 text-[#156F8C] border border-[#2AA7A1]/20">
                                     {{ $property->type ?? 'Property' }}
                                 </span>
                             </div>
@@ -115,7 +115,7 @@
                             <form method="POST" action="{{ route('admin.listings.approve', $property->id) }}">
                                 @csrf
                                 <button type="submit"
-                                    class="w-full sm:w-[120px] h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[13px] font-bold transition-colors shadow-sm">
+                                    class="w-full sm:w-[120px] h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#22C55E] hover:brightness-95 text-white text-[13px] font-bold transition-colors shadow-sm">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                     </svg>

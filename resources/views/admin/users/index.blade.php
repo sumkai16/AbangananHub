@@ -3,7 +3,7 @@
 @section('page-title', 'Users')
 
 @section('content')
-<div class="max-w-6xl">
+<div class="max-w-[1400px]">
 
     {{-- Page header --}}
     <div class="flex items-center justify-between mb-6">
@@ -14,7 +14,7 @@
         <div class="flex items-center gap-3">
             <span class="text-[13px] font-semibold text-gray-500">{{ number_format($users->total()) }} total</span>
             <a href="{{ route('admin.users.create') }}"
-                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#286CD2] text-white rounded-xl hover:bg-[#1e5bb8] transition-colors shadow-sm">
+                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -33,16 +33,16 @@
             </svg>
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by name, email, or phone…"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all" />
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" />
         </div>
         <select name="role"
-            class="h-10 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+            class="h-10 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
             @foreach (['All', 'Admin', 'Landlord', 'Tenant'] as $r)
                 <option value="{{ $r }}" {{ $role === $r ? 'selected' : '' }}>{{ $r }}</option>
             @endforeach
         </select>
         <button type="submit"
-            class="h-10 px-5 text-[13.5px] font-bold bg-[#286CD2] text-white rounded-xl hover:bg-[#1e5bb8] transition-colors shadow-sm">
+            class="h-10 px-5 text-[13.5px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
             Filter
         </button>
         @if($search || $role !== 'All')
@@ -95,8 +95,8 @@
                                                 alt="{{ $user->first_name }}"
                                                 class="w-9 h-9 rounded-full object-cover border border-gray-100 shrink-0" />
                                         @else
-                                            <div class="w-9 h-9 rounded-full bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                                                <span class="text-[#286CD2] text-[12px] font-bold">
+                                            <div class="w-9 h-9 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                                                <span class="text-[#156F8C] text-[12px] font-bold">
                                                     {{ strtoupper(substr($user->first_name ?? $user->email, 0, 1)) }}{{ strtoupper(substr($user->last_name ?? '', 0, 1)) }}
                                                 </span>
                                             </div>
@@ -118,7 +118,7 @@
                                             @php
                                                 $roleColors = [
                                                     'Admin'    => 'bg-purple-50 text-purple-700 border-purple-200',
-                                                    'Landlord' => 'bg-blue-50 text-[#286CD2] border-blue-200',
+                                                    'Landlord' => 'bg-blue-50 text-[#156F8C] border-blue-200',
                                                     'Tenant'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                                 ];
                                                 $cls = $roleColors[$userRole->role] ?? 'bg-gray-50 text-gray-600 border-gray-200';
@@ -141,7 +141,7 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <a href="{{ route('admin.users.show', $user->user_id) }}"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#286CD2] hover:text-white hover:border-[#286CD2] transition-all">
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
                                         View
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />

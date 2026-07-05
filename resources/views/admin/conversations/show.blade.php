@@ -64,17 +64,17 @@
                             <div class="flex {{ $isTenant ? 'flex-row' : 'flex-row-reverse' }} items-end gap-2.5">
                                 {{-- Avatar --}}
                                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[12px] font-bold
-                                    {{ $isTenant ? 'bg-[#286CD2]/10 text-[#286CD2]' : 'bg-emerald-50 text-emerald-600' }}">
+                                    {{ $isTenant ? 'bg-[#2AA7A1]/10 text-[#156F8C]' : 'bg-emerald-50 text-emerald-600' }}">
                                     {{ strtoupper(substr($msg->sender->first_name ?? '?', 0, 1)) }}
                                 </div>
                                 {{-- Bubble --}}
                                 <div class="max-w-[75%]">
-                                    <p class="text-[10.5px] font-semibold {{ $isTenant ? 'text-[#286CD2]' : 'text-emerald-600 text-right' }} mb-1">
+                                    <p class="text-[10.5px] font-semibold {{ $isTenant ? 'text-[#156F8C]' : 'text-emerald-600 text-right' }} mb-1">
                                         {{ $senderName }} · {{ $roleLabel }}
                                     </p>
                                     <div class="px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed
                                         {{ $isTenant
-                                            ? 'bg-[#286CD2]/8 text-[#1A1A2E] rounded-bl-sm border border-[#286CD2]/10'
+                                            ? 'bg-[#2AA7A1]/8 text-[#1A1A2E] rounded-bl-sm border border-[#2AA7A1]/10'
                                             : 'bg-gray-100 text-[#1A1A2E] rounded-br-sm border border-gray-200' }}">
                                         {{ $msg->message }}
                                     </div>
@@ -103,7 +103,7 @@
                 <p class="text-[10.5px] font-bold uppercase tracking-widest text-gray-400 mb-2.5">Tenant</p>
                 @if($conversation->tenant)
                     <div class="flex items-center gap-2.5 mb-3">
-                        <div class="w-9 h-9 rounded-full bg-[#286CD2]/10 flex items-center justify-center text-[13px] font-bold text-[#286CD2]">
+                        <div class="w-9 h-9 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center text-[13px] font-bold text-[#156F8C]">
                             {{ strtoupper(substr($conversation->tenant->first_name ?? '?', 0, 1)) }}
                         </div>
                         <div>
@@ -153,7 +153,7 @@
                     <p class="text-[13.5px] font-bold text-[#1A1A2E] mb-0.5">{{ $conversation->property->title }}</p>
                     <p class="text-[12px] text-gray-400 mb-1">{{ $conversation->property->address ?? '' }}</p>
                     @if($conversation->unit)
-                        <p class="text-[12px] font-semibold text-[#286CD2]">Unit {{ $conversation->unit->unit_number }}</p>
+                        <p class="text-[12px] font-semibold text-[#156F8C]">Unit {{ $conversation->unit->unit_number }}</p>
                     @endif
                 </div>
             @endif

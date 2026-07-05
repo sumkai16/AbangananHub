@@ -1,10 +1,10 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="w-full px-4 sm:px-8 lg:px-[50px] py-8 pb-16">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
 
         {{-- Breadcrumb --}}
-        <div class="flex items-center gap-1.5 text-sm text-[#9B9F98] mb-2">
+        <div class="flex items-center gap-1.5 text-sm text-[#64748B] mb-2">
             <a href="{{ route('landlord.properties.index') }}"
                 class="hover:text-[#0F172A] transition-colors duration-200">Properties</a>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -22,7 +22,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-[#0F172A] leading-tight">Units</h1>
-                <p class="text-sm text-[#9B9F98] mt-1">Manage all units and their availability for {{ $property->title }}.
+                <p class="text-sm text-[#64748B] mt-1">Manage all units and their availability for {{ $property->title }}.
                 </p>
             </div>
             <a href="{{ route('landlord.properties.units.create', $property) }}"
@@ -36,7 +36,7 @@
 
         {{-- Flash --}}
         @if(session('success'))
-            <div class="mb-6 px-4 py-3 rounded-xl bg-[#DBEAFE] text-[#0F172A] text-sm font-medium flex items-center gap-2">
+            <div class="mb-6 px-4 py-3 rounded-xl bg-[#EEF8F8] text-[#0F172A] text-sm font-medium flex items-center gap-2">
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                     class="shrink-0 text-[#3B82F6]">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -61,55 +61,64 @@
             $occupied = $units->where('availability_status', 'Occupied')->count();
         @endphp
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            <div class="bg-white rounded-xl ring-1 ring-[#9B9F98]/15 p-4">
+            <div class="bg-white rounded-xl ring-1 ring-[#64748B]/15 p-4">
                 <div class="flex items-center gap-2 mb-1">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                        class="text-[#9B9F98]">
+                        class="text-[#64748B]">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
                     </svg>
-                    <span class="text-[11px] font-medium text-[#9B9F98]">Total Units</span>
+                    <span class="text-[11px] font-medium text-[#64748B]">Total Units</span>
                 </div>
                 <span class="text-xl font-bold text-[#0F172A]">{{ $total }}</span>
-                <p class="text-[10px] text-[#9B9F98] mt-0.5">All units in this property</p>
+                <p class="text-[10px] text-[#64748B] mt-0.5">All units in this property</p>
             </div>
-            <div class="bg-white rounded-xl ring-1 ring-[#9B9F98]/15 p-4">
+            <div class="bg-white rounded-xl ring-1 ring-[#64748B]/15 p-4">
                 <div class="flex items-center gap-2 mb-1">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="text-emerald-600">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                     </svg>
-                    <span class="text-[11px] font-medium text-[#9B9F98]">Available</span>
+                    <span class="text-[11px] font-medium text-[#64748B]">Available</span>
                 </div>
                 <span class="text-xl font-bold text-emerald-600">{{ $available }}</span>
-                <p class="text-[10px] text-[#9B9F98] mt-0.5">{{ $total > 0 ? round($available / $total * 100) : 0 }}% of
+                <p class="text-[10px] text-[#64748B] mt-0.5">{{ $total > 0 ? round($available / $total * 100) : 0 }}% of
                     total units</p>
             </div>
-            <div class="bg-white rounded-xl ring-1 ring-[#9B9F98]/15 p-4">
+            <div class="bg-white rounded-xl ring-1 ring-[#64748B]/15 p-4">
                 <div class="flex items-center gap-2 mb-1">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="text-amber-500">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                     </svg>
-                    <span class="text-[11px] font-medium text-[#9B9F98]">Reserved</span>
+                    <span class="text-[11px] font-medium text-[#64748B]">Reserved</span>
                 </div>
                 <span class="text-xl font-bold text-amber-500">{{ $reserved }}</span>
-                <p class="text-[10px] text-[#9B9F98] mt-0.5">{{ $total > 0 ? round($reserved / $total * 100) : 0 }}% of
+                <p class="text-[10px] text-[#64748B] mt-0.5">{{ $total > 0 ? round($reserved / $total * 100) : 0 }}% of
                     total units</p>
             </div>
-            <div class="bg-white rounded-xl ring-1 ring-[#9B9F98]/15 p-4">
+            <div class="bg-white rounded-xl ring-1 ring-[#64748B]/15 p-4">
                 <div class="flex items-center gap-2 mb-1">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+<<<<<<< HEAD
                         class="text-[#DC2626]">
+=======
+                        class="text-[#EF4444]">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                     </svg>
-                    <span class="text-[11px] font-medium text-[#9B9F98]">Occupied</span>
+                    <span class="text-[11px] font-medium text-[#64748B]">Occupied</span>
                 </div>
+<<<<<<< HEAD
                 <span class="text-xl font-bold text-[#DC2626]">{{ $occupied }}</span>
                 <p class="text-[10px] text-[#9B9F98] mt-0.5">{{ $total > 0 ? round($occupied / $total * 100) : 0 }}% of
+=======
+                <span class="text-xl font-bold text-[#EF4444]">{{ $occupied }}</span>
+                <p class="text-[10px] text-[#64748B] mt-0.5">{{ $total > 0 ? round($occupied / $total * 100) : 0 }}% of
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     total units</p>
             </div>
         </div>
@@ -117,18 +126,18 @@
         {{-- Filters --}}
         <form method="GET" class="flex flex-wrap items-center gap-2 mb-6">
             <div class="relative flex-1 min-w-[200px] max-w-xs">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#9B9F98]" width="14" height="14" fill="none"
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" width="14" height="14" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                 </svg>
                 <input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Search units by name or number..."
-                    class="pl-9 pr-4 h-10 w-full rounded-full border border-[#9B9F98]/30 bg-white text-[13px] text-[#0F172A] placeholder-[#9B9F98] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 transition">
+                    class="pl-9 pr-4 h-10 w-full rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#0F172A] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 transition">
             </div>
 
             <select name="status" onchange="this.form.submit()"
-                class="h-10 pl-4 pr-8 rounded-full border border-[#9B9F98]/30 bg-white text-[13px] text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 appearance-none transition">
+                class="h-10 pl-4 pr-8 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 appearance-none transition">
                 <option value="">All Status</option>
                 <option value="Available" @selected(request('status') === 'Available')>Available</option>
                 <option value="Reserved" @selected(request('status') === 'Reserved')>Reserved</option>
@@ -142,7 +151,7 @@
 
             @if(request()->hasAny(['search', 'status']))
                 <a href="{{ route('landlord.properties.units.index', $property) }}"
-                    class="h-10 px-4 rounded-full border border-[#9B9F98]/30 text-[13px] text-[#9B9F98] hover:text-[#0F172A] hover:border-[#9B9F98]/60 transition-colors duration-200 inline-flex items-center gap-1.5">
+                    class="h-10 px-4 rounded-full border border-[#64748B]/30 text-[13px] text-[#64748B] hover:text-[#0F172A] hover:border-[#64748B]/60 transition-colors duration-200 inline-flex items-center gap-1.5">
                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>
@@ -160,39 +169,39 @@
         {{-- Empty state --}}
         @if($filtered->isEmpty())
             <div
-                class="rounded-2xl border border-dashed border-[#9B9F98]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
+                class="rounded-2xl border border-dashed border-[#64748B]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
                 <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"
-                    class="text-[#9B9F98]/50 mb-3">
+                    class="text-[#64748B]/50 mb-3">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
                 </svg>
                 <p class="text-sm font-semibold text-[#0F172A]">No units found</p>
-                <p class="text-xs text-[#9B9F98] mt-1">Try adjusting your search or filters.</p>
+                <p class="text-xs text-[#64748B] mt-1">Try adjusting your search or filters.</p>
             </div>
 
             {{-- Table --}}
         @else
-            <div class="bg-white rounded-2xl ring-1 ring-[#9B9F98]/15 overflow-hidden">
+            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead>
-                            <tr class="border-b border-[#9B9F98]/15 text-left">
-                                <th class="px-5 py-3 text-[11px] font-semibold text-[#9B9F98] uppercase tracking-wider">Unit
+                            <tr class="border-b border-[#64748B]/15 text-left">
+                                <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Unit
                                 </th>
-                                <th class="px-5 py-3 text-[11px] font-semibold text-[#9B9F98] uppercase tracking-wider">Monthly
+                                <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Monthly
                                     Rent</th>
-                                <th class="px-5 py-3 text-[11px] font-semibold text-[#9B9F98] uppercase tracking-wider">Status
+                                <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Status
                                 </th>
-                                <th class="px-5 py-3 text-[11px] font-semibold text-[#9B9F98] uppercase tracking-wider">Capacity
+                                <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Capacity
                                 </th>
-                                <th class="px-5 py-3 text-[11px] font-semibold text-[#9B9F98] uppercase tracking-wider">
+                                <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
                                     Verification</th>
                                 <th
-                                    class="px-5 py-3 text-[11px] font-semibold text-[#9B9F98] uppercase tracking-wider text-right">
+                                    class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-right">
                                     Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#9B9F98]/10">
+                        <tbody class="divide-y divide-[#64748B]/10">
                             @foreach($filtered as $unit)
                                 @php
                                     $thumb = $unit->media->first();
@@ -200,13 +209,13 @@
                                         'Available' => ['bg-emerald-50 text-emerald-700 ring-emerald-200'],
                                         'Reserved' => ['bg-amber-50 text-amber-600 ring-amber-200'],
                                         'Occupied' => ['bg-red-50 text-red-600 ring-red-200'],
-                                        default => ['bg-[#F1F5F9] text-[#9B9F98] ring-[#9B9F98]/20'],
+                                        default => ['bg-[#F1F5F9] text-[#64748B] ring-[#64748B]/20'],
                                     };
                                     [$vrBg] = match ($unit->verification_status) {
                                         'Approved' => ['bg-emerald-50 text-emerald-700'],
                                         'Pending' => ['bg-amber-50 text-amber-600'],
                                         'Rejected' => ['bg-red-50 text-red-600'],
-                                        default => ['bg-[#F1F5F9] text-[#9B9F98]'],
+                                        default => ['bg-[#F1F5F9] text-[#64748B]'],
                                     };
                                 @endphp
                                 <tr class="hover:bg-[#F1F5F9]/30 transition-colors duration-150">
@@ -219,7 +228,7 @@
                                                 @else
                                                     <div class="w-full h-full flex items-center justify-center">
                                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24"
-                                                            stroke="currentColor" stroke-width="1.5" class="text-[#9B9F98]/40">
+                                                            stroke="currentColor" stroke-width="1.5" class="text-[#64748B]/40">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159" />
                                                         </svg>
@@ -252,7 +261,7 @@
                                     <td class="px-5 py-3.5 text-right">
                                         <div class="flex items-center justify-end gap-1.5">
                                             <a href="{{ route('landlord.properties.units.edit', [$property, $unit]) }}"
-                                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#9B9F98]/30 text-[#0F172A] hover:bg-[#F1F5F9] transition-colors duration-200">
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#64748B]/30 text-[#0F172A] hover:bg-[#F1F5F9] transition-colors duration-200">
                                                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                                     stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -281,7 +290,7 @@
                 </div>
             </div>
 
-            <div class="mt-3 text-xs text-[#9B9F98]">
+            <div class="mt-3 text-xs text-[#64748B]">
                 Showing {{ $filtered->count() }} of {{ $total }} units
             </div>
         @endif

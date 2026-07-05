@@ -3,14 +3,24 @@
 @section('content')
     <div class="max-w-xl mx-auto px-4 py-16 text-center">
 
+<<<<<<< HEAD
         <div class="w-14 h-14 rounded-full bg-[#F7FCFC] flex items-center justify-center mx-auto mb-6">
             <svg class="w-7 h-7 text-[#FF8A65]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+=======
+        <div class="w-14 h-14 rounded-full bg-[#EEF8F8] flex items-center justify-center mx-auto mb-6">
+            <svg class="w-7 h-7 text-[#2AA7A1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
         </div>
 
+<<<<<<< HEAD
         <h1 class="text-xl font-extrabold text-[#156F8C] tracking-tight mb-2">Payment Being Confirmed</h1>
         <p class="text-sm text-[#9B9F98] leading-relaxed max-w-sm mx-auto mb-8">
+=======
+        <h1 class="text-xl font-extrabold text-[#1F2937] tracking-tight mb-2">Payment Being Confirmed</h1>
+        <p class="text-sm text-[#64748B] leading-relaxed max-w-sm mx-auto mb-8">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             Your GCash payment has been submitted. We're waiting for confirmation from the payment provider — this usually
             takes a few seconds.
         </p>
@@ -31,7 +41,11 @@
         @endif
 
         <a href="{{ route('agreements.show', $reservation) }}"
+<<<<<<< HEAD
             class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-[#156F8C] hover:brightness-95 text-white font-bold text-sm transition">
+=======
+            class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-[#1F2937] hover:brightness-95 text-white font-bold text-sm transition">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             Back to Agreement
         </a>
     </div>

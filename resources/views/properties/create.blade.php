@@ -2,10 +2,14 @@
 
 @section('content')
 <div class="min-h-screen bg-gray-50/50 py-12">
-    <div class="max-w-6xl mx-auto px-6 lg:px-8">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px]">
 
         <div class="flex flex-col gap-4 border-b border-gray-150 pb-6 mb-8">
+<<<<<<< HEAD
             <a href="{{ route('landlord.listings.index') }}" class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#FF8A65] transition-colors w-fit">
+=======
+            <a href="{{ route('landlord.listings.index') }}" class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors w-fit">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -47,7 +51,11 @@
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Title</label>
                         <input type="text" name="title" value="{{ old('title') }}" minlength="10" maxlength="150"
+<<<<<<< HEAD
                             class="w-full h-12 px-4 rounded-2xl border @error('title') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all"
+=======
+                            class="w-full h-12 px-4 rounded-2xl border @error('title') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             placeholder="e.g., Cozy studio near IT Park" required>
                         @error('title')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                     </div>
@@ -56,7 +64,11 @@
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Property type</label>
                             <select name="property_type"
+<<<<<<< HEAD
                                 class="w-full h-12 px-4 rounded-2xl border @error('property_type') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all" required>
+=======
+                                class="w-full h-12 px-4 rounded-2xl border @error('property_type') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" required>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                 <option value="">Select type</option>
                                 <option value="Bedspace" {{ old('property_type') == 'Bedspace' ? 'selected' : '' }}>Bedspace</option>
                                 <option value="Room" {{ old('property_type') == 'Room' ? 'selected' : '' }}>Room</option>
@@ -70,7 +82,11 @@
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 font-bold text-sm">₱</span>
                                 <input type="number" step="0.01" min="500" max="999999" name="rental_fee" value="{{ old('rental_fee') }}"
+<<<<<<< HEAD
                                     class="w-full h-12 pl-8 pr-4 rounded-2xl border @error('rental_fee') border-red-300 @else border-gray-200 @enderror text-[14px] font-bold text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all"
+=======
+                                    class="w-full h-12 pl-8 pr-4 rounded-2xl border @error('rental_fee') border-red-300 @else border-gray-200 @enderror text-[14px] font-bold text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                     placeholder="0.00" required>
                             </div>
                             @error('rental_fee')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
@@ -81,19 +97,31 @@
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Occupancy limit</label>
                             <input type="number" name="occupancy_limit" value="{{ old('occupancy_limit', 1) }}" min="1" max="100"
+<<<<<<< HEAD
                                 class="w-full h-12 px-4 rounded-2xl border @error('occupancy_limit') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all" required>
+=======
+                                class="w-full h-12 px-4 rounded-2xl border @error('occupancy_limit') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" required>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             @error('occupancy_limit')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Latitude</label>
                             <input type="number" step="any" min="-90" max="90" name="latitude" value="{{ old('latitude') }}" placeholder="10.3157"
+<<<<<<< HEAD
                                 class="w-full h-12 px-4 rounded-2xl border @error('latitude') border-red-300 @else border-gray-200 @enderror text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all">
+=======
+                                class="w-full h-12 px-4 rounded-2xl border @error('latitude') border-red-300 @else border-gray-200 @enderror text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             @error('latitude')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Longitude</label>
                             <input type="number" step="any" min="-180" max="180" name="longitude" value="{{ old('longitude') }}" placeholder="123.8854"
+<<<<<<< HEAD
                                 class="w-full h-12 px-4 rounded-2xl border @error('longitude') border-red-300 @else border-gray-200 @enderror text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all">
+=======
+                                class="w-full h-12 px-4 rounded-2xl border @error('longitude') border-red-300 @else border-gray-200 @enderror text-[14px] text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             @error('longitude')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                         </div>
                     </div>
@@ -102,7 +130,11 @@
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Address</label>
                         <input type="text" name="address" value="{{ old('address') }}" minlength="10" maxlength="255"
+<<<<<<< HEAD
                             class="w-full h-12 px-4 rounded-2xl border @error('address') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all"
+=======
+                            class="w-full h-12 px-4 rounded-2xl border @error('address') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             placeholder="Building, street, barangay, city" required>
                         @error('address')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                     </div>
@@ -110,7 +142,11 @@
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Description</label>
                         <textarea name="description" rows="6" minlength="20" maxlength="3000"
+<<<<<<< HEAD
                             class="w-full p-4 rounded-2xl border @error('description') border-red-300 @else border-gray-200 @enderror text-[14px] text-[#1A1A2E] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#FF8A65]/20 focus:border-[#FF8A65] transition-all"
+=======
+                            class="w-full p-4 rounded-2xl border @error('description') border-red-300 @else border-gray-200 @enderror text-[14px] text-[#1A1A2E] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                             placeholder="Describe the space, amenities, nearby landmarks, house rules, payment terms..." required>{{ old('description') }}</textarea>
                         @error('description')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                     </div>
@@ -122,14 +158,24 @@
                         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
                             <h3 class="text-[14px] font-bold text-[#1A1A2E] border-b border-gray-50 pb-3">Photos</h3>
 
+<<<<<<< HEAD
                             <div class="border-2 border-dashed @error('photos') border-red-200 @else border-gray-200 @enderror hover:border-[#FF8A65] rounded-3xl p-6 bg-gray-50/50 text-center transition-colors group">
                                 <label class="cursor-pointer block">
                                     <div class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center mx-auto mb-3 text-gray-400 group-hover:text-[#FF8A65] transition-all">
+=======
+                            <div class="border-2 border-dashed @error('photos') border-red-200 @else border-gray-200 @enderror hover:border-[#2AA7A1] rounded-3xl p-6 bg-gray-50/50 text-center transition-colors group">
+                                <label class="cursor-pointer block">
+                                    <div class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center mx-auto mb-3 text-gray-400 group-hover:text-[#156F8C] transition-all">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                         </svg>
                                     </div>
+<<<<<<< HEAD
                                     <span id="upload-label" data-default-label="Select photos to upload" class="text-[13.5px] font-bold text-[#1A1A2E] group-hover:text-[#FF8A65] transition-colors">Select photos to upload</span>
+=======
+                                    <span id="upload-label" data-default-label="Select photos to upload" class="text-[13.5px] font-bold text-[#1A1A2E] group-hover:text-[#156F8C] transition-colors">Select photos to upload</span>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                     <p class="text-xs text-gray-400 mt-1.5">JPEG, PNG, or WEBP. Max 5MB each, up to 10 photos.</p>
                                     <input type="file" name="photos[]" id="photo-input" class="hidden" multiple accept="image/jpeg,image/png,image/jpg,image/webp" required onchange="previewSelectedPhotos(this)">
                                 </label>
@@ -150,7 +196,11 @@
                             <a href="{{ route('landlord.listings.index') }}" class="w-1/3 h-12 rounded-full border border-gray-200 bg-white hover:bg-gray-50 font-bold text-[13.5px] text-gray-700 flex items-center justify-center transition-colors">
                                 Cancel
                             </a>
+<<<<<<< HEAD
                             <button type="submit" class="w-2/3 h-12 rounded-full bg-[#FF8A65] text-white font-bold text-[13.5px] shadow-sm hover:bg-[#1e5bb8] transition-all duration-300">
+=======
+                            <button type="submit" class="w-2/3 h-12 rounded-full bg-[#2AA7A1] text-white font-bold text-[13.5px] shadow-sm hover:brightness-95 transition-all duration-300">
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                                 Create Listing
                             </button>
                         </div>

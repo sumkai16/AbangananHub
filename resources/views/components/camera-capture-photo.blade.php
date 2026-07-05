@@ -21,7 +21,7 @@
 <div
     x-data="cameraCapturePhoto({ min: {{ $min }}, max: {{ $max }}, inputName: '{{ $name }}' })"
     x-init="init()"
-    class="rounded-2xl border border-[#9B9F98]/20 bg-[#F7F8FA] p-4"
+    class="rounded-2xl border border-[#64748B]/20 bg-[#F7F8FA] p-4"
 >
     {{-- Hidden input the form actually submits --}}
     <input type="file" x-ref="fileInput" name="{{ $name }}[]" multiple class="hidden" accept="image/*">
@@ -37,7 +37,7 @@
             </div>
             <div>
                 <p class="text-[13px] font-semibold text-[#0F172A]">Unit Photos</p>
-                <p class="text-[11px] text-[#9B9F98] mt-0.5">
+                <p class="text-[11px] text-[#64748B] mt-0.5">
                     Live capture only — <span x-text="min"></span>–<span x-text="max"></span> photos required.
                 </p>
             </div>
@@ -51,11 +51,11 @@
     </div>
 
     {{-- Starting camera state --}}
-    <div x-show="!cameraReady && !error" class="flex items-center gap-2 px-3 py-2.5 mb-3 rounded-xl bg-white border border-[#9B9F98]/20">
-        <svg class="animate-spin text-[#9B9F98] shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24">
+    <div x-show="!cameraReady && !error" class="flex items-center gap-2 px-3 py-2.5 mb-3 rounded-xl bg-white border border-[#64748B]/20">
+        <svg class="animate-spin text-[#64748B] shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"/>
         </svg>
-        <span class="text-[12px] text-[#9B9F98]">Starting camera…</span>
+        <span class="text-[12px] text-[#64748B]">Starting camera…</span>
     </div>
 
     {{-- Error state --}}
@@ -94,12 +94,16 @@
     {{-- Thumbnail strip --}}
     <div class="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-1" x-show="shots.length > 0">
         <template x-for="(shot, index) in shots" :key="shot.id">
-            <div class="relative aspect-square rounded-lg overflow-hidden bg-[#F1F5F9] ring-1 ring-[#9B9F98]/15 group">
+            <div class="relative aspect-square rounded-lg overflow-hidden bg-[#F1F5F9] ring-1 ring-[#64748B]/15 group">
                 <img :src="shot.url" class="w-full h-full object-cover">
                 <button
                     type="button"
                     @click="remove(index)"
+<<<<<<< HEAD
                     class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-[#DC2626] transition-colors duration-150 opacity-0 group-hover:opacity-100"
+=======
+                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-[#EF4444] transition-colors duration-150 opacity-0 group-hover:opacity-100"
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                     aria-label="Remove photo"
                 >
                     <svg width="8" height="8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
@@ -110,7 +114,7 @@
         </template>
     </div>
 
-    <p x-show="shots.length >= max" x-cloak class="text-[11px] text-[#9B9F98] mt-3 text-center">
+    <p x-show="shots.length >= max" x-cloak class="text-[11px] text-[#64748B] mt-3 text-center">
         Maximum of <span x-text="max"></span> photos reached — remove one to add another.
     </p>
 </div>

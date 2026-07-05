@@ -17,7 +17,7 @@
 <div
     x-data="cameraCaptureVideo({ inputName: '{{ $name }}' })"
     x-init="init()"
-    class="rounded-2xl border border-[#9B9F98]/20 bg-[#F7F8FA] p-4"
+    class="rounded-2xl border border-[#64748B]/20 bg-[#F7F8FA] p-4"
 >
     <input type="file" x-ref="fileInput" name="{{ $name }}" class="hidden" accept="video/*">
 
@@ -31,7 +31,7 @@
             </div>
             <div>
                 <p class="text-[13px] font-semibold text-[#0F172A]">Unit Walkthrough Video</p>
-                <p class="text-[11px] text-[#9B9F98] mt-0.5">Live recording only — one short walkthrough clip required.</p>
+                <p class="text-[11px] text-[#64748B] mt-0.5">Live recording only — one short walkthrough clip required.</p>
             </div>
         </div>
         <span
@@ -43,11 +43,11 @@
     </div>
 
     {{-- Starting camera state --}}
-    <div x-show="!cameraReady && !error" class="flex items-center gap-2 px-3 py-2.5 mb-3 rounded-xl bg-white border border-[#9B9F98]/20">
-        <svg class="animate-spin text-[#9B9F98] shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24">
+    <div x-show="!cameraReady && !error" class="flex items-center gap-2 px-3 py-2.5 mb-3 rounded-xl bg-white border border-[#64748B]/20">
+        <svg class="animate-spin text-[#64748B] shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"/>
         </svg>
-        <span class="text-[12px] text-[#9B9F98]">Starting camera…</span>
+        <span class="text-[12px] text-[#64748B]">Starting camera…</span>
     </div>
 
     {{-- Error state --}}
@@ -114,7 +114,7 @@
         <button
             type="button"
             @click="retake()"
-            class="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg border border-[#9B9F98]/30 text-[12px] font-semibold text-[#0F172A] hover:bg-[#F1F5F9] transition-colors duration-200"
+            class="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg border border-[#64748B]/30 text-[12px] font-semibold text-[#0F172A] hover:bg-[#F1F5F9] transition-colors duration-200"
         >
             <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />

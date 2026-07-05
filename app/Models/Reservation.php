@@ -139,7 +139,13 @@ class Reservation extends Model
         if ($reason !== null) {
             $this->rejection_reason = $reason;
         }
-        return $this->save();
+        $saved = $this->save();
+
+        if ($saved) {
+            $this->cancelLinkedConversation();
+        }
+
+        return $saved;
     }
 
     public function cancel(): bool
@@ -148,6 +154,19 @@ class Reservation extends Model
             return false;
         }
         $this->rental_status = 'Cancelled';
-        return $this->save();
+        $saved = $this->save();
+
+        if ($saved) {
+            $this->cancelLinkedConversation();
+        }
+
+        return $saved;
+    }
+
+    protected function cancelLinkedConversation(): void
+    {
+        if ($this->conversation && !$this->conversation->isCancelled()) {
+            $this->conversation->update(['status' => 'Cancelled']);
+        }
     }
 }

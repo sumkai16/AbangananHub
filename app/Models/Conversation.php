@@ -43,11 +43,14 @@ class Conversation extends Model
     {
         return $this->status === 'Resolved';
     }
+    public function isCancelled(): bool
+    {
+        return $this->status === 'Cancelled';
+    }
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class, 'conversation_id', 'conversation_id');
     }
-
     public function activeReservation(): HasOne
     {
         return $this->hasOne(Reservation::class, 'conversation_id', 'conversation_id')

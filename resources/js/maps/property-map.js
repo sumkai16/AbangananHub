@@ -63,7 +63,11 @@ async function loadLandmarks(map, lat, lng, markersToFit) {
             });
             const type = matched ? matched.type : 'shopping';
 
+<<<<<<< HEAD
             const marker = createPin(map, el.lat, el.lon, type, `<div class="p-3 bg-white min-w-[160px]"><strong class="block text-[14px] text-[#156F8C] leading-tight mb-0.5">${escapeHtml(name)}</strong><span class="block text-[#9B9F98] text-[12px] capitalize font-medium">${type}</span></div>`);
+=======
+            const marker = createPin(map, el.lat, el.lon, type, `<div class="p-3 bg-white min-w-[160px]"><strong class="block text-[14px] text-[#1F2937] leading-tight mb-0.5">${escapeHtml(name)}</strong><span class="block text-[#64748B] text-[12px] capitalize font-medium">${type}</span></div>`);
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             markersToFit.push(marker);
         });
 
@@ -99,7 +103,11 @@ function wireDirections(map, destLat, destLng) {
             if (!route) throw new Error('No route found');
 
             const layer = L.geoJSON(route.geometry, {
+<<<<<<< HEAD
                 style: { color: '#FF8A65', weight: 4, opacity: 0.85 },
+=======
+                style: { color: '#2AA7A1', weight: 4, opacity: 0.85 },
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
             }).addTo(map);
 
             createPin(map, fromLat, fromLng, 'origin', '<strong>Your starting point</strong>');

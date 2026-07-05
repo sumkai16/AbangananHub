@@ -3,7 +3,7 @@
 @section('page-title', 'Reviews')
 
 @section('content')
-<div class="max-w-6xl">
+<div class="max-w-[1400px]">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
@@ -41,17 +41,17 @@
             </svg>
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant, property, or review text…"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
         </div>
         <select name="rating"
-            class="h-10 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#286CD2]/20 focus:border-[#286CD2] transition-all">
+            class="h-10 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
             <option value="all" {{ $rating === 'all' ? 'selected' : '' }}>All ratings</option>
             @foreach([1,2,3,4,5] as $s)
                 <option value="{{ $s }}" {{ $rating == $s ? 'selected' : '' }}>{{ $s }} star{{ $s > 1 ? 's' : '' }}</option>
             @endforeach
         </select>
         <button type="submit"
-            class="h-10 px-5 text-[13.5px] font-bold bg-[#286CD2] text-white rounded-xl hover:bg-[#1e5bb8] transition-colors shadow-sm">
+            class="h-10 px-5 text-[13.5px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
             Filter
         </button>
         @if($search || $rating !== 'all')

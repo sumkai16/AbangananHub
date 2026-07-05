@@ -45,7 +45,7 @@
     {{-- Back + actions --}}
     <div class="flex items-center justify-between mb-6">
         <a href="{{ route('admin.reservations.index') }}"
-            class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#286CD2] transition-colors">
+            class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -90,7 +90,7 @@
                 </p>
             </div>
             <div class="text-center bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 shrink-0">
-                <p class="text-[28px] font-extrabold text-[#286CD2] leading-none">
+                <p class="text-[28px] font-extrabold text-[#156F8C] leading-none">
                     {{ $reservation->duration_of_stay ?? '—' }}
                 </p>
                 <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">Duration of Stay</p>
@@ -111,8 +111,8 @@
                         <div class="flex items-center {{ $i < count($pipeline) - 1 ? 'flex-1' : '' }}">
                             <div class="flex flex-col items-center">
                                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0
-                                    {{ $isDone ? 'bg-[#286CD2] text-white' : 'bg-gray-100 text-gray-400' }}
-                                    {{ $isCurrent ? 'ring-2 ring-[#286CD2]/30' : '' }}">
+                                    {{ $isDone ? 'bg-[#2AA7A1] text-white' : 'bg-gray-100 text-gray-400' }}
+                                    {{ $isCurrent ? 'ring-2 ring-[#2AA7A1]/30' : '' }}">
                                     @if($isDone && !$isCurrent)
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -122,12 +122,12 @@
                                     @endif
                                 </div>
                                 <p class="text-[9px] font-semibold mt-1 whitespace-nowrap
-                                    {{ $isCurrent ? 'text-[#286CD2]' : ($isDone ? 'text-gray-500' : 'text-gray-300') }}">
+                                    {{ $isCurrent ? 'text-[#156F8C]' : ($isDone ? 'text-gray-500' : 'text-gray-300') }}">
                                     {{ $step === 'Pending Rental Agreement' ? 'Pending Agmt.' : ($step === 'Rental Agreement Signed' ? 'Agmt. Signed' : $step) }}
                                 </p>
                             </div>
                             @if($i < count($pipeline) - 1)
-                                <div class="flex-1 h-px mx-1 {{ $stepIndex < $currentPipelineIndex ? 'bg-[#286CD2]' : 'bg-gray-100' }}"></div>
+                                <div class="flex-1 h-px mx-1 {{ $stepIndex < $currentPipelineIndex ? 'bg-[#2AA7A1]' : 'bg-gray-100' }}"></div>
                             @endif
                         </div>
                     @endforeach
@@ -145,8 +145,8 @@
             {{-- Reservation details --}}
             <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4 text-[#286CD2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <div class="w-8 h-8 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                         </svg>
                     </div>
@@ -253,8 +253,8 @@
                 <div class="p-5">
                     @php $tenant = $reservation->tenant; @endphp
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-2xl bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                            <span class="text-[#286CD2] text-[13px] font-extrabold">
+                        <div class="w-10 h-10 rounded-2xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                            <span class="text-[#156F8C] text-[13px] font-extrabold">
                                 {{ strtoupper(substr($tenant->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($tenant->last_name ?? '', 0, 1)) }}
                             </span>
                         </div>
@@ -271,7 +271,7 @@
                     </div>
                     @if($tenant)
                         <a href="{{ route('admin.users.show', $tenant) }}"
-                            class="mt-4 flex items-center justify-center gap-1.5 w-full h-8 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-gray-500 hover:bg-[#286CD2] hover:text-white hover:border-[#286CD2] transition-all">
+                            class="mt-4 flex items-center justify-center gap-1.5 w-full h-8 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-gray-500 hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
                             View Profile
                         </a>
                     @endif
@@ -332,7 +332,7 @@
                     </div>
                     @if($landlord)
                         <a href="{{ route('admin.users.show', $landlord) }}"
-                            class="flex items-center justify-center gap-1.5 w-full h-8 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-gray-500 hover:bg-[#286CD2] hover:text-white hover:border-[#286CD2] transition-all">
+                            class="flex items-center justify-center gap-1.5 w-full h-8 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-gray-500 hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
                             View Profile
                         </a>
                     @endif
@@ -368,7 +368,7 @@
                         Back
                     </button>
                     <button type="submit"
-                        class="flex-1 h-10 text-[13.5px] font-bold bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors">
+                        class="flex-1 h-10 text-[13.5px] font-bold bg-[#FBBF24] text-white rounded-xl hover:bg-amber-600 transition-colors">
                         Cancel Reservation
                     </button>
                 </div>

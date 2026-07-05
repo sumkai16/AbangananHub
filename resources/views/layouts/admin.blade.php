@@ -48,7 +48,7 @@
 
             {{-- Collapse toggle --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
-                class="hidden lg:flex absolute top-5 -right-3 w-6 h-6 rounded-full bg-[#286CD2] text-white items-center justify-center shadow-md hover:brightness-95 transition-all duration-200 z-10"
+                class="hidden lg:flex absolute top-5 -right-3 w-6 h-6 rounded-full bg-[#2AA7A1] text-white items-center justify-center shadow-md hover:brightness-95 transition-all duration-200 z-10"
                 :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
                 <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
                     :class="sidebarCollapsed ? 'rotate-180' : ''" class="transition-transform duration-300">
@@ -58,7 +58,7 @@
 
             {{-- Logo --}}
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 px-5 h-[64px] border-b border-white/[0.06] shrink-0 overflow-hidden no-underline">
-                <div class="w-8 h-8 rounded-xl bg-[#286CD2] flex items-center justify-center shadow-sm shrink-0">
+                <div class="w-8 h-8 rounded-xl bg-[#2AA7A1] flex items-center justify-center shadow-sm shrink-0">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -66,7 +66,7 @@
                 </div>
                 <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="overflow-hidden">
                     <p class="text-[15px] font-extrabold text-white tracking-tight whitespace-nowrap leading-tight">
-                        Abanganan<span class="text-[#286CD2]">Hub</span>
+                        Abanganan<span class="text-[#2AA7A1]">Hub</span>
                     </p>
                     <p class="text-[10px] font-semibold text-white/40 uppercase tracking-widest whitespace-nowrap">Admin Panel</p>
                 </div>
@@ -80,7 +80,7 @@
                 {{-- Dashboard --}}
                 <a href="{{ route('admin.dashboard') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 mb-3
-                        {{ $cur === 'admin.dashboard' ? 'bg-[#286CD2] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ $cur === 'admin.dashboard' ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                     </svg>
@@ -103,7 +103,7 @@
                 {{-- Users --}}
                 <a href="{{ route('admin.users.index') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
-                        {{ $cur === 'admin.users.index' || $cur === 'admin.users.show' ? 'bg-[#286CD2] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ $cur === 'admin.users.index' || $cur === 'admin.users.show' ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0Z" />
                     </svg>
@@ -148,7 +148,7 @@
                 {{-- Landlord Verifications --}}
                 <a href="{{ route('admin.verifications.index') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
-                        {{ str_starts_with($cur ?? '', 'admin.verifications') ? 'bg-[#286CD2] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($cur ?? '', 'admin.verifications') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>
@@ -162,7 +162,7 @@
                 {{-- Property Verifications --}}
                 <a href="{{ route('admin.listings.approval') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
-                        {{ $cur === 'admin.listings.approval' ? 'bg-[#286CD2] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ $cur === 'admin.listings.approval' ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                     </svg>
@@ -176,7 +176,7 @@
                 {{-- Unit Approvals --}}
                 <a href="{{ route('admin.units.index') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
-                        {{ str_starts_with($cur ?? '', 'admin.units') ? 'bg-[#286CD2] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($cur ?? '', 'admin.units') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                     </svg>
@@ -215,7 +215,7 @@
                 {{-- Reservations --}}
                 <a href="{{ route('admin.reservations.index') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
-                        {{ str_starts_with($cur ?? '', 'admin.reservations') ? 'bg-[#286CD2] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($cur ?? '', 'admin.reservations') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                     </svg>
@@ -248,7 +248,7 @@
                 {{-- Reviews --}}
                 <a href="{{ route('admin.reviews.index') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
-                        {{ str_starts_with($cur ?? '', 'admin.reviews') ? 'bg-[#286CD2] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($cur ?? '', 'admin.reviews') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                     </svg>
@@ -262,7 +262,7 @@
                 {{-- Conversations --}}
                 <a href="{{ route('admin.conversations.index') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
-                        {{ str_starts_with($cur ?? '', 'admin.conversations') ? 'bg-[#286CD2] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($cur ?? '', 'admin.conversations') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                     </svg>
@@ -355,7 +355,7 @@
                 <div class="flex items-center gap-2">
                     @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
                     <a href="{{ route('notifications.index') }}"
-                        class="relative w-9 h-9 flex items-center justify-center rounded-xl border border-gray-100 bg-white text-gray-500 hover:bg-gray-50 hover:text-[#286CD2] transition-all">
+                        class="relative w-9 h-9 flex items-center justify-center rounded-xl border border-gray-100 bg-white text-gray-500 hover:bg-gray-50 hover:text-[#156F8C] transition-all">
                         @if($unread > 0)
                             <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
                         @endif
@@ -367,7 +367,7 @@
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" @click.outside="open = false"
                             class="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-gray-50 transition-colors">
-                            <span class="w-8 h-8 rounded-full bg-[#286CD2] text-white text-[13px] font-bold flex items-center justify-center shrink-0">
+                            <span class="w-8 h-8 rounded-full bg-[#2AA7A1] text-white text-[13px] font-bold flex items-center justify-center shrink-0">
                                 {{ strtoupper(substr(auth()->user()->first_name ?? 'A', 0, 1)) }}
                             </span>
                             <span class="hidden sm:flex flex-col items-start leading-tight">

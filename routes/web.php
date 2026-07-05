@@ -57,7 +57,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::post('/favorites/{propertyId}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     // Tenant-specific routes
-    Route::middleware('tenant')->group(function () {
+ Route::middleware('tenant')->prefix('tenant')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
         Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
         Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
@@ -67,7 +67,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/reservations/{reservation}/pay', [PaymentController::class, 'createCheckoutSession'])->name('payments.checkout');
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
     });
-
+    
     // Landlord-specific prefix routes
     Route::middleware('landlord')->prefix('landlord')->name('landlord.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -130,10 +130,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/properties/{property}/units/{unit}/reject', [AdminPropertyUnitController::class, 'reject'])->name('units.reject');
     });
 
-    // Conversations and messages
+   // Conversations and messages
+    Route::get('/conversations/recent-messages', [ConversationController::class, 'recentMessages'])->name('conversations.recentMessages');
+    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
-    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
 
     // Notifications

@@ -20,7 +20,7 @@ function init() {
         .filter(p => !Number.isNaN(p.latitude) && !Number.isNaN(p.longitude));
 
     if (valid.length === 0) {
-        container.innerHTML = '<p class="text-[12px] text-[#9B9F98] p-4">No locations available for the current results.</p>';
+        container.innerHTML = '<p class="text-[12px] text-[#64748B] p-4">No locations available for the current results.</p>';
         return;
     }
 
@@ -37,6 +37,7 @@ function init() {
         const popupHtml = `
             <div class="map-popup-card">
                 <a href="${p.url}" class="block">
+<<<<<<< HEAD
                     <div class="relative bg-[#F7FCFC] h-[180px] w-full">
                         ${p.image ? `<img src="${p.image}" class="w-full h-full object-cover rounded-t-xl" alt="${escapeHtml(p.title)}">` : `<div class="w-full h-full flex items-center justify-center text-[#FF8A65]">No image</div>`}
                     </div>
@@ -51,6 +52,22 @@ function init() {
                         <p class="text-[14px] text-[#9B9F98] truncate">${escapeHtml(p.property_type)} in Cebu</p>
                         <p class="text-[15px] font-bold text-[#156F8C] mt-2">
                             ₱${Number(p.rental_fee).toLocaleString()} <span class="text-[13px] font-normal text-[#9B9F98]">/month</span>
+=======
+                    <div class="relative bg-[#EEF8F8] h-[180px] w-full">
+                        ${p.image ? `<img src="${p.image}" class="w-full h-full object-cover rounded-t-xl" alt="${escapeHtml(p.title)}">` : `<div class="w-full h-full flex items-center justify-center text-[#156F8C]">No image</div>`}
+                    </div>
+                    <div class="p-4 bg-white rounded-b-xl">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="text-[15px] font-semibold text-[#1F2937] truncate pr-4">${escapeHtml(p.title)}</h3>
+                            <span class="text-[13px] font-semibold flex items-center shrink-0">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="#1F2937" class="mr-1"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                4.9
+                            </span>
+                        </div>
+                        <p class="text-[14px] text-[#64748B] truncate">${escapeHtml(p.property_type)} in Cebu</p>
+                        <p class="text-[15px] font-bold text-[#1F2937] mt-2">
+                            ₱${Number(p.rental_fee).toLocaleString()} <span class="text-[13px] font-normal text-[#64748B]">/month</span>
+>>>>>>> 69fc64747deeb55b121790f6e9a686054594ede1
                         </p>
                     </div>
                 </a>

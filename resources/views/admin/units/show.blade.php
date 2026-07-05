@@ -3,7 +3,7 @@
 @section('page-title', 'Review Unit')
 
 @section('content')
-    <div class="max-w-6xl">
+    <div class="max-w-[1400px]">
 
         {{-- Breadcrumb --}}
         <div class="flex items-center gap-1.5 text-[13px] text-gray-400 mb-4">
@@ -117,8 +117,8 @@
                 <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
                     <h2 class="text-[15px] font-bold text-[#1A1A2E] mb-4">Landlord</h2>
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-[#286CD2]/10 flex items-center justify-center shrink-0">
-                            <span class="text-[#286CD2] text-[13px] font-bold">
+                        <div class="w-10 h-10 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
+                            <span class="text-[#156F8C] text-[13px] font-bold">
                                 {{ strtoupper(substr($property->landlord->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name ?? '', 0, 1)) }}
                             </span>
                         </div>
@@ -138,7 +138,7 @@
                         <form method="POST" action="{{ route('admin.units.approve', [$property, $unit]) }}">
                             @csrf
                             <button type="submit"
-                                class="w-full h-11 rounded-xl bg-emerald-500 text-white text-[13.5px] font-semibold hover:brightness-95 transition-all">
+                                class="w-full h-11 rounded-xl bg-[#22C55E] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all">
                                 Approve Unit
                             </button>
                         </form>
