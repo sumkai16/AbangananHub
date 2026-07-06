@@ -12,7 +12,24 @@ use Illuminate\View\View;
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Display the user's read-only profile overview.
+     */
+    public function show(Request $request): View
+    {
+        $user = $request->user();
+
+        return view('profile.show', [
+            'user'             => $user,
+            'roles'            => $user->roles->pluck('role'),
+            'reservationCount' => $user->reservations()->count(),
+            'favoriteCount'    => $user->favorites()->count(),
+            'reviewCount'      => $user->reviews()->count(),
+            'propertyCount'    => $user->properties()->count(),
+        ]);
+    }
+
+    /**
+     * Display the user's account settings form.
      */
     public function edit(Request $request): View
     {

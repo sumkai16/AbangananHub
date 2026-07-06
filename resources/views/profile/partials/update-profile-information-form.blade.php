@@ -1,9 +1,9 @@
-<div class="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8">
+<div class="rounded-2xl border border-[#E2E8F0]/80 bg-white p-6 sm:p-8">
 
     {{-- Section header --}}
-    <div class="mb-7 border-b border-slate-100 pb-6">
-        <h2 class="text-[15px] font-semibold text-slate-900">Personal information</h2>
-        <p class="mt-1 text-sm text-slate-500">Update your name, email, and contact details.</p>
+    <div class="mb-7 border-b border-[#E2E8F0] pb-6">
+        <h2 class="text-[15px] font-semibold text-[#1F2937]">Personal information</h2>
+        <p class="mt-1 text-sm text-[#64748B]">Update your name, email, and contact details.</p>
     </div>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">@csrf</form>
@@ -16,13 +16,13 @@
             {{-- First name --}}
             <div>
                 <label for="first_name"
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
                     First name
                 </label>
                 <input id="first_name" name="first_name" type="text" value="{{ old('first_name', $user->first_name) }}"
                     required autofocus autocomplete="given-name"
-                    class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-slate-300">
+                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
+                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
                 @error('first_name')
                     <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
                 @enderror
@@ -31,13 +31,13 @@
             {{-- Last name --}}
             <div>
                 <label for="last_name"
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
                     Last name
                 </label>
                 <input id="last_name" name="last_name" type="text" value="{{ old('last_name', $user->last_name) }}"
                     required autocomplete="family-name"
-                    class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-slate-300">
+                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
+                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
                 @error('last_name')
                     <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
                 @enderror
@@ -45,13 +45,13 @@
 
             {{-- Email --}}
             <div class="sm:col-span-2">
-                <label for="email" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                <label for="email" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
                     Email address
                 </label>
                 <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required
                     autocomplete="username"
-                    class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-slate-300">
+                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
+                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
                 @error('email')
                     <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
                 @enderror
@@ -79,14 +79,14 @@
             {{-- Contact number --}}
             <div class="sm:col-span-2">
                 <label for="contact_number"
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
                     Contact number
                 </label>
                 <input id="contact_number" name="contact_number" type="text"
                     value="{{ old('contact_number', $user->contact_number) }}" placeholder="+63 912 345 6789"
                     autocomplete="tel"
-                    class="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-slate-800 outline-none transition
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-slate-300">
+                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
+                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
                 @error('contact_number')
                     <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
                 @enderror
@@ -94,7 +94,7 @@
         </div>
 
         {{-- Actions --}}
-        <div class="mt-7 flex items-center gap-4 border-t border-slate-100 pt-6">
+        <div class="mt-7 flex items-center gap-4 border-t border-[#E2E8F0] pt-6">
             <button type="submit"
                 class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#2AA7A1] px-5 text-[13px] font-semibold text-white transition hover:brightness-95 active:scale-[0.98]">
                 Save changes
