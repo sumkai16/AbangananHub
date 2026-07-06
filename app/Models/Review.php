@@ -1,22 +1,30 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class Review extends Model
 {
+    protected $primaryKey = 'review_id';
+
     protected $fillable = [
         'tenant_id',
         'property_id',
         'landlord_id',
         'rating',
         'review_comment',
+        'landlord_reply',
+        'landlord_replied_at',
+        'is_hidden',
     ];
 
     protected function casts(): array
     {
         return [
             'rating' => 'integer',
+            'is_hidden' => 'boolean',
+            'landlord_replied_at' => 'datetime',
         ];
     }
 
@@ -56,6 +64,7 @@ class Review extends Model
     public static function averageRatingFor(int $propertyId): float
     {
         return static::where('property_id', $propertyId)
+            ->where('is_hidden', false)
             ->avg('rating') ?? 0.0;
     }
 }

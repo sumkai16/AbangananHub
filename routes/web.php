@@ -66,6 +66,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/reservations/{reservation}/agreement/sign', [AgreementController::class, 'sign'])->name('agreements.sign');
         Route::post('/reservations/{reservation}/pay', [PaymentController::class, 'createCheckoutSession'])->name('payments.checkout');
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
+        
+        Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
     });
     
     // Landlord-specific prefix routes
@@ -89,6 +91,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::resource('properties.units', PropertyUnitController::class);
         Route::delete('/properties/{property}/units/{unit}/media/{media}', [PropertyUnitController::class, 'destroyMedia'])->name('properties.units.media.destroy');
 
+
+        Route::patch('/reviews/{review}/reply', [\App\Http\Controllers\Landlord\ReviewController::class, 'reply'])->name('reviews.reply');
     });
 
     // Admin-specific routes
@@ -119,7 +123,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::patch('/reservations/{reservation}/reject', [AdminReservationController::class, 'forceReject'])->name('reservations.forceReject');
 
         Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
-        Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+        Route::patch('/reviews/{review}/toggle-hidden', [AdminReviewController::class, 'toggleHidden'])->name('reviews.toggleHidden');
 
         Route::get('/conversations', [AdminConversationController::class, 'index'])->name('conversations.index');
         Route::get('/conversations/{conversation}', [AdminConversationController::class, 'show'])->name('conversations.show');
