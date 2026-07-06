@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ReviewController extends Controller
 {
     public function index(Request $request)
     {
-        $this->authorize('moderate', Review::class);
+        Gate::authorize('moderate', Review::class);
 
         $search     = $request->input('search');
         $rating     = $request->input('rating', 'all');
@@ -48,12 +49,9 @@ class ReviewController extends Controller
         return view('admin.reviews.index', compact('reviews', 'counts', 'search', 'rating', 'visibility'));
     }
 
-    /**
-     * Toggle a review's hidden status (soft-hide / unhide).
-     */
     public function toggleHidden(Review $review)
     {
-        $this->authorize('moderate', Review::class);
+        Gate::authorize('moderate', Review::class);
 
         $review->update(['is_hidden' => !$review->is_hidden]);
 

@@ -7,7 +7,7 @@ use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\Review;
 class PropertyController extends Controller
 {
 public function index(Request $request)
@@ -78,14 +78,30 @@ public function index(Request $request)
 
     return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties'));
 }
-  public function show(Property $property)
-    {
-        if ($property->verification_status !== 'Approved') {
-            abort(404);
-        }
-        $property->load(['media', 'landlord', 'amenities', 'reviews.tenant', 'units']);
-        return view('properties.show', compact('property'));
+ public function show(Property $property)
+{
+    if ($property->verification_status !== 'Approved') {
+        abort(404);
     }
+
+    $property->load(['media', 'landlord.rentalBusiness', 'amenities', 'units']);
+
+    // Load visible reviews (admins see all, everyone else sees non-hidden only)
+    $reviews = $property->reviews()
+        ->with('tenant')
+        ->when(!auth()->check() || !auth()->user()->roles()->where('role', 'Admin')->exists(), function ($q) {
+            $q->where('is_hidden', false);
+        })
+        ->latest()
+        ->get();
+
+    $avgRating = $reviews->where('is_hidden', false)->avg('rating');
+    $avgRating = $avgRating ? round($avgRating, 1) : null;
+
+    $canReview = auth()->check() && Review::canReview(auth()->id(), $property->property_id);
+
+    return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview'));
+}
 
     public function create()
     {

@@ -26,7 +26,7 @@
     @php
         $images   = $property->media->where('media_type', 'Image')->values();
         $verified = $property->landlord->rentalBusiness()->exists();
-        $reviews  = $property->reviews;
+        $reviews = $property->reviews()->with('tenant')->latest()->get();
         $mapsUrl  = ($property->latitude && $property->longitude)
             ? 'https://www.google.com/maps?q=' . $property->latitude . ',' . $property->longitude
             : 'https://www.google.com/maps?q=' . urlencode($property->address);
@@ -608,7 +608,12 @@
 
         {{-- ─── Reviews tab ─────────────────────────────────────── --}}
         <div x-show="tab === 'reviews'" x-cloak>
-            @if($reviews->isEmpty())
+            @php
+                $visibleReviews = $reviews->where('is_hidden', false);
+                $reviewAvg = $visibleReviews->count() > 0 ? round($visibleReviews->avg('rating'), 1) : null;
+            @endphp
+
+            @if($visibleReviews->isEmpty())
                 <div class="rounded-2xl border border-dashed border-[#64748B]/30 bg-[#F1F5F9]/40 flex flex-col items-center justify-center py-14 text-center">
                     <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#64748B]/50 mb-3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z"/>
@@ -617,16 +622,28 @@
                     <p class="text-xs text-[#64748B] mt-1">Reviews will appear here once tenants submit them.</p>
                 </div>
             @else
+                {{-- Summary bar --}}
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="flex items-center gap-1.5 bg-[#F1F5F9] px-3 py-1.5 rounded-lg">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="none">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        <span class="text-sm font-bold text-[#0F172A]">{{ $reviewAvg }}</span>
+                        <span class="text-xs text-[#64748B]">/ 5</span>
+                    </div>
+                    <span class="text-sm text-[#64748B]">{{ $visibleReviews->count() }} {{ Str::plural('review', $visibleReviews->count()) }}</span>
+                </div>
+
                 <div class="space-y-3">
-                    @foreach($reviews as $review)
+                    @foreach($visibleReviews as $review)
                         <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
                             <div class="flex items-start justify-between gap-4 mb-3">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-full bg-[#EEF8F8] flex items-center justify-center shrink-0 text-sm font-bold text-[#3B82F6]">
+                                    <div class="w-9 h-9 rounded-full bg-[#EEF8F8] flex items-center justify-center shrink-0 text-sm font-bold text-[#156F8C]">
                                         {{ strtoupper(substr($review->tenant->first_name ?? '?', 0, 1)) }}
                                     </div>
                                     <div>
-                                        <p class="text-sm font-semibold text-[#0F172A]">{{ $review->tenant->name ?? 'Tenant' }}</p>
+                                        <p class="text-sm font-semibold text-[#0F172A]">{{ $review->tenant->first_name }} {{ $review->tenant->last_name }}</p>
                                         <p class="text-[11px] text-[#64748B]">{{ $review->created_at->format('M d, Y') }}</p>
                                     </div>
                                 </div>
@@ -638,8 +655,79 @@
                                     @endfor
                                 </div>
                             </div>
+
                             @if($review->review_comment)
-                                <p class="text-sm text-[#0F172A]/75 leading-relaxed">{{ $review->review_comment }}</p>
+                                <p class="text-sm text-[#0F172A]/75 leading-relaxed mb-3">{{ $review->review_comment }}</p>
+                            @endif
+
+                            {{-- Existing landlord reply --}}
+                            @if($review->landlord_reply)
+                                <div class="mt-3 bg-[#F1F5F9] rounded-xl p-3.5">
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        <div class="w-6 h-6 rounded-lg bg-[#156F8C] text-white text-[10px] font-black flex items-center justify-center shrink-0">
+                                            {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}
+                                        </div>
+                                        <span class="text-xs font-semibold text-[#0F172A]">You</span>
+                                        <span class="text-[10px] text-[#64748B]">{{ $review->landlord_replied_at->format('M d, Y') }}</span>
+                                    </div>
+                                    <p class="text-sm text-[#0F172A]/75 leading-relaxed pl-8">{{ $review->landlord_reply }}</p>
+                                </div>
+
+                                {{-- Edit reply --}}
+                                <div class="mt-2 pl-8" x-data="{ editing: false }">
+                                    <button type="button" x-on:click="editing = !editing"
+                                        class="text-xs font-medium text-[#64748B] hover:text-[#0F172A] transition-colors">
+                                        Edit reply
+                                    </button>
+                                    <div x-show="editing" x-cloak class="mt-2">
+                                        <form action="{{ route('landlord.reviews.reply', $review->review_id) }}" method="POST" class="space-y-2">
+                                            @csrf
+                                            @method('PATCH')
+                                            <textarea name="landlord_reply" rows="2" maxlength="1000"
+                                                class="w-full border border-[#64748B]/20 rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#156F8C]/20 focus:border-[#156F8C] transition-all resize-none">{{ $review->landlord_reply }}</textarea>
+                                            <div class="flex items-center gap-2">
+                                                <button type="submit"
+                                                    class="px-4 py-2 rounded-lg bg-[#156F8C] hover:brightness-95 text-white text-xs font-semibold transition-all">
+                                                    Update Reply
+                                                </button>
+                                                <button type="button" x-on:click="editing = false"
+                                                    class="px-4 py-2 rounded-lg bg-[#F1F5F9] text-[#64748B] text-xs font-medium hover:bg-[#E2E8F0] transition-all">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            @else
+                                {{-- Reply form --}}
+                                <div class="mt-3" x-data="{ showReply: false }">
+                                    <button type="button" x-on:click="showReply = !showReply"
+                                        class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#156F8C] hover:brightness-95 transition-all">
+                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/>
+                                        </svg>
+                                        Reply to this review
+                                    </button>
+                                    <div x-show="showReply" x-cloak class="mt-2">
+                                        <form action="{{ route('landlord.reviews.reply', $review->review_id) }}" method="POST" class="space-y-2">
+                                            @csrf
+                                            @method('PATCH')
+                                            <textarea name="landlord_reply" rows="2" maxlength="1000"
+                                                placeholder="Write your response..."
+                                                class="w-full border border-[#64748B]/20 rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#156F8C]/20 focus:border-[#156F8C] transition-all resize-none"></textarea>
+                                            <div class="flex items-center gap-2">
+                                                <button type="submit"
+                                                    class="px-4 py-2 rounded-lg bg-[#156F8C] hover:brightness-95 text-white text-xs font-semibold transition-all">
+                                                    Post Reply
+                                                </button>
+                                                <button type="button" x-on:click="showReply = false"
+                                                    class="px-4 py-2 rounded-lg bg-[#F1F5F9] text-[#64748B] text-xs font-medium hover:bg-[#E2E8F0] transition-all">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             @endif
                         </div>
                     @endforeach

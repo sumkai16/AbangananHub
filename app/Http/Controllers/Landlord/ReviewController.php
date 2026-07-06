@@ -3,25 +3,31 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ReviewController extends Controller
 {
-    /**
-     * Store or update the landlord's reply on a review.
-     */
     public function reply(Request $request, Review $review)
     {
-        $this->authorize('reply', $review);
+        Gate::authorize('reply', $review);
 
         $validated = $request->validate([
             'landlord_reply' => 'required|string|max:1000',
         ]);
 
         $review->update([
-            'landlord_reply'     => $validated['landlord_reply'],
+            'landlord_reply'      => $validated['landlord_reply'],
             'landlord_replied_at' => now(),
+        ]);
+
+        Notification::create([
+            'user_id' => $review->tenant_id,
+            'title'   => 'Landlord Reply',
+            'message' => Auth::user()->first_name . ' ' . Auth::user()->last_name . ' replied to your review on ' . $review->property->title . '.',
         ]);
 
         return back()->with('success', 'Reply submitted successfully.');
