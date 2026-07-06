@@ -7,14 +7,50 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $notifications = auth()->user()->notifications()
-            ->where('type', '!=', 'message')
-            ->latest()
-            ->paginate(15);
+        $tab = $request->input('tab', 'all');
 
-        return view('notifications.index', compact('notifications'));
+        $query = auth()->user()->notifications()
+            ->where('type', '!=', 'message')
+            ->latest();
+
+        if ($tab === 'unread') {
+            $query->where('is_read', false);
+        } elseif ($tab === 'review') {
+            $query->where('notifiable_type', 'App\Models\Review');
+        } elseif ($tab === 'reservation') {
+            $query->where('notifiable_type', 'App\Models\Reservation');
+        }
+
+        $notifications = $query->paginate(20)->withQueryString();
+
+        $unreadCount = auth()->user()->notifications()
+            ->where('type', '!=', 'message')
+            ->where('is_read', false)
+            ->count();
+
+        // Side panel: load selected notification detail
+        $selected = null;
+        if ($request->filled('selected')) {
+            $selected = Notification::with('notifiable')
+                ->where('notification_id', $request->selected)
+                ->where('user_id', auth()->id())
+                ->first();
+
+            if ($selected && !$selected->is_read) {
+                $selected->markAsRead();
+            }
+
+            // Eager-load context based on notifiable type
+            if ($selected && $selected->notifiable) {
+                if ($selected->notifiable_type === 'App\Models\Review') {
+                    $selected->notifiable->load(['tenant', 'property.media', 'landlord']);
+                }
+            }
+        }
+
+        return view('notifications.index', compact('notifications', 'unreadCount', 'tab', 'selected'));
     }
 
     public function recent()

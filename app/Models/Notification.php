@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +11,8 @@ class Notification extends Model
     protected $fillable = [
         'user_id',
         'type',
+        'notifiable_type',
+        'notifiable_id',
         'conversation_id',
         'title',
         'message',
@@ -32,6 +35,11 @@ class Notification extends Model
     public function conversation()
     {
         return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
+    }
+
+    public function notifiable()
+    {
+        return $this->morphTo('notifiable', 'notifiable_type', 'notifiable_id');
     }
 
     public function markAsRead(): bool

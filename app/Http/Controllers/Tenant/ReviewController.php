@@ -38,9 +38,12 @@ class ReviewController extends Controller
         ]);
 
         Notification::create([
-            'user_id' => $property->landlord_id,
-            'title'   => 'New Review',
-            'message' => Auth::user()->first_name . ' ' . Auth::user()->last_name . ' left a ' . $validated['rating'] . '-star review on ' . $property->title . '.',
+            'user_id'         => $property->landlord_id,
+            'type'            => 'review',
+            'notifiable_type' => Review::class,
+            'notifiable_id'   => $review->review_id,
+            'title'           => 'New Review',
+            'message'         => Auth::user()->first_name . ' ' . Auth::user()->last_name . ' left a ' . $validated['rating'] . '-star review on ' . $property->title . '.',
         ]);
 
         return back()->with('success', 'Review submitted successfully.');
