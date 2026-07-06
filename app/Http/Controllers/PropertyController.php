@@ -43,7 +43,13 @@ public function index(Request $request)
         $q->where('availability_status', 'Available')
           ->where('verification_status', 'Approved');
     }], 'rental_fee');
+    $query->withAvg(['reviews as avg_rating' => function ($q) {
+        $q->where('is_hidden', false);
+    }], 'rating');
 
+    $query->withCount(['reviews as review_count' => function ($q) {
+        $q->where('is_hidden', false);
+    }]);
     match ($request->query('sort')) {
         'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
         'price_high' => $query->orderByDesc('min_rental_fee'),
