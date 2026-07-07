@@ -63,6 +63,7 @@
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
         class="fixed bottom-5 right-5 z-[9997] w-[360px] bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-[#64748B]/15 overflow-hidden"
+        :style="footerOffset ? { bottom: footerOffset + 'px' } : {}"
         @click.away="closeBubblePanel()">
         <div x-ref="bubblePanelBody">
             <div class="px-4 py-8 text-center">
@@ -74,6 +75,7 @@
     {{-- Floating bubble (hidden when panel is open) --}}
     <button x-show="!panelOpen" @click="openBubblePanel()"
         class="fixed bottom-5 right-5 z-[9997] w-[52px] h-[52px] rounded-full bg-[#2AA7A1] flex items-center justify-center shadow-[0_4px_16px_rgba(97,178,240,0.35)] hover:brightness-95 transition-all duration-200 focus:outline-none"
+        :style="footerOffset ? { bottom: footerOffset + 'px' } : {}"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 scale-75"
         x-transition:enter-end="opacity-100 scale-100">
@@ -100,8 +102,11 @@
             maxToasts: 3,
             panelOpen: false,
             panelLoaded: false,
+            footerOffset: 0,
 
             init() {
+                this.watchFooter();
+
                 if (typeof window.Echo === 'undefined') return;
 
                 window.Echo.private('user.{{ auth()->id() }}')
@@ -112,6 +117,16 @@
                         this.panelLoaded = false;
                         this.addToast(e);
                     });
+            },
+
+            watchFooter() {
+                const footer = document.querySelector('footer');
+                if (!footer || !('IntersectionObserver' in window)) return;
+
+                new IntersectionObserver((entries) => {
+                    // Lift the bubble above the footer while any part of it is visible
+                    this.footerOffset = entries[0].isIntersecting ? footer.offsetHeight + 16 : 0;
+                }).observe(footer);
             },
 
             isViewingConversation(conversationId) {
