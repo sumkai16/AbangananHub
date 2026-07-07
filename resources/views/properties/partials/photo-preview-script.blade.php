@@ -11,7 +11,7 @@
             labelText.textContent = input.files.length === 1
                 ? '1 photo selected'
                 : `${input.files.length} photos selected`;
-            labelText.classList.add('text-[#61B2F0]');
+            labelText.classList.add('text-[#156F8C]');
 
             Array.from(input.files).forEach(file => {
                 if (!file.type.startsWith('image/')) return;
@@ -33,7 +33,7 @@
         } else {
             previewGrid.classList.add('hidden');
             labelText.textContent = defaultLabel;
-            labelText.classList.remove('text-[#61B2F0]');
+            labelText.classList.remove('text-[#156F8C]');
         }
     }
 </script>

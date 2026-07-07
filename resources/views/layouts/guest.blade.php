@@ -25,7 +25,7 @@
             <div class="absolute inset-0">
                 <img src="{{ asset('images/auth-bg.jpg') }}" class="w-full h-full object-cover" alt="" />
                 {{-- Darker gradient overlay: dark at bottom where text is, slightly lighter at top --}}
-                <div class="absolute inset-0 bg-gradient-to-t from-[#2A2523]/90 via-[#2A2523]/60 to-[#2A2523]/30"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-[#1F2937]/90 via-[#1F2937]/60 to-[#1F2937]/30"></div>
             </div>
 
             {{-- Content overlay --}}

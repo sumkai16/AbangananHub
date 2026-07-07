@@ -3,12 +3,12 @@
 @section('title', 'Account Settings')
 
 @section('content')
-    <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-10">
 
         {{-- Page header --}}
         <div class="mb-8 flex items-center gap-4">
             <div
-                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#286CD2] text-lg font-bold text-white">
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2AA7A1] text-lg font-bold text-white">
                 {{ strtoupper(substr(Auth::user()->first_name ?? 'U', 0, 1)) }}
             </div>
             <div>

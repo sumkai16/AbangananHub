@@ -5,18 +5,33 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RejectVerificationRequest;
 use App\Models\LandlordVerification;
+use App\Models\RentalBusiness;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class VerificationController extends Controller
 {
-    public function index()
-    {
-        $verifications = LandlordVerification::with('user')
-            ->where('verification_status', 'Pending')
-            ->oldest('submitted_at')
-            ->paginate(15);
+    private const STATUSES = ['Pending', 'Approved', 'Rejected', 'All'];
 
-        return view('admin.verifications.index', compact('verifications'));
+    public function index(Request $request)
+    {
+        $status = $request->query('status', 'Pending');
+
+        if (! in_array($status, self::STATUSES, true)) {
+            $status = 'Pending';
+        }
+
+        $query = LandlordVerification::with('user')
+            ->when($status !== 'All', fn ($q) => $q->where('verification_status', $status));
+
+        $verifications = in_array($status, ['Approved', 'Rejected'], true)
+            ? $query->latest('reviewed_at')->paginate(15)->withQueryString()
+            : $query->oldest('submitted_at')->paginate(15)->withQueryString();
+
+        return view('admin.verifications.index', [
+            'verifications' => $verifications,
+            'status' => $status,
+        ]);
     }
 
     public function show(LandlordVerification $verification)
@@ -40,6 +55,17 @@ class VerificationController extends Controller
         ]);
 
         $verification->user->assignRole('Landlord');
+
+        RentalBusiness::firstOrCreate(
+            ['landlord_id' => $verification->user_id],
+            [
+                'business_name' => $verification->business_name,
+                'description' => $verification->description,
+                'logo_url' => $verification->logo_url,
+                'contact_number' => $verification->contact_number,
+                'business_address' => $verification->business_address,
+            ]
+        );
 
         // TODO: notify the user once the notification pipeline covers this event type.
 

@@ -6,28 +6,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Property extends Model
 {
     protected $primaryKey = 'property_id';
-    protected $fillable = [
-        'landlord_id',
-        'title',
-        'description',
-        'property_type',
-        'address',
-        'latitude',
-        'longitude',
-        'rental_fee',
-        'occupancy_limit',
-        'availability_status',
-        'verification_status',
-    ];
+   protected $fillable = [
+    'landlord_id',
+    'title',
+    'description',
+    'house_rules',
+    'property_type',
+    'address',
+    'latitude',
+    'longitude',
+    'verification_status',
+];
 
     protected function casts(): array
-    {
-        return [
-            'latitude'   => 'decimal:7',
-            'longitude'  => 'decimal:7',
-            'rental_fee' => 'decimal:2',
-        ];
-    }
+{
+    return [
+        'latitude'    => 'decimal:7',
+        'longitude'   => 'decimal:7',
+        'house_rules' => 'array',
+    ];
+}
 
     // ─── Relationships ───────────────────────────────────────
 
@@ -77,11 +75,6 @@ class Property extends Model
 
     // ─── Status Helpers ──────────────────────────────────────
 
-    public function isAvailable(): bool
-    {
-        return $this->availability_status === 'Available';
-    }
-
     public function isApproved(): bool
     {
         return $this->verification_status === 'Approved';
@@ -103,9 +96,34 @@ class Property extends Model
     {
         return $query->where('verification_status', 'Approved');
     }
-
-    public function scopeAvailable($query)
+    public function units()
     {
-        return $query->where('availability_status', 'Available');
+        return $this->hasMany(PropertyUnit::class, 'property_id', 'property_id');
+    }
+
+    public function getMinRentalFeeAttribute(): ?string
+    {
+        return $this->units
+            ->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved')
+            ->min('rental_fee');
+    }
+
+    public function getOccupancyLimitAttribute(): ?int
+    {
+        return $this->units
+            ->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved')
+            ->max('occupancy_limit');
+    }
+
+    public function getAvailabilityStatusAttribute(): string
+    {
+        $hasAvailable = $this->units
+            ->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved')
+            ->isNotEmpty();
+
+        return $hasAvailable ? 'Available' : 'Unavailable';
     }
 }

@@ -8,19 +8,13 @@ use App\Models\User;
 class ReservationPolicy
 {
     /**
-     * Tenant can cancel their own reservation.
+     * Tenant can cancel their own reservation, or landlord can cancel
+     * a reservation on a property they own.
      */
     public function cancel(User $user, Reservation $reservation): bool
     {
-        return $user->user_id === $reservation->tenant_id;
-    }
-
-    /**
-     * Landlord can approve a reservation on a property they own.
-     */
-    public function approve(User $user, Reservation $reservation): bool
-    {
-        return $user->user_id === $reservation->property->landlord_id;
+        return $user->user_id === $reservation->tenant_id
+            || $user->user_id === $reservation->property->landlord_id;
     }
 
     /**
@@ -28,6 +22,30 @@ class ReservationPolicy
      */
     public function reject(User $user, Reservation $reservation): bool
     {
-        return $this->approve($user, $reservation);
+        return $user->user_id === $reservation->property->landlord_id;
+    }
+
+    /**
+     * Landlord can advance the rental_status (Inquiry → Under Negotiation → Pending Rental Agreement).
+     */
+    public function advanceStatus(User $user, Reservation $reservation): bool
+    {
+        return $user->user_id === $reservation->property->landlord_id;
+    }
+
+    /**
+     * Tenant can view the agreement for their own reservation.
+     */
+    public function viewAgreement(User $user, Reservation $reservation): bool
+    {
+        return $user->user_id === $reservation->tenant_id;
+    }
+
+    /**
+     * Tenant can sign the agreement for their own reservation.
+     */
+    public function sign(User $user, Reservation $reservation): bool
+    {
+        return $this->viewAgreement($user, $reservation);
     }
 }

@@ -11,7 +11,12 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 protected $primaryKey = 'user_id';
-    protected $fillable = [
+
+    public function getRouteKeyName(): string
+    {
+        return 'user_id';
+    }
+   protected $fillable = [
         'first_name',
         'last_name',
         'email',
@@ -19,6 +24,8 @@ protected $primaryKey = 'user_id';
         'contact_number',
         'profile_picture',
         'account_status',
+        'bio',
+        'profile_visibility',
     ];
 
     protected $hidden = [
@@ -110,5 +117,9 @@ protected $primaryKey = 'user_id';
         if (!$this->hasRole($role)) {
             $this->roles()->create(['role' => $role]);
         }
+    }
+    public function rentalBusiness()
+    {
+        return $this->hasOne(RentalBusiness::class, 'landlord_id', 'user_id');
     }
 }

@@ -1,10 +1,10 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-<div class="w-full px-[50px] py-10 pb-16">
+<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-10 pb-16">
     <div class="flex items-center justify-between gap-4 mb-8">
         <x-section-header title="My Listings" sub="Manage, update, and monitor your rental properties registered on AbangananHub." />
-        <a href="{{ route('properties.create') }}" class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#286CD2] hover:bg-[#1e5bb8] text-white text-[13.5px] font-bold shadow-sm hover:shadow transition-all duration-300">
+        <a href="{{ route('properties.create') }}" class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#2AA7A1] hover:brightness-95 text-white text-[13.5px] font-bold shadow-sm hover:shadow transition-all duration-300">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             Add New Property
         </a>
@@ -19,7 +19,7 @@
                         @if($property->media->first())
                             <img src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
                         @else
-                            <div class="w-full h-full flex items-center justify-center bg-[#EBF3FF] text-[#286CD2]">
+                            <div class="w-full h-full flex items-center justify-center bg-[#EEF8F8] text-[#3B82F6]">
                                 <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                 </svg>
@@ -28,9 +28,9 @@
 
                         <div class="absolute top-3 left-3 flex flex-col gap-1.5">
                             @if($property->verification_status === 'Approved')
-                                <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white rounded-full shadow-sm">Approved</span>
+                                <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#22C55E] text-white rounded-full shadow-sm">Approved</span>
                             @elseif($property->verification_status === 'Pending')
-                                <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded-full shadow-sm">Pending</span>
+                                <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#FBBF24] text-white rounded-full shadow-sm">Pending</span>
                             @else
                                 <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-red-500 text-white rounded-full shadow-sm">Rejected</span>
                             @endif
@@ -41,7 +41,7 @@
                     <div class="mt-3 px-1 flex-grow flex flex-col justify-between">
                         <div>
                             <div class="flex items-start justify-between gap-2">
-                                <h3 class="text-[14px] font-semibold text-[#1A1A2E] leading-snug line-clamp-1">
+                                <h3 class="text-[14px] font-semibold text-[#0F172A] leading-snug line-clamp-1">
                                     {{ $property->title }}
                                 </h3>
                                 <span class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 {{ $property->availability_status === 'Available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
@@ -57,7 +57,7 @@
                                 {{ $property->address }}
                             </p>
 
-                            <p class="text-[14px] font-semibold text-[#1A1A2E] mt-1">
+                            <p class="text-[14px] font-semibold text-[#0F172A] mt-1">
                                 ₱{{ number_format($property->rental_fee) }}
                                 <span class="text-[13px] font-normal text-gray-400">/month</span>
                             </p>

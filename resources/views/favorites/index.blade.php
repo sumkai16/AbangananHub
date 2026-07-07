@@ -1,13 +1,50 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-<div class="w-full px-[50px] py-10 pb-16">
+<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-10 pb-16">
 
     {{-- HEADER --}}
     <x-section-header
         title="Saved Listings"
         sub="Properties you've saved for later."
     />
+
+    {{-- Search & Filter Bar --}}
+    <form method="GET" action="{{ route('favorites.index') }}"
+        class="flex flex-col sm:flex-row gap-3 mb-8 p-4 bg-white rounded-2xl border border-[#64748B]/20 shadow-sm">
+        <div class="relative flex-1">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B] pointer-events-none"
+                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" name="search" value="{{ request('search') }}"
+                placeholder="Search saved properties…"
+                class="w-full pl-9 pr-4 py-2.5 text-sm text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition placeholder-[#64748B]" />
+        </div>
+        <select name="type"
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition">
+            <option value="" {{ !request('type') ? 'selected' : '' }}>Any type</option>
+            @foreach(['Bedspace', 'Room', 'Apartment', 'House'] as $t)
+                <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
+            @endforeach
+        </select>
+        <select name="availability"
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition">
+            <option value="" {{ !request('availability') ? 'selected' : '' }}>Any status</option>
+            <option value="Available" {{ request('availability') === 'Available' ? 'selected' : '' }}>Available</option>
+            <option value="Unavailable" {{ request('availability') === 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
+        </select>
+        <button type="submit"
+            class="px-5 py-2.5 text-sm font-bold text-white bg-[#2AA7A1] hover:brightness-95 rounded-xl shadow-sm transition-all duration-200">
+            Search
+        </button>
+        @if(request()->hasAny(['search', 'type', 'availability']))
+            <a href="{{ route('favorites.index') }}"
+                class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 hover:bg-[#EEF8F8] rounded-xl transition-all duration-200 text-center">
+                Clear
+            </a>
+        @endif
+    </form>
 
     @if($favorites->count() > 0)
 
@@ -36,7 +73,7 @@
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-[#EBF3FF]">
-                                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#286CD2" stroke-width="1.5">
+                                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                                 </svg>
                             </div>
@@ -61,7 +98,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                             </svg>
                             <svg class="heart-filled"
-                                width="20" height="20" viewBox="0 0 24 24" fill="#286CD2" stroke="#286CD2" stroke-width="1">
+                                width="20" height="20" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                             </svg>
                         </button>
@@ -70,7 +107,7 @@
                     {{-- TEXT --}}
                     <div class="mt-3 px-1">
                         <div class="flex items-start justify-between gap-2">
-                            <h3 class="text-[14px] font-semibold text-[#1A1A2E] leading-snug line-clamp-1">
+                            <h3 class="text-[14px] font-semibold text-[#156F8C] leading-snug line-clamp-1">
                                 {{ $property->title }}
                             </h3>
                             <span class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0
@@ -87,7 +124,7 @@
                             {{ $property->address }}
                         </p>
 
-                        <p class="text-[14px] font-semibold text-[#1A1A2E] mt-1.5">
+                        <p class="text-[14px] font-semibold text-[#156F8C] mt-1.5">
                             ₱{{ number_format($property->rental_fee) }}
                             <span class="text-[13px] font-normal text-gray-400">/month</span>
                         </p>

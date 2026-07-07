@@ -13,6 +13,11 @@ class LandlordVerification extends Model
     protected $fillable = [
         'user_id',
         'government_id',
+        'business_name',
+        'description',
+        'logo_url',
+        'contact_number',
+        'business_address',
         'verification_status',
         'admin_notes',
         'reviewed_by',

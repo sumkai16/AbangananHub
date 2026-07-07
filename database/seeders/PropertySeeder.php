@@ -13,6 +13,66 @@ class PropertySeeder extends Seeder
     {
         $landlord = User::where('email', 'landlord@abangananhub.com')->first();
 
+        // ─── House rules pools by property type ──────────────
+        $bedspaceRules = [
+            'No overnight visitors',
+            'Quiet hours from 10:00 PM to 6:00 AM',
+            'Keep your bedspace area clean and organized',
+            'No smoking inside the premises',
+            'No cooking inside the sleeping area',
+            'Lights out by 11:00 PM',
+            'Personal belongings must be stored in assigned lockers',
+            'No pets allowed',
+            'Shared bathroom must be cleaned after use',
+            'Report maintenance issues to the caretaker immediately',
+        ];
+
+        $roomRules = [
+            'No smoking inside the room',
+            'No pets allowed',
+            'Quiet hours from 10:00 PM to 6:00 AM',
+            'Visitors allowed until 9:00 PM only',
+            'Keep shared areas clean after use',
+            'No illegal activities on the premises',
+            'Electricity is billed separately based on sub-meter reading',
+            'One month advance and one month deposit required',
+            'No alterations to the room without landlord approval',
+            'Dispose of garbage properly using designated bins',
+        ];
+
+        $apartmentRules = [
+            'No smoking inside the unit',
+            'No pets unless approved in writing by the landlord',
+            'Quiet hours from 10:00 PM to 6:00 AM',
+            'No subletting or unauthorized occupants',
+            'Keep common areas clean and orderly',
+            'Report any maintenance issues immediately',
+            'Parking is limited to assigned slots only',
+            'Garbage must be segregated and disposed of on schedule',
+            'No modifications to walls, fixtures, or appliances without approval',
+            'Guests staying overnight must be registered with building admin',
+        ];
+
+        $houseRules = [
+            'No smoking inside the house',
+            'No pets unless approved by the landlord',
+            'Tenant is responsible for yard maintenance',
+            'No illegal activities on the premises',
+            'No subletting or sharing with unregistered occupants',
+            'Report plumbing or electrical issues immediately',
+            'Garbage must be disposed of on designated collection days',
+            'Gate must be locked by 10:00 PM',
+            'No structural modifications without written consent',
+            'Water and electricity are billed separately',
+        ];
+
+        $rulesByType = [
+            'Bedspace'  => $bedspaceRules,
+            'Room'      => $roomRules,
+            'Apartment' => $apartmentRules,
+            'House'     => $houseRules,
+        ];
+
         $properties = [
             [
                 'title'               => 'Cozy Bedspace in Labangon',
@@ -21,11 +81,14 @@ class PropertySeeder extends Seeder
                 'address'             => 'Labangon, Cebu City, Cebu',
                 'latitude'            => 10.3013,
                 'longitude'           => 123.8837,
-                'rental_fee'          => 2500,
-                'occupancy_limit'     => 4,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Bed A', 'rental_fee' => 2500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Bed B', 'rental_fee' => 2500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Bed C', 'rental_fee' => 2200, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Bed D', 'rental_fee' => 2200, 'occupancy_limit' => 1, 'availability_status' => 'Reserved'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1200&q=80'],
@@ -38,11 +101,13 @@ class PropertySeeder extends Seeder
                 'address'             => 'P. del Rosario St., Cebu City, Cebu',
                 'latitude'            => 10.3010,
                 'longitude'           => 123.8966,
-                'rental_fee'          => 4500,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Room 1', 'rental_fee' => 4500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Room 2', 'rental_fee' => 4000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Room 3', 'rental_fee' => 4500, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&q=80'],
                 ],
@@ -54,11 +119,14 @@ class PropertySeeder extends Seeder
                 'address'             => 'Cebu IT Park, Apas, Cebu City, Cebu',
                 'latitude'            => 10.3297,
                 'longitude'           => 123.9056,
-                'rental_fee'          => 12000,
-                'occupancy_limit'     => 2,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 101', 'rental_fee' => 12000, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Unit 102', 'rental_fee' => 12000, 'occupancy_limit' => 2, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Unit 201', 'rental_fee' => 14000, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Unit 202', 'rental_fee' => 14000, 'occupancy_limit' => 2, 'availability_status' => 'Reserved'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80'],
@@ -72,11 +140,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Bakilid, Mandaue City, Cebu',
                 'latitude'            => 10.3340,
                 'longitude'           => 123.9300,
-                'rental_fee'          => 3000,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 3000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=1200&q=80'],
                 ],
@@ -88,11 +156,12 @@ class PropertySeeder extends Seeder
                 'address'             => 'Banilad, Cebu City, Cebu',
                 'latitude'            => 10.3400,
                 'longitude'           => 123.9100,
-                'rental_fee'          => 18000,
-                'occupancy_limit'     => 4,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit A', 'rental_fee' => 18000, 'occupancy_limit' => 4, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Unit B', 'rental_fee' => 16000, 'occupancy_limit' => 3, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=1200&q=80'],
@@ -105,11 +174,13 @@ class PropertySeeder extends Seeder
                 'address'             => 'Punta Princesa, Cebu City, Cebu',
                 'latitude'            => 10.2970,
                 'longitude'           => 123.8770,
-                'rental_fee'          => 2000,
-                'occupancy_limit'     => 6,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Bed 1', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Bed 2', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Bed 3', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1586105251261-72a756497a11?w=1200&q=80'],
                 ],
@@ -121,11 +192,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'San Isidro, Talisay City, Cebu',
                 'latitude'            => 10.2560,
                 'longitude'           => 123.8430,
-                'rental_fee'          => 22000,
-                'occupancy_limit'     => 6,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 22000, 'occupancy_limit' => 6, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80'],
@@ -138,11 +209,12 @@ class PropertySeeder extends Seeder
                 'address'             => 'SRP, Mambaling, Cebu City, Cebu',
                 'latitude'            => 10.2830,
                 'longitude'           => 123.8750,
-                'rental_fee'          => 4000,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Room A', 'rental_fee' => 4000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Room B', 'rental_fee' => 3800, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1200&q=80'],
                 ],
@@ -154,11 +226,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Lahug, Cebu City, Cebu',
                 'latitude'            => 10.3280,
                 'longitude'           => 123.8980,
-                'rental_fee'          => 15000,
-                'occupancy_limit'     => 2,
-                'availability_status' => 'Reserved',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 15000, 'occupancy_limit' => 2, 'availability_status' => 'Reserved'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&q=80'],
@@ -171,11 +243,14 @@ class PropertySeeder extends Seeder
                 'address'             => 'Osmena Blvd, Cebu City, Cebu',
                 'latitude'            => 10.3070,
                 'longitude'           => 123.8930,
-                'rental_fee'          => 2800,
-                'occupancy_limit'     => 4,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Bed 1', 'rental_fee' => 2800, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Bed 2', 'rental_fee' => 2800, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Bed 3', 'rental_fee' => 2500, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Bed 4', 'rental_fee' => 2500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&q=80'],
                 ],
@@ -190,11 +265,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Biasong, Talisay City, Cebu',
                 'latitude'            => 10.2490,
                 'longitude'           => 123.8340,
-                'rental_fee'          => 3500,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 3500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&q=80'],
                 ],
@@ -206,11 +281,12 @@ class PropertySeeder extends Seeder
                 'address'             => 'Cansojong, Talisay City, Cebu',
                 'latitude'            => 10.2520,
                 'longitude'           => 123.8430,
-                'rental_fee'          => 2200,
-                'occupancy_limit'     => 4,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Bed A', 'rental_fee' => 2200, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Bed B', 'rental_fee' => 2200, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=1200&q=80'],
                 ],
@@ -222,11 +298,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Dumlog, Talisay City, Cebu',
                 'latitude'            => 10.2420,
                 'longitude'           => 123.8340,
-                'rental_fee'          => 9500,
-                'occupancy_limit'     => 2,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 9500, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1200&q=80'],
                 ],
@@ -238,11 +314,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Jaclupan, Talisay City, Cebu',
                 'latitude'            => 10.2640,
                 'longitude'           => 123.8180,
-                'rental_fee'          => 14000,
-                'occupancy_limit'     => 5,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 14000, 'occupancy_limit' => 5, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=1200&q=80'],
                 ],
@@ -254,11 +330,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Lagtang, Talisay City, Cebu',
                 'latitude'            => 10.2600,
                 'longitude'           => 123.8310,
-                'rental_fee'          => 4000,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Reserved',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 4000, 'occupancy_limit' => 1, 'availability_status' => 'Reserved'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=80'],
                 ],
@@ -270,11 +346,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Linao, Talisay City, Cebu',
                 'latitude'            => 10.2450,
                 'longitude'           => 123.8240,
-                'rental_fee'          => 2300,
-                'occupancy_limit'     => 6,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 2300, 'occupancy_limit' => 6, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=1200&q=80'],
                 ],
@@ -286,11 +362,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Maghaway, Talisay City, Cebu',
                 'latitude'            => 10.2680,
                 'longitude'           => 123.8200,
-                'rental_fee'          => 16000,
-                'occupancy_limit'     => 6,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 16000, 'occupancy_limit' => 6, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1586105251261-72a756497a11?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80'],
                 ],
@@ -302,11 +378,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Mohon, Talisay City, Cebu',
                 'latitude'            => 10.2520,
                 'longitude'           => 123.8320,
-                'rental_fee'          => 8500,
-                'occupancy_limit'     => 2,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 8500, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80'],
                 ],
@@ -318,11 +394,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Pooc, Talisay City, Cebu',
                 'latitude'            => 10.2440,
                 'longitude'           => 123.8330,
-                'rental_fee'          => 3200,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 3200, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1200&q=80'],
                 ],
@@ -334,11 +410,13 @@ class PropertySeeder extends Seeder
                 'address'             => 'Tabunok, Talisay City, Cebu',
                 'latitude'            => 10.2540,
                 'longitude'           => 123.8480,
-                'rental_fee'          => 2000,
-                'occupancy_limit'     => 5,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Bed 1', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Bed 2', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Bed 3', 'rental_fee' => 1800, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80'],
                 ],
@@ -353,11 +431,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Cadulawan, Minglanilla, Cebu',
                 'latitude'            => 10.2540,
                 'longitude'           => 123.7910,
-                'rental_fee'          => 3300,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 3300, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1200&q=80'],
                 ],
@@ -369,11 +447,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Calajoan, Minglanilla, Cebu',
                 'latitude'            => 10.2450,
                 'longitude'           => 123.7850,
-                'rental_fee'          => 13000,
-                'occupancy_limit'     => 5,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 13000, 'occupancy_limit' => 5, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&q=80'],
                 ],
@@ -385,11 +463,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Camp 7, Minglanilla, Cebu',
                 'latitude'            => 10.2850,
                 'longitude'           => 123.7650,
-                'rental_fee'          => 2000,
-                'occupancy_limit'     => 4,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 2000, 'occupancy_limit' => 4, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=1200&q=80'],
                 ],
@@ -401,11 +479,13 @@ class PropertySeeder extends Seeder
                 'address'             => 'Cuanos, Minglanilla, Cebu',
                 'latitude'            => 10.2450,
                 'longitude'           => 123.7980,
-                'rental_fee'          => 9000,
-                'occupancy_limit'     => 2,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1A', 'rental_fee' => 9000, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Unit 1B', 'rental_fee' => 8500, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
+                    ['unit_label' => 'Unit 2A', 'rental_fee' => 9500, 'occupancy_limit' => 3, 'availability_status' => 'Occupied'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1200&q=80'],
                 ],
@@ -417,11 +497,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Guindaruhan, Minglanilla, Cebu',
                 'latitude'            => 10.2630,
                 'longitude'           => 123.7690,
-                'rental_fee'          => 3000,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Reserved',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 3000, 'occupancy_limit' => 1, 'availability_status' => 'Reserved'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=1200&q=80'],
                 ],
@@ -433,11 +513,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Pakigne, Minglanilla, Cebu',
                 'latitude'            => 10.2550,
                 'longitude'           => 123.8050,
-                'rental_fee'          => 2100,
-                'occupancy_limit'     => 6,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 2100, 'occupancy_limit' => 6, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=80'],
                 ],
@@ -449,11 +529,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Poblacion, Minglanilla, Cebu',
                 'latitude'            => 10.2450,
                 'longitude'           => 123.7950,
-                'rental_fee'          => 9800,
-                'occupancy_limit'     => 2,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 9800, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=1200&q=80'],
                 ],
@@ -465,11 +545,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Tubod, Minglanilla, Cebu',
                 'latitude'            => 10.2420,
                 'longitude'           => 123.7890,
-                'rental_fee'          => 17000,
-                'occupancy_limit'     => 6,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 17000, 'occupancy_limit' => 6, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1586105251261-72a756497a11?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80'],
                 ],
@@ -481,11 +561,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Tulay, Minglanilla, Cebu',
                 'latitude'            => 10.2380,
                 'longitude'           => 123.7820,
-                'rental_fee'          => 2800,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 2800, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80'],
                 ],
@@ -497,11 +577,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Tunghaan, Minglanilla, Cebu',
                 'latitude'            => 10.2530,
                 'longitude'           => 123.7920,
-                'rental_fee'          => 15000,
-                'occupancy_limit'     => 5,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 15000, 'occupancy_limit' => 5, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1200&q=80'],
                 ],
@@ -516,11 +596,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Alpaco, Naga City, Cebu',
                 'latitude'            => 10.2220,
                 'longitude'           => 123.7380,
-                'rental_fee'          => 11000,
-                'occupancy_limit'     => 5,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 11000, 'occupancy_limit' => 5, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80'],
                 ],
@@ -532,11 +612,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Bairan, Naga City, Cebu',
                 'latitude'            => 10.2310,
                 'longitude'           => 123.7420,
-                'rental_fee'          => 1900,
-                'occupancy_limit'     => 4,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 1900, 'occupancy_limit' => 4, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1200&q=80'],
                 ],
@@ -548,11 +628,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Cabungahan, Naga City, Cebu',
                 'latitude'            => 10.2300,
                 'longitude'           => 123.7500,
-                'rental_fee'          => 2700,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 2700, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&q=80'],
                 ],
@@ -564,11 +644,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Colon, Naga City, Cebu',
                 'latitude'            => 10.2180,
                 'longitude'           => 123.7580,
-                'rental_fee'          => 8000,
-                'occupancy_limit'     => 2,
-                'availability_status' => 'Reserved',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 8000, 'occupancy_limit' => 2, 'availability_status' => 'Reserved'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=1200&q=80'],
                 ],
@@ -580,11 +660,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Inayagan, Naga City, Cebu',
                 'latitude'            => 10.2270,
                 'longitude'           => 123.7660,
-                'rental_fee'          => 9500,
-                'occupancy_limit'     => 6,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 9500, 'occupancy_limit' => 6, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1200&q=80'],
                 ],
@@ -596,11 +676,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Mainit, Naga City, Cebu',
                 'latitude'            => 10.2220,
                 'longitude'           => 123.7460,
-                'rental_fee'          => 3000,
-                'occupancy_limit'     => 1,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 3000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=1200&q=80'],
                 ],
@@ -612,11 +692,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Pangdan, Naga City, Cebu',
                 'latitude'            => 10.2310,
                 'longitude'           => 123.7580,
-                'rental_fee'          => 1800,
-                'occupancy_limit'     => 5,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 1800, 'occupancy_limit' => 5, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=80'],
                 ],
@@ -628,11 +708,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Poblacion, Naga City, Cebu',
                 'latitude'            => 10.2080,
                 'longitude'           => 123.7570,
-                'rental_fee'          => 8500,
-                'occupancy_limit'     => 2,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 8500, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=1200&q=80'],
                 ],
@@ -644,11 +724,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Tagjaguimit, Naga City, Cebu',
                 'latitude'            => 10.2350,
                 'longitude'           => 123.7350,
-                'rental_fee'          => 12000,
-                'occupancy_limit'     => 5,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 12000, 'occupancy_limit' => 5, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1586105251261-72a756497a11?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80'],
                 ],
@@ -660,11 +740,11 @@ class PropertySeeder extends Seeder
                 'address'             => 'Uling, Naga City, Cebu',
                 'latitude'            => 10.2450,
                 'longitude'           => 123.7250,
-                'rental_fee'          => 1700,
-                'occupancy_limit'     => 6,
-                'availability_status' => 'Available',
                 'verification_status' => 'Approved',
-                'media'               => [
+                'units' => [
+                    ['unit_label' => 'Unit 1', 'rental_fee' => 1700, 'occupancy_limit' => 6, 'availability_status' => 'Available'],
+                ],
+                'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80'],
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80'],
                 ],
@@ -673,11 +753,22 @@ class PropertySeeder extends Seeder
 
         foreach ($properties as $data) {
             $mediaItems = $data['media'];
-            unset($data['media']);
+            $unitItems = $data['units'];
+            unset($data['media'], $data['units']);
+
+            // Pick 4–6 random rules from the pool matching this property type
+            $pool = $rulesByType[$data['property_type']] ?? $roomRules;
+            $data['house_rules'] = collect($pool)->shuffle()->take(rand(4, 6))->values()->all();
 
             $property = Property::create(array_merge($data, [
                 'landlord_id' => $landlord->user_id,
             ]));
+
+            foreach ($unitItems as $unitData) {
+                $property->units()->create(array_merge($unitData, [
+                    'verification_status' => $unitData['verification_status'] ?? 'Approved',
+                ]));
+            }
 
             foreach ($mediaItems as $media) {
                 PropertyMedia::create([
