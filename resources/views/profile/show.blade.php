@@ -7,8 +7,12 @@
 
         {{-- Profile header card --}}
         <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-8 mb-6 flex flex-col sm:flex-row sm:items-center gap-5">
-            <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#2AA7A1] text-2xl font-bold text-white">
-                {{ strtoupper(substr($user->first_name ?? 'U', 0, 1)) }}
+            <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#2AA7A1] text-2xl font-bold text-white overflow-hidden">
+                @if($user->profile_picture)
+                    <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="h-full w-full object-cover">
+                @else
+                    {{ strtoupper(substr($user->first_name ?? 'U', 0, 1)) }}
+                @endif
             </div>
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
@@ -34,6 +38,9 @@
                     <p class="text-sm text-[#64748B] mt-0.5">{{ $user->contact_number }}</p>
                 @endif
                 <p class="text-xs text-[#64748B]/80 mt-1.5">Member since {{ $user->created_at->format('F Y') }}</p>
+                @if($user->bio)
+                    <p class="text-sm text-[#1F2937] mt-3 leading-relaxed">{{ $user->bio }}</p>
+                @endif
             </div>
             <a href="{{ route('profile.edit') }}"
                 class="inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-lg border border-[#E2E8F0] text-[13px] font-semibold text-[#1F2937] hover:bg-[#EEF8F8] transition-colors shrink-0 self-start sm:self-center">

@@ -9,7 +9,7 @@ class ListingController extends Controller
     public function index()
     {
         $properties = auth()->user()->properties()
-            ->with('media')
+            ->with(['media', 'units'])
             ->latest()
             ->get();
 

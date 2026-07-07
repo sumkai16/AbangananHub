@@ -5,7 +5,7 @@
         {{-- Header --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
-                <h1 class="text-2xl font-bold text-[#0F172A] tracking-tight">My Properties</h1>
+                <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">My Properties</h1>
                 <p class="text-sm text-[#64748B] mt-1">Manage and monitor your rental properties on AbangananHub.</p>
             </div>
             <a href="{{ route('properties.create') }}"
@@ -27,11 +27,11 @@
                         d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                 </svg>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search properties..."
-                    class="pl-9 pr-4 h-10 w-56 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#0F172A] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 transition">
+                    class="pl-9 pr-4 h-10 w-56 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
             </div>
 
             <select name="status"
-                class="h-10 pl-4 pr-8 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 appearance-none transition">
+                class="h-10 pl-4 pr-8 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition">
                 <option value="">All Status</option>
                 <option value="Approved" @selected(request('status') === 'Approved')>Approved</option>
                 <option value="Pending" @selected(request('status') === 'Pending')>Pending</option>
@@ -39,7 +39,7 @@
             </select>
 
             <select name="type"
-                class="h-10 pl-4 pr-8 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 appearance-none transition">
+                class="h-10 pl-4 pr-8 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition">
                 <option value="">All Types</option>
                 <option value="Bedspace" @selected(request('type') === 'Bedspace')>Bedspace</option>
                 <option value="Room" @selected(request('type') === 'Room')>Room</option>
@@ -48,13 +48,13 @@
             </select>
 
             <button type="submit"
-                class="h-10 px-5 rounded-full bg-[#0F172A] text-white text-[13px] font-semibold hover:brightness-95 transition-all duration-200">
+                class="h-10 px-5 rounded-full bg-[#1F2937] text-white text-[13px] font-semibold hover:brightness-95 transition-all duration-200">
                 Filter
             </button>
 
             @if(request()->hasAny(['search', 'status', 'type']))
                 <a href="{{ route('landlord.properties.index') }}"
-                    class="h-10 px-4 rounded-full border border-[#64748B]/30 text-[13px] text-[#64748B] hover:text-[#0F172A] hover:border-[#64748B]/60 transition-colors duration-200 inline-flex items-center gap-1.5">
+                    class="h-10 px-4 rounded-full border border-[#64748B]/30 text-[13px] text-[#64748B] hover:text-[#1F2937] hover:border-[#64748B]/60 transition-colors duration-200 inline-flex items-center gap-1.5">
                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>
@@ -65,9 +65,9 @@
 
         {{-- Flash --}}
         @if(session('success'))
-            <div class="mb-6 px-4 py-3 rounded-xl bg-[#EEF8F8] text-[#0F172A] text-sm font-medium flex items-center gap-2">
+            <div class="mb-6 px-4 py-3 rounded-xl bg-[#EEF8F8] text-[#1F2937] text-sm font-medium flex items-center gap-2">
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                    class="shrink-0 text-[#3B82F6]">
+                    class="shrink-0 text-[#2AA7A1]">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                 </svg>
@@ -78,14 +78,14 @@
         {{-- Empty state --}}
         @if($properties->isEmpty())
             <div class="flex flex-col items-center justify-center py-24 text-center">
-                <div class="w-16 h-16 rounded-2xl bg-[#F1F5F9] flex items-center justify-center mb-4">
+                <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
                     <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"
                         class="text-[#64748B]">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
                     </svg>
                 </div>
-                <p class="text-[15px] font-semibold text-[#0F172A]">No properties yet</p>
+                <p class="text-[15px] font-semibold text-[#1F2937]">No properties yet</p>
                 <p class="text-sm text-[#64748B] mt-1 max-w-xs">Add your first property to start receiving reservations from
                     tenants.</p>
                 <a href="{{ route('properties.create') }}"
@@ -107,7 +107,7 @@
                             'Approved' => ['bg-emerald-50 text-emerald-700 ring-emerald-200', 'Approved'],
                             'Pending' => ['bg-amber-50 text-amber-600 ring-amber-200', 'Pending'],
                             'Rejected' => ['bg-red-50 text-red-600 ring-red-200', 'Rejected'],
-                            default => ['bg-[#F1F5F9] text-[#64748B] ring-[#64748B]/20', 'Unknown'],
+                            default => ['bg-[#EEF8F8] text-[#64748B] ring-[#64748B]/20', 'Unknown'],
                         };
                     @endphp
 
@@ -116,7 +116,7 @@
 
                         {{-- Thumbnail --}}
                         <a href="{{ route('landlord.properties.show', $property) }}"
-                            class="relative block aspect-[16/10] overflow-hidden bg-[#F1F5F9] shrink-0">
+                            class="relative block aspect-[16/10] overflow-hidden bg-[#EEF8F8] shrink-0">
                             @if($thumb)
                                 <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}"
                                     class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
@@ -145,7 +145,7 @@
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <a href="{{ route('landlord.properties.show', $property) }}"
-                                        class="block text-[15px] font-bold text-[#0F172A] leading-snug line-clamp-1 hover:text-[#EF4444] transition-colors duration-200">
+                                        class="block text-[15px] font-bold text-[#1F2937] leading-snug line-clamp-1 hover:text-[#EF4444] transition-colors duration-200">
                                         {{ $property->title }}
                                     </a>
                                     <p class="text-[12px] text-[#64748B] mt-0.5 line-clamp-1 flex items-center gap-1">
@@ -160,15 +160,15 @@
                                     </p>
                                 </div>
                                 <span
-                                    class="shrink-0 text-[11px] font-medium text-[#3B82F6] border border-[#3B82F6]/40 rounded-full px-2.5 py-0.5 mt-0.5">
+                                    class="shrink-0 text-[11px] font-medium text-[#2AA7A1] border border-[#2AA7A1]/40 rounded-full px-2.5 py-0.5 mt-0.5">
                                     {{ $property->property_type }}
                                 </span>
                             </div>
 
                             {{-- Unit stats --}}
-                            <div class="grid grid-cols-4 divide-x divide-[#64748B]/10 rounded-xl bg-[#F1F5F9]/60 py-2.5">
+                            <div class="grid grid-cols-4 divide-x divide-[#64748B]/10 rounded-xl bg-[#EEF8F8]/60 py-2.5">
                                 <div class="flex flex-col items-center gap-0.5">
-                                    <span class="text-[14px] font-bold text-[#0F172A]">{{ $property->units_count }}</span>
+                                    <span class="text-[14px] font-bold text-[#1F2937]">{{ $property->units_count }}</span>
                                     <span class="text-[10px] text-[#64748B] font-medium">Total</span>
                                 </div>
                                 <div class="flex flex-col items-center gap-0.5">
@@ -189,7 +189,7 @@
                             {{-- Actions --}}
                             <div class="flex items-center gap-2 pt-1 mt-auto">
                                 <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#3B82F6] text-[#3B82F6] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
+                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#2AA7A1] text-[#2AA7A1] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -198,7 +198,7 @@
                                     View Units
                                 </a>
                                 <a href="{{ route('properties.edit', $property) }}"
-                                    class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#64748B]/30 text-[#0F172A] text-[12px] font-medium hover:bg-[#F1F5F9] transition-colors duration-200">
+                                    class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#64748B]/30 text-[#1F2937] text-[12px] font-medium hover:bg-[#EEF8F8] transition-colors duration-200">
                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -207,7 +207,7 @@
                                     Edit
                                 </a>
                                 <a href="{{ route('landlord.properties.show', $property) }}"
-                                    class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#64748B]/30 text-[#0F172A] text-[12px] font-medium hover:bg-[#F1F5F9] transition-colors duration-200">
+                                    class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#64748B]/30 text-[#1F2937] text-[12px] font-medium hover:bg-[#EEF8F8] transition-colors duration-200">
                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"

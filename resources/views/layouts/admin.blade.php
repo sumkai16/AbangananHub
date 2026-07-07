@@ -73,7 +73,7 @@
             </a>
 
             {{-- Nav --}}
-            @php $cur = request()->route()?->getName(); @endphp
+            @php $cur = request()->route()?->getName() ?? ''; @endphp
 
             <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 space-y-0.5 scrollbar-thin">
 

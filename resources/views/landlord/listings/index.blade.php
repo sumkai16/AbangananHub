@@ -19,7 +19,7 @@
                         @if($property->media->first())
                             <img src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
                         @else
-                            <div class="w-full h-full flex items-center justify-center bg-[#EEF8F8] text-[#3B82F6]">
+                            <div class="w-full h-full flex items-center justify-center bg-[#EEF8F8] text-[#2AA7A1]">
                                 <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                 </svg>
@@ -41,11 +41,14 @@
                     <div class="mt-3 px-1 flex-grow flex flex-col justify-between">
                         <div>
                             <div class="flex items-start justify-between gap-2">
-                                <h3 class="text-[14px] font-semibold text-[#0F172A] leading-snug line-clamp-1">
+                                <h3 class="text-[14px] font-semibold text-[#1F2937] leading-snug line-clamp-1">
                                     {{ $property->title }}
                                 </h3>
-                                <span class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 {{ $property->availability_status === 'Available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
-                                    {{ $property->availability_status }}
+                                @php
+                                    $hasAvailableUnit = $property->units->where('availability_status', 'Available')->isNotEmpty();
+                                @endphp
+                                <span class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 {{ $hasAvailableUnit ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
+                                    {{ $hasAvailableUnit ? 'Available' : 'Unavailable' }}
                                 </span>
                             </div>
 
@@ -57,9 +60,13 @@
                                 {{ $property->address }}
                             </p>
 
-                            <p class="text-[14px] font-semibold text-[#0F172A] mt-1">
-                                ₱{{ number_format($property->rental_fee) }}
-                                <span class="text-[13px] font-normal text-gray-400">/month</span>
+                            <p class="text-[14px] font-semibold text-[#1F2937] mt-1">
+                                @if($property->min_rental_fee)
+                                    ₱{{ number_format($property->min_rental_fee) }}
+                                    <span class="text-[13px] font-normal text-gray-400">/month</span>
+                                @else
+                                    <span class="text-[13px] font-normal text-gray-400">Price not set</span>
+                                @endif
                             </p>
                         </div>
 
