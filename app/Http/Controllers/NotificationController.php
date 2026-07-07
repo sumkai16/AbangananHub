@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\Review;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -13,6 +15,11 @@ class NotificationController extends Controller
 
         $query = auth()->user()->notifications()
             ->where('type', '!=', 'message')
+            ->with(['notifiable' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    Review::class => ['tenant', 'property.media', 'landlord'],
+                ]);
+            }])
             ->latest();
 
         if ($tab === 'unread') {
@@ -33,20 +40,17 @@ class NotificationController extends Controller
         // Side panel: load selected notification detail
         $selected = null;
         if ($request->filled('selected')) {
-            $selected = Notification::with('notifiable')
+            $selected = Notification::with(['notifiable' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Review::class => ['tenant', 'property.media', 'landlord'],
+                    ]);
+                }])
                 ->where('notification_id', $request->selected)
                 ->where('user_id', auth()->id())
                 ->first();
 
             if ($selected && !$selected->is_read) {
                 $selected->markAsRead();
-            }
-
-            // Eager-load context based on notifiable type
-            if ($selected && $selected->notifiable) {
-                if ($selected->notifiable_type === 'App\Models\Review') {
-                    $selected->notifiable->load(['tenant', 'property.media', 'landlord']);
-                }
             }
         }
 
