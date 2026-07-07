@@ -16,7 +16,7 @@ protected $primaryKey = 'user_id';
     {
         return 'user_id';
     }
-    protected $fillable = [
+   protected $fillable = [
         'first_name',
         'last_name',
         'email',
@@ -24,6 +24,8 @@ protected $primaryKey = 'user_id';
         'contact_number',
         'profile_picture',
         'account_status',
+        'bio',
+        'profile_visibility',
     ];
 
     protected $hidden = [
