@@ -90,7 +90,15 @@ protected $primaryKey = 'user_id';
     {
         return $this->hasMany(Conversation::class, 'landlord_id', 'user_id');
     }
+public function tenantRatingsReceived()
+    {
+        return $this->hasMany(TenantRating::class, 'tenant_id', 'user_id');
+    }
 
+    public function tenantRatingsGiven()
+    {
+        return $this->hasMany(TenantRating::class, 'landlord_id', 'user_id');
+    }
     // ─── Role Helpers ────────────────────────────────────────
 
     public function hasRole(string $role): bool

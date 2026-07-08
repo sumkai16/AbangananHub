@@ -162,14 +162,17 @@
                     <div class="relative">
                         <button id="abg-avatar-btn" aria-expanded="false"
                             class="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-gray-50 transition-colors focus:outline-none">
-                            <span class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
+                            <span
+                                class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
                                 {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
                             </span>
                             <span class="hidden sm:flex flex-col items-start leading-tight">
-                                <span class="text-[13px] font-semibold text-[#1F2937]">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
+                                <span class="text-[13px] font-semibold text-[#1F2937]">{{ auth()->user()->first_name }}
+                                    {{ auth()->user()->last_name }}</span>
                                 <span class="text-[11px] text-[#64748B]">{{ $abgRoleLabel }}</span>
                             </span>
-                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#64748B] hidden sm:block">
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="2" class="text-[#64748B] hidden sm:block">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                             </svg>
                         </button>
@@ -254,17 +257,26 @@
                             <div class="py-1">
                                 <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                                     Account</p>
+<<<<<<< HEAD
 
                                 <a href="{{ route('profile.show') }}"
+=======
+                                <a href="{{ auth()->user()->hasRole('Landlord') ? route('landlord.profile.me') : route('tenant.profile.show') }}"
+>>>>>>> e3b4a20713e4fc998b82aefaa4705c5a32d83b2c
                                     class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                     </svg>
+<<<<<<< HEAD
                                     Profile
                                 </a>
 
+=======
+                                    My Profile
+                                </a>
+>>>>>>> e3b4a20713e4fc998b82aefaa4705c5a32d83b2c
                                 <a href="{{ route('profile.edit') }}"
                                     class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"

@@ -70,7 +70,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
     });
-    
+    // Public landlord profile (visibility-gated in controller)
+    Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');
     // Landlord-specific prefix routes
     Route::middleware('landlord')->prefix('landlord')->name('landlord.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -94,6 +95,15 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
 
         Route::patch('/reviews/{review}/reply', [\App\Http\Controllers\Landlord\ReviewController::class, 'reply'])->name('reviews.reply');
+
+        // Profile
+        Route::get('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'me'])->name('profile.me');
+        Route::get('/profile/edit', [App\Http\Controllers\Landlord\ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'update'])->name('profile.update');
+
+        // Tenant Ratings
+        Route::get('/reservations/{reservation}/rate-tenant', [App\Http\Controllers\Landlord\TenantRatingController::class, 'create'])->name('reservations.rateTenant');
+        Route::post('/reservations/{reservation}/rate-tenant', [App\Http\Controllers\Landlord\TenantRatingController::class, 'store'])->name('reservations.rateTenant.store');
     });
 
     // Admin-specific routes
@@ -133,6 +143,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/properties/{property}/units/{unit}', [AdminPropertyUnitController::class, 'show'])->name('units.show');
         Route::post('/properties/{property}/units/{unit}/approve', [AdminPropertyUnitController::class, 'approve'])->name('units.approve');
         Route::post('/properties/{property}/units/{unit}/reject', [AdminPropertyUnitController::class, 'reject'])->name('units.reject');
+
+        // Profile
+        Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
     });
 
    // Conversations and messages
