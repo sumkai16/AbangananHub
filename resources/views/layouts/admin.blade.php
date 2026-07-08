@@ -316,23 +316,27 @@
                     </div>
                 @endforeach
 
+               {{-- ── ACCOUNT ── --}}
+                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                    class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/30 uppercase tracking-widest whitespace-nowrap">
+                    Account</p>
+
+                <a href="{{ route('admin.profile.edit') }}"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
+                        {{ str_starts_with($cur ?? '', 'admin.profile') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">My Profile</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
+                        My Profile
+                    </span>
+                </a>
+
                 {{-- Logout --}}
                 <div class="pt-3 pb-1">
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit"
-                            class="group relative w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-white/50 hover:bg-red-500/10 hover:text-red-400 transition-all duration-150">
-                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                            </svg>
-                            <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Logout</span>
-                            <span x-show="sidebarCollapsed" x-cloak
-                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
-                                Logout
-                            </span>
-                        </button>
-                    </form>
-                </div>
+                    
 
             </nav>
         </aside>
@@ -386,10 +390,11 @@
 
                         <div x-show="open" x-cloak x-transition
                             class="absolute top-[calc(100%+8px)] right-0 w-[200px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50">
-                            <a href="{{ route('profile.edit') }}"
+                            <a href="{{ route('admin.profile.edit') }}"
                                 class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
-                                Account Settings
+                                My Profile
                             </a>
+                          
                             <div class="h-px bg-gray-100 my-1.5"></div>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf

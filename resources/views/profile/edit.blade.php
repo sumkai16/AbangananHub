@@ -1,7 +1,6 @@
-@extends('layouts.app', ['searchBar' => false])
-
+@extends(auth()->user()->hasRole('Admin') ? 'layouts.admin' : 'layouts.app', auth()->user()->hasRole('Admin') ? [] : ['searchBar' => false])
 @section('title', 'Account Settings')
-
+@section('page-title', 'Account Settings')
 @section('content')
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-10">
 
