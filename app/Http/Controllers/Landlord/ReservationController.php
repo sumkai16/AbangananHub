@@ -35,7 +35,7 @@ class ReservationController extends Controller
         }
 
         $reservations = $base
-            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation'])
+            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'tenantRating'])
             ->latest()
             ->paginate(10)
             ->withQueryString();

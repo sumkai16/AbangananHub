@@ -213,7 +213,16 @@
                                                 </button>
                                             </form>
                                         @endif
-
+                                            @if($reservation->rental_status === 'Occupied')
+                                            @if($reservation->tenantRating)
+                                                <span class="text-[12px] font-semibold text-[#22C55E] px-2 py-1.5">Rated</span>
+                                            @else
+                                                <a href="{{ route('landlord.reservations.rateTenant', $reservation) }}"
+                                                    class="text-[12px] font-semibold text-white bg-[#FF8A65] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
+                                                    Rate Tenant
+                                                </a>
+                                            @endif
+                                        @endif
                                         <a href="{{ route('conversations.show', $reservation->conversation) }}"
                                             class="text-[12px] font-semibold text-[#1F2937] border border-[#64748B]/20 rounded-lg px-3 py-1.5 hover:bg-[#E2E8F0] transition-all duration-150">
                                             Chat

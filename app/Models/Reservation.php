@@ -63,6 +63,10 @@ class Reservation extends Model
         return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
     }
 
+    public function tenantRating()
+    {
+        return $this->hasOne(TenantRating::class, 'reservation_id', 'reservation_id');
+    }
     // ─── Status Helpers ──────────────────────────────────────
 
     public function isRentalStatus(string $status): bool
