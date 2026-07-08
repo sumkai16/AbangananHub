@@ -20,7 +20,7 @@ class ProfileController extends Controller
 
         $activeReservations = $user->reservations()
             ->with(['property:property_id,title,address,rental_fee', 'property.media'])
-            ->whereIn('reservation_status', ['Pending', 'Approved', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed'])
+            ->whereIn('rental_status', ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed'])
             ->latest('created_at')
             ->get();
 
