@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,6 +18,9 @@ return new class extends Migration
             $table->foreign('landlord_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->unsignedTinyInteger('rating');
             $table->text('review_comment')->nullable();
+            $table->text('landlord_reply')->nullable();
+            $table->timestamp('landlord_replied_at')->nullable();
+            $table->boolean('is_hidden')->default(false);
             $table->timestamps();
 
             $table->unique(['tenant_id', 'property_id']);

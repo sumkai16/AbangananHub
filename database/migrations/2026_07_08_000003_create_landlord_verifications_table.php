@@ -14,6 +14,11 @@ return new class extends Migration
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->unique('user_id');
             $table->string('government_id');
+            $table->string('business_name')->nullable();
+            $table->text('description')->nullable();
+            $table->string('logo_url')->nullable();
+            $table->string('contact_number')->nullable();
+            $table->string('business_address')->nullable();
             $table->enum('verification_status', ['Pending', 'Approved', 'Rejected'])->default('Pending');
             $table->text('admin_notes')->nullable();
             $table->unsignedBigInteger('reviewed_by')->nullable();

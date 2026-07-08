@@ -16,6 +16,8 @@ return new class extends Migration
             $table->decimal('rental_fee', 10, 2);
             $table->unsignedInteger('occupancy_limit');
             $table->enum('availability_status', ['Available', 'Reserved', 'Occupied'])->default('Available');
+            $table->enum('verification_status', ['Pending', 'Approved', 'Rejected'])->default('Pending');
+            $table->string('rejection_reason', 500)->nullable();
             $table->timestamps();
         });
     }

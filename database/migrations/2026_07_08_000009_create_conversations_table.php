@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,6 +16,9 @@ return new class extends Migration
             $table->foreign('landlord_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('property_id');
             $table->foreign('property_id')->references('property_id')->on('properties')->onDelete('cascade');
+            $table->unsignedBigInteger('unit_id')->nullable();
+            $table->foreign('unit_id')->references('unit_id')->on('property_units')->nullOnDelete();
+            $table->string('status')->default('Open');
             $table->timestamps();
 
             $table->unique(['tenant_id', 'landlord_id', 'property_id']);
@@ -27,6 +31,7 @@ return new class extends Migration
             $table->unsignedBigInteger('sender_id');
             $table->foreign('sender_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->text('message');
+            $table->boolean('is_read')->default(false);
             $table->timestamp('sent_at')->useCurrent();
         });
     }

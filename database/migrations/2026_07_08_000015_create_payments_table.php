@@ -22,8 +22,9 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->enum('payment_method', ['GCash']);
 
-            $table->string('paymongo_payment_intent_id')->unique();
+            $table->string('paymongo_payment_intent_id')->nullable()->unique();
             $table->string('paymongo_payment_id')->nullable();
+            $table->string('paymongo_checkout_session_id')->nullable()->unique();
 
             $table->enum('status', ['Pending', 'Paid', 'Failed', 'Refunded'])
                 ->default('Pending');
