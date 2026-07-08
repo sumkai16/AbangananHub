@@ -75,7 +75,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::patch('/profile', [App\Http\Controllers\Tenant\ProfileController::class, 'update'])->name('tenant.profile.update');
 
     });
-    
+    // Public landlord profile (visibility-gated in controller)
+    Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');
     // Landlord-specific prefix routes
     Route::middleware('landlord')->prefix('landlord')->name('landlord.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -99,6 +100,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
 
         Route::patch('/reviews/{review}/reply', [\App\Http\Controllers\Landlord\ReviewController::class, 'reply'])->name('reviews.reply');
+
+        // Profile
+        Route::get('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'me'])->name('profile.me');
+        Route::get('/profile/edit', [App\Http\Controllers\Landlord\ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'update'])->name('profile.update');
     });
 
     // Admin-specific routes
