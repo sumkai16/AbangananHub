@@ -69,6 +69,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
         
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
+
+        // Profile
+        Route::get('/profile', [App\Http\Controllers\Tenant\ProfileController::class, 'show'])->name('tenant.profile.show');
+        Route::get('/profile/edit', [App\Http\Controllers\Tenant\ProfileController::class, 'edit'])->name('tenant.profile.edit');
+        Route::patch('/profile', [App\Http\Controllers\Tenant\ProfileController::class, 'update'])->name('tenant.profile.update');
     });
     // Public landlord profile (visibility-gated in controller)
     Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');

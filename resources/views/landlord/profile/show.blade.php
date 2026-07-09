@@ -174,7 +174,13 @@
                             <div class="mt-2">
                                 <p class="text-[14px] font-semibold text-[#1F2937] truncate">{{ $property->title }}</p>
                                 <p class="text-[12px] text-[#64748B] truncate mt-0.5">{{ $property->address }}</p>
-                                <p class="text-[13px] font-bold text-[#1F2937] mt-1">P{{ number_format($property->rental_fee) }}<span class="text-[#64748B] font-normal text-[12px]"> / month</span></p>
+                                <p class="text-[13px] font-bold text-[#1F2937] mt-1">
+                                    @if($property->min_rental_fee)
+                                        ₱{{ number_format($property->min_rental_fee) }}<span class="text-[#64748B] font-normal text-[12px]"> / month</span>
+                                    @else
+                                        <span class="text-[#64748B] font-normal text-[12px]">Price not set</span>
+                                    @endif
+                                </p>
                             </div>
                         </a>
                     @endforeach

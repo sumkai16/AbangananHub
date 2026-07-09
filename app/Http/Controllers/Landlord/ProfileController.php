@@ -60,7 +60,7 @@ class ProfileController extends Controller
 
         $properties = $user->properties()
             ->where('verification_status', 'Approved')
-            ->with('media')
+            ->with(['media', 'units'])
             ->latest('created_at')
             ->get();
 

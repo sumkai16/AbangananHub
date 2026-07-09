@@ -283,24 +283,6 @@
                         class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
                         Account</p>
 
-<<<<<<< HEAD
-                    <a href="{{ route('profile.show') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'profile.show' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Profile</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Profile
-                        </span>
-                    </a>
-
-=======
                     {{-- My Profile --}}
                     <a href="{{ route('landlord.profile.me') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                         class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
@@ -319,7 +301,6 @@
                     </a>
 
                     {{-- Settings --}}
->>>>>>> e3b4a20713e4fc998b82aefaa4705c5a32d83b2c
                     <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                         class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
                           {{ $current === 'profile.edit' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
@@ -429,10 +410,6 @@
                             <a href="{{ route('properties.index') }}"
                                 class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
                                 Browse as Tenant
-                            </a>
-                            <a href="{{ route('profile.show') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
-                                Profile
                             </a>
                             <a href="{{ route('profile.edit') }}"
                                 class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">

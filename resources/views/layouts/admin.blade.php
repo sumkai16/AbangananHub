@@ -390,19 +390,15 @@
 
                         <div x-show="open" x-cloak x-transition
                             class="absolute top-[calc(100%+8px)] right-0 w-[200px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50">
-<<<<<<< HEAD
-                            <a href="{{ route('profile.show') }}"
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
-                                Profile
-                            </a>
-                            <a href="{{ route('profile.edit') }}"
-=======
                             <a href="{{ route('admin.profile.edit') }}"
->>>>>>> e3b4a20713e4fc998b82aefaa4705c5a32d83b2c
                                 class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
                                 My Profile
                             </a>
-                          
+                            <a href="{{ route('profile.edit') }}"
+                                class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
+                                Account Settings
+                            </a>
+
                             <div class="h-px bg-gray-100 my-1.5"></div>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf

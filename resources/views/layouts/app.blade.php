@@ -257,26 +257,15 @@
                             <div class="py-1">
                                 <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                                     Account</p>
-<<<<<<< HEAD
-
-                                <a href="{{ route('profile.show') }}"
-=======
                                 <a href="{{ auth()->user()->hasRole('Landlord') ? route('landlord.profile.me') : route('tenant.profile.show') }}"
->>>>>>> e3b4a20713e4fc998b82aefaa4705c5a32d83b2c
                                     class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                     </svg>
-<<<<<<< HEAD
-                                    Profile
-                                </a>
-
-=======
                                     My Profile
                                 </a>
->>>>>>> e3b4a20713e4fc998b82aefaa4705c5a32d83b2c
                                 <a href="{{ route('profile.edit') }}"
                                     class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
