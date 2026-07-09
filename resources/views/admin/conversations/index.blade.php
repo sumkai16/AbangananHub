@@ -6,7 +6,7 @@
 <div class="max-w-[1400px]">
 
     {{-- Header --}}
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
             <h1 class="text-2xl font-extrabold text-[#1A1A2E] tracking-tight">Conversations</h1>
             <p class="text-[13.5px] text-gray-500 mt-1">Read-only access to all tenant–landlord conversations for dispute support.</p>
@@ -15,7 +15,7 @@
     </div>
 
     {{-- Stat cards --}}
-    <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
             <p class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1">Total</p>
             <p class="text-[28px] font-extrabold text-[#1A1A2E] leading-none">{{ number_format($counts['all']) }}</p>

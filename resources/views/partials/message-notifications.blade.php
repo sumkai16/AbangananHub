@@ -23,7 +23,7 @@
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0"
                 x-transition:leave-end="opacity-0 translate-y-4"
-                class="pointer-events-auto cursor-pointer w-[340px] bg-white border border-[#64748B]/20 rounded-2xl p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.16)] transition-shadow duration-200">
+                class="pointer-events-auto cursor-pointer w-[calc(100vw-2.5rem)] max-w-[340px] bg-white border border-[#64748B]/20 rounded-2xl p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.16)] transition-shadow duration-200">
                 <div class="flex gap-3 items-start">
                     <div class="w-10 h-10 rounded-full bg-[#1F2937] flex items-center justify-center shrink-0">
                         <span class="text-white text-[14px] font-bold" x-text="toast.sender_initial"></span>
@@ -62,7 +62,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-        class="fixed bottom-5 right-5 z-[9997] w-[360px] bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-[#64748B]/15 overflow-hidden"
+        class="fixed bottom-5 right-5 z-[9997] w-[calc(100vw-2.5rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-[#64748B]/15 overflow-hidden"
         :style="footerOffset ? { bottom: footerOffset + 'px' } : {}"
         @click.away="closeBubblePanel()">
         <div x-ref="bubblePanelBody">

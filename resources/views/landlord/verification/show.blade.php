@@ -17,7 +17,7 @@
 
         @if ($verification->verification_status === 'Approved')
 
-            <div class="rounded-xl border border-[#EEF8F8] bg-white p-8">
+            <div class="rounded-xl border border-[#EEF8F8] bg-white p-5 sm:p-8">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#EEF8F8] flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -53,7 +53,7 @@
 
         @elseif ($verification->verification_status === 'Rejected')
 
-            <div class="rounded-xl border border-[#EF4444]/30 bg-white p-8">
+            <div class="rounded-xl border border-[#EF4444]/30 bg-white p-5 sm:p-8">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#EF4444]/10 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -93,7 +93,7 @@
 
         @else {{-- Pending --}}
 
-            <div class="rounded-xl border border-[#EEF8F8] bg-white p-8">
+            <div class="rounded-xl border border-[#EEF8F8] bg-white p-5 sm:p-8">
                 <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#5E6968]/10 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"

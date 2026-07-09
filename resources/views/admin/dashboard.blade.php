@@ -68,12 +68,12 @@
 
             {{-- Platform Overview --}}
             <div class="lg:col-span-7 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-                <div class="flex items-center justify-between mb-5">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                     <div>
                         <h2 class="text-[15px] font-bold text-[#1A1A2E]">Platform Overview</h2>
                         <p class="text-[12px] text-gray-400 mt-0.5">New activity over the last 7 days</p>
                     </div>
-                    <div class="flex items-center gap-4 text-[12px] text-gray-400">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-gray-400">
                         <span class="flex items-center gap-1.5"><span
                                 class="w-3 h-0.5 rounded-full bg-[#2AA7A1] inline-block"></span>Users</span>
                         <span class="flex items-center gap-1.5"><span
@@ -93,11 +93,11 @@
                     <h2 class="text-[15px] font-bold text-[#1A1A2E]">User Distribution</h2>
                     <p class="text-[12px] text-gray-400 mt-0.5">Breakdown by role</p>
                 </div>
-                <div class="flex items-center gap-6">
+                <div class="flex flex-col sm:flex-row items-center gap-6">
                     <div class="w-36 h-36 shrink-0">
                         <canvas id="distributionChart"></canvas>
                     </div>
-                    <div class="flex-1 space-y-3">
+                    <div class="flex-1 w-full space-y-3">
                         @php
                             $distItems = [
                                 ['label' => 'Tenants', 'value' => $totalTenants, 'dot' => 'bg-[#2AA7A1]'],
@@ -134,7 +134,7 @@
             <div class="lg:col-span-8 bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden"
                 x-data="{ tab: 'landlords' }">
 
-                <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between gap-4">
+                <div class="px-4 sm:px-6 py-4 border-b border-gray-50 flex flex-wrap items-center justify-between gap-3">
                     <h2 class="text-[15px] font-bold text-[#1A1A2E]">Pending Verifications</h2>
                     <div class="flex gap-1 bg-gray-50 rounded-xl p-1">
                         <button @click="tab = 'landlords'"
@@ -172,7 +172,8 @@
                     @if($pendingVerificationList->isEmpty())
                         <div class="py-10 text-center text-[13px] text-gray-400">No pending landlord verifications.</div>
                     @else
-                        <table class="min-w-full">
+                        <div class="overflow-x-auto">
+                        <table class="w-full min-w-[640px]">
                             <thead>
                                 <tr class="bg-gray-50/50 border-b border-gray-50">
                                     <th
@@ -216,6 +217,7 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        </div>
                         <div class="px-6 py-3 border-t border-gray-50">
                             <a href="{{ route('admin.verifications.index', ['status' => 'Pending']) }}"
                                 class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
@@ -230,7 +232,8 @@
                     @if($pendingListingList->isEmpty())
                         <div class="py-10 text-center text-[13px] text-gray-400">No pending property verifications.</div>
                     @else
-                        <table class="min-w-full">
+                        <div class="overflow-x-auto">
+                        <table class="w-full min-w-[720px]">
                             <thead>
                                 <tr class="bg-gray-50/50 border-b border-gray-50">
                                     <th
@@ -281,6 +284,7 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        </div>
                         <div class="px-6 py-3 border-t border-gray-50">
                             <a href="{{ route('admin.listings.approval') }}"
                                 class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
@@ -295,7 +299,8 @@
                     @if($pendingUnitList->isEmpty())
                         <div class="py-10 text-center text-[13px] text-gray-400">No pending unit approvals.</div>
                     @else
-                        <table class="min-w-full">
+                        <div class="overflow-x-auto">
+                        <table class="w-full min-w-[640px]">
                             <thead>
                                 <tr class="bg-gray-50/50 border-b border-gray-50">
                                     <th
@@ -337,6 +342,7 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        </div>
                         <div class="px-6 py-3 border-t border-gray-50">
                             <a href="{{ route('admin.units.index') }}"
                                 class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">

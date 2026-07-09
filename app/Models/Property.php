@@ -96,6 +96,72 @@ class Property extends Model
     {
         return $query->where('verification_status', 'Approved');
     }
+
+    /**
+     * Base tenant-facing browse query: approved properties that have at
+     * least one available, approved unit, plus the aggregate columns the
+     * listing UIs rely on (min_rental_fee, avg_rating, review_count).
+     * Shared by the web PropertyController query and the API.
+     */
+    public function scopeBrowsable($query)
+    {
+        return $query
+            ->where('verification_status', 'Approved')
+            ->whereHas('units', function ($q) {
+                $q->where('availability_status', 'Available')
+                  ->where('verification_status', 'Approved');
+            })
+            ->withMin(['units as min_rental_fee' => function ($q) {
+                $q->where('availability_status', 'Available')
+                  ->where('verification_status', 'Approved');
+            }], 'rental_fee')
+            ->withAvg(['reviews as avg_rating' => function ($q) {
+                $q->where('is_hidden', false);
+            }], 'rating')
+            ->withCount(['reviews as review_count' => function ($q) {
+                $q->where('is_hidden', false);
+            }]);
+    }
+
+    /**
+     * Apply tenant browse filters (location, type, price_max, verified)
+     * and sorting (newest | price_low | price_high).
+     */
+    public function scopeBrowseFilters($query, array $filters)
+    {
+        if (!empty($filters['location'])) {
+            $location = $filters['location'];
+            $query->where(function ($q) use ($location) {
+                $q->where('address', 'like', '%' . $location . '%')
+                  ->orWhere('title', 'like', '%' . $location . '%');
+            });
+        }
+
+        if (!empty($filters['type'])) {
+            $query->where('property_type', $filters['type']);
+        }
+
+        if (!empty($filters['price_max'])) {
+            $priceMax = $filters['price_max'];
+            $query->whereHas('units', function ($q) use ($priceMax) {
+                $q->where('availability_status', 'Available')
+                  ->where('verification_status', 'Approved')
+                  ->where('rental_fee', '<=', $priceMax);
+            });
+        }
+
+        if (!empty($filters['verified'])) {
+            $query->whereHas('landlord.rentalBusiness');
+        }
+
+        match ($filters['sort'] ?? null) {
+            'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
+            'price_high' => $query->orderByDesc('min_rental_fee'),
+            default      => $query->latest('created_at'),
+        };
+
+        return $query;
+    }
     public function units()
     {
         return $this->hasMany(PropertyUnit::class, 'property_id', 'property_id');

@@ -81,6 +81,7 @@ class UserSeeder extends Seeder
             'submitted_at'        => now()->subDays(4),
         ]);
 
+        
         // Tenant
         $tenant = User::create([
             'first_name'     => 'Juan',

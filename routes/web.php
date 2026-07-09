@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\FavoriteController;
 use App\Http\Controllers\Tenant\ReservationController;
+use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PropertyController;
@@ -69,6 +70,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
         
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
+
+        // Profile
+        Route::get('/profile', [TenantProfileController::class, 'show'])->name('tenant.profile.show');
+        Route::get('/profile/edit', [TenantProfileController::class, 'edit'])->name('tenant.profile.edit');
+        Route::patch('/profile', [TenantProfileController::class, 'update'])->name('tenant.profile.update');
     });
     // Public landlord profile (visibility-gated in controller)
     Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');

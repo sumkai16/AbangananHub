@@ -57,7 +57,7 @@
 
         <aside id="landlord-sidebar"
             :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#156F8C] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0F172A] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
             {{-- Floating collapse toggle (desktop only) --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
@@ -80,7 +80,7 @@
                 </div>
                 <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                     class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
-                    Abanganan<span class="text-[#156F8C]">Hub</span>
+                    Abanganan<span class="text-[#2AA7A1]">Hub</span>
                 </span>
             </a>
 
@@ -129,218 +129,194 @@
                 </a>
 
                 {{-- Units --}}
-                    <div :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Units</span>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Via
-                            Property</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Units — open a property to manage units
-                        </span>
-                    </div>
+                <div :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Units</span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Via
+                        Property</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Units — open a property to manage units
+                    </span>
+                </div>
 
-                    {{-- Reservations --}}
-                    <a href="{{ route('landlord.reservations.index') }}"
-                        :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
+                {{-- Reservations --}}
+                <a href="{{ route('landlord.reservations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
                           {{ str_starts_with($current, 'landlord.reservations') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Reservations</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Reservations
-                        </span>
-                    </a>
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="whitespace-nowrap">Reservations</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Reservations
+                    </span>
+                </a>
 
-                    {{-- Tenants --}}
-                    <div :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Tenants</span>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Tenants · Soon
-                        </span>
-                    </div>
+                {{-- Tenants --}}
+                <div :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Tenants</span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Tenants · Soon
+                    </span>
+                </div>
 
-                    {{-- Messages --}}
-                    <a href="{{ route('conversations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
+                {{-- Messages --}}
+                <a href="{{ route('conversations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
                           {{ str_starts_with($current, 'conversations') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <circle cx="12" cy="12" r="9" />
-                            <circle cx="8.5" cy="12" r="0.75" fill="currentColor" stroke="none" />
-                            <circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none" />
-                            <circle cx="15.5" cy="12" r="0.75" fill="currentColor" stroke="none" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Messages</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Messages
-                        </span>
-                    </a>
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <circle cx="12" cy="12" r="9" />
+                        <circle cx="8.5" cy="12" r="0.75" fill="currentColor" stroke="none" />
+                        <circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none" />
+                        <circle cx="15.5" cy="12" r="0.75" fill="currentColor" stroke="none" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="whitespace-nowrap">Messages</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Messages
+                    </span>
+                </a>
 
-                    <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                        class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
-                        Insights</p>
+                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                    class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
+                    Insights</p>
 
-                    {{-- Occupancy --}}
-                    <div :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .649.275 1.234.717 1.65a2.49 2.49 0 0 0-.717 1.65c0 .231.035.454.1.664-1.708.293-3.05 1.635-3.343 3.343-.21-.065-.433-.1-.664-.1a2.49 2.49 0 0 0-1.65.717 2.49 2.49 0 0 0-1.65-.717c-.231 0-.454.035-.664.1-.293-1.708-1.635-3.05-3.343-3.343" />
-                            <circle cx="12" cy="12" r="9" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Occupancy</span>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Occupancy · Soon
-                        </span>
-                    </div>
+                {{-- Occupancy --}}
+                <div :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .649.275 1.234.717 1.65a2.49 2.49 0 0 0-.717 1.65c0 .231.035.454.1.664-1.708.293-3.05 1.635-3.343 3.343-.21-.065-.433-.1-.664-.1a2.49 2.49 0 0 0-1.65.717 2.49 2.49 0 0 0-1.65-.717c-.231 0-.454.035-.664.1-.293-1.708-1.635-3.05-3.343-3.343" />
+                        <circle cx="12" cy="12" r="9" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="whitespace-nowrap">Occupancy</span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Occupancy · Soon
+                    </span>
+                </div>
 
-                    {{-- Analytics --}}
-                    <div :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 13.125c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Analytics</span>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Analytics · Soon
-                        </span>
-                    </div>
+                {{-- Analytics --}}
+                <div :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 13.125c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="whitespace-nowrap">Analytics</span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Analytics · Soon
+                    </span>
+                </div>
 
-                    {{-- Reports --}}
-                    <div :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Reports</span>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Reports · Soon
-                        </span>
-                    </div>
+                {{-- Reports --}}
+                <div :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Reports</span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Reports · Soon
+                    </span>
+                </div>
 
-                    {{-- Reviews --}}
-                    <div :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.563.563 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Reviews</span>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Reviews · Soon
-                        </span>
-                    </div>
+                {{-- Reviews --}}
+                <div :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.563.563 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Reviews</span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Reviews · Soon
+                    </span>
+                </div>
 
-                    <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                        class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
-                        Account</p>
+                <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                    class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
+                    Account</p>
 
-<<<<<<< HEAD
-                    <a href="{{ route('profile.show') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'profile.show' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Profile</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Profile
-                        </span>
-                    </a>
-
-=======
-                    {{-- My Profile --}}
-                    <a href="{{ route('landlord.profile.me') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
+                {{-- My Profile --}}
+                <a href="{{ route('landlord.profile.me') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
                           {{ $current === 'landlord.profile.me' || $current === 'landlord.profile.edit' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">My Profile</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            My Profile
-                        </span>
-                    </a>
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">My
+                        Profile</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        My Profile
+                    </span>
+                </a>
 
-                    {{-- Settings --}}
->>>>>>> e3b4a20713e4fc998b82aefaa4705c5a32d83b2c
-                    <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
+                {{-- Settings --}}
+                <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
                           {{ $current === 'profile.edit' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.78 7.78 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="whitespace-nowrap">Settings</span>
-                        <span x-show="sidebarCollapsed" x-cloak
-                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                            Settings
-                        </span>
-                    </a>
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.78 7.78 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="whitespace-nowrap">Settings</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Settings
+                    </span>
+                </a>
             </nav>
 
             {{-- Help footer card --}}
-            <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="p-4 border-t border-white/[0.06] shrink-0">
+            <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                class="p-4 border-t border-white/[0.06] shrink-0">
                 <div class="bg-white/[0.06] rounded-xl p-3.5">
                     <p class="text-[12px] font-bold text-white mb-1 whitespace-nowrap">Need Help?</p>
                     <p class="text-[11px] text-white/50 mb-2.5 leading-relaxed">Visit our Help Center or contact
@@ -391,7 +367,7 @@
                             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
+                            class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
                             <div x-ref="dropdownBody">
                                 <div class="px-4 py-8 text-center">
                                     <div
@@ -429,10 +405,6 @@
                             <a href="{{ route('properties.index') }}"
                                 class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
                                 Browse as Tenant
-                            </a>
-                            <a href="{{ route('profile.show') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
-                                Profile
                             </a>
                             <a href="{{ route('profile.edit') }}"
                                 class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">

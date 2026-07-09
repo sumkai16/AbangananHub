@@ -86,7 +86,7 @@
         x-transition:leave-end="opacity-0 -translate-y-2 max-h-0"
         class="border-b border-[#E2E8F0] bg-[#E2E8F0]/20 overflow-hidden flex-shrink-0">
 
-        <div class="px-5 py-4 flex gap-5">
+        <div class="px-4 sm:px-5 py-4 flex flex-col sm:flex-row gap-5">
 
             {{-- Left: Property card + inquiry dates --}}
             <div class="flex-1 min-w-0">
@@ -260,7 +260,7 @@
 
             {{-- Right: Rental progress stepper --}}
             @if($reservation)
-                <div class="w-[160px] flex-shrink-0">
+                <div class="w-full sm:w-[160px] flex-shrink-0">
                     <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-2.5">Rental progress</p>
 
                     @if($isTerminal)

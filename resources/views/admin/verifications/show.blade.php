@@ -18,7 +18,7 @@
     <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-5">
 
         {{-- Applicant header --}}
-        <div class="px-7 py-6 border-b border-gray-50 flex items-center justify-between gap-4">
+        <div class="px-4 sm:px-7 py-6 border-b border-gray-50 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-2xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                     <span class="text-[#156F8C] text-[16px] font-extrabold">
@@ -36,7 +36,7 @@
         </div>
 
         {{-- Details grid --}}
-        <div class="px-7 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-gray-50">
+        <div class="px-4 sm:px-7 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-gray-50">
             @if ($verification->business_name)
                 <div>
                     <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Business name</p>

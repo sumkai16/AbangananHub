@@ -28,7 +28,7 @@
 <div class="max-w-[1400px]">
 
     {{-- Header --}}
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
             <h1 class="text-2xl font-extrabold text-[#1A1A2E] tracking-tight">Reservations</h1>
             <p class="text-[13.5px] text-gray-500 mt-1">System-wide view of all reservations across all properties.</p>

@@ -6,7 +6,7 @@
 <div class="max-w-[1400px]">
 
     {{-- Header --}}
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
             <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight">Reviews</h1>
             <p class="text-[13.5px] text-[#64748B] mt-1">Moderate tenant reviews. Flag inappropriate or fake content.</p>
@@ -15,7 +15,7 @@
     </div>
 
     {{-- Stat cards --}}
-    <div class="grid grid-cols-5 gap-3 mb-6">
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-6">
         @foreach([5, 4, 3, 2, 1] as $stars)
             <div class="bg-white border border-[#E2E8F0] rounded-2xl p-4 shadow-sm text-center">
                 <div class="flex items-center justify-center gap-0.5 mb-1">
@@ -103,7 +103,7 @@
     @else
         <div class="space-y-3">
             @foreach($reviews as $review)
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm p-5 flex gap-5 {{ $review->is_hidden ? 'opacity-60' : '' }}"
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 {{ $review->is_hidden ? 'opacity-60' : '' }}"
                     x-data="{ confirmOpen: false }">
 
                     {{-- Rating block --}}

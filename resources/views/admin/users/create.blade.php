@@ -19,7 +19,7 @@
             <p class="text-[13px] text-gray-400 mt-0.5">Add a new account to the system.</p>
         </div>
 
-        <form action="{{ route('admin.users.store') }}" method="POST" class="p-7 space-y-5">
+        <form action="{{ route('admin.users.store') }}" method="POST" class="p-5 sm:p-7 space-y-5">
             @csrf
 
             {{-- Name row --}}

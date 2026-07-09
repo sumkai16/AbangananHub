@@ -174,7 +174,7 @@
         @else
             <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full min-w-[760px] text-sm">
                         <thead>
                             <tr class="border-b border-[#64748B]/15 text-left">
                                 <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Unit

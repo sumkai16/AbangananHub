@@ -53,7 +53,7 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                    <div class="lg:col-span-7 bg-white border border-gray-100 rounded-3xl p-8 shadow-sm space-y-6">
+                    <div class="lg:col-span-7 bg-white border border-gray-100 rounded-3xl p-5 sm:p-8 shadow-sm space-y-6">
 
                         <h3 class="text-[16px] font-bold text-[#156F8C] border-b border-gray-50 pb-4">Property details</h3>
 

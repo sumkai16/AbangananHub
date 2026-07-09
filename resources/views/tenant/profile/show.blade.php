@@ -193,16 +193,16 @@
                             <div class="mt-1">
                                 @php
                                     $statusColors = [
-                                        'Pending' => 'bg-amber-50 text-amber-700',
-                                        'Approved' => 'bg-green-50 text-green-700',
+                                        'Inquiry' => 'bg-amber-50 text-amber-700',
                                         'Under Negotiation' => 'bg-blue-50 text-blue-700',
                                         'Pending Rental Agreement' => 'bg-purple-50 text-purple-700',
                                         'Rental Agreement Signed' => 'bg-teal-50 text-teal-700',
+                                        'Occupied' => 'bg-green-50 text-green-700',
                                     ];
-                                    $color = $statusColors[$reservation->reservation_status] ?? 'bg-gray-50 text-gray-600';
+                                    $color = $statusColors[$reservation->rental_status] ?? 'bg-gray-50 text-gray-600';
                                 @endphp
                                 <span
-                                    class="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full {{ $color }}">{{ $reservation->reservation_status }}</span>
+                                    class="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full {{ $color }}">{{ $reservation->rental_status }}</span>
                             </div>
                         </div>
                         <a href="{{ route('reservations.index') }}" class="flex-shrink-0">

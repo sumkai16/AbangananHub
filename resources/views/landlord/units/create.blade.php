@@ -4,7 +4,7 @@
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
 
         {{-- Breadcrumb --}}
-        <div class="flex items-center gap-1.5 text-sm text-[#64748B] mb-2">
+        <div class="flex flex-wrap items-center gap-1.5 text-sm text-[#64748B] mb-2">
             <a href="{{ route('landlord.properties.index') }}"
                 class="hover:text-[#1F2937] transition-colors duration-200">Properties</a>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
