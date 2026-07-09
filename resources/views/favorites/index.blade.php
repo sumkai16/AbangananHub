@@ -72,7 +72,7 @@
                                 alt="{{ $property->title }}"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         @else
-                            <div class="w-full h-full flex items-center justify-center bg-[#EBF3FF]">
+                            <div class="w-full h-full flex items-center justify-center bg-[#EEF8F8]">
                                 <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                                 </svg>
@@ -110,9 +110,10 @@
                             <h3 class="text-[14px] font-semibold text-[#156F8C] leading-snug line-clamp-1">
                                 {{ $property->title }}
                             </h3>
+                            @php $hasAvailableUnit = $property->units->where('availability_status', 'Available')->isNotEmpty(); @endphp
                             <span class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0
-                                {{ $property->availability_status === 'Available' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
-                                {{ $property->availability_status }}
+                                {{ $hasAvailableUnit ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
+                                {{ $hasAvailableUnit ? 'Available' : 'Unavailable' }}
                             </span>
                         </div>
 

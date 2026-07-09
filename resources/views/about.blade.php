@@ -28,7 +28,7 @@
         transform: translateY(0);
     }
     .stat-card:hover { transform: translateY(-4px); }
-    .feature-card:hover { box-shadow: 0 12px 40px rgba(40,108,210,0.10); }
+    .feature-card:hover { box-shadow: 0 12px 40px rgba(42,167,161,0.10); }
     .step-line::after {
         content: '';
         position: absolute;
@@ -36,7 +36,7 @@
         left: 100%;
         width: 100%;
         height: 2px;
-        background: linear-gradient(90deg, #2AA7A1 0%, #e5e7eb 100%);
+        background: linear-gradient(90deg, #2AA7A1 0%, #E2E8F0 100%);
         transform: translateY(-50%);
     }
 </style>
@@ -45,7 +45,7 @@
 @section('content')
 
 {{-- ── HERO ─────────────────────────────────────────────────────────────────── --}}
-<section class="relative overflow-hidden bg-gradient-to-br from-[#156F8C] via-[#1e2d50] to-[#156F8C] text-white">
+<section class="relative overflow-hidden bg-gradient-to-br from-[#156F8C] via-[#1F2937] to-[#156F8C] text-white">
 
     {{-- decorative circles --}}
     <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#2AA7A1]/20 blur-3xl pointer-events-none"></div>
@@ -263,7 +263,7 @@
                         UN Sustainable Development Goal
                     </div>
                     <h2 class="text-[26px] sm:text-[32px] font-extrabold leading-tight mb-4">
-                        Aligned with <span class="text-[#7eb3ff]">SDG 16</span>
+                        Aligned with <span class="text-[#69D2C6]">SDG 16</span>
                     </h2>
                     <p class="text-[14.5px] text-white/75 leading-relaxed">
                         SDG 16 — <strong class="text-white">Peace, Justice, and Strong Institutions</strong> — calls for

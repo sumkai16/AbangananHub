@@ -74,15 +74,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
 
         // Profile
-<<<<<<< HEAD
-        Route::get('/profile', [App\Http\Controllers\Tenant\ProfileController::class, 'show'])->name('tenant.profile.show');
-        Route::get('/profile/edit', [App\Http\Controllers\Tenant\ProfileController::class, 'edit'])->name('tenant.profile.edit');
-        Route::patch('/profile', [App\Http\Controllers\Tenant\ProfileController::class, 'update'])->name('tenant.profile.update');
-=======
         Route::get('/profile', [TenantProfileController::class, 'show'])->name('tenant.profile.show');
         Route::get('/profile/edit', [TenantProfileController::class, 'edit'])->name('tenant.profile.edit');
         Route::patch('/profile', [TenantProfileController::class, 'update'])->name('tenant.profile.update');
->>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
     });
     // Public landlord profile (visibility-gated in controller)
     Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');

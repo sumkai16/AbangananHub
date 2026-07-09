@@ -381,7 +381,7 @@
                                                 stroke-dashoffset="{{ $dStart - $dOcc - $dAvl }}"/>
                                     @endif
                                 @else
-                                    <circle cx="56" cy="56" r="40" fill="none" stroke="#E5E7EB" stroke-width="16"/>
+                                    <circle cx="56" cy="56" r="40" fill="none" stroke="#E2E8F0" stroke-width="16"/>
                                 @endif
                             </svg>
                             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">

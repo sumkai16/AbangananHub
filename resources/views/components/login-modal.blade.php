@@ -12,7 +12,7 @@
         {{-- Branding --}}
         <div class="mb-6">
             <div class="flex items-center gap-2 mb-4">
-                <div class="w-9 h-9 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-blue-500/10">
+                <div class="w-9 h-9 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-[#2AA7A1]/10">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -84,7 +84,7 @@
 
             {{-- Submit Button --}}
             <div class="pt-2">
-                <button type="submit" class="w-full py-2.5 bg-[#2AA7A1] hover:opacity-95 text-white font-bold text-sm rounded-lg shadow-md shadow-blue-600/10 transition-all duration-300 transform active:scale-[0.995]">
+                <button type="submit" class="w-full py-2.5 bg-[#2AA7A1] hover:opacity-95 text-white font-bold text-sm rounded-lg shadow-md shadow-[#2AA7A1]/10 transition-all duration-300 transform active:scale-[0.995]">
                     Login
                 </button>
             </div>

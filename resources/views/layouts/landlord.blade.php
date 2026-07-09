@@ -57,7 +57,7 @@
 
         <aside id="landlord-sidebar"
             :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0F172A] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#156F8C] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
             {{-- Floating collapse toggle (desktop only) --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
@@ -278,15 +278,9 @@
                     class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
                     Account</p>
 
-<<<<<<< HEAD
-                    {{-- My Profile --}}
-                    <a href="{{ route('landlord.profile.me') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-=======
                 {{-- My Profile --}}
                 <a href="{{ route('landlord.profile.me') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
->>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
                           {{ $current === 'landlord.profile.me' || $current === 'landlord.profile.edit' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
@@ -301,15 +295,9 @@
                     </span>
                 </a>
 
-<<<<<<< HEAD
-                    {{-- Settings --}}
-                    <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
-                        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-=======
                 {{-- Settings --}}
                 <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
->>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
                           {{ $current === 'profile.edit' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">

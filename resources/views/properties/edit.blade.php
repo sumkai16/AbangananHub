@@ -23,7 +23,7 @@
                         @else bg-red-50 text-red-700 border border-red-100 @endif">
                         {{ $property->verification_status }}
                     </span>
-                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase bg-blue-50 text-[#156F8C] border border-blue-100">
+                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase bg-[#EEF8F8] text-[#156F8C] border border-[#2AA7A1]/20">
                         {{ $property->availability_status }}
                     </span>
                 </div>
@@ -120,7 +120,7 @@
                             <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
                                 <div class="flex items-center justify-between border-b border-gray-50 pb-3 mb-4">
                                     <h3 class="text-[14px] font-bold text-[#156F8C]">Current photos</h3>
-                                    <span class="text-[10px] font-bold uppercase text-[#156F8C] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
+                                    <span class="text-[10px] font-bold uppercase text-[#156F8C] bg-[#EEF8F8] px-2.5 py-0.5 rounded-full border border-[#2AA7A1]/20">
                                         {{ $property->media->count() }} photos
                                     </span>
                                 </div>
@@ -168,7 +168,7 @@
                                 <div id="live-preview-grid" class="grid grid-cols-4 gap-2 hidden pt-3 border-t border-gray-100"></div>
                             </div>
 
-                            <div class="rounded-3xl bg-blue-50/50 border border-blue-100 p-5">
+                            <div class="rounded-3xl bg-[#EEF8F8]/50 border border-[#2AA7A1]/20 p-5">
                                 <p class="text-sm font-bold text-[#156F8C]">Heads up</p>
                                 <p class="text-[12.5px] text-gray-500 mt-1 leading-relaxed">Changing any detail or adding photos sends this listing back for admin review before it's visible to tenants again.</p>
                             </div>

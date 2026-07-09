@@ -141,7 +141,7 @@
                             <div id="live-preview-grid" class="grid grid-cols-3 gap-2 hidden pt-3 border-t border-gray-100"></div>
                         </div>
 
-                        <div class="rounded-3xl bg-blue-50/50 border border-blue-100 p-5">
+                        <div class="rounded-3xl bg-[#EEF8F8]/50 border border-[#2AA7A1]/20 p-5">
                             <p class="text-sm font-bold text-[#156F8C]">Heads up</p>
                             <p class="text-[12.5px] text-gray-500 mt-1 leading-relaxed">Your listing won't be visible to tenants until an admin reviews and approves it. That usually doesn't take long.</p>
                         </div>

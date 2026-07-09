@@ -94,11 +94,7 @@
                 </div>
             @else
                 <div class="overflow-x-auto">
-<<<<<<< HEAD
-                <table class="w-full text-left min-w-[860px]">
-=======
                 <table class="w-full min-w-[920px] text-left">
->>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
                     <thead>
                         <tr class="bg-[#E2E8F0] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                             <th class="px-5 py-3">Tenant</th>

@@ -12,7 +12,7 @@
         {{-- Branding --}}
         <div class="mb-5">
             <div class="flex items-center gap-2 mb-3">
-                <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-blue-500/10">
+                <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-[#2AA7A1]/10">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -20,7 +20,7 @@
                 </div>
                 <span class="text-[#156F8C] font-bold text-base tracking-tight">Abanganan<span class="text-[#156F8C]">Hub</span></span>
             </div>
-            <h2 class="text-xl font-black text-[#222222] tracking-tight">Create Your <span class="text-[#156F8C]">Account</span></h2>
+            <h2 class="text-xl font-black text-[#1F2937] tracking-tight">Create Your <span class="text-[#156F8C]">Account</span></h2>
             <p class="text-[#64748B] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
         </div>
 
@@ -31,17 +31,17 @@
             {{-- First Name + Last Name Grid Layout --}}
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label for="reg_first_name" class="block text-xs font-bold text-[#222222] mb-0.5">First Name</label>
+                    <label for="reg_first_name" class="block text-xs font-bold text-[#1F2937] mb-0.5">First Name</label>
                     <input id="reg_first_name" type="text" name="first_name" value="{{ old('first_name') }}" required autofocus autocomplete="given-name" placeholder="First name"
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        class="w-full px-3 py-2 bg-[#E2E8F0]/30 border border-[#E2E8F0] rounded-lg text-xs text-[#1F2937] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                     @error('first_name')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
                 </div>
                 <div>
-                    <label for="reg_last_name" class="block text-xs font-bold text-[#222222] mb-0.5">Last Name</label>
+                    <label for="reg_last_name" class="block text-xs font-bold text-[#1F2937] mb-0.5">Last Name</label>
                     <input id="reg_last_name" type="text" name="last_name" value="{{ old('last_name') }}" required autocomplete="family-name" placeholder="Last name"
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        class="w-full px-3 py-2 bg-[#E2E8F0]/30 border border-[#E2E8F0] rounded-lg text-xs text-[#1F2937] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                     @error('last_name')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
@@ -50,9 +50,9 @@
 
             {{-- Email Address --}}
             <div>
-                <label for="reg_email" class="block text-xs font-bold text-[#222222] mb-0.5">Email Address</label>
+                <label for="reg_email" class="block text-xs font-bold text-[#1F2937] mb-0.5">Email Address</label>
                 <input id="reg_email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email address"
-                    class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                    class="w-full px-3 py-2 bg-[#E2E8F0]/30 border border-[#E2E8F0] rounded-lg text-xs text-[#1F2937] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                 @error('email')
                     <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                 @enderror
@@ -60,9 +60,9 @@
 
             {{-- Contact Number --}}
             <div>
-                <label for="reg_contact_number" class="block text-xs font-bold text-[#222222] mb-0.5">Contact Number</label>
+                <label for="reg_contact_number" class="block text-xs font-bold text-[#1F2937] mb-0.5">Contact Number</label>
                 <input id="reg_contact_number" type="text" name="contact_number" value="{{ old('contact_number') }}" required autocomplete="tel" placeholder="Enter your contact number"
-                    class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                    class="w-full px-3 py-2 bg-[#E2E8F0]/30 border border-[#E2E8F0] rounded-lg text-xs text-[#1F2937] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                 @error('contact_number')
                     <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                 @enderror
@@ -70,12 +70,12 @@
 
             {{-- Password Input Module --}}
             <div x-data="{ showPassword: false }">
-                <label for="reg_password" class="block text-xs font-bold text-[#222222] mb-0.5">Password</label>
+                <label for="reg_password" class="block text-xs font-bold text-[#1F2937] mb-0.5">Password</label>
                 <div class="relative">
                     <input id="reg_password" :type="showPassword ? 'text' : 'password'" name="password" required autocomplete="new-password" placeholder="Create a password"
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        class="w-full px-3 py-2 bg-[#E2E8F0]/30 border border-[#E2E8F0] rounded-lg text-xs text-[#1F2937] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                     <button type="button" x-on:click="showPassword = !showPassword"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#222222] transition-colors focus:outline-none">
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#1F2937] transition-colors focus:outline-none">
                         <svg x-show="!showPassword" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -92,12 +92,12 @@
 
             {{-- Confirm Password Input Module --}}
             <div x-data="{ showPassword: false }">
-                <label for="reg_password_confirmation" class="block text-xs font-bold text-[#222222] mb-0.5">Confirm Password</label>
+                <label for="reg_password_confirmation" class="block text-xs font-bold text-[#1F2937] mb-0.5">Confirm Password</label>
                 <div class="relative">
                     <input id="reg_password_confirmation" :type="showPassword ? 'text' : 'password'" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password"
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#222222] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        class="w-full px-3 py-2 bg-[#E2E8F0]/30 border border-[#E2E8F0] rounded-lg text-xs text-[#1F2937] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                     <button type="button" x-on:click="showPassword = !showPassword"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#222222] transition-colors focus:outline-none">
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#1F2937] transition-colors focus:outline-none">
                         <svg x-show="!showPassword" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />

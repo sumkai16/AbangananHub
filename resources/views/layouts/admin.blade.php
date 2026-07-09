@@ -44,7 +44,7 @@
         {{-- ===================== SIDEBAR ===================== --}}
         <aside id="admin-sidebar"
             :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0F172A] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#156F8C] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
             {{-- Collapse toggle --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
@@ -384,17 +384,12 @@
                             </svg>
                         </button>
 
-<<<<<<< HEAD
-                        <div x-show="open" x-cloak x-transition
-                            class="absolute top-[calc(100%+8px)] right-0 w-[200px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50">
-=======
                         <div x-show="open" x-cloak
                             x-transition:enter="transition ease-out duration-150"
                             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
                             class="absolute top-[calc(100%+10px)] right-0 w-[220px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 z-50">
->>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
                             <a href="{{ route('admin.profile.edit') }}"
                                 class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
                                 My Profile
@@ -403,10 +398,7 @@
                                 class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
                                 Account Settings
                             </a>
-<<<<<<< HEAD
 
-=======
->>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
                             <div class="h-px bg-gray-100 my-1.5"></div>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf

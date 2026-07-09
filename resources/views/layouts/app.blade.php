@@ -257,11 +257,7 @@
                             <div class="py-1">
                                 <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                                     Account</p>
-<<<<<<< HEAD
                                 <a href="{{ auth()->user()->hasRole('Landlord') ? route('landlord.profile.me') : route('tenant.profile.show') }}"
-=======
-                                <a href="{{ route('profile.show') }}"
->>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
                                     class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="1.8">
