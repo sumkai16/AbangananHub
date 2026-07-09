@@ -45,8 +45,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     // Landlord verification — open to any authenticated user, no role gate
     Route::get('/landlord/apply', [VerificationController::class, 'create'])->name('landlord.verification.create');
     Route::post('/landlord/apply', [VerificationController::class, 'store'])->name('landlord.verification.store');
+    Route::post('/landlord/apply/ocr-check', [VerificationController::class, 'ocrCheck'])->name('landlord.verification.ocrCheck');
     Route::get('/landlord/verification', [VerificationController::class, 'show'])->name('landlord.verification.show');
     Route::get('/verifications/{verification}/document', [VerificationController::class, 'download'])->name('verifications.document');
+    Route::get('/verifications/{verification}/selfie', [VerificationController::class, 'downloadSelfie'])->name('verifications.selfie');
 
     // Landlord-only routes (property create/edit/delete — no prefix, uses /properties URIs)
     Route::middleware('landlord')->group(function () {

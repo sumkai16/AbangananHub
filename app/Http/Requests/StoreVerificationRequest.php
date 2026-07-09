@@ -21,11 +21,13 @@ class StoreVerificationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'government_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            'business_name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'contact_number' => ['required', 'string', 'max:20'],
+            'id_type'          => ['required', 'string', 'in:PhilSys,Professional ID Card,Driver\'s License,Passport,UMID,Postal ID,SSS ID'],
+            'id_image'         => ['required', 'string'], // base64 from camera
+            'selfie'           => ['required', 'string'], // base64 from camera
+            'business_name'    => ['required', 'string', 'max:255'],
+            'description'      => ['nullable', 'string', 'max:1000'],
+            'logo'             => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'contact_number'   => ['required', 'string', 'max:20'],
             'business_address' => ['required', 'string', 'max:255'],
         ];
     }
@@ -33,13 +35,14 @@ class StoreVerificationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'government_id.required' => 'Please upload a government-issued ID.',
-            'government_id.mimes' => 'ID must be a JPG, PNG, or PDF file.',
-            'government_id.max' => 'ID file must be under 5MB.',
-            'business_name.required' => 'Please enter your rental business name.',
-            'logo.image' => 'Logo must be an image file.',
-            'logo.max' => 'Logo file must be under 2MB.',
-            'contact_number.required' => 'Please provide a contact number.',
+            'id_type.required'          => 'Please select your ID type.',
+            'id_type.in'                => 'Please select a valid ID type.',
+            'id_image.required'         => 'Please capture a photo of your government ID.',
+            'selfie.required'           => 'Please take a selfie for identity verification.',
+            'business_name.required'    => 'Please enter your rental business name.',
+            'logo.image'               => 'Logo must be an image file.',
+            'logo.max'                 => 'Logo file must be under 2MB.',
+            'contact_number.required'  => 'Please provide a contact number.',
             'business_address.required' => 'Please provide a business address.',
         ];
     }

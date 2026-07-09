@@ -7,12 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class LandlordVerification extends Model
 {
     protected $primaryKey = 'verification_id';
-
     public $timestamps = false;
 
     protected $fillable = [
         'user_id',
         'government_id',
+        'id_type',
+        'selfie',
+        'id_image_hash',
+        'id_number',
+        'ocr_name',
+        'ocr_confidence',
+        'ocr_status',
         'business_name',
         'description',
         'logo_url',
@@ -28,8 +34,9 @@ class LandlordVerification extends Model
     protected function casts(): array
     {
         return [
-            'reviewed_at'  => 'datetime',
-            'submitted_at' => 'datetime',
+            'reviewed_at'    => 'datetime',
+            'submitted_at'   => 'datetime',
+            'ocr_confidence' => 'integer',
         ];
     }
 
