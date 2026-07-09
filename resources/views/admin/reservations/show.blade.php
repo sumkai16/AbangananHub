@@ -43,7 +43,7 @@
 <div class="max-w-5xl" x-data="{ cancelOpen: false, rejectOpen: false }">
 
     {{-- Back + actions --}}
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <a href="{{ route('admin.reservations.index') }}"
             class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -74,7 +74,7 @@
 
     {{-- Hero card --}}
     <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-6">
-        <div class="px-7 py-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center gap-5">
+        <div class="px-4 sm:px-7 py-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center gap-5">
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2.5 mb-1">
                     <h1 class="text-[20px] font-extrabold text-[#1A1A2E] tracking-tight">
@@ -99,9 +99,9 @@
 
         {{-- Pipeline tracker (only for non-rejected/cancelled) --}}
         @if(!in_array($rs, ['Cancelled', 'Rejected']))
-            <div class="px-7 py-5 border-b border-gray-50">
+            <div class="px-4 sm:px-7 py-5 border-b border-gray-50">
                 <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Rental Pipeline</p>
-                <div class="flex items-center gap-0">
+                <div class="flex items-center gap-0 overflow-x-auto pb-1 min-w-0">
                     @foreach($pipeline as $i => $step)
                         @php
                             $stepIndex  = $i;

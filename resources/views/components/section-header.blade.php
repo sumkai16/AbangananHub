@@ -5,7 +5,7 @@
     'cta' => 'View all',
 ])
 
-<div class="flex items-end justify-between mb-6">
+<div class="flex flex-wrap items-end justify-between gap-3 mb-6">
     <div>
         <h2 class="text-[22px] font-extrabold text-[#156F8C] tracking-tight">{{ $title }}</h2>
     @if($sub)

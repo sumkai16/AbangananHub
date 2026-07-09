@@ -7,7 +7,7 @@
 <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     {{-- Header --}}
-    <div class="flex items-end justify-between mb-6">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
         <div>
             <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight">Notifications</h1>
             <p class="text-sm text-[#64748B] mt-1 font-medium">
@@ -29,7 +29,7 @@
     </div>
 
     {{-- Tabs --}}
-    <div class="flex items-center gap-1 mb-5">
+    <div class="flex flex-wrap items-center gap-1.5 mb-5">
         @foreach(['all' => 'All', 'unread' => 'Unread', 'review' => 'Reviews', 'reservation' => 'Reservations'] as $key => $label)
             @php
                 $isActive = $tab === $key;

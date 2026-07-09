@@ -334,10 +334,6 @@
                     </span>
                 </a>
 
-                {{-- Logout --}}
-                <div class="pt-3 pb-1">
-                    
-
             </nav>
         </aside>
 
@@ -388,8 +384,17 @@
                             </svg>
                         </button>
 
+<<<<<<< HEAD
                         <div x-show="open" x-cloak x-transition
                             class="absolute top-[calc(100%+8px)] right-0 w-[200px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50">
+=======
+                        <div x-show="open" x-cloak
+                            x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-100"
+                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute top-[calc(100%+10px)] right-0 w-[220px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 z-50">
+>>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
                             <a href="{{ route('admin.profile.edit') }}"
                                 class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
                                 My Profile
@@ -398,7 +403,10 @@
                                 class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
                                 Account Settings
                             </a>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
                             <div class="h-px bg-gray-100 my-1.5"></div>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
@@ -414,25 +422,25 @@
 
             {{-- Flash messages --}}
             @if(session('success'))
-                <div class="mx-6 mt-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
+                <div class="mx-4 sm:mx-6 mt-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
                     <span>{{ session('success') }}</span>
                     <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 ml-3">✕</button>
                 </div>
             @endif
             @if(session('error'))
-                <div class="mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
+                <div class="mx-4 sm:mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
                     <span>{{ session('error') }}</span>
                     <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 ml-3">✕</button>
                 </div>
             @endif
             @if(session('status'))
-                <div class="mx-6 mt-4 px-4 py-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
+                <div class="mx-4 sm:mx-6 mt-4 px-4 py-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
                     <span>{{ session('status') }}</span>
                     <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 ml-3">✕</button>
                 </div>
             @endif
 
-            <main class="flex-1 overflow-x-hidden p-6 sm:p-8">
+            <main class="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">
                 @yield('content')
             </main>
         </div>

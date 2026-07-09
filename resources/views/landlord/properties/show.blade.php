@@ -97,7 +97,7 @@
         <div class="flex-1 min-w-0 flex flex-col" x-data="{ moreOpen: false }">
 
             {{-- Action buttons --}}
-            <div class="flex items-center justify-end gap-2 mb-4">
+            <div class="flex flex-wrap items-center justify-start lg:justify-end gap-2 mb-4">
                 <a href="{{ route('properties.edit', $property) }}"
                    class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-[#64748B]/30 text-[#1F2937] text-sm font-medium hover:bg-[#EEF8F8] transition-colors duration-200">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

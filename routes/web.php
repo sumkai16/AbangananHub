@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\FavoriteController;
 use App\Http\Controllers\Tenant\ReservationController;
+use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PropertyController;
@@ -44,8 +45,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     // Landlord verification — open to any authenticated user, no role gate
     Route::get('/landlord/apply', [VerificationController::class, 'create'])->name('landlord.verification.create');
     Route::post('/landlord/apply', [VerificationController::class, 'store'])->name('landlord.verification.store');
+    Route::post('/landlord/apply/ocr-check', [VerificationController::class, 'ocrCheck'])->name('landlord.verification.ocrCheck');
     Route::get('/landlord/verification', [VerificationController::class, 'show'])->name('landlord.verification.show');
     Route::get('/verifications/{verification}/document', [VerificationController::class, 'download'])->name('verifications.document');
+    Route::get('/verifications/{verification}/selfie', [VerificationController::class, 'downloadSelfie'])->name('verifications.selfie');
 
     // Landlord-only routes (property create/edit/delete — no prefix, uses /properties URIs)
     Route::middleware('landlord')->group(function () {
@@ -71,9 +74,15 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
 
         // Profile
+<<<<<<< HEAD
         Route::get('/profile', [App\Http\Controllers\Tenant\ProfileController::class, 'show'])->name('tenant.profile.show');
         Route::get('/profile/edit', [App\Http\Controllers\Tenant\ProfileController::class, 'edit'])->name('tenant.profile.edit');
         Route::patch('/profile', [App\Http\Controllers\Tenant\ProfileController::class, 'update'])->name('tenant.profile.update');
+=======
+        Route::get('/profile', [TenantProfileController::class, 'show'])->name('tenant.profile.show');
+        Route::get('/profile/edit', [TenantProfileController::class, 'edit'])->name('tenant.profile.edit');
+        Route::patch('/profile', [TenantProfileController::class, 'update'])->name('tenant.profile.update');
+>>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
     });
     // Public landlord profile (visibility-gated in controller)
     Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');

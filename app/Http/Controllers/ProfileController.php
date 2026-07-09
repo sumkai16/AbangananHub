@@ -12,20 +12,26 @@ use Illuminate\View\View;
 class ProfileController extends Controller
 {
     /**
-     * Display the user's read-only profile overview.
+     * Redirect to the role-specific profile page.
      */
-    public function show(Request $request): View
+    public function show(Request $request): RedirectResponse
     {
         $user = $request->user();
 
-        return view('profile.show', [
-            'user'             => $user,
-            'roles'            => $user->roles->pluck('role'),
-            'reservationCount' => $user->reservations()->count(),
-            'favoriteCount'    => $user->favorites()->count(),
-            'reviewCount'      => $user->reviews()->count(),
-            'propertyCount'    => $user->properties()->count(),
-        ]);
+        if ($user->hasRole('Admin')) {
+            return redirect()->route('admin.profile.edit');
+        }
+
+        if ($user->hasRole('Landlord')) {
+            return redirect()->route('landlord.profile.me');
+        }
+
+        if ($user->hasRole('Tenant')) {
+            return redirect()->route('tenant.profile.show');
+        }
+
+        // New accounts start with no role — fall back to account settings.
+        return redirect()->route('profile.edit');
     }
 
     /**

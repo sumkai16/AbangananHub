@@ -12,7 +12,7 @@
     </div>
 
     {{-- Tabs --}}
-    <div class="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 mb-6 w-fit shadow-sm">
+    <div class="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto shadow-sm">
         @foreach (['Pending', 'Approved', 'Rejected', 'All'] as $tab)
             <a href="{{ route('admin.verifications.index', ['status' => $tab]) }}"
                 class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-150

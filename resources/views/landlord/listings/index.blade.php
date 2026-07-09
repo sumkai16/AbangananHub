@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-10 pb-16">
-    <div class="flex items-center justify-between gap-4 mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <x-section-header title="My Listings" sub="Manage, update, and monitor your rental properties registered on AbangananHub." />
         <a href="{{ route('properties.create') }}" class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#2AA7A1] hover:brightness-95 text-white text-[13.5px] font-bold shadow-sm hover:shadow transition-all duration-300">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>

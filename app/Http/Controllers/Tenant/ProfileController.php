@@ -8,11 +8,18 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
+<<<<<<< HEAD
+=======
+    /**
+     * Tenant views their own profile.
+     */
+>>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
     public function show()
     {
         $user = Auth::user();
 
         $reviews = $user->reviews()
+<<<<<<< HEAD
             ->with(['property:property_id,title', 'property.media'])
             ->latest('created_at')
             ->take(5)
@@ -27,12 +34,36 @@ class ProfileController extends Controller
         $favoritesCount = $user->favorites()->count();
 
         return view('tenant.profile.show', compact('user', 'reviews', 'activeReservations', 'favoritesCount'));
+=======
+            ->with(['property:property_id,title'])
+            ->latest('created_at')
+            ->get();
+
+        $activeReservations = $user->reservations()
+            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+            ->with('property.media')
+            ->latest('created_at')
+            ->get();
+
+        return view('tenant.profile.show', [
+            'user' => $user,
+            'favoritesCount' => $user->favorites()->count(),
+            'reviews' => $reviews,
+            'activeReservations' => $activeReservations,
+        ]);
+>>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
     }
 
     public function edit()
     {
+<<<<<<< HEAD
         $user = Auth::user();
         return view('tenant.profile.edit', compact('user'));
+=======
+        return view('tenant.profile.edit', [
+            'user' => Auth::user(),
+        ]);
+>>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
     }
 
     public function update(Request $request)
@@ -63,9 +94,13 @@ class ProfileController extends Controller
             $validated['profile_picture'] = $result['secure_url'];
         }
 
+<<<<<<< HEAD
         $user->update(collect($validated)->only([
             'first_name', 'last_name', 'contact_number', 'bio', 'profile_picture',
         ])->toArray());
+=======
+        $user->update($validated);
+>>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
 
         return redirect()->route('tenant.profile.show')->with('success', 'Profile updated successfully.');
     }

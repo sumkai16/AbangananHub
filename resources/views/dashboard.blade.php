@@ -3,11 +3,11 @@
     {{-- ══════════════════════════════════════════
     MAIN BODY
     ══════════════════════════════════════════ --}}
-    <div class="w-full px-[50px] py-10 pb-16">
+    <div class="w-full px-4 sm:px-6 lg:px-[50px] py-10 pb-16">
 
         {{-- HERO --}}
         <div
-            class="rounded-3xl mb-10 bg-gradient-to-br from-[#1A3A6E] via-[#2AA7A1] to-[#2AA7A1] p-10 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-7 relative overflow-hidden shadow-[0_8px_32px_rgba(40,108,210,0.28)]">
+            class="rounded-3xl mb-10 bg-gradient-to-br from-[#1A3A6E] via-[#2AA7A1] to-[#2AA7A1] p-6 sm:p-10 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-7 relative overflow-hidden shadow-[0_8px_32px_rgba(40,108,210,0.28)]">
             <div
                 class="absolute right-[-20px] bottom-[-40px] w-64 h-64 rounded-full bg-white opacity-5 pointer-events-none">
             </div>
@@ -44,7 +44,7 @@
         </div>
 
         {{-- STAT CARDS --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-12">
             <x-stat-card label="Upcoming Stays" :value="$upcomingCount" sub="Active reservations" color="#2AA7A1"
                 bgColor="#EBF3FF">
                 <x-slot name="icon">

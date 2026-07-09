@@ -20,14 +20,14 @@
         {{-- Filters --}}
         <form method="GET" action="{{ route('landlord.properties.index') }}" class="flex flex-wrap items-center gap-2 mb-8">
 
-            <div class="relative">
+            <div class="relative w-full sm:w-56">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" width="14" height="14" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                 </svg>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search properties..."
-                    class="pl-9 pr-4 h-10 w-56 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                    class="pl-9 pr-4 h-10 w-full rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
             </div>
 
             <select name="status"

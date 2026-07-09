@@ -15,7 +15,7 @@
 
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8">
         {{-- Back nav --}}
-        <div class="mb-6 flex items-center justify-between">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
             <a href="{{ route('conversations.index') }}"
                 class="inline-flex items-center text-sm font-semibold text-[#64748B] hover:text-[#1F2937] transition-colors group">
                 <svg class="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -48,7 +48,7 @@
             <div class="lg:col-span-2 bg-white border border-[#EEF8F8] rounded-2xl flex flex-col overflow-hidden h-[600px]">
 
                 {{-- Chat header with property context + stage pill --}}
-                <div class="p-4 border-b border-[#EEF8F8] flex items-center justify-between">
+                <div class="p-4 border-b border-[#EEF8F8] flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-[#2AA7A1] text-white flex items-center justify-center font-bold text-sm">
                             {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}

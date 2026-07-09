@@ -93,7 +93,8 @@
                     <p class="text-[13px] text-[#64748B]">Your rental inquiries and reservations will show up here.</p>
                 </div>
             @else
-                <table class="w-full text-left">
+                <div class="overflow-x-auto">
+                <table class="w-full min-w-[820px] text-left">
                     <thead>
                         <tr class="bg-[#E2E8F0] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                             <th class="px-5 py-3">Property / Unit</th>
@@ -210,6 +211,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             @endif
         </div>
 

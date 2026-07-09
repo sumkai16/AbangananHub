@@ -6,7 +6,7 @@
 <div class="max-w-5xl">
 
     {{-- Page header --}}
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
             <h1 class="text-2xl font-extrabold text-[#1A1A2E] tracking-tight">Property Verifications</h1>
             <p class="text-[13.5px] text-gray-500 mt-1">Review pending property listings before they go live.</p>

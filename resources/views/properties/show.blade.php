@@ -270,20 +270,20 @@
                     {{-- ===== 5. TABBED CONTENT ===== --}}
                     <div class="pt-6 border-t border-[#EEF8F8]">
                         {{-- Tab bar --}}
-                        <div class="flex items-center gap-1 bg-[#E2E8F0] p-1 rounded-xl w-fit mb-6">
+                        <div class="flex items-center gap-1 bg-[#E2E8F0] p-1 rounded-xl w-fit max-w-full overflow-x-auto mb-6">
                             <button type="button" x-on:click="goTab('overview')"
                                 :class="tab === 'overview' ? 'bg-white text-[#1F2937] shadow-sm' : 'text-[#64748B]'"
-                                class="text-sm font-bold px-4 py-2 rounded-lg transition-all">
+                                class="text-sm font-bold px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap">
                                 Overview
                             </button>
                             <button type="button" x-on:click="goTab('location')"
                                 :class="tab === 'location' ? 'bg-white text-[#1F2937] shadow-sm' : 'text-[#64748B]'"
-                                class="text-sm font-bold px-4 py-2 rounded-lg transition-all">
+                                class="text-sm font-bold px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap">
                                 Location
                             </button>
                             <button type="button" x-on:click="goTab('reviews')"
                                 :class="tab === 'reviews' ? 'bg-white text-[#1F2937] shadow-sm' : 'text-[#64748B]'"
-                                class="text-sm font-bold px-4 py-2 rounded-lg transition-all">
+                                class="text-sm font-bold px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap">
                                 Reviews
                                 @if($property->reviews->count() > 0)
                                     <span class="text-xs">({{ $property->reviews->count() }})</span>

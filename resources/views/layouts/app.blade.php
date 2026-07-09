@@ -142,7 +142,7 @@
                             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 z-50 overflow-hidden">
+                            class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 z-50 overflow-hidden">
                             <div x-ref="dropdownBody">
                                 <div class="px-4 py-8 text-center">
                                     <div
@@ -257,7 +257,11 @@
                             <div class="py-1">
                                 <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                                     Account</p>
+<<<<<<< HEAD
                                 <a href="{{ auth()->user()->hasRole('Landlord') ? route('landlord.profile.me') : route('tenant.profile.show') }}"
+=======
+                                <a href="{{ route('profile.show') }}"
+>>>>>>> 8beaf992cdc4334922c6727840ad6e43eb588d55
                                     class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="1.8">
@@ -272,7 +276,8 @@
                                         stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.991a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.78 7.78 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                     Account Settings
                                 </a>
@@ -441,7 +446,7 @@
 
     {{-- Flash Messages --}}
     @if(session('error'))
-        <div class="w-full mx-auto mt-4 px-[50px]">
+        <div class="w-full mx-auto mt-4 px-4 sm:px-6 lg:px-[50px]">
             <div
                 class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium flex items-center justify-between shadow-sm">
                 <span>{{ session('error') }}</span>
@@ -456,11 +461,11 @@
     </main>
 
     <footer class="bg-[#156F8C] border-t border-white/10 mt-auto">
-        <div class="w-full px-[50px] py-5 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="w-full px-4 sm:px-6 lg:px-[50px] py-5 flex flex-col md:flex-row items-center justify-between gap-3">
             <a href="{{ route('dashboard') }}" class="text-[14px] font-bold text-white tracking-tight no-underline">
                 Abanganan<span class="text-[#69D2C6]">Hub</span>
             </a>
-            <div class="flex items-center gap-5 text-[12.5px] text-white/70">
+            <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-[12.5px] text-white/70">
                 <a href="{{ route('properties.index') }}" class="hover:text-white transition-colors">Properties</a>
                 <span class="text-white/30">|</span>
                 <a href="{{ route('about') }}" class="hover:text-white transition-colors">About</a>
@@ -469,8 +474,8 @@
                 <span class="text-white/30">|</span>
                 <a href="#" class="hover:text-white transition-colors">Terms</a>
             </div>
-            <span class="text-[11.5px] text-white/60">&copy; {{ date('Y') }} AbangananHub &middot; Cebu, Philippines
-                &middot; SDG 16</span>
+            <span class="text-[11.5px] text-white/60 text-center">&copy; {{ date('Y') }} AbangananHub &middot; Cebu,
+                Philippines &middot; SDG 16</span>
         </div>
     </footer>
 

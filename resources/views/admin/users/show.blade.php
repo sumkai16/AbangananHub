@@ -20,7 +20,7 @@
 <div class="max-w-5xl">
 
     {{-- Back + actions --}}
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <a href="{{ route('admin.users.index') }}"
             class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -29,7 +29,7 @@
             Back to users
         </a>
 
-        <div class="flex items-center gap-2" x-data="{ deleteOpen: false }">
+        <div class="flex flex-wrap items-center gap-2" x-data="{ deleteOpen: false }">
             {{-- Edit --}}
             <a href="{{ route('admin.users.edit', $user) }}"
                 class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-semibold border border-gray-200 text-[#1A1A2E] rounded-xl hover:bg-gray-50 transition-colors">

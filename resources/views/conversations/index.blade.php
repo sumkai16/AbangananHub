@@ -4,7 +4,7 @@
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-6" x-data="inboxApp()" x-cloak>
 
         {{-- Header --}}
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
             <div>
                 <h1 class="text-xl font-bold text-[#1F2937] tracking-tight">
                     {{ $isLandlord ? 'Inquiries / Messages' : 'Messages' }}
@@ -51,7 +51,8 @@
             style="height: calc(100vh - 180px); min-height: 500px;">
 
             {{-- LEFT: Conversation list --}}
-            <div class="w-[340px] flex-shrink-0 border-r border-[#E2E8F0] flex flex-col">
+            <div class="w-full lg:w-[340px] flex-shrink-0 lg:border-r border-[#E2E8F0] flex-col"
+                :class="activeId ? 'hidden lg:flex' : 'flex'">
 
                 {{-- Tabs --}}
                 <div class="flex items-center gap-0 border-b border-[#E2E8F0] flex-shrink-0">
@@ -166,7 +167,16 @@
             </div>
 
             {{-- RIGHT: Chat panel --}}
-            <div class="flex-1 flex flex-col" id="chat-container">
+            <div class="flex-1 flex-col min-w-0" id="chat-container"
+                :class="activeId ? 'flex' : 'hidden lg:flex'">
+                {{-- Mobile back to list --}}
+                <button type="button" x-show="activeId" x-cloak @click="activeId = null; window.activeConversationId = null"
+                    class="lg:hidden flex items-center gap-1.5 px-4 py-2.5 border-b border-[#E2E8F0] text-[12px] font-bold text-[#156F8C] bg-white text-left">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    All conversations
+                </button>
                 {{-- Empty state --}}
                 <div x-show="!activeId" class="flex-1 flex items-center justify-center">
                     <div class="text-center">
