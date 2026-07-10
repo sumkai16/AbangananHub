@@ -9,3 +9,33 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Slim, theme-matched scrollbar for dark sidebars (admin/landlord nav) —
+   overrides the browser's bulky default arrows/thumb on Chromium + Firefox. */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.28);
+}
+
+.scrollbar-thin::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+}
