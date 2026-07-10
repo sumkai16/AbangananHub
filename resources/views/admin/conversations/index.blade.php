@@ -74,7 +74,7 @@
         </div>
     @else
         <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto scrollbar-thin-light">
                 <table class="min-w-full">
                     <thead>
                         <tr class="bg-gray-50/60 border-b border-gray-100">

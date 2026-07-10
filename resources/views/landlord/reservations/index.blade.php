@@ -93,7 +93,7 @@
                     <p class="text-[13px] text-[#64748B]">Reservation requests from tenants will show up here.</p>
                 </div>
             @else
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto scrollbar-thin-light">
                 <table class="w-full min-w-[920px] text-left">
                     <thead>
                         <tr class="bg-[#E2E8F0] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">

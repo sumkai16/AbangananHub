@@ -39,3 +39,34 @@
     height: 0;
     width: 0;
 }
+
+/* Slim, theme-matched horizontal scrollbar for tables on white/light cards
+   (admin + landlord/tenant list pages) — same treatment as .scrollbar-thin
+   but tuned for light backgrounds instead of dark sidebars. */
+.scrollbar-thin-light {
+    scrollbar-width: thin;
+    scrollbar-color: #E2E8F0 transparent;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar {
+    height: 6px;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar-thumb {
+    background-color: #E2E8F0;
+    border-radius: 9999px;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar-thumb:hover {
+    background-color: #64748B;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+}
