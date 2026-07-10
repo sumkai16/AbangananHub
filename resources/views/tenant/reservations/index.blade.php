@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8" x-data="{

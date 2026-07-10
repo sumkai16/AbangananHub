@@ -24,7 +24,7 @@ class VerificationController extends Controller
 
     /**
      * AJAX — OCR preview for step 5 of the wizard.
-     * Receives base64 ID image, runs OCR, returns name match result.
+     * Receives base64 ID image, runs OCR, returns name match + type match result.
      */
     public function ocrCheck(Request $request, OcrService $ocr)
     {
@@ -33,7 +33,6 @@ class VerificationController extends Controller
             'id_type'  => ['required', 'string'],
         ]);
 
-        // Decode base64 and write to a temp file for Tesseract
         $imageData = $this->decodeBase64Image($request->input('id_image'));
 
         if (! $imageData) {
@@ -53,14 +52,17 @@ class VerificationController extends Controller
             $user = auth()->user();
             $nameResult = $ocr->matchName($extractedText, $user->first_name, $user->last_name);
             $idNumber = $ocr->extractIdNumber($extractedText, $request->input('id_type'));
+            $typeMatch = $ocr->matchIdType($extractedText, $request->input('id_type'));
 
             return response()->json([
-                'name'        => $nameResult['name'],
-                'confidence'  => $nameResult['confidence'],
-                'status'      => $nameResult['status'],
-                'id_number'   => $idNumber,
-                'extracted'   => $extractedText,
-                'user_name'   => $user->first_name . ' ' . $user->last_name,
+                'name'           => $nameResult['name'],
+                'confidence'     => $nameResult['confidence'],
+                'status'         => $nameResult['status'],
+                'id_number'      => $idNumber,
+                'extracted'      => $extractedText,
+                'user_name'      => $user->first_name . ' ' . $user->last_name,
+                'type_match'     => $typeMatch['status'],
+                'type_keywords'  => $typeMatch['keywords_found'],
             ]);
         } finally {
             @unlink($tempPath);
@@ -75,8 +77,17 @@ class VerificationController extends Controller
         $idImageData = $this->decodeBase64Image($request->input('id_image'));
         $selfieData = $this->decodeBase64Image($request->input('selfie'));
 
+        $idBackData = null;
+        if ($request->input('id_type') !== 'Passport' && $request->filled('id_back')) {
+            $idBackData = $this->decodeBase64Image($request->input('id_back'));
+        }
+
         if (! $idImageData || ! $selfieData) {
             return back()->withErrors(['id_image' => 'Invalid image data. Please re-capture your photos.']);
+        }
+
+        if ($request->input('id_type') !== 'Passport' && ! $idBackData) {
+            return back()->withErrors(['id_back' => 'Invalid back ID image. Please re-capture.']);
         }
 
         // ── Duplicate hash check ──────────────────────────────
@@ -95,12 +106,14 @@ class VerificationController extends Controller
         // ── Store images to local disk ────────────────────────
         $folder = "verifications/{$user->user_id}";
         $idPath = "{$folder}/id_photo.jpg";
+        $idBackPath = $idBackData ? "{$folder}/id_back.jpg" : null;
         $selfiePath = "{$folder}/selfie.jpg";
 
         // Delete old files if re-submitting
         $oldVerification = $user->verificationApplication;
         if ($oldVerification) {
             Storage::disk('local')->delete($oldVerification->government_id);
+            Storage::disk('local')->delete($oldVerification->id_back ?? '');
             Storage::disk('local')->delete($oldVerification->selfie ?? '');
             if ($oldVerification->logo_url) {
                 Storage::disk('public')->delete($oldVerification->logo_url);
@@ -108,6 +121,9 @@ class VerificationController extends Controller
         }
 
         Storage::disk('local')->put($idPath, $idImageData);
+        if ($idBackData && $idBackPath) {
+            Storage::disk('local')->put($idBackPath, $idBackData);
+        }
         Storage::disk('local')->put($selfiePath, $selfieData);
 
         // ── Run OCR ───────────────────────────────────────────
@@ -123,8 +139,8 @@ class VerificationController extends Controller
                 ->exists();
 
             if ($idNumberDupe) {
-                // Clean up stored files
                 Storage::disk('local')->delete($idPath);
+                Storage::disk('local')->delete($idBackPath ?? '');
                 Storage::disk('local')->delete($selfiePath);
 
                 return back()->withErrors([
@@ -143,6 +159,7 @@ class VerificationController extends Controller
             ['user_id' => $user->user_id],
             [
                 'government_id'       => $idPath,
+                'id_back'             => $idBackPath,
                 'id_type'             => $request->input('id_type'),
                 'selfie'              => $selfiePath,
                 'id_image_hash'       => $idImageHash,
@@ -185,6 +202,17 @@ class VerificationController extends Controller
         return Storage::disk('local')->download($verification->government_id);
     }
 
+    public function downloadIdBack(LandlordVerification $verification)
+    {
+        Gate::authorize('view', $verification);
+
+        if (! $verification->id_back) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->download($verification->id_back);
+    }
+
     public function downloadSelfie(LandlordVerification $verification)
     {
         Gate::authorize('view', $verification);
@@ -194,12 +222,8 @@ class VerificationController extends Controller
 
     // ─── Helpers ──────────────────────────────────────────────
 
-    /**
-     * Decode a base64 image string (with or without data URI prefix).
-     */
     protected function decodeBase64Image(string $base64): ?string
     {
-        // Strip data URI prefix if present
         if (str_contains($base64, ',')) {
             $base64 = explode(',', $base64, 2)[1];
         }

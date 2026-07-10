@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class LandlordVerification extends Model
 {
     protected $primaryKey = 'verification_id';
+
     public $timestamps = false;
 
     protected $fillable = [
         'user_id',
         'government_id',
+        'id_back',
         'id_type',
         'selfie',
         'id_image_hash',

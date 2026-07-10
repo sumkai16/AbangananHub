@@ -49,7 +49,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::get('/landlord/verification', [VerificationController::class, 'show'])->name('landlord.verification.show');
     Route::get('/verifications/{verification}/document', [VerificationController::class, 'download'])->name('verifications.document');
     Route::get('/verifications/{verification}/selfie', [VerificationController::class, 'downloadSelfie'])->name('verifications.selfie');
-
+    Route::get('/verifications/{verification}/id-back', [VerificationController::class, 'downloadIdBack'])->name('verifications.idBack');
+    
     // Landlord-only routes (property create/edit/delete — no prefix, uses /properties URIs)
     Route::middleware('landlord')->group(function () {
         Route::resource('properties', PropertyController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);

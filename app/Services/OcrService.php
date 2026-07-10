@@ -66,6 +66,7 @@ class OcrService
             // similar_text percentage against both orderings
             similar_text($lineLower, $fullName, $score1);
             similar_text($lineLower, $reversedName, $score2);
+
             $score = max($score1, $score2);
 
             if ($score > $bestScore) {
@@ -125,5 +126,43 @@ class OcrService
         }
 
         return null;
+    }
+
+    /**
+     * Check if the extracted text contains keywords matching the selected ID type.
+     * Returns: [match => bool, status => string, keywords_found => array]
+     */
+    public function matchIdType(string $extractedText, string $idType): array
+    {
+        $keywordMap = [
+            'PhilSys'              => ['Philippine Identification', 'PhilSys', 'PhilID', 'PSN'],
+            'Professional ID Card' => ['Professional Regulation', 'PRC', 'Professional ID'],
+            "Driver's License"     => ['Land Transportation', 'LTO', "Driver's License", 'Drivers License', 'NON-PROFESSIONAL', 'PROFESSIONAL'],
+            'Passport'             => ['Passport', 'Department of Foreign Affairs', 'DFA'],
+            'UMID'                 => ['Unified Multi-Purpose', 'UMID'],
+            'Postal ID'            => ['Philippine Postal', 'Post Office', 'PHLPost', 'Postal ID'],
+            'SSS ID'               => ['Social Security System', 'SSS'],
+        ];
+
+        $keywords = $keywordMap[$idType] ?? [];
+
+        if (empty($keywords) || empty($extractedText)) {
+            return ['match' => false, 'status' => 'unknown', 'keywords_found' => []];
+        }
+
+        $textLower = strtolower($extractedText);
+        $found = [];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($textLower, strtolower($keyword))) {
+                $found[] = $keyword;
+            }
+        }
+
+        if (count($found) > 0) {
+            return ['match' => true, 'status' => 'match', 'keywords_found' => $found];
+        }
+
+        return ['match' => false, 'status' => 'mismatch', 'keywords_found' => []];
     }
 }
