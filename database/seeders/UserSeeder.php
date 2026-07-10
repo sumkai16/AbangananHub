@@ -84,9 +84,9 @@ class UserSeeder extends Seeder
         
         // Tenant
         $tenant = User::create([
-            'first_name'     => 'Juan',
-            'last_name'      => 'Dela Cruz',
-            'email'          => 'tenant@abangananhub.com',
+            'first_name'     => 'Axcee',
+            'last_name'      => 'Cabusas',
+            'email'          => 'axcee@abangananhub.com',
             'password'       => Hash::make('password'),
             'contact_number' => '09181234567',
             'account_status' => 'Active',

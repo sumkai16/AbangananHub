@@ -2,33 +2,64 @@
 
 namespace App\Services;
 
-use thiagoalessio\TesseractOCR\TesseractOCR;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class OcrService
 {
-    protected string $tesseractPath;
+    protected string $apiKey;
 
     public function __construct()
     {
-        $this->tesseractPath = env(
-            'TESSERACT_PATH',
-            'C:\Program Files\Tesseract-OCR\tesseract.exe'
-        );
+        $this->apiKey = env('GOOGLE_VISION_API_KEY', '');
     }
 
     /**
-     * Extract all text from an image file path.
+     * Extract all text from an image using Google Cloud Vision API.
+     * Falls back to empty string on failure.
      */
     public function extractText(string $imagePath): string
     {
-        $ocr = new TesseractOCR($imagePath);
-        $ocr->executable($this->tesseractPath);
-        $ocr->lang('eng');
-        $ocr->psm(6); // Assume uniform block of text
+        if (empty($this->apiKey)) {
+            Log::warning('OcrService: GOOGLE_VISION_API_KEY not set');
+            return '';
+        }
+
+        $imageData = base64_encode(file_get_contents($imagePath));
 
         try {
-            return trim($ocr->run());
+            $response = Http::timeout(15)->post(
+                "https://vision.googleapis.com/v1/images:annotate?key={$this->apiKey}",
+                [
+                    'requests' => [
+                        [
+                            'image' => [
+                                'content' => $imageData,
+                            ],
+                            'features' => [
+                                [
+                                    'type' => 'DOCUMENT_TEXT_DETECTION',
+                                    'maxResults' => 1,
+                                ],
+                            ],
+                        ],
+                    ],
+                ]
+            );
+
+            if ($response->failed()) {
+                Log::error('OcrService: Vision API request failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return '';
+            }
+
+            $result = $response->json();
+
+            return $result['responses'][0]['fullTextAnnotation']['text'] ?? '';
         } catch (\Exception $e) {
+            Log::error('OcrService: Vision API exception', ['message' => $e->getMessage()]);
             return '';
         }
     }
@@ -135,13 +166,13 @@ class OcrService
     public function matchIdType(string $extractedText, string $idType): array
     {
         $keywordMap = [
-            'PhilSys'              => ['Philippine Identification', 'PhilSys', 'PhilID', 'PSN'],
-            'Professional ID Card' => ['Professional Regulation', 'PRC', 'Professional ID'],
-            "Driver's License"     => ['Land Transportation', 'LTO', "Driver's License", 'Drivers License', 'NON-PROFESSIONAL', 'PROFESSIONAL'],
-            'Passport'             => ['Passport', 'Department of Foreign Affairs', 'DFA'],
-            'UMID'                 => ['Unified Multi-Purpose', 'UMID'],
-            'Postal ID'            => ['Philippine Postal', 'Post Office', 'PHLPost', 'Postal ID'],
-            'SSS ID'               => ['Social Security System', 'SSS'],
+            'PhilSys'              => ['Philippine Identification', 'PhilSys', 'PhilID', 'PSN', 'REPUBLIKA NG PILIPINAS', 'Identification System', 'PHILSYS', 'National ID'],
+            'Professional ID Card' => ['Professional Regulation', 'PRC', 'Professional ID', 'PROFESSIONAL REGULATION COMMISSION', 'KOMISYON SA REGULASYON'],
+            "Driver's License"     => ['Land Transportation', 'LTO', "Driver's License", 'Drivers License', 'NON-PROFESSIONAL', 'PROFESSIONAL', 'LAND TRANSPORTATION OFFICE', 'TANGGAPAN NG TRANSPORTASYONG LUPA'],
+            'Passport'             => ['Passport', 'Department of Foreign Affairs', 'DFA', 'PASAPORTE', 'REPUBLIC OF THE PHILIPPINES'],
+            'UMID'                 => ['Unified Multi-Purpose', 'UMID', 'MULTI-PURPOSE', 'Unified Multi'],
+            'Postal ID'            => ['Philippine Postal', 'Post Office', 'PHLPost', 'Postal ID', 'POSTAL CORPORATION', 'KOREO'],
+            'SSS ID'               => ['Social Security System', 'SSS', 'SOCIAL SECURITY'],
         ];
 
         $keywords = $keywordMap[$idType] ?? [];
