@@ -5,6 +5,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Report extends Model
 {
+    protected $primaryKey = 'report_id';
+
     protected $fillable = [
         'reporter_id',
         'property_id',

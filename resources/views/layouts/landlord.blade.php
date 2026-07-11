@@ -312,6 +312,23 @@
                     </span>
                 </a>
 
+                {{-- Report a Problem --}}
+                <a href="{{ route('reports.create') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
+                          {{ $current === 'reports.create' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Report a
+                        Problem</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Report a Problem
+                    </span>
+                </a>
+
                 {{-- Settings --}}
                 <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
@@ -426,6 +443,10 @@
                             <a href="{{ route('profile.edit') }}"
                                 class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
                                 Account Settings
+                            </a>
+                            <a href="{{ route('reports.create') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
+                                Report a Problem
                             </a>
                             <div class="h-px bg-[#64748B]/15 my-2"></div>
                             <form action="{{ route('logout') }}" method="POST">

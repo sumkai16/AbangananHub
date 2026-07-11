@@ -51,6 +51,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::get('/verifications/{verification}/selfie', [VerificationController::class, 'downloadSelfie'])->name('verifications.selfie');
     Route::get('/verifications/{verification}/id-back', [VerificationController::class, 'downloadIdBack'])->name('verifications.idBack');
     Route::get('/verifications/{verification}/preview/{type}', [VerificationController::class, 'preview'])->name('verifications.preview')->where('type', 'front|back|selfie');
+
+    // Complaint & Reporting — open to any authenticated user, no role gate
+    Route::get('/reports', [App\Http\Controllers\ReportController::class, 'create'])->name('reports.create');
+    Route::post('/reports', [App\Http\Controllers\ReportController::class, 'store'])->name('reports.store');
+
     // Landlord-only routes (property create/edit/delete — no prefix, uses /properties URIs)
     Route::middleware('landlord')->group(function () {
         Route::resource('properties', PropertyController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
@@ -155,6 +160,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/properties/{property}/units/{unit}', [AdminPropertyUnitController::class, 'show'])->name('units.show');
         Route::post('/properties/{property}/units/{unit}/approve', [AdminPropertyUnitController::class, 'approve'])->name('units.approve');
         Route::post('/properties/{property}/units/{unit}/reject', [AdminPropertyUnitController::class, 'reject'])->name('units.reject');
+
+        Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/{report}', [App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
+        Route::patch('/reports/{report}/resolve', [App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
 
         // Profile
         Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
