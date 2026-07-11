@@ -94,13 +94,25 @@ function wireDirections(map, destLat, destLng) {
             const res = await fetch(`${NOMINATIM_URL}?format=json&limit=1&q=${encodeURIComponent(address + ', Cebu, Philippines')}`);
             const results = await res.json();
             if (!results.length) {
-                alert('Could not find that address. Try adding more detail.');
+                window.dispatchEvent(new CustomEvent('show-modal', {
+                    detail: {
+                        type: 'error',
+                        title: 'Address not found',
+                        message: 'Could not find that address. Try adding more detail.',
+                    }
+                }));
                 return;
             }
             routeTo(parseFloat(results[0].lat), parseFloat(results[0].lon));
         } catch (err) {
             console.error('Geocoding failed:', err);
-            alert('Something went wrong looking up that address.');
+            window.dispatchEvent(new CustomEvent('show-modal', {
+                detail: {
+                    type: 'error',
+                    title: 'Lookup failed',
+                    message: 'Something went wrong looking up that address.',
+                }
+            }));
         }
     });
 }

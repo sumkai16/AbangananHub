@@ -206,7 +206,11 @@
                                             </form>
                                         @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
                                             <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
-                                                onsubmit="return confirm('Cancel this reservation? The unit will be marked Available again.')">
+                                                data-confirm="Cancel this reservation?"
+                                                data-confirm-type="warning"
+                                                data-confirm-message="The unit will be marked Available again."
+                                                data-confirm-button="Cancel reservation"
+                                                data-confirm-cancel="Keep it">
                                                 @csrf @method('PATCH')
                                                 <button type="submit"
                                                     class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">

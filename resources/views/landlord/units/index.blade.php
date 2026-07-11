@@ -261,7 +261,10 @@
                                             </a>
                                             <form method="POST"
                                                 action="{{ route('landlord.properties.units.destroy', [$property, $unit]) }}"
-                                                onsubmit="return confirm('Remove {{ addslashes($unit->unit_label) }}? This cannot be undone.')">
+                                                data-confirm="Remove {{ $unit->unit_label }}?"
+                                                data-confirm-type="error"
+                                                data-confirm-message="The unit will be permanently removed. This cannot be undone."
+                                                data-confirm-button="Remove unit">
                                                 @csrf @method('DELETE')
                                                 <button type="submit"
                                                     class="w-8 h-8 flex items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors duration-200">

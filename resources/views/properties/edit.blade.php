@@ -131,7 +131,10 @@
                                         <div class="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-150 group/img">
                                             <img src="{{ str_starts_with($url, 'http') ? $url : Storage::url($url) }}" class="w-full h-full object-cover group-hover/img:scale-105 transition-all duration-300" alt="Property photo">
                                             <form action="{{ route('properties.media.destroy', [$property->property_id, $img->media_id]) }}" method="POST"
-                                                onsubmit="return confirm('Remove this photo?');" class="absolute top-1.5 right-1.5">
+                                                data-confirm="Remove this photo?"
+                                                data-confirm-type="warning"
+                                                data-confirm-message="The photo will be removed from this listing."
+                                                data-confirm-button="Remove" class="absolute top-1.5 right-1.5">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="w-6 h-6 rounded-full bg-white/95 hover:bg-red-50 text-red-600 flex items-center justify-center shadow-sm transition-all duration-200">

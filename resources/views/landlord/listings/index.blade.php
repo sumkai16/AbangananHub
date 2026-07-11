@@ -75,7 +75,11 @@
                             <a href="{{ route('properties.edit', $property->property_id) }}" class="flex items-center justify-center h-9 rounded-xl bg-gray-50 border border-gray-150 text-[13px] font-bold text-gray-650 hover:bg-gray-100 transition-colors">
                                 Edit Details
                             </a>
-                            <form action="{{ route('properties.destroy', $property->property_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this listing?');">
+                            <form action="{{ route('properties.destroy', $property->property_id) }}" method="POST"
+                                data-confirm="Delete this listing?"
+                                data-confirm-type="error"
+                                data-confirm-message="The listing will be permanently deleted. This cannot be undone."
+                                data-confirm-button="Delete">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="w-full flex items-center justify-center h-9 rounded-xl bg-red-50 border border-red-100 text-[13px] font-bold text-red-600 hover:bg-red-100 transition-colors">

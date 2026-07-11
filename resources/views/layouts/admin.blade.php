@@ -412,23 +412,11 @@
                 </div>
             </header>
 
-            {{-- Flash messages --}}
-            @if(session('success'))
-                <div class="mx-4 sm:mx-6 mt-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
-                    <span>{{ session('success') }}</span>
-                    <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 ml-3">✕</button>
-                </div>
-            @endif
+            {{-- Flash messages (success/status are shown via the global modal below) --}}
             @if(session('error'))
                 <div class="mx-4 sm:mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
                     <span>{{ session('error') }}</span>
-                    <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 ml-3">✕</button>
-                </div>
-            @endif
-            @if(session('status'))
-                <div class="mx-4 sm:mx-6 mt-4 px-4 py-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
-                    <span>{{ session('status') }}</span>
-                    <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 ml-3">✕</button>
+                    <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 ml-3">&times;</button>
                 </div>
             @endif
 
@@ -437,6 +425,22 @@
             </main>
         </div>
     </div>
+
+    <x-confirm-modal />
+    <script src="{{ asset('js/modal-confirm.js') }}"></script>
+    @if(session('status') || session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                window.dispatchEvent(new CustomEvent('show-modal', {
+                    detail: {
+                        type: 'success',
+                        title: 'Done',
+                        message: @json(session('status') ?? session('success')),
+                    }
+                }));
+            });
+        </script>
+    @endif
 
     @stack('scripts')
 </body>

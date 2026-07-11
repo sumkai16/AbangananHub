@@ -533,6 +533,23 @@
         }
     </script>
     @include('partials.message-notifications')
+
+    <x-confirm-modal />
+    <script src="{{ asset('js/modal-confirm.js') }}"></script>
+    @if(session('status') || session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                window.dispatchEvent(new CustomEvent('show-modal', {
+                    detail: {
+                        type: 'success',
+                        title: 'Done',
+                        message: @json(session('status') ?? session('success')),
+                    }
+                }));
+            });
+        </script>
+    @endif
+
     @stack('scripts')
 
 </body>

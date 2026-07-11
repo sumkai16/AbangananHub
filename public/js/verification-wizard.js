@@ -207,7 +207,6 @@ function verificationWizard(config) {
                 this.idBackBase64 = dataUrl;
                 this.idCapturePhase = 'done';
                 this.stopCamera();
-                this.compareSides();
                 this.runOcrCheck();
             } else {
                 this.selfieBase64 = dataUrl;
@@ -267,164 +266,95 @@ function verificationWizard(config) {
             this.faceCheckDone = true;
         },
 
-        // ── Duplicate side detection ──────────────────────────
+        // ── Duplicate side detection (OCR-based) ──────────────
+        //
+        // Pixel comparison is unreliable — two photos of the same
+        // card side from slightly different angles produce different
+        // enough pixel data to slip past any threshold. Instead,
+        // check the OCR text: front and back of PH IDs have
+        // completely different label text, so if the "back" photo
+        // contains front-side labels but no back-side labels, the
+        // user photographed the same side twice.
 
-        compareSides() {
+        checkDuplicateSides() {
             this.duplicateSideWarning = false;
 
-            if (!this.idImageBase64 || !this.idBackBase64) return;
+            if (!this.ocrResult?.extracted || !this.backOcrResult?.extracted) return;
 
-            const size = 64;
-            const canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d');
+            const backText = this.backOcrResult.extracted.toLowerCase();
 
-            const getPixels = (src) => {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        ctx.clearRect(0, 0, size, size);
-                        ctx.drawImage(img, 0, 0, size, size);
-                        const data = ctx.getImageData(0, 0, size, size).data;
-                        resolve(data);
-                    };
-                    img.src = src;
-                });
-            };
+            // Labels that only appear on the FRONT of PH IDs
+            const frontLabels = [
+                'apellido', 'last name', 'mga pangalan', 'given name',
+                'gitnang', 'middle name',
+            ];
 
-            Promise.all([getPixels(this.idImageBase64), getPixels(this.idBackBase64)])
-                .then(([frontPixels, backPixels]) => {
-                    let totalDiff = 0;
-                    const pixelCount = size * size;
+            // Labels that only appear on the BACK of PH IDs
+            const backLabels = [
+                'kasarian', 'sex', 'uri ng dugo', 'blood type',
+                'kalagayang sibil', 'marital status',
+                'petsa ng pagkakaloob', 'date of issue',
+                'lugar ng kapanganakan', 'place of birth',
+            ];
 
-                    for (let i = 0; i < frontPixels.length; i += 4) {
-                        const dr = Math.abs(frontPixels[i] - backPixels[i]);
-                        const dg = Math.abs(frontPixels[i + 1] - backPixels[i + 1]);
-                        const db = Math.abs(frontPixels[i + 2] - backPixels[i + 2]);
-                        totalDiff += (dr + dg + db) / (3 * 255);
-                    }
+            const hasFrontLabels = frontLabels.some(l => backText.includes(l));
+            const hasBackLabels = backLabels.some(l => backText.includes(l));
 
-                    const similarity = 1 - (totalDiff / pixelCount);
-                    this.duplicateSideWarning = similarity > 0.92;
-                })
-                .catch(() => { });
+            // If the "back" image has front labels but no back labels,
+            // the user almost certainly photographed the front twice.
+            if (hasFrontLabels && !hasBackLabels) {
+                this.duplicateSideWarning = true;
+            }
         },
 
-        // ── Front ID field parser ─────────────────────────────
+        // ── Front ID name parser ──────────────────────────────
 
-        parseFrontInfo(text) {
-            if (!text) return null;
+        parseNames(text) {
+            if (!text) return { lastName: null, firstName: null, middleName: null };
 
             const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
 
+            let lastName = null;
+            let firstName = null;
             let middleName = null;
-            let dateOfBirth = null;
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
+                const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : null;
 
-                // Middle Name — line after "Gitnang Apelyido" or "Middle Name" label
-                if (/Gitnang Apel|Middle Name/i.test(line) && i + 1 < lines.length) {
-                    const candidate = lines[i + 1].trim();
-                    // Next line is the value if it's not another label
-                    if (candidate && !/Petsa|Date of|Tirahan|Address|Kapanganakan/i.test(candidate)) {
-                        middleName = candidate;
+                // Last Name — after "Apellido" or "Last Name" label
+                if (!lastName && /Apel[a-z]*|Last Name/i.test(line)) {
+                    // Value on same line
+                    const inline = line.match(/(?:Apel[a-z]*\/Last Name|Last Name|Apel[a-z]*)\s*[:/]?\s+([A-Z][A-Z\s-]+?)$/i);
+                    if (inline) {
+                        lastName = inline[1].trim();
+                    } else if (nextLine && /^[A-Z][A-Z\s-]+$/.test(nextLine) && !/Pangalan|Given|Middle|Gitnang/i.test(nextLine)) {
+                        lastName = nextLine;
                     }
                 }
 
-                // Sometimes middle name and label are on the same line:
-                // "Gitnang Apelyido/Middle Name FILISILDA"
-                if (!middleName) {
-                    const inlineMiddle = line.match(/(?:Gitnang Apel[a-z]*|Middle Name)\s*[:/]?\s+([A-Z][A-Z\s]+?)$/i);
-                    if (inlineMiddle) {
-                        middleName = inlineMiddle[1].trim();
+                // First Name — after "Mga Pangalan" or "Given Names" label
+                if (!firstName && /Mga Pangalan|Given Name/i.test(line)) {
+                    const inline = line.match(/(?:Mga Pangalan\/Given Names?|Given Names?|Mga Pangalan)\s*[:/]?\s+([A-Z][A-Z\s-]+?)$/i);
+                    if (inline) {
+                        firstName = inline[1].trim();
+                    } else if (nextLine && /^[A-Z][A-Z\s-]+$/.test(nextLine) && !/Gitnang|Middle|Apel/i.test(nextLine)) {
+                        firstName = nextLine;
                     }
                 }
 
-                // Date of Birth — various PH ID formats
-                if (/Petsa ng Kapanganakan|Date of Birth/i.test(line)) {
-                    // Value on the same line
-                    const sameLine = line.match(/(?:Petsa ng Kapanganakan|Date of Birth)\s*[:/]?\s*(.+)/i);
-                    if (sameLine && sameLine[1].trim().length > 3) {
-                        dateOfBirth = sameLine[1].trim();
-                    } else if (i + 1 < lines.length) {
-                        // Value on next line
-                        dateOfBirth = lines[i + 1].trim();
-                    }
-                }
-
-                // Catch standalone date lines like "SEPTEMBER 06, 2004" right after DOB label
-                if (!dateOfBirth) {
-                    const dateMatch = line.match(/^((?:JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\s+\d{1,2},?\s+\d{4})$/i);
-                    if (dateMatch && i > 0 && /Petsa|Date of Birth|Kapanganakan/i.test(lines[i - 1])) {
-                        dateOfBirth = dateMatch[1];
+                // Middle Name — after "Gitnang Apelyido" or "Middle Name" label
+                if (!middleName && /Gitnang Apel|Middle Name/i.test(line)) {
+                    const inline = line.match(/(?:Gitnang Apel[a-z]*\/Middle Name|Middle Name|Gitnang Apel[a-z]*)\s*[:/]?\s+([A-Z][A-Z\s-]+?)$/i);
+                    if (inline) {
+                        middleName = inline[1].trim();
+                    } else if (nextLine && /^[A-Z][A-Z\s-]+$/.test(nextLine) && !/Petsa|Date|Tirahan|Address/i.test(nextLine)) {
+                        middleName = nextLine;
                     }
                 }
             }
 
-            return { middleName, dateOfBirth };
-        },
-
-        // ── Back ID field parser ──────────────────────────────
-
-        parseBackInfo(text) {
-            if (!text) return null;
-
-            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-
-            let sex = null;
-            let bloodType = null;
-            let maritalStatus = null;
-            let placeOfBirth = null;
-            let dateOfIssue = null;
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-
-                // Sex
-                if (!sex) {
-                    const sexMatch = line.match(/(?:Sex|Kasarian)\s*[:/]?\s*(MALE|FEMALE|M|F)\b/i);
-                    if (sexMatch) sex = sexMatch[1].toUpperCase();
-                }
-
-                // Blood Type — only match actual blood type values, not the label word "Blood"
-                if (!bloodType) {
-                    const btMatch = line.match(/(?:Blood Type|Uri ng Dugo)\s*[:/]?\s*((?:A|B|AB|O)[+-]?|UNKNOWN)/i);
-                    if (btMatch) bloodType = btMatch[1].toUpperCase();
-                }
-
-                // Marital Status
-                if (!maritalStatus) {
-                    const msMatch = line.match(/(?:Marital Status|Kalagayang Sibil)\s*[:/]?\s*(SINGLE|MARRIED|WIDOWED|SEPARATED|DIVORCED)/i);
-                    if (msMatch) maritalStatus = msMatch[1].toUpperCase();
-                }
-
-                // Place of Birth — capture until end of line only
-                if (!placeOfBirth) {
-                    const pobMatch = line.match(/(?:Place of Birth|Lugar ng Kapanganakan)\s*[:/]?\s*(.+)/i);
-                    if (pobMatch) {
-                        let value = pobMatch[1].trim();
-                        // Strip trailing junk that sometimes bleeds in from nearby text
-                        value = value.replace(/\s*(If found|Please return|Iriun|webcam|intel|CORE|www).*$/i, '').trim();
-                        if (value.length > 1) placeOfBirth = value;
-                    }
-                    // Value might be on the next line
-                    if (!placeOfBirth && /(?:Place of Birth|Lugar ng Kapanganakan)\s*[:/]?\s*$/i.test(line) && i + 1 < lines.length) {
-                        let value = lines[i + 1].trim();
-                        value = value.replace(/\s*(If found|Please return|Iriun|webcam|intel|CORE|www).*$/i, '').trim();
-                        if (value.length > 1) placeOfBirth = value;
-                    }
-                }
-
-                // Date of Issue
-                if (!dateOfIssue) {
-                    const doiMatch = line.match(/(?:Date of Issue|Petsa ng Pagkakaloob)\s*[:/]?\s*(\d{1,2}\s+\w+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);
-                    if (doiMatch) dateOfIssue = doiMatch[1].trim();
-                }
-            }
-
-            return { sex, bloodType, maritalStatus, placeOfBirth, dateOfIssue };
+            return { lastName, firstName, middleName };
         },
 
         // ── OCR preview ───────────────────────────────────────
@@ -471,6 +401,7 @@ function verificationWizard(config) {
 
                         if (backResponse.ok) {
                             this.backOcrResult = await backResponse.json();
+                            this.checkDuplicateSides();
                         }
                     } catch (backErr) {
                         console.error('Back OCR failed:', backErr);

@@ -50,7 +50,11 @@
 
         @if($showActions && $canCancel)
             <form action="{{ route('reservations.cancel', $reservation->reservation_id) }}" method="POST"
-                onsubmit="return confirm('Cancel this reservation?');">
+                data-confirm="Cancel this reservation?"
+                data-confirm-type="warning"
+                data-confirm-message="Your reservation will be cancelled."
+                data-confirm-button="Cancel reservation"
+                data-confirm-cancel="Keep it">
                 @csrf
                 @method('PATCH')
                 <button type="submit" class="text-[13px] font-bold text-red-600 hover:text-red-800 transition-colors">

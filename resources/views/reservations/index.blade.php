@@ -227,7 +227,11 @@
 
                                         @if(!in_array($reservation->rental_status, ['Cancelled', 'Rejected', 'Occupied']))
                                             <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
-                                                onsubmit="return confirm('Withdraw this reservation proposal?');" class="inline-block">
+                                                data-confirm="Withdraw this reservation proposal?"
+                                                data-confirm-type="warning"
+                                                data-confirm-message="Your reservation proposal will be withdrawn."
+                                                data-confirm-button="Withdraw"
+                                                data-confirm-cancel="Keep it" class="inline-block">
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit"

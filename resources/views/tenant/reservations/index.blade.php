@@ -188,7 +188,11 @@
                                             </a>
                                         @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
                                             <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
-                                                onsubmit="return confirm('Cancel this reservation? This action cannot be undone.')">
+                                                data-confirm="Cancel this reservation?"
+                                                data-confirm-type="warning"
+                                                data-confirm-message="This action cannot be undone."
+                                                data-confirm-button="Cancel reservation"
+                                                data-confirm-cancel="Keep it">
                                                 @csrf @method('PATCH')
                                                 <button type="submit"
                                                     class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">

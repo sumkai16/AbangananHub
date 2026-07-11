@@ -131,7 +131,10 @@
                         </a>
                         <div class="h-px bg-[#64748B]/10 mx-3 my-1"></div>
                         <form method="POST" action="{{ route('properties.destroy', $property) }}"
-                              onsubmit="return confirm('Delete this property? This cannot be undone.')">
+                              data-confirm="Delete this property?"
+                              data-confirm-type="error"
+                              data-confirm-message="The property and its units will be permanently deleted. This cannot be undone."
+                              data-confirm-button="Delete">
                             @csrf @method('DELETE')
                             <button type="submit"
                                     class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
@@ -546,7 +549,10 @@
                                     </a>
                                     <form method="POST"
                                           action="{{ route('landlord.properties.units.destroy', [$property, $unit]) }}"
-                                          onsubmit="return confirm('Remove {{ addslashes($unit->unit_label) }}? This cannot be undone.')">
+                                          data-confirm="Remove {{ $unit->unit_label }}?"
+                                          data-confirm-type="error"
+                                          data-confirm-message="The unit will be permanently removed. This cannot be undone."
+                                          data-confirm-button="Remove unit">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                                 class="h-8 px-3 flex items-center gap-1 rounded-full border border-red-200 text-red-500 text-[11px] font-medium hover:bg-red-50 transition-colors duration-200">
