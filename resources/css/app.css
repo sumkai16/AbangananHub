@@ -9,3 +9,64 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Slim, theme-matched scrollbar for dark sidebars (admin/landlord nav) —
+   overrides the browser's bulky default arrows/thumb on Chromium + Firefox. */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.28);
+}
+
+.scrollbar-thin::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+}
+
+/* Slim, theme-matched horizontal scrollbar for tables on white/light cards
+   (admin + landlord/tenant list pages) — same treatment as .scrollbar-thin
+   but tuned for light backgrounds instead of dark sidebars. */
+.scrollbar-thin-light {
+    scrollbar-width: thin;
+    scrollbar-color: #E2E8F0 transparent;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar {
+    height: 6px;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar-thumb {
+    background-color: #E2E8F0;
+    border-radius: 9999px;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar-thumb:hover {
+    background-color: #64748B;
+}
+
+.scrollbar-thin-light::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+}

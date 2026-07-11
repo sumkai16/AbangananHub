@@ -32,7 +32,20 @@ class UserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users', 'search', 'role'));
+        $roleCounts = [
+            'Landlord' => UserRole::where('role', 'Landlord')->count(),
+            'Tenant'   => UserRole::where('role', 'Tenant')->count(),
+            'Admin'    => UserRole::where('role', 'Admin')->count(),
+        ];
+        $roleCounts['No role'] = User::doesntHave('roles')->count();
+
+        $statusCounts = [
+            'active'    => User::where('account_status', 'active')->count(),
+            'suspended' => User::where('account_status', 'suspended')->count(),
+            'inactive'  => User::where('account_status', 'inactive')->count(),
+        ];
+
+        return view('admin.users.index', compact('users', 'search', 'role', 'roleCounts', 'statusCounts'));
     }
 
     public function create()

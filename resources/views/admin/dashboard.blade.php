@@ -172,7 +172,7 @@
                     @if($pendingVerificationList->isEmpty())
                         <div class="py-10 text-center text-[13px] text-gray-400">No pending landlord verifications.</div>
                     @else
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto scrollbar-thin-light">
                         <table class="w-full min-w-[640px]">
                             <thead>
                                 <tr class="bg-gray-50/50 border-b border-gray-50">
@@ -232,7 +232,7 @@
                     @if($pendingListingList->isEmpty())
                         <div class="py-10 text-center text-[13px] text-gray-400">No pending property verifications.</div>
                     @else
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto scrollbar-thin-light">
                         <table class="w-full min-w-[720px]">
                             <thead>
                                 <tr class="bg-gray-50/50 border-b border-gray-50">
@@ -299,7 +299,7 @@
                     @if($pendingUnitList->isEmpty())
                         <div class="py-10 text-center text-[13px] text-gray-400">No pending unit approvals.</div>
                     @else
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto scrollbar-thin-light">
                         <table class="w-full min-w-[640px]">
                             <thead>
                                 <tr class="bg-gray-50/50 border-b border-gray-50">

@@ -173,7 +173,7 @@
             {{-- Table --}}
         @else
             <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 overflow-hidden">
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto scrollbar-thin-light">
                     <table class="w-full min-w-[760px] text-sm">
                         <thead>
                             <tr class="border-b border-[#64748B]/15 text-left">

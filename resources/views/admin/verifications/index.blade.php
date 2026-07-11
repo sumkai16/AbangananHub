@@ -41,7 +41,7 @@
                     {{ $verifications->total() }} {{ Str::plural('application', $verifications->total()) }}
                 </p>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto scrollbar-thin-light">
                 <table class="min-w-full">
                     <thead>
                         <tr class="bg-gray-50/60 border-b border-gray-100">
