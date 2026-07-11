@@ -219,7 +219,29 @@ class VerificationController extends Controller
 
         return Storage::disk('local')->download($verification->selfie);
     }
+/**
+     * Serve a verification image inline (for display, not download).
+     */
+    public function preview(LandlordVerification $verification, string $type)
+    {
+        Gate::authorize('view', $verification);
 
+        $path = match ($type) {
+            'front'  => $verification->government_id,
+            'back'   => $verification->id_back,
+            'selfie' => $verification->selfie,
+            default  => abort(404),
+        };
+
+        if (! $path) {
+            abort(404);
+        }
+
+        return response()->file(
+            Storage::disk('local')->path($path),
+            ['Content-Type' => 'image/jpeg']
+        );
+    }
     // ─── Helpers ──────────────────────────────────────────────
 
     protected function decodeBase64Image(string $base64): ?string

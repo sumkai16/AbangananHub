@@ -124,6 +124,10 @@ function verificationWizard(config) {
             this.cameraActive = false;
             this.cameraError = '';
 
+            if (videoEl) {
+                videoEl.srcObject = null;
+            }
+
             try {
                 this.cameraStream = await navigator.mediaDevices.getUserMedia({
                     video: {
@@ -155,6 +159,12 @@ function verificationWizard(config) {
                 this.cameraStream = null;
             }
             this.cameraActive = false;
+
+            ['videoId', 'videoIdBack', 'videoSelfie'].forEach(ref => {
+                if (this.$refs[ref]) {
+                    this.$refs[ref].srcObject = null;
+                }
+            });
         },
 
         // ── Photo capture ─────────────────────────────────────
@@ -185,7 +195,6 @@ function verificationWizard(config) {
                 this.idImageBase64 = dataUrl;
                 this.stopCamera();
 
-                // Auto-transition to back capture
                 if (this.needsBack) {
                     this.idCapturePhase = 'capture-back';
                     this.cameraError = '';
@@ -219,7 +228,7 @@ function verificationWizard(config) {
                 this.ocrError = false;
                 this.duplicateSideWarning = false;
                 this.idCapturePhase = 'capture-front';
-                this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoId), 300));
+                this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoId), 500));
             } else if (type === 'idBack') {
                 this.idBackBase64 = '';
                 this.duplicateSideWarning = false;
@@ -227,12 +236,12 @@ function verificationWizard(config) {
                 this.backOcrResult = null;
                 this.ocrError = false;
                 this.idCapturePhase = 'capture-back';
-                this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoIdBack), 300));
+                this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoIdBack), 500));
             } else {
                 this.selfieBase64 = '';
                 this.faceCheckDone = false;
                 this.faceDetected = false;
-                this.$nextTick(() => setTimeout(() => this.startCamera('user', this.$refs.videoSelfie), 300));
+                this.$nextTick(() => setTimeout(() => this.startCamera('user', this.$refs.videoSelfie), 500));
             }
         },
 
@@ -265,7 +274,7 @@ function verificationWizard(config) {
 
             if (!this.idImageBase64 || !this.idBackBase64) return;
 
-            const size = 32;
+            const size = 64;
             const canvas = document.createElement('canvas');
             canvas.width = size;
             canvas.height = size;
@@ -297,9 +306,64 @@ function verificationWizard(config) {
                     }
 
                     const similarity = 1 - (totalDiff / pixelCount);
-                    this.duplicateSideWarning = similarity > 0.85;
+                    this.duplicateSideWarning = similarity > 0.92;
                 })
                 .catch(() => { });
+        },
+
+        // ── Front ID field parser ─────────────────────────────
+
+        parseFrontInfo(text) {
+            if (!text) return null;
+
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+
+            let middleName = null;
+            let dateOfBirth = null;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                // Middle Name — line after "Gitnang Apelyido" or "Middle Name" label
+                if (/Gitnang Apel|Middle Name/i.test(line) && i + 1 < lines.length) {
+                    const candidate = lines[i + 1].trim();
+                    // Next line is the value if it's not another label
+                    if (candidate && !/Petsa|Date of|Tirahan|Address|Kapanganakan/i.test(candidate)) {
+                        middleName = candidate;
+                    }
+                }
+
+                // Sometimes middle name and label are on the same line:
+                // "Gitnang Apelyido/Middle Name FILISILDA"
+                if (!middleName) {
+                    const inlineMiddle = line.match(/(?:Gitnang Apel[a-z]*|Middle Name)\s*[:/]?\s+([A-Z][A-Z\s]+?)$/i);
+                    if (inlineMiddle) {
+                        middleName = inlineMiddle[1].trim();
+                    }
+                }
+
+                // Date of Birth — various PH ID formats
+                if (/Petsa ng Kapanganakan|Date of Birth/i.test(line)) {
+                    // Value on the same line
+                    const sameLine = line.match(/(?:Petsa ng Kapanganakan|Date of Birth)\s*[:/]?\s*(.+)/i);
+                    if (sameLine && sameLine[1].trim().length > 3) {
+                        dateOfBirth = sameLine[1].trim();
+                    } else if (i + 1 < lines.length) {
+                        // Value on next line
+                        dateOfBirth = lines[i + 1].trim();
+                    }
+                }
+
+                // Catch standalone date lines like "SEPTEMBER 06, 2004" right after DOB label
+                if (!dateOfBirth) {
+                    const dateMatch = line.match(/^((?:JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\s+\d{1,2},?\s+\d{4})$/i);
+                    if (dateMatch && i > 0 && /Petsa|Date of Birth|Kapanganakan/i.test(lines[i - 1])) {
+                        dateOfBirth = dateMatch[1];
+                    }
+                }
+            }
+
+            return { middleName, dateOfBirth };
         },
 
         // ── Back ID field parser ──────────────────────────────
@@ -307,21 +371,60 @@ function verificationWizard(config) {
         parseBackInfo(text) {
             if (!text) return null;
 
-            const extract = (patterns) => {
-                for (const pattern of patterns) {
-                    const match = text.match(pattern);
-                    if (match) return match[1].trim();
-                }
-                return null;
-            };
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
 
-            return {
-                sex: extract([/(?:Sex|Kasarian)\s*[:/]?\s*(MALE|FEMALE|M|F)/i]),
-                bloodType: extract([/(?:Blood Type|Uri ng Dugo)\s*[:/]?\s*(\S+)/i]),
-                maritalStatus: extract([/(?:Marital Status|Kalagayang Sibil)\s*[:/]?\s*(SINGLE|MARRIED|WIDOWED|SEPARATED|DIVORCED)/i]),
-                placeOfBirth: extract([/(?:Place of Birth|Lugar ng Kapanganakan)\s*[:/]?\s*([A-Z][A-Z\s,]+)/i]),
-                dateOfIssue: extract([/(?:Date of Issue|Petsa ng Pagkakaloob)\s*[:/]?\s*(\d{2}\s+\w+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i]),
-            };
+            let sex = null;
+            let bloodType = null;
+            let maritalStatus = null;
+            let placeOfBirth = null;
+            let dateOfIssue = null;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                // Sex
+                if (!sex) {
+                    const sexMatch = line.match(/(?:Sex|Kasarian)\s*[:/]?\s*(MALE|FEMALE|M|F)\b/i);
+                    if (sexMatch) sex = sexMatch[1].toUpperCase();
+                }
+
+                // Blood Type — only match actual blood type values, not the label word "Blood"
+                if (!bloodType) {
+                    const btMatch = line.match(/(?:Blood Type|Uri ng Dugo)\s*[:/]?\s*((?:A|B|AB|O)[+-]?|UNKNOWN)/i);
+                    if (btMatch) bloodType = btMatch[1].toUpperCase();
+                }
+
+                // Marital Status
+                if (!maritalStatus) {
+                    const msMatch = line.match(/(?:Marital Status|Kalagayang Sibil)\s*[:/]?\s*(SINGLE|MARRIED|WIDOWED|SEPARATED|DIVORCED)/i);
+                    if (msMatch) maritalStatus = msMatch[1].toUpperCase();
+                }
+
+                // Place of Birth — capture until end of line only
+                if (!placeOfBirth) {
+                    const pobMatch = line.match(/(?:Place of Birth|Lugar ng Kapanganakan)\s*[:/]?\s*(.+)/i);
+                    if (pobMatch) {
+                        let value = pobMatch[1].trim();
+                        // Strip trailing junk that sometimes bleeds in from nearby text
+                        value = value.replace(/\s*(If found|Please return|Iriun|webcam|intel|CORE|www).*$/i, '').trim();
+                        if (value.length > 1) placeOfBirth = value;
+                    }
+                    // Value might be on the next line
+                    if (!placeOfBirth && /(?:Place of Birth|Lugar ng Kapanganakan)\s*[:/]?\s*$/i.test(line) && i + 1 < lines.length) {
+                        let value = lines[i + 1].trim();
+                        value = value.replace(/\s*(If found|Please return|Iriun|webcam|intel|CORE|www).*$/i, '').trim();
+                        if (value.length > 1) placeOfBirth = value;
+                    }
+                }
+
+                // Date of Issue
+                if (!dateOfIssue) {
+                    const doiMatch = line.match(/(?:Date of Issue|Petsa ng Pagkakaloob)\s*[:/]?\s*(\d{1,2}\s+\w+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);
+                    if (doiMatch) dateOfIssue = doiMatch[1].trim();
+                }
+            }
+
+            return { sex, bloodType, maritalStatus, placeOfBirth, dateOfIssue };
         },
 
         // ── OCR preview ───────────────────────────────────────

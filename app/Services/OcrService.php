@@ -83,6 +83,23 @@ class OcrService
             return ['name' => "$firstName $lastName", 'confidence' => 100, 'status' => 'pass'];
         }
 
+        // PH government IDs commonly split the name across separate lines
+        // (Apellido/Last Name on one line, Mga Pangalan/Given Names on the
+        // next), so the two components never appear adjacent in the raw
+        // text. Check both name parts independently before falling back to
+        // per-line fuzzy matching, which was capping real matches like
+        // "CABUSAS" (last name only, on its own line) in the 50-79 "partial"
+        // band instead of recognizing it as a genuine match.
+        $firstNameLower = strtolower(trim($firstName));
+        $lastNameLower = strtolower(trim($lastName));
+
+        $firstNameFound = $firstNameLower !== '' && preg_match('/\b' . preg_quote($firstNameLower, '/') . '\b/', $textLower);
+        $lastNameFound = $lastNameLower !== '' && preg_match('/\b' . preg_quote($lastNameLower, '/') . '\b/', $textLower);
+
+        if ($firstNameFound && $lastNameFound) {
+            return ['name' => "$firstName $lastName", 'confidence' => 95, 'status' => 'pass'];
+        }
+
         // Fuzzy match each line against both name orderings
         $bestScore = 0;
         $bestMatch = null;

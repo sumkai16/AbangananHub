@@ -36,6 +36,9 @@ class UserSeeder extends Seeder
         LandlordVerification::create([
             'user_id'             => $approvedLandlord->user_id,
             'government_id'       => 'verifications/seed-placeholder-approved.jpg',
+            'id_type'             => 'PhilSys National ID',
+            'selfie'              => 'verifications/seed-placeholder-selfie-approved.jpg',
+            'id_image_hash'       => hash('sha256', 'seed-placeholder-approved'),
             'verification_status' => 'Approved',
             'admin_notes'         => null,
             'reviewed_by'         => $admin->user_id,
@@ -55,6 +58,9 @@ class UserSeeder extends Seeder
         LandlordVerification::create([
             'user_id'             => $pendingLandlord->user_id,
             'government_id'       => 'verifications/seed-placeholder-pending.jpg',
+            'id_type'             => 'Driver\'s License',
+            'selfie'              => 'verifications/seed-placeholder-selfie-pending.jpg',
+            'id_image_hash'       => hash('sha256', 'seed-placeholder-pending'),
             'verification_status' => 'Pending',
             'admin_notes'         => null,
             'reviewed_by'         => null,
@@ -74,6 +80,9 @@ class UserSeeder extends Seeder
         LandlordVerification::create([
             'user_id'             => $rejectedLandlord->user_id,
             'government_id'       => 'verifications/seed-placeholder-rejected.jpg',
+            'id_type'             => 'UMID',
+            'selfie'              => 'verifications/seed-placeholder-selfie-rejected.jpg',
+            'id_image_hash'       => hash('sha256', 'seed-placeholder-rejected'),
             'verification_status' => 'Rejected',
             'admin_notes'         => 'Government ID image is blurry and the name does not match the account holder. Please resubmit a clearer photo of a valid government-issued ID.',
             'reviewed_by'         => $admin->user_id,
@@ -81,7 +90,7 @@ class UserSeeder extends Seeder
             'submitted_at'        => now()->subDays(4),
         ]);
 
-        
+
         // Tenant
         $tenant = User::create([
             'first_name'     => 'Axcee',

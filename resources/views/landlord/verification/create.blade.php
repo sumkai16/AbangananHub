@@ -214,46 +214,73 @@
                                     {{-- Extracted info --}}
                                     <div class="border-t border-[#E2E8F0] pt-4 mb-4">
                                         <p class="text-xs font-semibold text-[#64748B] mb-3">What we found on your ID</p>
-                                        <div class="grid grid-cols-[90px_1fr] gap-x-3 gap-y-1.5 text-sm">
+                                        <div class="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-sm"
+                                             x-data="{ frontInfo: parseFrontInfo(ocrResult?.extracted), backInfo: parseBackInfo(backOcrResult?.extracted) }">
+                                            {{-- Front: Name --}}
                                             <span class="text-xs text-[#64748B]">Name</span>
                                             <span class="text-sm font-medium text-[#1F2937]" x-text="ocrResult?.name || '—'"></span>
+
+                                            {{-- Front: Middle Name --}}
+                                            <template x-if="frontInfo?.middleName">
+                                                <span class="contents">
+                                                    <span class="text-xs text-[#64748B]">Middle Name</span>
+                                                    <span class="text-sm text-[#1F2937]" x-text="frontInfo.middleName"></span>
+                                                </span>
+                                            </template>
+
+                                            {{-- Front: ID Number --}}
                                             <span class="text-xs text-[#64748B]">ID Number</span>
                                             <span class="text-sm font-medium text-[#1F2937]" x-text="ocrResult?.id_number || '—'"></span>
+
+                                            {{-- Front: ID Type --}}
                                             <span class="text-xs text-[#64748B]">ID Type</span>
                                             <span class="text-sm text-[#1F2937]" x-text="idType"></span>
 
-                                            <template x-if="backOcrResult?.extracted">
-                                                <span class="contents" x-data="{ info: parseBackInfo(backOcrResult.extracted) }">
-                                                    <template x-if="info?.sex">
-                                                        <span class="contents">
-                                                            <span class="text-xs text-[#64748B]">Sex</span>
-                                                            <span class="text-sm text-[#1F2937]" x-text="info.sex"></span>
-                                                        </span>
-                                                    </template>
-                                                    <template x-if="info?.bloodType">
-                                                        <span class="contents">
-                                                            <span class="text-xs text-[#64748B]">Blood Type</span>
-                                                            <span class="text-sm text-[#1F2937]" x-text="info.bloodType"></span>
-                                                        </span>
-                                                    </template>
-                                                    <template x-if="info?.maritalStatus">
-                                                        <span class="contents">
-                                                            <span class="text-xs text-[#64748B]">Marital Status</span>
-                                                            <span class="text-sm text-[#1F2937]" x-text="info.maritalStatus"></span>
-                                                        </span>
-                                                    </template>
-                                                    <template x-if="info?.placeOfBirth">
-                                                        <span class="contents">
-                                                            <span class="text-xs text-[#64748B]">Place of Birth</span>
-                                                            <span class="text-sm text-[#1F2937]" x-text="info.placeOfBirth"></span>
-                                                        </span>
-                                                    </template>
-                                                    <template x-if="info?.dateOfIssue">
-                                                        <span class="contents">
-                                                            <span class="text-xs text-[#64748B]">Date of Issue</span>
-                                                            <span class="text-sm text-[#1F2937]" x-text="info.dateOfIssue"></span>
-                                                        </span>
-                                                    </template>
+                                            {{-- Front: Date of Birth --}}
+                                            <template x-if="frontInfo?.dateOfBirth">
+                                                <span class="contents">
+                                                    <span class="text-xs text-[#64748B]">Date of Birth</span>
+                                                    <span class="text-sm text-[#1F2937]" x-text="frontInfo.dateOfBirth"></span>
+                                                </span>
+                                            </template>
+
+                                            {{-- Back: Sex --}}
+                                            <template x-if="backInfo?.sex">
+                                                <span class="contents">
+                                                    <span class="text-xs text-[#64748B]">Sex</span>
+                                                    <span class="text-sm text-[#1F2937]" x-text="backInfo.sex"></span>
+                                                </span>
+                                            </template>
+
+                                            {{-- Back: Blood Type --}}
+                                            <template x-if="backInfo?.bloodType">
+                                                <span class="contents">
+                                                    <span class="text-xs text-[#64748B]">Blood Type</span>
+                                                    <span class="text-sm text-[#1F2937]" x-text="backInfo.bloodType"></span>
+                                                </span>
+                                            </template>
+
+                                            {{-- Back: Marital Status --}}
+                                            <template x-if="backInfo?.maritalStatus">
+                                                <span class="contents">
+                                                    <span class="text-xs text-[#64748B]">Marital Status</span>
+                                                    <span class="text-sm text-[#1F2937]" x-text="backInfo.maritalStatus"></span>
+                                                </span>
+                                            </template>
+
+                                            {{-- Back: Place of Birth --}}
+                                            <template x-if="backInfo?.placeOfBirth">
+                                                <span class="contents">
+                                                    <span class="text-xs text-[#64748B]">Place of Birth</span>
+                                                    <span class="text-sm text-[#1F2937]" x-text="backInfo.placeOfBirth"></span>
+                                                </span>
+                                            </template>
+
+                                            {{-- Back: Date of Issue --}}
+                                            <template x-if="backInfo?.dateOfIssue">
+                                                <span class="contents">
+                                                    <span class="text-xs text-[#64748B]">Date of Issue</span>
+                                                    <span class="text-sm text-[#1F2937]" x-text="backInfo.dateOfIssue"></span>
                                                 </span>
                                             </template>
                                         </div>
