@@ -84,6 +84,13 @@ class Reservation extends Model
         return $this->rental_status === 'Occupied';
     }
 
+    public function isLeaseExpired(): bool
+    {
+        return $this->rental_status === 'Occupied'
+            && $this->target_move_out_date
+            && $this->target_move_out_date->isPast();
+    }
+
     // ─── State Transitions ───────────────────────────────────
 
     public function advanceToNegotiation(): bool
@@ -147,6 +154,7 @@ class Reservation extends Model
 
         if ($saved) {
             $this->cancelLinkedConversation();
+            $this->releaseUnit();
         }
 
         return $saved;
@@ -162,9 +170,19 @@ class Reservation extends Model
 
         if ($saved) {
             $this->cancelLinkedConversation();
+            $this->releaseUnit();
         }
 
         return $saved;
+    }
+
+    public function releaseUnit(): void
+    {
+        if ($this->unit && $this->unit->availability_status !== 'Available') {
+            $this->unit->availability_status = 'Available';
+            $this->unit->vacated_at = now();
+            $this->unit->save();
+        }
     }
 
     protected function cancelLinkedConversation(): void

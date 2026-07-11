@@ -9,7 +9,6 @@
         $occupiedPct = round(($occupiedUnits / $occupancyTotal) * 100);
         $availablePct = round(($availableUnits / $occupancyTotal) * 100);
         $reservedPct = round(($reservedUnits / $occupancyTotal) * 100);
-        $maintenancePct = round(($maintenanceUnits / $occupancyTotal) * 100);
 
         // SVG donut math — circumference-based stroke-dasharray segments
         $radius = 60;
@@ -17,7 +16,6 @@
         $occupiedLen = $circumference * ($occupiedUnits / $occupancyTotal);
         $availableLen = $circumference * ($availableUnits / $occupancyTotal);
         $reservedLen = $circumference * ($reservedUnits / $occupancyTotal);
-        $maintenanceLen = $circumference * ($maintenanceUnits / $occupancyTotal);
     @endphp
 
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8">
@@ -76,11 +74,6 @@
                                 stroke-dasharray="{{ $reservedLen }} {{ $circumference }}"
                                 stroke-dashoffset="-{{ $occupiedLen + $availableLen }}" />
                         @endif
-                        @if($maintenanceUnits > 0)
-                            <circle cx="80" cy="80" r="{{ $radius }}" fill="none" stroke="#1F2937" stroke-width="16"
-                                stroke-dasharray="{{ $maintenanceLen }} {{ $circumference }}"
-                                stroke-dashoffset="-{{ $occupiedLen + $availableLen + $reservedLen }}" />
-                        @endif
                     </svg>
                     <div class="absolute text-center">
                         <p class="text-[26px] font-bold text-[#1F2937]">{{ $occupiedPct }}%</p>
@@ -103,11 +96,6 @@
                         <span class="flex items-center gap-2"><span
                                 class="w-2.5 h-2.5 rounded-full bg-[#2AA7A1]"></span>Reserved</span>
                         <span class="font-semibold text-[#1F2937]">{{ $reservedUnits }} ({{ $reservedPct }}%)</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="flex items-center gap-2"><span
-                                class="w-2.5 h-2.5 rounded-full bg-[#1F2937]"></span>Maintenance</span>
-                        <span class="font-semibold text-[#1F2937]">{{ $maintenanceUnits }} ({{ $maintenancePct }}%)</span>
                     </div>
                 </div>
             </div>

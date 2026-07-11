@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\PropertyUnit;
+use App\Services\OccupancyRateCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,8 @@ class PropertyUnitController extends Controller
     {
         $this->authorizeProperty($property);
         $units = $property->units()->with('media')->orderBy('unit_label')->get();
-        return view('landlord.units.index', compact('property', 'units'));
+        $occupancyRate = OccupancyRateCalculator::forProperty($property->property_id);
+        return view('landlord.units.index', compact('property', 'units', 'occupancyRate'));
     }
 
     public function create(Property $property)
@@ -113,6 +115,13 @@ class PropertyUnitController extends Controller
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
             'video'               => 'nullable|file|mimes:mp4,mov,avi,webm|max:102400',
         ]);
+
+        $activeReservation = $unit->activeReservation;
+        if ($activeReservation && $validated['availability_status'] !== $unit->availability_status) {
+            return back()
+                ->withInput()
+                ->withErrors(['availability_status' => 'This unit has an active reservation — manage its status through the reservation instead of editing it manually.']);
+        }
 
         DB::transaction(function () use ($validated, $request, $property, $unit) {
             $unit->update([

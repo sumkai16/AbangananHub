@@ -12,11 +12,13 @@ class PropertyUnit extends Model
         'availability_status',
         'verification_status',
         'rejection_reason',
+        'vacated_at',
     ];
     protected function casts(): array
     {
         return [
             'rental_fee' => 'decimal:2',
+            'vacated_at' => 'datetime',
         ];
     }
     public function property()
@@ -26,6 +28,12 @@ class PropertyUnit extends Model
     public function media()
     {
         return $this->hasMany(PropertyMedia::class, 'unit_id', 'unit_id');
+    }
+    public function activeReservation()
+    {
+        return $this->hasOne(Reservation::class, 'unit_id', 'unit_id')
+                     ->whereIn('rental_status', ['Rental Agreement Signed', 'Occupied'])
+                     ->latestOfMany('reservation_id');
     }
     // ─── Status Helpers ──────────────────────────────────────
     public function isApproved(): bool
@@ -49,5 +57,13 @@ class PropertyUnit extends Model
     {
         return $query->where('availability_status', 'Available')
                      ->where('verification_status', 'Approved');
+    }
+    public function scopeReserved($query)
+    {
+        return $query->where('availability_status', 'Reserved');
+    }
+    public function scopeOccupied($query)
+    {
+        return $query->where('availability_status', 'Occupied');
     }
 }

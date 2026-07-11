@@ -109,8 +109,7 @@
                     <span class="text-[11px] font-medium text-[#64748B]">Occupied</span>
                 </div>
                 <span class="text-xl font-bold text-[#EF4444]">{{ $occupied }}</span>
-                <p class="text-[10px] text-[#64748B] mt-0.5">{{ $total > 0 ? round($occupied / $total * 100) : 0 }}% of
-                    total units</p>
+                <p class="text-[10px] text-[#64748B] mt-0.5">{{ $occupancyRate }}% occupancy rate</p>
             </div>
         </div>
 

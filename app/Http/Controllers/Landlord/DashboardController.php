@@ -23,7 +23,6 @@ class DashboardController extends Controller
         $occupiedUnits = $units->where('availability_status', 'Occupied')->count();
         $availableUnits = $units->where('availability_status', 'Available')->count();
         $reservedUnits = $units->where('availability_status', 'Reserved')->count();
-        $maintenanceUnits = $units->where('availability_status', 'Maintenance')->count();
 
         $totalTenants = Reservation::whereIn('property_id', $propertyIds)
             ->where('rental_status', 'Occupied')
@@ -73,7 +72,6 @@ class DashboardController extends Controller
             'occupiedUnits' => $occupiedUnits,
             'availableUnits' => $availableUnits,
             'reservedUnits' => $reservedUnits,
-            'maintenanceUnits' => $maintenanceUnits,
             'totalTenants' => $totalTenants,
             'recentActivity' => $recentActivity,
         ]);

@@ -102,6 +102,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::resource('properties.units', PropertyUnitController::class);
         Route::delete('/properties/{property}/units/{unit}/media/{media}', [PropertyUnitController::class, 'destroyMedia'])->name('properties.units.media.destroy');
 
+        // Occupancy monitoring
+        Route::get('/occupancy', [App\Http\Controllers\Landlord\OccupancyController::class, 'index'])->name('occupancy.index');
+
 
         Route::patch('/reviews/{review}/reply', [\App\Http\Controllers\Landlord\ReviewController::class, 'reply'])->name('reviews.reply');
 
