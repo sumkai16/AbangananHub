@@ -41,6 +41,7 @@ class PropertyUnitController extends Controller
         if ($unit->property_id !== $property->property_id) {
             abort(404);
         }
+        abort_if(!$unit->isPending(), 409, 'This unit has already been reviewed.');
         $unit->update([
             'verification_status' => 'Approved',
             'rejection_reason'    => null,
@@ -55,8 +56,9 @@ class PropertyUnitController extends Controller
         if ($unit->property_id !== $property->property_id) {
             abort(404);
         }
+        abort_if(!$unit->isPending(), 409, 'This unit has already been reviewed.');
         $validated = $request->validate([
-            'rejection_reason' => 'nullable|string|max:500',
+           'rejection_reason' => 'required|string|max:500',
         ]);
         $unit->update([
             'verification_status' => 'Rejected',

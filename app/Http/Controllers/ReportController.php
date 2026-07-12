@@ -18,29 +18,52 @@ class ReportController extends Controller
         'Other',
     ];
 
-    public function create(Request $request)
-    {
-        $userId = Auth::id();
+public function create(Request $request)
+{
+    $userId = Auth::id();
+    $prefillPropertyId = $request->integer('property_id') ?: null;
+    $prefillUserId = $request->integer('user_id') ?: null;
 
+    // Determine target type from query params
+    $targetType = null;
+    $targetProperty = null;
+    $targetUser = null;
+
+    if ($prefillPropertyId) {
+        $targetProperty = Property::with('landlord')->find($prefillPropertyId);
+        $targetType = $targetProperty ? 'property' : null;
+    } elseif ($prefillUserId) {
+        $targetUser = User::find($prefillUserId);
+        $targetType = $targetUser ? 'user' : null;
+    }
+
+    // Fallback lists only needed if no target is pre-selected
+    $properties = collect();
+    $users = collect();
+
+    if (!$targetType || $targetType === 'property') {
         $properties = Property::where('landlord_id', '!=', $userId)
             ->orderBy('title')
-            ->get(['property_id', 'title']);
+            ->get(['property_id', 'title', 'landlord_id']);
+    }
 
+    if (!$targetType || $targetType === 'user') {
         $users = User::where('user_id', '!=', $userId)
             ->orderBy('first_name')
             ->get(['user_id', 'first_name', 'last_name', 'email']);
-
-        $prefillPropertyId = $request->integer('property_id') ?: null;
-        $prefillUserId = $request->integer('user_id') ?: null;
-
-        return view('reports.create', [
-            'categories' => self::CATEGORIES,
-            'properties' => $properties,
-            'users' => $users,
-            'prefillPropertyId' => $prefillPropertyId,
-            'prefillUserId' => $prefillUserId,
-        ]);
     }
+
+    return view('reports.create', [
+        'categories'       => self::CATEGORIES,
+        'properties'       => $properties,
+        'users'            => $users,
+        'targetType'       => $targetType,
+        'targetProperty'   => $targetProperty,
+        'targetUser'       => $targetUser,
+        'prefillPropertyId' => $prefillPropertyId,
+        'prefillUserId'    => $prefillUserId,
+    ]);
+}
 
     public function store(Request $request)
     {

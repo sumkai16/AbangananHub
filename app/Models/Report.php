@@ -7,13 +7,29 @@ class Report extends Model
 {
     protected $primaryKey = 'report_id';
 
-    protected $fillable = [
-        'reporter_id',
-        'property_id',
-        'reported_user_id',
-        'report_reason',
-        'report_status',
+protected $fillable = [
+    'reporter_id',
+    'property_id',
+    'reported_user_id',
+    'report_reason',
+    'report_status',
+    'admin_notes',
+    'action_taken',
+    'resolved_by',
+    'resolved_at',
+];
+
+protected function casts(): array
+{
+    return [
+        'resolved_at' => 'datetime',
     ];
+}
+
+public function resolver()
+{
+    return $this->belongsTo(User::class, 'resolved_by', 'user_id');
+}
 
     // ─── Relationships ───────────────────────────────────────
 
@@ -46,15 +62,19 @@ class Report extends Model
 
     // ─── State Transitions ───────────────────────────────────
 
-    public function resolve(): bool
-    {
-        if (!$this->isPending()) {
-            return false;
-        }
-
-        $this->report_status = 'Resolved';
-        return $this->save();
+public function resolve(string $notes, ?string $action, int $resolvedBy): bool
+{
+    if (!$this->isPending()) {
+        return false;
     }
+
+    $this->report_status = 'Resolved';
+    $this->admin_notes = $notes;
+    $this->action_taken = $action;
+    $this->resolved_by = $resolvedBy;
+    $this->resolved_at = now();
+    return $this->save();
+}
 
     // ─── Scopes ──────────────────────────────────────────────
 

@@ -36,12 +36,38 @@ class ReportController extends Controller
         return view('admin.reports.show', compact('report'));
     }
 
-    public function resolve(Report $report)
-    {
-        abort_if($report->report_status !== 'Pending', 409, 'This report has already been resolved.');
+ public function resolve(Request $request, Report $report)
+{
+    abort_if($report->report_status !== 'Pending', 409, 'This report has already been resolved.');
 
-        $report->resolve();
+    $validated = $request->validate([
+        'admin_notes'  => 'required|string|max:1000',
+        'action_taken' => 'required|in:none,suspend_user,delist_property',
+    ]);
 
-        return back()->with('status', 'Report marked as resolved.');
+    $actionLabel = 'No action taken';
+
+    // Enforce action
+    if ($validated['action_taken'] === 'suspend_user') {
+        $targetUser = $report->reported_user_id
+            ? $report->reportedUser
+            : ($report->property ? $report->property->landlord : null);
+
+        if ($targetUser) {
+            $targetUser->update(['account_status' => 'Suspended']);
+            $actionLabel = "Suspended user: {$targetUser->first_name} {$targetUser->last_name}";
+        }
+    } elseif ($validated['action_taken'] === 'delist_property' && $report->property) {
+        $report->property->update(['verification_status' => 'Rejected']);
+        $actionLabel = "Delisted property: {$report->property->title}";
     }
+
+    $report->resolve(
+        $validated['admin_notes'],
+        $actionLabel,
+        auth()->id()
+    );
+
+    return back()->with('status', 'Report resolved.');
+}
 }

@@ -123,13 +123,18 @@ class PropertyUnitController extends Controller
                 ->withErrors(['availability_status' => 'This unit has an active reservation — manage its status through the reservation instead of editing it manually.']);
         }
 
-        DB::transaction(function () use ($validated, $request, $property, $unit) {
-            $unit->update([
+            $materialChanged = $unit->rental_fee != $validated['rental_fee']
+                || $unit->occupancy_limit != $validated['occupancy_limit']
+                || $request->hasFile('photos')
+                || $request->hasFile('video');
+
+            DB::transaction(function () use ($validated, $request, $property, $unit, $materialChanged) {
+                $unit->update([
                 'unit_label'          => $validated['unit_label'],
                 'rental_fee'          => $validated['rental_fee'],
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
-                'verification_status' => 'Pending',
+                'verification_status' => $materialChanged ? 'Pending' : $unit->verification_status,
             ]);
 
             if ($request->hasFile('photos')) {
@@ -163,7 +168,7 @@ class PropertyUnitController extends Controller
 
         return redirect()
             ->route('landlord.properties.units.index', $property)
-            ->with('success', 'Unit updated and resubmitted for review.');
+           ->with('success', $materialChanged ? 'Unit updated and resubmitted for review.' : 'Unit updated.');
     }
 
     public function destroy(Property $property, PropertyUnit $unit)

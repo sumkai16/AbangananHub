@@ -7,11 +7,11 @@
 
         {{-- Breadcrumb --}}
         <div class="flex items-center gap-1.5 text-[13px] text-gray-400 mb-4">
-            <a href="{{ route('admin.units.index') }}" class="hover:text-[#1A1A2E] transition-colors">Unit Approvals</a>
+            <a href="{{ route('admin.units.index') }}" class="hover:text-[#1F2937] transition-colors">Unit Approvals</a>
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
-            <span class="text-[#1A1A2E] font-medium">{{ $unit->unit_label }}</span>
+            <span class="text-[#1F2937] font-medium">{{ $unit->unit_label }}</span>
         </div>
 
         @php
@@ -25,7 +25,7 @@
         <div class="flex items-center justify-between mb-6">
             <div>
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-extrabold text-[#1A1A2E] tracking-tight">{{ $unit->unit_label }}</h1>
+                    <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight">{{ $unit->unit_label }}</h1>
                     <span
                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $statusCls }}">
                         {{ $unit->verification_status }}
@@ -55,32 +55,33 @@
             <div class="lg:col-span-8 space-y-5">
 
                 <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-bold text-[#1A1A2E] mb-4">Unit Details</h2>
+                    <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Unit Details</h2>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Monthly Rent</p>
-                            <p class="text-[14px] font-semibold text-[#1A1A2E]">₱{{ number_format($unit->rental_fee, 2) }}
+                            <p class="text-[14px] font-semibold text-[#1F2937]">₱{{ number_format($unit->rental_fee, 2) }}
                             </p>
                         </div>
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Capacity</p>
-                            <p class="text-[14px] font-semibold text-[#1A1A2E]">{{ $unit->occupancy_limit }}
-                                {{ Str::plural('person', $unit->occupancy_limit) }}</p>
+                            <p class="text-[14px] font-semibold text-[#1F2937]">{{ $unit->occupancy_limit }}
+                                {{ Str::plural('person', $unit->occupancy_limit) }}
+                            </p>
                         </div>
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Availability</p>
-                            <p class="text-[14px] font-semibold text-[#1A1A2E]">{{ $unit->availability_status }}</p>
+                            <p class="text-[14px] font-semibold text-[#1F2937]">{{ $unit->availability_status }}</p>
                         </div>
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Submitted</p>
-                            <p class="text-[14px] font-semibold text-[#1A1A2E]">{{ $unit->created_at->format('M j, Y') }}
+                            <p class="text-[14px] font-semibold text-[#1F2937]">{{ $unit->created_at->format('M j, Y') }}
                             </p>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-bold text-[#1A1A2E] mb-4">Verification Capture</h2>
+                    <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Verification Capture</h2>
 
                     @php
                         $photos = $unit->media->where('media_type', 'Image');
@@ -115,7 +116,7 @@
             <div class="lg:col-span-4 space-y-5">
 
                 <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-bold text-[#1A1A2E] mb-4">Landlord</h2>
+                    <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Landlord</h2>
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                             <span class="text-[#156F8C] text-[13px] font-bold">
@@ -123,19 +124,19 @@
                             </span>
                         </div>
                         <div>
-                            <p class="text-[13.5px] font-semibold text-[#1A1A2E]">
+                            <p class="text-[13.5px] font-semibold text-[#1F2937]">
                                 {{ $property->landlord->first_name ?? '' }} {{ $property->landlord->last_name ?? '' }}
                             </p>
                             <p class="text-[12px] text-gray-400">{{ $property->landlord->email ?? '—' }}</p>
                         </div>
                     </div>
                 </div>
-
                 @if($unit->isPending())
                     <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-3">
-                        <h2 class="text-[15px] font-bold text-[#1A1A2E] mb-1">Decision</h2>
+                        <h2 class="text-[15px] font-bold text-[#1F2937] mb-1">Decision</h2>
 
-                        <form method="POST" action="{{ route('admin.units.approve', [$property, $unit]) }}">
+                        <form method="POST" action="{{ route('admin.units.approve', [$property, $unit]) }}"
+                            data-confirm="Approve this unit?">
                             @csrf
                             <button type="submit"
                                 class="w-full h-11 rounded-xl bg-[#22C55E] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all">
@@ -143,11 +144,12 @@
                             </button>
                         </form>
 
-                        <form method="POST" action="{{ route('admin.units.reject', [$property, $unit]) }}" class="space-y-2">
+                        <form method="POST" action="{{ route('admin.units.reject', [$property, $unit]) }}"
+                            data-confirm="Reject this unit?" data-confirm-type="error" class="space-y-2">
                             @csrf
                             <textarea name="rejection_reason" rows="3" maxlength="500"
-                                placeholder="Reason for rejection (optional, shown to landlord)"
-                                class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px] text-[#1A1A2E] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-200 transition"></textarea>
+                                placeholder="Reason for rejection (shown to landlord)"
+                                class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px] text-[#1F2937] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-200 transition"></textarea>
                             <button type="submit"
                                 class="w-full h-11 rounded-xl border border-red-200 text-red-600 text-[13.5px] font-semibold hover:bg-red-50 transition-all">
                                 Reject Unit

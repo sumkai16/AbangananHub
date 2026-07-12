@@ -1,5 +1,4 @@
-@extends('layouts.landlord')
-
+@extends($isOwner ? 'layouts.landlord' : 'layouts.app', $isOwner ? [] : ['searchBar' => false])
 @section('content')
     <div class="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-[50px] py-8">
 
@@ -57,6 +56,23 @@
                                 </svg>
                                 Edit profile
                             </a>
+                        @else
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                @auth
+                                    <a href="{{ route('conversations.store') }}?landlord_id={{ $user->user_id }}" class="flex items-center gap-2 px-4 py-2 rounded-full bg-[#2AA7A1] text-white text-[13px] font-semibold hover:brightness-95 transition-all">
+                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                                        </svg>
+                                        Message
+                                    </a>
+                                    <a href="{{ route('reports.create', ['user_id' => $user->user_id]) }}" class="flex items-center gap-2 px-4 py-2 rounded-full border border-[#E2E8F0] text-[13px] font-semibold text-[#64748B] hover:text-[#1F2937] hover:border-[#64748B] transition-all">
+                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                                        </svg>
+                                        Report
+                                    </a>
+                                @endauth
+                            </div>
                         @endif
                     </div>
 
@@ -188,7 +204,7 @@
 
                 @if($properties->count() > 6)
                     <div class="text-center mt-5">
-                        <a href="{{ route('landlord.properties.index') }}" class="inline-flex items-center gap-2 px-6 py-2.5 border border-[#E2E8F0] rounded-full text-[13px] font-semibold text-[#1F2937] bg-white hover:brightness-95 transition-all">
+                       <a href="{{ $isOwner ? route('landlord.properties.index') : route('properties.index', ['landlord' => $user->user_id]) }}" class="inline-flex items-center gap-2 px-6 py-2.5 border border-[#E2E8F0] rounded-full text-[13px] font-semibold text-[#1F2937] bg-white hover:brightness-95 transition-all">
                             Show all {{ $properties->count() }} properties
                         </a>
                     </div>
@@ -243,7 +259,7 @@
                             <p class="text-[13px] text-[#64748B] leading-relaxed line-clamp-2 mt-1">{{ $review->review_comment }}</p>
                             @if($review->landlord_reply)
                                 <div class="mt-2 pl-3 border-l-2 border-[#E2E8F0]">
-                                    <p class="text-[11px] font-semibold text-[#64748B]">Your reply</p>
+                                  <p class="text-[11px] font-semibold text-[#64748B]">{{ $isOwner ? 'Your reply' : 'Landlord reply' }}</p>
                                     <p class="text-[12px] text-[#64748B] leading-relaxed mt-0.5">{{ $review->landlord_reply }}</p>
                                 </div>
                             @endif

@@ -7,17 +7,18 @@
 
         {{-- Page header --}}
         <div class="mb-6">
-            <h1 class="text-2xl font-extrabold text-[#1A1A2E] tracking-tight">Unit Approvals</h1>
+            <h1 class="text-2xl font-extrabold text-[#1A11F2937A2E] tracking-tight">Unit Approvals</h1>
             <p class="text-[13.5px] text-gray-500 mt-1">Review rental units submitted by landlords for verification.</p>
         </div>
 
         {{-- Tabs --}}
-        <div class="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto shadow-sm">
+        <div
+            class="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto shadow-sm">
             @foreach (['Pending', 'Approved', 'Rejected', 'All'] as $tab)
                 <a href="{{ route('admin.units.index', ['status' => $tab]) }}" class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-150
-                            {{ $status === $tab
+                                    {{ $status === $tab
                 ? 'bg-[#2AA7A1] text-white shadow-sm'
-                : 'text-gray-500 hover:text-[#1A1A2E] hover:bg-gray-50' }}">
+                : 'text-gray-500 hover:text-[#1F2937] hover:bg-gray-50' }}">
                     {{ $tab }}
                 </a>
             @endforeach
@@ -32,13 +33,13 @@
                             d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm9.75 0A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm-9.75 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75 0a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                     </svg>
                 </div>
-                <p class="text-[15px] font-bold text-[#1A1A2E]">No units here</p>
+                <p class="text-[15px] font-bold text-[#1F2937]">No units here</p>
                 <p class="text-[13px] text-gray-400 mt-1">No units match this tab right now.</p>
             </div>
         @else
             <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-                    <p class="text-[13px] font-semibold text-[#1A1A2E]">
+                    <p class="text-[13px] font-semibold text-[#1F2937]">
                         {{ $units->total() }} {{ Str::plural('unit', $units->total()) }}
                     </p>
                 </div>
@@ -77,12 +78,13 @@
                                                     <img src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
                                                 @endif
                                             </div>
-                                            <p class="text-[13.5px] font-semibold text-[#1A1A2E]">{{ $unit->unit_label }}</p>
+                                            <p class="text-[13.5px] font-semibold text-[#1F2937]">{{ $unit->unit_label }}</p>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
                                         <p class="text-[13px] text-gray-600 truncate max-w-[180px]">
-                                            {{ $unit->property->title ?? '—' }}</p>
+                                            {{ $unit->property->title ?? '—' }}
+                                        </p>
                                     </td>
                                     <td class="px-6 py-4">
                                         <p class="text-[13px] text-gray-600">
@@ -101,7 +103,7 @@
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <a href="{{ route('admin.units.show', [$unit->property, $unit]) }}"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1F2937] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
                                             Review
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                                 stroke-width="2">

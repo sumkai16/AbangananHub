@@ -944,7 +944,19 @@
             });
         </script>
     @endif
-
+    @if(session('suspended'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                window.dispatchEvent(new CustomEvent('show-modal', {
+                    detail: {
+                        type: 'error',
+                        title: 'Account suspended',
+                        message: 'Your account has been suspended due to a policy violation. If you believe this is a mistake, please contact our support team for assistance.',
+                    }
+                }));
+            });
+        </script>
+    @endif
     @stack('scripts')
 
 </body>

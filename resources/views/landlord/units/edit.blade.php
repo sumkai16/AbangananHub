@@ -48,7 +48,7 @@
         @endif
 
         <form method="POST" action="{{ route('landlord.properties.units.update', [$property, $unit]) }}"
-            class="max-w-3xl space-y-6">
+            enctype="multipart/form-data" class="max-w-3xl space-y-6">
             @csrf
             @method('PUT')
 
@@ -118,7 +118,7 @@
                                 <div class="flex items-center gap-1.5 mb-0.5">
                                     <span
                                         class="w-1.5 h-1.5 rounded-full shrink-0
-                                                {{ $value === 'Available' ? 'bg-[#22C55E]' : ($value === 'Reserved' ? 'bg-[#FBBF24]' : 'bg-[#EF4444]') }}"></span>
+                                                                {{ $value === 'Available' ? 'bg-[#22C55E]' : ($value === 'Reserved' ? 'bg-[#FBBF24]' : 'bg-[#EF4444]') }}"></span>
                                     <p class="text-[13px] font-semibold text-[#1F2937]">{{ $opt['label'] }}</p>
                                 </div>
                                 <p class="text-[10.5px] text-[#64748B] leading-snug">{{ $opt['desc'] }}</p>
