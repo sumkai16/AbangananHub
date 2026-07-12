@@ -151,7 +151,7 @@
                             $pOccupied = $property->occupied_units_count;
                             $pRate = $pTotal > 0 ? round(($pOccupied / $pTotal) * 100, 1) : 0;
                         @endphp
-                        <tr class="hover:bg-[#F7FCFC] transition-colors">
+                        <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="px-4 py-2.5 font-medium text-[#1F2937]">{{ $property->title }}</td>
                             <td class="px-4 py-2.5 text-[#64748B]">{{ $property->property_type }}</td>
                             <td class="px-4 py-2.5">
@@ -281,7 +281,7 @@
                 </thead>
                 <tbody class="divide-y divide-[#E2E8F0]">
                     @forelse($reservations as $reservation)
-                        <tr class="hover:bg-[#F7FCFC] transition-colors">
+                        <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="px-4 py-2.5 font-medium text-[#1F2937]">{{ $reservation->tenant->first_name ?? '' }} {{ $reservation->tenant->last_name ?? '' }}</td>
                             <td class="px-4 py-2.5 text-[#64748B]">{{ $reservation->property->title ?? '—' }}</td>
                             <td class="px-4 py-2.5 text-[#1F2937]">{{ $reservation->unit->unit_label ?? '—' }}</td>
@@ -409,7 +409,7 @@
                 <tbody class="divide-y divide-[#E2E8F0]">
                     @forelse($users as $user)
                         @php $userRole = $user->roles->first()?->role; @endphp
-                        <tr class="hover:bg-[#F7FCFC] transition-colors">
+                        <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="px-4 py-2.5 font-medium text-[#1F2937]">{{ $user->first_name }} {{ $user->last_name }}</td>
                             <td class="px-4 py-2.5 text-[#64748B]">{{ $user->email }}</td>
                             <td class="px-4 py-2.5">

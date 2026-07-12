@@ -376,7 +376,9 @@
                 </button>
 
                 <div class="hidden lg:block">
-                    
+                    @hasSection('page-title')
+                        <h1 class="text-[15px] font-bold text-[#1A1A2E]">@yield('page-title')</h1>
+                    @endif
                 </div>
 
                 <div class="flex items-center gap-2">

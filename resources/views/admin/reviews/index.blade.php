@@ -61,10 +61,10 @@
             </svg>
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant, property, or review text…"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
         </div>
         <select name="rating"
-            class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+            class="h-10 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
             <option value="all" {{ $rating === 'all' ? 'selected' : '' }}>All ratings</option>
             @foreach([1,2,3,4,5] as $s)
                 <option value="{{ $s }}" {{ $rating == $s ? 'selected' : '' }}>{{ $s }} star{{ $s > 1 ? 's' : '' }}</option>
