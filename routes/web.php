@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Tenant\AgreementController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\PayMongoWebhookController;
-
+use App\Http\Controllers\Admin\ReportAnalyticsController;
 Route::get('/', [PropertyController::class, 'index'])->name('home');
 Route::get('/about', fn() => view('about'))->name('about');
 
@@ -168,6 +168,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         // Profile
         Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
+
+       Route::get('/report-analytics', [ReportAnalyticsController::class, 'index'])->name('report-analytics.index');
     });
 
    // Conversations and messages
