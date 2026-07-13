@@ -115,6 +115,7 @@ public function update(Request $request)
         'business_description' => ['nullable', 'string', 'max:1000'],
         'business_contact' => ['nullable', 'string', 'max:20'],
         'business_address' => ['nullable', 'string', 'max:500'],
+        'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
     ]);
 
     if ($request->hasFile('profile_picture')) {
@@ -145,6 +146,31 @@ public function update(Request $request)
         'contact_number' => $validated['business_contact'] ?? null,
         'business_address' => $validated['business_address'] ?? null,
     ], fn($v) => $v !== null);
+
+    // Handle logo upload
+    if ($request->hasFile('logo')) {
+        $business = $user->rentalBusiness;
+
+        if ($business && $business->logo_public_id) {
+            cloudinary()->uploadApi()->destroy($business->logo_public_id);
+        }
+
+        $logoResult = cloudinary()->uploadApi()->upload(
+            $request->file('logo')->getRealPath(),
+            [
+                'folder' => 'abanganganhub/business-logos',
+                'transformation' => [
+                    'width' => 400,
+                    'height' => 400,
+                    'crop' => 'fill',
+                    'gravity' => 'face',
+                ],
+            ]
+        );
+
+        $businessData['logo_url'] = $logoResult['secure_url'];
+        $businessData['logo_public_id'] = $logoResult['public_id'];
+    }
 
     if (!empty($businessData)) {
         $user->rentalBusiness()

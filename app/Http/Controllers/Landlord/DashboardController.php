@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\Message;
 use App\Models\Property;
 use App\Models\PropertyUnit;
+use App\Models\Report;
 use App\Models\Reservation;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -28,6 +31,51 @@ class DashboardController extends Controller
             ->where('rental_status', 'Occupied')
             ->distinct('tenant_id')
             ->count('tenant_id');
+
+        // Per-property occupancy breakdown (approved listings only)
+        $properties = Property::where('landlord_id', $landlordId)
+            ->where('verification_status', 'Approved')
+            ->with(['units'])
+            ->get()
+            ->map(function ($property) {
+                $units = $property->units;
+                return [
+                    'title' => $property->title,
+                    'property_id' => $property->property_id,
+                    'property_type' => $property->property_type,
+                    'address' => $property->address,
+                    'total_units' => $units->count(),
+                    'occupied_units' => $units->where('availability_status', 'Occupied')->count(),
+                    'available_units' => $units->where('availability_status', 'Available')->count(),
+                ];
+            });
+
+        $pendingReservations = Reservation::whereIn('property_id', $propertyIds)
+            ->where('rental_status', 'Inquiry')
+            ->count();
+
+        $unreadMessages = Message::whereHas('conversation', function ($q) use ($landlordId) {
+            $q->where('landlord_id', $landlordId);
+        })->where('sender_id', '!=', $landlordId)
+            ->where('is_read', false)
+            ->count();
+
+        $newReviews = Review::whereIn('property_id', $propertyIds)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->count();
+
+        $openComplaints = Report::where(function ($q) use ($landlordId, $propertyIds) {
+            $q->where('reported_user_id', $landlordId)
+                ->orWhereIn('property_id', $propertyIds);
+        })->where('report_status', 'Pending')
+            ->count();
+
+        $hour = now()->hour;
+        $greeting = match (true) {
+            $hour < 12 => 'Good morning',
+            $hour < 18 => 'Good afternoon',
+            default => 'Good evening',
+        };
 
         // Recent activity — derived from real unit and reservation timestamps, no fabricated data
         $recentUnitActivity = PropertyUnit::whereIn('property_id', $propertyIds)
@@ -74,6 +122,12 @@ class DashboardController extends Controller
             'reservedUnits' => $reservedUnits,
             'totalTenants' => $totalTenants,
             'recentActivity' => $recentActivity,
+            'properties' => $properties,
+            'pendingReservations' => $pendingReservations,
+            'unreadMessages' => $unreadMessages,
+            'newReviews' => $newReviews,
+            'openComplaints' => $openComplaints,
+            'greeting' => $greeting,
         ]);
     }
 }

@@ -14,6 +14,7 @@ class RentalBusiness extends Model
         'business_name',
         'description',
         'logo_url',
+        'logo_public_id',
         'contact_number',
         'business_address',
     ];

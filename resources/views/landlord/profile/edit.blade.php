@@ -104,6 +104,41 @@
                 <h2 class="text-[15px] font-bold text-[#1F2937] mb-1">Business information</h2>
                 <p class="text-[12px] text-[#64748B] mb-4">Shown on your public landlord profile.</p>
 
+                {{-- Logo --}}
+                <div x-data="{ preview: null }" class="flex items-center gap-5 mb-5 pb-5 border-b border-[#E2E8F0]">
+                    <template x-if="preview">
+                        <img :src="preview" alt="Logo preview"
+                            class="w-16 h-16 rounded-xl object-cover border border-[#E2E8F0]">
+                    </template>
+                    <template x-if="!preview">
+                        @if($business && $business->logo_url)
+                            <img src="{{ $business->logo_url }}" alt="{{ $business->business_name ?? 'Logo' }}"
+                                class="w-16 h-16 rounded-xl object-cover border border-[#E2E8F0]">
+                        @else
+                            <div
+                                class="w-16 h-16 rounded-xl bg-[#EEF8F8] border border-[#E2E8F0] flex items-center justify-center">
+                                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                                </svg>
+                            </div>
+                        @endif
+                    </template>
+                    <div>
+                        <label
+                            class="inline-flex items-center gap-2 px-3 py-1.5 border border-[#E2E8F0] rounded-lg text-[12px] font-semibold text-[#1F2937] bg-white hover:brightness-95 transition-all cursor-pointer">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                            </svg>
+                            Upload logo
+                            <input type="file" name="logo" accept="image/jpeg,image/png,image/webp" class="hidden"
+                                x-on:change="if ($event.target.files[0]) { preview = URL.createObjectURL($event.target.files[0]) }">
+                        </label>
+                        <p class="text-[11px] text-[#64748B] mt-1.5">JPG, PNG, or WebP. Max 2MB.</p>
+                    </div>
+                </div>
                 <div class="mb-4">
                     <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Business name</label>
                     <input type="text" name="business_name"

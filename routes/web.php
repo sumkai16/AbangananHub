@@ -118,6 +118,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/profile/edit', [App\Http\Controllers\Landlord\ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'update'])->name('profile.update');
 
+       
+
         // Tenant Ratings
         Route::get('/reservations/{reservation}/rate-tenant', [App\Http\Controllers\Landlord\TenantRatingController::class, 'create'])->name('reservations.rateTenant');
         Route::post('/reservations/{reservation}/rate-tenant', [App\Http\Controllers\Landlord\TenantRatingController::class, 'store'])->name('reservations.rateTenant.store');
