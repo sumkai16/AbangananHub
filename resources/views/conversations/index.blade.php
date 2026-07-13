@@ -6,7 +6,7 @@
         {{-- Header --}}
         <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
             <div>
-                <h1 class="text-xl font-bold text-[#1F2937] tracking-tight">
+                <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">
                     {{ $isLandlord ? 'Inquiries / Messages' : 'Messages' }}
                 </h1>
                 <p class="text-[13px] text-[#64748B] mt-0.5">

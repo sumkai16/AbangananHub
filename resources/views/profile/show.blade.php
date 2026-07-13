@@ -16,7 +16,7 @@
             </div>
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                    <h1 class="text-xl font-bold tracking-tight text-[#1F2937]">
+                    <h1 class="text-[22px] font-bold tracking-tight text-[#1F2937]">
                         {{ $user->first_name }} {{ $user->last_name }}
                     </h1>
                     @foreach($roles as $role)

@@ -37,22 +37,22 @@
                 <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['all'] }}</p>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
-            <div class="bg-amber-50 border border-amber-200/60 rounded-2xl p-4">
-                <p class="text-[12px] font-semibold text-amber-700 mb-1">In progress</p>
-                <p class="text-2xl font-bold text-amber-800">
+            <div class="bg-[#EEF8F8] border border-[#2AA7A1]/40 rounded-2xl p-4">
+                <p class="text-[12px] font-semibold text-[#1F2937] mb-1">In progress</p>
+                <p class="text-2xl font-bold text-[#1F2937]">
                     {{ $counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'] }}
                 </p>
-                <p class="text-[11px] text-amber-700 mt-1">Awaiting action</p>
+                <p class="text-[11px] text-[#64748B] mt-1">Awaiting action</p>
             </div>
-            <div class="bg-green-50 border border-green-200/60 rounded-2xl p-4">
-                <p class="text-[12px] font-semibold text-green-700 mb-1">Occupied</p>
-                <p class="text-2xl font-bold text-green-800">{{ $counts['Occupied'] }}</p>
-                <p class="text-[11px] text-green-700 mt-1">All time</p>
+            <div class="bg-white border border-[#64748B]/15 rounded-2xl p-4">
+                <p class="text-[12px] font-semibold text-[#64748B] mb-1">Occupied</p>
+                <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['Occupied'] }}</p>
+                <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
-            <div class="bg-red-50 border border-red-200/60 rounded-2xl p-4">
-                <p class="text-[12px] font-semibold text-red-700 mb-1">Rejected / Cancelled</p>
-                <p class="text-2xl font-bold text-red-800">{{ $counts['Rejected'] + $counts['Cancelled'] }}</p>
-                <p class="text-[11px] text-red-700 mt-1">All time</p>
+            <div class="bg-white border border-[#EF4444]/30 rounded-2xl p-4">
+                <p class="text-[12px] font-semibold text-[#EF4444] mb-1">Rejected / Cancelled</p>
+                <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['Rejected'] + $counts['Cancelled'] }}</p>
+                <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
         </div>
 

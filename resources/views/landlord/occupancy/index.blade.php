@@ -26,7 +26,7 @@
             </div>
             <div class="bg-white rounded-xl ring-1 ring-[#64748B]/15 p-4">
                 <span class="text-[11px] font-medium text-[#64748B]">Occupied</span>
-                <p class="text-xl font-bold text-[#EF4444] mt-1">{{ $occupiedUnits }}</p>
+                <p class="text-xl font-bold text-red-500 mt-1">{{ $occupiedUnits }}</p>
             </div>
             <div class="bg-white rounded-xl ring-1 ring-[#2AA7A1]/30 p-4 col-span-2 sm:col-span-1">
                 <span class="text-[11px] font-medium text-[#64748B]">Occupancy Rate</span>
@@ -55,7 +55,7 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="flex items-center gap-2"><span
-                                class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span>Occupied</span>
+                                class="w-2.5 h-2.5 rounded-full bg-red-500"></span>Occupied</span>
                         <span class="font-semibold text-[#1F2937]">{{ $occupiedUnits }}</span>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
                                 <td class="px-5 py-3.5 text-[#1F2937]">{{ $row['total'] }}</td>
                                 <td class="px-5 py-3.5 text-emerald-600 font-medium">{{ $row['available'] }}</td>
                                 <td class="px-5 py-3.5 text-amber-500 font-medium">{{ $row['reserved'] }}</td>
-                                <td class="px-5 py-3.5 text-[#EF4444] font-medium">{{ $row['occupied'] }}</td>
+                                <td class="px-5 py-3.5 text-red-500 font-medium">{{ $row['occupied'] }}</td>
                                 <td class="px-5 py-3.5 font-semibold text-[#2AA7A1]">{{ $row['rate'] }}%</td>
                                 <td class="px-5 py-3.5 text-right">
                                     <a href="{{ route('landlord.properties.units.index', $row['property_id']) }}"

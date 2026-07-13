@@ -465,22 +465,80 @@
         @yield('content')
     </main>
 
-    <footer class="bg-[#156F8C] border-t border-white/10 mt-auto">
-        <div class="w-full px-4 sm:px-6 lg:px-[50px] py-5 flex flex-col md:flex-row items-center justify-between gap-3">
-            <a href="{{ route('dashboard') }}" class="text-[14px] font-bold text-white tracking-tight no-underline">
-                Abanganan<span class="text-[#69D2C6]">Hub</span>
+    <footer class="bg-[#0F172A] mt-auto">
+        <div class="w-full px-4 sm:px-6 lg:px-[50px] pt-14 pb-8">
+
+            {{-- Logo --}}
+            <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
+                <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                </div>
+                <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#69D2C6]">Hub</span></span>
             </a>
-            <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-[12.5px] text-white/70">
-                <a href="{{ route('properties.index') }}" class="hover:text-white transition-colors">Properties</a>
-                <span class="text-white/30">|</span>
-                <a href="{{ route('about') }}" class="hover:text-white transition-colors">About</a>
-                <span class="text-white/30">|</span>
-                <a href="#" class="hover:text-white transition-colors">Privacy</a>
-                <span class="text-white/30">|</span>
-                <a href="#" class="hover:text-white transition-colors">Terms</a>
+
+            {{-- Link columns --}}
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-8 gap-y-10 pb-12">
+
+                <div>
+                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">Explore</p>
+                    <ul class="space-y-3 text-[13.5px]">
+                        <li><a href="{{ route('home') }}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="{{ route('properties.index') }}" class="text-white/60 hover:text-white transition-colors">Browse Properties</a></li>
+                        <li><a href="{{ route('about') }}" class="text-white/60 hover:text-white transition-colors">About Us</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">For Tenants</p>
+                    <ul class="space-y-3 text-[13.5px]">
+                        <li><a href="{{ route('favorites.index') }}" class="text-white/60 hover:text-white transition-colors">Saved Listings</a></li>
+                        <li><a href="{{ route('conversations.index') }}" class="text-white/60 hover:text-white transition-colors">Messages</a></li>
+                        <li><a href="{{ route('reservations.index') }}" class="text-white/60 hover:text-white transition-colors">My Reservations</a></li>
+                        <li><a href="{{ route('reports.create') }}" class="text-white/60 hover:text-white transition-colors">Report a Problem</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">For Landlords</p>
+                    <ul class="space-y-3 text-[13.5px]">
+                        <li><a href="{{ route('landlord.verification.create') }}" class="text-white/60 hover:text-white transition-colors">Become a Landlord</a></li>
+                        <li><a href="{{ route('landlord.dashboard') }}" class="text-white/60 hover:text-white transition-colors">Landlord Dashboard</a></li>
+                        <li><a href="{{ route('landlord.occupancy.index') }}" class="text-white/60 hover:text-white transition-colors">Occupancy Monitoring</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">Company</p>
+                    <ul class="space-y-3 text-[13.5px]">
+                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Help Center</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">Social</p>
+                    <ul class="space-y-3 text-[13.5px]">
+                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Facebook</a></li>
+                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Instagram</a></li>
+                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">X (Twitter)</a></li>
+                    </ul>
+                </div>
             </div>
-            <span class="text-[11.5px] text-white/60 text-center">&copy; {{ date('Y') }} AbangananHub &middot; Cebu,
-                Philippines &middot; SDG 16</span>
+
+            {{-- Bottom bar --}}
+            <div class="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p class="text-[12px] text-white/40 text-center sm:text-left">
+                    &copy; {{ date('Y') }} AbangananHub. All rights reserved.
+                </p>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 text-[11px] font-semibold text-white/40">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#69D2C6]"></span>
+                    Supporting UN SDG 16 &middot; Cebu, Philippines
+                </span>
+            </div>
         </div>
     </footer>
 
@@ -534,9 +592,9 @@
                         <div class="mb-4">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
                             <div class="relative">
-                                <input type="password" name="password" required placeholder="Enter your password"
+                                <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password"
                                     class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                                <button type="button"
+                                <button type="button" onclick="toggleModalPassword('modal-login-password', this)"
                                     class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
                                         viewBox="0 0 24 24">
@@ -678,6 +736,16 @@
                     registerView.classList.remove('hidden');
                     loginView.classList.add('hidden');
                 }
+            }
+
+            function toggleModalPassword(fieldId, btn) {
+                const input = document.getElementById(fieldId);
+                if (!input) return;
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                btn.innerHTML = isPassword
+                    ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`
+                    : `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>`;
             }
 
             function closeAuthModal() {

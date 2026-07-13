@@ -7,7 +7,7 @@
 
         {{-- HERO --}}
         <div
-            class="rounded-3xl mb-10 bg-gradient-to-br from-[#1A3A6E] via-[#2AA7A1] to-[#2AA7A1] p-6 sm:p-10 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-7 relative overflow-hidden shadow-[0_8px_32px_rgba(40,108,210,0.28)]">
+            class="rounded-3xl mb-10 bg-gradient-to-br from-[#156F8C] via-[#1F2937] to-[#156F8C] p-6 sm:p-10 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-7 relative overflow-hidden shadow-[0_8px_32px_rgba(21,111,140,0.28)]">
             <div
                 class="absolute right-[-20px] bottom-[-40px] w-64 h-64 rounded-full bg-white opacity-5 pointer-events-none">
             </div>
@@ -46,7 +46,7 @@
         {{-- STAT CARDS --}}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-12">
             <x-stat-card label="Upcoming Stays" :value="$upcomingCount" sub="Active reservations" color="#2AA7A1"
-                bgColor="#EBF3FF">
+                bgColor="#EEF8F8">
                 <x-slot name="icon">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -55,10 +55,10 @@
                 </x-slot>
             </x-stat-card>
 
-            <x-stat-card label="Messages" :value="$messagesCount" sub="Unread threads" color="#7C3AED"
-                bgColor="#F3E8FF">
+            <x-stat-card label="Messages" :value="$messagesCount" sub="Unread threads" color="#a855f7"
+                bgColor="#FAF5FF">
                 <x-slot name="icon">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#7C3AED" stroke-width="2">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#a855f7" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                     </svg>
@@ -75,10 +75,10 @@
                 </x-slot>
             </x-stat-card>
 
-            <x-stat-card label="Open Reports" :value="$reportsCount" sub="Pending resolution" color="#E11D48"
-                bgColor="#FFF1F2">
+            <x-stat-card label="Open Reports" :value="$reportsCount" sub="Pending resolution" color="#EF4444"
+                bgColor="#FEF2F2">
                 <x-slot name="icon">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#E11D48" stroke-width="2">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                     </svg>
@@ -231,7 +231,7 @@
                         </p>
 
                         <a href="#"
-                            class="inline-flex items-center justify-center w-full py-3.5 bg-white text-[#e00b41] rounded-xl text-[15px] font-bold shadow-md hover:bg-gray-50 transition-all relative z-10">
+                            class="inline-flex items-center justify-center w-full py-3.5 bg-white text-[#156F8C] rounded-xl text-[15px] font-bold shadow-md hover:bg-gray-50 transition-all relative z-10">
                             Learn more
                         </a>
                     </div>
