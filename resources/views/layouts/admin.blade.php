@@ -24,9 +24,10 @@
     </style>
 </head>
 
-<body class="font-sans bg-[#F7F8FA] text-[#1A1A2E] min-h-screen" x-data="{
+<body class="font-sans bg-[#F7F8FA] text-[#1F2937] min-h-screen" x-data="{
         sidebarOpen: false,
-        sidebarCollapsed: localStorage.getItem('adminSidebarCollapsed') === 'true'
+        sidebarCollapsed: localStorage.getItem('adminSidebarCollapsed') === 'true',
+        userMenuOpen: false
     }" x-init="
         document.documentElement.classList.toggle('admin-sidebar-pre-collapsed', sidebarCollapsed);
         $watch('sidebarCollapsed', value => {
@@ -56,26 +57,56 @@
                 </svg>
             </button>
 
-            {{-- Logo --}}
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 px-5 h-[64px] border-b border-white/[0.06] shrink-0 overflow-hidden no-underline">
-                <div class="w-8 h-8 rounded-xl bg-[#2AA7A1] flex items-center justify-center shadow-sm shrink-0">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            {{-- Logo + Notification bell --}}
+            <div class="flex items-center justify-between h-[64px] border-b border-white/[0.06] shrink-0 px-5">
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 overflow-hidden no-underline">
+                    <div class="w-8 h-8 rounded-xl bg-[#2AA7A1] flex items-center justify-center shadow-sm shrink-0">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                    </div>
+                    <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="overflow-hidden">
+                        <p class="text-[15px] font-extrabold text-white tracking-tight whitespace-nowrap leading-tight">
+                            Abanganan<span class="text-[#2AA7A1]">Hub</span>
+                        </p>
+                        <p class="text-[10px] font-semibold text-white/40 uppercase tracking-widest whitespace-nowrap">Admin Panel</p>
+                    </div>
+                </a>
+
+                @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
+                <a href="{{ route('notifications.index') }}" data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                    class="relative w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
+                    @if($unread > 0)
+                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
+                    @endif
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                     </svg>
-                </div>
-                <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="overflow-hidden">
-                    <p class="text-[15px] font-extrabold text-white tracking-tight whitespace-nowrap leading-tight">
-                        Abanganan<span class="text-[#2AA7A1]">Hub</span>
-                    </p>
-                    <p class="text-[10px] font-semibold text-white/40 uppercase tracking-widest whitespace-nowrap">Admin Panel</p>
-                </div>
-            </a>
+                </a>
+            </div>
 
             {{-- Nav --}}
             @php $cur = request()->route()?->getName() ?? ''; @endphp
 
             <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 space-y-0.5 scrollbar-thin">
+
+                {{-- Notification bell when collapsed (icon only) --}}
+                <a href="{{ route('notifications.index') }}" x-show="sidebarCollapsed" x-cloak
+                    class="group relative flex items-center justify-center px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 mb-1
+                        text-white/60 hover:bg-white/[0.06] hover:text-white/90">
+                    <div class="relative">
+                        @if($unread > 0)
+                            <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
+                        @endif
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                        </svg>
+                    </div>
+                    <span class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
+                        Notifications{{ $unread > 0 ? " ($unread)" : '' }}
+                    </span>
+                </a>
 
                 {{-- Dashboard --}}
                 <a href="{{ route('admin.dashboard') }}"
@@ -96,14 +127,9 @@
                     class="px-3 pt-2 pb-1.5 text-[10px] font-bold text-white/30 uppercase tracking-widest whitespace-nowrap">
                     User Management</p>
 
-                @php
-                    $navItem = fn($label, $icon, $route, $active) => compact('label', 'icon', 'route', 'active');
-                @endphp
+                @php $usersRoleFilter = request()->query('role'); @endphp
 
                 {{-- Users --}}
-                @php
-                    $usersRoleFilter = request()->query('role');
-                @endphp
                 <a href="{{ route('admin.users.index') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
                         {{ ($cur === 'admin.users.index' && !$usersRoleFilter) || $cur === 'admin.users.show' ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
@@ -297,7 +323,7 @@
                     class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/30 uppercase tracking-widest whitespace-nowrap">
                     Reports &amp; Analytics</p>
 
-               {{-- Analytics --}}
+                {{-- Analytics --}}
                 <a href="{{ route('admin.report-analytics.index') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
                         {{ str_starts_with($cur ?? '', 'admin.report-analytics') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
@@ -311,7 +337,7 @@
                     </span>
                 </a>
 
-                {{-- Reports (still upcoming) --}}
+                {{-- Reports (upcoming) --}}
                 <div class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-white/30 cursor-not-allowed select-none">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -340,7 +366,7 @@
                     </div>
                 @endforeach
 
-               {{-- ── ACCOUNT ── --}}
+                {{-- ── ACCOUNT ── --}}
                 <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                     class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/30 uppercase tracking-widest whitespace-nowrap">
                     Account</p>
@@ -359,86 +385,65 @@
                 </a>
 
             </nav>
+
+            {{-- ── USER SECTION (sidebar bottom) ── --}}
+            <div class="border-t border-white/[0.06] shrink-0">
+                <div class="flex items-center gap-2.5 px-4 py-3">
+                    <span class="w-8 h-8 rounded-full bg-[#2AA7A1] text-white text-[13px] font-bold flex items-center justify-center shrink-0">
+                        {{ strtoupper(substr(auth()->user()->first_name ?? 'A', 0, 1)) }}
+                    </span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="flex-1 min-w-0">
+                        <span class="block text-[12px] font-semibold text-white truncate">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
+                        <span class="block text-[10px] text-white/40">Administrator</span>
+                    </span>
+                    <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                        @csrf
+                        <button type="submit" title="Sign out"
+                            class="group/so relative w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-white/[0.06] transition-colors">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                            </svg>
+                            <span x-show="sidebarCollapsed" x-cloak
+                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover/so:opacity-100 transition-opacity z-50 shadow-xl">
+                                Sign out
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </aside>
 
         {{-- ===================== MAIN ===================== --}}
         <div id="admin-main" :class="sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'"
             class="flex-1 flex flex-col min-w-0 transition-all duration-300">
 
-            {{-- Top bar --}}
-            <header class="h-[64px] bg-white border-b border-gray-100 flex items-center justify-between px-5 sm:px-7 shrink-0 sticky top-0 z-30">
-
+            {{-- Mobile-only slim bar (hamburger + notif) --}}
+            <div class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 sticky top-0 z-30">
                 <button @click="sidebarOpen = !sidebarOpen"
-                    class="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-600 transition-colors">
+                    class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-600 transition-colors">
                     <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
                     </svg>
                 </button>
 
-                <div class="hidden lg:block">
-                    @hasSection('page-title')
-                        <h1 class="text-[15px] font-bold text-[#1A1A2E]">@yield('page-title')</h1>
+                @hasSection('page-title')
+                    <h1 class="text-[14px] font-bold text-[#1F2937]">@yield('page-title')</h1>
+                @endif
+
+                <a href="{{ route('notifications.index') }}"
+                    class="relative w-9 h-9 flex items-center justify-center rounded-xl border border-gray-100 bg-white text-gray-500 hover:bg-gray-50 hover:text-[#156F8C] transition-all">
+                    @if($unread > 0)
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
                     @endif
-                </div>
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                </a>
+            </div>
 
-                <div class="flex items-center gap-2">
-                    @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
-                    <a href="{{ route('notifications.index') }}"
-                        class="relative w-9 h-9 flex items-center justify-center rounded-xl border border-gray-100 bg-white text-gray-500 hover:bg-gray-50 hover:text-[#156F8C] transition-all">
-                        @if($unread > 0)
-                            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
-                        @endif
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                        </svg>
-                    </a>
-
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" @click.outside="open = false"
-                            class="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-gray-50 transition-colors">
-                            <span class="w-8 h-8 rounded-full bg-[#2AA7A1] text-white text-[13px] font-bold flex items-center justify-center shrink-0">
-                                {{ strtoupper(substr(auth()->user()->first_name ?? 'A', 0, 1)) }}
-                            </span>
-                            <span class="hidden sm:flex flex-col items-start leading-tight">
-                                <span class="text-[13px] font-semibold text-[#1A1A2E]">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
-                                <span class="text-[11px] text-gray-400">Administrator</span>
-                            </span>
-                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-gray-400 hidden sm:block">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                            </svg>
-                        </button>
-
-                        <div x-show="open" x-cloak
-                            x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-100"
-                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[220px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 z-50">
-                            <a href="{{ route('admin.profile.edit') }}"
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
-                                My Profile
-                            </a>
-                            <a href="{{ route('profile.edit') }}"
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#1A1A2E] hover:bg-gray-50">
-                                Account Settings
-                            </a>
-
-                            <div class="h-px bg-gray-100 my-1.5"></div>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit"
-                                    class="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-red-500 hover:bg-red-50">
-                                    Sign out
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {{-- Flash messages (success/status are shown via the global modal below) --}}
+            {{-- Flash messages --}}
             @if(session('error'))
-                <div class="mx-4 sm:mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
+                <div class="mx-4 sm:mx-6 lg:mx-8 mt-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
                     <span>{{ session('error') }}</span>
                     <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 ml-3">&times;</button>
                 </div>

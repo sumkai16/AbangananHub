@@ -170,6 +170,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::patch('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
 
        Route::get('/report-analytics', [ReportAnalyticsController::class, 'index'])->name('report-analytics.index');
+       Route::get('/report-analytics/export', [ReportAnalyticsController::class, 'export'])->name('report-analytics.export');
     });
 
    // Conversations and messages

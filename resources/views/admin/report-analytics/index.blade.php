@@ -15,15 +15,15 @@
     <div class="flex items-center justify-between mb-5">
         <form method="GET" action="{{ route('admin.report-analytics.index') }}" id="sectionForm">
             <select name="section"
-                    onchange="document.getElementById('sectionForm').submit()"
-                    class="text-sm font-medium px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937] focus:outline-none focus:ring-1 focus:ring-[#156F8C] focus:border-[#156F8C]">
+                onchange="document.getElementById('sectionForm').submit()"
+                class="text-sm font-medium pl-3 pr-8 py-2 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937] focus:outline-none focus:ring-1 focus:ring-[#156F8C] focus:border-[#156F8C]">
                 <option value="properties" {{ $section === 'properties' ? 'selected' : '' }}>Properties and units</option>
                 <option value="reservations" {{ $section === 'reservations' ? 'selected' : '' }}>Reservations</option>
                 <option value="users" {{ $section === 'users' ? 'selected' : '' }}>Users</option>
             </select>
         </form>
 
-        <a href="{{ route('admin.report-analytics.index', array_merge(request()->query(), ['export' => 'excel'])) }}"
+       <a href="{{ route('admin.report-analytics.export', array_merge(request()->query(), ['section' => $section])) }}"
            class="inline-flex items-center gap-1.5 text-xs font-medium text-[#156F8C] border border-[#E2E8F0] rounded-lg px-3 py-2 hover:bg-[#EEF8F8] transition-colors">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />

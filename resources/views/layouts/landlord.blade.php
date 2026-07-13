@@ -50,16 +50,16 @@
 
     <div class="flex min-h-screen">
 
-        {{-- ============ SIDEBAR ============ --}}
         {{-- Mobile overlay --}}
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 bg-black/40 z-40 lg:hidden">
         </div>
 
+        {{-- ============ SIDEBAR ============ --}}
         <aside id="landlord-sidebar"
             :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
             class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0F172A] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
-            {{-- Floating collapse toggle (desktop only) --}}
+            {{-- Collapse toggle --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
                 class="hidden lg:flex absolute top-5 -right-3 w-6 h-6 rounded-full bg-[#2AA7A1] text-white items-center justify-center shadow-md hover:brightness-95 transition-all duration-200 z-10"
                 :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
@@ -69,30 +69,97 @@
                 </svg>
             </button>
 
-            {{-- Logo --}}
-            <a href="{{ route('landlord.dashboard') }}"
-                class="flex items-center gap-2.5 px-5 h-[72px] border-b border-white/[0.06] shrink-0 no-underline overflow-hidden">
-                <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shadow-sm shrink-0">
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
+            {{-- Logo + Notification bell --}}
+            @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
+            <div class="flex items-center justify-between h-[72px] border-b border-white/[0.06] shrink-0 px-5">
+                <a href="{{ route('landlord.dashboard') }}"
+                    class="flex items-center gap-2.5 overflow-hidden no-underline">
+                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shadow-sm shrink-0">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                    </div>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
+                        Abanganan<span class="text-[#2AA7A1]">Hub</span>
+                    </span>
+                </a>
+
+                {{-- Notification bell (expanded state) --}}
+                <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="relative"
+                    x-data="notificationDropdown()" @click.away="close()" @keydown.escape.window="close()">
+                    <button type="button" @click="toggle()"
+                        class="relative w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
+                        <span x-show="unreadCount > 0" x-cloak
+                            class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
+                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </button>
+
+                    {{-- Notification dropdown panel --}}
+                    <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
+                        <div x-ref="dropdownBody">
+                            <div class="px-4 py-8 text-center">
+                                <div
+                                    class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin mx-auto">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
-                    Abanganan<span class="text-[#2AA7A1]">Hub</span>
-                </span>
-            </a>
+            </div>
 
             {{-- Nav --}}
-            <nav class="flex-1 overflow-hidden px-3 py-5">
+            @php $current = request()->route()?->getName() ?? ''; @endphp
+
+            <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5 scrollbar-thin">
+
+                {{-- Notification bell when collapsed (icon only) --}}
+                <div x-show="sidebarCollapsed" x-cloak class="relative mb-2" x-data="notificationDropdown()"
+                    @click.away="close()" @keydown.escape.window="close()">
+                    <button type="button" @click="toggle()"
+                        class="group relative w-full flex items-center justify-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 text-white/60 hover:bg-white/[0.06] hover:text-white/90">
+                        <div class="relative">
+                            <span x-show="unreadCount > 0" x-cloak
+                                class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
+                            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                        </div>
+                        <span
+                            class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-lg">
+                            Notifications
+                        </span>
+                    </button>
+
+                    <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute top-0 left-full ml-3 w-[320px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
+                        <div x-ref="dropdownBody">
+                            <div class="px-4 py-8 text-center">
+                                <div
+                                    class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin mx-auto">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                     class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 whitespace-nowrap">
                     Main</p>
-
-                @php
-                    $current = request()->route()?->getName() ?? '';
-                @endphp
 
                 {{-- Dashboard --}}
                 <a href="{{ route('landlord.dashboard') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
@@ -193,7 +260,7 @@
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
                         class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                        Tenants · Soon
+                        Tenants
                     </span>
                 </div>
 
@@ -220,7 +287,7 @@
                     class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
                     Insights</p>
 
-                {{-- Occupancy --}}
+                {{-- Occupancy (Insights - disabled duplicate, keeping from original) --}}
                 <div :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 text-white/30 cursor-not-allowed select-none">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
@@ -235,7 +302,7 @@
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
                         class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                        Occupancy · Soon
+                        Occupancy
                     </span>
                 </div>
 
@@ -253,7 +320,7 @@
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
                         class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                        Analytics · Soon
+                        Analytics
                     </span>
                 </div>
 
@@ -270,7 +337,7 @@
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
                         class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                        Reports · Soon
+                        Reports
                     </span>
                 </div>
 
@@ -287,7 +354,7 @@
                         class="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
                     <span x-show="sidebarCollapsed" x-cloak
                         class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                        Reviews · Soon
+                        Reviews
                     </span>
                 </div>
 
@@ -348,17 +415,34 @@
                 </a>
             </nav>
 
-            {{-- Help footer card --}}
-            <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                class="p-4 border-t border-white/[0.06] shrink-0">
-                <div class="bg-white/[0.06] rounded-xl p-3.5">
-                    <p class="text-[12px] font-bold text-white mb-1 whitespace-nowrap">Need Help?</p>
-                    <p class="text-[11px] text-white/50 mb-2.5 leading-relaxed">Visit our Help Center or contact
-                        support.</p>
-                    <a href="{{ route('about') }}"
-                        class="block text-center text-[11px] font-semibold bg-[#2AA7A1] text-white rounded-lg py-2 hover:brightness-95 transition-all duration-200 whitespace-nowrap">
-                        Go to Help Center
-                    </a>
+            {{-- ── USER SECTION (sidebar bottom) ── --}}
+            <div class="border-t border-white/[0.06] shrink-0">
+                <div class="flex items-center gap-2.5 px-4 py-3">
+                    <span
+                        class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
+                        {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
+                    </span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="flex-1 min-w-0">
+                        <span
+                            class="block text-[12px] font-semibold text-white truncate">{{ auth()->user()->first_name }}
+                            {{ auth()->user()->last_name }}</span>
+                        <span class="block text-[10px] text-white/40">Landlord</span>
+                    </span>
+                    <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                        @csrf
+                        <button type="submit" title="Sign out"
+                            class="group/so relative w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-white/[0.06] transition-colors">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                            </svg>
+                            <span x-show="sidebarCollapsed" x-cloak
+                                class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover/so:opacity-100 transition-opacity z-50 shadow-xl">
+                                Sign out
+                            </span>
+                        </button>
+                    </form>
                 </div>
             </div>
         </aside>
@@ -367,99 +451,45 @@
         <div id="landlord-main" :class="sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'"
             class="flex-1 flex flex-col min-w-0 transition-all duration-300">
 
-            {{-- Slim top bar --}}
-            <header
-                class="h-[72px] bg-white border-b border-[#64748B]/15 flex items-center justify-between px-4 sm:px-6 shrink-0 sticky top-0 z-30">
-
-                {{-- Mobile menu toggle --}}
+            {{-- Mobile-only slim bar --}}
+            <div
+                class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E8F0] sticky top-0 z-30">
                 <button @click="sidebarOpen = !sidebarOpen"
-                    class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#E2E8F0] text-[#1F2937] transition-colors duration-200">
+                    class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#E2E8F0] text-[#1F2937] transition-colors duration-200">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
                     </svg>
                 </button>
 
-                <div class="hidden lg:block"></div>
+                <div class="relative" x-data="notificationDropdown()" @click.away="close()"
+                    @keydown.escape.window="close()">
+                    <button type="button" @click="toggle()"
+                        class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]/70 hover:bg-[#E2E8F0] transition-colors duration-200">
+                        <span x-show="unreadCount > 0" x-cloak
+                            class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-white"></span>
+                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </button>
 
-                <div class="flex items-center gap-3">
-                    {{-- Notifications Dropdown --}}
-                    <div class="relative" x-data="notificationDropdown()" @click.away="close()"
-                        @keydown.escape.window="close()">
-                        <button type="button" @click="toggle()"
-                            class="relative flex items-center justify-center w-10 h-10 rounded-full border border-[#64748B]/20 bg-white text-[#1F2937]/70 hover:bg-[#E2E8F0] transition-colors duration-200 focus:outline-none">
-                            <span x-show="unreadCount > 0" x-cloak
-                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#EF4444] border-2 border-white"></span>
-                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
-                            </svg>
-                        </button>
-
-                        <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-100"
-                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
-                            <div x-ref="dropdownBody">
-                                <div class="px-4 py-8 text-center">
-                                    <div
-                                        class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin mx-auto">
-                                    </div>
+                    <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
+                        <div x-ref="dropdownBody">
+                            <div class="px-4 py-8 text-center">
+                                <div
+                                    class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin mx-auto">
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="relative">
-                        <button id="landlord-avatar-btn" aria-expanded="false"
-                            class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-[#E2E8F0] transition-colors duration-200 focus:outline-none">
-                            <span
-                                class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
-                                {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
-                            </span>
-                            <span class="hidden sm:flex flex-col items-start leading-tight">
-                                <span class="text-[13px] font-semibold text-[#1F2937]">{{ auth()->user()->first_name }}
-                                    {{ auth()->user()->last_name }}</span>
-                                <span class="text-[11px] text-[#64748B]">Landlord</span>
-                            </span>
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2" class="text-[#64748B] hidden sm:block">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                            </svg>
-                        </button>
-
-                        <div id="landlord-avatar-menu"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[220px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 py-2 hidden z-50">
-                            <a href="{{ route('landlord.profile.me') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
-                                My Profile
-                            </a>
-                            <a href="{{ route('properties.index') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
-                                Browse as Tenant
-                            </a>
-                            <a href="{{ route('profile.edit') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
-                                Account Settings
-                            </a>
-                            <a href="{{ route('reports.create') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]">
-                                Report a Problem
-                            </a>
-                            <div class="h-px bg-[#64748B]/15 my-2"></div>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit"
-                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-[13.5px] text-red-500 hover:bg-red-50 font-semibold">
-                                    Sign out
-                                </button>
-                            </form>
-                        </div>
-                    </div>
                 </div>
-            </header>
+            </div>
 
             {{-- Flash --}}
             @if(session('error'))
@@ -479,27 +509,6 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const btn = document.getElementById('landlord-avatar-btn');
-            const menu = document.getElementById('landlord-avatar-menu');
-            if (!btn || !menu) return;
-
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = btn.getAttribute('aria-expanded') === 'true';
-                btn.setAttribute('aria-expanded', String(!isOpen));
-                menu.classList.toggle('hidden');
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!menu.classList.contains('hidden') && !btn.contains(e.target) && !menu.contains(e.target)) {
-                    menu.classList.add('hidden');
-                    btn.setAttribute('aria-expanded', 'false');
-                }
-            });
-        });
-    </script>
     <script>
         function notificationDropdown() {
             return {
