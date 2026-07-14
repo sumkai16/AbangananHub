@@ -491,24 +491,28 @@
                     </ul>
                 </div>
 
-                <div>
-                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">For Tenants</p>
-                    <ul class="space-y-3 text-[13.5px]">
-                        <li><a href="{{ route('favorites.index') }}" class="text-white/60 hover:text-white transition-colors">Saved Listings</a></li>
-                        <li><a href="{{ route('conversations.index') }}" class="text-white/60 hover:text-white transition-colors">Messages</a></li>
-                        <li><a href="{{ route('reservations.index') }}" class="text-white/60 hover:text-white transition-colors">My Reservations</a></li>
-                        <li><a href="{{ route('reports.create') }}" class="text-white/60 hover:text-white transition-colors">Report a Problem</a></li>
-                    </ul>
-                </div>
+                @auth
+                    <div>
+                        <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">For Tenants</p>
+                        <ul class="space-y-3 text-[13.5px]">
+                            <li><a href="{{ route('favorites.index') }}" class="text-white/60 hover:text-white transition-colors">Saved Listings</a></li>
+                            <li><a href="{{ route('conversations.index') }}" class="text-white/60 hover:text-white transition-colors">Messages</a></li>
+                            <li><a href="{{ route('reservations.index') }}" class="text-white/60 hover:text-white transition-colors">My Reservations</a></li>
+                            <li><a href="{{ route('reports.create') }}" class="text-white/60 hover:text-white transition-colors">Report a Problem</a></li>
+                        </ul>
+                    </div>
+                @endauth
 
-                <div>
-                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">For Landlords</p>
-                    <ul class="space-y-3 text-[13.5px]">
-                        <li><a href="{{ route('landlord.verification.create') }}" class="text-white/60 hover:text-white transition-colors">Become a Landlord</a></li>
-                        <li><a href="{{ route('landlord.dashboard') }}" class="text-white/60 hover:text-white transition-colors">Landlord Dashboard</a></li>
-                        <li><a href="{{ route('landlord.occupancy.index') }}" class="text-white/60 hover:text-white transition-colors">Occupancy Monitoring</a></li>
-                    </ul>
-                </div>
+                @auth
+                    <div>
+                        <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">For Landlords</p>
+                        <ul class="space-y-3 text-[13.5px]">
+                            <li><a href="{{ route('landlord.verification.create') }}" class="text-white/60 hover:text-white transition-colors">Become a Landlord</a></li>
+                            <li><a href="{{ route('landlord.dashboard') }}" class="text-white/60 hover:text-white transition-colors">Landlord Dashboard</a></li>
+                            <li><a href="{{ route('landlord.occupancy.index') }}" class="text-white/60 hover:text-white transition-colors">Occupancy Monitoring</a></li>
+                        </ul>
+                    </div>
+                @endauth
 
                 <div>
                     <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">Company</p>

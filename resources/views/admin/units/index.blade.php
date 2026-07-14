@@ -7,7 +7,7 @@
 
         {{-- Page header --}}
         <div class="mb-6">
-            <h1 class="text-2xl font-extrabold text-[#1A1A2E] tracking-tight">Unit Approvals</h1>
+            <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight">Unit Approvals</h1>
             <p class="text-[13.5px] text-gray-500 mt-1">Review rental units submitted by landlords for verification.</p>
         </div>
 

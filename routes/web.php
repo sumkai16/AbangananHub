@@ -78,6 +78,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
 
+        // Reports
+        Route::get('/reports', [App\Http\Controllers\Tenant\ReportController::class, 'index'])->name('tenant.reports.index');
+
         // Profile
         Route::get('/profile', [TenantProfileController::class, 'show'])->name('tenant.profile.show');
         Route::get('/profile/edit', [TenantProfileController::class, 'edit'])->name('tenant.profile.edit');

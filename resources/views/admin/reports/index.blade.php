@@ -7,7 +7,7 @@
 
         {{-- Page header --}}
         <div class="mb-6">
-            <h1 class="text-2xl font-extrabold text-[#1A1A2E] tracking-tight">Reports</h1>
+            <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight">Reports</h1>
             <p class="text-[13.5px] text-gray-500 mt-1">Review complaints submitted against listings and users.</p>
         </div>
 
@@ -26,7 +26,7 @@
                 <a href="{{ route('admin.reports.index', ['status' => $tab]) }}" class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-150
                                     {{ $status === $tab
                 ? 'bg-[#2AA7A1] text-white shadow-sm'
-                : 'text-gray-500 hover:text-[#1A1A2E] hover:bg-gray-50' }}">
+                : 'text-gray-500 hover:text-[#1F2937] hover:bg-gray-50' }}">
                     {{ $tab }}
                 </a>
             @endforeach
@@ -41,13 +41,13 @@
                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                     </svg>
                 </div>
-                <p class="text-[15px] font-bold text-[#1A1A2E]">No reports here</p>
+                <p class="text-[15px] font-bold text-[#1F2937]">No reports here</p>
                 <p class="text-[13px] text-gray-400 mt-1">No reports match this tab right now.</p>
             </div>
         @else
             <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-                    <p class="text-[13px] font-semibold text-[#1A1A2E]">
+                    <p class="text-[13px] font-semibold text-[#1F2937]">
                         {{ $reports->total() }} {{ Str::plural('report', $reports->total()) }}
                     </p>
                 </div>
@@ -72,7 +72,7 @@
                             @foreach ($reports as $report)
                                 <tr class="hover:bg-gray-50/50 transition-colors">
                                     <td class="px-6 py-4">
-                                        <p class="text-[13.5px] font-semibold text-[#1A1A2E]">
+                                        <p class="text-[13.5px] font-semibold text-[#1F2937]">
                                             {{ $report->reporter ? $report->reporter->first_name . ' ' . $report->reporter->last_name : '—' }}
                                         </p>
                                         <p class="text-[12px] text-gray-400">{{ $report->reporter->email ?? '' }}</p>
@@ -80,12 +80,12 @@
                                     <td class="px-6 py-4">
                                         @if($report->property)
                                             <span
-                                                class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-50 border border-gray-100 text-[11.5px] font-medium text-[#1A1A2E]">
+                                                class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-50 border border-gray-100 text-[11.5px] font-medium text-[#1F2937]">
                                                 Listing: {{ $report->property->title }}
                                             </span>
                                         @elseif($report->reportedUser)
                                             <span
-                                                class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-50 border border-gray-100 text-[11.5px] font-medium text-[#1A1A2E]">
+                                                class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-50 border border-gray-100 text-[11.5px] font-medium text-[#1F2937]">
                                                 User: {{ $report->reportedUser->first_name }} {{ $report->reportedUser->last_name }}
                                             </span>
                                         @else
@@ -93,7 +93,7 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 max-w-[220px]">
-                                        <p class="text-[13px] text-[#1A1A2E] truncate" title="{{ $report->report_reason }}">
+                                        <p class="text-[13px] text-[#1F2937] truncate" title="{{ $report->report_reason }}">
                                             {{ $report->report_reason }}
                                         </p>
                                     </td>
@@ -111,7 +111,7 @@
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <a href="{{ route('admin.reports.show', $report) }}"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1A1A2E] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 text-[12px] font-semibold text-[#1F2937] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
                                             Review
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                                 stroke-width="2">

@@ -195,7 +195,7 @@
 
                     <div class="flex items-center gap-3 pt-2">
                         <button type="submit"
-                            class="h-11 px-6 inline-flex items-center justify-center rounded-full bg-[#1F2937] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200">
+                            class="h-11 px-6 inline-flex items-center justify-center rounded-full bg-[#FF8A65] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200">
                             Submit report
                         </button>
                         <p class="text-[11px] text-[#64748B]">Our team reviews all reports and takes appropriate action.</p>
