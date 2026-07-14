@@ -10,11 +10,6 @@
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
-            <a href="{{ route('landlord.properties.show', $property) }}"
-                class="hover:text-[#1F2937] transition-colors duration-200">{{ $property->title }}</a>
-            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
             <span class="text-[#1F2937] font-medium">Units</span>
         </div>
 
@@ -22,16 +17,17 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">Units</h1>
-                <p class="text-sm text-[#64748B] mt-1">Manage all units and their availability for {{ $property->title }}.
-                </p>
+                <p class="text-sm text-[#64748B] mt-1">Manage all units and their availability across your properties.</p>
             </div>
-            <a href="{{ route('landlord.properties.units.create', $property) }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#1F2937] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200 shrink-0">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-                Add New Unit
-            </a>
+            @if(request('property'))
+                <a href="{{ route('landlord.properties.units.create', request('property')) }}"
+                    class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#1F2937] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200 shrink-0">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add New Unit
+                </a>
+            @endif
         </div>
 
         {{-- Flash --}}
@@ -54,12 +50,6 @@
         @endif
 
         {{-- Stat cards --}}
-        @php
-            $total = $units->count();
-            $available = $units->where('availability_status', 'Available')->count();
-            $reserved = $units->where('availability_status', 'Reserved')->count();
-            $occupied = $units->where('availability_status', 'Occupied')->count();
-        @endphp
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             <div class="bg-white rounded-xl ring-1 ring-[#64748B]/15 p-4">
                 <div class="flex items-center gap-2 mb-1">
@@ -70,8 +60,8 @@
                     </svg>
                     <span class="text-[11px] font-medium text-[#64748B]">Total Units</span>
                 </div>
-                <span class="text-xl font-bold text-[#1F2937]">{{ $total }}</span>
-                <p class="text-[10px] text-[#64748B] mt-0.5">All units in this property</p>
+                <span class="text-xl font-bold text-[#1F2937]">{{ $stats['total'] }}</span>
+                <p class="text-[10px] text-[#64748B] mt-0.5">All units across your properties</p>
             </div>
             <div class="bg-white rounded-xl ring-1 ring-[#64748B]/15 p-4">
                 <div class="flex items-center gap-2 mb-1">
@@ -82,9 +72,9 @@
                     </svg>
                     <span class="text-[11px] font-medium text-[#64748B]">Available</span>
                 </div>
-                <span class="text-xl font-bold text-emerald-600">{{ $available }}</span>
-                <p class="text-[10px] text-[#64748B] mt-0.5">{{ $total > 0 ? round($available / $total * 100) : 0 }}% of
-                    total units</p>
+                <span class="text-xl font-bold text-emerald-600">{{ $stats['available'] }}</span>
+                <p class="text-[10px] text-[#64748B] mt-0.5">
+                    {{ $stats['total'] > 0 ? round($stats['available'] / $stats['total'] * 100) : 0 }}% of total units</p>
             </div>
             <div class="bg-white rounded-xl ring-1 ring-[#64748B]/15 p-4">
                 <div class="flex items-center gap-2 mb-1">
@@ -95,9 +85,9 @@
                     </svg>
                     <span class="text-[11px] font-medium text-[#64748B]">Reserved</span>
                 </div>
-                <span class="text-xl font-bold text-amber-500">{{ $reserved }}</span>
-                <p class="text-[10px] text-[#64748B] mt-0.5">{{ $total > 0 ? round($reserved / $total * 100) : 0 }}% of
-                    total units</p>
+                <span class="text-xl font-bold text-amber-500">{{ $stats['reserved'] }}</span>
+                <p class="text-[10px] text-[#64748B] mt-0.5">
+                    {{ $stats['total'] > 0 ? round($stats['reserved'] / $stats['total'] * 100) : 0 }}% of total units</p>
             </div>
             <div class="bg-white rounded-xl ring-1 ring-[#64748B]/15 p-4">
                 <div class="flex items-center gap-2 mb-1">
@@ -108,8 +98,9 @@
                     </svg>
                     <span class="text-[11px] font-medium text-[#64748B]">Occupied</span>
                 </div>
-                <span class="text-xl font-bold text-red-500">{{ $occupied }}</span>
-                <p class="text-[10px] text-[#64748B] mt-0.5">{{ $occupancyRate }}% occupancy rate</p>
+                <span class="text-xl font-bold text-red-500">{{ $stats['occupied'] }}</span>
+                <p class="text-[10px] text-[#64748B] mt-0.5">
+                    {{ $stats['total'] > 0 ? round($stats['occupied'] / $stats['total'] * 100) : 0 }}% occupancy rate</p>
             </div>
         </div>
 
@@ -122,9 +113,18 @@
                         d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                 </svg>
                 <input type="text" name="search" value="{{ request('search') }}"
-                    placeholder="Search units by name or number..."
+                    placeholder="Search units by name or property..."
                     class="pl-9 pr-4 h-10 w-full rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
             </div>
+
+            <select name="property" onchange="this.form.submit()"
+                class="h-10 pl-4 pr-8 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition">
+                <option value="">All Properties</option>
+                @foreach($properties as $property)
+                    <option value="{{ $property->property_id }}" @selected(request('property') == $property->property_id)>
+                        {{ $property->title }}</option>
+                @endforeach
+            </select>
 
             <select name="status" onchange="this.form.submit()"
                 class="h-10 pl-4 pr-8 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition">
@@ -139,8 +139,8 @@
                 Filter
             </button>
 
-            @if(request()->hasAny(['search', 'status']))
-                <a href="{{ route('landlord.properties.units.index', $property) }}"
+            @if(request()->hasAny(['search', 'status', 'property']))
+                <a href="{{ route('landlord.units.index') }}"
                     class="h-10 px-4 rounded-full border border-[#64748B]/30 text-[13px] text-[#64748B] hover:text-[#1F2937] hover:border-[#64748B]/60 transition-colors duration-200 inline-flex items-center gap-1.5">
                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -150,14 +150,8 @@
             @endif
         </form>
 
-        @php
-            $filtered = $units
-                ->when(request('search'), fn($c, $s) => $c->filter(fn($u) => str_contains(strtolower($u->unit_label), strtolower($s))))
-                ->when(request('status'), fn($c, $s) => $c->where('availability_status', $s));
-        @endphp
-
         {{-- Empty state --}}
-        @if($filtered->isEmpty())
+        @if($units->isEmpty())
             <div
                 class="rounded-2xl border border-dashed border-[#64748B]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
                 <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"
@@ -173,11 +167,13 @@
         @else
             <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 overflow-hidden">
                 <div class="overflow-x-auto scrollbar-thin-light">
-                    <table class="w-full min-w-[760px] text-sm">
+                    <table class="w-full min-w-[860px] text-sm">
                         <thead>
                             <tr class="border-b border-[#64748B]/15 text-left">
                                 <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Unit
                                 </th>
+                                <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+                                    Property</th>
                                 <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Monthly
                                     Rent</th>
                                 <th class="px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Status
@@ -192,7 +188,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#64748B]/10">
-                            @foreach($filtered as $unit)
+                            @foreach($units as $unit)
                                 @php
                                     $thumb = $unit->media->first();
                                     [$avBg] = match ($unit->availability_status) {
@@ -230,6 +226,12 @@
                                             </div>
                                         </div>
                                     </td>
+                                    <td class="px-5 py-3.5">
+                                        <a href="{{ route('landlord.properties.show', $unit->property) }}"
+                                            class="text-[#1F2937] hover:text-[#2AA7A1] transition-colors duration-200">
+                                            {{ $unit->property->title }}
+                                        </a>
+                                    </td>
                                     <td class="px-5 py-3.5 font-semibold text-[#1F2937]">
                                         ₱{{ number_format($unit->rental_fee, 0) }}
                                     </td>
@@ -250,7 +252,7 @@
                                     </td>
                                     <td class="px-5 py-3.5 text-right">
                                         <div class="flex items-center justify-end gap-1.5">
-                                            <a href="{{ route('landlord.properties.units.edit', [$property, $unit]) }}"
+                                            <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}"
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#64748B]/30 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200">
                                                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                                     stroke-width="2">
@@ -259,7 +261,7 @@
                                                 </svg>
                                             </a>
                                             <form method="POST"
-                                                action="{{ route('landlord.properties.units.destroy', [$property, $unit]) }}"
+                                                action="{{ route('landlord.properties.units.destroy', [$unit->property, $unit]) }}"
                                                 data-confirm="Remove {{ $unit->unit_label }}?"
                                                 data-confirm-type="error"
                                                 data-confirm-message="The unit will be permanently removed. This cannot be undone."
@@ -283,8 +285,11 @@
                 </div>
             </div>
 
-            <div class="mt-3 text-xs text-[#64748B]">
-                Showing {{ $filtered->count() }} of {{ $total }} units
+            <div class="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <p class="text-xs text-[#64748B]">
+                    Showing {{ $units->firstItem() }}–{{ $units->lastItem() }} of {{ $units->total() }} units
+                </p>
+                {{ $units->links() }}
             </div>
         @endif
 

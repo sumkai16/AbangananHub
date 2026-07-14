@@ -16,7 +16,7 @@ class VerificationController extends Controller
         $verification = auth()->user()->verificationApplication;
 
         if ($verification?->isApproved()) {
-            return redirect()->route('landlord.listings.index');
+            return redirect()->route('landlord.properties.index');
         }
 
         return view('landlord.verification.create', compact('verification'));

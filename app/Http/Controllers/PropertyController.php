@@ -111,7 +111,7 @@ public function index(Request $request)
 
     public function create()
     {
-        return view('properties.create');
+       return view('landlord.properties.create');
     }
 
 public function store(Request $request)
@@ -166,7 +166,7 @@ public function store(Request $request)
         }
 
         $property->load('media');
-        return view('properties.edit', compact('property'));
+       return view('landlord.properties.edit', compact('property'));
     }
 
   public function update(Request $request, Property $property)
@@ -231,7 +231,7 @@ public function store(Request $request)
         }
     });
 
-    return redirect()->route('landlord.listings.index')->with('success', 'Property updated. It\'s back in the approval queue.');
+    return redirect()->route('landlord.properties.index')->with('success', 'Property updated. It\'s back in the approval queue.');
 }
 
     public function destroy(Property $property)
@@ -248,7 +248,7 @@ public function store(Request $request)
         }
 
         $property->delete();
-        return redirect()->route('landlord.listings.index')->with('success', 'Property removed successfully.');
+        return redirect()->route('landlord.properties.index')->with('success', 'Property removed successfully.');
     }
 
     public function destroyMedia(Property $property, int $media)

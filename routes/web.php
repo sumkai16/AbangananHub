@@ -13,7 +13,6 @@ use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\Landlord\PropertyUnitController;
 use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
 use App\Http\Controllers\Admin\PropertyUnitController as AdminPropertyUnitController;
-use App\Http\Controllers\Landlord\ListingController as LandlordListingController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -67,7 +66,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::post('/favorites/{propertyId}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     // Tenant-specific routes
- Route::middleware('tenant')->prefix('tenant')->group(function () {
+    Route::middleware('tenant')->prefix('tenant')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
         Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
         Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
@@ -86,15 +85,14 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     });
     // Public landlord profile (visibility-gated in controller)
     Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');
+
+
     // Landlord-specific prefix routes
     Route::middleware('landlord')->prefix('landlord')->name('landlord.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         // Property management
         Route::get('/properties', [LandlordPropertyController::class, 'index'])->name('properties.index');
         Route::get('/properties/{property}', [LandlordPropertyController::class, 'show'])->name('properties.show');
-
-        // Listings (legacy — keep until confirmed removable)
-        Route::get('/listings', [LandlordListingController::class, 'index'])->name('listings.index');
 
       // Reservations
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
@@ -118,11 +116,20 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/profile/edit', [App\Http\Controllers\Landlord\ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'update'])->name('profile.update');
 
-       
-
         // Tenant Ratings
         Route::get('/reservations/{reservation}/rate-tenant', [App\Http\Controllers\Landlord\TenantRatingController::class, 'create'])->name('reservations.rateTenant');
         Route::post('/reservations/{reservation}/rate-tenant', [App\Http\Controllers\Landlord\TenantRatingController::class, 'store'])->name('reservations.rateTenant.store');
+
+        // Tenants
+        Route::get('/tenants', [App\Http\Controllers\Landlord\TenantController::class, 'index'])->name('tenants.index');
+
+        // Reviews
+        Route::get('/reviews', [App\Http\Controllers\Landlord\ReviewController::class, 'index'])->name('reviews.index');
+
+        // My Reports
+        Route::get('/reports', [App\Http\Controllers\Landlord\ReportController::class, 'index'])->name('reports.index');
+        // Units (standalone index)
+        Route::get('/units', [App\Http\Controllers\Landlord\UnitIndexController::class, 'index'])->name('units.index');
     });
 
     // Admin-specific routes

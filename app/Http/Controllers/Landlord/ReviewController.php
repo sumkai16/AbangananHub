@@ -11,6 +11,42 @@ use Illuminate\Support\Facades\Gate;
 
 class ReviewController extends Controller
 {
+    public function index(Request $request)
+    {
+        $landlordId = Auth::user()->user_id;
+
+        $query = Review::where('landlord_id', $landlordId)
+            ->with(['tenant', 'property']);
+
+        if ($propertyId = $request->input('property')) {
+            $query->where('property_id', $propertyId);
+        }
+
+        if ($rating = $request->input('rating')) {
+            $query->where('rating', $rating);
+        }
+
+        if ($request->input('status') === 'replied') {
+            $query->whereNotNull('landlord_reply');
+        } elseif ($request->input('status') === 'unreplied') {
+            $query->whereNull('landlord_reply');
+        }
+
+        $reviews = $query->latest()->paginate(12)->withQueryString();
+
+        $properties = Auth::user()->properties()
+            ->where('verification_status', 'Approved')
+            ->orderBy('title')
+            ->get(['property_id', 'title']);
+
+        $stats = [
+            'total'    => Review::where('landlord_id', $landlordId)->count(),
+            'avg'      => round(Review::where('landlord_id', $landlordId)->where('is_hidden', false)->avg('rating') ?? 0, 1),
+            'unreplied' => Review::where('landlord_id', $landlordId)->whereNull('landlord_reply')->count(),
+        ];
+
+        return view('landlord.reviews.index', compact('reviews', 'properties', 'stats'));
+    }
     public function reply(Request $request, Review $review)
     {
         Gate::authorize('reply', $review);

@@ -32,7 +32,7 @@
                                 Approved on {{ $verification->reviewed_at->format('F j, Y') }}.
                                 You can now create and manage property listings on AbangananHub.
                             </p>
-                            <a href="{{ route('landlord.listings.index') }}"
+                            <a href="{{ route('landlord.properties.index') }}"
                                class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all">
                                 Go to your listings
                                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

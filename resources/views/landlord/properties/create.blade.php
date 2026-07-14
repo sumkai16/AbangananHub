@@ -1,11 +1,11 @@
-@extends('layouts.app', ['searchBar' => false])
+@extends('layouts.landlord')
 
 @section('content')
 <div class="min-h-screen bg-gray-50/50 py-12">
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px]">
 
         <div class="flex flex-col gap-4 border-b border-gray-150 pb-6 mb-8">
-            <a href="{{ route('landlord.listings.index') }}" class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors w-fit">
+            <a href="{{ route('landlord.properties.index') }}" class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-400 hover:text-[#156F8C] transition-colors w-fit">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -147,7 +147,7 @@
                         </div>
 
                         <div class="flex items-center gap-3">
-                            <a href="{{ route('landlord.listings.index') }}" class="w-1/3 h-12 rounded-full border border-gray-200 bg-white hover:bg-gray-50 font-bold text-[13.5px] text-gray-700 flex items-center justify-center transition-colors">
+                            <a href="{{ route('landlord.properties.index') }}" class="w-1/3 h-12 rounded-full border border-gray-200 bg-white hover:bg-gray-50 font-bold text-[13.5px] text-gray-700 flex items-center justify-center transition-colors">
                                 Cancel
                             </a>
                             <button type="submit" class="w-2/3 h-12 rounded-full bg-[#2AA7A1] text-white font-bold text-[13.5px] shadow-sm hover:brightness-95 transition-all duration-300">
@@ -161,5 +161,5 @@
     </div>
 </div>
 
-@include('properties.partials.photo-preview-script')
+@include('landlord.properties.partials.photo-preview-script')
 @endsection
