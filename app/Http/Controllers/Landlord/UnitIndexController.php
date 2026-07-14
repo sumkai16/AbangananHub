@@ -14,7 +14,11 @@ class UnitIndexController extends Controller
         $landlordId = Auth::user()->user_id;
 
         $query = PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))
-            ->with(['property', 'media']);
+            ->with([
+                'property',
+                'property.media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1),
+                'media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1),
+            ]);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {

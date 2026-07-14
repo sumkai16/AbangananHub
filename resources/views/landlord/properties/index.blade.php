@@ -3,10 +3,18 @@
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
 
         {{-- Header --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">My Properties</h1>
-                <p class="text-sm text-[#64748B] mt-1">Manage and monitor your rental properties on AbangananHub.</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">My Properties</h1>
+                    <p class="text-sm text-[#64748B] mt-0.5">Manage and monitor your rental properties on AbangananHub.</p>
+                </div>
             </div>
             <a href="{{ route('properties.create') }}"
                 class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#2AA7A1] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200 shrink-0">
@@ -17,49 +25,77 @@
             </a>
         </div>
 
-        {{-- Filters --}}
-        <form method="GET" action="{{ route('landlord.properties.index') }}" class="flex flex-wrap items-center gap-2 mb-8">
+        {{-- Filter toolbar --}}
+        <form method="GET" action="{{ route('landlord.properties.index') }}"
+            class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-4 mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
-            <div class="relative w-full sm:w-56">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" width="14" height="14" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-                </svg>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search properties..."
-                    class="pl-9 pr-4 h-10 w-full rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                <div class="relative flex-1 min-w-[200px]">
+                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="15" height="15" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                    </svg>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..."
+                        class="pl-10 pr-4 h-11 w-full rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="relative">
+                        <select name="status"
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer">
+                            <option value="">All Status</option>
+                            <option value="Approved" @selected(request('status') === 'Approved')>Approved</option>
+                            <option value="Pending" @selected(request('status') === 'Pending')>Pending</option>
+                            <option value="Rejected" @selected(request('status') === 'Rejected')>Rejected</option>
+                        </select>
+                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+
+                    <div class="relative">
+                        <select name="type"
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer">
+                            <option value="">All Types</option>
+                            <option value="Bedspace" @selected(request('type') === 'Bedspace')>Bedspace</option>
+                            <option value="Room" @selected(request('type') === 'Room')>Room</option>
+                            <option value="Apartment" @selected(request('type') === 'Apartment')>Apartment</option>
+                            <option value="House" @selected(request('type') === 'House')>House for Rent</option>
+                        </select>
+                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+
+                    <button type="submit"
+                        class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                        </svg>
+                        Filter
+                    </button>
+
+                    @if(request()->hasAny(['search', 'status', 'type']))
+                        <a href="{{ route('landlord.properties.index') }}"
+                            class="h-11 px-4 rounded-xl border border-[#64748B]/25 text-[13.5px] text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 inline-flex items-center gap-1.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                            Clear
+                        </a>
+                    @endif
+                </div>
             </div>
 
-            <select name="status"
-                class="h-10 pl-4 pr-8 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition">
-                <option value="">All Status</option>
-                <option value="Approved" @selected(request('status') === 'Approved')>Approved</option>
-                <option value="Pending" @selected(request('status') === 'Pending')>Pending</option>
-                <option value="Rejected" @selected(request('status') === 'Rejected')>Rejected</option>
-            </select>
-
-            <select name="type"
-                class="h-10 pl-4 pr-8 rounded-full border border-[#64748B]/30 bg-white text-[13px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition">
-                <option value="">All Types</option>
-                <option value="Bedspace" @selected(request('type') === 'Bedspace')>Bedspace</option>
-                <option value="Room" @selected(request('type') === 'Room')>Room</option>
-                <option value="Apartment" @selected(request('type') === 'Apartment')>Apartment</option>
-                <option value="House" @selected(request('type') === 'House')>House for Rent</option>
-            </select>
-
-            <button type="submit"
-                class="h-10 px-5 rounded-full bg-[#1F2937] text-white text-[13px] font-semibold hover:brightness-95 transition-all duration-200">
-                Filter
-            </button>
-
             @if(request()->hasAny(['search', 'status', 'type']))
-                <a href="{{ route('landlord.properties.index') }}"
-                    class="h-10 px-4 rounded-full border border-[#64748B]/30 text-[13px] text-[#64748B] hover:text-[#1F2937] hover:border-[#64748B]/60 transition-colors duration-200 inline-flex items-center gap-1.5">
-                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#64748B]/10 text-[12.5px] text-[#64748B]">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                     </svg>
-                    Clear
-                </a>
+                    <span class="font-semibold text-[#1F2937]">{{ $properties->total() }}</span>
+                    {{ Str::plural('property', $properties->total()) }} match{{ $properties->total() === 1 ? 'es' : '' }} your filters
+                </div>
             @endif
         </form>
 

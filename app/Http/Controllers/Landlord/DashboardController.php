@@ -35,7 +35,7 @@ class DashboardController extends Controller
         // Per-property occupancy breakdown (approved listings only)
         $properties = Property::where('landlord_id', $landlordId)
             ->where('verification_status', 'Approved')
-            ->with(['units'])
+            ->with(['units', 'media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1)])
             ->get()
             ->map(function ($property) {
                 $units = $property->units;
@@ -47,6 +47,8 @@ class DashboardController extends Controller
                     'total_units' => $units->count(),
                     'occupied_units' => $units->where('availability_status', 'Occupied')->count(),
                     'available_units' => $units->where('availability_status', 'Available')->count(),
+                    'reserved_units' => $units->where('availability_status', 'Reserved')->count(),
+                    'thumbnail' => optional($property->media->first())->media_url,
                 ];
             });
 
