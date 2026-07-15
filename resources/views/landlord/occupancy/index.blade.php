@@ -1,10 +1,10 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-6 pb-10">
 
         {{-- Header --}}
-        <div class="flex items-center gap-3.5 mb-6">
+        <div class="flex items-center gap-3.5 mb-5">
             <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -24,7 +24,7 @@
             $reservedPctAll = $totalUnits > 0 ? round($reservedUnits / $totalUnits * 100) : 0;
             $occupiedPctAll = $totalUnits > 0 ? round($occupiedUnits / $totalUnits * 100) : 0;
         @endphp
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
             <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Units</span>
@@ -100,7 +100,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
 
             {{-- Status split donut --}}
             <div class="lg:col-span-2 bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">

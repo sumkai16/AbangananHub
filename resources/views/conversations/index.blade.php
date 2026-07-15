@@ -4,20 +4,28 @@
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-6" x-data="inboxApp()" x-cloak>
 
         {{-- Header --}}
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
-            <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">
-                    {{ $isLandlord ? 'Inquiries / Messages' : 'Messages' }}
-                </h1>
-                <p class="text-[13px] text-[#64748B] mt-0.5">
-                    {{ $isLandlord ? 'View and respond to inquiries from tenants.' : 'Manage your active inquiries and conversation threads.' }}
-                </p>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">
+                        {{ $isLandlord ? 'Inquiries / Messages' : 'Messages' }}
+                    </h1>
+                    <p class="text-[13px] text-[#64748B] mt-0.5">
+                        {{ $isLandlord ? 'View and respond to inquiries from tenants.' : 'Manage your active inquiries and conversation threads.' }}
+                    </p>
+                </div>
             </div>
 
             @if($isLandlord && $landlordProperties->isNotEmpty())
                 <div class="relative" x-data="{ filterOpen: false }">
                     <button @click="filterOpen = !filterOpen" type="button"
-                        class="flex items-center gap-2 h-9 px-4 border border-[#E2E8F0] rounded-xl bg-white text-[13px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/50 transition focus:outline-none">
+                        class="flex items-center gap-2 h-10 px-4 rounded-xl border border-[#64748B]/25 bg-white text-[13px] font-medium text-[#1F2937] hover:bg-[#F7FCFC] transition focus:outline-none">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
@@ -30,14 +38,14 @@
                     <div x-show="filterOpen" @click.away="filterOpen = false" x-cloak
                         x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95"
                         x-transition:enter-end="opacity-100 scale-100"
-                        class="absolute right-0 top-[calc(100%+6px)] w-[240px] bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] border border-[#E2E8F0] py-1 z-50">
+                        class="absolute right-0 top-[calc(100%+6px)] w-[240px] bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] ring-1 ring-[#64748B]/10 py-1 z-50">
                         <a href="{{ route('conversations.index', array_filter(['status' => $status !== 'all' ? $status : null])) }}"
-                            class="block px-4 py-2 text-[13px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/50 transition {{ !$propertyId ? 'bg-[#EEF8F8]/30' : '' }}">
+                            class="block px-4 py-2 text-[13px] font-medium text-[#1F2937] hover:bg-[#F7FCFC] transition {{ !$propertyId ? 'bg-[#EEF8F8]' : '' }}">
                             All Properties
                         </a>
                         @foreach($landlordProperties as $prop)
                             <a href="{{ route('conversations.index', array_filter(['status' => $status !== 'all' ? $status : null, 'property_id' => $prop->property_id])) }}"
-                                class="block px-4 py-2 text-[13px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/50 transition truncate {{ $propertyId == $prop->property_id ? 'bg-[#EEF8F8]/30' : '' }}">
+                                class="block px-4 py-2 text-[13px] font-medium text-[#1F2937] hover:bg-[#F7FCFC] transition truncate {{ $propertyId == $prop->property_id ? 'bg-[#EEF8F8]' : '' }}">
                                 {{ $prop->title }}
                             </a>
                         @endforeach
@@ -47,15 +55,15 @@
         </div>
 
         {{-- Split panel --}}
-        <div class="flex bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden"
-            style="height: calc(100vh - 180px); min-height: 500px;">
+        <div class="flex bg-white ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] rounded-2xl overflow-hidden"
+            style="height: calc(100vh - 170px); min-height: 500px;">
 
             {{-- LEFT: Conversation list --}}
-            <div class="w-full lg:w-[340px] flex-shrink-0 lg:border-r border-[#E2E8F0] flex-col"
+            <div class="w-full lg:w-[340px] flex-shrink-0 lg:border-r border-[#64748B]/10 flex-col"
                 :class="activeId ? 'hidden lg:flex' : 'flex'">
 
                 {{-- Tabs --}}
-                <div class="flex items-center gap-0 border-b border-[#E2E8F0] flex-shrink-0">
+                <div class="flex items-center gap-1 p-2 bg-[#F7FCFC] border-b border-[#64748B]/10 flex-shrink-0">
                     @php
                         $tabs = [
                             'all' => ['label' => 'Active', 'count' => $activeCount],
@@ -66,20 +74,20 @@
                     @endphp
                     @foreach ($tabs as $key => $tab)
                                 <a href="{{ route('conversations.index', array_filter(['status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
-                                    class="flex-1 text-center py-3 text-[12px] font-bold transition border-b-2 {{ $status === $key
-                        ? 'text-[#1F2937] border-[#1F2937]'
-                        : 'text-[#64748B] border-transparent hover:text-[#1F2937] hover:border-[#E2E8F0]' }}">
+                                    class="flex-1 text-center py-2 rounded-lg text-[12px] font-bold transition-all duration-150 {{ $status === $key
+                        ? 'bg-[#2AA7A1] text-white shadow-sm'
+                        : 'text-[#64748B] hover:text-[#1F2937] hover:bg-white' }}">
                                     {{ $tab['label'] }}
                                     @if($tab['count'] > 0)
                                         <span
-                                            class="ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full {{ $status === $key ? 'bg-[#1F2937] text-white' : 'bg-[#E2E8F0] text-[#64748B]' }}">{{ $tab['count'] }}</span>
+                                            class="ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full {{ $status === $key ? 'bg-white/20 text-white' : 'bg-[#E2E8F0] text-[#64748B]' }}">{{ $tab['count'] }}</span>
                                     @endif
                                 </a>
                     @endforeach
                 </div>
 
                 {{-- Search --}}
-                <div class="px-3 py-2.5 border-b border-[#E2E8F0] flex-shrink-0">
+                <div class="px-3 py-2.5 border-b border-[#64748B]/10 flex-shrink-0">
                     <form method="GET" action="{{ route('conversations.index') }}" class="relative">
                         <input type="hidden" name="status" value="{{ $status }}">
                         @if($propertyId)<input type="hidden" name="property_id" value="{{ $propertyId }}">@endif
@@ -90,7 +98,7 @@
                         </svg>
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Search by person or property..."
-                            class="w-full pl-8 pr-3 py-2 text-[12px] text-[#1F2937] bg-[#E2E8F0]/50 border border-transparent rounded-lg focus:outline-none focus:border-[#2AA7A1] focus:bg-white focus:ring-1 focus:ring-[#2AA7A1]/10 transition placeholder-[#64748B]" />
+                            class="w-full pl-8 pr-3 py-2 text-[12px] text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/15 rounded-lg focus:outline-none focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/20 transition placeholder-[#64748B]" />
                     </form>
                 </div>
 
@@ -107,12 +115,12 @@
                         @endphp
 
                         <button type="button" @click="loadConversation({{ $conversation->conversation_id }})"
-                            class="w-full text-left px-4 py-3.5 border-b border-[#E2E8F0] hover:bg-[#E2E8F0]/40 transition-colors flex items-start gap-3 group"
-                            :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#EEF8F8]/30 border-l-2 border-l-[#2AA7A1]' : 'border-l-2 border-l-transparent'"
+                            class="w-full text-left px-4 py-3.5 border-b border-[#64748B]/10 hover:bg-[#F7FCFC] transition-colors flex items-start gap-3 group"
+                            :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#EEF8F8] border-l-2 border-l-[#2AA7A1]' : 'border-l-2 border-l-transparent'"
                             data-conversation-id="{{ $conversation->conversation_id }}">
 
                             <div
-                                class="w-10 h-10 rounded-full bg-[#1F2937] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                                class="w-10 h-10 rounded-full bg-[#EEF8F8] text-[#156F8C] flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
                                 {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
                             </div>
 
@@ -146,11 +154,13 @@
                         </button>
                     @empty
                         <div class="px-4 py-12 text-center">
-                            <svg class="w-10 h-10 mx-auto text-[#64748B] mb-3" fill="none" stroke="currentColor"
-                                stroke-width="1.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
+                            <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-6 h-6 text-[#156F8C]" fill="none" stroke="currentColor"
+                                    stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                            </div>
                             <p class="text-[13px] font-bold text-[#1F2937]">No conversations yet</p>
                             <p class="text-[12px] text-[#64748B] mt-1">When you send inquiries, your conversations will appear
                                 here.</p>
@@ -159,7 +169,7 @@
                 </div>
 
                 @if($conversations->isNotEmpty())
-                    <div class="px-4 py-2 border-t border-[#E2E8F0] flex-shrink-0">
+                    <div class="px-4 py-2 border-t border-[#64748B]/10 flex-shrink-0">
                         <p class="text-[11px] text-[#64748B] text-center">Showing {{ $conversations->count() }} conversations
                         </p>
                     </div>
@@ -171,7 +181,7 @@
                 :class="activeId ? 'flex' : 'hidden lg:flex'">
                 {{-- Mobile back to list --}}
                 <button type="button" x-show="activeId" x-cloak @click="activeId = null; window.activeConversationId = null"
-                    class="lg:hidden flex items-center gap-1.5 px-4 py-2.5 border-b border-[#E2E8F0] text-[12px] font-bold text-[#156F8C] bg-white text-left">
+                    class="lg:hidden flex items-center gap-1.5 px-4 py-2.5 border-b border-[#64748B]/10 text-[12px] font-bold text-[#156F8C] bg-white text-left">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -180,8 +190,8 @@
                 {{-- Empty state --}}
                 <div x-show="!activeId" class="flex-1 flex items-center justify-center">
                     <div class="text-center">
-                        <div class="w-14 h-14 rounded-2xl bg-[#E2E8F0] flex items-center justify-center mx-auto mb-3">
-                            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5">
+                        <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
+                            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>

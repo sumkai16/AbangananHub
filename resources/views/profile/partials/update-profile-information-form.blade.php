@@ -1,4 +1,4 @@
-<div class="rounded-2xl border border-[#E2E8F0]/80 bg-white p-6 sm:p-8">
+<div class="rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] bg-white p-6 sm:p-8">
 
     {{-- Section header --}}
     <div class="mb-7 border-b border-[#E2E8F0] pb-6">

@@ -15,7 +15,7 @@ class TenantController extends Controller
 
         $query = Reservation::where('rental_status', 'Occupied')
             ->whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))
-            ->with(['tenant', 'property', 'unit']);
+            ->with(['tenant', 'property.media', 'unit', 'conversation']);
 
         if ($search = $request->input('search')) {
             $query->whereHas('tenant', function ($q) use ($search) {

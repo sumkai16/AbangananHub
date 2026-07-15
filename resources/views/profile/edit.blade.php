@@ -14,18 +14,27 @@
         </a>
 
         {{-- Page header --}}
-        <div class="mb-8">
-            <h1 class="text-xl font-bold tracking-tight text-[#1F2937]">Account Settings</h1>
-            <p class="text-sm text-[#64748B] mt-1">Manage your personal information, password, and account.</p>
+        <div class="flex items-center gap-3.5 mb-6">
+            <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.991a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.78 7.78 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-[#1F2937]">Account Settings</h1>
+                <p class="text-sm text-[#64748B] mt-0.5">Manage your personal information, password, and account.</p>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-[200px_1fr]">
 
             {{-- Sidebar nav --}}
-            <aside class="lg:sticky lg:top-24 h-fit">
+            <aside class="lg:sticky lg:top-24 h-fit bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-2">
                 <nav class="flex flex-col gap-0.5">
                     <a href="#personal-info"
-                        class="sidebar-link group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#EEF8F8] hover:text-[#1F2937]"
+                        class="sidebar-link group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#EEF8F8] hover:text-[#1F2937]"
                         data-section="personal-info">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="shrink-0 opacity-60 group-hover:opacity-100">
@@ -35,7 +44,7 @@
                         Personal info
                     </a>
                     <a href="#security"
-                        class="sidebar-link group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#EEF8F8] hover:text-[#1F2937]"
+                        class="sidebar-link group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#EEF8F8] hover:text-[#1F2937]"
                         data-section="security">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="shrink-0 opacity-60 group-hover:opacity-100">
@@ -45,7 +54,7 @@
                         Password
                     </a>
                     <a href="#danger-zone"
-                        class="sidebar-link group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#EEF8F8] hover:text-[#1F2937]"
+                        class="sidebar-link group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[#64748B] transition-colors hover:bg-red-50 hover:text-red-600"
                         data-section="danger-zone">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="shrink-0 opacity-60 group-hover:opacity-100">
