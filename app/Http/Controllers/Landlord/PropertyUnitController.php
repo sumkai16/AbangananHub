@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\PropertyUnit;
-use App\Services\OccupancyRateCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,9 +21,7 @@ class PropertyUnitController extends Controller
     public function index(Property $property)
     {
         $this->authorizeProperty($property);
-        $units = $property->units()->with('media')->orderBy('unit_label')->get();
-        $occupancyRate = OccupancyRateCalculator::forProperty($property->property_id);
-        return view('landlord.units.index', compact('property', 'units', 'occupancyRate'));
+        return redirect()->route('landlord.units.index', ['property' => $property->property_id]);
     }
 
     public function create(Property $property)

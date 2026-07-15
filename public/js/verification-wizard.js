@@ -1,19 +1,20 @@
 /**
  * Verification Wizard — Alpine.js component
  *
- * 5-step landlord verification wizard with camera capture,
- * OCR preview, face detection, and front/back ID support.
+ * 6-screen landlord verification wizard:
+ *   Step 0: Welcome / intro
+ *   Step 1: Select ID type
+ *   Step 2: Capture government ID (camera or upload)
+ *   Step 3: Face verification / selfie (camera or upload)
+ *   Step 4: Business details
+ *   Step 5: Review & submit
  *
- * Usage in Blade:
- *   <div x-data="verificationWizard(config)" x-init="init()">
- *
- * Config shape:
- *   { ocrCheckUrl: string, csrfToken: string }
+ * Config: { ocrCheckUrl: string, csrfToken: string }
  */
 function verificationWizard(config) {
     return {
-        step: 1,
-        stepLabels: ['ID Type', 'ID Photo', 'Selfie', 'Business', 'Review'],
+        step: 0,
+        totalSteps: 5,
 
         // ── ID selection ──────────────────────────────────────
         idTypes: [
@@ -33,8 +34,12 @@ function verificationWizard(config) {
         selfieBase64: '',
 
         // ── Step 2 sub-state ──────────────────────────────────
-        // 'capture-front' | 'capture-back' | 'done'
-        idCapturePhase: 'capture-front',
+        // 'choose' | 'capture-front' | 'capture-back' | 'done'
+        idCapturePhase: 'choose',
+
+        // ── Step 3 capture mode ───────────────────────────────
+        // 'choose' | 'camera' | 'done'
+        selfieCapturePhase: 'choose',
 
         // ── Business fields ───────────────────────────────────
         businessName: '',
@@ -47,6 +52,11 @@ function verificationWizard(config) {
         cameraActive: false,
         cameraError: '',
 
+        // ── Capture method ────────────────────────────────────
+        // 'camera' | 'upload' | null
+        idCaptureMethod: null,
+        selfieCaptureMethod: null,
+
         // ── OCR ───────────────────────────────────────────────
         ocrLoading: false,
         ocrResult: null,
@@ -56,6 +66,13 @@ function verificationWizard(config) {
         // ── Face detection ────────────────────────────────────
         faceDetected: false,
         faceCheckDone: false,
+
+        // ── Liveness (UI skeleton — MediaPipe wired later) ───
+        livenessActive: false,
+        livenessStep: 0,
+        livenessSteps: ['Look straight', 'Turn left', 'Turn right', 'Blink twice'],
+        livenessCompleted: [false, false, false, false],
+        livenessPassed: false,
 
         // ── Duplicate side detection ──────────────────────────
         duplicateSideWarning: false,
@@ -94,28 +111,121 @@ function verificationWizard(config) {
                 this.cameraError = '';
 
                 if (newStep === 2) {
-                    if (!this.idImageBase64) {
-                        this.idCapturePhase = 'capture-front';
-                        this.$nextTick(() => this.startCamera('environment', this.$refs.videoId));
-                    } else if (this.needsBack && !this.idBackBase64) {
-                        this.idCapturePhase = 'capture-back';
-                        this.$nextTick(() => this.startCamera('environment', this.$refs.videoIdBack));
-                    } else {
-                        this.idCapturePhase = 'done';
+                    if (this.idCaptureMethod === 'camera') {
+                        if (!this.idImageBase64) {
+                            this.idCapturePhase = 'capture-front';
+                            this.$nextTick(() => this.startCamera('environment', this.$refs.videoId));
+                        } else if (this.needsBack && !this.idBackBase64) {
+                            this.idCapturePhase = 'capture-back';
+                            this.$nextTick(() => this.startCamera('environment', this.$refs.videoIdBack));
+                        } else {
+                            this.idCapturePhase = 'done';
+                        }
+                    } else if (!this.idCaptureMethod) {
+                        this.idCapturePhase = 'choose';
                     }
-                } else if (newStep === 3 && !this.selfieBase64) {
-                    this.$nextTick(() => this.startCamera('user', this.$refs.videoSelfie));
+                } else if (newStep === 3) {
+                    if (this.selfieCaptureMethod === 'camera' && !this.selfieBase64) {
+                        this.selfieCapturePhase = 'camera';
+                        this.$nextTick(() => this.startCamera('user', this.$refs.videoSelfie));
+                    } else if (!this.selfieCaptureMethod) {
+                        this.selfieCapturePhase = 'choose';
+                    }
                 }
             });
 
-            // Clear back image if user switches ID type
             this.$watch('idType', (newType, oldType) => {
                 if (oldType && newType !== oldType) {
                     this.idBackBase64 = '';
                     this.idImageBase64 = '';
-                    this.idCapturePhase = 'capture-front';
+                    this.idCapturePhase = 'choose';
+                    this.idCaptureMethod = null;
                 }
             });
+        },
+
+        // ── Capture method selection ──────────────────────────
+
+        chooseIdMethod(method) {
+            this.idCaptureMethod = method;
+            this.cameraError = '';
+
+            if (method === 'camera') {
+                this.idCapturePhase = 'capture-front';
+                this.$nextTick(() => this.startCamera('environment', this.$refs.videoId));
+            } else {
+                this.idCapturePhase = 'capture-front';
+            }
+        },
+
+        chooseSelfieMethod(method) {
+            this.selfieCaptureMethod = method;
+            this.cameraError = '';
+
+            if (method === 'camera') {
+                this.selfieCapturePhase = 'camera';
+                this.$nextTick(() => this.startCamera('user', this.$refs.videoSelfie));
+            } else {
+                this.selfieCapturePhase = 'camera';
+            }
+        },
+
+        switchIdMethod() {
+            this.stopCamera();
+            this.idCaptureMethod = null;
+            this.idCapturePhase = 'choose';
+            this.cameraError = '';
+        },
+
+        switchSelfieMethod() {
+            this.stopCamera();
+            this.selfieCaptureMethod = null;
+            this.selfieCapturePhase = 'choose';
+            this.cameraError = '';
+        },
+
+        // ── File upload handler ───────────────────────────────
+
+        handleFileUpload(type, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                this.cameraError = 'Please select an image file (JPEG or PNG).';
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                this.cameraError = 'Image is too large. Please select an image under 10MB.';
+                return;
+            }
+
+            this.cameraError = '';
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+
+                if (type === 'id') {
+                    this.idImageBase64 = dataUrl;
+                    if (this.needsBack) {
+                        this.idCapturePhase = 'capture-back';
+                    } else {
+                        this.idCapturePhase = 'done';
+                        this.runOcrCheck();
+                    }
+                } else if (type === 'idBack') {
+                    this.idBackBase64 = dataUrl;
+                    this.idCapturePhase = 'done';
+                    this.runOcrCheck();
+                } else if (type === 'selfie') {
+                    this.selfieBase64 = dataUrl;
+                    this.selfieCapturePhase = 'done';
+                    this.faceCheckDone = true;
+                    this.faceDetected = false;
+                }
+            };
+            reader.readAsDataURL(file);
         },
 
         // ── Camera ────────────────────────────────────────────
@@ -144,11 +254,11 @@ function verificationWizard(config) {
             } catch (err) {
                 console.error('Camera error:', err);
                 if (err.name === 'NotAllowedError') {
-                    this.cameraError = 'Camera access was denied. Please allow camera access in your browser settings and try again.';
+                    this.cameraError = 'Camera access was denied. Please allow camera access in your browser settings, or upload a photo instead.';
                 } else if (err.name === 'NotFoundError') {
                     this.cameraError = 'No camera found on this device.';
                 } else {
-                    this.cameraError = 'Could not access the camera. Please try again or use a different device.';
+                    this.cameraError = 'Could not access the camera. Try again or upload a photo instead.';
                 }
             }
         },
@@ -210,6 +320,7 @@ function verificationWizard(config) {
                 this.runOcrCheck();
             } else {
                 this.selfieBase64 = dataUrl;
+                this.selfieCapturePhase = 'done';
                 this.detectFace(canvas);
                 this.stopCamera();
             }
@@ -226,21 +337,40 @@ function verificationWizard(config) {
                 this.backOcrResult = null;
                 this.ocrError = false;
                 this.duplicateSideWarning = false;
-                this.idCapturePhase = 'capture-front';
-                this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoId), 500));
+
+                if (this.idCaptureMethod === 'camera') {
+                    this.idCapturePhase = 'capture-front';
+                    this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoId), 500));
+                } else {
+                    this.idCapturePhase = 'capture-front';
+                    this.$nextTick(() => {
+                        const input = this.$refs.fileInputFront;
+                        if (input) input.value = '';
+                    });
+                }
             } else if (type === 'idBack') {
                 this.idBackBase64 = '';
                 this.duplicateSideWarning = false;
                 this.ocrResult = null;
                 this.backOcrResult = null;
                 this.ocrError = false;
-                this.idCapturePhase = 'capture-back';
-                this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoIdBack), 500));
+
+                if (this.idCaptureMethod === 'camera') {
+                    this.idCapturePhase = 'capture-back';
+                    this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoIdBack), 500));
+                } else {
+                    this.idCapturePhase = 'capture-back';
+                    this.$nextTick(() => {
+                        const input = this.$refs.fileInputBack;
+                        if (input) input.value = '';
+                    });
+                }
             } else {
                 this.selfieBase64 = '';
                 this.faceCheckDone = false;
                 this.faceDetected = false;
-                this.$nextTick(() => setTimeout(() => this.startCamera('user', this.$refs.videoSelfie), 500));
+                this.selfieCapturePhase = 'choose';
+                this.selfieCaptureMethod = null;
             }
         },
 
@@ -267,14 +397,6 @@ function verificationWizard(config) {
         },
 
         // ── Duplicate side detection (OCR-based) ──────────────
-        //
-        // Pixel comparison is unreliable — two photos of the same
-        // card side from slightly different angles produce different
-        // enough pixel data to slip past any threshold. Instead,
-        // check the OCR text: front and back of PH IDs have
-        // completely different label text, so if the "back" photo
-        // contains front-side labels but no back-side labels, the
-        // user photographed the same side twice.
 
         checkDuplicateSides() {
             this.duplicateSideWarning = false;
@@ -283,13 +405,11 @@ function verificationWizard(config) {
 
             const backText = this.backOcrResult.extracted.toLowerCase();
 
-            // Labels that only appear on the FRONT of PH IDs
             const frontLabels = [
                 'apellido', 'last name', 'mga pangalan', 'given name',
                 'gitnang', 'middle name',
             ];
 
-            // Labels that only appear on the BACK of PH IDs
             const backLabels = [
                 'kasarian', 'sex', 'uri ng dugo', 'blood type',
                 'kalagayang sibil', 'marital status',
@@ -300,8 +420,6 @@ function verificationWizard(config) {
             const hasFrontLabels = frontLabels.some(l => backText.includes(l));
             const hasBackLabels = backLabels.some(l => backText.includes(l));
 
-            // If the "back" image has front labels but no back labels,
-            // the user almost certainly photographed the front twice.
             if (hasFrontLabels && !hasBackLabels) {
                 this.duplicateSideWarning = true;
             }
@@ -322,9 +440,7 @@ function verificationWizard(config) {
                 const line = lines[i];
                 const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : null;
 
-                // Last Name — after "Apellido" or "Last Name" label
                 if (!lastName && /Apel[a-z]*|Last Name/i.test(line)) {
-                    // Value on same line
                     const inline = line.match(/(?:Apel[a-z]*\/Last Name|Last Name|Apel[a-z]*)\s*[:/]?\s+([A-Z][A-Z\s-]+?)$/i);
                     if (inline) {
                         lastName = inline[1].trim();
@@ -333,7 +449,6 @@ function verificationWizard(config) {
                     }
                 }
 
-                // First Name — after "Mga Pangalan" or "Given Names" label
                 if (!firstName && /Mga Pangalan|Given Name/i.test(line)) {
                     const inline = line.match(/(?:Mga Pangalan\/Given Names?|Given Names?|Mga Pangalan)\s*[:/]?\s+([A-Z][A-Z\s-]+?)$/i);
                     if (inline) {
@@ -343,7 +458,6 @@ function verificationWizard(config) {
                     }
                 }
 
-                // Middle Name — after "Gitnang Apelyido" or "Middle Name" label
                 if (!middleName && /Gitnang Apel|Middle Name/i.test(line)) {
                     const inline = line.match(/(?:Gitnang Apel[a-z]*\/Middle Name|Middle Name|Gitnang Apel[a-z]*)\s*[:/]?\s+([A-Z][A-Z\s-]+?)$/i);
                     if (inline) {
@@ -374,7 +488,6 @@ function verificationWizard(config) {
             };
 
             try {
-                // Front OCR
                 const frontResponse = await fetch(config.ocrCheckUrl, {
                     method: 'POST',
                     headers,
@@ -387,7 +500,6 @@ function verificationWizard(config) {
                 if (!frontResponse.ok) throw new Error('Front OCR request failed');
                 this.ocrResult = await frontResponse.json();
 
-                // Back OCR (if back image exists)
                 if (this.idBackBase64) {
                     try {
                         const backResponse = await fetch(config.ocrCheckUrl, {
@@ -422,7 +534,7 @@ function verificationWizard(config) {
         },
 
         prevStep() {
-            if (this.step > 1) this.step--;
+            if (this.step > 0) this.step--;
         },
 
         submitForm() {
