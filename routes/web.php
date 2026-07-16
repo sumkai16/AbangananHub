@@ -83,6 +83,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/reservations/{reservation}/agreement/sign', [AgreementController::class, 'sign'])->name('agreements.sign');
         Route::post('/reservations/{reservation}/pay', [PaymentController::class, 'createCheckoutSession'])->name('payments.checkout');
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
+        Route::post('/reservations/{reservation}/confirm-move-in', [AgreementController::class, 'confirmMoveIn'])->name('agreements.confirmMoveIn');
         
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
 
@@ -184,6 +185,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/{report}', [App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
         Route::patch('/reports/{report}/resolve', [App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
+
+        Route::get('/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
+        Route::post('/payments/{payment}/release', [App\Http\Controllers\Admin\PaymentController::class, 'release'])->name('payments.release');
 
         // Profile
         Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');

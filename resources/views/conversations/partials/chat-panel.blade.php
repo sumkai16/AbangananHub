@@ -135,7 +135,7 @@
 
                 {{-- Actions --}}
                 @if($reservation && !$isTerminal)
-                    <div class="mt-3" x-data="{ showReject: false, showCancel: false }">
+                    <div class="mt-3" x-data="{ showReject: false, showCancel: false, showTc: false }">
                         @if($isLandlord)
                             @if($rentalStatus === 'Inquiry')
                                 <div class="flex items-center gap-2">
@@ -162,17 +162,32 @@
 
                             @elseif($rentalStatus === 'Under Negotiation')
                                 <div class="flex items-center gap-2">
-                                    <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST" class="flex-1">
-                                        @csrf @method('PATCH')
-                                        <button type="submit" class="w-full bg-[#1F2937] hover:brightness-95 text-white text-[12px] font-bold py-2 rounded-xl transition flex items-center justify-center gap-1.5">
-                                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                            Send agreement
-                                        </button>
-                                    </form>
+                                    <button type="button" @click="showTc = !showTc" class="flex-1 bg-[#1F2937] hover:brightness-95 text-white text-[12px] font-bold py-2 rounded-xl transition flex items-center justify-center gap-1.5">
+                                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                        Send agreement
+                                    </button>
                                     <button type="button" @click="showReject = !showReject"
                                         class="px-4 py-2 border border-[#EF4444] text-[#EF4444] text-[12px] font-semibold rounded-xl hover:bg-[#EF4444]/5 transition">
                                         Reject
                                     </button>
+                                </div>
+                                <div x-show="showTc" x-transition x-cloak class="mt-2">
+                                    <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
+                                        @csrf @method('PATCH')
+                                        <div class="p-3 bg-[#EEF8F8] rounded-xl border border-[#2AA7A1]/20">
+                                            <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
+                                                <input type="checkbox" name="accept_tc" required
+                                                    class="mt-0.5 w-4 h-4 rounded border-[#64748B]/40 text-[#156F8C] focus:ring-[#2AA7A1] focus:ring-offset-0 transition">
+                                                <span class="text-[11px] text-[#1F2937] leading-relaxed">
+                                                    I agree that the tenant's payment will be held by AbangananHub until the tenant confirms move-in. Funds will be released only after tenant verification.
+                                                </span>
+                                            </label>
+                                            <button type="submit"
+                                                class="w-full bg-[#2AA7A1] hover:brightness-95 text-white text-[12px] font-bold py-2 rounded-lg transition">
+                                                Confirm &amp; send agreement
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                                 <div x-show="showReject" x-cloak class="mt-2">
                                     <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST" class="flex gap-2">
@@ -316,19 +331,27 @@
     {{-- Messages --}}
     <div id="message-list" class="flex-1 px-5 py-4 overflow-y-auto flex flex-col gap-2.5 scroll-smooth" style="background: #F7FCFC;">
         @foreach ($conversation->messages as $message)
-            @php $isSelf = $message->sender_id === auth()->id(); @endphp
-            <div class="max-w-[75%] {{ $isSelf ? 'self-end bg-[#1F2937] text-white rounded-2xl rounded-tr-sm' : 'self-start bg-white text-[#1F2937] border border-[#E2E8F0] rounded-2xl rounded-tl-sm' }} px-4 py-2.5 shadow-sm">
-                @if(!$isSelf)
-                    <p class="text-[10px] font-bold text-[#64748B] mb-1 tracking-wide uppercase">
-                        {{ $message->sender->first_name }}
-                    </p>
-                @endif
-                <p class="text-[13px] leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>
-                <div class="flex items-center justify-end mt-1">
-                    <p class="text-[10px] tracking-wide {{ $isSelf ? 'text-white/40' : 'text-[#64748B]' }} message-time"
-                        data-sent-at="{{ $message->sent_at->toIso8601String() }}"></p>
+            @if($message->is_system)
+                <div class="self-stretch flex items-center gap-3 my-1 px-2">
+                    <div class="flex-1 h-px bg-[#E2E8F0]"></div>
+                    <p class="text-xs text-[#64748B] text-center max-w-[70%] leading-relaxed">{{ $message->message }}</p>
+                    <div class="flex-1 h-px bg-[#E2E8F0]"></div>
                 </div>
-            </div>
+            @else
+                @php $isSelf = $message->sender_id === auth()->id(); @endphp
+                <div class="max-w-[75%] {{ $isSelf ? 'self-end bg-[#1F2937] text-white rounded-2xl rounded-tr-sm' : 'self-start bg-white text-[#1F2937] border border-[#E2E8F0] rounded-2xl rounded-tl-sm' }} px-4 py-2.5 shadow-sm">
+                    @if(!$isSelf)
+                        <p class="text-[10px] font-bold text-[#64748B] mb-1 tracking-wide uppercase">
+                            {{ $message->sender->first_name }}
+                        </p>
+                    @endif
+                    <p class="text-[13px] leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>
+                    <div class="flex items-center justify-end mt-1">
+                        <p class="text-[10px] tracking-wide {{ $isSelf ? 'text-white/40' : 'text-[#64748B]' }} message-time"
+                            data-sent-at="{{ $message->sent_at->toIso8601String() }}"></p>
+                    </div>
+                </div>
+            @endif
         @endforeach
     </div>
 

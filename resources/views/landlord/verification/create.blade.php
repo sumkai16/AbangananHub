@@ -688,7 +688,7 @@
                                     </div>
 
                                     {{-- Liveness complete flash --}}
-                                    <div x-show="livenessPassed&& countdownValue === 0"
+                                    <div x-show="livenessPassed && countdownValue === 0"
                                         class="absolute inset-0 bg-[#22C55E]/20 flex items-center justify-center pointer-events-none">
                                         <div class="w-16 h-16 rounded-full bg-[#22C55E] flex items-center justify-center">
                                             <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -1083,23 +1083,14 @@
                 </div>
                 {{-- Continue via email link (all steps) --}}
                 <div class="mt-6 text-center">
-                    <button type="button" x-data="{ sending: false, sent: false }" @click="
-        if (sending || sent) return;
-        sending = true;
-        fetch('{{ route('landlord.verification.sendEmailLink') }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-        })
-        .then(r => {
-            sending = false;
-            if (r.status === 429) { sent = true; $el.querySelector('[x-ref=msg]') && ($refs.msg.textContent = 'Please wait a few minutes before requesting again.'); setTimeout(() => sent = false, 5000); return; }
-            if (r.ok) { sent = true; setTimeout(() => sent = false, 5000); }
-        })
-        .catch(() => { sending = false; })
-    " " class=" text-xs text-[#64748B] hover:text-[#2AA7A1] transition-colors" :class="sent ? 'pointer-events-none' : ''">
-                        <span x-show="!sending && !sent" class="underline">Continue verification via email</span>
+                    <button type="button"
+                        x-data="emailLinkButton('{{ route('landlord.verification.sendEmailLink') }}', '{{ csrf_token() }}')"
+                        @click="send()" class="text-xs text-[#64748B] hover:text-[#2AA7A1] transition-colors"
+                        :class="done ? 'pointer-events-none' : ''">
+                        <span x-show="!sending && !done" class="underline">Continue verification via email</span>
                         <span x-show="sending" style="display:none">Sending...</span>
-                        <span x-show="sent" style="display:none" class="text-[#22C55E]">Link sent! Check your inbox.</span>
+                        <span x-show="done" style="display:none" :class="success ? 'text-[#22C55E]' : 'text-[#FBBF24]'"
+                            x-text="message"></span>
                     </button>
                 </div>
             </form>
@@ -1107,4 +1098,39 @@
     </div>
 
     <script src="{{ asset('js/verification-wizard.js') }}"></script>
+    <script>
+        function emailLinkButton(url, csrfToken) {
+            return {
+                sending: false,
+                done: false,
+                success: false,
+                message: '',
+                send() {
+                    if (this.sending || this.done) return;
+                    this.sending = true;
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+                    })
+                        .then(r => {
+                            if (r.status === 429) {
+                                this.showResult(false, 'Please wait a few minutes before requesting again.');
+                            } else if (r.ok) {
+                                this.showResult(true, 'Link sent! Check your inbox.');
+                            } else {
+                                this.showResult(false, 'Something went wrong. Please try again.');
+                            }
+                        })
+                        .catch(() => this.showResult(false, 'Network error. Please try again.'));
+                },
+                showResult(success, message) {
+                    this.sending = false;
+                    this.success = success;
+                    this.message = message;
+                    this.done = true;
+                    setTimeout(() => { this.done = false; this.message = ''; }, 5000);
+                }
+            };
+        }
+    </script>
 @endsection

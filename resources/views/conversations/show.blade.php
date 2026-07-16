@@ -81,19 +81,27 @@
                 {{-- Messages --}}
                 <div id="message-list" class="flex-1 p-6 overflow-y-auto flex flex-col gap-3 scroll-smooth" style="background: #F7FCFC;">
                     @foreach ($conversation->messages as $message)
-                        @php $isSelf = $message->sender_id === auth()->id(); @endphp
-                        <div class="max-w-[75%] {{ $isSelf ? 'self-end bg-[#1F2937] text-white rounded-2xl rounded-tr-sm' : 'self-start bg-white text-[#1F2937] border border-[#EEF8F8] rounded-2xl rounded-tl-sm' }} px-4 py-2.5 shadow-sm">
-                            @if(!$isSelf)
-                                <p class="text-[10px] font-bold text-[#64748B] mb-1 tracking-wide uppercase">
-                                    {{ $message->sender->first_name }}
-                                </p>
-                            @endif
-                            <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>
-                            <div class="flex items-center justify-end mt-1">
-                                <p class="text-[10px] tracking-wide {{ $isSelf ? 'text-white/40' : 'text-[#64748B]' }} message-time"
-                                    data-sent-at="{{ $message->sent_at->toIso8601String() }}"></p>
+                        @if($message->is_system)
+                            <div class="self-stretch flex items-center gap-3 my-1 px-2">
+                                <div class="flex-1 h-px bg-[#E2E8F0]"></div>
+                                <p class="text-xs text-[#64748B] text-center max-w-[70%] leading-relaxed">{{ $message->message }}</p>
+                                <div class="flex-1 h-px bg-[#E2E8F0]"></div>
                             </div>
-                        </div>
+                        @else
+                            @php $isSelf = $message->sender_id === auth()->id(); @endphp
+                            <div class="max-w-[75%] {{ $isSelf ? 'self-end bg-[#1F2937] text-white rounded-2xl rounded-tr-sm' : 'self-start bg-white text-[#1F2937] border border-[#EEF8F8] rounded-2xl rounded-tl-sm' }} px-4 py-2.5 shadow-sm">
+                                @if(!$isSelf)
+                                    <p class="text-[10px] font-bold text-[#64748B] mb-1 tracking-wide uppercase">
+                                        {{ $message->sender->first_name }}
+                                    </p>
+                                @endif
+                                <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>
+                                <div class="flex items-center justify-end mt-1">
+                                    <p class="text-[10px] tracking-wide {{ $isSelf ? 'text-white/40' : 'text-[#64748B]' }} message-time"
+                                        data-sent-at="{{ $message->sent_at->toIso8601String() }}"></p>
+                                </div>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
 
@@ -207,32 +215,48 @@
                                 </div>
 
                             @elseif($rentalStatus === 'Under Negotiation')
-                                <div class="space-y-2">
+                            <div class="space-y-2" x-data="{ showTc: false }">
+                                <button type="button" @click="showTc = !showTc"
+                                    class="w-full bg-[#1F2937] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                    Send agreement
+                                </button>
+                                <div x-show="showTc" x-transition x-cloak>
                                     <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="w-full bg-[#1F2937] hover:brightness-95 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
-                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                            Send agreement
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST"
-                                        x-data="{ open: false }">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="button" @click="open = !open"
-                                            class="w-full border border-[#EF4444] text-[#EF4444] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#EF4444]/5">
-                                            Reject
-                                        </button>
-                                        <div x-show="open" x-cloak class="mt-2 space-y-2">
-                                            <textarea name="rejection_reason" rows="2" placeholder="Reason (optional)"
-                                                class="w-full text-xs border border-[#EEF8F8] rounded-lg px-3 py-2 text-[#1F2937] placeholder-[#64748B] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1]/10 outline-none resize-none"></textarea>
-                                            <button type="submit" class="w-full bg-[#EF4444] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
-                                                Confirm rejection
+                                        <div class="p-3 bg-[#EEF8F8] rounded-xl border border-[#2AA7A1]/20">
+                                            <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
+                                                <input type="checkbox" name="accept_tc" required
+                                                    class="mt-0.5 w-4 h-4 rounded border-[#64748B]/40 text-[#156F8C] focus:ring-[#2AA7A1] focus:ring-offset-0 transition">
+                                                <span class="text-[11px] text-[#1F2937] leading-relaxed">
+                                                    I agree that the tenant's payment will be held by AbangananHub until the tenant confirms move-in. Funds will be released only after tenant verification.
+                                                </span>
+                                            </label>
+                                            <button type="submit"
+                                                class="w-full bg-[#2AA7A1] hover:brightness-95 text-white text-xs font-bold py-2 rounded-lg transition">
+                                                Confirm &amp; send agreement
                                             </button>
                                         </div>
                                     </form>
                                 </div>
+                                <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST"
+                                    x-data="{ open: false }">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="button" @click="open = !open"
+                                        class="w-full border border-[#EF4444] text-[#EF4444] text-xs font-semibold py-2.5 rounded-xl transition-colors duration-150 hover:bg-[#EF4444]/5">
+                                        Reject
+                                    </button>
+                                    <div x-show="open" x-cloak class="mt-2 space-y-2">
+                                        <textarea name="rejection_reason" rows="2" placeholder="Reason (optional)"
+                                            class="w-full text-xs border border-[#EEF8F8] rounded-lg px-3 py-2 text-[#1F2937] placeholder-[#64748B] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1]/10 outline-none resize-none"></textarea>
+                                        <button type="submit" class="w-full bg-[#EF4444] hover:brightness-95 active:scale-[0.98] text-white text-xs font-bold py-2 rounded-lg transition-all duration-150">
+                                            Confirm rejection
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
 
                             @elseif($rentalStatus === 'Pending Rental Agreement')
                                 <div class="bg-[#EEF8F8] rounded-xl p-3 text-center">
@@ -357,7 +381,21 @@
 
         messageList.scrollTop = messageList.scrollHeight;
 
-        function appendMessage({ sender_id, sender_name, message, sent_at }) {
+        function appendMessage({ sender_id, sender_name, message, sent_at, is_system }) {
+            if (is_system) {
+                const divider = document.createElement('div');
+                divider.className = 'self-stretch flex items-center gap-3 my-1 px-2';
+                divider.innerHTML = `
+                    <div class="flex-1 h-px bg-[#E2E8F0]"></div>
+                    <p class="text-xs text-[#64748B] text-center max-w-[70%] leading-relaxed"></p>
+                    <div class="flex-1 h-px bg-[#E2E8F0]"></div>
+                `;
+                divider.querySelector('p').textContent = message;
+                messageList.appendChild(divider);
+                messageList.scrollTop = messageList.scrollHeight;
+                return;
+            }
+
             const isSelf = sender_id === currentUserId;
             const bubble = document.createElement('div');
 
@@ -413,7 +451,8 @@
                     sender_id: e.sender_id,
                     sender_name: e.sender_name,
                     message: e.message,
-                    sent_at: e.sent_at
+                    sent_at: e.sent_at,
+                    is_system: e.is_system
                 });
             });
     </script>

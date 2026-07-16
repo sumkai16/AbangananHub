@@ -11,10 +11,12 @@ class Message extends Model
         'sender_id',
         'message',
         'is_read',
+        'is_system',
     ];
     protected $casts = [
         'sent_at' => 'datetime',
         'is_read' => 'boolean',
+        'is_system' => 'boolean',
     ];
     public function conversation(): BelongsTo
     {

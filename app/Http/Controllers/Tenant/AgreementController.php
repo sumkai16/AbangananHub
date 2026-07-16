@@ -25,16 +25,42 @@ class AgreementController extends Controller
         return view('agreements.show', compact('reservation'));
     }
 
-    public function sign(Request $request, Reservation $reservation)
-    {
-        Gate::authorize('sign', $reservation);
+public function sign(Request $request, Reservation $reservation)
+{
+    Gate::authorize('sign', $reservation);
 
-        if (!$reservation->signAgreement($request->ip())) {
-            return back()->withErrors(['agreement' => 'This agreement cannot be signed right now.']);
-        }
+    $request->validate([
+        'agree' => 'accepted',
+        'accept_tc' => 'accepted',
+    ], [
+        'agree.accepted' => 'You must agree to the rental agreement terms.',
+        'accept_tc.accepted' => 'You must accept the platform terms and conditions.',
+    ]);
 
-        return redirect()
-            ->route('agreements.show', $reservation)
-            ->with('success', 'Agreement signed. You can now proceed to payment.');
+    if (!$reservation->signAgreement($request->ip())) {
+        return back()->withErrors(['agreement' => 'This agreement cannot be signed right now.']);
     }
+
+    $reservation->update(['tenant_tc_accepted_at' => now()]);
+
+    $reservation->postSystemMessage($reservation->tenant->name . ' signed the rental agreement.');
+
+    return redirect()
+        ->route('agreements.show', $reservation)
+        ->with('success', 'Agreement signed. You can now proceed to payment.');
+}
+public function confirmMoveIn(Reservation $reservation)
+{
+    Gate::authorize('sign', $reservation);
+
+    if (!$reservation->confirmMoveIn()) {
+        return back()->withErrors(['move_in' => 'Move-in cannot be confirmed right now. Payment must be completed first.']);
+    }
+
+    $reservation->postSystemMessage($reservation->tenant->name . ' confirmed move-in. The unit is now occupied.');
+
+    return redirect()
+        ->route('agreements.show', $reservation)
+        ->with('success', 'Move-in confirmed! Your unit is now marked as occupied.');
+}
 }

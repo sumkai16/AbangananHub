@@ -24,6 +24,9 @@ class Reservation extends Model
         'agreed_ip',
         'remarks',
         'rejection_reason',
+        'landlord_tc_accepted_at',
+        'tenant_tc_accepted_at',
+        'tenant_confirmed_move_in_at',
     ];
 
     protected function casts(): array
@@ -33,9 +36,33 @@ class Reservation extends Model
             'target_move_in_date' => 'date',
             'target_move_out_date' => 'date',
             'agreed_at' => 'datetime',
+            'landlord_tc_accepted_at' => 'datetime',
+            'tenant_tc_accepted_at' => 'datetime',  
+            'tenant_confirmed_move_in_at' => 'datetime',
         ];
     }
+public function confirmMoveIn(): bool
+{
+    if ($this->rental_status !== 'Rental Agreement Signed') {
+        return false;
+    }
 
+    // Must have a held payment
+    if (!$this->payments()->where('status', 'Held')->exists()) {
+        return false;
+    }
+
+    $this->rental_status = 'Occupied';
+    $this->tenant_confirmed_move_in_at = now();
+    $this->save();
+
+    if ($this->unit) {
+        $this->unit->availability_status = 'Occupied';
+        $this->unit->save();
+    }
+
+    return true;
+}
     // ─── Relationships ───────────────────────────────────────
 
     public function property()
@@ -190,5 +217,20 @@ class Reservation extends Model
         if ($this->conversation && !$this->conversation->isCancelled()) {
             $this->conversation->update(['status' => 'Cancelled']);
         }
+    }
+
+    public function postSystemMessage(string $text): void
+    {
+        if (!$this->conversation_id) {
+            return;
+        }
+
+        Message::create([
+            'conversation_id' => $this->conversation_id,
+            'sender_id' => null,
+            'message' => $text,
+            'is_system' => true,
+            'is_read' => true,
+        ]);
     }
 }

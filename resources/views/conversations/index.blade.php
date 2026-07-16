@@ -315,7 +315,8 @@
                                     sender_id: e.sender_id,
                                     sender_name: e.sender_name,
                                     message: e.message,
-                                    sent_at: e.sent_at
+                                    sent_at: e.sent_at,
+                                    is_system: e.is_system
                                 }, false);
                             });
                     },
@@ -323,6 +324,19 @@
                     appendMessage(data, isSelf) {
                         const msgList = document.getElementById('message-list');
                         if (!msgList) return;
+
+                        if (data.is_system) {
+                            const divider = document.createElement('div');
+                            divider.className = 'self-stretch flex items-center gap-3 my-1 px-2';
+                            divider.innerHTML = `
+                                <div class="flex-1 h-px bg-[#E2E8F0]"></div>
+                                <p class="text-xs text-[#64748B] text-center max-w-[70%] leading-relaxed">${this.escapeHtml(data.message)}</p>
+                                <div class="flex-1 h-px bg-[#E2E8F0]"></div>
+                            `;
+                            msgList.appendChild(divider);
+                            msgList.scrollTop = msgList.scrollHeight;
+                            return;
+                        }
 
                         const currentUserId = {{ auth()->id() }};
                         const self = isSelf || data.sender_id === currentUserId;

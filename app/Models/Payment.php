@@ -20,12 +20,15 @@ class Payment extends Model
     'paymongo_checkout_session_id',
     'status',
     'paid_at',
+    'released_at',
+    'released_by',
 ];
 
     protected $casts = [
         'billing_period' => 'date',
         'paid_at' => 'datetime',
         'amount' => 'decimal:2',
+        'released_at' => 'datetime',
     ];
 
     public function reservation(): BelongsTo
@@ -37,4 +40,13 @@ class Payment extends Model
     {
         return $this->status === 'Paid';
     }
+    public function isHeld(): bool
+{
+    return $this->status === 'Held';
+}
+
+public function isReleased(): bool
+{
+    return $this->status === 'Released';
+}
 }

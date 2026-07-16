@@ -27,43 +27,42 @@ class PayMongoWebhookController extends Controller
         return response()->json(['message' => 'Webhook received'], 200);
     }
 
-    protected function handleCheckoutPaid(array $resource): void
-    {
-        $checkoutSessionId = $resource['id'] ?? null;
+protected function handleCheckoutPaid(array $resource): void
+{
+    $checkoutSessionId = $resource['id'] ?? null;
 
-        if (!$checkoutSessionId) {
-            Log::warning('PayMongo webhook: missing checkout session ID');
-            return;
-        }
-
-        $payment = Payment::where('paymongo_checkout_session_id', $checkoutSessionId)->first();
-
-        if (!$payment) {
-            Log::warning('PayMongo webhook: no matching payment', ['session_id' => $checkoutSessionId]);
-            return;
-        }
-
-        // Idempotency — already processed
-        if ($payment->isPaid()) {
-            return;
-        }
-
-        $paymentIntentId = $resource['attributes']['payment_intent']['id'] ?? null;
-        $paymongoPaymentId = $resource['attributes']['payments'][0]['id'] ?? null;
-
-        $payment->update([
-            'status' => 'Paid',
-            'paymongo_payment_intent_id' => $paymentIntentId,
-            'paymongo_payment_id' => $paymongoPaymentId,
-            'paid_at' => now(),
-        ]);
-
-        $reservation = $payment->reservation;
-
-        if ($reservation && !$reservation->isOccupied()) {
-            $reservation->markOccupied();
-        }
+    if (!$checkoutSessionId) {
+        Log::warning('PayMongo webhook: missing checkout session ID');
+        return;
     }
+
+    $payment = Payment::where('paymongo_checkout_session_id', $checkoutSessionId)->first();
+
+    if (!$payment) {
+        Log::warning('PayMongo webhook: no matching payment', ['session_id' => $checkoutSessionId]);
+        return;
+    }
+
+    // Idempotency — already processed
+    if ($payment->status !== 'Pending') {
+        return;
+    }
+
+    $paymentIntentId = $resource['attributes']['payment_intent']['id'] ?? null;
+    $paymongoPaymentId = $resource['attributes']['payments'][0]['id'] ?? null;
+
+    $payment->update([
+        'status' => 'Held',
+        'paymongo_payment_intent_id' => $paymentIntentId,
+        'paymongo_payment_id' => $paymongoPaymentId,
+        'paid_at' => now(),
+    ]);
+
+    $reservation = $payment->reservation;
+    if ($reservation) {
+        $reservation->postSystemMessage($reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.');
+    }
+}
 
     protected function verifySignature(string $payload, string $signatureHeader): bool
     {

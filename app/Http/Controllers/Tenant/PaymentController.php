@@ -72,16 +72,41 @@ class PaymentController extends Controller
         return redirect($checkoutData['attributes']['checkout_url']);
     }
 
-    public function success(Reservation $reservation)
-    {
-        Gate::authorize('sign', $reservation);
+public function success(Reservation $reservation)
+{
+    Gate::authorize('sign', $reservation);
 
-        $reservation->load(['unit', 'tenant', 'payments' => function ($q) {
-            $q->latest('payment_id')->limit(1);
-        }]);
+    $reservation->load(['unit', 'tenant']);
 
-        $latestPayment = $reservation->payments->first();
+    $latestPayment = Payment::where('reservation_id', $reservation->reservation_id)
+        ->latest('payment_id')
+        ->first();
 
-        return view('payments.pending', compact('reservation', 'latestPayment'));
+    // If webhook hasn't fired yet, check PayMongo directly
+    if ($latestPayment && $latestPayment->status === 'Pending' && $latestPayment->paymongo_checkout_session_id) {
+        $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
+            ->get("https://api.paymongo.com/v1/checkout_sessions/{$latestPayment->paymongo_checkout_session_id}");
+
+        if ($response->ok()) {
+            $sessionStatus = $response->json('data.attributes.status');
+            $payments = $response->json('data.attributes.payments') ?? [];
+
+            if ($sessionStatus === 'paid' || count($payments) > 0) {
+                $paymongoPaymentId = $payments[0]['id'] ?? null;
+                $paymentIntentId = $response->json('data.attributes.payment_intent.id');
+
+                $latestPayment->update([
+                    'status' => 'Held',
+                    'paymongo_payment_intent_id' => $paymentIntentId,
+                    'paymongo_payment_id' => $paymongoPaymentId,
+                    'paid_at' => now(),
+                ]);
+
+                $reservation->postSystemMessage($reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.');
+            }
+        }
     }
+
+    return view('payments.pending', compact('reservation', 'latestPayment'));
+}
 }

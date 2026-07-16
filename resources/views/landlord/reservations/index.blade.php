@@ -265,20 +265,39 @@
                                         </button>
                                     </form>
                                 @elseif($reservation->rental_status === 'Under Negotiation')
-                                    <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
-                                        @csrf @method('PATCH')
-                                        <button type="submit"
-                                            class="h-9 px-3.5 rounded-full bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200">
-                                            Send agreement
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
-                                        @csrf @method('PATCH')
-                                        <button type="submit"
-                                            class="h-9 px-3.5 rounded-full bg-red-500 text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200">
-                                            Reject
-                                        </button>
-                                    </form>
+                                    <div x-data="{ showTc: false }">
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" @click="showTc = !showTc"
+                                                class="h-9 px-3.5 rounded-full bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200">
+                                                Send agreement
+                                            </button>
+                                            <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
+                                                @csrf @method('PATCH')
+                                                <button type="submit"
+                                                    class="h-9 px-3.5 rounded-full bg-red-500 text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200">
+                                                    Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div x-show="showTc" x-transition class="mt-3 w-full lg:w-auto">
+                                            <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
+                                                @csrf @method('PATCH')
+                                                <div class="p-3 bg-[#EEF8F8] rounded-xl border border-[#2AA7A1]/20">
+                                                    <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
+                                                        <input type="checkbox" name="accept_tc" required
+                                                            class="mt-0.5 w-4 h-4 rounded border-[#64748B]/40 text-[#156F8C] focus:ring-[#2AA7A1] focus:ring-offset-0 transition">
+                                                        <span class="text-xs text-[#1F2937] leading-relaxed">
+                                                            I agree that the tenant's payment will be held by AbangananHub until the tenant confirms move-in. Funds will be released only after tenant verification.
+                                                        </span>
+                                                    </label>
+                                                    <button type="submit"
+                                                        class="w-full h-9 rounded-lg bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200">
+                                                        Confirm &amp; send agreement
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
                                 @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
                                     <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                         data-confirm="Cancel this reservation?"

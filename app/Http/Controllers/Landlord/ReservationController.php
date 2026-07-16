@@ -95,21 +95,30 @@ class ReservationController extends Controller
             return back()->withErrors(['reservation' => 'This reservation cannot move to negotiation right now.']);
         }
 
+        $reservation->postSystemMessage(Auth::user()->name . ' accepted the inquiry and started negotiation.');
+
         return back()->with('success', 'Moved to Under Negotiation.');
     }
 
-    public function advanceToPendingAgreement(Request $request, Reservation $reservation)
-    {
-        Gate::authorize('advanceStatus', $reservation);
+public function advanceToPendingAgreement(Request $request, Reservation $reservation)
+{
+    Gate::authorize('advanceStatus', $reservation);
 
-        $request->validate([
-            'agreement_terms_notes' => 'nullable|string|max:2000',
-        ]);
+    $request->validate([
+        'agreement_terms_notes' => 'nullable|string|max:2000',
+        'accept_tc' => 'accepted',
+    ], [
+        'accept_tc.accepted' => 'You must accept the terms and conditions to proceed.',
+    ]);
 
-        if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
-            return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
-        }
-
-        return back()->with('success', 'Agreement sent to tenant.');
+    if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
+        return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
     }
+
+    $reservation->update(['landlord_tc_accepted_at' => now()]);
+
+    $reservation->postSystemMessage(Auth::user()->name . ' sent the rental agreement.');
+
+    return back()->with('success', 'Agreement sent to tenant.');
+}
 }
