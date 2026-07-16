@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreVerificationRequest;
+use App\Mail\VerificationLinkMail;
 use App\Models\LandlordVerification;
+use App\Models\User;
 use App\Services\OcrService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class VerificationController extends Controller
@@ -19,9 +22,50 @@ class VerificationController extends Controller
             return redirect()->route('landlord.properties.index');
         }
 
+        // Send verification email once per session (first visit only)
+    if ((! $verification || $verification->verification_status === 'Rejected') && ! session('verification_email_sent')) {
+            Mail::to(auth()->user()->email)->send(new VerificationLinkMail(auth()->user()));
+            session(['verification_email_sent' => true]);
+            session()->flash('email_sent', 'We\'ve also sent a verification link to your email. The link expires in 1 hour.');
+        }
+
         return view('landlord.verification.create', compact('verification'));
     }
 
+    /**
+     * Entry point from signed email link.
+     */
+    public function createFromEmail(Request $request, User $user)
+    {
+        if (auth()->id() !== $user->user_id) {
+            abort(403, 'This verification link belongs to a different account.');
+        }
+
+        $verification = $user->verificationApplication;
+
+        if ($verification?->isApproved()) {
+            return redirect()->route('landlord.properties.index');
+        }
+
+        return view('landlord.verification.create', compact('verification'));
+    }
+/**
+ * AJAX — send or resend the verification email link.
+ */
+public function sendEmailLink(Request $request)
+{
+    $user = $request->user();
+
+    $verification = $user->verificationApplication;
+
+    if ($verification?->isApproved()) {
+        return response()->json(['message' => 'Already verified.'], 422);
+    }
+
+    Mail::to($user->email)->send(new VerificationLinkMail($user));
+
+    return response()->json(['message' => 'Verification link sent to ' . $user->email]);
+}
     /**
      * AJAX — OCR preview for step 5 of the wizard.
      * Receives base64 ID image, runs OCR, returns name match + type match result.
@@ -219,7 +263,8 @@ class VerificationController extends Controller
 
         return Storage::disk('local')->download($verification->selfie);
     }
-/**
+
+    /**
      * Serve a verification image inline (for display, not download).
      */
     public function preview(LandlordVerification $verification, string $type)
@@ -242,6 +287,7 @@ class VerificationController extends Controller
             ['Content-Type' => 'image/jpeg']
         );
     }
+
     // ─── Helpers ──────────────────────────────────────────────
 
     protected function decodeBase64Image(string $base64): ?string

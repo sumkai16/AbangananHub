@@ -26,6 +26,8 @@ use App\Http\Controllers\Tenant\AgreementController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\PayMongoWebhookController;
 use App\Http\Controllers\Admin\ReportAnalyticsController;
+
+
 Route::get('/', [PropertyController::class, 'index'])->name('home');
 Route::get('/about', fn() => view('about'))->name('about');
 
@@ -45,7 +47,13 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::get('/landlord/apply', [VerificationController::class, 'create'])->name('landlord.verification.create');
     Route::post('/landlord/apply', [VerificationController::class, 'store'])->name('landlord.verification.store');
     Route::post('/landlord/apply/ocr-check', [VerificationController::class, 'ocrCheck'])->name('landlord.verification.ocrCheck');
+    Route::post('/landlord/apply/send-email-link', [VerificationController::class, 'sendEmailLink'])
+    ->name('landlord.verification.sendEmailLink')
+    ->middleware('throttle:3,5');
     Route::get('/landlord/verification', [VerificationController::class, 'show'])->name('landlord.verification.show');
+    Route::get('/landlord/apply/via-email/{user}', [VerificationController::class, 'createFromEmail'])
+    ->name('landlord.verification.viaemail')
+    ->middleware('signed');
     Route::get('/verifications/{verification}/document', [VerificationController::class, 'download'])->name('verifications.document');
     Route::get('/verifications/{verification}/selfie', [VerificationController::class, 'downloadSelfie'])->name('verifications.selfie');
     Route::get('/verifications/{verification}/id-back', [VerificationController::class, 'downloadIdBack'])->name('verifications.idBack');
@@ -197,6 +205,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::get('/notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
+
+ 
 });
 
 // Publicly accessible property routes
