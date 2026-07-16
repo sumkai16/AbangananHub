@@ -1,12 +1,19 @@
 <div class="rounded-2xl border border-red-100 bg-white p-6 sm:p-8">
 
     {{-- Section header --}}
-    <div class="mb-5 border-b border-red-50 pb-5">
-        <h2 class="text-[15px] font-semibold text-[#1F2937]">Danger zone</h2>
-        <p class="mt-1 text-sm text-[#64748B]">Permanently delete your account and all associated data.</p>
+    <div class="mb-5 border-b border-red-50 pb-5 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </div>
+        <div>
+            <h2 class="text-[15px] font-semibold text-[#1F2937]">Danger zone</h2>
+            <p class="mt-0.5 text-sm text-[#64748B]">Permanently delete your account and all associated data.</p>
+        </div>
     </div>
 
-    <div class="flex items-start justify-between gap-6">
+    <div class="flex items-start justify-between gap-6 flex-wrap">
         <p class="max-w-sm text-sm text-[#64748B]">
             Once your account is deleted, all of your data will be permanently removed. This action cannot be undone.
         </p>

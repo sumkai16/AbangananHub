@@ -6,22 +6,22 @@
 
             {{-- Header --}}
             <div class="mb-8">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center shrink-0">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
                         @if($targetType === 'user')
-                            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="1.8">
+                            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                             </svg>
                         @else
-                            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="1.8">
+                            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                             </svg>
                         @endif
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-[#1F2937]">
+                        <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">
                             {{ $targetType === 'user' ? 'Report a user' : ($targetType === 'property' ? 'Report a listing' : 'Report a problem') }}
                         </h1>
                         <p class="mt-1 text-sm text-[#64748B]">
@@ -195,7 +195,7 @@
 
                     <div class="flex items-center gap-3 pt-2">
                         <button type="submit"
-                            class="h-11 px-6 inline-flex items-center justify-center rounded-full bg-[#FF8A65] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200">
+                            class="h-11 px-6 inline-flex items-center justify-center rounded-full bg-[#2AA7A1] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200">
                             Submit report
                         </button>
                         <p class="text-[11px] text-[#64748B]">Our team reviews all reports and takes appropriate action.</p>
