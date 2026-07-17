@@ -90,7 +90,7 @@ public function index(Request $request)
         abort(404);
     }
 
-    $property->load(['media', 'landlord.rentalBusiness', 'amenities', 'units']);
+  $property->load(['media', 'landlord.rentalBusiness', 'amenities', 'units.amenities', 'units.media']);
 
     // Load visible reviews (admins see all, everyone else sees non-hidden only)
     $reviews = $property->reviews()

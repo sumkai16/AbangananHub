@@ -73,6 +73,22 @@ class PropertySeeder extends Seeder
             'House'     => $houseRules,
         ];
 
+        // ─── Unit-level interior photo pool ──────────────
+        $unitImagePool = [
+            'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80',
+            'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80',
+            'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800&q=80',
+            'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=800&q=80',
+            'https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=800&q=80',
+            'https://images.unsplash.com/photo-1585412727339-54e4bae3bbf9?w=800&q=80',
+            'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&q=80',
+            'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=800&q=80',
+            'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80',
+            'https://images.unsplash.com/photo-1594560913095-8cf34bab82ad?w=800&q=80',
+            'https://images.unsplash.com/photo-1560185008-b033106af5c8?w=800&q=80',
+            'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80',
+        ];
+
         $properties = [
             [
                 'title'               => 'Cozy Bedspace in Labangon',
@@ -764,12 +780,25 @@ class PropertySeeder extends Seeder
                 'landlord_id' => $landlord->user_id,
             ]));
 
+            // Create units with their own interior photos
             foreach ($unitItems as $unitData) {
-                $property->units()->create(array_merge($unitData, [
+                $unit = $property->units()->create(array_merge($unitData, [
                     'verification_status' => $unitData['verification_status'] ?? 'Approved',
                 ]));
+
+                // Attach 1–3 random interior photos to each unit
+                $unitPhotos = collect($unitImagePool)->shuffle()->take(rand(1, 3));
+                foreach ($unitPhotos as $url) {
+                    PropertyMedia::create([
+                        'property_id' => $property->property_id,
+                        'unit_id'     => $unit->unit_id,
+                        'media_type'  => 'Image',
+                        'media_url'   => $url,
+                    ]);
+                }
             }
 
+            // Property-level photos (building exterior, common areas)
             foreach ($mediaItems as $media) {
                 PropertyMedia::create([
                     'property_id' => $property->property_id,

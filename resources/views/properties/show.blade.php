@@ -11,7 +11,6 @@
         $minFee = $availableUnits->min('rental_fee');
         $maxFee = $availableUnits->max('rental_fee');
 
-
         $unitsPayload = $approvedUnits->map(function ($unit) use ($property) {
             $hasActiveReservation = auth()->check() && \App\Models\Reservation::where('unit_id', $unit->unit_id)
                 ->where('tenant_id', auth()->id())
@@ -24,6 +23,9 @@
                 'type' => $property->property_type,
                 'price' => number_format($unit->rental_fee),
                 'thumb' => optional($unit->media->first())->media_url,
+                'media' => $unit->media->map(fn($m) => $m->media_url)->values()->toArray(),
+                'description' => $unit->description,
+                'amenities' => $unit->amenities->pluck('amenity_name')->values()->toArray(),
                 'occupancy' => $unit->occupancy_limit,
                 'size' => $unit->size ?? null,
                 'available' => $unit->availability_status === 'Available',
@@ -35,23 +37,50 @@
     @endphp
 
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 min-h-[calc(100vh-72px)]" x-data="{
-                                        tab: 'overview',
-                                        mode: 'inquiry',
-                                        units: @js($unitsPayload),
-                                        selectedUnit: @js($defaultUnitId),
-                                        msg: '',
-                                        descExpanded: false,
-                                        allAmenities: false,
-                                        get selected() { return this.units.find(u => u.id === this.selectedUnit) || null },
-                                        selectUnit(id) {
-                                            const u = this.units.find(x => x.id === id);
-                                            if (u && u.available) this.selectedUnit = id;
-                                        },
-                                        goTab(name) {
-                                            this.tab = name;
-                                            this.$nextTick(() => window.dispatchEvent(new Event('resize')));
-                                        }
-                                    }">
+                                                    tab: 'overview',
+                                                        units: @js($unitsPayload),
+                                                    selectedUnit: @js($defaultUnitId),
+                                                    msg: '',
+                                                    descExpanded: false,
+                                                    allAmenities: false,
+
+                                                    slideoutUnit: null,
+                                                    slideoutIdx: 0,
+
+                                                    get selected() { return this.units.find(u => u.id === this.selectedUnit) || null },
+
+                                                    selectUnit(id) {
+                                                        const u = this.units.find(x => x.id === id);
+                                                        if (u && u.available) this.selectedUnit = id;
+                                                    },
+
+                                                    openSlideout(id) {
+                                                        this.slideoutUnit = this.units.find(u => u.id === id) || null;
+                                                        this.slideoutIdx = 0;
+                                                        document.body.style.overflow = 'hidden';
+                                                    },
+
+                                                    closeSlideout() {
+                                                        this.slideoutUnit = null;
+                                                        this.slideoutIdx = 0;
+                                                        document.body.style.overflow = '';
+                                                    },
+
+                                                    slideoutPrev() {
+                                                        if (!this.slideoutUnit || this.slideoutUnit.media.length === 0) return;
+                                                        this.slideoutIdx = (this.slideoutIdx - 1 + this.slideoutUnit.media.length) % this.slideoutUnit.media.length;
+                                                    },
+
+                                                    slideoutNext() {
+                                                        if (!this.slideoutUnit || this.slideoutUnit.media.length === 0) return;
+                                                        this.slideoutIdx = (this.slideoutIdx + 1) % this.slideoutUnit.media.length;
+                                                    },
+
+                                                    goTab(name) {
+                                                        this.tab = name;
+                                                        this.$nextTick(() => window.dispatchEvent(new Event('resize')));
+                                                    }
+                                                }">
 
         {{-- ===== BREADCRUMB ===== --}}
         <nav class="mb-6 flex items-center gap-1.5 text-sm font-semibold text-[#64748B]" aria-label="Breadcrumb">
@@ -148,7 +177,7 @@
                         @if($property->landlord->rentalBusiness)
                             <span
                                 class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-[#EEF8F8] text-[#1F2937] shadow-sm">
-                                <svg class="w-3.5 h-3.5 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                <svg class="w-3.5 h-3.5 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                     stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -169,13 +198,13 @@
                             {{ $property->address }}
                         </span>
                         <button type="button" x-on:click="goTab('location')"
-                            class="text-[#EF4444] font-bold hover:brightness-95 transition-all underline underline-offset-2">
+                            class="text-[#156F8C] font-bold hover:brightness-95 transition-all underline underline-offset-2">
                             View on map
                         </button>
                     </div>
 
                     <div class="flex items-center gap-1.5 mb-4">
-                        <svg class="w-4 h-4 text-[#EF4444]" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                        <svg class="w-4 h-4 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                             <path
                                 d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
@@ -199,7 +228,7 @@
                                 {{ $property->description }}
                             </p>
                             <button type="button" x-on:click="descExpanded = !descExpanded"
-                                class="mt-1.5 text-sm font-bold text-[#EF4444] hover:brightness-95 transition-all underline underline-offset-2"
+                                class="mt-1.5 text-sm font-bold text-[#156F8C] hover:brightness-95 transition-all underline underline-offset-2"
                                 x-text="descExpanded ? 'Read less' : 'Read more'"></button>
                         @else
                             <p class="text-sm text-[#1F2937] leading-relaxed whitespace-pre-line">{{ $property->description }}</p>
@@ -237,11 +266,11 @@
                 {{-- ===== 4. PROPERTY INFO GRID ===== --}}
                 <div class="pt-6 border-t border-[#EEF8F8]">
                     <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
-                        <div class="bg-[#E2E8F0] rounded-2xl p-4">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-sm">
                             <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Property Type</p>
                             <p class="text-sm font-bold text-[#1F2937]">{{ $property->property_type }}</p>
                         </div>
-                        <div class="bg-[#E2E8F0] rounded-2xl p-4">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-sm">
                             <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Price Range</p>
                             <p class="text-sm font-bold text-[#1F2937]">
                                 @if($minFee)
@@ -253,12 +282,12 @@
                                 @endif
                             </p>
                         </div>
-                        <div class="bg-[#E2E8F0] rounded-2xl p-4">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-sm">
                             <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Available Units
                             </p>
                             <p class="text-sm font-bold text-[#1F2937]">{{ $availableUnits->count() }}</p>
                         </div>
-                        <div class="bg-[#E2E8F0] rounded-2xl p-4">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-sm">
                             <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Landlord</p>
                             <p class="text-sm font-bold text-[#1F2937]">{{ $property->landlord->first_name }}
                                 {{ $property->landlord->last_name }}
@@ -370,7 +399,6 @@
                     </div>
 
                     {{-- ── Reviews tab ── --}}
-                    {{-- ── Reviews tab ── --}}
                     <div x-show="tab === 'reviews'" x-cloak>
                         <div class="flex items-center justify-between mb-5">
                             <h2 class="text-base font-bold text-[#1F2937]">
@@ -381,7 +409,7 @@
                             </h2>
                             @if($avgRating)
                                 <div class="flex items-center gap-1.5 bg-[#E2E8F0] px-2.5 py-1 rounded-lg">
-                                    <svg class="w-3.5 h-3.5 text-[#EF4444]" viewBox="0 0 24 24" fill="currentColor"
+                                    <svg class="w-3.5 h-3.5 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor"
                                         stroke="none">
                                         <path
                                             d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -412,7 +440,7 @@
                                                         x-on:mouseenter="hoverRating = {{ $i }}" x-on:mouseleave="hoverRating = 0"
                                                         class="p-0.5 transition-transform hover:scale-110">
                                                         <svg class="w-6 h-6 transition-colors"
-                                                            :class="(hoverRating || rating) >= {{ $i }} ? 'text-[#EF4444]' : 'text-[#E2E8F0]'"
+                                                            :class="(hoverRating || rating) >= {{ $i }} ? 'text-[#FBBF24]' : 'text-[#E2E8F0]'"
                                                             viewBox="0 0 24 24" fill="currentColor" stroke="none">
                                                             <path
                                                                 d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -449,7 +477,7 @@
                         {{-- Review list --}}
                         @forelse($reviews as $review)
                             <div
-                                class="mb-6 last:mb-0 bg-[#E2E8F0] border border-[#EEF8F8] p-4 rounded-2xl {{ $review->is_hidden ? 'opacity-50' : '' }}">
+                                class="mb-6 last:mb-0 bg-white/70 backdrop-blur-xl border border-white/30 p-4 rounded-2xl shadow-sm {{ $review->is_hidden ? 'opacity-50' : '' }}">
                                 @if($review->is_hidden)
                                     <div
                                         class="flex items-center gap-1.5 text-xs font-bold text-[#64748B] mb-2 bg-[#EEF8F8] px-2.5 py-1.5 rounded-lg w-fit">
@@ -479,7 +507,7 @@
                                     </div>
                                     <div class="flex items-center gap-0.5">
                                         @for($i = 1; $i <= 5; $i++)
-                                            <svg class="w-3 h-3 {{ $i <= $review->rating ? 'text-[#EF4444]' : 'text-[#EEF8F8]' }}"
+                                            <svg class="w-3 h-3 {{ $i <= $review->rating ? 'text-[#FBBF24]' : 'text-[#EEF8F8]' }}"
                                                 viewBox="0 0 24 24" fill="currentColor" stroke="none">
                                                 <path
                                                     d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -590,60 +618,74 @@
                         <div class="space-y-3">
                             @foreach($approvedUnits as $unit)
                                 @php $isAvailable = $unit->availability_status === 'Available'; @endphp
-                                <button type="button" x-on:click="selectUnit({{ $unit->unit_id }})"
-                                    :class="selectedUnit === {{ $unit->unit_id }}
-                                                                                                            ? 'border-[#EF4444] bg-[#E2E8F0]'
-                                                                                                            : '{{ $isAvailable ? 'border-white/30 bg-white/50 hover:brightness-95' : 'border-[#E2E8F0] bg-[#E2E8F0] cursor-not-allowed' }}'"
-                                    class="w-full text-left rounded-2xl border-2 p-4 flex items-center gap-4 backdrop-blur-lg shadow-lg transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
-                                    @if(!$isAvailable) disabled @endif>
+                                <div class="relative">
+                                    <button type="button" x-on:click="selectUnit({{ $unit->unit_id }})"
+                                        :class="selectedUnit === {{ $unit->unit_id }}
+                                                                                                                                            ? 'border-[#2AA7A1] bg-[#EEF8F8]'
+                                                                                                                                            : '{{ $isAvailable ? 'border-white/30 bg-white/50 hover:brightness-95' : 'border-[#E2E8F0] bg-[#E2E8F0] cursor-not-allowed' }}'"
+                                        class="w-full text-left rounded-2xl border-2 p-4 pr-14 flex items-center gap-4 backdrop-blur-lg shadow-lg transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
+                                        @if(!$isAvailable) disabled @endif>
 
-                                    {{-- Radio indicator --}}
-                                    <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
-                                        :class="selectedUnit === {{ $unit->unit_id }} ? 'border-[#EF4444]' : 'border-[#64748B]'">
-                                        <span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"
-                                            x-show="selectedUnit === {{ $unit->unit_id }}" x-cloak></span>
-                                    </span>
-
-                                    {{-- Thumbnail --}}
-                                    @if($unit->media->first())
-                                        <img src="{{ $unit->media->first()->media_url }}" alt="{{ $unit->unit_label }}"
-                                            class="w-16 h-16 rounded-xl object-cover shrink-0 border border-[#EEF8F8]">
-                                    @else
-                                        <span class="w-16 h-16 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                            <svg class="w-6 h-6 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                                stroke-width="1.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                                            </svg>
+                                        {{-- Radio indicator --}}
+                                        <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
+                                            :class="selectedUnit === {{ $unit->unit_id }} ? 'border-[#2AA7A1]' : 'border-[#64748B]'">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#2AA7A1]"
+                                                x-show="selectedUnit === {{ $unit->unit_id }}" x-cloak></span>
                                         </span>
-                                    @endif
 
-                                    {{-- Details --}}
-                                    <span class="flex-1 min-w-0">
-                                        <span class="flex items-center gap-2 mb-0.5">
-                                            <span class="text-sm font-bold text-[#1F2937] truncate">{{ $unit->unit_label }}</span>
-                                            <span
-                                                class="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-md {{ $isAvailable ? 'bg-[#EEF8F8] text-[#1F2937]' : 'bg-[#E2E8F0] text-[#64748B]' }}">
-                                                {{ $unit->availability_status }}
+                                        {{-- Thumbnail --}}
+                                        @if($unit->media->first())
+                                            <img src="{{ $unit->media->first()->media_url }}" alt="{{ $unit->unit_label }}"
+                                                class="w-16 h-16 rounded-xl object-cover shrink-0 border border-[#EEF8F8]">
+                                        @else
+                                            <span class="w-16 h-16 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                                                <svg class="w-6 h-6 text-[#64748B]" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor" stroke-width="1.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                                                </svg>
+                                            </span>
+                                        @endif
+
+                                        {{-- Details --}}
+                                        <span class="flex-1 min-w-0">
+                                            <span class="flex items-center gap-2 mb-0.5">
+                                                <span
+                                                    class="text-sm font-bold text-[#1F2937] truncate">{{ $unit->unit_label }}</span>
+                                                <span
+                                                    class="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-md {{ $isAvailable ? 'bg-[#22C55E]/10 text-[#1F2937]' : 'bg-[#E2E8F0] text-[#64748B]' }}">
+                                                    {{ $unit->availability_status }}
+                                                </span>
+                                            </span>
+                                            <span class="block text-xs font-medium text-[#64748B]">
+                                                {{ $property->property_type }}
+                                                &middot; {{ $unit->occupancy_limit }}
+                                                {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
+                                                @if(!empty($unit->size))
+                                                    &middot; {{ $unit->size }}
+                                                @endif
                                             </span>
                                         </span>
-                                        <span class="block text-xs font-medium text-[#64748B]">
-                                            {{ $property->property_type }}
-                                            &middot; {{ $unit->occupancy_limit }}
-                                            {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
-                                            @if(!empty($unit->size))
-                                                &middot; {{ $unit->size }}
-                                            @endif
-                                        </span>
-                                    </span>
 
-                                    {{-- Price --}}
-                                    <span class="text-right shrink-0">
-                                        <span
-                                            class="block text-base font-black text-[#1F2937]">₱{{ number_format($unit->rental_fee) }}</span>
-                                        <span class="block text-[11px] font-semibold text-[#64748B]">/ month</span>
-                                    </span>
-                                </button>
+                                        {{-- Price --}}
+                                        <span class="text-right shrink-0">
+                                            <span
+                                                class="block text-base font-black text-[#1F2937]">₱{{ number_format($unit->rental_fee) }}</span>
+                                            <span class="block text-[11px] font-semibold text-[#64748B]">/ month</span>
+                                        </span>
+                                    </button>
+
+                                    {{-- View details button (opens slideout) --}}
+                                    <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
+                                        class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-[#EEF8F8] hover:bg-[#E2E8F0] flex items-center justify-center transition-colors"
+                                        title="View unit details">
+                                        <svg class="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             @endforeach
                         </div>
                     </div>
@@ -653,7 +695,8 @@
             {{-- ===================================================== --}}
             {{-- RIGHT SIDEBAR --}}
             {{-- ===================================================== --}}
-            <div class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-6 space-y-4 w-full">
+            <div
+                class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-[72px] lg:max-h-[calc(100vh_-_72px_-_1.5rem)] lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] space-y-4 w-full hidden lg:block">
 
                 {{-- ===== 1. INQUIRE / RESERVE CARD ===== --}}
                 <div class="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/30 shadow-lg p-6">
@@ -662,7 +705,7 @@
                     <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-3">You're inquiring about:
                     </p>
                     <template x-if="selected">
-                        <div class="flex items-center gap-3 mb-5 pb-5 border-b border-[#EEF8F8]">
+                        <div class="flex items-center gap-3 mb-5 pb-5 border-b border-[#EEF8F8] sticky">
                             <template x-if="selected.thumb">
                                 <img :src="selected.thumb" :alt="selected.label"
                                     class="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#EEF8F8]">
@@ -694,7 +737,7 @@
 
                     @if(!auth()->check())
                         <button type="button" x-on:click="$dispatch('open-modal', 'login-modal')"
-                            class="w-full py-3 rounded-xl bg-[#EF4444] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all">
+                            class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all">
                             Log in to inquire
                         </button>
                     @elseif($isOwner)
@@ -703,49 +746,41 @@
                             This is your listing
                         </div>
                     @else
-                        {{-- Inquiry / Reserve toggle (both submit the same form for now) --}}
-                        <div class="grid grid-cols-2 gap-1 bg-[#E2E8F0] p-1 rounded-xl mb-4">
-                            <button type="button" x-on:click="mode = 'inquiry'"
-                                :class="mode === 'inquiry' ? 'bg-white text-[#1F2937] shadow-sm' : 'text-[#64748B]'"
-                                class="text-sm font-bold py-2 rounded-lg transition-all">
-                                Inquiry
-                            </button>
-                            <button type="button" x-on:click="mode = 'reserve'"
-                                :class="mode === 'reserve' ? 'bg-white text-[#1F2937] shadow-sm' : 'text-[#64748B]'"
-                                class="text-sm font-bold py-2 rounded-lg transition-all">
-                                Reserve
-                            </button>
-                        </div>
-
                         <form action="{{ route('reservations.store') }}" method="POST" class="space-y-4">
                             @csrf
                             <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
 
-                            <div>
-                                <label for="target_move_in_date" class="block text-xs font-bold text-[#1F2937] mb-1.5">Target
-                                    Move In</label>
-                                <input type="date" id="target_move_in_date" name="target_move_in_date"
-                                    min="{{ now()->toDateString() }}" value="{{ old('target_move_in_date') }}"
-                                    class="w-full border border-[#EEF8F8] rounded-xl px-4 py-2.5 text-sm text-[#1F2937] bg-[#E2E8F0] focus:outline-none focus:ring-4 focus:ring-[#2AA7A1]/10 focus:border-[#2AA7A1] transition-all">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div
+                                    class="rounded-2xl bg-white/50 backdrop-blur-sm border border-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] px-3.5 pt-2.5 pb-2 transition-all focus-within:bg-white/80 focus-within:border-[#2AA7A1]/40 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
+                                    <label for="target_move_in_date"
+                                        class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
+                                        In</label>
+                                    <input type="date" id="target_move_in_date" name="target_move_in_date"
+                                        min="{{ now()->toDateString() }}" value="{{ old('target_move_in_date') }}"
+                                        class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
+                                </div>
+
+                                <div
+                                    class="rounded-2xl bg-white/50 backdrop-blur-sm border border-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] px-3.5 pt-2.5 pb-2 transition-all focus-within:bg-white/80 focus-within:border-[#2AA7A1]/40 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
+                                    <label for="target_move_out_date"
+                                        class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
+                                        Out <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                                    <input type="date" id="target_move_out_date" name="target_move_out_date"
+                                        value="{{ old('target_move_out_date') }}"
+                                        class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
+                                </div>
                             </div>
 
-                            <div>
-                                <label for="target_move_out_date" class="block text-xs font-bold text-[#1F2937] mb-1.5">
-                                    Target Move Out <span class="font-semibold text-[#64748B]">(Optional)</span>
-                                </label>
-                                <input type="date" id="target_move_out_date" name="target_move_out_date"
-                                    value="{{ old('target_move_out_date') }}"
-                                    class="w-full border border-[#EEF8F8] rounded-xl px-4 py-2.5 text-sm text-[#1F2937] bg-[#E2E8F0] focus:outline-none focus:ring-4 focus:ring-[#2AA7A1]/10 focus:border-[#2AA7A1] transition-all">
-                            </div>
-
-                            <div>
-                                <label for="inquiry_message" class="block text-xs font-bold text-[#1F2937] mb-1.5">
-                                    Your Message <span class="font-semibold text-[#64748B]">(Optional)</span>
-                                </label>
+                            <div
+                                class="rounded-2xl bg-white/50 backdrop-blur-sm border border-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] px-3.5 pt-2.5 pb-2 transition-all focus-within:bg-white/80 focus-within:border-[#2AA7A1]/40 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
+                                <label for="inquiry_message"
+                                    class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Message
+                                    <span class="normal-case tracking-normal font-semibold">· optional</span></label>
                                 <textarea id="inquiry_message" name="message" rows="3" maxlength="300" x-model="msg"
                                     placeholder="Hi! I'm interested in this unit..."
-                                    class="w-full border border-[#EEF8F8] rounded-xl px-4 py-2.5 text-sm text-[#1F2937] bg-[#E2E8F0] focus:outline-none focus:ring-4 focus:ring-[#2AA7A1]/10 focus:border-[#2AA7A1] transition-all resize-none">{{ old('message') }}</textarea>
-                                <p class="text-[11px] font-semibold text-[#64748B] text-right mt-1">
+                                    class="w-full bg-transparent border-0 p-0 text-sm font-medium text-[#1F2937] placeholder:text-[#64748B]/60 focus:outline-none focus:ring-0 resize-none">{{ old('message') }}</textarea>
+                                <p class="text-[10px] font-semibold text-[#64748B]/70 text-right">
                                     <span x-text="msg.length"></span>/300
                                 </p>
                             </div>
@@ -830,7 +865,7 @@
                                 {{ $property->landlord->first_name }} {{ $property->landlord->last_name }}
                             </div>
                             @if($property->landlord->rentalBusiness)
-                                <div class="flex items-center gap-1 text-xs text-[#EF4444] font-bold mt-0.5">
+                                <div class="flex items-center gap-1 text-xs text-[#22C55E] font-bold mt-0.5">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -855,6 +890,182 @@
                     @endauth
                 </div>
 
+            </div>
+        </div>
+
+        {{-- ===== UNIT DETAIL SLIDEOUT ===== --}}
+        <div x-show="slideoutUnit" x-cloak class="fixed inset-0 z-[998]" x-on:keydown.escape.window="closeSlideout()">
+            {{-- Overlay --}}
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" x-on:click="closeSlideout()" x-show="slideoutUnit"
+                x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+            </div>
+
+            {{-- Panel --}}
+            <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl overflow-y-auto"
+                x-show="slideoutUnit" x-transition:enter="transition ease-out duration-250 transform"
+                x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+                x-transition:leave="transition ease-in duration-200 transform" x-transition:leave-start="translate-x-0"
+                x-transition:leave-end="translate-x-full" x-on:click.stop>
+
+                <template x-if="slideoutUnit">
+                    <div>
+                        {{-- Close button --}}
+                        <button type="button" x-on:click="closeSlideout()"
+                            class="absolute top-4 right-4 z-10 w-9 h-9 rounded-xl bg-white/90 hover:brightness-95 text-[#1F2937] flex items-center justify-center shadow-sm transition-all">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        {{-- Image gallery --}}
+                        <div class="relative aspect-[4/3] bg-[#E2E8F0]">
+                            <template x-if="slideoutUnit.media.length > 0">
+                                <div class="relative w-full h-full">
+                                    <img :src="slideoutUnit.media[slideoutIdx]" :alt="slideoutUnit.label"
+                                        class="w-full h-full object-cover">
+
+                                    <template x-if="slideoutUnit.media.length > 1">
+                                        <div>
+                                            <button type="button" x-on:click="slideoutPrev()"
+                                                class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:brightness-95 text-[#1F2937] flex items-center justify-center shadow-sm transition-all">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                                    stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                                </svg>
+                                            </button>
+                                            <button type="button" x-on:click="slideoutNext()"
+                                                class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:brightness-95 text-[#1F2937] flex items-center justify-center shadow-sm transition-all">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                                    stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                                </svg>
+                                            </button>
+
+                                            {{-- Counter --}}
+                                            <span
+                                                class="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-lg">
+                                                <span x-text="slideoutIdx + 1"></span> / <span
+                                                    x-text="slideoutUnit.media.length"></span>
+                                            </span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="slideoutUnit.media.length === 0">
+                                <div class="w-full h-full flex flex-col items-center justify-center text-[#64748B]">
+                                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="1.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
+                                    </svg>
+                                    <p class="mt-2 text-sm font-semibold">No photos</p>
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- Content --}}
+                        <div class="p-6 space-y-6">
+
+                            {{-- Header --}}
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="text-xl font-black text-[#1F2937]" x-text="slideoutUnit.label"></h3>
+                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-md"
+                                        :class="slideoutUnit.available ? 'bg-[#22C55E]/10 text-[#1F2937]' : 'bg-[#E2E8F0] text-[#64748B]'"
+                                        x-text="slideoutUnit.available ? 'Available' : 'Occupied'"></span>
+                                </div>
+                                <p class="text-sm font-medium text-[#64748B]" x-text="slideoutUnit.type"></p>
+                                <p class="text-2xl font-black text-[#1F2937] mt-2">
+                                    ₱<span x-text="slideoutUnit.price"></span>
+                                    <span class="text-sm font-semibold text-[#64748B]">/ month</span>
+                                </p>
+                            </div>
+
+                            {{-- Info pills --}}
+                            <div class="flex flex-wrap gap-3 pt-4 border-t border-[#EEF8F8]">
+                                <div class="flex items-center gap-2 bg-[#EEF8F8] px-3 py-2 rounded-xl">
+                                    <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                    </svg>
+                                    <span class="text-sm font-bold text-[#1F2937]">
+                                        <span x-text="slideoutUnit.occupancy"></span>
+                                        <span x-text="slideoutUnit.occupancy > 1 ? 'People' : 'Person'"></span>
+                                    </span>
+                                </div>
+                                <template x-if="slideoutUnit.size">
+                                    <div class="flex items-center gap-2 bg-[#EEF8F8] px-3 py-2 rounded-xl">
+                                        <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                                        </svg>
+                                        <span class="text-sm font-bold text-[#1F2937]" x-text="slideoutUnit.size"></span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            {{-- Description --}}
+                            <template x-if="slideoutUnit.description">
+                                <div class="pt-4 border-t border-[#EEF8F8]">
+                                    <h4 class="text-sm font-bold text-[#1F2937] mb-2">About this unit</h4>
+                                    <p class="text-sm text-[#1F2937] leading-relaxed whitespace-pre-line"
+                                        x-text="slideoutUnit.description"></p>
+                                </div>
+                            </template>
+
+                            {{-- Amenities --}}
+                            <template x-if="slideoutUnit.amenities.length > 0">
+                                <div class="pt-4 border-t border-[#EEF8F8]">
+                                    <h4 class="text-sm font-bold text-[#1F2937] mb-3">Unit Amenities</h4>
+                                    <div class="grid grid-cols-2 gap-2.5">
+                                        <template x-for="amenity in slideoutUnit.amenities" :key="amenity">
+                                            <div class="flex items-center gap-2 text-sm font-medium text-[#1F2937]">
+                                                <span
+                                                    class="w-6 h-6 rounded-md bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                                                    <svg class="w-3.5 h-3.5 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24"
+                                                        stroke="currentColor" stroke-width="2.5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </span>
+                                                <span x-text="amenity"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            {{-- Action --}}
+                            <div class="pt-4 border-t border-[#EEF8F8]">
+                                <template x-if="slideoutUnit.available && !slideoutUnit.hasActive">
+                                    <button type="button"
+                                        x-on:click="selectUnit(slideoutUnit.id); closeSlideout(); $nextTick(() => { document.getElementById('target_move_in_date')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) })"
+                                        class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all">
+                                        Select this unit
+                                    </button>
+                                </template>
+                                <template x-if="slideoutUnit.available && slideoutUnit.hasActive">
+                                    <div
+                                        class="w-full py-3 text-center rounded-xl bg-[#EEF8F8] text-[#1F2937] text-sm font-bold cursor-not-allowed">
+                                        Inquiry already active
+                                    </div>
+                                </template>
+                                <template x-if="!slideoutUnit.available">
+                                    <div
+                                        class="w-full py-3 text-center rounded-xl bg-[#E2E8F0] text-[#64748B] text-sm font-bold cursor-not-allowed">
+                                        Currently occupied
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
