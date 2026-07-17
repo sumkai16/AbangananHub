@@ -1,4 +1,6 @@
-<x-app-layout>
+@extends('layouts.app')
+
+@section('content')
 
     {{-- ══════════════════════════════════════════
     MAIN BODY
@@ -266,4 +268,4 @@
             })();
         </script>
     @endpush
-</x-app-layout>
+@endsection

@@ -22,6 +22,11 @@ class AgreementController extends Controller
         }
 
         $reservation->load(['property', 'property.landlord', 'tenant', 'unit', 'payments']);
+
+        if (!$reservation->property || !$reservation->unit) {
+            abort(404, 'This unit is no longer available.');
+        }
+
         return view('agreements.show', compact('reservation'));
     }
 

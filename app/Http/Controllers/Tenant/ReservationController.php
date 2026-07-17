@@ -135,10 +135,7 @@ public function store(Request $request)
             return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
         }
 
-        // Release unit if it was reserved for this tenant
-        if ($reservation->unit && $reservation->unit->availability_status === 'Reserved') {
-            $reservation->unit->update(['availability_status' => 'Available']);
-        }
+        // Reservation::cancel() already releases the unit via releaseUnit().
 
         return back()->with('success', 'Reservation cancelled.');
     }

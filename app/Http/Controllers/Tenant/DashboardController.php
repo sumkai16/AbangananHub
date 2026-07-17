@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Conversation;
 use App\Models\Reservation;
-use App\Models\Message;
 use App\Models\Favorite;
 use App\Models\Report;
 use Illuminate\Http\Request;
@@ -22,7 +22,12 @@ class DashboardController extends Controller
             ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
             ->count();
 
-        $messagesCount = Message::where('sender_id', '!=', $userId)
+        $messagesCount = Conversation::where('tenant_id', $userId)
+            ->whereNotIn('status', ['Cancelled', 'Resolved'])
+            ->whereHas('latestMessage', function ($q) use ($userId) {
+                $q->where('sender_id', '!=', $userId)
+                    ->where('is_read', false);
+            })
             ->count();
 
         $savedCount = Favorite::where('tenant_id', $userId)->count();

@@ -176,6 +176,14 @@ class PropertyUnitController extends Controller
             abort(404);
         }
 
+        $hasActiveReservation = \App\Models\Reservation::where('unit_id', $unit->unit_id)
+            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+            ->exists();
+
+        if ($hasActiveReservation) {
+            return back()->withErrors(['unit' => 'This unit has an active reservation and cannot be deleted.']);
+        }
+
         foreach ($unit->media as $media) {
             if ($media->cloudinary_public_id) {
                 cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);

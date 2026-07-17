@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Gate;
 
@@ -19,13 +20,37 @@ class PaymentController extends Controller
             return back()->withErrors(['payment' => 'Agreement must be signed before payment.']);
         }
 
-        // Prevent duplicate pending payments for the same reservation
-        $existingPending = Payment::where('reservation_id', $reservation->reservation_id)
-            ->where('status', 'Pending')
-            ->whereNotNull('paymongo_checkout_session_id')
-            ->first();
+        if (!$reservation->unit) {
+            return back()->withErrors(['payment' => 'This unit is no longer available. Please contact your landlord.']);
+        }
 
-        if ($existingPending) {
+        // Lock the reservation row so two concurrent requests (e.g. a double
+        // click) can't both pass the "no pending payment" check before either
+        // has inserted its Payment row.
+        $placeholder = DB::transaction(function () use ($reservation) {
+            $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
+
+            $existingPending = Payment::where('reservation_id', $locked->reservation_id)
+                ->where('status', 'Pending')
+                ->whereNotNull('paymongo_checkout_session_id')
+                ->exists();
+
+            if ($existingPending) {
+                return null;
+            }
+
+            // Placeholder row reserves this reservation for the current
+            // request until it's updated with the PayMongo session id below.
+            return Payment::create([
+                'reservation_id' => $locked->reservation_id,
+                'payment_type' => 'Initial',
+                'amount' => $locked->unit->rental_fee,
+                'payment_method' => 'GCash',
+                'status' => 'Pending',
+            ]);
+        });
+
+        if (!$placeholder) {
             return back()->withErrors(['payment' => 'A payment session is already in progress.']);
         }
 
@@ -55,18 +80,16 @@ class PaymentController extends Controller
             ]);
 
         if ($response->failed()) {
+            // Free up the reservation for a retry instead of leaving a dead placeholder behind.
+            $placeholder->delete();
+
             return back()->withErrors(['payment' => 'Could not create payment session. Please try again.']);
         }
 
         $checkoutData = $response->json('data');
 
-        Payment::create([
-            'reservation_id' => $reservation->reservation_id,
-            'payment_type' => 'Initial',
-            'amount' => $reservation->unit->rental_fee,
-            'payment_method' => 'GCash',
+        $placeholder->update([
             'paymongo_checkout_session_id' => $checkoutData['id'],
-            'status' => 'Pending',
         ]);
 
         return redirect($checkoutData['attributes']['checkout_url']);

@@ -4,14 +4,23 @@
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-10 pb-16 min-h-[calc(100vh-72px)]">
 
     {{-- HEADER --}}
-    <x-section-header
-        title="Saved Listings"
-        sub="Properties you've saved for later."
-    />
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-[#1F2937]">Saved Listings</h1>
+                <p class="text-sm text-[#64748B] mt-0.5">Properties you've saved for later.</p>
+            </div>
+        </div>
+    </div>
 
     {{-- Search & Filter Bar --}}
     <form method="GET" action="{{ route('favorites.index') }}"
-        class="flex flex-col sm:flex-row gap-3 mb-8 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg">
+        class="flex flex-col sm:flex-row gap-3 mb-8 p-4 bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)]">
         <div class="relative flex-1">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B] pointer-events-none"
                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -19,28 +28,28 @@
             </svg>
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Search saved properties…"
-                class="w-full pl-9 pr-4 py-2.5 text-sm text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition placeholder-[#64748B]" />
+                class="w-full pl-9 pr-4 py-2.5 text-sm text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition placeholder-[#64748B]" />
         </div>
         <select name="type"
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition">
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition">
             <option value="" {{ !request('type') ? 'selected' : '' }}>Any type</option>
             @foreach(['Bedspace', 'Room', 'Apartment', 'House'] as $t)
                 <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
             @endforeach
         </select>
         <select name="availability"
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 focus:border-[#2AA7A1] transition">
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition">
             <option value="" {{ !request('availability') ? 'selected' : '' }}>Any status</option>
             <option value="Available" {{ request('availability') === 'Available' ? 'selected' : '' }}>Available</option>
             <option value="Unavailable" {{ request('availability') === 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
         </select>
         <button type="submit"
-            class="px-5 py-2.5 text-sm font-bold text-white bg-[#2AA7A1] hover:brightness-95 rounded-xl shadow-sm transition-all duration-200">
+            class="px-5 py-2.5 text-sm font-bold text-white bg-[#2AA7A1] hover:brightness-95 rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98]">
             Search
         </button>
         @if(request()->hasAny(['search', 'type', 'availability']))
             <a href="{{ route('favorites.index') }}"
-                class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/30 hover:bg-[#EEF8F8] rounded-xl transition-all duration-200 text-center">
+                class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#F7FCFC] rounded-xl transition-all duration-200 text-center">
                 Clear
             </a>
         @endif
@@ -48,7 +57,7 @@
 
     @if($favorites->count() > 0)
 
-        <p class="text-[13px] text-gray-400 font-medium mb-6">
+        <p class="text-[13px] text-[#64748B] font-medium mb-6">
             {{ $favorites->count() }} {{ Str::plural('property', $favorites->count()) }} saved
         </p>
 
@@ -136,18 +145,19 @@
         </div>
 
     @else
-        <x-empty-state
-            title="No saved listings yet"
-            message="Heart a property while browsing to save it here."
-            :href="route('properties.index')"
-            cta="Browse properties"
-        >
-            <x-slot name="icon">
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] py-16 px-8 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-4">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                 </svg>
-            </x-slot>
-        </x-empty-state>
+            </div>
+            <p class="text-[15px] font-bold text-[#1F2937] mb-1">No saved listings yet</p>
+            <p class="text-[13px] text-[#64748B] mb-6">Heart a property while browsing to save it here.</p>
+            <a href="{{ route('properties.index') }}"
+                class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all shadow-sm">
+                Browse properties
+            </a>
+        </div>
     @endif
 
 </div>

@@ -55,7 +55,7 @@
         </div>
 
         {{-- Split panel --}}
-        <div class="flex bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl overflow-hidden"
+        <div class="flex bg-white ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] rounded-2xl overflow-hidden"
             style="height: calc(100vh - 170px); min-height: 500px;">
 
             {{-- LEFT: Conversation list --}}
@@ -162,8 +162,15 @@
                                 </svg>
                             </div>
                             <p class="text-[13px] font-bold text-[#1F2937]">No conversations yet</p>
-                            <p class="text-[12px] text-[#64748B] mt-1">When you send inquiries, your conversations will appear
-                                here.</p>
+                            <p class="text-[12px] text-[#64748B] mt-1 max-w-[220px] mx-auto">
+                                {{ $isLandlord ? 'Inquiries from tenants will appear here.' : 'When you send inquiries, your conversations will appear here.' }}
+                            </p>
+                            @if(!$isLandlord)
+                                <a href="{{ route('properties.index') }}"
+                                    class="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-[12.5px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all">
+                                    Browse properties
+                                </a>
+                            @endif
                         </div>
                     @endforelse
                 </div>

@@ -49,7 +49,7 @@
                 <div
                     class="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center overflow-hidden {{ $n->is_read ? 'bg-[#E2E8F0] text-[#64748B]' : 'bg-[#EEF8F8] text-[#1F2937]' }}">
                     @if($senderImage)
-                        <img src="{{ asset('storage/' . $senderImage) }}" alt="" class="w-full h-full object-cover">
+                        <img src="{{ $senderImage }}" alt="" class="w-full h-full object-cover">
                     @else
                         <span class="text-[12px] font-bold">{{ $initial }}</span>
                     @endif

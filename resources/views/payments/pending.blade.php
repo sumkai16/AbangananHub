@@ -15,7 +15,7 @@
             takes a few seconds.
         </p>
 
-        @if($latestPayment && $latestPayment->isPaid())
+        @if($latestPayment && $latestPayment->isHeld())
             <div class="p-4 bg-green-50 border border-green-200/60 rounded-xl flex items-center gap-3 text-left mb-6">
                 <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                     <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -25,7 +25,7 @@
                 </div>
                 <div>
                     <p class="text-sm font-bold text-green-800">Payment Confirmed</p>
-                    <p class="text-xs text-green-700 mt-0.5">Your unit is now marked as occupied.</p>
+                    <p class="text-xs text-green-700 mt-0.5">Funds are held by AbangananHub. Confirm your move-in on the agreement page to mark the unit as occupied.</p>
                 </div>
             </div>
         @endif
