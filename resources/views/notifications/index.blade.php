@@ -44,7 +44,7 @@
     </div>
 
     @if($notifications->isEmpty())
-        <div class="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] p-10 text-center">
+        <div class="bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-white/30 p-10 text-center">
             <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] border border-[#E2E8F0] flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
@@ -58,7 +58,7 @@
             </p>
         </div>
     @else
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-0 bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden shadow-sm min-h-[500px]">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-0 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl overflow-hidden shadow-lg min-h-[500px]">
 
             {{-- LEFT: Notification list --}}
             <div class="{{ $selected ? 'hidden' : 'flex' }} lg:flex border-r border-[#E2E8F0] flex-col divide-y divide-[#E2E8F0] overflow-y-auto max-h-[700px]">
@@ -162,7 +162,7 @@
                     </a>
 
                     {{-- Panel header --}}
-                    <div class="px-6 py-4 border-b border-[#E2E8F0] bg-white">
+                    <div class="px-6 py-4 border-b border-white/30 bg-white/50 backdrop-blur-lg">
                         @if($selIsReview)
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 rounded-full bg-[#2AA7A1] flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0">
@@ -183,7 +183,7 @@
 
                         @if($selIsReview)
                             {{-- Original review card --}}
-                            <div class="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden">
+                            <div class="bg-white/50 backdrop-blur-lg border border-white/30 rounded-2xl overflow-hidden">
                                 <div class="px-4 py-3">
                                     <p class="text-[10px] font-bold uppercase tracking-wider text-[#64748B] mb-2">
                                         {{ $selReview->tenant_id === auth()->id() ? 'Your review' : 'Tenant review' }}
@@ -217,7 +217,7 @@
 
                             {{-- Landlord reply card --}}
                             @if($selReview->landlord_reply)
-                                <div class="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden">
+                                <div class="bg-white/50 backdrop-blur-lg border border-white/30 rounded-2xl overflow-hidden">
                                     <div class="px-4 py-3">
                                         <div class="flex items-center gap-2 mb-2">
                                             <svg class="w-3.5 h-3.5 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -236,7 +236,7 @@
                             {{-- Property link --}}
                             @if($selReview->property)
                                 <a href="{{ route('properties.show', $selReview->property_id) }}"
-                                    class="flex items-center gap-3 p-3 bg-white border border-[#E2E8F0] rounded-xl hover:brightness-95 transition-all mt-auto">
+                                    class="flex items-center gap-3 p-3 bg-white/50 backdrop-blur-lg border border-white/30 rounded-2xl hover:brightness-95 transition-all mt-auto">
                                     @if($selReview->property->media->isNotEmpty())
                                         <img src="{{ $selReview->property->media->first()->media_url }}"
                                             alt="{{ $selReview->property->title }}"
@@ -260,7 +260,7 @@
 
                         @else
                             {{-- Generic notification (no linked entity) --}}
-                            <div class="bg-white border border-[#E2E8F0] rounded-xl p-4 mb-3">
+                            <div class="bg-white/50 backdrop-blur-lg border border-white/30 rounded-2xl p-4 mb-3">
                                 <p class="text-[13px] text-[#1F2937] leading-relaxed">{{ $selected->message }}</p>
                                 <p class="text-[11px] text-[#64748B]/70 mt-2">{{ $selected->created_at->format('M d, Y \a\t g:i A') }}</p>
                             </div>

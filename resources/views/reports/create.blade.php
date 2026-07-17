@@ -1,7 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="min-h-screen bg-[#F7FCFC] py-10 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen py-10 px-4 sm:px-6 lg:px-8">
        <div class="max-w-5xl mx-auto">
 
             {{-- Header --}}
@@ -54,7 +54,7 @@
 
                 {{-- Form --}}
                 <form method="POST" action="{{ route('reports.store') }}"
-                    class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-6 sm:p-8 space-y-6"
+                    class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-6 sm:p-8 space-y-6"
                     x-data="{ targetType: '{{ old('target_type', $targetType ?? 'property') }}' }">
                     @csrf
 
@@ -204,7 +204,7 @@
 
                 {{-- Side info panel --}}
                 <div class="space-y-4 lg:sticky lg:top-8">
-                    <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
+                    <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-5">
                         <h2 class="text-[13px] font-bold text-[#1F2937] mb-4">What happens next?</h2>
                         <div class="space-y-4">
                             <div class="flex gap-3">

@@ -33,7 +33,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
             {{-- Left: profile preview sidebar --}}
             <div class="hidden lg:block">
-                <div class="bg-white rounded-xl border border-[#E2E8F0] p-6 text-center sticky top-[90px]">
+                <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-6 text-center sticky top-[90px]">
                     <div id="sidebar-avatar" class="mx-auto mb-4">
                         @if($user->profile_picture)
                             <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}"
@@ -101,7 +101,7 @@
                     @method('PATCH')
 
                     {{-- Avatar section --}}
-                    <div class="bg-white rounded-xl border border-[#E2E8F0] p-5 mb-4">
+                    <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-5 mb-4">
                         <p class="text-[13px] font-semibold text-[#64748B] mb-3">Profile picture</p>
                         <div class="flex items-center gap-4">
                             <div id="avatar-preview-wrapper">
@@ -135,7 +135,7 @@
                     </div>
 
                     {{-- Personal info --}}
-                    <div class="bg-white rounded-xl border border-[#E2E8F0] p-5 mb-4">
+                    <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-5 mb-4">
                         <p class="text-[13px] font-semibold text-[#64748B] mb-4">Personal information</p>
 
                         <div class="grid grid-cols-2 gap-3 mb-3">
@@ -144,14 +144,14 @@
                                     name</label>
                                 <input type="text" name="first_name" id="first_name"
                                     value="{{ old('first_name', $user->first_name) }}" required
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             </div>
                             <div>
                                 <label for="last_name" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Last
                                     name</label>
                                 <input type="text" name="last_name" id="last_name"
                                     value="{{ old('last_name', $user->last_name) }}" required
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             </div>
                         </div>
 
@@ -160,14 +160,14 @@
                                 class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Contact number</label>
                             <input type="text" name="contact_number" id="contact_number"
                                 value="{{ old('contact_number', $user->contact_number) }}"
-                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
+                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                                 placeholder="09171234567">
                         </div>
 
                         <div>
                             <label for="bio" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">About me</label>
                             <textarea name="bio" id="bio" rows="4" maxlength="1000"
-                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all resize-none"
+                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all resize-none"
                                 placeholder="Tell landlords a bit about yourself...">{{ old('bio', $user->bio) }}</textarea>
                             <p class="text-[11px] text-[#64748B] mt-1.5 text-right"><span
                                     id="bio-count">{{ strlen(old('bio', $user->bio ?? '')) }}</span>/1000</p>
@@ -175,12 +175,12 @@
                     </div>
 
                     {{-- Account (read-only email) --}}
-                    <div class="bg-white rounded-xl border border-[#E2E8F0] p-5 mb-5">
+                    <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-5 mb-5">
                         <p class="text-[13px] font-semibold text-[#64748B] mb-4">Account</p>
                         <div>
                             <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Email address</label>
                             <input type="email" value="{{ $user->email }}" disabled
-                                class="w-full px-4 py-2.5 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-[14px] text-[#64748B] cursor-not-allowed">
+                                class="w-full px-4 py-2.5 bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#64748B] cursor-not-allowed">
                             <p class="text-[11px] text-[#64748B] mt-1.5">Email can be changed in <a
                                     href="{{ route('profile.edit') }}"
                                     class="text-[#156F8C] font-semibold hover:underline">Settings</a>.</p>

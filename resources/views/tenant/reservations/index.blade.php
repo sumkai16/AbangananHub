@@ -32,24 +32,24 @@
 
         {{-- Summary cards --}}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white border border-[#64748B]/15 rounded-2xl p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-lg">
                 <p class="text-[12px] font-semibold text-[#64748B] mb-1">Total</p>
                 <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['all'] }}</p>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
-            <div class="bg-[#EEF8F8] border border-[#2AA7A1]/40 rounded-2xl p-4">
+            <div class="bg-[#EEF8F8]/70 backdrop-blur-xl border border-[#2AA7A1]/40 rounded-2xl p-4 shadow-lg">
                 <p class="text-[12px] font-semibold text-[#1F2937] mb-1">In progress</p>
                 <p class="text-2xl font-bold text-[#1F2937]">
                     {{ $counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'] }}
                 </p>
                 <p class="text-[11px] text-[#64748B] mt-1">Awaiting action</p>
             </div>
-            <div class="bg-white border border-[#64748B]/15 rounded-2xl p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-lg">
                 <p class="text-[12px] font-semibold text-[#64748B] mb-1">Occupied</p>
                 <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['Occupied'] }}</p>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
-            <div class="bg-white border border-[#EF4444]/30 rounded-2xl p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-[#EF4444]/30 rounded-2xl p-4 shadow-lg">
                 <p class="text-[12px] font-semibold text-[#EF4444] mb-1">Cancelled / Rejected</p>
                 <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['Cancelled'] + $counts['Rejected'] }}</p>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
@@ -80,7 +80,7 @@
         </div>
 
         {{-- Table --}}
-        <div class="bg-white border border-[#64748B]/15 rounded-2xl overflow-hidden">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl overflow-hidden shadow-lg">
             @if($reservations->isEmpty())
                 <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
                     <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5"
@@ -228,7 +228,7 @@
         {{-- Details modal --}}
         <div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div @click="modalOpen = false" class="absolute inset-0 bg-black/40"></div>
-            <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6" x-show="modalOpen" x-transition>
+            <div class="relative bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-xl w-full max-w-md p-6" x-show="modalOpen" x-transition>
                 <div class="flex items-start justify-between mb-4">
                     <h2 class="text-lg font-bold text-[#1F2937]">Reservation details</h2>
                     <button @click="modalOpen = false" class="text-[#64748B] hover:text-[#1F2937]">

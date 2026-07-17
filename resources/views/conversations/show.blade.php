@@ -45,7 +45,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
             {{-- ===== CHAT PANEL ===== --}}
-            <div class="lg:col-span-2 bg-white border border-[#EEF8F8] rounded-2xl flex flex-col overflow-hidden h-[600px]">
+            <div class="lg:col-span-2 bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl flex flex-col overflow-hidden h-[600px]">
 
                 {{-- Chat header with property context + stage pill --}}
                 <div class="p-4 border-b border-[#EEF8F8] flex flex-wrap items-center justify-between gap-2">
@@ -106,7 +106,7 @@
                 </div>
 
                 {{-- Input --}}
-                <div class="p-4 bg-white border-t border-[#EEF8F8]">
+                <div class="p-4 bg-white/50 backdrop-blur-lg border-t border-white/30">
                     <form id="message-form" class="flex items-center gap-3">
                         <input type="text" id="message-input" name="message" required maxlength="2000" autofocus
                             class="flex-1 bg-[#E2E8F0] border border-[#EEF8F8] focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/10 rounded-xl px-4 py-3 text-sm text-[#1F2937] transition outline-none placeholder-[#64748B]"
@@ -127,7 +127,7 @@
 
                 {{-- RENTAL PROGRESS --}}
                 @if($reservation)
-                    <div class="bg-white border border-[#EEF8F8] rounded-2xl p-4">
+                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl p-4">
                         <div class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-3">Rental Progress</div>
 
                         @if($isTerminal)
@@ -182,7 +182,7 @@
 
                 {{-- ACTIONS --}}
                 @if($reservation && !$isTerminal)
-                    <div class="bg-white border border-[#EEF8F8] rounded-2xl p-4">
+                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl p-4">
 
                         {{-- LANDLORD ACTIONS --}}
                         @if($isLandlord)
@@ -344,7 +344,7 @@
 
                 {{-- PROPERTY CARD --}}
                 <a href="{{ route('properties.show', $conversation->property) }}" target="_blank"
-                    class="bg-white border border-[#EEF8F8] rounded-2xl p-4 flex items-center gap-3 hover:bg-[#E2E8F0] transition block">
+                    class="bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl p-4 flex items-center gap-3 hover:bg-[#E2E8F0] transition block">
                     <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center flex-shrink-0">
                         @if($conversation->property->media->count() > 0)
                             <img src="{{ $conversation->property->media->first()->media_url }}" alt="" class="w-12 h-12 rounded-xl object-cover">

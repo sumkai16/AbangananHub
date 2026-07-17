@@ -395,7 +395,7 @@
                         {{-- Review submission form --}}
                         @auth
                             @if($canReview)
-                                <div class="mb-6 bg-white border border-[#EEF8F8] rounded-2xl p-5"
+                                <div class="mb-6 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg"
                                     x-data="{ rating: 0, hoverRating: 0 }">
                                     <p class="text-sm font-bold text-[#1F2937] mb-3">Leave a review</p>
                                     <form action="{{ route('reviews.store') }}" method="POST" class="space-y-4">
@@ -593,8 +593,8 @@
                                 <button type="button" x-on:click="selectUnit({{ $unit->unit_id }})"
                                     :class="selectedUnit === {{ $unit->unit_id }}
                                                                                                             ? 'border-[#EF4444] bg-[#E2E8F0]'
-                                                                                                            : '{{ $isAvailable ? 'border-[#EEF8F8] bg-white hover:brightness-95' : 'border-[#E2E8F0] bg-[#E2E8F0] cursor-not-allowed' }}'"
-                                    class="w-full text-left rounded-2xl border-2 p-4 flex items-center gap-4 shadow-sm transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
+                                                                                                            : '{{ $isAvailable ? 'border-white/30 bg-white/50 hover:brightness-95' : 'border-[#E2E8F0] bg-[#E2E8F0] cursor-not-allowed' }}'"
+                                    class="w-full text-left rounded-2xl border-2 p-4 flex items-center gap-4 backdrop-blur-lg shadow-lg transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
                                     @if(!$isAvailable) disabled @endif>
 
                                     {{-- Radio indicator --}}
@@ -656,7 +656,7 @@
             <div class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-6 space-y-4 w-full">
 
                 {{-- ===== 1. INQUIRE / RESERVE CARD ===== --}}
-                <div class="bg-white rounded-3xl border border-[#EEF8F8] shadow-sm p-6">
+                <div class="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/30 shadow-lg p-6">
 
                     {{-- Selected unit preview --}}
                     <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-3">You're inquiring about:
@@ -782,7 +782,7 @@
                 </div>
 
                 {{-- Message Landlord --}}
-                <div class="bg-white border border-[#EEF8F8] rounded-2xl p-5 shadow-sm">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg">
                     @auth
                         @if(!$isOwner)
                             <form action="{{ route('conversations.store') }}" method="POST">
@@ -818,7 +818,7 @@
                 </div>
 
                 {{-- ===== 2. LANDLORD INFORMATION CARD ===== --}}
-                <div class="bg-white border border-[#EEF8F8] rounded-2xl p-5 shadow-sm">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg">
                     <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-3">Landlord Information</p>
                     <div class="flex items-center gap-3 mb-4">
                         <div

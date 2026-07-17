@@ -7,6 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ $title ?? 'AbangananHub' }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <script>
@@ -18,7 +21,7 @@
     });
 </script>
 
-<body class="font-sans bg-[#F7FCFC] text-[#156F8C] min-h-screen flex flex-col" x-data="{}">
+<body class="font-sans bg-[linear-gradient(135deg,#F7FCFC_0%,#E0F4F4_40%,#F7FCFC_70%,#EEF8F8_100%)] bg-fixed text-[#156F8C] min-h-screen flex flex-col" x-data="{}">
 
     <header id="site-header"
         class="bg-white/85 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-[100] supports-[backdrop-filter]:bg-white/60 transition-all duration-300">

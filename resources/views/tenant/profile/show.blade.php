@@ -16,7 +16,7 @@
         @endif
 
         {{-- Profile header card --}}
-        <div class="bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-8 mb-6">
+        <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-6 sm:p-8 mb-6">
             <div class="flex flex-col sm:flex-row gap-6 items-start">
 
                 {{-- Avatar --}}
@@ -111,15 +111,15 @@
 
         {{-- Stats row --}}
         <div class="grid grid-cols-3 gap-3 mb-6">
-            <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 text-center">
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-4 text-center">
                 <p class="text-[13px] text-[#64748B] mb-1">Saved listings</p>
                 <p class="text-[22px] font-bold text-[#1F2937]">{{ $favoritesCount }}</p>
             </div>
-            <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 text-center">
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-4 text-center">
                 <p class="text-[13px] text-[#64748B] mb-1">Reviews written</p>
                 <p class="text-[22px] font-bold text-[#1F2937]">{{ $reviews->count() }}</p>
             </div>
-            <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 text-center">
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-4 text-center">
                 <p class="text-[13px] text-[#64748B] mb-1">Active reservations</p>
                 <p class="text-[22px] font-bold text-[#1F2937]">{{ $activeReservations->count() }}</p>
             </div>
@@ -129,7 +129,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {{-- Recent reviews --}}
-            <div class="bg-white rounded-xl border border-[#E2E8F0] p-5">
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-[15px] font-bold text-[#1F2937]">Recent reviews</h2>
                 </div>
@@ -166,7 +166,7 @@
             </div>
 
             {{-- Active reservations --}}
-            <div class="bg-white rounded-xl border border-[#E2E8F0] p-5">
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-[15px] font-bold text-[#1F2937]">Active reservations</h2>
                     <a href="{{ route('reservations.index') }}"
@@ -176,7 +176,7 @@
                 @forelse($activeReservations as $reservation)
                     @continue(!$reservation->property)
                     <div
-                        class="p-3 border border-[#E2E8F0] rounded-lg flex gap-3 items-center {{ !$loop->first ? 'mt-3' : '' }}">
+                        class="p-3 bg-white/50 backdrop-blur-lg border border-white/30 rounded-xl flex gap-3 items-center {{ !$loop->first ? 'mt-3' : '' }}">
                         @php $thumb = $reservation->property->media->first(); @endphp
                         @if($thumb)
                             <img src="{{ $thumb->media_url }}" alt="" class="w-16 h-12 rounded-md object-cover flex-shrink-0">

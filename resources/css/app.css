@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Poppins', sans-serif;
+}
+
 [x-cloak] {
     display: none;
 }

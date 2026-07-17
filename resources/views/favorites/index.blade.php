@@ -11,7 +11,7 @@
 
     {{-- Search & Filter Bar --}}
     <form method="GET" action="{{ route('favorites.index') }}"
-        class="flex flex-col sm:flex-row gap-3 mb-8 p-4 bg-white rounded-2xl border border-[#64748B]/20 shadow-sm">
+        class="flex flex-col sm:flex-row gap-3 mb-8 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg">
         <div class="relative flex-1">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B] pointer-events-none"
                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

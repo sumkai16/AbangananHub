@@ -55,7 +55,7 @@
         </div>
 
         {{-- Split panel --}}
-        <div class="flex bg-white ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] rounded-2xl overflow-hidden"
+        <div class="flex bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl overflow-hidden"
             style="height: calc(100vh - 170px); min-height: 500px;">
 
             {{-- LEFT: Conversation list --}}
