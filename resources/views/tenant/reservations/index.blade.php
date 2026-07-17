@@ -1,7 +1,7 @@
 @extends(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8" x-data="{
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 min-h-[calc(100vh-72px)] flex flex-col" x-data="{
             modalOpen: false,
             selected: null,
             openModal(reservation) {
@@ -80,9 +80,9 @@
         </div>
 
         {{-- Table --}}
-        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl overflow-hidden shadow-lg">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl overflow-hidden shadow-lg flex-1 flex flex-col">
             @if($reservations->isEmpty())
-                <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <div class="flex-1 flex flex-col items-center justify-center py-16 px-6 text-center">
                     <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5"
                         class="mb-3">
                         <path stroke-linecap="round" stroke-linejoin="round"

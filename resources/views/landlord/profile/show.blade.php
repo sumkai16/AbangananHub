@@ -1,6 +1,6 @@
 @extends($isOwner ? 'layouts.landlord' : 'layouts.app', $isOwner ? [] : ['searchBar' => false])
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-[50px] py-6 pb-10">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-[50px] py-6 pb-10 min-h-[calc(100vh-72px)]">
 
         {{-- Success flash --}}
         @if(session('success'))

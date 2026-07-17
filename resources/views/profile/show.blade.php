@@ -3,7 +3,7 @@
 @section('title', 'Profile')
 
 @section('content')
-    <div class="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[calc(100vh-72px)]">
 
         {{-- Profile header card --}}
         <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-8 mb-6 flex flex-col sm:flex-row sm:items-center gap-5">

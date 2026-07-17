@@ -1,7 +1,7 @@
 @extends(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="max-w-3xl mx-auto px-4 py-10">
+    <div class="max-w-3xl mx-auto px-4 py-10 min-h-[calc(100vh-72px)]">
 
         <a href="{{ route('reservations.index') }}"
             class="inline-flex items-center text-sm font-semibold text-[#156F8C] hover:text-[#156F8C]/80 transition mb-6">

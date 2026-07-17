@@ -1,7 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="min-h-screen bg-[#F7FCFC] py-8 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-[calc(100vh-72px)] py-8 px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl mx-auto"
             x-data="verificationWizard({ ocrCheckUrl: '{{ route('landlord.verification.ocrCheck') }}', csrfToken: '{{ csrf_token() }}' })"
             x-init="init()">

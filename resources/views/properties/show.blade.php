@@ -34,7 +34,7 @@
         $defaultUnitId = optional($unitsPayload->firstWhere('available', true))['id'] ?? null;
     @endphp
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8" x-data="{
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 min-h-[calc(100vh-72px)]" x-data="{
                                         tab: 'overview',
                                         mode: 'inquiry',
                                         units: @js($unitsPayload),

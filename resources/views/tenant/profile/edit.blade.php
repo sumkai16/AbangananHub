@@ -3,7 +3,7 @@
 @section('hide_search', true)
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 min-h-[calc(100vh-72px)]">
 
         {{-- Back link + heading --}}
         <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-x-6 gap-y-0">

@@ -16,7 +16,7 @@
         $strength = (int) round((count(array_filter($checks)) / count($checks)) * 100);
     @endphp
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 sm:py-10">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 sm:py-10 min-h-[calc(100vh-72px)]">
 
         {{-- Back to profile --}}
         <a href="{{ route('profile.show') }}"

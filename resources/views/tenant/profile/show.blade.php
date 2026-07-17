@@ -3,7 +3,7 @@
 @section('hide_search', true)
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 min-h-[calc(100vh-72px)]">
 
         {{-- Success flash --}}
         @if(session('success'))

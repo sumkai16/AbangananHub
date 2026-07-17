@@ -1,7 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="max-w-xl mx-auto px-4 py-16 text-center">
+    <div class="max-w-xl mx-auto px-4 py-16 text-center min-h-[calc(100vh-72px)] flex flex-col justify-center">
 
         <div class="w-14 h-14 rounded-full bg-[#EEF8F8] flex items-center justify-center mx-auto mb-6">
             <svg class="w-7 h-7 text-[#2AA7A1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

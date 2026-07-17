@@ -1,7 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-[calc(100vh-72px)] py-10 px-4 sm:px-6 lg:px-8">
        <div class="max-w-5xl mx-auto">
 
             {{-- Header --}}
