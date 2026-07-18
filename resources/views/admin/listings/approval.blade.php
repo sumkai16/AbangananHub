@@ -11,7 +11,7 @@
             <h1 class="text-2xl font-extrabold text-[#1A1A2E] tracking-tight">Property Verifications</h1>
             <p class="text-[13.5px] text-gray-500 mt-1">Review pending property listings before they go live.</p>
         </div>
-        <div class="bg-white border border-gray-100 rounded-2xl px-5 py-3 shadow-sm flex items-center gap-3">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl px-5 py-3 shadow-lg flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center">
                 <svg class="w-4.5 h-4.5 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -27,7 +27,7 @@
     </div>
 
     {{-- List --}}
-    <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-50">
             <h2 class="text-[15px] font-bold text-[#1A1A2E]">Pending Properties</h2>
             <p class="text-[13px] text-gray-400 mt-0.5">Approve to publish, or reject to request changes.</p>

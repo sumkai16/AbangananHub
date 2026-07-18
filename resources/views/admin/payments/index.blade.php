@@ -12,7 +12,7 @@
     </div>
 
     {{-- Tabs --}}
-    <div class="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto shadow-sm">
+    <div class="flex gap-1 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto shadow-lg">
         @foreach (['All', 'Held', 'Released', 'Pending'] as $tab)
             <a href="{{ route('admin.payments.index', ['status' => $tab]) }}"
                 class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-150
@@ -25,7 +25,7 @@
     </div>
 
     @if ($payments->isEmpty())
-        <div class="bg-white border border-gray-100 rounded-3xl p-16 text-center shadow-sm">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-16 text-center shadow-lg">
             <div class="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
@@ -35,7 +35,7 @@
             <p class="text-[13px] text-gray-400 mt-1">No payments match this tab right now.</p>
         </div>
     @else
-        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
                 <p class="text-[13px] font-semibold text-[#1A1A2E]">
                     {{ $payments->total() }} {{ Str::plural('payment', $payments->total()) }}

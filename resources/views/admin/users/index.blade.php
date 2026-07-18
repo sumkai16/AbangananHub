@@ -29,7 +29,7 @@
         <div class="min-w-0">
             {{-- Filters --}}
             <form method="GET" action="{{ route('admin.users.index') }}"
-                class="bg-white border border-gray-100 rounded-2xl p-4 mb-5 shadow-sm flex flex-col sm:flex-row gap-3">
+                class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 mb-5 shadow-lg flex flex-col sm:flex-row gap-3">
                 <div class="relative flex-1">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -58,7 +58,7 @@
             </form>
 
             @if ($users->isEmpty())
-                <div class="bg-white border border-gray-100 rounded-3xl p-16 text-center shadow-sm">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-16 text-center shadow-lg">
                     <div class="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-4">
                         <svg class="w-7 h-7 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0Z" />
@@ -68,7 +68,7 @@
                     <p class="text-[13px] text-gray-400 mt-1">Try adjusting your search or filter.</p>
                 </div>
             @else
-                <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                     <div class="overflow-x-auto scrollbar-thin-light">
                         <table class="min-w-full">
                             <thead>
@@ -170,7 +170,7 @@
         <div class="space-y-5">
 
             {{-- Role breakdown donut --}}
-            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg">
                 <h2 class="text-[13.5px] font-bold text-[#1A1A2E] mb-4">User Breakdown</h2>
                 <div class="relative h-40 flex items-center justify-center mb-4">
                     <canvas id="roleBreakdownChart"></canvas>
@@ -201,7 +201,7 @@
             </div>
 
             {{-- Account status --}}
-            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg">
                 <h2 class="text-[13.5px] font-bold text-[#1A1A2E] mb-4">Account Status</h2>
                 <div class="space-y-3">
                     @php

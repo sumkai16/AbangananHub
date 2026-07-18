@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="min-h-screen bg-gray-50/50 py-12">
+    <div class="min-h-screen py-12">
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px]">
 
             <div
@@ -59,7 +59,7 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                    <div class="lg:col-span-7 bg-white border border-gray-100 rounded-3xl p-5 sm:p-8 shadow-sm space-y-6">
+                    <div class="lg:col-span-7 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 sm:p-8 space-y-6">
 
                         <h3 class="text-[16px] font-bold text-[#156F8C] border-b border-gray-50 pb-4">Property details</h3>
 
@@ -148,7 +148,7 @@
                     <div class="lg:col-span-5">
                         <div class="sticky top-8 space-y-6">
 
-                            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+                            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
                                 <div class="flex items-center justify-between border-b border-gray-50 pb-3 mb-4">
                                     <h3 class="text-[14px] font-bold text-[#156F8C]">Current photos</h3>
                                     <span
@@ -191,7 +191,7 @@
                                 </div>
                             </div>
 
-                            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+                            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6 space-y-4">
                                 <h3 class="text-[14px] font-bold text-[#156F8C] border-b border-gray-50 pb-3">Add more
                                     photos</h3>
 

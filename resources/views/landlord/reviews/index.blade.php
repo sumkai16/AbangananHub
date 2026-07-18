@@ -33,7 +33,7 @@
 
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Reviews</span>
                     <div class="w-8 h-8 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
@@ -47,7 +47,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1">Across all properties</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Average Rating</span>
                     <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
@@ -60,7 +60,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1">Out of 5.0 stars</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-amber-100 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Awaiting Reply</span>
                     <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
@@ -78,7 +78,7 @@
             <div class="min-w-0">
                 {{-- Filter bar --}}
                 <form method="GET" action="{{ route('landlord.reviews.index') }}"
-                    class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-4 mb-6">
+                    class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4 mb-6">
                     <div class="flex flex-wrap items-center gap-2.5">
                         <div class="relative">
                             <select name="property"
@@ -142,7 +142,7 @@
 
                 {{-- Review cards --}}
                 @if($reviews->isEmpty())
-                    <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg flex flex-col items-center justify-center py-16 px-6 text-center">
                         <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
                             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -159,7 +159,7 @@
                 @else
                     <div class="space-y-4" x-data="{ replyOpenId: null }">
                         @foreach($reviews as $review)
-                            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+                            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                                 {{-- Top row --}}
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                     <div class="flex items-center gap-3">
@@ -258,7 +258,7 @@
 
             {{-- Sidebar: reputation tips --}}
             <aside class="flex flex-col gap-4 lg:sticky lg:top-24">
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                     <h3 class="text-[13px] font-bold text-[#1F2937] mb-3.5">Build your reputation</h3>
                     <ul class="flex flex-col gap-3">
                         <li class="flex items-start gap-2.5">

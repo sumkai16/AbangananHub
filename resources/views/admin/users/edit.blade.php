@@ -13,7 +13,7 @@
         Back to user
     </a>
 
-    <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
         <div class="px-7 py-5 border-b border-gray-50 flex items-center gap-4">
             @php $initials = strtoupper(substr($user->first_name ?? '', 0, 1)) . strtoupper(substr($user->last_name ?? '', 0, 1)); @endphp
             <div class="w-10 h-10 rounded-2xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">

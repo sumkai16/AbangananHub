@@ -103,7 +103,7 @@
 
                     <div class="space-y-3 mb-8">
                         {{-- Checklist item: Government ID --}}
-                        <div class="flex items-center gap-4 p-4 bg-white rounded-xl border border-[#E2E8F0]">
+                        <div class="flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg">
                             <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg class="w-5 h-5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -118,7 +118,7 @@
                         </div>
 
                         {{-- Checklist item: Face verification --}}
-                        <div class="flex items-center gap-4 p-4 bg-white rounded-xl border border-[#E2E8F0]">
+                        <div class="flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg">
                             <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg class="w-5 h-5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -133,7 +133,7 @@
                         </div>
 
                         {{-- Checklist item: Business details --}}
-                        <div class="flex items-center gap-4 p-4 bg-white rounded-xl border border-[#E2E8F0]">
+                        <div class="flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg">
                             <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg class="w-5 h-5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -211,7 +211,7 @@
 
                         <div class="space-y-3 mb-6">
                             <button type="button" @click="chooseIdMethod('camera')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-xl border border-[#E2E8F0] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
+                                class="w-full flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
                                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                     <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -232,7 +232,7 @@
                             </button>
 
                             <button type="button" @click="chooseIdMethod('upload')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-xl border border-[#E2E8F0] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
+                                class="w-full flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
                                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                     <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -266,7 +266,7 @@
 
                     {{-- ── Active capture / upload area ─────────── --}}
                     <div x-show="idCapturePhase !== 'choose'">
-                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
 
                             <template x-if="cameraError">
                                 <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-red-50 p-3">
@@ -572,7 +572,7 @@
 
                         <div class="space-y-3 mb-6">
                             <button type="button" @click="chooseSelfieMethod('camera')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-xl border border-[#E2E8F0] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
+                                class="w-full flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
                                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                     <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -593,7 +593,7 @@
                             </button>
 
                             <button type="button" @click="chooseSelfieMethod('upload')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-xl border border-[#E2E8F0] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
+                                class="w-full flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
                                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                     <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -627,7 +627,7 @@
 
                     {{-- ── Camera selfie capture with liveness ──── --}}
                     <div x-show="selfieCapturePhase === 'camera' && !selfieBase64">
-                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                             <template x-if="cameraError">
                                 <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-red-50 p-3">
                                     <p class="text-sm text-[#EF4444]" x-text="cameraError"></p>
@@ -795,7 +795,7 @@
 
                     {{-- ── Selfie preview (both modes) ─────────── --}}
                     <div x-show="selfieBase64">
-                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                             <div class="rounded-xl overflow-hidden border border-[#E2E8F0] max-w-sm mx-auto">
                                 <img :src="selfieBase64" alt="Captured selfie" class="w-full">
                             </div>
@@ -861,7 +861,7 @@
                         <p class="text-sm text-[#64748B]">Tell us about your rental business on AbangananHub.</p>
                     </div>
 
-                    <div class="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                         <div class="space-y-4">
                             <div>
                                 <label for="business_name" class="block text-sm font-medium text-[#1F2937] mb-1">Business
@@ -923,7 +923,7 @@
 
                     <div class="space-y-4">
                         {{-- Verification checks --}}
-                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                             <p class="text-xs font-semibold text-[#64748B] mb-3">Verification checks</p>
                             <div x-show="ocrResult" class="space-y-2">
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
@@ -994,7 +994,7 @@
                         </div>
 
                         {{-- Photos --}}
-                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                             <p class="text-xs font-semibold text-[#64748B] mb-3">Your photos</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" :class="needsBack ? 'lg:grid-cols-3' : ''">
                                 <div>
@@ -1023,7 +1023,7 @@
                         </div>
 
                         {{-- Business details --}}
-                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-5">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                             <p class="text-xs font-semibold text-[#64748B] mb-3">Business details</p>
                             <dl class="space-y-3">
                                 <div class="flex flex-col sm:flex-row sm:gap-4">

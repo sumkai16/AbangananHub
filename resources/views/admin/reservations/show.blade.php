@@ -73,7 +73,7 @@
     </div>
 
     {{-- Hero card --}}
-    <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-6">
+    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden mb-6">
         <div class="px-4 sm:px-7 py-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center gap-5">
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2.5 mb-1">
@@ -143,7 +143,7 @@
         <div class="lg:col-span-2 space-y-6">
 
             {{-- Reservation details --}}
-            <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
                     <div class="w-8 h-8 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -170,7 +170,7 @@
 
             {{-- Tenant's remarks --}}
             @if($reservation->remarks)
-                <div class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Tenant's Remarks</p>
                     <p class="text-[13.5px] text-[#1A1A2E] leading-relaxed">{{ $reservation->remarks }}</p>
                 </div>
@@ -209,7 +209,7 @@
 
             {{-- Payments --}}
             @if($reservation->payments->count())
-                <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
                         <div class="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -246,7 +246,7 @@
         <div class="space-y-5">
 
             {{-- Tenant --}}
-            <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-50">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Tenant</p>
                 </div>
@@ -279,7 +279,7 @@
             </div>
 
             {{-- Property --}}
-            <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-50">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Property</p>
                 </div>
@@ -313,7 +313,7 @@
             </div>
 
             {{-- Landlord --}}
-            <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-50">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Landlord</p>
                 </div>

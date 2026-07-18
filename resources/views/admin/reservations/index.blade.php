@@ -38,7 +38,7 @@
 
     {{-- Stat cards --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-lg">
             <p class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1">Total</p>
             <p class="text-[28px] font-extrabold text-[#1A1A2E] leading-none">{{ number_format($counts['all']) }}</p>
             <p class="text-[11px] text-gray-400 mt-1">All time</p>
@@ -64,7 +64,7 @@
 
     {{-- Search --}}
     <form method="GET" action="{{ route('admin.reservations.index') }}"
-        class="bg-white border border-gray-100 rounded-2xl p-4 mb-5 shadow-sm flex flex-col sm:flex-row gap-3">
+        class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 mb-5 shadow-lg flex flex-col sm:flex-row gap-3">
         <input type="hidden" name="status" value="{{ $status }}">
         <div class="relative flex-1">
             <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" fill="none"
@@ -107,7 +107,7 @@
 
     {{-- Table --}}
     @if($reservations->isEmpty())
-        <div class="bg-white border border-gray-100 rounded-3xl p-16 text-center shadow-sm">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-16 text-center shadow-lg">
             <div class="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -117,7 +117,7 @@
             <p class="text-[13px] text-gray-400 mt-1">{{ $search ? 'Try adjusting your search.' : 'None with this status yet.' }}</p>
         </div>
     @else
-        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
             <div class="overflow-x-auto scrollbar-thin-light">
                 <table class="min-w-full">
                     <thead>

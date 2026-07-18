@@ -49,7 +49,7 @@
             $rejectedCount = $counts['Rejected'] + $counts['Cancelled'];
         @endphp
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total</span>
                     <div class="w-8 h-8 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
@@ -63,7 +63,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#2AA7A1]/30 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">In Progress</span>
                     <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -76,7 +76,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1">Awaiting action</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
                     <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
@@ -89,7 +89,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-red-100 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rejected / Cancelled</span>
                     <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
@@ -104,7 +104,7 @@
         </div>
 
         {{-- Status tabs --}}
-        <div class="flex items-center gap-1 bg-white ring-1 ring-[#64748B]/10 rounded-2xl p-1.5 mb-4 w-fit max-w-full overflow-x-auto scrollbar-thin-light shadow-[0_2px_12px_rgba(15,23,42,0.05)]">
+        <div class="flex items-center gap-1 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-1.5 mb-4 w-fit max-w-full overflow-x-auto scrollbar-thin-light shadow-lg">
             @foreach([
                 'all' => 'All',
                 'Inquiry' => 'Inquiry',
@@ -128,7 +128,7 @@
 
         {{-- Reservation cards --}}
         @if($reservations->isEmpty())
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] flex flex-col items-center justify-center py-10 px-6 text-center">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg flex flex-col items-center justify-center py-10 px-6 text-center">
                 <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
                     <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -165,7 +165,7 @@
                         $initials = strtoupper(substr($reservation->tenant->first_name ?? '?', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1));
                     @endphp
 
-                    <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.08)] transition-shadow duration-200 overflow-hidden">
+                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg hover:shadow-[0_6px_20px_rgba(15,23,42,0.08)] transition-shadow duration-200 overflow-hidden">
                         <div class="p-5 flex flex-col lg:flex-row lg:items-center gap-5">
 
                             {{-- Tenant + property --}}

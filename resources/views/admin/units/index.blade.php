@@ -13,7 +13,7 @@
 
         {{-- Tabs --}}
         <div
-            class="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto shadow-sm">
+            class="flex gap-1 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto shadow-lg">
             @foreach (['Pending', 'Approved', 'Rejected', 'All'] as $tab)
                 <a href="{{ route('admin.units.index', ['status' => $tab]) }}" class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-150
                                     {{ $status === $tab
@@ -25,7 +25,7 @@
         </div>
 
         @if ($units->isEmpty())
-            <div class="bg-white border border-gray-100 rounded-3xl p-16 text-center shadow-sm">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-16 text-center shadow-lg">
                 <div
                     class="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-4">
                     <svg class="w-7 h-7 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -37,7 +37,7 @@
                 <p class="text-[13px] text-gray-400 mt-1">No units match this tab right now.</p>
             </div>
         @else
-            <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
                     <p class="text-[13px] font-semibold text-[#1F2937]">
                         {{ $units->total() }} {{ Str::plural('unit', $units->total()) }}

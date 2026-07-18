@@ -16,7 +16,7 @@
         <p class="text-sm text-[#64748B] mb-8">Share your experience with this tenant to help other landlords.</p>
 
         {{-- Tenant & reservation context card --}}
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-5 mb-6">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 mb-6">
             <div class="flex items-center gap-4">
                 <div
                     class="w-12 h-12 rounded-full bg-[#2AA7A1] text-white text-lg font-bold flex items-center justify-center shrink-0">
@@ -42,7 +42,7 @@
 
         {{-- Rating form --}}
         <form action="{{ route('landlord.reservations.rateTenant.store', $reservation) }}" method="POST"
-            class="bg-white border border-[#E2E8F0] rounded-2xl p-6" x-data="{ rating: 0, hovered: 0 }">
+            class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6" x-data="{ rating: 0, hovered: 0 }">
             @csrf
 
             {{-- Star picker --}}

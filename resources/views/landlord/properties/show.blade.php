@@ -196,7 +196,7 @@
 
         {{-- Property Status card --}}
         <div class="w-full lg:w-56 shrink-0">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-4 space-y-3">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4 space-y-3">
                 <div class="flex items-center justify-between gap-2">
                     <h3 class="text-xs font-bold text-[#64748B] uppercase tracking-widest">Property Status</h3>
                     @php
@@ -286,7 +286,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
 
                 {{-- Property Information --}}
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                     <h3 class="text-sm font-bold text-[#1F2937] mb-4 flex items-center gap-2">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#64748B]">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9-3.75h.008v.008H12V8.25z"/>
@@ -325,7 +325,7 @@
                 </div>
 
                 {{-- Location --}}
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5 flex flex-col">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 flex flex-col">
                     <h3 class="text-sm font-bold text-[#1F2937] mb-3 flex items-center gap-2">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#64748B]">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
@@ -350,7 +350,7 @@
                 </div>
 
                 {{-- Statistics (SVG donut) --}}
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                     <h3 class="text-sm font-bold text-[#1F2937] mb-4 flex items-center gap-2">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#64748B]">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zm4.5-7.5A1.125 1.125 0 0 1 8.625 4.5h2.25c.621 0 1.125.504 1.125 1.125v13.5c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 7.5 19.125V5.625zm4.5-3A1.125 1.125 0 0 1 13.125 1.5h2.25C16.496 1.5 17 2.004 17 2.625v17.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 12 19.875V2.625z"/>
@@ -428,7 +428,7 @@
             </div>
 
             {{-- Recent Activity --}}
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-bold text-[#1F2937]">Recent Activity</h3>
                     <a href="{{ route('landlord.properties.units.index', $property) }}"
@@ -580,7 +580,7 @@
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     @foreach($property->amenities as $amenity)
-                        <div class="flex items-center gap-3 bg-white rounded-xl ring-1 ring-[#64748B]/15 px-4 py-3">
+                        <div class="flex items-center gap-3 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg px-4 py-3">
                             <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-[#2AA7A1]">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
@@ -642,7 +642,7 @@
 
                 <div class="space-y-3">
                     @foreach($visibleReviews as $review)
-                        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
+                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                             <div class="flex items-start justify-between gap-4 mb-3">
                                 <div class="flex items-center gap-3">
                                     <div class="w-9 h-9 rounded-full bg-[#EEF8F8] flex items-center justify-center shrink-0 text-sm font-bold text-[#156F8C]">

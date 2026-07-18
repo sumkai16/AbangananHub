@@ -27,7 +27,7 @@
 
         {{-- Filter toolbar --}}
         <form method="GET" action="{{ route('landlord.properties.index') }}"
-            class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-4 mb-8">
+            class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4 mb-8">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
                 <div class="relative flex-1 min-w-[200px]">

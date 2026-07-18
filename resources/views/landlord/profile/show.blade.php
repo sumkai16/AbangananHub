@@ -114,7 +114,7 @@
 
         {{-- Business info card --}}
         @if($business)
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5 mb-5">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 mb-5">
                 <div class="flex items-center gap-3 mb-3">
                     @if($business->logo_url)
                         <img src="{{ $business->logo_url }}" alt="{{ $business->business_name }}" class="w-11 h-11 rounded-xl object-cover">
@@ -148,7 +148,7 @@
 
         {{-- Stats row --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Properties</span>
                     <div class="w-7 h-7 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
@@ -159,7 +159,7 @@
                 </div>
                 <span class="text-xl font-extrabold text-[#1F2937]">{{ $properties->count() }}</span>
             </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Units</span>
                     <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -170,7 +170,7 @@
                 </div>
                 <span class="text-xl font-extrabold text-[#1F2937]">{{ $totalUnits }}</span>
             </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
                     <div class="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
@@ -181,7 +181,7 @@
                 </div>
                 <span class="text-xl font-extrabold text-red-500">{{ $occupiedUnits }}</span>
             </div>
-            <div class="bg-white rounded-2xl ring-1 ring-amber-100 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Avg Rating</span>
                     <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
@@ -241,7 +241,7 @@
                     </div>
                 @endif
             @else
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] py-10 text-center">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg py-10 text-center">
                     <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
@@ -253,7 +253,7 @@
         </div>
 
         {{-- Reviews received --}}
-        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-[15px] font-bold text-[#1F2937]">Reviews from tenants</h2>
                 @if($averageRating)

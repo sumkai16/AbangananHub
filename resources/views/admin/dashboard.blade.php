@@ -12,7 +12,7 @@
                 <p class="text-[13.5px] text-gray-400 mt-0.5">Welcome back! Here's what's happening on AbangananHub.</p>
             </div>
             <div
-                class="hidden sm:flex items-center gap-2 bg-white border border-gray-100 rounded-2xl px-4 py-2.5 shadow-sm text-[13px] text-gray-500">
+                class="hidden sm:flex items-center gap-2 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl px-4 py-2.5 shadow-lg text-[13px] text-gray-500">
                 <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -45,7 +45,7 @@
 
             @foreach($statCards as $card)
                 @php $c = $colorMap[$card['color']]; @endphp
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg">
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-[11.5px] font-bold text-gray-400 uppercase tracking-wider leading-tight">
                             {{ $card['label'] }}</p>
@@ -67,7 +67,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             {{-- Platform Overview --}}
-            <div class="lg:col-span-7 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+            <div class="lg:col-span-7 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-6 shadow-lg">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                     <div>
                         <h2 class="text-[15px] font-bold text-[#1A1A2E]">Platform Overview</h2>
@@ -88,7 +88,7 @@
             </div>
 
             {{-- User Distribution --}}
-            <div class="lg:col-span-5 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+            <div class="lg:col-span-5 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-6 shadow-lg">
                 <div class="mb-4">
                     <h2 class="text-[15px] font-bold text-[#1A1A2E]">User Distribution</h2>
                     <p class="text-[12px] text-gray-400 mt-0.5">Breakdown by role</p>
@@ -131,7 +131,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             {{-- Pending Verifications --}}
-            <div class="lg:col-span-8 bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden"
+            <div class="lg:col-span-8 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden"
                 x-data="{ tab: 'landlords' }">
 
                 <div class="px-4 sm:px-6 py-4 border-b border-gray-50 flex flex-wrap items-center justify-between gap-3">
@@ -355,7 +355,7 @@
             </div>
 
             {{-- Recent Reservations --}}
-            <div class="lg:col-span-4 bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="lg:col-span-4 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
                     <h2 class="text-[15px] font-bold text-[#1A1A2E]">Recent Reservations</h2>
                     <span class="text-[12px] text-gray-400">Latest</span>
@@ -399,7 +399,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
             {{-- Reservations Overview --}}
-            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-6 shadow-lg">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-[15px] font-bold text-[#1A1A2E]">Reservations Overview</h2>
                 </div>
@@ -423,7 +423,7 @@
             </div>
 
             {{-- Quick Actions --}}
-            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-6 shadow-lg">
                 <h2 class="text-[15px] font-bold text-[#1A1A2E] mb-4">Quick Actions</h2>
                 <div class="grid grid-cols-2 gap-3">
                     @php

@@ -36,7 +36,7 @@
 
         {{-- Left: message thread --}}
         <div class="lg:col-span-2">
-            <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
                     <h2 class="text-[13.5px] font-bold text-[#1A1A2E]">Messages</h2>
                     <span class="text-[12px] text-gray-400">{{ $conversation->messages->count() }} message{{ $conversation->messages->count() !== 1 ? 's' : '' }}</span>
@@ -99,7 +99,7 @@
         <div class="space-y-4">
 
             {{-- Tenant card --}}
-            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <p class="text-[10.5px] font-bold uppercase tracking-widest text-gray-400 mb-2.5">Tenant</p>
                 @if($conversation->tenant)
                     <div class="flex items-center gap-2.5 mb-3">
@@ -123,7 +123,7 @@
             </div>
 
             {{-- Landlord card --}}
-            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <p class="text-[10.5px] font-bold uppercase tracking-widest text-gray-400 mb-2.5">Landlord</p>
                 @if($conversation->landlord)
                     <div class="flex items-center gap-2.5 mb-3">
@@ -148,7 +148,7 @@
 
             {{-- Property card --}}
             @if($conversation->property)
-                <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                     <p class="text-[10.5px] font-bold uppercase tracking-widest text-gray-400 mb-2.5">Property</p>
                     <p class="text-[13.5px] font-bold text-[#1A1A2E] mb-0.5">{{ $conversation->property->title }}</p>
                     <p class="text-[12px] text-gray-400 mb-1">{{ $conversation->property->address ?? '' }}</p>

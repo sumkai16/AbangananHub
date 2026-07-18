@@ -64,7 +64,7 @@
             $occupiedPct = $stats['total'] > 0 ? round($stats['occupied'] / $stats['total'] * 100) : 0;
         @endphp
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Units</span>
                     <div class="w-8 h-8 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
@@ -78,7 +78,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1">Across all properties</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Available</span>
                     <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
@@ -95,7 +95,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1.5">{{ $availPct }}% of total units</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reserved</span>
                     <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
@@ -112,7 +112,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1.5">{{ $reservedPct }}% of total units</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
                     <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
@@ -131,7 +131,7 @@
         </div>
 
         {{-- Filters --}}
-        <form method="GET" class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-4 mb-6">
+        <form method="GET" class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4 mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="15" height="15" fill="none"
@@ -206,7 +206,7 @@
         {{-- Empty state --}}
         @if($units->isEmpty())
             <div
-                class="rounded-2xl border border-dashed border-[#64748B]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
+                class="rounded-2xl border border-dashed border-[#64748B]/30 bg-white/70 backdrop-blur-xl flex flex-col items-center justify-center py-16 text-center">
                 <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
                     <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.2">
                         <path stroke-linecap="round" stroke-linejoin="round"

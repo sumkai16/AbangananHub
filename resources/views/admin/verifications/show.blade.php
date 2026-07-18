@@ -16,7 +16,7 @@
 
         {{-- Applicant header --}}
         <div
-            class="bg-white border border-gray-100 rounded-xl px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+            class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                     <span class="text-[#156F8C] text-[14px] font-extrabold">
@@ -79,7 +79,7 @@
             <div class="lg:col-span-3 space-y-4">
 
                 {{-- Government ID --}}
-                <div class="bg-white border border-gray-100 rounded-xl p-5">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -124,7 +124,7 @@
                 </div>
 
                 {{-- Selfie --}}
-                <div class="bg-white border border-gray-100 rounded-xl p-5">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                     <div class="flex items-center gap-2 mb-4">
                         <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -148,7 +148,7 @@
 
                 {{-- Admin action (TOP — most important) --}}
                 @if ($verification->verification_status === 'Pending')
-                    <div class="bg-white border border-gray-100 rounded-xl p-5" x-data="{ showReject: false }">
+                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5" x-data="{ showReject: false }">
                         <div class="flex items-center gap-2 mb-4">
                             <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -219,7 +219,7 @@
                 @endif
 
                 {{-- OCR results --}}
-                <div class="bg-white border border-gray-100 rounded-xl p-5">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -282,7 +282,7 @@
                 </div>
 
                 {{-- ID details --}}
-                <div class="bg-white border border-gray-100 rounded-xl p-5">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -314,7 +314,7 @@
 
                 {{-- Business details --}}
                 @if ($verification->business_name)
-                    <div class="bg-white border border-gray-100 rounded-xl p-5">
+                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                         <div class="flex items-center gap-2 mb-3">
                             <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

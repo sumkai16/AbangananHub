@@ -25,7 +25,7 @@
             $occupiedPctAll = $totalUnits > 0 ? round($occupiedUnits / $totalUnits * 100) : 0;
         @endphp
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Units</span>
                     <div class="w-8 h-8 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
@@ -38,7 +38,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1">Across all properties</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Available</span>
                     <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
@@ -54,7 +54,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1.5">{{ $availPctAll }}% of total units</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reserved</span>
                     <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
@@ -70,7 +70,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1.5">{{ $reservedPctAll }}% of total units</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
                     <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
@@ -86,7 +86,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1.5">{{ $occupiedPctAll }}% of total units</p>
             </div>
 
-            <div class="col-span-2 lg:col-span-1 bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="col-span-2 lg:col-span-1 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupancy Rate</span>
                     <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -103,7 +103,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
 
             {{-- Status split donut --}}
-            <div class="lg:col-span-2 bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+            <div class="lg:col-span-2 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                 <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Status Split</h2>
                 <div class="relative h-44">
                     <canvas id="occupancyStatusChart"></canvas>
@@ -132,7 +132,7 @@
             </div>
 
             {{-- Per-property occupancy breakdown --}}
-            <div class="lg:col-span-3 bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] overflow-hidden flex flex-col">
+            <div class="lg:col-span-3 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden flex flex-col">
                 <div class="flex items-center justify-between p-5 pb-0">
                     <h2 class="text-[14px] font-bold text-[#1F2937]">Occupancy by Property</h2>
                     <span class="text-[11px] font-medium text-[#64748B]">{{ $propertyBreakdown->count() }} {{ Str::plural('property', $propertyBreakdown->count()) }}</span>

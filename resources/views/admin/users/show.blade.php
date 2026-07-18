@@ -99,7 +99,7 @@
     </div>
 
     {{-- Profile hero card --}}
-    <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-6">
+    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden mb-6">
         <div class="px-7 py-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center gap-5">
 
             {{-- Avatar --}}
@@ -160,7 +160,7 @@
         <div class="lg:col-span-2 space-y-6">
 
             {{-- Personal Information --}}
-            <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
                     <div class="w-8 h-8 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -208,7 +208,7 @@
 
             {{-- Landlord Verification (if applicable) --}}
             @if ($user->hasRole('Landlord') || $user->verificationApplication)
-                <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
                         <div class="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -275,13 +275,13 @@
         <div class="space-y-5">
 
             {{-- User ID --}}
-            <div class="bg-white border border-gray-100 rounded-3xl shadow-sm p-5">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                 <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">User ID</p>
                 <p class="text-[20px] font-extrabold text-[#156F8C] font-mono">#{{ $user->user_id }}</p>
             </div>
 
             {{-- Activity --}}
-            <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-50 flex items-center gap-3">
                     <div class="w-7 h-7 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                         <svg class="w-3.5 h-3.5 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

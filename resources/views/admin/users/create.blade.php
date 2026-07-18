@@ -13,7 +13,7 @@
         Back to users
     </a>
 
-    <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
         <div class="px-7 py-5 border-b border-gray-50">
             <h1 class="text-[18px] font-extrabold text-[#1A1A2E] tracking-tight">Create User</h1>
             <p class="text-[13px] text-gray-400 mt-0.5">Add a new account to the system.</p>

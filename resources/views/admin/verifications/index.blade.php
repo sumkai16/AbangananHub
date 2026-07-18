@@ -12,7 +12,7 @@
     </div>
 
     {{-- Tabs --}}
-    <div class="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto shadow-sm">
+    <div class="flex gap-1 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto shadow-lg">
         @foreach (['Pending', 'Approved', 'Rejected', 'All'] as $tab)
             <a href="{{ route('admin.verifications.index', ['status' => $tab]) }}"
                 class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-150
@@ -25,7 +25,7 @@
     </div>
 
     @if ($verifications->isEmpty())
-        <div class="bg-white border border-gray-100 rounded-3xl p-16 text-center shadow-sm">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-16 text-center shadow-lg">
             <div class="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -35,7 +35,7 @@
             <p class="text-[13px] text-gray-400 mt-1">No applications match this tab right now.</p>
         </div>
     @else
-        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
                 <p class="text-[13px] font-semibold text-[#1A1A2E]">
                     {{ $verifications->total() }} {{ Str::plural('application', $verifications->total()) }}

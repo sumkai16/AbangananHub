@@ -53,7 +53,7 @@
             @method('PUT')
 
             {{-- Unit Details --}}
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-6">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
                 <div class="flex items-center gap-2.5 mb-5">
                     <div class="w-8 h-8 rounded-lg bg-[#1F2937] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -129,7 +129,7 @@
             </div>
 
             {{-- Existing verification capture (read-only, captured at creation) --}}
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-6">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
                 <div class="flex items-center gap-2.5 mb-3">
                     <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">

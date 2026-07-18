@@ -12,7 +12,7 @@
             ['My Reviews', $stats['verifications_reviewed'], 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
             ['Properties Approved', $stats['properties_approved'], 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
         ] as [$label, $value, $icon])
-            <div class="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex items-center gap-4">
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg px-5 py-4 flex items-center gap-4">
                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
@@ -30,7 +30,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6 items-start">
 
         {{-- Left Column: Avatar Card --}}
-        <div class="lg:sticky lg:top-24 bg-white rounded-2xl border border-gray-100 p-6 text-center">
+        <div class="lg:sticky lg:top-24 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-6 text-center">
             <form id="avatar-form" action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
@@ -77,7 +77,7 @@
 
             {{-- Profile Form --}}
             <form action="{{ route('admin.profile.update') }}" method="POST"
-                  class="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-100">
+                  class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg divide-y divide-gray-100">
                 @csrf
                 @method('PATCH')
 
@@ -150,12 +150,12 @@
             </form>
 
             {{-- Password --}}
-            <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-6">
                 @include('profile.partials.update-password-form')
             </div>
 
             {{-- Danger Zone --}}
-            <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-6">
                 @include('profile.partials.delete-user-form')
             </div>
         </div>

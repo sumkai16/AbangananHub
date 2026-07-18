@@ -18,7 +18,7 @@
 
         {{-- Header --}}
         <div
-            class="bg-white border border-gray-100 rounded-xl px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+            class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h1 class="text-[16px] font-bold text-[#1F2937] leading-tight">Report #{{ $report->report_id }}</h1>
                 <p class="text-[12px] text-gray-400 mt-0.5">Submitted {{ $report->created_at->format('M d, Y \a\t g:i A') }}
@@ -35,7 +35,7 @@
 
         <div class="grid lg:grid-cols-2 gap-4 mb-4">
             {{-- Reporter --}}
-            <div class="bg-white border border-gray-100 rounded-xl p-5">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                 <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Reported By</p>
                 <p class="text-[14px] font-semibold text-[#1F2937]">
                     {{ $report->reporter ? $report->reporter->first_name . ' ' . $report->reporter->last_name : '—' }}
@@ -44,7 +44,7 @@
             </div>
 
             {{-- Target --}}
-            <div class="bg-white border border-gray-100 rounded-xl p-5">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                 <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Target</p>
                 @if($report->property)
                     <p class="text-[14px] font-semibold text-[#1F2937]">{{ $report->property->title }}</p>
@@ -61,14 +61,14 @@
         </div>
 
         {{-- Reason --}}
-        <div class="bg-white border border-gray-100 rounded-xl p-5 mb-4">
+        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 mb-4">
             <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Reason</p>
             <p class="text-[13.5px] text-[#1F2937] leading-relaxed whitespace-pre-line">{{ $report->report_reason }}</p>
         </div>
 
         {{-- Actions --}}
         @if($report->isPending())
-            <div class="bg-white border border-gray-100 rounded-xl p-5">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                 <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Resolve this report</h2>
                 <form method="POST" action="{{ route('admin.reports.resolve', $report) }}"
                     data-confirm="Resolve this report with the selected action?" class="space-y-4">
@@ -109,7 +109,7 @@
                 </form>
             </div>
         @else
-            <div class="bg-white border border-gray-100 rounded-xl p-5">
+            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
                 <h2 class="text-[14px] font-bold text-[#1F2937] mb-3">Resolution</h2>
                 <div class="space-y-3">
                     <div>
