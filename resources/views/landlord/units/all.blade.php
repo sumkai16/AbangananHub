@@ -1,7 +1,15 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16"
+        x-data="{
+            modal: null,
+            show: false,
+            peso(v) { return v ? '₱' + Number(v).toLocaleString('en-PH') : null; },
+            openModal(u) { this.modal = u; this.$nextTick(() => this.show = true); },
+            closeModal() { this.show = false; setTimeout(() => this.modal = null, 200); },
+        }"
+        x-on:keydown.escape.window="closeModal()">
 
         {{-- Breadcrumb --}}
         <div class="flex items-center gap-1.5 text-[12.5px] text-[#64748B] mb-3">
@@ -166,6 +174,7 @@
                             <option value="Available" @selected(request('status') === 'Available')>Available</option>
                             <option value="Reserved" @selected(request('status') === 'Reserved')>Reserved</option>
                             <option value="Occupied" @selected(request('status') === 'Occupied')>Occupied</option>
+                            <option value="Maintenance" @selected(request('status') === 'Maintenance')>Maintenance</option>
                         </select>
                         <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -235,6 +244,33 @@
                             'Rejected' => ['bg-red-50 text-red-600'],
                             default => ['bg-[#EEF8F8] text-[#64748B]'],
                         };
+
+                        // Payload for the unit detail modal (Live Preview style)
+                        $modalStyles = match ($unit->availability_status) {
+                            'Available' => ['tile' => 'border-emerald-200 bg-emerald-50', 'text' => 'text-emerald-700', 'dot' => 'bg-emerald-500'],
+                            'Reserved' => ['tile' => 'border-amber-200 bg-amber-50', 'text' => 'text-amber-700', 'dot' => 'bg-amber-500'],
+                            'Occupied' => ['tile' => 'border-red-200 bg-red-50', 'text' => 'text-red-600', 'dot' => 'bg-red-500'],
+                            default => ['tile' => 'border-slate-200 bg-slate-50', 'text' => 'text-slate-500', 'dot' => 'bg-slate-400'],
+                        };
+                        $activeRes = in_array($unit->availability_status, ['Reserved', 'Occupied'], true)
+                            ? $unit->reservations->whereNotIn('rental_status', ['Cancelled', 'Rejected'])->sortByDesc('reservation_id')->first()
+                            : null;
+                        $unitPayload = [
+                            'label'        => $unit->unit_label,
+                            'property'     => $unit->property->title,
+                            'status'       => $unit->availability_status,
+                            'styles'       => $modalStyles,
+                            'photo'        => $thumb?->media_url,
+                            'rent'         => (float) $unit->rental_fee,
+                            'deposit'      => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
+                            'capacity'     => $unit->occupancy_limit,
+                            'type'         => $unit->unit_type,
+                            'floor'        => $unit->floor,
+                            'tenant'       => $activeRes?->tenant ? trim($activeRes->tenant->first_name . ' ' . $activeRes->tenant->last_name) : null,
+                            'amenities'    => $unit->amenities->pluck('amenity_name')->values(),
+                            'property_url' => route('landlord.properties.show', $unit->property),
+                            'edit_url'     => route('landlord.properties.units.edit', [$unit->property, $unit]),
+                        ];
                     @endphp
 
                     <article
@@ -297,6 +333,14 @@
 
                             {{-- Actions --}}
                             <div class="flex items-center gap-2 pt-1 mt-auto">
+                                <button type="button" x-on:click="openModal(@js($unitPayload))"
+                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#64748B]/30 text-[#1F2937] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200 cursor-pointer">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
+                                    View
+                                </button>
                                 <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}"
                                     class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#2AA7A1] text-[#2AA7A1] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -334,6 +378,114 @@
                 {{ $units->links() }}
             </div>
         @endif
+
+        {{-- Unit detail modal (Live Preview style). Teleported to <body> so ancestor
+             backdrop-blur/transform styles can never trap the fixed overlay. --}}
+        <template x-teleport="body">
+            <div x-show="modal" x-cloak>
+            <template x-if="modal">
+            <div class="fixed inset-0 z-30 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm motion-reduce:transition-none" x-on:click="closeModal()"
+                    x-show="show"
+                    x-transition:enter="transition-opacity ease-out duration-250"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition-opacity ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"></div>
+                <div class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden motion-reduce:transition-none"
+                    x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 translate-y-4 scale-95">
+
+                    {{-- Image area --}}
+                    <div class="relative aspect-[4/3] bg-[#EEF8F8] border-b border-[#E2E8F0]/70">
+                        <template x-if="modal.photo">
+                            <img :src="modal.photo" :alt="modal.label" class="w-full h-full object-cover">
+                        </template>
+                        <template x-if="!modal.photo">
+                            <div class="w-full h-full flex flex-col items-center justify-center text-[#64748B]">
+                                <svg width="34" height="34" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                </svg>
+                                <p class="text-[11px] mt-1.5">No photos on this unit</p>
+                            </div>
+                        </template>
+                        <button type="button" x-on:click="closeModal()" aria-label="Close"
+                            class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:brightness-95 flex items-center justify-center text-[#1F2937] shadow-sm transition-all cursor-pointer">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="text-[15px] font-bold text-[#1F2937] truncate" x-text="modal.label"></p>
+                                <p class="text-[12px] text-[#64748B] mt-0.5 truncate" x-text="modal.property"></p>
+                                <p class="text-[12px] text-[#64748B] mt-0.5" x-show="modal.type || modal.floor"
+                                    x-text="[modal.type, modal.floor].filter(Boolean).join(' · ')"></p>
+                            </div>
+                            <span class="shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+                                :class="modal.styles.tile + ' ' + modal.styles.text">
+                                <span class="w-1.5 h-1.5 rounded-full" :class="modal.styles.dot"></span>
+                                <span x-text="modal.status"></span>
+                            </span>
+                        </div>
+
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-[20px] font-bold text-[#156F8C]" x-text="peso(modal.rent) || '₱—'"></span>
+                            <span class="text-[12px] text-[#64748B]">/ month</span>
+                        </div>
+
+                        <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2" x-show="modal.tenant">
+                            <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Tenant</p>
+                            <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="modal.tenant"></p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2">
+                                <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Capacity</p>
+                                <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5"
+                                    x-text="modal.capacity ? modal.capacity + (modal.capacity == 1 ? ' person' : ' persons') : '—'"></p>
+                            </div>
+                            <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2">
+                                <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Deposit</p>
+                                <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="peso(modal.deposit) || '—'"></p>
+                            </div>
+                        </div>
+
+                        <div x-show="modal.amenities && modal.amenities.length" class="pt-1">
+                            <p class="text-[10px] uppercase tracking-wide text-[#64748B] mb-1.5">Amenities</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                <template x-for="a in modal.amenities" :key="a">
+                                    <span class="inline-flex items-center rounded-full bg-[#EEF8F8] border border-[#2AA7A1]/20 px-2 py-0.5 text-[11px] text-[#1F2937]" x-text="a"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2.5 pt-1">
+                            <a :href="modal.property_url"
+                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#1F2937] text-[12.5px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
+                                View property
+                            </a>
+                            <a :href="modal.edit_url"
+                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full bg-[#2AA7A1] text-white text-[12.5px] font-semibold hover:brightness-95 transition-all duration-200">
+                                Edit unit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </template>
+            </div>
+        </template>
 
     </div>
 @endsection

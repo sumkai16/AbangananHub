@@ -56,6 +56,11 @@ public function scopeMaintenance($query)
                      ->latestOfMany('reservation_id');
     }
 
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class, 'unit_id', 'unit_id');
+    }
+
     // ─── Status Helpers ──────────────────────────────────────
     public function isApproved(): bool
     {

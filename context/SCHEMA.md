@@ -73,12 +73,17 @@
 |---|---|---|---|
 | unit_id | BIGINT UNSIGNED | PK | `$primaryKey = 'unit_id'` |
 | property_id | FK → properties.property_id | NOT NULL | |
-| unit_name | VARCHAR(255) | NOT NULL | e.g. "Room A", "Bed 3" |
-| unit_type | ENUM('Bedspace','Room','Apartment','House') | NOT NULL | |
-| rental_fee | DECIMAL(10,2) | NOT NULL | |
-| occupancy_limit | INT | NULLABLE | |
-| availability_status | ENUM('Available','Reserved','Occupied') | DEFAULT 'Available' | |
+| unit_label | VARCHAR(100) | NOT NULL | e.g. "Room A", "Bed 3" — column is `unit_label`, not `unit_name` |
+| unit_type | VARCHAR(50) | NULLABLE | Free text (Bedspace, Room, Apartment, Studio, Dormitory) |
+| floor | VARCHAR(50) | NULLABLE | e.g. "1st Floor" |
 | description | TEXT | NULLABLE | |
+| rental_fee | DECIMAL(10,2) | NOT NULL | |
+| security_deposit | DECIMAL(10,2) | NULLABLE | |
+| occupancy_limit | INT | NULLABLE | |
+| availability_status | ENUM('Available','Reserved','Occupied','Maintenance') | DEFAULT 'Available' | Maintenance added for unit form |
+| vacated_at | TIMESTAMP | NULLABLE | Occupancy tracking |
+| verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | Admin approval; reset to Pending on material edit |
+| rejection_reason | TEXT | NULLABLE | Admin rejection note |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 
@@ -93,10 +98,12 @@
 ### unit_media
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
-| id | BIGINT UNSIGNED | PK | |
-| unit_id | FK → property_units.unit_id | NOT NULL | |
-| media_type | ENUM('Image','Video') | NOT NULL | |
-| media_url | VARCHAR(255) | NOT NULL | Cloudinary URL |
+| media_id | BIGINT UNSIGNED | PK | `$primaryKey = 'media_id'` |
+| unit_id | FK → property_units.unit_id | NOT NULL | onDelete cascade |
+| media_type | ENUM('Image','Video') | NOT NULL | Filter to 'Image' for image galleries — videos must not render in `<img>` |
+| media_url | VARCHAR(255) | NOT NULL | Cloudinary URL — output as-is |
+| source | ENUM('camera','upload') | DEFAULT 'upload' | 'camera' = live in-browser capture; ≥3 camera photos required on unit create |
+| caption | VARCHAR(150) | NULLABLE | Optional per-photo caption, shown to tenants |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 
@@ -207,6 +214,33 @@
 |---|---|---|---|
 | (schema per implementation) | | | Landlord rates tenants |
 
+### occupancy_snapshots
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| snapshot_id | BIGINT UNSIGNED | PK | `$primaryKey = 'snapshot_id'` |
+| landlord_id | FK → users.user_id | NOT NULL | |
+| snapshot_date | DATE | NOT NULL | `unique(landlord_id, snapshot_date)` |
+| total_units / available_units / reserved_units / occupied_units / maintenance_units | INT | DEFAULT 0 | |
+| occupancy_rate | DECIMAL(5,2) | DEFAULT 0 | From `OccupancyRateCalculator` |
+| created_at / updated_at | TIMESTAMP | | |
+
+Written daily by the `occupancy:snapshot` command (scheduled 23:55); feeds the occupancy trend chart. `updateOrCreate` on (landlord_id, date) so re-running is idempotent.
+
+### occupancy_activities
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| activity_id | BIGINT UNSIGNED | PK | `$primaryKey = 'activity_id'` |
+| landlord_id | FK → users.user_id | NOT NULL | |
+| property_id | FK → properties.property_id | NOT NULL | |
+| unit_id | FK → property_units.unit_id | NOT NULL | onDelete cascade |
+| actor_id | FK → users.user_id | NULLABLE | Who triggered the change (null for system/CLI) |
+| tenant_id | FK → users.user_id | NULLABLE | Tenant involved, if any |
+| from_status | VARCHAR(20) | NULLABLE | |
+| to_status | VARCHAR(20) | NOT NULL | |
+| created_at / updated_at | TIMESTAMP | | `index(landlord_id, created_at)` |
+
+Written by `PropertyUnitObserver` whenever a unit's `availability_status` changes (any path); feeds the Recent Activities feed.
+
 ## 3. Relationships
 - users → user_roles (1:many — a user can have multiple roles)
 - users → landlord_verifications (1:many — resubmission possible after rejection)
@@ -254,3 +288,12 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | create_complaints_table | Complaints module | Modules 12.1–12.4 | Mid 2026 |
 | create_payments_table | PayMongo integration | Payment processing | Mid 2026 |
 | create_tenant_ratings_table | Landlord rates tenants | Tenant accountability | Mid 2026 |
+| add_vacated_at_to_property_units_table | Occupancy tracking | Track when a unit was vacated | July 2026 |
+| add_unit_type_floor_deposit_description_to_property_units | Richer unit fields | unit_type, floor, security_deposit | July 2026 |
+| add_caption_to_unit_media_table | Photo captions | Optional per-photo caption shown to tenants | July 2026 |
+| create_occupancy_snapshots_table | Daily occupancy history | Feeds occupancy trend chart | July 2026 |
+| create_occupancy_activities_table | Unit status-change log | Feeds Recent Activities feed | July 2026 |
+
+### Seeders
+- `AmenitySeeder` — 33 common amenities (idempotent via `firstOrCreate` on unique `amenity_name`); runs before `PropertySeeder` in `DatabaseSeeder`. The amenities table is otherwise empty.
+- `Amenity` model exposes a `name` accessor aliasing `amenity_name` (views use `$amenity->name`).

@@ -57,6 +57,17 @@ Teal mesh gradient (`bg-fixed`, 135° angle) covers the full viewport as the bas
 
 Property browse grid: Airbnb-style image-is-the-card pattern — no white box wrapping. Text sits below the image on the page background. 3-column grid on desktop, 2 on tablet, 1 on mobile.
 
+## 6b. Page Headers (standard)
+Page-title headers are **never wrapped in a card** — they sit bare on the page background: optional breadcrumb/back-link, then title, then subtitle.
+- Title: `text-2xl font-bold text-[#1F2937]` (charcoal — not ocean-blue)
+- Subtitle: `text-sm text-[#64748B]`
+- Index pages may prefix the title with an icon box (`w-11 h-11 rounded-xl bg-[#1F2937]`); the title styling stays the same.
+- `#156F8C` is reserved for nav/section accents, not page titles.
+- Exception: `profile/show`'s name lives in the avatar hero banner (an identity card, not a page header).
+
+## 6c. Two-column form layout (create/edit)
+Long forms use a 12-col grid: fields in `lg:col-span-7`, a right rail in `lg:col-span-5`. The rail holds a **live preview card** (mirrors the record as the user types) and secondary selectors (e.g. amenities). Keep width-hungry inputs (camera capture, multi-column galleries) in the left column. Drop `sticky` on the rail when its content (e.g. a long amenities list) is taller than the viewport.
+
 ## 7. Components
 - Border radius default: `rounded-2xl` (standard), `rounded-3xl` (hero sections only)
 - Shadow style: `shadow-lg` on glassmorphism panels; property cards use the image-is-the-card pattern (no shadow wrapper)

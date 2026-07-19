@@ -26,6 +26,7 @@
 - `belongsToMany`: always pass all four arguments when custom PKs are involved
 - `belongsTo`: explicit FK and local-key arguments — Laravel auto-inference breaks with custom PKs
 - Decimal columns: Eloquent serializes as strings — `parseFloat()` client-side before passing to Leaflet or JS
+- `Amenity` exposes a `name` accessor aliasing `amenity_name`; views use `$amenity->name`. When adding a column that views reference by a shorthand, add the accessor rather than letting it silently render null
 
 ## Laravel Conventions
 - Eloquent ORM over raw queries, always
@@ -45,6 +46,7 @@
 - Echo: `.listen('.EventName')` (leading dot) for bare event names
 
 ## Storage
+- Filter `unit_media`/`property_media` to `media_type === 'Image'` before rendering in `<img>` — the table also holds Video rows, which render as broken images otherwise (applies to galleries, thumbnails, and JS payloads)
 - `Storage::url()` for local files with relative paths only
 - Full external URLs (Cloudinary, Unsplash) stored in `media_url` → output as-is: `src="{{ $media->media_url }}"`
 - Cloudinary v3 SDK: `cloudinary()->uploadApi()->upload()` — not `cloudinary()->upload()` or static facade
@@ -79,6 +81,11 @@ Audit immediately on paste for:
 - [ ] `<x-app-layout>` instead of `@extends('layouts.app')` + `@section('content')`
 - [ ] Inline `style` attributes instead of Tailwind utilities
 - [ ] Backend scope creep without scaffolding from Axcee
+
+## Modals & Overlays
+- `backdrop-filter`, `filter`, and `transform` create CSS containing blocks — a `position: fixed` modal nested inside any glassmorphism card (`backdrop-blur-xl`) gets trapped and clipped to that card. Always `<template x-teleport="body">` modals that live inside cards (teleported content keeps its Alpine scope).
+- Modal animation standard: two-flag pattern (`modal` = data, `show` = visibility) so leave transitions actually play (`x-if` alone doesn't animate). Enter: 300ms ease-out, `opacity-0 translate-y-4 scale-95` → full. Leave: 200ms ease-in reverse. Add `motion-reduce:transition-none`.
+- Unit detail presentation is one shared pattern (photo top, status pill, teal rent, capacity/deposit tiles, amenity chips) across: unit create/edit Live Preview, occupancy modal, landlord units-page modal, tenant slideout. Reuse it for any new unit surface.
 
 ## UI/UX Pre-Delivery Checklist
 

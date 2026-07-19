@@ -19,6 +19,8 @@ AbangananHub is a server-rendered Laravel MVC application. Blade templates rende
 - **Middleware** for role gating (`EnsureTenant`, `EnsureLandlord`, `EnsureAdmin`) — registered as aliases in `bootstrap/app.php`.
 - **No repository or service layer** — the codebase isn't large enough to justify the indirection. Business logic lives in controllers; if a controller gets fat, it gets a Form Request or a policy extracted, not a service class.
 - **Blade components** for reusable UI (`x-stat-card`, `x-section-header`, `x-empty-state`, `x-reservation-card`, `x-verification-status-badge`).
+- **Model observers** for cross-cutting side effects: `PropertyUnitObserver` (registered in `AppServiceProvider::boot`) writes an `occupancy_activities` row whenever a unit's `availability_status` changes — one hook covers every transition path (manual edit, reservation approve/cancel, move-in).
+- **Scheduled command**: `occupancy:snapshot` (in `app/Console/Commands`, scheduled in `routes/console.php` daily 23:55) records per-landlord occupancy history. Needs cron/Supervisor on the VPS; locally run `php artisan schedule:work`. The project had no scheduler before this — it's the first scheduled task.
 
 ## 4. Folder/Module Structure
 ```
@@ -86,6 +88,9 @@ Tenant initiates → Controller creates PayMongo Checkout Session (server-side) 
 ### File Upload (Cloudinary)
 Form submit (multipart) → Controller → `cloudinary()->uploadApi()->upload($file)` (v3 SDK) → Cloudinary CDN URL stored in DB (`media_url` column)
 
+### Unit Photos — Live Capture
+Unit create requires photos: **≥3 must be live camera captures** (anti-fraud — proves the unit is real/current), uploads are extras (≤10 total). Client-side `getUserMedia` draws frames to a canvas → `toBlob` → injected into an aggregated `photos[]` file input via `DataTransfer`, kept index-aligned with `photo_sources[]` (camera|upload) and `photo_captions[]` hidden inputs. Controller validates the alignment and the live-count, then persists `source` + `caption` per `unit_media` row. Requires HTTPS or localhost (browser constraint).
+
 ## 6. Key Decisions Log
 
 | Decision | Reason | Date |
@@ -102,6 +107,9 @@ Form submit (multipart) → Controller → `cloudinary()->uploadApi()->upload($f
 | Ocean Teal palette replacing Gold Black | Stronger brand identity, better WCAG compliance, cohesive with glassmorphism spec | July 2026 |
 | Glassmorphism UI spec | Distinctive visual identity for defense; bg-white/70 backdrop-blur-xl consistent across ~55 views | July 2026 |
 | face-api.js for liveness detection | Runs client-side (no server GPU needed), works on Chrome/Firefox, sufficient for capstone | Mid 2026 |
+| Live camera capture required for unit photos | Anti-fraud — proves the unit is real and current; ≥3 live captures, uploads as extras | July 2026 |
+| Two-column unit create/edit (form + sticky-preview rail) | Fills wasted horizontal space; live preview + amenities in the rail | July 2026 |
+| Occupancy history via nightly snapshots + observer-based activity log | True daily trend needs stored history; observer catches every status-change path without touching each controller | July 2026 |
 
 ## 7. Known Tradeoffs
 - **No queue worker** — `ShouldBroadcastNow` is synchronous. Acceptable for capstone load; would need a queue for production scale.

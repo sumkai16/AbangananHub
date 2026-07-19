@@ -18,6 +18,8 @@ class UnitIndexController extends Controller
                 'property',
                 'property.media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1),
                 'media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1),
+                'amenities',
+                'reservations.tenant:user_id,first_name,last_name',
             ]);
 
         if ($search = $request->input('search')) {

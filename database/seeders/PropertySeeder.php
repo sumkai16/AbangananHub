@@ -3,9 +3,11 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\Amenity;
 use App\Models\User;
 use App\Models\Property;
 use App\Models\PropertyMedia;
+use App\Models\UnitMedia;
 
 class PropertySeeder extends Seeder
 {
@@ -767,10 +769,29 @@ class PropertySeeder extends Seeder
             ],
         ];
 
+        $captionPool = [
+            'Sleeping area with natural light',
+            'Freshly cleaned before turnover',
+            'View from the doorway',
+            'Storage and study corner',
+            'Shared comfort room nearby',
+            'Ventilated with ceiling fan',
+        ];
+
+        $amenityIds = Amenity::pluck('amenity_id');
+
+        $maxUnits = 30; // keep the seeded dataset small enough to browse
+        $unitsCreated = 0;
+
         foreach ($properties as $data) {
             $mediaItems = $data['media'];
             $unitItems = $data['units'];
             unset($data['media'], $data['units']);
+
+            // Cap total seeded units — skip properties that would overshoot
+            if ($unitsCreated + count($unitItems) > $maxUnits) {
+                continue;
+            }
 
             // Pick 4–6 random rules from the pool matching this property type
             $pool = $rulesByType[$data['property_type']] ?? $roomRules;
@@ -780,21 +801,30 @@ class PropertySeeder extends Seeder
                 'landlord_id' => $landlord->user_id,
             ]));
 
-            // Create units with their own interior photos
+            // Create units with their own interior photos + amenities
             foreach ($unitItems as $unitData) {
                 $unit = $property->units()->create(array_merge($unitData, [
                     'verification_status' => $unitData['verification_status'] ?? 'Approved',
                 ]));
+                $unitsCreated++;
 
-                // Attach 1–3 random interior photos to each unit
-                $unitPhotos = collect($unitImagePool)->shuffle()->take(rand(1, 3));
-                foreach ($unitPhotos as $url) {
-                    PropertyMedia::create([
-                        'property_id' => $property->property_id,
-                        'unit_id'     => $unit->unit_id,
-                        'media_type'  => 'Image',
-                        'media_url'   => $url,
+                // 3 interior photos per unit in unit_media (what the app reads)
+                $unitPhotos = collect($unitImagePool)->shuffle()->take(3)->values();
+                foreach ($unitPhotos as $i => $url) {
+                    UnitMedia::create([
+                        'unit_id'    => $unit->unit_id,
+                        'media_type' => 'Image',
+                        'media_url'  => $url,
+                        'source'     => 'camera',
+                        'caption'    => $i === 0 ? collect($captionPool)->random() : null,
                     ]);
+                }
+
+                // 3–6 random amenities per unit
+                if ($amenityIds->isNotEmpty()) {
+                    $unit->amenities()->attach(
+                        $amenityIds->shuffle()->take(rand(3, min(6, $amenityIds->count())))->values()->all()
+                    );
                 }
             }
 
