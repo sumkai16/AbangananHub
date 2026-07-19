@@ -3,7 +3,7 @@
 @section('page-title', 'Reviews')
 
 @section('content')
-<div class="max-w-[1400px]">
+<div class="max-w-7xl">
 
     {{-- Header --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -40,8 +40,8 @@
                 $params = array_merge(request()->except(['visibility', 'page']), $key !== 'all' ? ['visibility' => $key] : []);
             @endphp
             <a href="{{ route('admin.reviews.index', $params) }}"
-                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors
-                    {{ $isActive ? 'bg-[#156F8C] text-white' : 'bg-white text-[#1F2937] border border-[#E2E8F0] hover:brightness-95' }}">
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200
+                    {{ $isActive ? 'bg-[#2AA7A1] text-white shadow-sm' : 'bg-white text-[#1F2937] border border-[#E2E8F0] hover:brightness-95' }}">
                 {{ $label }}
                 <span class="text-[11px] {{ $isActive ? 'text-white/70' : 'text-[#64748B]' }}">({{ $count }})</span>
             </a>
@@ -61,10 +61,10 @@
             </svg>
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant, property, or review text…"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
         </div>
         <select name="rating"
-            class="h-10 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+            class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
             <option value="all" {{ $rating === 'all' ? 'selected' : '' }}>All ratings</option>
             @foreach([1,2,3,4,5] as $s)
                 <option value="{{ $s }}" {{ $rating == $s ? 'selected' : '' }}>{{ $s }} star{{ $s > 1 ? 's' : '' }}</option>

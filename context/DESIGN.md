@@ -126,3 +126,14 @@ Per analyst prototype (July 2026), the tenant-facing property detail page intent
 - [ ] Borders visible (`border-white/30` reads on gradient background)
 - [ ] Content doesn't hide behind fixed nav
 - [ ] Teal mesh gradient uses `bg-fixed` (doesn't scroll with content)
+
+## 12. Admin panel index-page pattern (established July 2026)
+Applies to the admin review/moderation queues: Landlord Verifications, Property Verifications, Unit Approvals, Payments, Reports, Reviews, Conversations.
+- Container: `max-w-7xl` — was previously mixed (`max-w-5xl`, `max-w-[1400px]`), which left dead whitespace on wide viewports or violated the one-container-width rule. Standardized on the documented `max-w-7xl`.
+- Header row: title + subtitle on the left; an optional "N awaiting review" coral/amber pill on the right when a pending count > 0.
+- Stat summary: a `grid grid-cols-2 sm:grid-cols-4` (or fewer columns if fewer statuses) row of glass cards above the tabs, one per status plus a Total. Each card: small dot + uppercase label, then a large bold count in a status-tinted color (amber/emerald/red/teal family), clickable to that filter. Active filter gets `ring-2 ring-[#2AA7A1]`.
+- Tabs: existing pill-tab pattern, now with a live count suffix per tab (`text-[11px]` in a muted tone).
+- List body: dense multi-column tables were replaced with a single-card, `divide-y divide-[#E2E8F0]` row-list where each row is one full-row `<a>` (avatar/thumb, key fields with `text-[11px] uppercase text-[#94A3B8]` micro-labels, status badge, trailing chevron that shifts right on hover). Kept as a genuine `<table>` only where a page needs a row-level form action inline (Payments' Release button, Property Verifications' Approve/Reject — no detail page to link to yet).
+- Empty states: icon in an `bg-[#EEF8F8]` circle with `text-[#2AA7A1]` icon (not gray), bold title + muted subtitle.
+- Fixed straggling off-palette classes across these views: banned `#1A1A2E`, raw Tailwind `gray-*`/`blue-*`/`amber-*`/`emerald-*`/`slate-*` utilities were swapped for the DESIGN.md token set (`#1F2937`, `#64748B`, `#94A3B8`, `#E2E8F0`, `#F7FCFC`, `#EEF8F8`, plus the status colors `#FBBF24`/`#22C55E`/`#EF4444`/`#156F8C`/`#2AA7A1`).
+- New controller convention for these pages: alongside the paginated/filtered query, also compute a `$counts` array (one query per status, cheap at current scale) and pass it to the view for the stat cards + tab badges. See `Admin\VerificationController`, `Admin\PropertyUnitController`, `Admin\ListingController`, `Admin\PaymentController`, `Admin\ReportController` for the pattern.

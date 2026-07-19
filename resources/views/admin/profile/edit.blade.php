@@ -3,7 +3,7 @@
 @section('page-title', 'My Profile')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-7xl space-y-6">
 
     {{-- Stats Row --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -77,7 +77,7 @@
 
             {{-- Profile Form --}}
             <form action="{{ route('admin.profile.update') }}" method="POST"
-                  class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg divide-y divide-gray-100">
+                  class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg divide-y divide-[#E2E8F0]">
                 @csrf
                 @method('PATCH')
 
@@ -139,7 +139,7 @@
 
                 <div class="p-6 flex items-center justify-end gap-3">
                     <a href="{{ route('admin.dashboard') }}"
-                       class="px-5 py-2.5 rounded-xl border border-[#E2E8F0] text-[13px] font-medium text-[#64748B] hover:bg-gray-50 transition-colors">
+                       class="px-5 py-2.5 rounded-xl border border-[#E2E8F0] text-[13px] font-medium text-[#64748B] hover:bg-[#F7FCFC] transition-colors">
                         Cancel
                     </a>
                     <button type="submit"

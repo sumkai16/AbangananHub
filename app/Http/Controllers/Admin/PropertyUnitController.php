@@ -24,7 +24,14 @@ class PropertyUnitController extends Controller
             $units = $query->oldest()->paginate(15)->withQueryString();
         }
 
-        return view('admin.units.index', compact('units', 'status'));
+        $counts = [
+            'Pending' => PropertyUnit::where('verification_status', 'Pending')->count(),
+            'Approved' => PropertyUnit::where('verification_status', 'Approved')->count(),
+            'Rejected' => PropertyUnit::where('verification_status', 'Rejected')->count(),
+        ];
+        $counts['All'] = array_sum($counts);
+
+        return view('admin.units.index', compact('units', 'status', 'counts'));
     }
 
     public function show(Property $property, PropertyUnit $unit)

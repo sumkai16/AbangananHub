@@ -23,9 +23,16 @@ class ReportController extends Controller
 
         $reports = $query->latest('report_id')->paginate(15)->withQueryString();
 
+        $counts = [
+            'Pending' => Report::where('report_status', 'Pending')->count(),
+            'Resolved' => Report::where('report_status', 'Resolved')->count(),
+        ];
+        $counts['All'] = array_sum($counts);
+
         return view('admin.reports.index', [
             'reports' => $reports,
             'status' => $status,
+            'counts' => $counts,
         ]);
     }
 

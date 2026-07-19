@@ -24,9 +24,23 @@ class PaymentController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $counts = [
+            'Held' => Payment::where('status', 'Held')->count(),
+            'Released' => Payment::where('status', 'Released')->count(),
+            'Pending' => Payment::where('status', 'Pending')->count(),
+        ];
+        $counts['All'] = Payment::count();
+
+        $sums = [
+            'Held' => Payment::where('status', 'Held')->sum('amount'),
+            'Released' => Payment::where('status', 'Released')->sum('amount'),
+        ];
+
         return view('admin.payments.index', [
             'payments' => $payments,
             'status' => $status,
+            'counts' => $counts,
+            'sums' => $sums,
         ]);
     }
 

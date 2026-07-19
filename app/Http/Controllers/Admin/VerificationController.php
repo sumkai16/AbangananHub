@@ -28,9 +28,17 @@ class VerificationController extends Controller
             ? $query->latest('reviewed_at')->paginate(15)->withQueryString()
             : $query->oldest('submitted_at')->paginate(15)->withQueryString();
 
+        $counts = [
+            'Pending' => LandlordVerification::where('verification_status', 'Pending')->count(),
+            'Approved' => LandlordVerification::where('verification_status', 'Approved')->count(),
+            'Rejected' => LandlordVerification::where('verification_status', 'Rejected')->count(),
+        ];
+        $counts['All'] = array_sum($counts);
+
         return view('admin.verifications.index', [
             'verifications' => $verifications,
             'status' => $status,
+            'counts' => $counts,
         ]);
     }
 

@@ -8,18 +8,34 @@ use Illuminate\Http\Request;
 
 class ListingController extends Controller
 {
+    private const STATUSES = ['Pending', 'Approved', 'Rejected', 'All'];
+
     /**
      * Display the list of properties pending admin approval.
      */
-    public function approval()
+    public function approval(Request $request)
     {
-        // Fetch properties where verification_status is 'Pending'
-        $pendingListings = Property::with('landlord')
-            ->where('verification_status', 'Pending')
-            ->latest()
-            ->get();
+        $status = $request->query('status', 'Pending');
 
-        return view('admin.listings.approval', compact('pendingListings'));
+        if (! in_array($status, self::STATUSES, true)) {
+            $status = 'Pending';
+        }
+
+        $query = Property::with('landlord')
+            ->when($status !== 'All', fn ($q) => $q->where('verification_status', $status));
+
+        $pendingListings = $status === 'Pending'
+            ? $query->oldest()->paginate(15)->withQueryString()
+            : $query->latest()->paginate(15)->withQueryString();
+
+        $counts = [
+            'Pending' => Property::where('verification_status', 'Pending')->count(),
+            'Approved' => Property::where('verification_status', 'Approved')->count(),
+            'Rejected' => Property::where('verification_status', 'Rejected')->count(),
+        ];
+        $counts['All'] = array_sum($counts);
+
+        return view('admin.listings.approval', compact('pendingListings', 'status', 'counts'));
     }
 
     /**
