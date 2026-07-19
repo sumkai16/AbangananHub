@@ -21,7 +21,7 @@
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8">
 
         {{-- 1. Greeting row --}}
-        <div class="relative rounded-2xl bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg p-5 sm:p-6 mb-6">
+        <div class="mb-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="min-w-0">
                     <h1 class="text-[20px] sm:text-[22px] font-bold text-[#156F8C] truncate">

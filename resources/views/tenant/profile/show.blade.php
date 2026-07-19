@@ -22,7 +22,6 @@
         <div class="relative overflow-hidden rounded-[28px] bg-[#2AA7A1] p-6 sm:p-8 mb-6 shadow-[0_12px_36px_rgba(21,111,140,0.28)]">
             <div class="absolute inset-0 opacity-[0.08] pointer-events-none"
                 style="background-image: radial-gradient(circle at 1px 1px, white 1.3px, transparent 0); background-size: 22px 22px;"></div>
-            <div class="absolute -top-20 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
 
             <div class="relative flex flex-col sm:flex-row gap-6 items-start">
                 {{-- Avatar --}}

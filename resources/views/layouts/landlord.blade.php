@@ -89,8 +89,8 @@
                 {{-- Notification bell (expanded state) --}}
                 <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="relative"
                     x-data="notificationDropdown()" @click.away="close()" @keydown.escape.window="close()">
-                    <button type="button" @click="toggle()"
-                        class="relative w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
+                    <button type="button" @click="toggle()" aria-label="Notifications"
+                        class="relative w-10 h-10 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
                         <span x-show="unreadCount > 0" x-cloak
                             class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -389,8 +389,8 @@
                     </span>
                     <form action="{{ route('logout') }}" method="POST" class="shrink-0">
                         @csrf
-                        <button type="submit" title="Sign out"
-                            class="group/so relative w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-white/[0.06] transition-colors">
+                        <button type="submit" title="Sign out" aria-label="Sign out"
+                            class="group/so relative w-10 h-10 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-white/[0.06] transition-colors">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"

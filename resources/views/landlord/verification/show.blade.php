@@ -14,7 +14,7 @@
             </a>
 
             {{-- Header --}}
-            <h1 class="text-2xl font-bold text-[#156F8C] mb-1">Landlord verification</h1>
+            <h1 class="text-2xl font-bold text-[#1F2937] mb-1">Landlord verification</h1>
             <p class="text-sm text-[#64748B] mb-6">Status of your identity verification application.</p>
 
             {{-- ═══════════════════════════════════════════════════ --}}

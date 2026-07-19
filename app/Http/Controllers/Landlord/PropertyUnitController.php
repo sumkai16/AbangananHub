@@ -9,6 +9,7 @@ use App\Models\PropertyUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PropertyUnitController extends Controller
 {
@@ -49,10 +50,31 @@ class PropertyUnitController extends Controller
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'required|array|min:3|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo_sources'       => 'required|array',
+            'photo_sources.*'     => 'in:camera,upload',
+            'photo_captions'      => 'nullable|array',
+            'photo_captions.*'    => 'nullable|string|max:150',
             'video'               => 'nullable|file|mimes:mp4,mov,avi,webm|max:102400',
         ]);
 
-        DB::transaction(function () use ($validated, $request, $property) {
+        $photos = $request->file('photos', []);
+        $sources = $request->input('photo_sources', []);
+        $captions = $request->input('photo_captions', []);
+
+        if (count($sources) !== count($photos)) {
+            throw ValidationException::withMessages([
+                'photos' => 'Photo data is out of sync — please re-add your photos and try again.',
+            ]);
+        }
+
+        $liveCount = collect($sources)->filter(fn ($s) => $s === 'camera')->count();
+        if ($liveCount < 3) {
+            throw ValidationException::withMessages([
+                'photos' => 'At least 3 live (camera-captured) photos are required. Uploaded photos count as extras.',
+            ]);
+        }
+
+        DB::transaction(function () use ($validated, $request, $property, $photos, $sources, $captions) {
             $unit = $property->units()->create([
                 'unit_label'          => $validated['unit_label'],
                 'unit_type'           => $validated['unit_type'] ?? null,
@@ -69,7 +91,7 @@ class PropertyUnitController extends Controller
                 $unit->amenities()->attach($validated['amenities']);
             }
 
-            foreach ($request->file('photos') as $photo) {
+            foreach ($photos as $i => $photo) {
                 $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
                     'folder'        => 'abanganan/units',
                     'resource_type' => 'image',
@@ -77,7 +99,8 @@ class PropertyUnitController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Image',
                     'media_url'  => $result['secure_url'],
-                    'source'     => 'upload',
+                    'source'     => ($sources[$i] ?? 'upload') === 'camera' ? 'camera' : 'upload',
+                    'caption'    => $captions[$i] ?? null,
                 ]);
             }
 

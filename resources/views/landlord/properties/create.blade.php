@@ -12,8 +12,8 @@
                 Back to listings
             </a>
             <div>
-                <h1 class="text-3xl font-extrabold text-[#156F8C] tracking-tight">List a New Property</h1>
-                <p class="text-[14px] text-gray-500 mt-1.5">Fill in the details below. Your listing goes live for tenants once approved.</p>
+                <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">List a New Property</h1>
+                <p class="text-sm text-[#64748B] mt-1">Fill in the details below. Your listing goes live for tenants once approved.</p>
             </div>
         </div>
 

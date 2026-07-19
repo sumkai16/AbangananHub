@@ -10,14 +10,11 @@
         {{-- HERO --}}
         <div
             class="rounded-3xl mb-10 bg-gradient-to-br from-[#156F8C] via-[#1F2937] to-[#156F8C] p-6 sm:p-10 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-7 relative overflow-hidden shadow-[0_8px_32px_rgba(21,111,140,0.28)]">
-            <div
-                class="absolute right-[-20px] bottom-[-40px] w-64 h-64 rounded-full bg-white opacity-5 pointer-events-none">
-            </div>
 
             <div class="relative z-10">
                 <div
                     class="inline-block text-[10.5px] font-bold tracking-widest uppercase text-white/70 mb-3 bg-white/10 px-3 py-1 rounded-full">
-                    🏡 Cebu's Verified Rental Platform
+                    Cebu's Verified Rental Platform
                 </div>
                 <h1 class="text-[28px] md:text-3xl font-black text-white leading-tight tracking-tight mb-2">
                     Welcome back,<br>{{ auth()->user()->first_name }}!
@@ -45,22 +42,24 @@
             </div>
         </div>
 
-        {{-- STAT CARDS --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-12">
+        {{-- STAT CARDS — asymmetric layout: hero left, supporting right --}}
+        <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_1fr_1fr] gap-3 sm:gap-4 mb-12">
+            {{-- Hero stat (bigger, more prominent) --}}
             <x-stat-card label="Upcoming Stays" :value="$upcomingCount" sub="Active reservations" color="#2AA7A1"
-                bgColor="#EEF8F8">
+                bgColor="#EEF8F8" size="hero">
                 <x-slot name="icon">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="2">
+                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </x-slot>
             </x-stat-card>
 
+            {{-- Supporting stats (smaller, quieter) --}}
             <x-stat-card label="Messages" :value="$messagesCount" sub="Unread threads" color="#a855f7"
                 bgColor="#FAF5FF">
                 <x-slot name="icon">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#a855f7" stroke-width="2">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#a855f7" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                     </svg>
@@ -70,7 +69,7 @@
             <x-stat-card label="Saved Listings" :value="$savedCount" sub="In your favorites" color="#059669"
                 bgColor="#ECFDF5">
                 <x-slot name="icon">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
@@ -80,7 +79,7 @@
             <x-stat-card label="Open Reports" :value="$reportsCount" sub="Pending resolution" color="#EF4444"
                 bgColor="#FEF2F2">
                 <x-slot name="icon">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                     </svg>

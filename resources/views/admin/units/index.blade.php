@@ -75,7 +75,7 @@
                                         <div class="flex items-center gap-3">
                                             <div class="w-10 h-10 rounded-xl bg-gray-100 overflow-hidden shrink-0">
                                                 @if($thumb)
-                                                    <img src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
+                                                    <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" loading="lazy" class="w-full h-full object-cover">
                                                 @endif
                                             </div>
                                             <p class="text-[13.5px] font-semibold text-[#1F2937]">{{ $unit->unit_label }}</p>

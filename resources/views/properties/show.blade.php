@@ -22,8 +22,8 @@
                 'label' => $unit->unit_label,
                 'type' => $property->property_type,
                 'price' => number_format($unit->rental_fee),
-                'thumb' => optional($unit->media->first())->media_url,
-                'media' => $unit->media->map(fn($m) => $m->media_url)->values()->toArray(),
+                'thumb' => optional($unit->media->firstWhere('media_type', 'Image'))->media_url,
+                'media' => $unit->media->where('media_type', 'Image')->map(fn($m) => ['url' => $m->media_url, 'caption' => $m->caption])->values()->toArray(),
                 'description' => $unit->description,
                 'amenities' => $unit->amenities->pluck('amenity_name')->values()->toArray(),
                 'occupancy' => $unit->occupancy_limit,
@@ -634,8 +634,9 @@
                                         </span>
 
                                         {{-- Thumbnail --}}
-                                        @if($unit->media->first())
-                                            <img src="{{ $unit->media->first()->media_url }}" alt="{{ $unit->unit_label }}"
+                                        @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
+                                        @if($unitThumb)
+                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
                                                 class="w-16 h-16 rounded-xl object-cover shrink-0 border border-[#EEF8F8]">
                                         @else
                                             <span class="w-16 h-16 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -923,8 +924,16 @@
                         <div class="relative aspect-[4/3] bg-[#E2E8F0]">
                             <template x-if="slideoutUnit.media.length > 0">
                                 <div class="relative w-full h-full">
-                                    <img :src="slideoutUnit.media[slideoutIdx]" :alt="slideoutUnit.label"
+                                    <img :src="slideoutUnit.media[slideoutIdx].url" :alt="slideoutUnit.label"
                                         class="w-full h-full object-cover">
+
+                                    {{-- Caption --}}
+                                    <template x-if="slideoutUnit.media[slideoutIdx].caption">
+                                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pt-8 pb-3">
+                                            <p class="text-white text-[12.5px] font-medium leading-snug"
+                                                x-text="slideoutUnit.media[slideoutIdx].caption"></p>
+                                        </div>
+                                    </template>
 
                                     <template x-if="slideoutUnit.media.length > 1">
                                         <div>

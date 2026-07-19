@@ -33,8 +33,6 @@
             {{-- Security-paper dot texture --}}
             <div class="absolute inset-0 opacity-[0.08] pointer-events-none"
                 style="background-image: radial-gradient(circle at 1px 1px, white 1.3px, transparent 0); background-size: 22px 22px;"></div>
-            {{-- Corner glow --}}
-            <div class="absolute -top-20 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
 
             <div class="relative flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
 

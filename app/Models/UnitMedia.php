@@ -14,6 +14,7 @@ class UnitMedia extends Model
         'media_type',
         'media_url',
         'source',
+        'caption',
     ];
 
     public function unit()

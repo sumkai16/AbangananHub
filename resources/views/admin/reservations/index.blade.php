@@ -148,7 +148,7 @@
                                     <div class="flex items-center gap-2.5">
                                         <div class="w-9 h-9 rounded-xl bg-gray-100 overflow-hidden shrink-0">
                                             @if($photo)
-                                                <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                                <img src="{{ $photo->media_url }}" alt="{{ $reservation->unit->unit_label ?? 'Property' }}" loading="lazy" class="w-full h-full object-cover">
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center">
                                                     <svg class="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">

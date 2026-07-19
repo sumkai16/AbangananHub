@@ -47,9 +47,6 @@
 {{-- ── HERO ─────────────────────────────────────────────────────────────────── --}}
 <section class="relative overflow-hidden bg-gradient-to-br from-[#156F8C] via-[#1F2937] to-[#156F8C] text-white">
 
-    {{-- decorative circles --}}
-    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#2AA7A1]/20 blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-white/5 blur-2xl pointer-events-none"></div>
 
     <div class="relative max-w-5xl mx-auto px-6 py-24 text-center">
 
@@ -162,53 +159,53 @@
             <p class="text-[14.5px] text-gray-400 mt-3 max-w-xl mx-auto">From finding a rental to moving in — the whole journey in one platform.</p>
         </div>
 
-        {{-- Tenant Flow --}}
-        <div class="mb-12 fade-up">
-            <div class="flex items-center gap-2 mb-6">
-                <div class="w-7 h-7 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center">
+        {{-- Tenant Flow — vertical timeline --}}
+        <div class="mb-14 fade-up">
+            <div class="flex items-center gap-2 mb-8">
+                <div class="w-7 h-7 rounded-lg bg-[#2AA7A1]/10 flex items-center justify-center">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
                 </div>
                 <span class="text-[13px] font-bold text-[#156F8C] uppercase tracking-wider">For Tenants</span>
             </div>
-            <div class="grid sm:grid-cols-4 gap-4">
+            <div class="relative pl-8 border-l-2 border-[#2AA7A1]/20 space-y-6">
                 @foreach([
-                    ['n'=>'1','title'=>'Create Account','desc'=>'Sign up and verify your email to unlock all tenant features.'],
-                    ['n'=>'2','title'=>'Search & Filter','desc'=>'Browse by location, type, and budget. View verified listings only if you prefer.'],
-                    ['n'=>'3','title'=>'Reserve','desc'=>'Submit a reservation request directly to the landlord with one click.'],
-                    ['n'=>'4','title'=>'Move In','desc'=>'Once approved, coordinate with your landlord and settle your new home.'],
+                    ['title'=>'Create Account','desc'=>'Sign up and verify your email to unlock all tenant features.'],
+                    ['title'=>'Search & Filter','desc'=>'Browse by location, type, and budget. View verified listings only if you prefer.'],
+                    ['title'=>'Reserve','desc'=>'Submit a reservation request directly to the landlord with one click.'],
+                    ['title'=>'Move In','desc'=>'Once approved, coordinate with your landlord and settle your new home.'],
                 ] as $step)
-                <div class="bg-[#F7FCFC] rounded-2xl p-5 border border-gray-100">
-                    <div class="w-8 h-8 rounded-full bg-[#2AA7A1] text-white text-[13px] font-extrabold flex items-center justify-center mb-3 shadow-sm">{{ $step['n'] }}</div>
-                    <div class="text-[14px] font-bold text-[#156F8C] mb-1">{{ $step['title'] }}</div>
-                    <div class="text-[12.5px] text-gray-500 leading-relaxed">{{ $step['desc'] }}</div>
+                <div class="relative">
+                    <div class="absolute -left-[41px] top-1 w-4 h-4 rounded-full bg-[#2AA7A1] border-[3px] border-white shadow-sm"></div>
+                    <div class="text-[14.5px] font-bold text-[#1F2937] mb-0.5">{{ $step['title'] }}</div>
+                    <div class="text-[13px] text-gray-500 leading-relaxed">{{ $step['desc'] }}</div>
                 </div>
                 @endforeach
             </div>
         </div>
 
-        {{-- Landlord Flow --}}
+        {{-- Landlord Flow — vertical timeline --}}
         <div class="fade-up">
-            <div class="flex items-center gap-2 mb-6">
-                <div class="w-7 h-7 rounded-full bg-[#156F8C]/10 flex items-center justify-center">
+            <div class="flex items-center gap-2 mb-8">
+                <div class="w-7 h-7 rounded-lg bg-[#156F8C]/10 flex items-center justify-center">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                 </div>
                 <span class="text-[13px] font-bold text-[#156F8C] uppercase tracking-wider">For Landlords</span>
             </div>
-            <div class="grid sm:grid-cols-4 gap-4">
+            <div class="relative pl-8 border-l-2 border-[#156F8C]/20 space-y-6">
                 @foreach([
-                    ['n'=>'1','title'=>'Apply & Verify','desc'=>'Submit your ID and documents to become a verified landlord on the platform.'],
-                    ['n'=>'2','title'=>'List Property','desc'=>'Add your property details, photos, pricing, and available units.'],
-                    ['n'=>'3','title'=>'Review Requests','desc'=>'Receive tenant reservation requests and approve or reject them from your dashboard.'],
-                    ['n'=>'4','title'=>'Manage Listings','desc'=>'Keep listings up to date, track reservations, and build your reputation.'],
+                    ['title'=>'Apply & Verify','desc'=>'Submit your ID and documents to become a verified landlord on the platform.'],
+                    ['title'=>'List Property','desc'=>'Add your property details, photos, pricing, and available units.'],
+                    ['title'=>'Review Requests','desc'=>'Receive tenant reservation requests and approve or reject them from your dashboard.'],
+                    ['title'=>'Manage Listings','desc'=>'Keep listings up to date, track reservations, and build your reputation.'],
                 ] as $step)
-                <div class="bg-[#F7FCFC] rounded-2xl p-5 border border-gray-100">
-                    <div class="w-8 h-8 rounded-full bg-[#156F8C] text-white text-[13px] font-extrabold flex items-center justify-center mb-3 shadow-sm">{{ $step['n'] }}</div>
-                    <div class="text-[14px] font-bold text-[#156F8C] mb-1">{{ $step['title'] }}</div>
-                    <div class="text-[12.5px] text-gray-500 leading-relaxed">{{ $step['desc'] }}</div>
+                <div class="relative">
+                    <div class="absolute -left-[41px] top-1 w-4 h-4 rounded-full bg-[#156F8C] border-[3px] border-white shadow-sm"></div>
+                    <div class="text-[14.5px] font-bold text-[#1F2937] mb-0.5">{{ $step['title'] }}</div>
+                    <div class="text-[13px] text-gray-500 leading-relaxed">{{ $step['desc'] }}</div>
                 </div>
                 @endforeach
             </div>
@@ -255,7 +252,6 @@
     <div class="max-w-5xl mx-auto px-6">
         <div class="bg-gradient-to-br from-[#156F8C] to-[#156F8C] rounded-3xl p-10 md:p-14 text-white overflow-hidden relative fade-up">
 
-            <div class="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
 
             <div class="relative grid md:grid-cols-2 gap-10 items-center">
                 <div>

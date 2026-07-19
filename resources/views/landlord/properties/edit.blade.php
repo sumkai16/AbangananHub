@@ -14,8 +14,8 @@
                         </svg>
                         Back to listings
                     </a>
-                    <h1 class="text-3xl font-extrabold text-[#156F8C] tracking-tight mt-3">Edit Listing</h1>
-                    <p class="text-[14px] text-gray-500 mt-1.5">Update your property's details or photos below.</p>
+                    <h1 class="text-2xl font-bold text-[#1F2937] leading-tight mt-3">Edit Listing</h1>
+                    <p class="text-sm text-[#64748B] mt-1">Update your property's details or photos below.</p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">

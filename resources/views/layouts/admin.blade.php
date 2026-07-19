@@ -76,7 +76,8 @@
 
                 @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
                 <a href="{{ route('notifications.index') }}" data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="relative w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
+                    aria-label="Notifications"
+                    class="relative w-10 h-10 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
                     @if($unread > 0)
                         <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
                     @endif
