@@ -177,7 +177,8 @@
 
                 @if($conversations->isNotEmpty())
                     <div class="px-4 py-2 border-t border-[#64748B]/10 flex-shrink-0">
-                        <p class="text-[11px] text-[#64748B] text-center">Showing {{ $conversations->count() }} conversations
+                        <p class="text-[11px] text-[#64748B] text-center">
+                            Showing 1 to {{ $conversations->count() }} of {{ $conversations->count() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->count()) : Str::plural('conversation', $conversations->count()) }}
                         </p>
                     </div>
                 @endif

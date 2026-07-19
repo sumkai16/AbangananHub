@@ -68,6 +68,21 @@ Page-title headers are **never wrapped in a card** — they sit bare on the page
 ## 6c. Two-column form layout (create/edit)
 Long forms use a 12-col grid: fields in `lg:col-span-7`, a right rail in `lg:col-span-5`. The rail holds a **live preview card** (mirrors the record as the user types) and secondary selectors (e.g. amenities). Keep width-hungry inputs (camera capture, multi-column galleries) in the left column. Drop `sticky` on the rail when its content (e.g. a long amenities list) is taller than the viewport.
 
+## 6d. Data tables (index pages with row-level actions)
+Dense management lists (e.g. landlord reservations) use a table inside one glassmorphism card: `overflow-x-auto` wrapper with `min-w-[980px]` table, uppercase 11px slate column headers, `divide-y divide-[#E2E8F0]` rows, `hover:bg-[#F7FCFC]/70` row hover. Status shown as pill badges (teal/amber/emerald/red/slate families per lifecycle). Footer inside the card: "Showing X to Y of Z" left, paginator right. Search + filter bar sits in its own glass card above the table (GET form; status tabs carry filters through as query params).
+
+Where both a card grid and a table make sense (e.g. landlord Units), offer a grid/table segmented toggle at the right end of the filter bar (two icon buttons in a `bg-[#F7FCFC]` pill; active = white bg + `text-[#156F8C]` + shadow). The choice is client-side Alpine persisted to `localStorage` — both views render server-side and swap via `x-show` (add `x-cloak` to the non-default view). Per-unit derived data is precomputed once in a `@php` loop and shared by both views.
+
+## 6e. Public property page (properties/show) — flat-card exception
+Per analyst prototype (July 2026), the tenant-facing property detail page intentionally does NOT use glassmorphism. Its cards are flat: `bg-white border border-[#E2E8F0] rounded-2xl shadow-sm`. Do not "fix" this page back to `bg-white/70 backdrop-blur-xl`. Other page conventions there:
+- Three-column layout: gallery + unit picker (col A) | header + amenity tiles + quick facts + tabbed card (col B) | sticky sidebar. Inner `xl:grid-cols-2` inside a `lg:col-span-7/8` left region.
+- Tabs are underline-style (`border-b-2` teal active, `text-[#156F8C]`) inside a flat card — not pill tabs.
+- Unit picker rows: radio + thumb + label/meta, price stacked over an Available badge on the right; >4 units collapse behind a "View all units (N)" button (`moreUnits` Alpine flag).
+- Amenities render as standalone bordered icon squares with the label beneath, 5 visible + "+N more" tile.
+- Sidebar has an Inquiry/Reserve toggle (`mode` flag) — presentational only, both submit `reservations.store`; the label on the coral submit button switches.
+- Mobile (<lg): sidebar is hidden; a teleported sticky bottom bar (selected unit + coral Inquire button) opens a two-step bottom-sheet modal (Select a Unit → Message Landlord) sharing `selectedUnit` state with the desktop sidebar.
+- Prototype's blue accents are always rendered in the locked Ocean Teal/Deep Ocean Blue palette; CTA stays coral #FF8A65.
+
 ## 7. Components
 - Border radius default: `rounded-2xl` (standard), `rounded-3xl` (hero sections only)
 - Shadow style: `shadow-lg` on glassmorphism panels; property cards use the image-is-the-card pattern (no shadow wrapper)

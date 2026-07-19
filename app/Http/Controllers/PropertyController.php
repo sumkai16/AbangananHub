@@ -107,7 +107,11 @@ class PropertyController extends Controller
 
         $canReview = auth()->check() && Review::canReview(auth()->id(), $property->property_id);
 
-        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview'));
+        $isFavorited = auth()->check() && Favorite::where('tenant_id', auth()->id())
+            ->where('property_id', $property->property_id)
+            ->exists();
+
+        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited'));
     }
 
     public function create()

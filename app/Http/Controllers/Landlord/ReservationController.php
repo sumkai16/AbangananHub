@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\Property;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,29 @@ class ReservationController extends Controller
         $base = Reservation::whereHas('property', function ($query) {
             $query->where('landlord_id', Auth::id());
         });
+
+        if ($search = trim((string) $request->query('search'))) {
+            $base->where(function ($query) use ($search) {
+                $query->whereHas('tenant', function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('contact_number', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('property', fn($q) => $q->where('title', 'like', "%{$search}%"))
+                    ->orWhereHas('unit', fn($q) => $q->where('unit_label', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($propertyId = $request->query('property')) {
+            $base->where('property_id', $propertyId);
+        }
+
+        if ($from = $request->query('from')) {
+            $base->whereDate('created_at', '>=', $from);
+        }
+        if ($to = $request->query('to')) {
+            $base->whereDate('created_at', '<=', $to);
+        }
 
         $counts = [
             'all'                       => (clone $base)->count(),
@@ -40,7 +64,11 @@ class ReservationController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('landlord.reservations.index', compact('reservations', 'counts', 'status'));
+        $properties = Property::where('landlord_id', Auth::id())
+            ->orderBy('title')
+            ->get(['property_id', 'title']);
+
+        return view('landlord.reservations.index', compact('reservations', 'counts', 'status', 'properties'));
     }
 
     public function reject(Request $request, Reservation $reservation)

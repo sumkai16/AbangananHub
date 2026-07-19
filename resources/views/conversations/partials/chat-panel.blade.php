@@ -19,13 +19,22 @@
                 {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
             </div>
             <div class="min-w-0">
-                <h2 class="text-[13px] font-bold text-[#1F2937] truncate">
-                    {{ $otherParty->first_name }} {{ $otherParty->last_name }}
-                </h2>
+                <div class="flex items-center gap-2 min-w-0">
+                    <h2 class="text-[13px] font-bold text-[#1F2937] truncate">
+                        {{ $otherParty->first_name }} {{ $otherParty->last_name }}
+                    </h2>
+                    @if($rentalStatus === 'Inquiry')
+                        <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EEF8F8] text-[#156F8C]">New Inquiry</span>
+                    @endif
+                </div>
                 <p class="text-[11px] text-[#64748B] truncate">
-                    {{ $conversation->property->title }}
-                    @if($conversation->unit)
-                        &middot; {{ $conversation->unit->unit_label }}
+                    @if($isLandlord)
+                        {{ $otherParty->email }}{{ $otherParty->contact_number ? ' · ' . $otherParty->contact_number : '' }}
+                    @else
+                        {{ $conversation->property->title }}
+                        @if($conversation->unit)
+                            &middot; {{ $conversation->unit->unit_label }}
+                        @endif
                     @endif
                 </p>
             </div>
@@ -66,7 +75,7 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
-                    Resolve
+                    Mark as Resolved
                 </button>
             @elseif($conversation->isResolved())
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[#1F2937] bg-[#EEF8F8] rounded-lg">
@@ -330,6 +339,74 @@
 
     {{-- Messages --}}
     <div id="message-list" class="flex-1 px-5 py-4 overflow-y-auto flex flex-col gap-2.5 scroll-smooth" style="background: #F7FCFC;">
+
+        {{-- Pinned inquiry summary --}}
+        @if($reservation)
+            @php
+                $inqThumb = $conversation->unit?->media?->firstWhere('media_type', 'Image')
+                    ?? $conversation->property->media->firstWhere('media_type', 'Image');
+                $inqFee = $conversation->unit?->rental_fee ?? $conversation->property->rental_fee;
+            @endphp
+            <div class="self-stretch bg-white border border-[#E2E8F0] rounded-2xl p-4 mb-1">
+                <div class="flex items-center gap-3.5 mb-3">
+                    @if($inqThumb)
+                        <img src="{{ $inqThumb->media_url }}" alt="" class="w-16 h-14 rounded-xl object-cover shrink-0">
+                    @else
+                        <div class="w-16 h-14 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                            </svg>
+                        </div>
+                    @endif
+                    <div class="min-w-0">
+                        <p class="text-[14px] font-bold text-[#1F2937] truncate">
+                            {{ $conversation->unit->unit_label ?? $conversation->property->title }}
+                        </p>
+                        @if($conversation->unit)
+                            <p class="text-[12px] text-[#64748B] truncate">{{ $conversation->property->title }}</p>
+                        @endif
+                        <p class="text-[13px] font-bold text-[#156F8C]">₱{{ number_format($inqFee) }}
+                            <span class="text-[11px] font-semibold text-[#64748B]">/ month</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-[#E2E8F0] p-3.5">
+                    <p class="text-[12px] font-bold text-[#1F2937] mb-2.5">Inquiry Details</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-2.5">
+                        <div class="flex items-start gap-2">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="2" class="shrink-0 mt-0.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <div>
+                                <p class="text-[11px] text-[#64748B]">Target Move In</p>
+                                <p class="text-[12.5px] font-semibold text-[#1F2937]">
+                                    {{ $reservation->target_move_in_date?->format('M d, Y') ?? '—' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="2" class="shrink-0 mt-0.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <div>
+                                <p class="text-[11px] text-[#64748B]">Target Move Out</p>
+                                <p class="text-[12.5px] font-semibold text-[#1F2937]">
+                                    {{ $reservation->target_move_out_date?->format('M d, Y') ?? '—' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    @if($reservation->remarks)
+                        <p class="text-[11px] text-[#64748B]">Message</p>
+                        <p class="text-[12.5px] text-[#1F2937] leading-relaxed whitespace-pre-line">{{ $reservation->remarks }}</p>
+                    @endif
+                    <p class="text-[10.5px] text-[#64748B] mt-2">{{ $reservation->created_at->format('h:i A') }}</p>
+                </div>
+            </div>
+        @endif
+
         @foreach ($conversation->messages as $message)
             @if($message->is_system)
                 <div class="self-stretch flex items-center gap-3 my-1 px-2">

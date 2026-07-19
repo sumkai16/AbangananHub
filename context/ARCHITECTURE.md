@@ -110,6 +110,10 @@ Unit create requires photos: **≥3 must be live camera captures** (anti-fraud �
 | Live camera capture required for unit photos | Anti-fraud — proves the unit is real and current; ≥3 live captures, uploads as extras | July 2026 |
 | Two-column unit create/edit (form + sticky-preview rail) | Fills wasted horizontal space; live preview + amenities in the rail | July 2026 |
 | Occupancy history via nightly snapshots + observer-based activity log | True daily trend needs stored history; observer catches every status-change path without touching each controller | July 2026 |
+| Landlord list pages: analyst-prototype data tables + grid/table toggle | Reservations rebuilt as filterable table (search/property/date-range in controller); Units/Properties/Reservations each got a client-side view toggle persisted in localStorage; both views render server-side and swap via x-show, per-record derived data precomputed once per page | July 2026 |
+| Public property page restyled to analyst prototype (flat cards) | Three-column layout, flat white cards (documented exception to glassmorphism — DESIGN.md §6e); Inquiry/Reserve toggle is presentational (single reservations.store flow) | July 2026 |
+| Mobile inquiry: sticky bar + two-step teleported modal | Desktop sidebar is hidden <lg, so phones had no inquiry path; modal shares Alpine selectedUnit state with sidebar, posts to same reservations.store | July 2026 |
+| Inbox chat panel: pinned inquiry summary card | Unit photo/price + Inquiry Details (move in/out, message) pinned atop thread for both parties; landlord header shows tenant email/phone + New Inquiry badge | July 2026 |
 
 ## 7. Known Tradeoffs
 - **No queue worker** — `ShouldBroadcastNow` is synchronous. Acceptable for capstone load; would need a queue for production scale.

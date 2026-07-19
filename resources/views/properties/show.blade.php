@@ -36,8 +36,14 @@
         $defaultUnitId = optional($unitsPayload->firstWhere('available', true))['id'] ?? null;
     @endphp
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 min-h-[calc(100vh-72px)]" x-data="{
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-28 lg:pb-8 min-h-[calc(100vh-72px)]" x-data="{
                                                     tab: 'overview',
+                                                    mode: 'inquiry',
+                                                    moreUnits: false,
+                                                    mobileOpen: false,
+                                                    mstep: 1,
+                                                    openMobile() { this.mstep = this.selectedUnit ? 2 : 1; this.mobileOpen = true; document.body.style.overflow = 'hidden'; },
+                                                    closeMobile() { this.mobileOpen = false; document.body.style.overflow = ''; },
                                                         units: @js($unitsPayload),
                                                     selectedUnit: @js($defaultUnitId),
                                                     msg: '',
@@ -98,15 +104,26 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
             {{-- ===================================================== --}}
-            {{-- LEFT COLUMN --}}
+            {{-- LEFT REGION: gallery + units | header + tabs --}}
             {{-- ===================================================== --}}
-            <div class="lg:col-span-7 xl:col-span-8 space-y-8">
+            <div class="lg:col-span-7 xl:col-span-8">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+
+                {{-- ── Column A: gallery + available units ── --}}
+                <div class="space-y-8">
 
                 {{-- ===== 1. IMAGE GALLERY ===== --}}
                 @if($property->media->count() > 0)
                     <div>
                         <div
-                            class="relative rounded-3xl overflow-hidden bg-[#E2E8F0] aspect-[16/9] border border-[#EEF8F8] shadow-sm group">
+                            class="relative rounded-3xl overflow-hidden bg-[#E2E8F0] aspect-[4/3] border border-[#EEF8F8] shadow-sm group">
+
+                            <span class="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 bg-[#156F8C] text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Verified Property
+                            </span>
                             <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
                                 onclick="openLightboxAtHero()">
@@ -168,10 +185,103 @@
                     </div>
                 @endif
 
+                {{-- ===== UNIT SELECTION LIST ===== --}}
+                @if($approvedUnits->count() > 0)
+                    <div>
+                        <h2 class="text-base font-bold text-[#1F2937] mb-1">Available Units ({{ $availableUnits->count() }})
+                        </h2>
+                        <p class="text-sm text-[#64748B] mb-4">Choose a unit to inquire or reserve</p>
+
+                        <div class="space-y-3">
+                            @foreach($approvedUnits as $unit)
+                                @php $isAvailable = $unit->availability_status === 'Available'; @endphp
+                                <div class="relative" @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
+                                    <button type="button" x-on:click="selectUnit({{ $unit->unit_id }})"
+                                        :class="selectedUnit === {{ $unit->unit_id }}
+                                                ? 'border-[#2AA7A1] ring-1 ring-[#2AA7A1]'
+                                                : '{{ $isAvailable ? 'border-[#E2E8F0] hover:border-[#64748B]/40' : 'border-[#E2E8F0] cursor-not-allowed' }}'"
+                                        class="w-full text-left rounded-2xl border bg-white shadow-sm p-3.5 pr-12 flex items-center gap-3 transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
+                                        @if(!$isAvailable) disabled @endif>
+
+                                        {{-- Radio indicator --}}
+                                        <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
+                                            :class="selectedUnit === {{ $unit->unit_id }} ? 'border-[#2AA7A1]' : 'border-[#CBD5E1]'">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#2AA7A1]"
+                                                x-show="selectedUnit === {{ $unit->unit_id }}" x-cloak></span>
+                                        </span>
+
+                                        {{-- Thumbnail --}}
+                                        @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
+                                        @if($unitThumb)
+                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
+                                                class="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#E2E8F0]">
+                                        @else
+                                            <span class="w-14 h-14 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                                                <svg class="w-6 h-6 text-[#64748B]" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor" stroke-width="1.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                                                </svg>
+                                            </span>
+                                        @endif
+
+                                        {{-- Details --}}
+                                        <span class="flex-1 min-w-0">
+                                            <span class="block text-sm font-bold text-[#1F2937] truncate mb-0.5">{{ $unit->unit_label }}</span>
+                                            <span class="block text-xs font-medium text-[#64748B]">
+                                                {{ $property->property_type }}
+                                                &middot; {{ $unit->occupancy_limit }}
+                                                {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
+                                                @if(!empty($unit->size))
+                                                    &middot; {{ $unit->size }}
+                                                @endif
+                                            </span>
+                                        </span>
+
+                                        {{-- Price + status --}}
+                                        <span class="text-right shrink-0 flex flex-col items-end gap-1">
+                                            <span class="leading-tight">
+                                                <span class="text-sm font-black text-[#1F2937]">₱{{ number_format($unit->rental_fee) }}</span>
+                                                <span class="text-[11px] font-semibold text-[#64748B]">/ month</span>
+                                            </span>
+                                            <span
+                                                class="text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $isAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-[#E2E8F0] text-[#64748B]' }}">
+                                                {{ $unit->availability_status }}
+                                            </span>
+                                        </span>
+                                    </button>
+
+                                    {{-- View details button (opens slideout) --}}
+                                    <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
+                                        class="absolute top-3 right-3 w-7 h-7 rounded-lg bg-[#F7FCFC] hover:bg-[#EEF8F8] flex items-center justify-center transition-colors cursor-pointer"
+                                        title="View unit details">
+                                        <svg class="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        @if($approvedUnits->count() > 4)
+                            <button type="button" x-show="!moreUnits" x-on:click="moreUnits = true"
+                                class="mt-3 w-full h-11 rounded-xl border border-[#E2E8F0] bg-white text-sm font-bold text-[#1F2937] hover:bg-[#F7FCFC] shadow-sm cursor-pointer transition-colors duration-200">
+                                View all units ({{ $approvedUnits->count() }})
+                            </button>
+                        @endif
+                    </div>
+                @endif
+                </div>
+
+                {{-- ── Column B: header + facts + tabs ── --}}
+                <div class="space-y-6">
+
                 {{-- ===== 2. PROPERTY HEADER ===== --}}
                 <div>
                     <div class="flex flex-wrap items-center gap-2.5 mb-2">
-                        <h1 class="text-2xl sm:text-3xl font-black text-[#1F2937] tracking-tight">
+                        <h1 class="text-2xl font-black text-[#1F2937] tracking-tight">
                             {{ $property->title }}
                         </h1>
                         @if($property->landlord->rentalBusiness)
@@ -238,87 +348,125 @@
 
                 {{-- ===== 3. AMENITY ICON ROW ===== --}}
                 @if($property->amenities->count() > 0)
-                    <div class="pt-6 border-t border-[#EEF8F8]">
-                        <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <div class="pt-5 border-t border-[#EEF8F8]">
+                        <div class="flex flex-wrap gap-x-4 gap-y-3">
                             @foreach($property->amenities as $i => $amenity)
-                                <div class="flex items-center gap-2 text-sm font-semibold text-[#1F2937]" @if($i >= 6)
-                                x-show="allAmenities" x-cloak @endif>
-                                    <span class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                                <div class="flex flex-col items-center gap-1.5 w-[64px]"
+                                    @if($i >= 5) x-show="allAmenities" x-cloak @endif>
+                                    <span class="w-11 h-11 rounded-xl border border-[#E2E8F0] bg-white shadow-sm flex items-center justify-center shrink-0">
                                         <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                         </svg>
                                     </span>
-                                    {{ $amenity->amenity_name }}
+                                    <span class="text-[10.5px] font-semibold text-[#64748B] text-center leading-tight truncate w-full">{{ $amenity->amenity_name }}</span>
                                 </div>
                             @endforeach
 
-                            @if($property->amenities->count() > 6)
+                            @if($property->amenities->count() > 5)
                                 <button type="button" x-show="!allAmenities" x-on:click="allAmenities = true"
-                                    class="text-xs font-bold text-[#1F2937] bg-[#E2E8F0] hover:brightness-95 px-3 py-1.5 rounded-full transition-all">
-                                    +{{ $property->amenities->count() - 6 }} more
+                                    class="flex flex-col items-center gap-1.5 w-[64px] cursor-pointer group">
+                                    <span class="w-11 h-11 rounded-xl border border-[#E2E8F0] bg-white shadow-sm group-hover:bg-[#F7FCFC] flex items-center justify-center text-[12px] font-bold text-[#1F2937] transition-colors duration-200">
+                                        +{{ $property->amenities->count() - 5 }}
+                                    </span>
+                                    <span class="text-[10.5px] font-semibold text-[#64748B]">more</span>
                                 </button>
                             @endif
                         </div>
                     </div>
                 @endif
 
-                {{-- ===== 4. PROPERTY INFO GRID ===== --}}
-                <div class="pt-6 border-t border-[#EEF8F8]">
-                    <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-sm">
-                            <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Property Type</p>
-                            <p class="text-sm font-bold text-[#1F2937]">{{ $property->property_type }}</p>
+                {{-- ===== 4. PROPERTY QUICK FACTS ===== --}}
+                <div class="pt-5 border-t border-[#EEF8F8]">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                                </svg>
+                            </span>
+                            <div class="min-w-0">
+                                <p class="text-[11px] font-bold text-[#64748B]">Property Type</p>
+                                <p class="text-sm font-bold text-[#1F2937]">{{ $property->property_type }}</p>
+                            </div>
                         </div>
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-sm">
-                            <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Price Range</p>
-                            <p class="text-sm font-bold text-[#1F2937]">
-                                @if($minFee)
-                                    ₱{{ number_format($minFee) }}@if($maxFee && $maxFee != $minFee) –
-                                    ₱{{ number_format($maxFee) }}@endif
-                                    <span class="text-[#64748B] font-semibold">/ month</span>
-                                @else
-                                    —
-                                @endif
-                            </p>
+
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                            <div class="min-w-0">
+                                <p class="text-[11px] font-bold text-[#64748B]">Price Range</p>
+                                <p class="text-sm font-bold text-[#1F2937]">
+                                    @if($minFee)
+                                        ₱{{ number_format($minFee) }}@if($maxFee && $maxFee != $minFee)–₱{{ number_format($maxFee) }}@endif
+                                        <span class="text-[#64748B] font-semibold">/ month</span>
+                                    @else
+                                        —
+                                    @endif
+                                </p>
+                            </div>
                         </div>
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-sm">
-                            <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Available Units
-                            </p>
-                            <p class="text-sm font-bold text-[#1F2937]">{{ $availableUnits->count() }}</p>
+
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                            </span>
+                            <div class="min-w-0">
+                                <p class="text-[11px] font-bold text-[#64748B]">Landlord</p>
+                                <p class="text-sm font-bold text-[#1F2937] truncate">
+                                    {{ $property->landlord->rentalBusiness->business_name ?? ($property->landlord->first_name . ' ' . $property->landlord->last_name) }}
+                                </p>
+                            </div>
                         </div>
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-sm">
-                            <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Landlord</p>
-                            <p class="text-sm font-bold text-[#1F2937]">{{ $property->landlord->first_name }}
-                                {{ $property->landlord->last_name }}
-                            </p>
+
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                                </svg>
+                            </span>
+                            <div class="min-w-0">
+                                <p class="text-[11px] font-bold text-[#64748B]">Available Units</p>
+                                <p class="text-sm font-bold text-[#1F2937]">{{ $availableUnits->count() }} {{ Str::plural('Unit', $availableUnits->count()) }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- ===== 5. TABBED CONTENT ===== --}}
-                <div class="pt-6 border-t border-[#EEF8F8]">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm overflow-hidden">
                     {{-- Tab bar --}}
-                    <div class="flex items-center gap-1 bg-[#E2E8F0] p-1 rounded-xl w-fit max-w-full overflow-x-auto mb-6">
+                    <div class="flex items-center gap-1 px-5 border-b border-[#E2E8F0] overflow-x-auto">
                         <button type="button" x-on:click="goTab('overview')"
-                            :class="tab === 'overview' ? 'bg-white text-[#1F2937] shadow-sm' : 'text-[#64748B]'"
-                            class="text-sm font-bold px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap">
+                            :class="tab === 'overview' ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-[#64748B] hover:text-[#1F2937]'"
+                            class="text-sm font-bold px-3 sm:px-4 py-3 border-b-2 -mb-px transition-all whitespace-nowrap cursor-pointer">
                             Overview
                         </button>
                         <button type="button" x-on:click="goTab('location')"
-                            :class="tab === 'location' ? 'bg-white text-[#1F2937] shadow-sm' : 'text-[#64748B]'"
-                            class="text-sm font-bold px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap">
+                            :class="tab === 'location' ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-[#64748B] hover:text-[#1F2937]'"
+                            class="text-sm font-bold px-3 sm:px-4 py-3 border-b-2 -mb-px transition-all whitespace-nowrap cursor-pointer">
                             Location
                         </button>
                         <button type="button" x-on:click="goTab('reviews')"
-                            :class="tab === 'reviews' ? 'bg-white text-[#1F2937] shadow-sm' : 'text-[#64748B]'"
-                            class="text-sm font-bold px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap">
+                            :class="tab === 'reviews' ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-[#64748B] hover:text-[#1F2937]'"
+                            class="text-sm font-bold px-3 sm:px-4 py-3 border-b-2 -mb-px transition-all whitespace-nowrap cursor-pointer">
                             Reviews
                             @if($property->reviews->count() > 0)
                                 <span class="text-xs">({{ $property->reviews->count() }})</span>
                             @endif
                         </button>
                     </div>
+
+                    <div class="p-5">
 
                     {{-- ── Overview tab ── --}}
                     <div x-show="tab === 'overview'">
@@ -349,7 +497,7 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 @foreach($property->house_rules as $rule)
                                     <div class="flex items-center gap-3 text-sm text-[#1F2937] font-medium">
-                                        <div class="w-8 h-8 rounded-lg bg-[#E2E8F0] flex items-center justify-center flex-shrink-0">
+                                        <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
                                             <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24"
                                                 stroke="currentColor" stroke-width="2.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -423,7 +571,7 @@
                         {{-- Review submission form --}}
                         @auth
                             @if($canReview)
-                                <div class="mb-6 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg"
+                                <div class="mb-6 bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm"
                                     x-data="{ rating: 0, hoverRating: 0 }">
                                     <p class="text-sm font-bold text-[#1F2937] mb-3">Leave a review</p>
                                     <form action="{{ route('reviews.store') }}" method="POST" class="space-y-4">
@@ -477,7 +625,7 @@
                         {{-- Review list --}}
                         @forelse($reviews as $review)
                             <div
-                                class="mb-6 last:mb-0 bg-white/70 backdrop-blur-xl border border-white/30 p-4 rounded-2xl shadow-sm {{ $review->is_hidden ? 'opacity-50' : '' }}">
+                                class="mb-6 last:mb-0 bg-white border border-[#E2E8F0] p-4 rounded-2xl shadow-sm {{ $review->is_hidden ? 'opacity-50' : '' }}">
                                 @if($review->is_hidden)
                                     <div
                                         class="flex items-center gap-1.5 text-xs font-bold text-[#64748B] mb-2 bg-[#EEF8F8] px-2.5 py-1.5 rounded-lg w-fit">
@@ -606,91 +754,11 @@
                             </div>
                         @endforelse
                     </div>
+                    </div>
                 </div>
 
-                {{-- ===== 6. UNIT SELECTION LIST ===== --}}
-                @if($approvedUnits->count() > 0)
-                    <div class="pt-6 border-t border-[#EEF8F8]">
-                        <h2 class="text-base font-bold text-[#1F2937] mb-1">Available Units ({{ $availableUnits->count() }})
-                        </h2>
-                        <p class="text-sm text-[#64748B] mb-4">Choose a unit to inquire or reserve</p>
-
-                        <div class="space-y-3">
-                            @foreach($approvedUnits as $unit)
-                                @php $isAvailable = $unit->availability_status === 'Available'; @endphp
-                                <div class="relative">
-                                    <button type="button" x-on:click="selectUnit({{ $unit->unit_id }})"
-                                        :class="selectedUnit === {{ $unit->unit_id }}
-                                                                                                                                            ? 'border-[#2AA7A1] bg-[#EEF8F8]'
-                                                                                                                                            : '{{ $isAvailable ? 'border-white/30 bg-white/50 hover:brightness-95' : 'border-[#E2E8F0] bg-[#E2E8F0] cursor-not-allowed' }}'"
-                                        class="w-full text-left rounded-2xl border-2 p-4 pr-14 flex items-center gap-4 backdrop-blur-lg shadow-lg transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
-                                        @if(!$isAvailable) disabled @endif>
-
-                                        {{-- Radio indicator --}}
-                                        <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
-                                            :class="selectedUnit === {{ $unit->unit_id }} ? 'border-[#2AA7A1]' : 'border-[#64748B]'">
-                                            <span class="w-2.5 h-2.5 rounded-full bg-[#2AA7A1]"
-                                                x-show="selectedUnit === {{ $unit->unit_id }}" x-cloak></span>
-                                        </span>
-
-                                        {{-- Thumbnail --}}
-                                        @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
-                                        @if($unitThumb)
-                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
-                                                class="w-16 h-16 rounded-xl object-cover shrink-0 border border-[#EEF8F8]">
-                                        @else
-                                            <span class="w-16 h-16 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                                <svg class="w-6 h-6 text-[#64748B]" fill="none" viewBox="0 0 24 24"
-                                                    stroke="currentColor" stroke-width="1.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                                                </svg>
-                                            </span>
-                                        @endif
-
-                                        {{-- Details --}}
-                                        <span class="flex-1 min-w-0">
-                                            <span class="flex items-center gap-2 mb-0.5">
-                                                <span
-                                                    class="text-sm font-bold text-[#1F2937] truncate">{{ $unit->unit_label }}</span>
-                                                <span
-                                                    class="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-md {{ $isAvailable ? 'bg-[#22C55E]/10 text-[#1F2937]' : 'bg-[#E2E8F0] text-[#64748B]' }}">
-                                                    {{ $unit->availability_status }}
-                                                </span>
-                                            </span>
-                                            <span class="block text-xs font-medium text-[#64748B]">
-                                                {{ $property->property_type }}
-                                                &middot; {{ $unit->occupancy_limit }}
-                                                {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
-                                                @if(!empty($unit->size))
-                                                    &middot; {{ $unit->size }}
-                                                @endif
-                                            </span>
-                                        </span>
-
-                                        {{-- Price --}}
-                                        <span class="text-right shrink-0">
-                                            <span
-                                                class="block text-base font-black text-[#1F2937]">₱{{ number_format($unit->rental_fee) }}</span>
-                                            <span class="block text-[11px] font-semibold text-[#64748B]">/ month</span>
-                                        </span>
-                                    </button>
-
-                                    {{-- View details button (opens slideout) --}}
-                                    <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
-                                        class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-[#EEF8F8] hover:bg-[#E2E8F0] flex items-center justify-center transition-colors"
-                                        title="View unit details">
-                                        <svg class="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
+                </div>
+                </div>
             </div>
 
             {{-- ===================================================== --}}
@@ -700,7 +768,9 @@
                 class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-[72px] lg:max-h-[calc(100vh_-_72px_-_1.5rem)] lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] space-y-4 w-full hidden lg:block">
 
                 {{-- ===== 1. INQUIRE / RESERVE CARD ===== --}}
-                <div class="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/30 shadow-lg p-6">
+                <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6">
+
+                    <h2 class="text-base font-bold text-[#1F2937] mb-4">Inquire / Reserve</h2>
 
                     {{-- Selected unit preview --}}
                     <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-3">You're inquiring about:
@@ -736,6 +806,20 @@
                         </p>
                     </template>
 
+                    {{-- Inquiry / Reserve mode toggle --}}
+                    <div class="grid grid-cols-2 gap-2 mb-5">
+                        <button type="button" x-on:click="mode = 'inquiry'"
+                            :class="mode === 'inquiry' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B] hover:text-[#1F2937]'"
+                            class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
+                            Inquiry
+                        </button>
+                        <button type="button" x-on:click="mode = 'reserve'"
+                            :class="mode === 'reserve' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B] hover:text-[#1F2937]'"
+                            class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
+                            Reserve
+                        </button>
+                    </div>
+
                     @if(!auth()->check())
                         <button type="button" x-on:click="$dispatch('open-modal', 'login-modal')"
                             class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all">
@@ -753,7 +837,7 @@
 
                             <div class="grid grid-cols-2 gap-3">
                                 <div
-                                    class="rounded-2xl bg-white/50 backdrop-blur-sm border border-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] px-3.5 pt-2.5 pb-2 transition-all focus-within:bg-white/80 focus-within:border-[#2AA7A1]/40 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
+                                    class="rounded-xl bg-white border border-[#E2E8F0] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
                                     <label for="target_move_in_date"
                                         class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
                                         In</label>
@@ -763,7 +847,7 @@
                                 </div>
 
                                 <div
-                                    class="rounded-2xl bg-white/50 backdrop-blur-sm border border-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] px-3.5 pt-2.5 pb-2 transition-all focus-within:bg-white/80 focus-within:border-[#2AA7A1]/40 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
+                                    class="rounded-xl bg-white border border-[#E2E8F0] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
                                     <label for="target_move_out_date"
                                         class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
                                         Out <span class="normal-case tracking-normal font-semibold">· optional</span></label>
@@ -774,7 +858,7 @@
                             </div>
 
                             <div
-                                class="rounded-2xl bg-white/50 backdrop-blur-sm border border-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] px-3.5 pt-2.5 pb-2 transition-all focus-within:bg-white/80 focus-within:border-[#2AA7A1]/40 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
+                                class="rounded-xl bg-white border border-[#E2E8F0] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
                                 <label for="inquiry_message"
                                     class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Message
                                     <span class="normal-case tracking-normal font-semibold">· optional</span></label>
@@ -794,8 +878,8 @@
                             </template>
                             <template x-if="!selected || !selected.hasActive">
                                 <button type="submit" :disabled="!selected"
-                                    class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]">
-                                    Send Inquiry to Landlord
+                                    class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
+                                    x-text="mode === 'reserve' ? 'Send Reservation Request' : 'Send Inquiry to Landlord'">
                                 </button>
                             </template>
                         </form>
@@ -803,6 +887,37 @@
                         <p class="text-xs font-medium text-[#64748B] text-center mt-3">
                             Usually responds within a few hours
                         </p>
+
+                        @if(auth()->user()->hasRole('Tenant'))
+                            <div x-data="{
+                                    fav: @js($isFavorited ?? false),
+                                    busy: false,
+                                    async toggleFav() {
+                                        if (this.busy) return;
+                                        this.busy = true;
+                                        try {
+                                            const res = await fetch('{{ route('favorites.toggle', $property->property_id) }}', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                                    'Accept': 'application/json'
+                                                }
+                                            });
+                                            if (res.ok) { const d = await res.json(); this.fav = d.favorited; }
+                                        } finally { this.busy = false; }
+                                    }
+                                }" class="mt-3">
+                                <button type="button" x-on:click="toggleFav()" :disabled="busy"
+                                    :class="fav ? 'border-[#FF8A65] text-[#FF8A65] bg-[#FF8A65]/5' : 'border-[#E2E8F0] text-[#1F2937] hover:border-[#FF8A65]/50'"
+                                    class="w-full py-3 rounded-xl border bg-white text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all duration-200">
+                                    <svg class="w-4 h-4" :fill="fav ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                    </svg>
+                                    <span x-text="fav ? 'Saved to Favorites' : 'Add to Favorites'"></span>
+                                </button>
+                            </div>
+                        @endif
                     @endif
 
                     @error('unit')
@@ -818,7 +933,7 @@
                 </div>
 
                 {{-- Message Landlord --}}
-                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
                     @auth
                         @if(!$isOwner)
                             <form action="{{ route('conversations.store') }}" method="POST">
@@ -854,7 +969,7 @@
                 </div>
 
                 {{-- ===== 2. LANDLORD INFORMATION CARD ===== --}}
-                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
                     <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-3">Landlord Information</p>
                     <div class="flex items-center gap-3 mb-4">
                         <div
@@ -893,6 +1008,178 @@
 
             </div>
         </div>
+
+        {{-- ===== MOBILE STICKY INQUIRE BAR + TWO-STEP MODAL ===== --}}
+        @if(!$isOwner)
+            <template x-teleport="body">
+                <div class="lg:hidden fixed inset-x-0 bottom-0 z-20 bg-white border-t border-[#E2E8F0] px-4 py-3 flex items-center justify-between gap-3 shadow-[0_-4px_16px_rgba(15,23,42,0.08)]">
+                    <div class="min-w-0">
+                        <template x-if="selected">
+                            <p class="text-sm font-black text-[#1F2937]">
+                                ₱<span x-text="selected.price"></span>
+                                <span class="text-[11px] font-semibold text-[#64748B]">/ month &middot; </span>
+                                <span class="text-[11px] font-semibold text-[#64748B]" x-text="selected.label"></span>
+                            </p>
+                        </template>
+                        <template x-if="!selected">
+                            <p class="text-[12px] font-semibold text-[#64748B]">No unit selected</p>
+                        </template>
+                    </div>
+                    @auth
+                        <button type="button" x-on:click="openMobile()"
+                            class="h-11 px-6 rounded-xl bg-[#FF8A65] text-white text-sm font-bold hover:brightness-95 shadow-sm cursor-pointer transition-all duration-200 shrink-0">
+                            Inquire
+                        </button>
+                    @else
+                        <button type="button" x-on:click="$dispatch('open-modal', 'login-modal')"
+                            class="h-11 px-6 rounded-xl bg-[#FF8A65] text-white text-sm font-bold hover:brightness-95 shadow-sm cursor-pointer transition-all duration-200 shrink-0">
+                            Log in to inquire
+                        </button>
+                    @endauth
+                </div>
+            </template>
+
+            @auth
+                <template x-teleport="body">
+                    <div x-show="mobileOpen" x-cloak class="lg:hidden fixed inset-0 z-30 flex items-end sm:items-center justify-center"
+                        x-on:keydown.escape.window="closeMobile()">
+                        <div class="absolute inset-0 bg-black/40" x-on:click="closeMobile()"></div>
+                        <div class="relative w-full sm:max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl"
+                            x-show="mobileOpen" x-transition>
+
+                            {{-- Step 1: Select a Unit --}}
+                            <div x-show="mstep === 1">
+                                <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0] sticky top-0 bg-white z-10">
+                                    <h3 class="text-base font-bold text-[#1F2937]">Select a Unit</h3>
+                                    <button type="button" x-on:click="closeMobile()" aria-label="Close"
+                                        class="text-[#64748B] hover:text-[#1F2937] cursor-pointer">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="p-5 space-y-4">
+                                    <div class="flex items-center gap-3 rounded-xl bg-[#F7FCFC] border border-[#E2E8F0] p-3">
+                                        @if($photo = $property->media->firstWhere('media_type', 'Image'))
+                                            <img src="{{ $photo->media_url }}" alt="{{ $property->title }}" class="w-12 h-12 rounded-lg object-cover shrink-0">
+                                        @endif
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wide">Selected Property</p>
+                                            <p class="text-sm font-bold text-[#1F2937] truncate">{{ $property->title }}</p>
+                                            <p class="text-[11px] text-[#64748B] truncate">{{ $property->address }}</p>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Available Units</p>
+                                    <div class="space-y-2.5">
+                                        <template x-for="u in units.filter(x => x.available)" :key="u.id">
+                                            <button type="button" x-on:click="selectUnit(u.id)"
+                                                :class="selectedUnit === u.id ? 'border-[#2AA7A1] ring-1 ring-[#2AA7A1] bg-[#EEF8F8]/40' : 'border-[#E2E8F0]'"
+                                                class="w-full text-left rounded-xl border bg-white p-3 flex items-center gap-3 cursor-pointer transition-all duration-200">
+                                                <span class="w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0"
+                                                    :class="selectedUnit === u.id ? 'border-[#2AA7A1]' : 'border-[#CBD5E1]'">
+                                                    <span class="w-2 h-2 rounded-full bg-[#2AA7A1]" x-show="selectedUnit === u.id"></span>
+                                                </span>
+                                                <span class="flex-1 min-w-0">
+                                                    <span class="block text-[13px] font-bold text-[#1F2937] truncate" x-text="u.label"></span>
+                                                    <span class="block text-[11px] text-[#64748B]"
+                                                        x-text="[u.type, u.occupancy ? u.occupancy + (u.occupancy > 1 ? ' Persons' : ' Person') : null, u.size].filter(Boolean).join(' · ')"></span>
+                                                </span>
+                                                <span class="text-right shrink-0">
+                                                    <span class="block text-[13px] font-black text-[#1F2937]">₱<span x-text="u.price"></span></span>
+                                                    <span class="block text-[10px] font-semibold text-[#64748B]">/ month</span>
+                                                </span>
+                                            </button>
+                                        </template>
+                                    </div>
+
+                                    <button type="button" x-on:click="mstep = 2" :disabled="!selected"
+                                        class="w-full h-11 rounded-xl bg-[#2AA7A1] text-white text-sm font-bold hover:brightness-95 cursor-pointer transition-all duration-200 disabled:bg-[#E2E8F0] disabled:text-[#64748B] disabled:cursor-not-allowed">
+                                        Confirm Selection
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Step 2: Message Landlord --}}
+                            <div x-show="mstep === 2" x-cloak>
+                                <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0] sticky top-0 bg-white z-10">
+                                    <button type="button" x-on:click="mstep = 1" aria-label="Back"
+                                        class="text-[#64748B] hover:text-[#1F2937] cursor-pointer">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                        </svg>
+                                    </button>
+                                    <h3 class="text-base font-bold text-[#1F2937]">Message Landlord</h3>
+                                    <button type="button" x-on:click="closeMobile()" aria-label="Close"
+                                        class="text-[#64748B] hover:text-[#1F2937] cursor-pointer">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="p-5">
+                                    <p class="text-[12px] text-[#64748B] mb-3">
+                                        To: <span class="font-bold text-[#1F2937]">{{ $property->landlord->rentalBusiness->business_name ?? ($property->landlord->first_name . ' ' . $property->landlord->last_name) }}</span>
+                                        &middot; {{ $property->title }}
+                                    </p>
+
+                                    <template x-if="selected">
+                                        <div class="flex items-center gap-3 rounded-xl bg-[#F7FCFC] border border-[#E2E8F0] p-3 mb-4">
+                                            <template x-if="selected.thumb">
+                                                <img :src="selected.thumb" :alt="selected.label" class="w-12 h-12 rounded-lg object-cover shrink-0">
+                                            </template>
+                                            <div class="min-w-0">
+                                                <p class="text-sm font-bold text-[#1F2937] truncate" x-text="selected.label"></p>
+                                                <p class="text-[11px] text-[#64748B]" x-text="selected.type"></p>
+                                                <p class="text-[13px] font-black text-[#1F2937]">₱<span x-text="selected.price"></span>
+                                                    <span class="text-[10px] font-semibold text-[#64748B]">/ month</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <form action="{{ route('reservations.store') }}" method="POST" class="space-y-3.5">
+                                        @csrf
+                                        <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
+
+                                        <div>
+                                            <label for="m_move_in" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move In</label>
+                                            <input type="date" id="m_move_in" name="target_move_in_date" min="{{ now()->toDateString() }}"
+                                                class="w-full h-11 rounded-xl border border-[#E2E8F0] px-3.5 text-sm text-[#1F2937] focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 transition-all">
+                                        </div>
+                                        <div>
+                                            <label for="m_move_out" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move Out <span class="font-semibold">(Optional)</span></label>
+                                            <input type="date" id="m_move_out" name="target_move_out_date"
+                                                class="w-full h-11 rounded-xl border border-[#E2E8F0] px-3.5 text-sm text-[#1F2937] focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 transition-all">
+                                        </div>
+                                        <div>
+                                            <label for="m_message" class="block text-[11px] font-bold text-[#64748B] mb-1">Message <span class="font-semibold">(Optional)</span></label>
+                                            <textarea id="m_message" name="message" rows="4" maxlength="300" x-model="msg"
+                                                placeholder="Hi! I'm interested in this unit..."
+                                                class="w-full rounded-xl border border-[#E2E8F0] px-3.5 py-2.5 text-sm text-[#1F2937] placeholder:text-[#64748B]/60 focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 transition-all resize-none"></textarea>
+                                            <p class="text-[10px] font-semibold text-[#64748B]/70 text-right mt-0.5"><span x-text="msg.length"></span>/300</p>
+                                        </div>
+
+                                        <template x-if="selected && selected.hasActive">
+                                            <div class="w-full py-3 text-center rounded-xl bg-[#EEF8F8] text-[#1F2937] text-sm font-bold cursor-not-allowed">
+                                                Inquiry already active
+                                            </div>
+                                        </template>
+                                        <template x-if="!selected || !selected.hasActive">
+                                            <button type="submit" :disabled="!selected"
+                                                class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]">
+                                                Send Inquiry
+                                            </button>
+                                        </template>
+                                    </form>
+                                    <p class="text-[11px] font-medium text-[#64748B] text-center mt-3">Usually responds within a few hours</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            @endauth
+        @endif
 
         {{-- ===== UNIT DETAIL SLIDEOUT ===== --}}
         <div x-show="slideoutUnit" x-cloak class="fixed inset-0 z-[998]" x-on:keydown.escape.window="closeSlideout()">

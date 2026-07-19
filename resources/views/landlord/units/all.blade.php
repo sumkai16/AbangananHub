@@ -3,6 +3,8 @@
 @section('content')
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16"
         x-data="{
+            view: localStorage.getItem('unitsView') || 'grid',
+            setView(v) { this.view = v; localStorage.setItem('unitsView', v); },
             modal: null,
             show: false,
             peso(v) { return v ? '₱' + Number(v).toLocaleString('en-PH') : null; },
@@ -198,6 +200,26 @@
                             Clear
                         </a>
                     @endif
+
+                    {{-- View toggle --}}
+                    <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] ml-auto">
+                        <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
+                            :class="view === 'grid' ? 'bg-white text-[#156F8C] shadow-sm' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
+                            </svg>
+                        </button>
+                        <button type="button" x-on:click="setView('table')" aria-label="Table view"
+                            :class="view === 'table' ? 'bg-white text-[#156F8C] shadow-sm' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -226,52 +248,61 @@
                 <p class="text-xs text-[#64748B] mt-1">Try adjusting your search or filters.</p>
             </div>
 
-            {{-- Card grid --}}
+            {{-- Unit list (grid / table toggle) --}}
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                @foreach($units as $unit)
-                    @php
-                        $thumb = $unit->media->first() ?? $unit->property->media->first() ?? null;
-                        [$avBg] = match ($unit->availability_status) {
-                            'Available' => ['bg-emerald-50 text-emerald-700 ring-emerald-200'],
-                            'Reserved' => ['bg-amber-50 text-amber-600 ring-amber-200'],
-                            'Occupied' => ['bg-red-50 text-red-600 ring-red-200'],
-                            default => ['bg-[#EEF8F8] text-[#64748B] ring-[#64748B]/20'],
-                        };
-                        [$vrBg] = match ($unit->verification_status) {
-                            'Approved' => ['bg-emerald-50 text-emerald-700'],
-                            'Pending' => ['bg-amber-50 text-amber-600'],
-                            'Rejected' => ['bg-red-50 text-red-600'],
-                            default => ['bg-[#EEF8F8] text-[#64748B]'],
-                        };
+            @php
+                // Derived per-unit data shared by both the card grid and the table view
+                $derived = [];
+                foreach ($units as $unit) {
+                    $thumb = $unit->media->firstWhere('media_type', 'Image') ?? $unit->property->media->firstWhere('media_type', 'Image') ?? null;
+                    [$avBg] = match ($unit->availability_status) {
+                        'Available' => ['bg-emerald-50 text-emerald-700 ring-emerald-200'],
+                        'Reserved' => ['bg-amber-50 text-amber-600 ring-amber-200'],
+                        'Occupied' => ['bg-red-50 text-red-600 ring-red-200'],
+                        default => ['bg-[#EEF8F8] text-[#64748B] ring-[#64748B]/20'],
+                    };
+                    [$vrBg] = match ($unit->verification_status) {
+                        'Approved' => ['bg-emerald-50 text-emerald-700'],
+                        'Pending' => ['bg-amber-50 text-amber-600'],
+                        'Rejected' => ['bg-red-50 text-red-600'],
+                        default => ['bg-[#EEF8F8] text-[#64748B]'],
+                    };
 
-                        // Payload for the unit detail modal (Live Preview style)
-                        $modalStyles = match ($unit->availability_status) {
-                            'Available' => ['tile' => 'border-emerald-200 bg-emerald-50', 'text' => 'text-emerald-700', 'dot' => 'bg-emerald-500'],
-                            'Reserved' => ['tile' => 'border-amber-200 bg-amber-50', 'text' => 'text-amber-700', 'dot' => 'bg-amber-500'],
-                            'Occupied' => ['tile' => 'border-red-200 bg-red-50', 'text' => 'text-red-600', 'dot' => 'bg-red-500'],
-                            default => ['tile' => 'border-slate-200 bg-slate-50', 'text' => 'text-slate-500', 'dot' => 'bg-slate-400'],
-                        };
-                        $activeRes = in_array($unit->availability_status, ['Reserved', 'Occupied'], true)
-                            ? $unit->reservations->whereNotIn('rental_status', ['Cancelled', 'Rejected'])->sortByDesc('reservation_id')->first()
-                            : null;
-                        $unitPayload = [
-                            'label'        => $unit->unit_label,
-                            'property'     => $unit->property->title,
-                            'status'       => $unit->availability_status,
-                            'styles'       => $modalStyles,
-                            'photo'        => $thumb?->media_url,
-                            'rent'         => (float) $unit->rental_fee,
-                            'deposit'      => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
-                            'capacity'     => $unit->occupancy_limit,
-                            'type'         => $unit->unit_type,
-                            'floor'        => $unit->floor,
-                            'tenant'       => $activeRes?->tenant ? trim($activeRes->tenant->first_name . ' ' . $activeRes->tenant->last_name) : null,
-                            'amenities'    => $unit->amenities->pluck('amenity_name')->values(),
-                            'property_url' => route('landlord.properties.show', $unit->property),
-                            'edit_url'     => route('landlord.properties.units.edit', [$unit->property, $unit]),
-                        ];
-                    @endphp
+                    // Payload for the unit detail modal (Live Preview style)
+                    $modalStyles = match ($unit->availability_status) {
+                        'Available' => ['tile' => 'border-emerald-200 bg-emerald-50', 'text' => 'text-emerald-700', 'dot' => 'bg-emerald-500'],
+                        'Reserved' => ['tile' => 'border-amber-200 bg-amber-50', 'text' => 'text-amber-700', 'dot' => 'bg-amber-500'],
+                        'Occupied' => ['tile' => 'border-red-200 bg-red-50', 'text' => 'text-red-600', 'dot' => 'bg-red-500'],
+                        default => ['tile' => 'border-slate-200 bg-slate-50', 'text' => 'text-slate-500', 'dot' => 'bg-slate-400'],
+                    };
+                    $activeRes = in_array($unit->availability_status, ['Reserved', 'Occupied'], true)
+                        ? $unit->reservations->whereNotIn('rental_status', ['Cancelled', 'Rejected'])->sortByDesc('reservation_id')->first()
+                        : null;
+                    $tenantName = $activeRes?->tenant ? trim($activeRes->tenant->first_name . ' ' . $activeRes->tenant->last_name) : null;
+                    $unitPayload = [
+                        'label'        => $unit->unit_label,
+                        'property'     => $unit->property->title,
+                        'status'       => $unit->availability_status,
+                        'styles'       => $modalStyles,
+                        'photo'        => $thumb?->media_url,
+                        'rent'         => (float) $unit->rental_fee,
+                        'deposit'      => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
+                        'capacity'     => $unit->occupancy_limit,
+                        'type'         => $unit->unit_type,
+                        'floor'        => $unit->floor,
+                        'tenant'       => $tenantName,
+                        'amenities'    => $unit->amenities->pluck('amenity_name')->values(),
+                        'property_url' => route('landlord.properties.show', $unit->property),
+                        'edit_url'     => route('landlord.properties.units.edit', [$unit->property, $unit]),
+                    ];
+
+                    $derived[$unit->unit_id] = compact('thumb', 'avBg', 'vrBg', 'activeRes', 'tenantName', 'unitPayload');
+                }
+            @endphp
+
+            <div x-show="view === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                @foreach($units as $unit)
+                    @php extract($derived[$unit->unit_id]); @endphp
 
                     <article
                         class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.1)] hover:-translate-y-0.5 transition-all duration-300">
@@ -368,6 +399,145 @@
                         </div>
                     </article>
                 @endforeach
+            </div>
+
+            {{-- Table view --}}
+            <div x-show="view === 'table'" x-cloak
+                class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[980px] text-left">
+                        <thead>
+                            <tr class="border-b border-[#E2E8F0]">
+                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Unit</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Type</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Monthly Rent</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Status</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Tenant</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Last Updated</th>
+                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#E2E8F0]">
+                            @foreach($units as $unit)
+                                @php extract($derived[$unit->unit_id]); @endphp
+                                <tr class="hover:bg-[#F7FCFC]/70 transition-colors duration-200">
+                                    {{-- Unit --}}
+                                    <td class="px-5 py-3.5">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-12 h-12 rounded-lg bg-[#EEF8F8] overflow-hidden shrink-0">
+                                                @if($thumb)
+                                                    <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
+                                                @else
+                                                    <div class="w-full h-full flex items-center justify-center text-[#64748B]/60">
+                                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159" />
+                                                        </svg>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p class="text-[13px] font-bold text-[#1F2937] truncate">{{ $unit->unit_label }}</p>
+                                                <p class="text-[11.5px] text-[#64748B] truncate max-w-[180px]">{{ $unit->property->title }}</p>
+                                                <p class="text-[11px] text-[#64748B]">
+                                                    {{ collect([$unit->floor, $unit->occupancy_limit ? $unit->occupancy_limit . ' ' . Str::plural('person', $unit->occupancy_limit) : null])->filter()->implode(' · ') ?: '—' }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- Type --}}
+                                    <td class="px-4 py-3.5">
+                                        @if($unit->unit_type)
+                                            <span class="inline-flex px-2.5 py-1 rounded-full bg-[#EEF8F8] text-[#156F8C] text-[11px] font-semibold whitespace-nowrap">
+                                                {{ $unit->unit_type }}
+                                            </span>
+                                        @else
+                                            <span class="text-[12px] text-[#64748B]">—</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Rent --}}
+                                    <td class="px-4 py-3.5">
+                                        <p class="text-[13px] font-bold text-[#1F2937] whitespace-nowrap">₱{{ number_format($unit->rental_fee, 0) }}</p>
+                                        <p class="text-[11px] text-[#64748B]">per month</p>
+                                    </td>
+
+                                    {{-- Status --}}
+                                    <td class="px-4 py-3.5">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full ring-1 text-[11px] font-semibold whitespace-nowrap {{ $avBg }}">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                            {{ $unit->availability_status }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Tenant --}}
+                                    <td class="px-4 py-3.5">
+                                        @if($tenantName)
+                                            <div class="flex items-center gap-2">
+                                                @if($activeRes->tenant->profile_picture)
+                                                    <img src="{{ $activeRes->tenant->profile_picture }}" alt="{{ $tenantName }}"
+                                                        class="w-7 h-7 rounded-full object-cover shrink-0">
+                                                @else
+                                                    <div class="w-7 h-7 rounded-full bg-[#EEF8F8] text-[#156F8C] text-[10px] font-bold flex items-center justify-center shrink-0">
+                                                        {{ strtoupper(substr($activeRes->tenant->first_name, 0, 1) . substr($activeRes->tenant->last_name ?? '', 0, 1)) }}
+                                                    </div>
+                                                @endif
+                                                <div class="min-w-0">
+                                                    <p class="text-[12.5px] font-semibold text-[#1F2937] truncate max-w-[140px]">{{ $tenantName }}</p>
+                                                    <p class="text-[11px] text-[#64748B]">{{ $activeRes->tenant->contact_number ?? '—' }}</p>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <span class="text-[12px] text-[#64748B]">—</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Last updated --}}
+                                    <td class="px-4 py-3.5">
+                                        <p class="text-[13px] text-[#1F2937] font-medium whitespace-nowrap">{{ $unit->updated_at->format('M d, Y') }}</p>
+                                        <p class="text-[11px] text-[#64748B]">{{ $unit->updated_at->format('h:i A') }}</p>
+                                    </td>
+
+                                    {{-- Actions --}}
+                                    <td class="px-5 py-3.5">
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <button type="button" x-on:click="openModal(@js($unitPayload))" aria-label="View unit"
+                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#64748B]/25 text-[#1F2937] hover:bg-[#EEF8F8] cursor-pointer transition-colors duration-200">
+                                                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                </svg>
+                                            </button>
+                                            <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}" aria-label="Edit unit"
+                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#2AA7A1] text-[#2AA7A1] hover:bg-[#EEF8F8] transition-colors duration-200">
+                                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
+                                                </svg>
+                                            </a>
+                                            <form method="POST"
+                                                action="{{ route('landlord.properties.units.destroy', [$unit->property, $unit]) }}"
+                                                data-confirm="Remove {{ $unit->unit_label }}?"
+                                                data-confirm-type="error"
+                                                data-confirm-message="The unit will be permanently removed. This cannot be undone."
+                                                data-confirm-button="Remove unit">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" aria-label="Delete unit"
+                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50 cursor-pointer transition-colors duration-200">
+                                                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
