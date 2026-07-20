@@ -1,4 +1,4 @@
-@extends(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
+@extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
     @php
@@ -13,7 +13,7 @@
         $isTerminal = in_array($rentalStatus, ['Cancelled', 'Rejected']);
     @endphp
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 min-h-[calc(100vh-72px)]">
+    <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-72px)]">
         {{-- Back nav --}}
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
             <a href="{{ route('conversations.index') }}"

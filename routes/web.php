@@ -103,6 +103,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
       // Reservations
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
+        Route::get('/reservations/export', [App\Http\Controllers\Landlord\ReservationController::class, 'export'])->name('reservations.export');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
@@ -130,6 +131,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
         // Tenants
         Route::get('/tenants', [App\Http\Controllers\Landlord\TenantController::class, 'index'])->name('tenants.index');
+        Route::get('/tenants/export', [App\Http\Controllers\Landlord\TenantController::class, 'export'])->name('tenants.export');
 
         // Reviews
         Route::get('/reviews', [App\Http\Controllers\Landlord\ReviewController::class, 'index'])->name('reviews.index');
@@ -138,6 +140,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/reports', [App\Http\Controllers\Landlord\ReportController::class, 'index'])->name('reports.index');
         // Units (standalone index)
         Route::get('/units', [App\Http\Controllers\Landlord\UnitIndexController::class, 'index'])->name('units.index');
+        Route::get('/units/export', [App\Http\Controllers\Landlord\UnitIndexController::class, 'export'])->name('units.export');
     });
 
     // Admin-specific routes

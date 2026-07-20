@@ -126,7 +126,7 @@ Audit immediately on paste for:
 **Layout**
 - [ ] No content hidden behind fixed nav
 - [ ] Responsive at 375 / 768 / 1024 / 1440px, no horizontal scroll
-- [ ] `max-w-7xl` consistent across pages
+- [ ] Correct page container for the context (DESIGN.md §5) — and it carries `mx-auto`
 - [ ] `[x-cloak] { display: none; }` in global CSS
 
 **Accessibility** (WCAG 2.2 AA — swept July 2026)

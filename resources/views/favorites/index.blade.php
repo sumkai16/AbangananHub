@@ -1,7 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-10 pb-16 min-h-[calc(100vh-72px)]">
+<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-16 min-h-[calc(100vh-72px)]">
 
     {{-- HEADER --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">

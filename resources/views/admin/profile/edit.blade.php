@@ -3,7 +3,7 @@
 @section('page-title', 'My Profile')
 
 @section('content')
-<div class="max-w-7xl space-y-6">
+<div class="max-w-[1600px] mx-auto space-y-6">
 
     {{-- Stats Row --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">

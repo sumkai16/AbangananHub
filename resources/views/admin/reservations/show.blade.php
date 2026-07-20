@@ -40,7 +40,7 @@
     $currentPipelineIndex = array_search($rs, $pipeline);
 @endphp
 
-<div class="max-w-5xl" x-data="{ cancelOpen: false, rejectOpen: false }">
+<div class="max-w-5xl mx-auto" x-data="{ cancelOpen: false, rejectOpen: false }">
 
     {{-- Back + actions --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">

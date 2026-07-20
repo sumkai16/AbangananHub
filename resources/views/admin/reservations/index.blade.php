@@ -25,7 +25,7 @@
     ];
 @endphp
 
-<div class="max-w-7xl">
+<div class="max-w-[1600px] mx-auto">
 
     {{-- Header --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">

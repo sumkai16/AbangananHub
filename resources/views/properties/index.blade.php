@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16 min-h-[calc(100vh-72px)]" x-data="{ mobileView: 'list' }">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[calc(100vh-72px)]" x-data="{ mobileView: 'list' }">
 
         {{-- HEADER --}}
         <x-section-header title="Browse Properties"

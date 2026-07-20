@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
         {{-- Breadcrumb --}}
         <div class="flex flex-wrap items-center gap-1.5 text-sm text-[#64748B] mb-2">

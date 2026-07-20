@@ -3,7 +3,7 @@
 @section('page-title', 'Conversation')
 
 @section('content')
-<div class="max-w-4xl">
+<div class="max-w-4xl mx-auto">
 
     {{-- Back + header --}}
     <div class="flex items-start gap-4 mb-6">

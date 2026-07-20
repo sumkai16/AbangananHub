@@ -3,7 +3,7 @@
 @section('page-title', 'Payment Management')
 
 @section('content')
-<div class="max-w-7xl">
+<div class="max-w-[1600px] mx-auto">
 
     {{-- Page header --}}
     <div class="mb-6">

@@ -3,7 +3,7 @@
 @section('page-title', 'Edit User')
 
 @section('content')
-<div class="max-w-2xl">
+<div class="max-w-2xl mx-auto">
 
     <a href="{{ route('admin.users.show', $user) }}"
         class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#156F8C] transition-colors mb-6">

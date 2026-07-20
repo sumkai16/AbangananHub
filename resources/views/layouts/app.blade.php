@@ -459,7 +459,7 @@
     </main>
 
     <footer class="bg-[#0F172A] mt-auto">
-        <div class="w-full px-4 sm:px-6 lg:px-[50px] pt-14 pb-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 pt-14 pb-8">
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">

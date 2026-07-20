@@ -17,7 +17,7 @@
     $daysAsMember = $user->created_at ? (int) \Carbon\Carbon::parse($user->created_at)->diffInDays(now()) : 0;
 @endphp
 
-<div class="max-w-5xl">
+<div class="max-w-5xl mx-auto">
 
     {{-- Back + actions --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">

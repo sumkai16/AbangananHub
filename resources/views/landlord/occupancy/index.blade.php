@@ -13,7 +13,7 @@
         $occupiedPctAll = $totalUnits > 0 ? round($occupiedUnits / $totalUnits * 100) : 0;
     @endphp
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">

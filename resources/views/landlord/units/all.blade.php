@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16"
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16"
         x-data="{
             view: localStorage.getItem('unitsView') || 'grid',
             setView(v) { this.view = v; localStorage.setItem('unitsView', v); },
@@ -37,15 +37,26 @@
                     <p class="text-sm text-[#64748B] mt-0.5">Manage all units and their availability across your properties.</p>
                 </div>
             </div>
-            @if(request('property'))
-                <a href="{{ route('landlord.properties.units.create', request('property')) }}"
-                    class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#2AA7A1] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200 shrink-0">
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            <div class="flex items-center gap-2.5 shrink-0">
+                {{-- Export carries the active filters so the CSV matches the page --}}
+                <a href="{{ route('landlord.units.export', request()->only('search', 'property', 'status')) }}"
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 cursor-pointer">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
-                    Add New Unit
+                    Export
                 </a>
-            @endif
+
+                @if(request('property'))
+                    <a href="{{ route('landlord.properties.units.create', request('property')) }}"
+                        class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#2AA7A1] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add New Unit
+                    </a>
+                @endif
+            </div>
         </div>
 
         @if($errors->any())

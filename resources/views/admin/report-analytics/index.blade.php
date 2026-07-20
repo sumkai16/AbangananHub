@@ -3,7 +3,7 @@
 @section('page-title', 'Reports')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="max-w-[1600px] mx-auto">
 
     {{-- Header --}}
     <div class="mb-5">

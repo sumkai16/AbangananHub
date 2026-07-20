@@ -1,6 +1,6 @@
 @extends($isOwner ? 'layouts.landlord' : 'layouts.app', $isOwner ? [] : ['searchBar' => false])
 @section('content')
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10 min-h-[calc(100vh-72px)]">
+    <div class="{{ auth()->user()->shellContainerClass($isOwner) }} mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10 min-h-[calc(100vh-72px)]">
 
         {{-- Hero profile card --}}
         <div class="relative overflow-hidden rounded-2xl bg-[#2AA7A1] p-6 sm:p-8 mb-5">

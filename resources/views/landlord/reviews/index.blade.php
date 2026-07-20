@@ -3,7 +3,7 @@
 @section('page-title', 'Reviews')
 
 @section('content')
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
         <div class="flex items-center gap-3.5 mb-5">

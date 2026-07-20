@@ -127,6 +127,39 @@ public function tenantRatingsReceived()
         };
     }
 
+    /**
+     * True when this user sees the landlord sidebar shell rather than the
+     * public one. Admins are excluded deliberately: they keep browsing the
+     * public site through `layouts.app` even though they also have a shell
+     * of their own.
+     *
+     * Several views pick their layout at runtime from this condition
+     * (conversations, agreements, tenant reservations). It lives here so the
+     * layout choice and the page width can't drift apart — see
+     * `shellContainerClass()`.
+     */
+    public function usesLandlordShell(): bool
+    {
+        return $this->hasRole('Landlord') && ! $this->hasRole('Admin');
+    }
+
+    /**
+     * The page-container width for whichever shell this user is rendering in.
+     * Sidebar shells lose 256px to the nav, so they get the wider work-area
+     * cap; the public shell uses the full viewport and stays narrower.
+     * See DESIGN.md §5.
+     *
+     * `$inSidebarShell` lets a view pass its own layout condition when it
+     * differs from the landlord default (e.g. profile/edit keys off Admin,
+     * landlord/profile/show keys off ownership).
+     */
+    public function shellContainerClass(?bool $inSidebarShell = null): string
+    {
+        $sidebar = $inSidebarShell ?? $this->usesLandlordShell();
+
+        return $sidebar ? 'max-w-[1600px]' : 'max-w-[1400px]';
+    }
+
     // Provide a computed `name` attribute when the DB column is removed.
     public function getNameAttribute($value)
     {

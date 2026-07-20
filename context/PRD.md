@@ -26,6 +26,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] Occupancy Monitoring (landlord tracks unit occupancy status)
 - [x] Tenant Ratings (landlord rates tenants)
 - [x] Report Analytics (admin CSV export, data visualization)
+- [x] Landlord CSV export (Units, Reservations, Tenants — filter-aware, alongside the existing Occupancy export)
 
 ## 4. Explicitly Out of Scope
 - Legal dispute handling between landlords and tenants

@@ -3,7 +3,7 @@
 @section('page-title', 'Review Unit')
 
 @section('content')
-    <div class="max-w-7xl">
+    <div class="max-w-[1600px] mx-auto">
 
         {{-- Breadcrumb --}}
         <div class="flex items-center gap-1.5 text-[13px] text-[#94A3B8] mb-4">

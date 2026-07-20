@@ -11,7 +11,19 @@ use Illuminate\Support\Facades\Gate;
 
 class ReservationController extends Controller
 {
-    public function index(Request $request)
+    /** Statuses the index tabs and the export both accept. */
+    private const VALID_STATUSES = [
+        'Inquiry', 'Under Negotiation', 'Pending Rental Agreement',
+        'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected',
+    ];
+
+    /**
+     * The landlord's reservations with the search/property/date-range filters
+     * applied — but NOT the status filter, because index() needs this query to
+     * compute the per-status tab counts before narrowing to one status.
+     * Shared by index() and export() so a CSV matches what the page shows.
+     */
+    private function filteredQuery(Request $request)
     {
         $base = Reservation::whereHas('property', function ($query) {
             $query->where('landlord_id', Auth::id());
@@ -40,6 +52,13 @@ class ReservationController extends Controller
             $base->whereDate('created_at', '<=', $to);
         }
 
+        return $base;
+    }
+
+    public function index(Request $request)
+    {
+        $base = $this->filteredQuery($request);
+
         $counts = [
             'all'                       => (clone $base)->count(),
             'Inquiry'                   => (clone $base)->where('rental_status', 'Inquiry')->count(),
@@ -52,9 +71,8 @@ class ReservationController extends Controller
         ];
 
         $status = $request->query('status', 'all');
-        $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected'];
 
-        if (in_array($status, $validStatuses, true)) {
+        if (in_array($status, self::VALID_STATUSES, true)) {
             $base->where('rental_status', $status);
         }
 
@@ -69,6 +87,54 @@ class ReservationController extends Controller
             ->get(['property_id', 'title']);
 
         return view('landlord.reservations.index', compact('reservations', 'counts', 'status', 'properties'));
+    }
+
+    /**
+     * CSV of the currently filtered reservations, including the active
+     * status tab. Streamed and chunked to keep memory flat.
+     */
+    public function export(Request $request)
+    {
+        $filename = 'abangananhub-reservations-' . now()->format('Y-m-d') . '.csv';
+
+        $query = $this->filteredQuery($request);
+
+        $status = $request->query('status', 'all');
+        if (in_array($status, self::VALID_STATUSES, true)) {
+            $query->where('rental_status', $status);
+        }
+
+        $query->with(['tenant:user_id,first_name,last_name,email,contact_number',
+            'property:property_id,title', 'unit:unit_id,unit_label']);
+
+        return response()->streamDownload(function () use ($query) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'Tenant', 'Email', 'Contact', 'Property', 'Unit', 'Status',
+                'Target Move In', 'Target Move Out', 'Occupants', 'Requested On',
+            ]);
+
+            $query->chunk(200, function ($reservations) use ($handle) {
+                foreach ($reservations as $reservation) {
+                    $tenant = $reservation->tenant;
+
+                    fputcsv($handle, [
+                        $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
+                        $tenant->email ?? '',
+                        $tenant->contact_number ?? '',
+                        $reservation->property->title ?? '',
+                        $reservation->unit->unit_label ?? '',
+                        $reservation->rental_status,
+                        optional($reservation->target_move_in_date)->format('Y-m-d'),
+                        optional($reservation->target_move_out_date)->format('Y-m-d'),
+                        $reservation->occupants_count ?? '',
+                        optional($reservation->created_at)->format('Y-m-d H:i'),
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 
     public function reject(Request $request, Reservation $reservation)

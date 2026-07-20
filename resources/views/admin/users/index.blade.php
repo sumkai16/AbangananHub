@@ -3,7 +3,7 @@
 @section('page-title', 'Users')
 
 @section('content')
-<div class="max-w-7xl">
+<div class="max-w-[1600px] mx-auto">
 
     {{-- Page header --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">

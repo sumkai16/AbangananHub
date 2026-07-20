@@ -50,7 +50,23 @@ Rules:
 ## 5. Spacing & Layout
 - Base unit: 4px (Tailwind default)
 - Scale: 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 (Tailwind `p-1` through `p-24`)
-- Max content width: `max-w-7xl` (1280px) — used consistently, no mixed container widths
+- **Two container widths, chosen by context — always with `mx-auto`:**
+
+  | Context | Container | Why |
+  |---|---|---|
+  | Public / tenant / auth (no sidebar) | `max-w-[1400px] mx-auto` | Full-viewport pages. Tenant views live in `layouts/app` and follow this rule — the split is driven by *whether there's a sidebar*, not by role |
+  | Admin & landlord work areas (behind a 256px sidebar) | `max-w-[1600px] mx-auto` | The sidebar already consumes 256px; at 1920px that leaves 1600px usable, so a 1280px cap stranded ~320px. Dense tables and multi-column dashboards need the width |
+  | Detail/form pages inside a work area | `max-w-4xl` / `max-w-5xl` `mx-auto` | Single-column reading width — deliberately narrower than the shell |
+
+  **`mx-auto` is not optional.** A container that caps width without centering pins content to the left edge and strands all the slack on one side. 15 admin views shipped that way — they capped at `max-w-7xl` with no `mx-auto`, which on a 1920px monitor read as a broken layout with a dead right margin. Every `max-w-*` page container needs `mx-auto` beside it.
+
+  Gutters are `px-4 sm:px-6 lg:px-8` everywhere. The old off-scale `lg:px-[50px]` is gone from all 11 views that carried it.
+
+  **Views that pick their layout at runtime must derive their width, not hard-code it.** Five views render in a sidebar shell for one role and the public shell for another (`conversations/index`, `conversations/show`, `tenant/reservations/index`, `profile/edit`, `landlord/profile/show`). Each hard-coded a single width, so it was wrong for one of its two audiences. They now call `auth()->user()->shellContainerClass()`, which returns the right cap for the shell; pass the view's own condition when it isn't the landlord default — `shellContainerClass($isOwner)`, `shellContainerClass(auth()->user()->hasRole('Admin'))`. `User::usesLandlordShell()` holds the landlord-not-admin condition that four `@extends` lines share, so the layout choice and the width can't drift apart.
+
+  Note the history, because this entry has been wrong twice:
+  - Admin widths were briefly normalised *down* to `max-w-7xl` in the glassmorphism sweep by applying the old "one container width" rule literally. That rule was written for full-width public pages and does not transfer to a shell with a fixed sidebar — the usable area is `viewport − sidebar − padding`, not `viewport`.
+  - This table then claimed public pages used `max-w-7xl` when **no public page ever did** — they were all `1400px`. Documenting an intended value rather than the shipped one is the same failure as the rule above. **When updating this table, grep the views first and record what is actually there.**
 - z-index scale — **as actually built** (the old 10/20/30/50 scale documented here was aspirational and never matched the code):
 
   | Layer | Value | Where |
@@ -187,7 +203,7 @@ Order any future bulk substitution slash-opacity-variants first, then `\b`-ancho
 
 ## 12. Admin panel index-page pattern (established July 2026)
 Applies to the admin review/moderation queues: Landlord Verifications, Property Verifications, Unit Approvals, Payments, Reports, Reviews, Conversations.
-- Container: `max-w-7xl` — was previously mixed (`max-w-5xl`, `max-w-[1400px]`), which left dead whitespace on wide viewports or violated the one-container-width rule. Standardized on the documented `max-w-7xl`.
+- Container: `max-w-[1600px] mx-auto` — the work-area width from §5. Previously mixed (`max-w-5xl`, `max-w-[1400px]`, `max-w-[1600px]`), then briefly over-corrected to `max-w-7xl` without `mx-auto`, which stranded ~320px of dead space on the right at 1920px.
 - Header row: title + subtitle on the left; an optional "N awaiting review" coral/amber pill on the right when a pending count > 0.
 - Stat summary: a `grid grid-cols-2 sm:grid-cols-4` (or fewer columns if fewer statuses) row of glass cards above the tabs, one per status plus a Total. Each card: small dot + uppercase label, then a large bold count in a status-tinted color (amber/emerald/red/teal family), clickable to that filter. Active filter gets `ring-2 ring-[#2AA7A1]`.
 - Tabs: existing pill-tab pattern, now with a live count suffix per tab (`text-[11px]` in a muted tone).
