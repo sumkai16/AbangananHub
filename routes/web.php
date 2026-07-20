@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\FavoriteController;
 use App\Http\Controllers\Tenant\ReservationController;
 use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
@@ -30,10 +29,6 @@ use App\Http\Controllers\Admin\ReportAnalyticsController;
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
 Route::get('/about', fn() => view('about'))->name('about');
-
-Route::get('/dashboard', [TenantDashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
 
 // Global Authenticated Routes Group
 Route::middleware('auth')->group(function () {

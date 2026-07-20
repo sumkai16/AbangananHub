@@ -3,17 +3,17 @@
 @section('content')
     @php
         $statusStyles = [
-            'Available'   => ['tile' => 'border-emerald-200 bg-emerald-50', 'text' => 'text-emerald-700', 'dot' => 'bg-emerald-500', 'verb' => 'was made available'],
-            'Reserved'    => ['tile' => 'border-amber-200 bg-amber-50',    'text' => 'text-amber-700',   'dot' => 'bg-amber-500',   'verb' => 'was reserved'],
-            'Occupied'    => ['tile' => 'border-red-200 bg-red-50',        'text' => 'text-red-600',     'dot' => 'bg-red-500',     'verb' => 'was occupied'],
-            'Maintenance' => ['tile' => 'border-slate-200 bg-slate-50',    'text' => 'text-slate-500',   'dot' => 'bg-slate-400',   'verb' => 'is now under maintenance'],
+            'Available'   => ['tile' => 'border-[#22C55E]/25 bg-[#22C55E]/[0.07]', 'text' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]', 'verb' => 'was made available'],
+            'Reserved'    => ['tile' => 'border-[#FBBF24]/35 bg-[#FBBF24]/[0.10]', 'text' => 'text-[#B45309]', 'dot' => 'bg-[#FBBF24]', 'verb' => 'was reserved'],
+            'Occupied'    => ['tile' => 'border-[#EF4444]/25 bg-[#EF4444]/[0.07]', 'text' => 'text-[#DC2626]', 'dot' => 'bg-[#EF4444]', 'verb' => 'was occupied'],
+            'Maintenance' => ['tile' => 'border-[#E2E8F0] bg-[#F7FCFC]',           'text' => 'text-[#64748B]', 'dot' => 'bg-[#94A3B8]', 'verb' => 'is now under maintenance'],
         ];
         $availPctAll = $totalUnits > 0 ? round($availableUnits / $totalUnits * 100) : 0;
         $reservedPctAll = $totalUnits > 0 ? round($reservedUnits / $totalUnits * 100) : 0;
         $occupiedPctAll = $totalUnits > 0 ? round($occupiedUnits / $totalUnits * 100) : 0;
     @endphp
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-6 pb-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
@@ -54,83 +54,78 @@
         {{-- Stat cards --}}
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
             {{-- Total --}}
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Units</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+            <div class="rounded-2xl border border-[#E2E8F0] bg-[#EEF8F8] p-4">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-full bg-[#156F8C] flex items-center justify-center shrink-0">
+                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
                         </svg>
+                    </span>
+                    <div class="min-w-0">
+                        <p class="text-[12px] font-semibold text-[#64748B]">Total Units</p>
+                        <p class="text-2xl font-extrabold text-[#1F2937] leading-tight">{{ $totalUnits }}</p>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-[#1F2937]">{{ $totalUnits }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">All rental units</p>
+                <p class="text-[11px] text-[#64748B] mt-2">All rental units</p>
             </div>
 
             {{-- Available --}}
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Available</span>
-                    <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+            <div class="rounded-2xl border border-[#22C55E]/25 bg-[#22C55E]/[0.07] p-4">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0">
+                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                         </svg>
+                    </span>
+                    <div class="min-w-0">
+                        <p class="text-[12px] font-semibold text-[#64748B]">Available</p>
+                        <p class="text-2xl font-extrabold text-[#15803D] leading-tight">{{ $availableUnits }}</p>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-emerald-600">{{ $availableUnits }}</span>
-                <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-2.5 overflow-hidden">
-                    <div class="h-full rounded-full bg-emerald-500" style="width: {{ $availPctAll }}%"></div>
-                </div>
-                <p class="text-[11px] text-[#64748B] mt-1.5">{{ $availPctAll }}% of total</p>
+                <p class="text-[11px] text-[#64748B] mt-2">{{ $availPctAll }}% of total</p>
             </div>
 
             {{-- Reserved --}}
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reserved</span>
-                    <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
+            <div class="rounded-2xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-full bg-[#FBBF24] flex items-center justify-center shrink-0">
+                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                         </svg>
+                    </span>
+                    <div class="min-w-0">
+                        <p class="text-[12px] font-semibold text-[#64748B]">Reserved</p>
+                        <p class="text-2xl font-extrabold text-[#B45309] leading-tight">{{ $reservedUnits }}</p>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-amber-500">{{ $reservedUnits }}</span>
-                <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-2.5 overflow-hidden">
-                    <div class="h-full rounded-full bg-amber-500" style="width: {{ $reservedPctAll }}%"></div>
-                </div>
-                <p class="text-[11px] text-[#64748B] mt-1.5">{{ $reservedPctAll }}% of total</p>
+                <p class="text-[11px] text-[#64748B] mt-2">{{ $reservedPctAll }}% of total</p>
             </div>
 
             {{-- Occupied --}}
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
-                    <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+            <div class="rounded-2xl border border-[#EF4444]/25 bg-[#EF4444]/[0.07] p-4">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-full bg-[#EF4444] flex items-center justify-center shrink-0">
+                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                         </svg>
+                    </span>
+                    <div class="min-w-0">
+                        <p class="text-[12px] font-semibold text-[#64748B]">Occupied</p>
+                        <p class="text-2xl font-extrabold text-[#DC2626] leading-tight">{{ $occupiedUnits }}</p>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-red-500">{{ $occupiedUnits }}</span>
-                <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-2.5 overflow-hidden">
-                    <div class="h-full rounded-full bg-red-500" style="width: {{ $occupiedPctAll }}%"></div>
-                </div>
-                <p class="text-[11px] text-[#64748B] mt-1.5">{{ $occupiedPctAll }}% of total</p>
+                <p class="text-[11px] text-[#64748B] mt-2">{{ $occupiedPctAll }}% of total</p>
             </div>
 
             {{-- Occupancy rate --}}
-            <div class="col-span-2 lg:col-span-1 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupancy Rate</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-                        </svg>
-                    </div>
+            <x-card class="col-span-2 lg:col-span-1 !p-4">
+                <p class="text-[12px] font-semibold text-[#64748B] text-center">Occupancy Rate</p>
+                <p class="text-3xl font-extrabold text-[#156F8C] text-center leading-tight mt-1">{{ $aggregateRate }}%</p>
+                <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-3 overflow-hidden">
+                    <div class="h-full rounded-full bg-[#2AA7A1]" style="width: {{ $aggregateRate }}%"></div>
                 </div>
-                <span class="text-2xl font-extrabold text-[#156F8C]">{{ $aggregateRate }}%</span>
-                <p class="text-[11px] text-[#64748B] mt-1">{{ $occupiedUnits }} of {{ $totalUnits }} units occupied</p>
-            </div>
+                <p class="text-[11px] text-[#64748B] mt-2 text-center">{{ $occupiedUnits }} of {{ $totalUnits }} units occupied</p>
+            </x-card>
         </div>
 
         {{-- Main grid --}}
@@ -140,7 +135,7 @@
             <div class="lg:col-span-3 space-y-4">
 
                 {{-- Unit Status Overview --}}
-                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5"
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5"
                     x-data="{
                         groups: @js($unitStatusOverview),
                         styles: @js(collect($statusStyles)->map(fn ($s) => ['tile' => $s['tile'], 'text' => $s['text'], 'dot' => $s['dot']])),
@@ -223,10 +218,10 @@
 
                                         {{-- Mini status counts (visible without expanding) --}}
                                         <span class="flex items-center gap-2 ml-auto shrink-0 text-[11px] font-semibold text-[#1F2937]">
-                                            <span class="flex items-center gap-1" x-show="g.available > 0"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span x-text="g.available"></span></span>
-                                            <span class="flex items-center gap-1" x-show="g.reserved > 0"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span x-text="g.reserved"></span></span>
-                                            <span class="flex items-center gap-1" x-show="g.occupied > 0"><span class="w-2 h-2 rounded-full bg-red-500"></span><span x-text="g.occupied"></span></span>
-                                            <span class="flex items-center gap-1" x-show="g.maintenance > 0"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span x-text="g.maintenance"></span></span>
+                                            <span class="flex items-center gap-1" x-show="g.available > 0"><span class="w-2 h-2 rounded-full bg-[#22C55E]"></span><span x-text="g.available"></span></span>
+                                            <span class="flex items-center gap-1" x-show="g.reserved > 0"><span class="w-2 h-2 rounded-full bg-[#FBBF24]"></span><span x-text="g.reserved"></span></span>
+                                            <span class="flex items-center gap-1" x-show="g.occupied > 0"><span class="w-2 h-2 rounded-full bg-[#EF4444]"></span><span x-text="g.occupied"></span></span>
+                                            <span class="flex items-center gap-1" x-show="g.maintenance > 0"><span class="w-2 h-2 rounded-full bg-[#94A3B8]"></span><span x-text="g.maintenance"></span></span>
                                             <span class="text-[#64748B] font-normal" x-text="g.total + (g.total === 1 ? ' unit' : ' units')"></span>
                                         </span>
                                     </button>
@@ -257,8 +252,8 @@
                     @endif
 
                     {{-- Unit detail modal (styled like the unit form Live Preview card).
-                         Teleported to <body>: backdrop-blur on the card creates a containing
-                         block that would trap position:fixed inside the card. --}}
+                         Teleported to <body> so the fixed-position overlay escapes the card's
+                         stacking/overflow context and covers the full viewport. --}}
                     <template x-teleport="body">
                         <div x-show="modal" x-cloak>
                         <template x-if="modal">
@@ -372,7 +367,7 @@
                 </div>
 
                 {{-- Recent Activities --}}
-                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                     <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Recent Activities</h2>
                     @if($recentActivities->isEmpty())
                         <p class="text-[12px] text-[#64748B] py-4 text-center">No occupancy changes recorded yet.</p>
@@ -409,7 +404,7 @@
             <div class="lg:col-span-2 space-y-4">
 
                 {{-- Occupancy Summary donut --}}
-                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                     <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Occupancy Summary</h2>
                     <div class="relative h-44">
                         <canvas id="occupancyStatusChart"></canvas>
@@ -421,10 +416,10 @@
                     <div class="space-y-2.5 text-[12.5px] mt-5">
                         @php
                             $legend = [
-                                ['Occupied', $occupiedUnits, 'bg-red-500'],
-                                ['Available', $availableUnits, 'bg-emerald-500'],
-                                ['Reserved', $reservedUnits, 'bg-amber-500'],
-                                ['Maintenance', $maintenanceUnits, 'bg-slate-400'],
+                                ['Occupied', $occupiedUnits, 'bg-[#EF4444]'],
+                                ['Available', $availableUnits, 'bg-[#22C55E]'],
+                                ['Reserved', $reservedUnits, 'bg-[#FBBF24]'],
+                                ['Maintenance', $maintenanceUnits, 'bg-[#94A3B8]'],
                             ];
                         @endphp
                         @foreach($legend as [$label, $count, $dot])
@@ -437,7 +432,7 @@
                 </div>
 
                 {{-- Occupancy Trend --}}
-                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                     <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Occupancy Trend (Last 30 Days)</h2>
                     @if(count($trend['data']) < 2)
                         <div class="flex flex-col items-center justify-center h-40 text-center">
@@ -457,7 +452,7 @@
         </div>
 
         <p class="flex items-center justify-end gap-1.5 text-[11px] text-[#64748B] mt-4">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Data reflects your latest unit statuses
+            <span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span> Data reflects your latest unit statuses
         </p>
 
     </div>

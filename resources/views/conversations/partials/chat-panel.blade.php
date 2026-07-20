@@ -101,7 +101,7 @@
             <div class="flex-1 min-w-0">
                 {{-- Property card --}}
                 <a href="{{ route('properties.show', $conversation->property) }}" target="_blank"
-                    class="flex items-center gap-3 p-3 bg-white/50 backdrop-blur-lg rounded-2xl border border-white/30 hover:bg-[#E2E8F0]/50 transition">
+                    class="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[#E2E8F0] hover:bg-[#E2E8F0]/50 transition">
                     @if($conversation->property->media->count() > 0)
                         <img src="{{ $conversation->property->media->first()->media_url }}" alt="" class="w-14 h-10 rounded-lg object-cover flex-shrink-0">
                     @else
@@ -468,7 +468,7 @@
                 <p class="text-center text-[12px] text-[#64748B] font-medium">Messaging is disabled for cancelled conversations.</p>
             </div>
         @else
-            <div class="px-5 py-3 bg-white/50 backdrop-blur-lg border-t border-white/30 flex-shrink-0">        <form id="message-form" class="flex items-center gap-2.5">
+            <div class="px-5 py-3 bg-white border-t border-[#E2E8F0] flex-shrink-0">        <form id="message-form" class="flex items-center gap-2.5">
                 <input type="text" id="message-input" name="message" required maxlength="2000" autocomplete="off"
                     class="flex-1 bg-[#E2E8F0] border border-transparent focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#1F2937] transition outline-none placeholder-[#64748B]"
                     placeholder="Message {{ $otherParty->first_name }}..." aria-label="Message {{ $otherParty->first_name }}">

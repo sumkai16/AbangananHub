@@ -31,7 +31,7 @@
                     class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                            focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
                 @error('first_name')
-                    <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
+                    <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
             </div>
 
@@ -46,7 +46,7 @@
                     class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                            focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
                 @error('last_name')
-                    <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
+                    <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
             </div>
 
@@ -60,17 +60,17 @@
                     class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                            focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
                 @error('email')
-                    <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
+                    <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
 
                 @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
-                    <div class="mt-2.5 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5">
+                    <div class="mt-2.5 flex items-start gap-2 rounded-lg border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] px-3.5 py-2.5">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                            class="mt-0.5 shrink-0 text-amber-500">
+                            class="mt-0.5 shrink-0 text-[#B45309]">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
-                        <p class="text-xs text-amber-700">
+                        <p class="text-xs text-[#B45309]">
                             Email not verified. &nbsp;
                             <button form="send-verification" class="font-semibold underline underline-offset-2">
                                 Resend link
@@ -92,7 +92,7 @@
                     class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                            focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
                 @error('contact_number')
-                    <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
+                    <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
             </div>
 
@@ -105,7 +105,7 @@
                     class="w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 py-2.5 text-sm text-[#1F2937] outline-none transition resize-none
                            focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">{{ old('bio', $user->bio) }}</textarea>
                 @error('bio')
-                    <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
+                    <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
             </div>
 
@@ -124,7 +124,7 @@
                     <option value="public" {{ $visibility === 'public' ? 'selected' : '' }}>Public — visible to everyone</option>
                 </select>
                 @error('profile_visibility')
-                    <span class="mt-1.5 block text-xs font-medium text-red-500">{{ $message }}</span>
+                    <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
             </div>
         </div>

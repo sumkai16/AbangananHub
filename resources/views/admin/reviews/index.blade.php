@@ -17,7 +17,7 @@
     {{-- Stat cards --}}
     <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-6">
         @foreach([5, 4, 3, 2, 1] as $stars)
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-lg text-center">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)] text-center">
                 <div class="flex items-center justify-center gap-0.5 mb-1">
                     @for($i = 1; $i <= 5; $i++)
                         <svg class="w-3 h-3" fill="{{ $i <= $stars ? '#FBBF24' : '#E2E8F0' }}" viewBox="0 0 20 20">
@@ -50,7 +50,7 @@
 
     {{-- Filters --}}
     <form method="GET" action="{{ route('admin.reviews.index') }}"
-        class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 mb-5 shadow-lg flex flex-col sm:flex-row gap-3">
+        class="bg-white border border-[#E2E8F0] rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
         @if($visibility !== 'all')
             <input type="hidden" name="visibility" value="{{ $visibility }}">
         @endif
@@ -84,7 +84,7 @@
 
     {{-- List --}}
     @if($reviews->isEmpty())
-        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-16 text-center shadow-lg">
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
             <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] border border-[#E2E8F0] flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
@@ -96,7 +96,7 @@
     @else
         <div class="space-y-3">
             @foreach($reviews as $review)
-                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 {{ $review->is_hidden ? 'opacity-60' : '' }}"
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 {{ $review->is_hidden ? 'opacity-60' : '' }}"
                     x-data="{ confirmOpen: false }">
 
                     {{-- Rating block --}}

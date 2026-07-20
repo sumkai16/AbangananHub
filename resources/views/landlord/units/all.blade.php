@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16"
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16"
         x-data="{
             view: localStorage.getItem('unitsView') || 'grid',
             setView(v) { this.view = v; localStorage.setItem('unitsView', v); },
@@ -49,7 +49,7 @@
         </div>
 
         @if($errors->any())
-            <div class="mb-6 px-4 py-3 rounded-xl bg-red-50 text-red-700 text-sm font-medium">
+            <div class="mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] text-[#DC2626] text-sm font-medium">
                 @foreach($errors->all() as $error)
                     <p>{{ $error }}</p>
                 @endforeach
@@ -63,10 +63,10 @@
             $occupiedPct = $stats['total'] > 0 ? round($stats['occupied'] / $stats['total'] * 100) : 0;
         @endphp
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Units</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
@@ -77,60 +77,60 @@
                 <p class="text-[11px] text-[#64748B] mt-1">Across all properties</p>
             </div>
 
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Available</span>
-                    <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-emerald-600">{{ $stats['available'] }}</span>
+                <span class="text-2xl font-extrabold text-[#15803D]">{{ $stats['available'] }}</span>
                 <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-2.5 overflow-hidden">
-                    <div class="h-full rounded-full bg-emerald-500 transition-all duration-300" style="width: {{ $availPct }}%"></div>
+                    <div class="h-full rounded-full bg-[#22C55E] transition-all duration-300" style="width: {{ $availPct }}%"></div>
                 </div>
                 <p class="text-[11px] text-[#64748B] mt-1.5">{{ $availPct }}% of total units</p>
             </div>
 
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reserved</span>
-                    <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-amber-500">{{ $stats['reserved'] }}</span>
+                <span class="text-2xl font-extrabold text-[#B45309]">{{ $stats['reserved'] }}</span>
                 <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-2.5 overflow-hidden">
-                    <div class="h-full rounded-full bg-amber-500 transition-all duration-300" style="width: {{ $reservedPct }}%"></div>
+                    <div class="h-full rounded-full bg-[#FBBF24] transition-all duration-300" style="width: {{ $reservedPct }}%"></div>
                 </div>
                 <p class="text-[11px] text-[#64748B] mt-1.5">{{ $reservedPct }}% of total units</p>
             </div>
 
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
-                    <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-red-500">{{ $stats['occupied'] }}</span>
+                <span class="text-2xl font-extrabold text-[#DC2626]">{{ $stats['occupied'] }}</span>
                 <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-2.5 overflow-hidden">
-                    <div class="h-full rounded-full bg-red-500 transition-all duration-300" style="width: {{ $occupiedPct }}%"></div>
+                    <div class="h-full rounded-full bg-[#EF4444] transition-all duration-300" style="width: {{ $occupiedPct }}%"></div>
                 </div>
                 <p class="text-[11px] text-[#64748B] mt-1.5">{{ $occupiedPct }}% occupancy rate</p>
             </div>
         </div>
 
         {{-- Filters --}}
-        <form method="GET" class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4 mb-6">
+        <form method="GET" class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="15" height="15" fill="none"
@@ -226,7 +226,7 @@
         {{-- Empty state --}}
         @if($units->isEmpty())
             <div
-                class="rounded-2xl border border-dashed border-[#64748B]/30 bg-white/70 backdrop-blur-xl flex flex-col items-center justify-center py-16 text-center">
+                class="rounded-2xl border border-dashed border-[#64748B]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
                 <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
                     <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -245,24 +245,24 @@
                 foreach ($units as $unit) {
                     $thumb = $unit->media->firstWhere('media_type', 'Image') ?? $unit->property->media->firstWhere('media_type', 'Image') ?? null;
                     [$avBg] = match ($unit->availability_status) {
-                        'Available' => ['bg-emerald-50 text-emerald-700 ring-emerald-200'],
-                        'Reserved' => ['bg-amber-50 text-amber-600 ring-amber-200'],
-                        'Occupied' => ['bg-red-50 text-red-600 ring-red-200'],
+                        'Available' => ['bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25'],
+                        'Reserved' => ['bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35'],
+                        'Occupied' => ['bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25'],
                         default => ['bg-[#EEF8F8] text-[#64748B] ring-[#64748B]/20'],
                     };
                     [$vrBg] = match ($unit->verification_status) {
-                        'Approved' => ['bg-emerald-50 text-emerald-700'],
-                        'Pending' => ['bg-amber-50 text-amber-600'],
-                        'Rejected' => ['bg-red-50 text-red-600'],
+                        'Approved' => ['bg-[#22C55E]/[0.07] text-[#15803D]'],
+                        'Pending' => ['bg-[#FBBF24]/[0.10] text-[#B45309]'],
+                        'Rejected' => ['bg-[#EF4444]/[0.07] text-[#DC2626]'],
                         default => ['bg-[#EEF8F8] text-[#64748B]'],
                     };
 
                     // Payload for the unit detail modal (Live Preview style)
                     $modalStyles = match ($unit->availability_status) {
-                        'Available' => ['tile' => 'border-emerald-200 bg-emerald-50', 'text' => 'text-emerald-700', 'dot' => 'bg-emerald-500'],
-                        'Reserved' => ['tile' => 'border-amber-200 bg-amber-50', 'text' => 'text-amber-700', 'dot' => 'bg-amber-500'],
-                        'Occupied' => ['tile' => 'border-red-200 bg-red-50', 'text' => 'text-red-600', 'dot' => 'bg-red-500'],
-                        default => ['tile' => 'border-slate-200 bg-slate-50', 'text' => 'text-slate-500', 'dot' => 'bg-slate-400'],
+                        'Available' => ['tile' => 'border-[#22C55E]/25 bg-[#22C55E]/[0.07]', 'text' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]'],
+                        'Reserved' => ['tile' => 'border-[#FBBF24]/35 bg-[#FBBF24]/[0.10]', 'text' => 'text-[#B45309]', 'dot' => 'bg-[#FBBF24]'],
+                        'Occupied' => ['tile' => 'border-[#EF4444]/25 bg-[#EF4444]/[0.07]', 'text' => 'text-[#DC2626]', 'dot' => 'bg-[#EF4444]'],
+                        default => ['tile' => 'border-[#E2E8F0] bg-[#F7FCFC]', 'text' => 'text-[#64748B]', 'dot' => 'bg-[#94A3B8]'],
                     };
                     $activeRes = in_array($unit->availability_status, ['Reserved', 'Occupied'], true)
                         ? $unit->reservations->whereNotIn('rental_status', ['Cancelled', 'Rejected'])->sortByDesc('reservation_id')->first()
@@ -377,7 +377,7 @@
                                     data-confirm-button="Remove unit">
                                     @csrf @method('DELETE')
                                     <button type="submit"
-                                        class="h-9 w-9 flex items-center justify-center rounded-full border border-red-200 text-red-500 hover:bg-red-50 transition-colors duration-200">
+                                        class="h-9 w-9 flex items-center justify-center rounded-full border border-[#EF4444]/25 text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
                                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79" />
@@ -392,7 +392,7 @@
 
             {{-- Table view --}}
             <div x-show="view === 'table'" x-cloak
-                class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
+                class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -513,7 +513,7 @@
                                                 data-confirm-button="Remove unit">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" aria-label="Delete unit"
-                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50 cursor-pointer transition-colors duration-200">
+                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#EF4444]/25 text-[#DC2626] hover:bg-[#EF4444]/[0.07] cursor-pointer transition-colors duration-200">
                                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79" />

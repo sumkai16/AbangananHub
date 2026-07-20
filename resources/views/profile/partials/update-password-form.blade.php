@@ -29,7 +29,7 @@
                         autocomplete="current-password" class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                                focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15">
                     @if($errors->updatePassword->get('current_password'))
-                        <span class="mt-1.5 block text-xs font-medium text-red-500">
+                        <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                             {{ $errors->updatePassword->get('current_password')[0] }}
                         </span>
                     @endif
@@ -46,7 +46,7 @@
                         class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                                focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15">
                     @if($errors->updatePassword->get('password'))
-                        <span class="mt-1.5 block text-xs font-medium text-red-500">
+                        <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                             {{ $errors->updatePassword->get('password')[0] }}
                         </span>
                     @endif
@@ -63,7 +63,7 @@
                         class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                                focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15">
                     @if($errors->updatePassword->get('password_confirmation'))
-                        <span class="mt-1.5 block text-xs font-medium text-red-500">
+                        <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                             {{ $errors->updatePassword->get('password_confirmation')[0] }}
                         </span>
                     @endif

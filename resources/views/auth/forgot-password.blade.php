@@ -8,7 +8,7 @@
 
     {{-- Right panel headline & feature area --}}
     <x-slot name="rightContent">
-        <div class="bg-slate-950/25 backdrop-blur-lg border border-white/15 rounded-2xl p-6 shadow-2xl max-w-xl mx-auto transform transition-all duration-300 hover:border-white/25">
+        <div class="bg-[#0F172A]/25 backdrop-blur-lg border border-white/15 rounded-2xl p-6 shadow-2xl max-w-xl mx-auto transform transition-all duration-300 hover:border-white/25">
             <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Forgot your password?<br>
                 <span class="bg-gradient-to-r from-[#69D2C6] via-[#2AA7A1] to-[#156F8C] bg-clip-text text-transparent font-black">No problem.</span>
@@ -20,7 +20,7 @@
     </x-slot>
 
     {{-- Left panel: form --}}
-    <div class="w-full min-h-screen lg:h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 flex flex-col justify-center items-center px-4 py-6 lg:py-2 overflow-y-auto lg:overflow-hidden">
+    <div class="w-full min-h-screen lg:h-screen bg-[#F7FCFC] flex flex-col justify-center items-center px-4 py-6 lg:py-2 overflow-y-auto lg:overflow-hidden">
         <div class="w-full max-w-md bg-white rounded-2xl border border-[#E2E8F0]/80 p-6 sm:p-8 shadow-xl shadow-[#1F2937]/[0.04] transition-all duration-300">
 
             {{-- Branding --}}
@@ -54,7 +54,7 @@
                 <div>
                     <label for="email" class="block text-xs font-bold text-[#156F8C] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Enter your email"
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        class="w-full px-3 py-2 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                 </div>
 
                 {{-- Action Submission Button --}}

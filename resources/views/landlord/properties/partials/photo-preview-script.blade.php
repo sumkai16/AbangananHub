@@ -19,7 +19,7 @@
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     const wrapper = document.createElement('div');
-                    wrapper.className = "relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-sm";
+                    wrapper.className = "relative aspect-square rounded-xl overflow-hidden bg-[#EEF8F8] border border-[#E2E8F0] shadow-sm";
 
                     const img = document.createElement('img');
                     img.src = e.target.result;

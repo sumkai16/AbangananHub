@@ -9,7 +9,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - **Admin:** A single platform administrator who verifies landlord identities, approves property listings, handles reports/complaints, and monitors platform activity.
 
 ## 3. MVP Scope (Defensible 13-Module Set)
-- [x] Auth (registration, login, session-based via Laravel Breeze)
+- [x] Auth (registration, login, password reset via emailed token, session-based via Laravel Breeze)
 - [x] Role System (Tenant, Landlord, Admin — role assigned on verification approval)
 - [x] Landlord Identity Verification (government ID upload, OCR via Google Cloud Vision, liveness detection via face-api.js, admin review pipeline)
 - [x] Property Listing CRUD (landlord creates/edits properties and units, Cloudinary media upload)
@@ -48,7 +48,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
   - Google Cloud Vision API (OCR for landlord ID verification)
   - face-api.js / TensorFlow.js (liveness detection in verification wizard)
   - Laravel Reverb (WebSockets for real-time chat)
-  - Mailtrap (development email sandbox)
+  - Mailtrap (development email sandbox — password reset and landlord verification emails)
   - Leaflet.js + OpenStreetMap + OSRM + Overpass + Nominatim (maps)
 
 ## 6. Success Metrics

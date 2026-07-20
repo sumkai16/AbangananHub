@@ -12,7 +12,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased h-screen overflow-hidden bg-[linear-gradient(135deg,#F7FCFC_0%,#E0F4F4_40%,#F7FCFC_70%,#EEF8F8_100%)]">
+<body class="font-sans antialiased h-screen overflow-hidden bg-[#F7FCFC]">
     <div class="flex h-full">
 
         {{-- Left panel: form --}}

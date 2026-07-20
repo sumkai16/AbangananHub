@@ -267,7 +267,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 ## 5. Migrations Log
 | Migration | Change | Reason | Date |
 |---|---|---|---|
-| create_users_table | Initial users schema | Core auth | Early 2026 |
+| create_users_table | Initial users schema — also creates the stock `password_reset_tokens` and `sessions` tables (Laravel default; `password_reset_tokens` backs the forgot-password flow) | Core auth | Early 2026 |
 | create_user_roles_table | Role system | Multi-role support | Early 2026 |
 | create_landlord_verifications_table | Verification pipeline + admin_notes | Identity verification module | Mid 2026 |
 | create_properties_table | Property listings | Core listing module | Mid 2026 |

@@ -3,7 +3,7 @@
 
     {{-- Right panel headline & feature area --}}
     <x-slot name="rightContent">
-        <div class="bg-slate-950/25 backdrop-blur-md border border-white/15 rounded-2xl p-6 shadow-2xl max-w-xl mx-auto transform transition-all duration-300 hover:border-white/25">
+        <div class="bg-[#0F172A]/25 backdrop-blur-lg border border-white/15 rounded-2xl p-6 shadow-2xl max-w-xl mx-auto transform transition-all duration-300 hover:border-white/25">
             <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
                 for Verified Rental <span class="bg-gradient-to-r from-[#69D2C6] via-[#2AA7A1] to-[#156F8C] bg-clip-text text-transparent font-black">Properties.</span>
@@ -14,7 +14,7 @@
             
             <div class="space-y-3">
                 {{-- Feature 1 --}}
-                <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
+                <div class="flex items-center gap-3 bg-[#0F172A]/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
                     <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -27,7 +27,7 @@
                 </div>
 
                 {{-- Feature 2 --}}
-                <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
+                <div class="flex items-center gap-3 bg-[#0F172A]/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
                     <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -40,7 +40,7 @@
                 </div>
 
                 {{-- Feature 3 --}}
-                <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
+                <div class="flex items-center gap-3 bg-[#0F172A]/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
                     <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -53,7 +53,7 @@
                 </div>
 
                 {{-- Feature 4 --}}
-                <div class="flex items-center gap-3 bg-slate-950/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
+                <div class="flex items-center gap-3 bg-[#0F172A]/45 backdrop-blur-sm p-3 rounded-xl border border-white/5 shadow-md">
                     <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20 select-none">
                         <span class="text-white text-[8px] font-black tracking-tighter leading-none">SDG</span>
                         <span class="text-white text-xs font-black leading-none mt-0.5">16</span>
@@ -68,7 +68,7 @@
     </x-slot>
 
     {{-- Left panel: Optimized layout to maintain no-scrollbar execution --}}
-    <div class="w-full min-h-screen lg:h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 flex flex-col justify-center items-center px-4 py-4 lg:py-2 overflow-y-auto lg:overflow-hidden">
+    <div class="w-full min-h-screen lg:h-screen bg-[#F7FCFC] flex flex-col justify-center items-center px-4 py-4 lg:py-2 overflow-y-auto lg:overflow-hidden">
         <div class="w-full max-w-lg bg-white rounded-2xl border border-[#E2E8F0]/80 p-5 sm:px-6 sm:py-5 shadow-xl shadow-[#1F2937]/[0.04] transition-all duration-300">
 
             {{-- Branding --}}
@@ -94,7 +94,7 @@
                         <label for="first_name" class="block text-xs font-bold text-[#156F8C] mb-0.5">First Name</label>
                         <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" required
                             autofocus autocomplete="given-name" placeholder="First name"
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                            class="w-full px-3 py-2 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                         @error('first_name')
                             <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                         @enderror
@@ -103,7 +103,7 @@
                         <label for="last_name" class="block text-xs font-bold text-[#156F8C] mb-0.5">Last Name</label>
                         <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" required
                             autocomplete="family-name" placeholder="Last name"
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                            class="w-full px-3 py-2 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                         @error('last_name')
                             <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                         @enderror
@@ -115,7 +115,7 @@
                     <label for="email" class="block text-xs font-bold text-[#156F8C] mb-0.5">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
                         placeholder="Enter your email address"
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        class="w-full px-3 py-2 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                     @error('email')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
@@ -126,7 +126,7 @@
                     <label for="contact_number" class="block text-xs font-bold text-[#156F8C] mb-0.5">Contact Number</label>
                     <input id="contact_number" type="text" name="contact_number" value="{{ old('contact_number') }}"
                         required autocomplete="tel" placeholder="Enter your contact number"
-                        class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        class="w-full px-3 py-2 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                     @error('contact_number')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
@@ -138,7 +138,7 @@
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="new-password"
                             placeholder="Create a password"
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                            class="w-full px-3 py-2 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                         <button type="button" onclick="togglePassword('password', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#156F8C] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -158,7 +158,7 @@
                     <div class="relative">
                         <input id="password_confirmation" type="password" name="password_confirmation" required
                             autocomplete="new-password" placeholder="Confirm your password"
-                            class="w-full px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                            class="w-full px-3 py-2 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
                         <button type="button" onclick="togglePassword('password_confirmation', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#156F8C] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@
                 </div>
 
                 {{-- Security Banner --}}
-                <div class="flex items-start gap-2.5 bg-blue-50/60 border border-blue-100/80 rounded-xl p-2.5 shadow-sm">
+                <div class="flex items-start gap-2.5 bg-[#EEF8F8] border border-[#2AA7A1]/20 rounded-xl p-2.5 shadow-sm">
                     <div class="w-6 h-6 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0 mt-0.5">
                         <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />

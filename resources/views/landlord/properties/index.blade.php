@@ -1,6 +1,6 @@
 @extends('layouts.landlord')
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16"
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16"
         x-data="{
             view: localStorage.getItem('propertiesView') || 'grid',
             setView(v) { this.view = v; localStorage.setItem('propertiesView', v); }
@@ -31,7 +31,7 @@
 
         {{-- Filter toolbar --}}
         <form method="GET" action="{{ route('landlord.properties.index') }}"
-            class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4 mb-8">
+            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-8">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
                 <div class="relative flex-1 min-w-[200px]">
@@ -153,9 +153,9 @@
                 foreach ($properties as $property) {
                     $thumb = $property->media->firstWhere('media_type', 'Image');
                     [$statusBg, $statusText] = match ($property->verification_status) {
-                        'Approved' => ['bg-emerald-50 text-emerald-700 ring-emerald-200', 'Approved'],
-                        'Pending' => ['bg-amber-50 text-amber-600 ring-amber-200', 'Pending'],
-                        'Rejected' => ['bg-red-50 text-red-600 ring-red-200', 'Rejected'],
+                        'Approved' => ['bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25', 'Approved'],
+                        'Pending' => ['bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35', 'Pending'],
+                        'Rejected' => ['bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25', 'Rejected'],
                         default => ['bg-[#EEF8F8] text-[#64748B] ring-[#64748B]/20', 'Unknown'],
                     };
                     $derived[$property->property_id] = compact('thumb', 'statusBg', 'statusText');
@@ -228,11 +228,11 @@
                                 </div>
                                 <div class="flex flex-col items-center gap-0.5">
                                     <span
-                                        class="text-[14px] font-bold text-emerald-600">{{ $property->available_units_count }}</span>
+                                        class="text-[14px] font-bold text-[#15803D]">{{ $property->available_units_count }}</span>
                                     <span class="text-[10px] text-[#64748B] font-medium">Available</span>
                                 </div>
                                 <div class="flex flex-col items-center gap-0.5">
-                                    <span class="text-[14px] font-bold text-amber-500">{{ $property->reserved_units_count }}</span>
+                                    <span class="text-[14px] font-bold text-[#B45309]">{{ $property->reserved_units_count }}</span>
                                     <span class="text-[10px] text-[#64748B] font-medium">Reserved</span>
                                 </div>
                                 <div class="flex flex-col items-center gap-0.5">
@@ -280,7 +280,7 @@
 
             {{-- Table view --}}
             <div x-show="view === 'table'" x-cloak
-                class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
+                class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -332,8 +332,8 @@
                                     <td class="px-4 py-3.5">
                                         <div class="flex items-center gap-3 text-[12px] whitespace-nowrap">
                                             <span class="font-bold text-[#1F2937]">{{ $property->units_count }} total</span>
-                                            <span class="text-emerald-600 font-semibold">{{ $property->available_units_count }} avail</span>
-                                            <span class="text-amber-500 font-semibold">{{ $property->reserved_units_count }} rsvd</span>
+                                            <span class="text-[#15803D] font-semibold">{{ $property->available_units_count }} avail</span>
+                                            <span class="text-[#B45309] font-semibold">{{ $property->reserved_units_count }} rsvd</span>
                                             <span class="text-[#EF4444] font-semibold">{{ $property->occupied_units_count }} occ</span>
                                         </div>
                                     </td>

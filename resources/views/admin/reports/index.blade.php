@@ -32,7 +32,7 @@
             @endphp
             @foreach ($stats as $key => $stat)
                 <a href="{{ route('admin.reports.index', ['status' => $key]) }}"
-                    class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl px-4 py-3.5 shadow-lg transition-all duration-200 hover:shadow-xl {{ $status === $key ? 'ring-2 ring-[#2AA7A1]' : '' }}">
+                    class="bg-white border border-[#E2E8F0] rounded-2xl px-4 py-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-all duration-200 hover:shadow-xl {{ $status === $key ? 'ring-2 ring-[#2AA7A1]' : '' }}">
                     <div class="flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full {{ $stat['dot'] }}"></span>
                         <p class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{{ $stat['label'] }}</p>
@@ -43,7 +43,7 @@
         </div>
 
         {{-- Tabs --}}
-        <div class="flex gap-1 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-1 mb-5 w-fit max-w-full overflow-x-auto shadow-lg">
+        <div class="flex gap-1 bg-white border border-[#E2E8F0] rounded-2xl p-1 mb-5 w-fit max-w-full overflow-x-auto shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
             @foreach (['Pending', 'Resolved', 'All'] as $tab)
                 <a href="{{ route('admin.reports.index', ['status' => $tab]) }}"
                     class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 whitespace-nowrap
@@ -57,8 +57,8 @@
         </div>
 
         @if ($reports->isEmpty())
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-16 text-center shadow-lg">
-                <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] border border-white/30 flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+                <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] border border-[#E2E8F0] flex items-center justify-center mx-auto mb-4">
                     <svg class="w-7 h-7 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
@@ -68,7 +68,7 @@
                 <p class="text-[13px] text-[#64748B] mt-1">No reports match this tab right now.</p>
             </div>
         @else
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden divide-y divide-[#E2E8F0]">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden divide-y divide-[#E2E8F0]">
                 @foreach ($reports as $report)
                     <a href="{{ route('admin.reports.show', $report) }}"
                         class="flex flex-wrap sm:flex-nowrap items-center gap-4 px-6 py-4 hover:bg-[#F7FCFC]/70 transition-all duration-200 group">
@@ -121,7 +121,7 @@
                 @endforeach
             </div>
             @if ($reports->hasPages())
-                <div class="mt-4 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl px-6 py-3 shadow-lg">
+                <div class="mt-4 bg-white border border-[#E2E8F0] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
                     {{ $reports->links() }}
                 </div>
             @endif

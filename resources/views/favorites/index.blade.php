@@ -74,7 +74,7 @@
                     onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
 
                     {{-- IMAGE --}}
-                    <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-gray-100">
+                    <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#EEF8F8]">
                         @if($property->media->first())
                             <img
                                 src="{{ $property->media->first()->media_url }}"
@@ -90,7 +90,7 @@
 
                         {{-- TYPE BADGE --}}
                         <div class="absolute top-3 left-3">
-                            <span class="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[11px] font-bold text-gray-700 rounded-full shadow-sm">
+                            <span class="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[11px] font-bold text-[#1F2937] rounded-full shadow-sm">
                                 {{ $property->property_type }}
                             </span>
                         </div>
@@ -121,12 +121,12 @@
                             </h3>
                             @php $hasAvailableUnit = $property->units->where('availability_status', 'Available')->isNotEmpty(); @endphp
                             <span class="text-[12px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0
-                                {{ $hasAvailableUnit ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
+                                {{ $hasAvailableUnit ? 'bg-[#22C55E]/[0.07] text-[#15803D]' : 'bg-[#FBBF24]/[0.10] text-[#B45309]' }}">
                                 {{ $hasAvailableUnit ? 'Available' : 'Unavailable' }}
                             </span>
                         </div>
 
-                        <p class="text-[13px] text-gray-400 mt-0.5 line-clamp-1 flex items-center gap-1">
+                        <p class="text-[13px] text-[#94A3B8] mt-0.5 line-clamp-1 flex items-center gap-1">
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="flex-shrink-0">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -136,7 +136,7 @@
 
                         <p class="text-[14px] font-semibold text-[#156F8C] mt-1.5">
                             ₱{{ number_format($property->rental_fee) }}
-                            <span class="text-[13px] font-normal text-gray-400">/month</span>
+                            <span class="text-[13px] font-normal text-[#94A3B8]">/month</span>
                         </p>
                     </div>
 

@@ -245,7 +245,7 @@
                                                 <span class="text-[11px] font-semibold text-[#64748B]">/ month</span>
                                             </span>
                                             <span
-                                                class="text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $isAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-[#E2E8F0] text-[#64748B]' }}">
+                                                class="text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $isAvailable ? 'bg-[#22C55E]/[0.07] text-[#15803D]' : 'bg-[#E2E8F0] text-[#64748B]' }}">
                                                 {{ $unit->availability_status }}
                                             </span>
                                         </span>
@@ -497,7 +497,7 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 @foreach($property->house_rules as $rule)
                                     <div class="flex items-center gap-3 text-sm text-[#1F2937] font-medium">
-                                        <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                                        <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center flex-shrink-0">
                                             <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24"
                                                 stroke="currentColor" stroke-width="2.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />

@@ -24,7 +24,7 @@
         </div>
 
         @if($errors->any())
-            <div class="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium">
+            <div class="mb-6 bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ $errors->first() }}
             </div>
         @endif
@@ -34,7 +34,7 @@
             <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
+                    <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                         </svg>
@@ -60,19 +60,19 @@
             <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
-                    <div class="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                    <div class="w-7 h-7 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#16A34A" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-xl font-extrabold text-green-600">{{ $counts['Occupied'] }}</span>
+                <span class="text-xl font-extrabold text-[#15803D]">{{ $counts['Occupied'] }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
-            <div class="bg-white rounded-2xl ring-1 ring-red-100 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white rounded-2xl ring-1 ring-[#EF4444]/20 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-red-500 uppercase tracking-wide">Cancelled/Rejected</span>
-                    <div class="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                    <span class="text-[11px] font-bold text-[#DC2626] uppercase tracking-wide">Cancelled/Rejected</span>
+                    <div class="w-7 h-7 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -149,12 +149,12 @@
                             @continue(!$reservation->property)
                             @php
                                 $statusStyles = [
-                                    'Inquiry' => 'bg-amber-50 text-amber-700',
-                                    'Under Negotiation' => 'bg-amber-50 text-amber-700',
-                                    'Pending Rental Agreement' => 'bg-blue-50 text-blue-700',
-                                    'Rental Agreement Signed' => 'bg-teal-50 text-teal-700',
-                                    'Occupied' => 'bg-green-50 text-green-700',
-                                    'Rejected' => 'bg-red-50 text-red-700',
+                                    'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                    'Under Negotiation' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                    'Pending Rental Agreement' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                    'Rental Agreement Signed' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                    'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                                    'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
                                     'Cancelled' => 'bg-[#64748B]/10 text-[#64748B]',
                                 ];
                                 $landlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));

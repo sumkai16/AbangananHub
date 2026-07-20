@@ -18,7 +18,7 @@
         $reservedLen = $circumference * ($reservedUnits / $occupancyTotal);
     @endphp
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {{-- 1. Greeting row --}}
         <div class="mb-6">
@@ -65,12 +65,12 @@
         <div class="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4 mb-6">
 
             {{-- Occupancy donut --}}
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                 <p class="text-[12px] font-bold text-[#64748B] uppercase tracking-wide mb-4">Unit Status</p>
                 <div class="flex md:flex-col items-center gap-5 md:gap-4">
                     <div class="relative shrink-0">
                         <svg width="112" height="112" viewBox="0 0 96 96" class="-rotate-90">
-                            <circle cx="48" cy="48" r="{{ $radius }}" fill="none" stroke="#EEF2F5" stroke-width="11" />
+                            <circle cx="48" cy="48" r="{{ $radius }}" fill="none" stroke="#EEF8F8" stroke-width="11" />
                             @if($occupiedUnits > 0)
                                 <circle cx="48" cy="48" r="{{ $radius }}" fill="none" stroke="#EF4444" stroke-width="11"
                                     stroke-linecap="round"
@@ -98,17 +98,17 @@
                     <div class="space-y-2.5 text-[12.5px] w-full">
                         <div class="flex items-center justify-between gap-3">
                             <span class="flex items-center gap-2 text-[#64748B]"><span
-                                    class="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0"></span>Occupied</span>
+                                    class="w-2.5 h-2.5 rounded-full bg-[#EF4444] shrink-0"></span>Occupied</span>
                             <span class="font-bold text-[#1F2937]">{{ $occupiedUnits }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span class="flex items-center gap-2 text-[#64748B]"><span
-                                    class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>Available</span>
+                                    class="w-2.5 h-2.5 rounded-full bg-[#22C55E] shrink-0"></span>Available</span>
                             <span class="font-bold text-[#1F2937]">{{ $availableUnits }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span class="flex items-center gap-2 text-[#64748B]"><span
-                                    class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>Reserved</span>
+                                    class="w-2.5 h-2.5 rounded-full bg-[#FBBF24] shrink-0"></span>Reserved</span>
                             <span class="font-bold text-[#1F2937]">{{ $reservedUnits }}</span>
                         </div>
                     </div>
@@ -118,12 +118,12 @@
             {{-- Attention tiles --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <a href="{{ route('landlord.reservations.index') }}"
-                    class="group bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
+                    class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
                     <div>
                         <p class="text-[26px] font-extrabold text-[#1F2937] leading-none">{{ $pendingReservations }}</p>
                         <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">Pending reservations</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0 group-hover:bg-red-500 transition-colors duration-200">
+                    <div class="w-10 h-10 rounded-xl bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0 group-hover:bg-[#EF4444] transition-colors duration-200">
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="1.75"
                             class="group-hover:stroke-white transition-colors duration-200">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -133,7 +133,7 @@
                 </a>
 
                 <a href="{{ route('conversations.index') }}"
-                    class="group bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
+                    class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
                     <div>
                         <p class="text-[26px] font-extrabold text-[#1F2937] leading-none">{{ $unreadMessages }}</p>
                         <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">Unread messages</p>
@@ -148,12 +148,12 @@
                 </a>
 
                 <a href="{{ route('landlord.reviews.index') }}"
-                    class="group bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
+                    class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
                     <div>
                         <p class="text-[26px] font-extrabold text-[#1F2937] leading-none">{{ $newReviews }}</p>
                         <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">New reviews this week</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 group-hover:bg-amber-500 transition-colors duration-200">
+                    <div class="w-10 h-10 rounded-xl bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0 group-hover:bg-[#FBBF24] transition-colors duration-200">
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#92400E" stroke-width="1.75"
                             class="group-hover:stroke-white transition-colors duration-200">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -162,12 +162,12 @@
                     </div>
                 </a>
 
-                <div class="group bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
+                <div class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
                     <div>
                         <p class="text-[26px] font-extrabold text-[#1F2937] leading-none">{{ $openComplaints }}</p>
                         <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">Open complaints</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 transition-colors duration-200">
+                    <div class="w-10 h-10 rounded-xl bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0 group-hover:bg-[#22C55E] transition-colors duration-200">
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#166534" stroke-width="1.75"
                             class="group-hover:stroke-white transition-colors duration-200">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -203,7 +203,7 @@
                 </div>
 
                 @if($properties->isEmpty())
-                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-8 text-center">
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-8 text-center">
                         <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
                             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -222,7 +222,7 @@
                         </a>
                     </div>
                 @else
-                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg divide-y divide-[#64748B]/10 overflow-hidden">
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] divide-y divide-[#64748B]/10 overflow-hidden">
                         @foreach($properties->take(5) as $property)
                             @php
                                 $propTotal = max($property['total_units'], 1);
@@ -257,19 +257,19 @@
                                     {{-- Segmented availability bar --}}
                                     <div class="flex h-1.5 rounded-full bg-[#E2E8F0] overflow-hidden mt-2 max-w-[220px]">
                                         @if($property['available_units'] > 0)
-                                            <div class="h-full bg-emerald-500" style="width: {{ $availPct }}%"></div>
+                                            <div class="h-full bg-[#22C55E]" style="width: {{ $availPct }}%"></div>
                                         @endif
                                         @if($property['reserved_units'] > 0)
-                                            <div class="h-full bg-amber-500" style="width: {{ $reservedPct }}%"></div>
+                                            <div class="h-full bg-[#FBBF24]" style="width: {{ $reservedPct }}%"></div>
                                         @endif
                                         @if($property['occupied_units'] > 0)
-                                            <div class="h-full bg-red-500" style="width: {{ $occupiedPct }}%"></div>
+                                            <div class="h-full bg-[#EF4444]" style="width: {{ $occupiedPct }}%"></div>
                                         @endif
                                     </div>
                                     <p class="text-[11px] text-[#64748B] mt-1.5 flex items-center gap-2.5 flex-wrap">
-                                        <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{{ $property['available_units'] }} available</span>
-                                        <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{{ $property['reserved_units'] }} reserved</span>
-                                        <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>{{ $property['occupied_units'] }} occupied</span>
+                                        <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span>{{ $property['available_units'] }} available</span>
+                                        <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#FBBF24]"></span>{{ $property['reserved_units'] }} reserved</span>
+                                        <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#EF4444]"></span>{{ $property['occupied_units'] }} occupied</span>
                                     </p>
                                 </div>
                                 <div class="hidden sm:flex flex-col items-end shrink-0">
@@ -315,7 +315,7 @@
                     </a>
                 </div>
 
-                <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
                     @if($recentActivity->isEmpty())
                         <div class="flex flex-col items-center justify-center py-12 px-5 text-center">
                             <div class="w-11 h-11 rounded-xl bg-[#EEF8F8] flex items-center justify-center mb-3">
@@ -332,15 +332,15 @@
                                 @php
                                     $isReservation = $activity['type'] === 'reservation';
                                     $statusDot = match($activity['status']) {
-                                        'Available' => 'bg-emerald-500',
-                                        'Reserved' => 'bg-amber-500',
-                                        'Occupied' => 'bg-red-500',
-                                        'Rejected', 'Cancelled' => 'bg-red-500',
+                                        'Available' => 'bg-[#22C55E]',
+                                        'Reserved' => 'bg-[#FBBF24]',
+                                        'Occupied' => 'bg-[#EF4444]',
+                                        'Rejected', 'Cancelled' => 'bg-[#EF4444]',
                                         default => 'bg-[#2AA7A1]',
                                     };
                                 @endphp
                                 <div class="flex items-start gap-3 p-4 hover:bg-[#F7FCFC] transition-colors duration-150">
-                                    <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ $isReservation ? 'bg-[#EEF8F8]' : 'bg-emerald-50' }}">
+                                    <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ $isReservation ? 'bg-[#EEF8F8]' : 'bg-[#22C55E]/[0.07]' }}">
                                         @if($isReservation)
                                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round"

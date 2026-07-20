@@ -57,12 +57,19 @@ app/
 ├── Policies/
 ├── Events/
 │   └── MessageSent.php      # ShouldBroadcastNow, broadcastAs() required
+├── Mail/                    # Branded Mailables (VerificationLinkMail, PasswordResetMail)
 └── ...
 
 resources/views/
 ├── layouts/
-│   └── app.blade.php        # Base layout (glassmorphism, Poppins/Inter, mesh gradient)
-├── components/              # Blade components (x-stat-card, etc.)
+│   ├── app.blade.php        # Base layout (flat #F7FCFC bg, Poppins/Inter, sticky white header)
+│   ├── admin.blade.php      # Admin shell (sidebar)
+│   ├── landlord.blade.php   # Landlord shell (sidebar)
+│   └── guest.blade.php      # Split-panel auth shell — reached via <x-guest-layout>
+├── components/              # Blade components (x-stat-card, x-confirm-modal, etc.)
+├── partials/
+│   └── flash-modal.blade.php  # Single source of truth for flash → modal
+├── emails/                  # Branded HTML email templates (table-based, inline styles)
 ├── tenant/
 ├── landlord/
 ├── admin/
@@ -85,6 +92,14 @@ Client JS (fetch POST) → MessageController@store → DB insert → `MessageSen
 ### Payment Flow
 Tenant initiates → Controller creates PayMongo Checkout Session (server-side) → Redirect to PayMongo → Webhook callback → Payment record created → Reservation status updated
 
+### Post-Auth Destination
+Every auth entry point — login, registration, both `VerifyEmailController` paths, the verification prompt, verification resend, and password confirm — resolves its redirect through `User::homeRoute()`: Admin → `admin.dashboard`, Landlord → `landlord.dashboard`, everyone else → `properties.index`. New accounts carry no role until Tenant is granted on first browse, so they fall through to the listings as well.
+**There is no tenant dashboard and no bare `dashboard` route** — only `admin.dashboard` and `landlord.dashboard` exist. Adding a role means adding its home to `homeRoute()`; every auth entry point then follows automatically.
+
+### Password Reset
+Login modal "Forgot Password?" → in-modal email form → AJAX POST to `password.email` → `PasswordResetLinkController@store` (returns JSON when `wantsJson()`, otherwise redirects with a flash) → modal swaps to a "check your email" view → Laravel writes the token to `password_reset_tokens` → `User::sendPasswordResetNotification()` is overridden to send `PasswordResetMail` (a branded Mailable) instead of the framework's default notification → emailed link opens the full-page `auth/reset-password` view (a fresh page load from an email, so it can't be a modal) → `password.store` → redirect to login with a success flash.
+Throttling is the framework's, not custom: `config/auth.php` → `passwords.users.throttle` = 60s between requests per email, `expire` = 60 minutes.
+
 ### File Upload (Cloudinary)
 Form submit (multipart) → Controller → `cloudinary()->uploadApi()->upload($file)` (v3 SDK) → Cloudinary CDN URL stored in DB (`media_url` column)
 
@@ -106,14 +121,28 @@ Unit create requires photos: **≥3 must be live camera captures** (anti-fraud �
 | PayMongo sandbox over direct GCash API | Broader payment method coverage through single integration; easier sandbox signup for students | Mid 2026 |
 | Ocean Teal palette replacing Gold Black | Stronger brand identity, better WCAG compliance, cohesive with glassmorphism spec | July 2026 |
 | Glassmorphism UI spec | Distinctive visual identity for defense; bg-white/70 backdrop-blur-xl consistent across ~55 views | July 2026 |
+| **Glassmorphism retired app-wide for flat cards** | The analyst prototype's flat, structured look read as clearer and more trustworthy than frosted panels; translucency was fighting the soft shadows and muddying dense data views. One `<x-card>` component now owns the card spec. Teal mesh gradient dropped for a flat `#F7FCFC` background. Palette unchanged — prototype's blue/purple accents map onto the locked Ocean Teal set, color reserved for status | July 2026 |
 | face-api.js for liveness detection | Runs client-side (no server GPU needed), works on Chrome/Firefox, sufficient for capstone | Mid 2026 |
 | Live camera capture required for unit photos | Anti-fraud — proves the unit is real and current; ≥3 live captures, uploads as extras | July 2026 |
 | Two-column unit create/edit (form + sticky-preview rail) | Fills wasted horizontal space; live preview + amenities in the rail | July 2026 |
 | Occupancy history via nightly snapshots + observer-based activity log | True daily trend needs stored history; observer catches every status-change path without touching each controller | July 2026 |
 | Landlord list pages: analyst-prototype data tables + grid/table toggle | Reservations rebuilt as filterable table (search/property/date-range in controller); Units/Properties/Reservations each got a client-side view toggle persisted in localStorage; both views render server-side and swap via x-show, per-record derived data precomputed once per page | July 2026 |
-| Public property page restyled to analyst prototype (flat cards) | Three-column layout, flat white cards (documented exception to glassmorphism — DESIGN.md §6e); Inquiry/Reserve toggle is presentational (single reservations.store flow) | July 2026 |
+| Public property page restyled to analyst prototype (flat cards) | Three-column layout, flat white cards — was an exception at the time, became the app-wide reference once glassmorphism was retired (DESIGN.md §6e); Inquiry/Reserve toggle is presentational (single reservations.store flow) | July 2026 |
 | Mobile inquiry: sticky bar + two-step teleported modal | Desktop sidebar is hidden <lg, so phones had no inquiry path; modal shares Alpine selectedUnit state with sidebar, posts to same reservations.store | July 2026 |
 | Inbox chat panel: pinned inquiry summary card | Unit photo/price + Inquiry Details (move in/out, message) pinned atop thread for both parties; landlord header shows tenant email/phone + New Inquiry badge | July 2026 |
+| Password reset request lives in the auth modal; the reset step is a full page | Matches the existing AJAX login/register modal flow; the reset form arrives from an email link (fresh page load) so it can't be a modal | July 2026 |
+| Branded Mailable over Laravel's default reset notification | Framework default is unstyled and off-brand; reuses the `VerificationLinkMail` + `resources/views/emails/` pattern already in the codebase | July 2026 |
+| All post-redirect flash messages render through one global modal | The three app layouts each auto-fired a modal **and** 11 page views rendered their own inline banner, so a single flash could show twice; `partials/flash-modal.blade.php` is now the only place session flashes are read | July 2026 |
+| Controllers flash sentences, not status slugs | Breeze's `'password-updated'` / `'profile-updated'` slugs leaked as literal text once flashes were routed through a generic modal | July 2026 |
+| WCAG 2.2 AA accessibility pass | Accessibility was in the RULES.md checklist but never enforced; 76 inputs had a visible label with no `for`/`id` pairing and were nameless to screen readers | July 2026 |
+
+| Tenant dashboard removed — tenants land on `/properties` | It was already orphaned (no link to it in any live layout's nav), every widget duplicated a dedicated page that was in the header anyway, and its `$recentActivity` section was a permanent empty placeholder. Tenants browse; they don't operate a control panel. Landlords and admins keep their dashboards | July 2026 |
+| Notification modal raised to `z-[9998]` | At `z-50` it rendered *below* the public layout's `z-[100]` sticky header — the header stayed bright and clickable over the dimmed backdrop — and tied with the admin/landlord sidebar, winning only on DOM order. A blocking dialog must outrank passive UI (header, slideout, lightbox, toasts); only the auth modal (`z-[9999]`) sits above it | July 2026 |
+| `User::homeRoute()` is the single post-auth destination | Login resolved the role inline while registration and email-verification hardcoded `route('dashboard')`, so the same tenant got a different home depending on whether they registered or logged in; all 8 redirect sites now call one method | July 2026 |
+
+**Bugs this surfaced (all pre-existing, all fixed July 2026):** `<x-guest-layout>` was referenced by four auth views but the component never existed (the layout lived at `layouts/guest.blade.php` with no alias), so `auth/login`, `auth/register`, `auth/forgot-password` and `auth/reset-password` all 500'd when visited directly. The auth modal carried `transition-all scale-100 opacity-100 duration-300` as static classes that never changed, so its animation never fired. `components/login-modal`, `register-modal` and `success-modal` were never rendered anywhere, and three "Login" buttons on `properties/show` dispatched `open-modal` at that dead component — clicking them did nothing. The tenant-dashboard removal turned up more of the same: `layouts/navigation.blade.php` (Breeze scaffolding) was included by nothing while holding three links, its `x-nav-link`/`x-responsive-nav-link` components were used only by it, a second unrouted `App\Http\Controllers\DashboardController` sat alongside `Tenant\DashboardController` rendering the same view, and `landlord/verification/show` linked a pre-role applicant at the tenant dashboard. All deleted or repointed.
+
+**Recurring lesson:** grep for *every* reference before deleting a route or view, and re-grep after editing. Several of these were only found by baselining references first, and one `replace_all` edit silently missed a second occurrence that differed only by indentation.
 
 ## 7. Known Tradeoffs
 - **No queue worker** — `ShouldBroadcastNow` is synchronous. Acceptable for capstone load; would need a queue for production scale.

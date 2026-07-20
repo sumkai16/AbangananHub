@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
         {{-- Breadcrumb --}}
         <div class="flex flex-wrap items-center gap-1.5 text-sm text-[#64748B] mb-2">
@@ -33,7 +33,7 @@
         {{-- Flash / errors --}}
         @if($errors->any())
             <div
-                class="mb-6 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm font-medium flex items-start gap-2.5">
+                class="mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium flex items-start gap-2.5">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                     class="shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -85,7 +85,7 @@
                 <div class="lg:col-span-7 space-y-6">
 
                     {{-- Unit Details --}}
-                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
                         <div class="flex items-center gap-2.5 mb-5">
                             <div class="w-8 h-8 rounded-lg bg-[#1F2937] flex items-center justify-center shrink-0">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -133,9 +133,9 @@
                             </label>
                             @php
                                 $statusOptions = [
-                                    'Available' => ['label' => 'Available', 'desc' => 'Unit is vacant and ready', 'active' => 'border-emerald-300 bg-emerald-50'],
-                                    'Reserved' => ['label' => 'Reserved', 'desc' => 'On hold for a tenant', 'active' => 'border-amber-300 bg-amber-50'],
-                                    'Occupied' => ['label' => 'Occupied', 'desc' => 'Currently rented', 'active' => 'border-red-300 bg-red-50'],
+                                    'Available' => ['label' => 'Available', 'desc' => 'Unit is vacant and ready', 'active' => 'border-[#22C55E]/35 bg-[#22C55E]/[0.07]'],
+                                    'Reserved' => ['label' => 'Reserved', 'desc' => 'On hold for a tenant', 'active' => 'border-[#FBBF24]/45 bg-[#FBBF24]/[0.10]'],
+                                    'Occupied' => ['label' => 'Occupied', 'desc' => 'Currently rented', 'active' => 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]'],
                                 ];
                                 $inactiveClass = 'border-[#64748B]/25 bg-white hover:border-[#64748B]/40';
                             @endphp
@@ -159,7 +159,7 @@
                     </div>
 
                     {{-- Existing verification capture (read-only, captured at creation) --}}
-                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
                         <div class="flex items-center gap-2.5 mb-3">
                             <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -223,7 +223,7 @@
                 {{-- ── Right rail: live preview + amenities ───────────────── --}}
                 <div class="lg:col-span-5">
                     <div class="space-y-6">
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
                             <div class="px-5 pt-5 pb-3 flex items-center gap-2 border-b border-[#E2E8F0]/70">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
@@ -294,7 +294,7 @@
                         </p>
 
                         {{-- Unit Amenities --}}
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
                             <div class="flex items-center gap-2.5 mb-5">
                                 <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">

@@ -32,12 +32,12 @@
     x-transition:leave="ease-in duration-200"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+    class="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm flex items-center justify-center">
 
     <div x-show="open"
         x-on:click.outside="open = false"
         x-transition:enter="ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
-        x-transition:enter-start="opacity-0 scale-90 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
+        x-transition:enter-start="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
         x-transition:leave="ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100 translate-y-0"

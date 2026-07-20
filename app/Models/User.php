@@ -109,6 +109,24 @@ public function tenantRatingsReceived()
         return $this->roles()->where('role', $role)->exists();
     }
 
+    /**
+     * Where this user belongs after logging in, registering, or verifying email.
+     * Landlords and admins manage things, so they get a dashboard; tenants
+     * browse, so they go to the listings. Brand-new accounts have no role yet
+     * (Tenant is granted on first browse) and fall through to the same place.
+     *
+     * This is the single source of truth for post-auth destinations — every
+     * auth controller calls it, so login and registration can't drift apart.
+     */
+    public function homeRoute(): string
+    {
+        return match (true) {
+            $this->hasRole('Admin')    => route('admin.dashboard'),
+            $this->hasRole('Landlord') => route('landlord.dashboard'),
+            default                    => route('properties.index'),
+        };
+    }
+
     // Provide a computed `name` attribute when the DB column is removed.
     public function getNameAttribute($value)
     {

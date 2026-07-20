@@ -8,7 +8,7 @@
 
             {{-- Rejection Banner --}}
             @if($verification && $verification->verification_status === 'Rejected')
-                <div class="mb-6 rounded-xl border border-[#EF4444]/30 bg-red-50 p-4">
+                <div class="mb-6 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-4">
                     <div class="flex items-start gap-3">
                         <svg class="h-5 w-5 text-[#EF4444] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -65,7 +65,7 @@
 
             {{-- Validation Errors --}}
             @if($errors->any())
-                <div class="mb-6 rounded-xl border border-[#EF4444]/30 bg-red-50 p-4">
+                <div class="mb-6 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-4">
                     <ul class="list-disc list-inside text-sm text-[#EF4444] space-y-1">
                         @foreach($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -103,7 +103,7 @@
 
                     <div class="space-y-3 mb-8">
                         {{-- Checklist item: Government ID --}}
-                        <div class="flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg">
+                        <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
                             <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg class="w-5 h-5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -118,7 +118,7 @@
                         </div>
 
                         {{-- Checklist item: Face verification --}}
-                        <div class="flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg">
+                        <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
                             <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg class="w-5 h-5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -133,7 +133,7 @@
                         </div>
 
                         {{-- Checklist item: Business details --}}
-                        <div class="flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg">
+                        <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
                             <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg class="w-5 h-5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -211,7 +211,7 @@
 
                         <div class="space-y-3 mb-6">
                             <button type="button" @click="chooseIdMethod('camera')"
-                                class="w-full flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
+                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
                                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                     <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -232,7 +232,7 @@
                             </button>
 
                             <button type="button" @click="chooseIdMethod('upload')"
-                                class="w-full flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
+                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
                                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                     <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -266,10 +266,10 @@
 
                     {{-- ── Active capture / upload area ─────────── --}}
                     <div x-show="idCapturePhase !== 'choose'">
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
 
                             <template x-if="cameraError">
-                                <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-red-50 p-3">
+                                <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-3">
                                     <p class="text-sm text-[#EF4444]" x-text="cameraError"></p>
                                 </div>
                             </template>
@@ -333,7 +333,7 @@
 
                             {{-- Duplicate side warning --}}
                             <div x-show="duplicateSideWarning" class="mb-4">
-                                <div class="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50">
+                                <div class="flex items-start gap-2.5 p-3 rounded-xl bg-[#FBBF24]/[0.10]">
                                     <svg class="w-4 h-4 text-[#FBBF24] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -385,7 +385,7 @@
                                         </div>
                                         <div class="space-y-2">
                                             <div class="flex items-start gap-2.5 p-3 rounded-xl"
-                                                :class="ocrResult?.status === 'pass' ? 'bg-green-50' : (ocrResult?.status === 'partial' ? 'bg-amber-50' : 'bg-red-50')">
+                                                :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (ocrResult?.status === 'partial' ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
                                                 <template x-if="ocrResult?.status === 'pass'">
                                                     <svg class="w-4 h-4 text-[#22C55E] mt-0.5 shrink-0"
                                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -418,7 +418,7 @@
                                                 </div>
                                             </div>
                                             <div x-show="ocrResult?.type_match === 'match'"
-                                                class="flex items-center gap-2 p-3 rounded-xl bg-green-50">
+                                                class="flex items-center gap-2 p-3 rounded-xl bg-[#22C55E]/[0.07]">
                                                 <svg class="w-4 h-4 text-[#22C55E] shrink-0"
                                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                     stroke-width="1.5" stroke="currentColor">
@@ -429,7 +429,7 @@
                                                         class="font-medium" x-text="idType"></span></span>
                                             </div>
                                             <div x-show="ocrResult?.type_match === 'mismatch'"
-                                                class="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50">
+                                                class="flex items-start gap-2.5 p-3 rounded-xl bg-[#FBBF24]/[0.10]">
                                                 <svg class="w-4 h-4 text-[#FBBF24] mt-0.5 shrink-0"
                                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                     stroke-width="1.5" stroke="currentColor">
@@ -448,7 +448,7 @@
                                     </div>
                                 </template>
 
-                                <div x-show="ocrError" class="px-3 py-2 rounded-xl bg-amber-50">
+                                <div x-show="ocrError" class="px-3 py-2 rounded-xl bg-[#FBBF24]/[0.10]">
                                     <p class="text-xs text-[#1F2937]">OCR unavailable — admin will review your ID manually.
                                     </p>
                                 </div>
@@ -572,7 +572,7 @@
 
                         <div class="space-y-3 mb-6">
                             <button type="button" @click="chooseSelfieMethod('camera')"
-                                class="w-full flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
+                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
                                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                     <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -593,7 +593,7 @@
                             </button>
 
                             <button type="button" @click="chooseSelfieMethod('upload')"
-                                class="w-full flex items-center gap-4 p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
+                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
                                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                     <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -627,9 +627,9 @@
 
                     {{-- ── Camera selfie capture with liveness ──── --}}
                     <div x-show="selfieCapturePhase === 'camera' && !selfieBase64">
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                             <template x-if="cameraError">
-                                <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-red-50 p-3">
+                                <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-3">
                                     <p class="text-sm text-[#EF4444]" x-text="cameraError"></p>
                                 </div>
                             </template>
@@ -664,7 +664,7 @@
                                     <div x-show="livenessActive && !livenessFaceDetected && !livenessPassed"
                                         class="absolute bottom-16 left-1/2 -translate-x-1/2 pointer-events-none">
                                         <span
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-50/90 text-xs font-medium text-[#EF4444]">
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EF4444]/[0.07] text-xs font-medium text-[#EF4444]">
                                             <svg class="w-3 h-3 text-[#EF4444]" xmlns="http://www.w3.org/2000/svg"
                                                 fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -742,7 +742,7 @@
 
                                 {{-- Liveness error — fallback to manual capture --}}
                                 <div x-show="livenessError" class="mt-4">
-                                    <div class="p-3 rounded-xl bg-amber-50 mb-3">
+                                    <div class="p-3 rounded-xl bg-[#FBBF24]/[0.10] mb-3">
                                         <p class="text-xs text-[#1F2937]">Face detection couldn't load. You can take a
                                             regular selfie instead — our team will verify manually.</p>
                                     </div>
@@ -795,13 +795,13 @@
 
                     {{-- ── Selfie preview (both modes) ─────────── --}}
                     <div x-show="selfieBase64">
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                             <div class="rounded-xl overflow-hidden border border-[#E2E8F0] max-w-sm mx-auto">
                                 <img :src="selfieBase64" alt="Captured selfie" class="w-full">
                             </div>
 
                             <div x-show="faceCheckDone && !faceDetected" class="mt-3 max-w-sm mx-auto">
-                                <div class="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50">
+                                <div class="flex items-start gap-2.5 p-3 rounded-xl bg-[#FBBF24]/[0.10]">
                                     <svg class="w-4 h-4 text-[#FBBF24] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -816,7 +816,7 @@
                             </div>
 
                             <div x-show="faceCheckDone && faceDetected" class="mt-3 max-w-sm mx-auto">
-                                <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-green-50">
+                                <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#22C55E]/[0.07]">
                                     <svg class="w-4 h-4 text-[#22C55E] shrink-0" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -861,7 +861,7 @@
                         <p class="text-sm text-[#64748B]">Tell us about your rental business on AbangananHub.</p>
                     </div>
 
-                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                         <div class="space-y-4">
                             <div>
                                 <label for="business_name" class="block text-sm font-medium text-[#1F2937] mb-1">Business
@@ -923,11 +923,11 @@
 
                     <div class="space-y-4">
                         {{-- Verification checks --}}
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                             <p class="text-xs font-semibold text-[#64748B] mb-3">Verification checks</p>
                             <div x-show="ocrResult" class="space-y-2">
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                                    :class="ocrResult?.status === 'pass' ? 'bg-green-50' : (ocrResult?.status === 'partial' ? 'bg-amber-50' : 'bg-red-50')">
+                                    :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (ocrResult?.status === 'partial' ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
                                     <template x-if="ocrResult?.status === 'pass'">
                                         <svg class="w-4 h-4 text-[#22C55E] shrink-0" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -948,7 +948,7 @@
                                         x-text="ocrResult?.status === 'pass' ? 'Name found on ID' : (ocrResult?.status === 'partial' ? 'Partial name match — team will verify' : 'Name not verified — team will check')"></span>
                                 </div>
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                                    :class="ocrResult?.type_match === 'match' ? 'bg-green-50' : 'bg-amber-50'">
+                                    :class="ocrResult?.type_match === 'match' ? 'bg-[#22C55E]/[0.07]' : 'bg-[#FBBF24]/[0.10]'">
                                     <svg class="w-4 h-4 shrink-0"
                                         :class="ocrResult?.type_match === 'match' ? 'text-[#22C55E]' : 'text-[#FBBF24]'"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -974,7 +974,7 @@
                                             x-text="ocrResult?.id_number"></span></span>
                                 </div>
                                 <div x-show="faceCheckDone" class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                                    :class="faceDetected ? 'bg-green-50' : 'bg-amber-50'">
+                                    :class="faceDetected ? 'bg-[#22C55E]/[0.07]' : 'bg-[#FBBF24]/[0.10]'">
                                     <svg class="w-4 h-4 shrink-0"
                                         :class="faceDetected ? 'text-[#22C55E]' : 'text-[#FBBF24]'"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -988,13 +988,13 @@
                                         x-text="faceDetected ? 'Selfie looks good' : 'Face not clearly visible — team will check'"></span>
                                 </div>
                             </div>
-                            <div x-show="ocrError" class="px-3 py-2.5 rounded-xl bg-amber-50">
+                            <div x-show="ocrError" class="px-3 py-2.5 rounded-xl bg-[#FBBF24]/[0.10]">
                                 <p class="text-xs text-[#1F2937]">OCR unavailable — admin will review your ID manually.</p>
                             </div>
                         </div>
 
                         {{-- Photos --}}
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                             <p class="text-xs font-semibold text-[#64748B] mb-3">Your photos</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" :class="needsBack ? 'lg:grid-cols-3' : ''">
                                 <div>
@@ -1023,7 +1023,7 @@
                         </div>
 
                         {{-- Business details --}}
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                             <p class="text-xs font-semibold text-[#64748B] mb-3">Business details</p>
                             <dl class="space-y-3">
                                 <div class="flex flex-col sm:flex-row sm:gap-4">

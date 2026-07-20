@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-6 pb-10" x-data="{
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10" x-data="{
             view: localStorage.getItem('reservationsView') || 'table',
             setView(v) { this.view = v; localStorage.setItem('reservationsView', v); },
             modalOpen: false,
@@ -35,7 +35,7 @@
         </div>
 
         @if($errors->any())
-            <div class="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium">
+            <div class="mb-6 bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ $errors->first() }}
             </div>
         @endif
@@ -46,10 +46,10 @@
             $rejectedCount = $counts['Rejected'] + $counts['Cancelled'];
         @endphp
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
@@ -60,7 +60,7 @@
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
 
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">In Progress</span>
                     <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -73,35 +73,35 @@
                 <p class="text-[11px] text-[#64748B] mt-1">Awaiting action</p>
             </div>
 
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
-                    <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-emerald-600">{{ $counts['Occupied'] }}</span>
+                <span class="text-2xl font-extrabold text-[#15803D]">{{ $counts['Occupied'] }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
 
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rejected / Cancelled</span>
-                    <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-red-500">{{ $rejectedCount }}</span>
+                <span class="text-2xl font-extrabold text-[#DC2626]">{{ $rejectedCount }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
         </div>
 
         {{-- Status tabs --}}
-        <div class="flex items-center gap-1 bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-1.5 mb-4 w-fit max-w-full overflow-x-auto scrollbar-thin-light shadow-lg">
+        <div class="flex items-center gap-1 bg-white border border-[#E2E8F0] rounded-2xl p-1.5 mb-4 w-fit max-w-full overflow-x-auto scrollbar-thin-light shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
             @foreach([
                 'all' => 'All',
                 'Inquiry' => 'Inquiry',
@@ -131,7 +131,7 @@
 
         {{-- Search + filters --}}
         <form method="GET" action="{{ route('landlord.reservations.index') }}"
-            class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-3 mb-4 flex flex-col lg:flex-row gap-2.5">
+            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-3 mb-4 flex flex-col lg:flex-row gap-2.5">
             @if($status !== 'all')
                 <input type="hidden" name="status" value="{{ $status }}">
             @endif
@@ -206,7 +206,7 @@
 
         {{-- Reservations table --}}
         @if($reservations->isEmpty())
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg flex flex-col items-center justify-center py-10 px-6 text-center">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col items-center justify-center py-10 px-6 text-center">
                 <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
                     <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -222,12 +222,12 @@
             @php
                 $statusStyles = [
                     'Inquiry' => 'bg-[#EEF8F8] text-[#156F8C]',
-                    'Under Negotiation' => 'bg-amber-50 text-amber-600',
-                    'Pending Rental Agreement' => 'bg-amber-50 text-amber-600',
+                    'Under Negotiation' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                    'Pending Rental Agreement' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
                     'Rental Agreement Signed' => 'bg-[#EEF8F8] text-[#156F8C]',
-                    'Occupied' => 'bg-emerald-50 text-emerald-600',
-                    'Rejected' => 'bg-red-50 text-red-600',
-                    'Cancelled' => 'bg-slate-100 text-[#64748B]',
+                    'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                    'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
+                    'Cancelled' => 'bg-[#EEF8F8] text-[#64748B]',
                 ];
 
                 // Derived per-reservation data shared by the table and card views
@@ -256,7 +256,7 @@
                     $derived[$reservation->reservation_id] = compact('modalData', 'initials', 'moveIn', 'photo');
                 }
             @endphp
-            <div x-show="view === 'table'" class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
+            <div x-show="view === 'table'" class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -329,7 +329,7 @@
 
                                     {{-- Status --}}
                                     <td class="px-4 py-4">
-                                        <span class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap {{ $statusStyles[$reservation->rental_status] ?? 'bg-slate-100 text-[#64748B]' }}">
+                                        <span class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap {{ $statusStyles[$reservation->rental_status] ?? 'bg-[#EEF8F8] text-[#64748B]' }}">
                                             {{ $reservation->rental_status }}
                                         </span>
                                     </td>
@@ -359,7 +359,7 @@
                                                 <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
                                                     @csrf @method('PATCH')
                                                     <button type="submit"
-                                                        class="h-8 px-3 rounded-lg bg-red-500 text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                        class="h-8 px-3 rounded-lg bg-[#EF4444] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
                                                         Reject
                                                     </button>
                                                 </form>
@@ -372,7 +372,7 @@
                                                 <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
                                                     @csrf @method('PATCH')
                                                     <button type="submit"
-                                                        class="h-8 px-3 rounded-lg bg-red-500 text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                        class="h-8 px-3 rounded-lg bg-[#EF4444] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
                                                         Reject
                                                     </button>
                                                 </form>
@@ -385,13 +385,13 @@
                                                     data-confirm-cancel="Keep it">
                                                     @csrf @method('PATCH')
                                                     <button type="submit"
-                                                        class="h-8 px-3 rounded-lg bg-red-500 text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                        class="h-8 px-3 rounded-lg bg-[#EF4444] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
                                                         Cancel
                                                     </button>
                                                 </form>
                                             @elseif($reservation->rental_status === 'Occupied')
                                                 @if($reservation->tenantRating)
-                                                    <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-emerald-50 text-emerald-600 text-[12px] font-semibold whitespace-nowrap">
+                                                    <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
                                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                                                         </svg>
@@ -440,7 +440,7 @@
                     @foreach($reservations as $reservation)
                         @continue(!$reservation->property)
                         @php extract($derived[$reservation->reservation_id]); @endphp
-                        <article class="flex flex-col bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-4 gap-3">
+                        <article class="flex flex-col bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 gap-3">
                             {{-- Tenant + status --}}
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0">
@@ -459,7 +459,7 @@
                                         <p class="text-[11.5px] text-[#64748B]">{{ $reservation->tenant->contact_number ?? '—' }}</p>
                                     </div>
                                 </div>
-                                <span class="shrink-0 inline-flex px-2.5 py-1 rounded-full text-[10.5px] font-semibold whitespace-nowrap {{ $statusStyles[$reservation->rental_status] ?? 'bg-slate-100 text-[#64748B]' }}">
+                                <span class="shrink-0 inline-flex px-2.5 py-1 rounded-full text-[10.5px] font-semibold whitespace-nowrap {{ $statusStyles[$reservation->rental_status] ?? 'bg-[#EEF8F8] text-[#64748B]' }}">
                                     {{ $reservation->rental_status }}
                                 </span>
                             </div>
@@ -512,7 +512,7 @@
                                     <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
                                         @csrf @method('PATCH')
                                         <button type="submit"
-                                            class="h-8 px-3 rounded-lg bg-red-500 text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                            class="h-8 px-3 rounded-lg bg-[#EF4444] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
                                             Reject
                                         </button>
                                     </form>
@@ -525,7 +525,7 @@
                                     <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
                                         @csrf @method('PATCH')
                                         <button type="submit"
-                                            class="h-8 px-3 rounded-lg bg-red-500 text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                            class="h-8 px-3 rounded-lg bg-[#EF4444] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
                                             Reject
                                         </button>
                                     </form>
@@ -538,13 +538,13 @@
                                         data-confirm-cancel="Keep it">
                                         @csrf @method('PATCH')
                                         <button type="submit"
-                                            class="h-8 px-3 rounded-lg bg-red-500 text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                            class="h-8 px-3 rounded-lg bg-[#EF4444] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
                                             Cancel
                                         </button>
                                     </form>
                                 @elseif($reservation->rental_status === 'Occupied')
                                     @if($reservation->tenantRating)
-                                        <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-emerald-50 text-emerald-600 text-[12px] font-semibold whitespace-nowrap">
+                                        <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
                                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                                             </svg>

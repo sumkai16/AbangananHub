@@ -392,7 +392,7 @@
                     <form action="{{ route('logout') }}" method="POST" class="shrink-0">
                         @csrf
                         <button type="submit" title="Sign out" aria-label="Sign out"
-                            class="group/so relative w-10 h-10 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-white/[0.06] transition-colors">
+                            class="group/so relative w-10 h-10 flex items-center justify-center rounded-lg text-white/30 hover:text-[#DC2626] hover:bg-white/[0.06] transition-colors">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"

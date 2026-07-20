@@ -33,7 +33,7 @@
 
             {{-- Errors --}}
             @if($errors->any())
-                <div class="mb-6 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm font-medium">
+                <div class="mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium">
                     @foreach($errors->all() as $error)
                         <p>{{ $error }}</p>
                     @endforeach
@@ -44,7 +44,7 @@
 
                 {{-- Form --}}
                 <form method="POST" action="{{ route('reports.store') }}"
-                    class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-6 sm:p-8 space-y-6"
+                    class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6 sm:p-8 space-y-6"
                     x-data="{ targetType: '{{ old('target_type', $targetType ?? 'property') }}' }">
                     @csrf
 
@@ -194,7 +194,7 @@
 
                 {{-- Side info panel --}}
                 <div class="space-y-4 lg:sticky lg:top-8">
-                    <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-5">
+                    <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                         <h2 class="text-[13px] font-bold text-[#1F2937] mb-4">What happens next?</h2>
                         <div class="space-y-4">
                             <div class="flex gap-3">

@@ -18,7 +18,7 @@
             </div>
         @endif
 
-        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 sm:p-8">
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 sm:p-8">
             <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight mb-1">Rental Agreement</h1>
             <p class="text-sm text-[#64748B] mb-8">Please read the terms below carefully before signing.</p>
 

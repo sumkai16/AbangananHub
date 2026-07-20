@@ -100,7 +100,7 @@
             <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reviews</span>
-                    <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                    <div class="w-7 h-7 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
@@ -157,13 +157,13 @@
                             <div class="mt-1.5">
                                 @php
                                     $statusColors = [
-                                        'Inquiry' => 'bg-amber-50 text-amber-700',
-                                        'Under Negotiation' => 'bg-blue-50 text-blue-700',
-                                        'Pending Rental Agreement' => 'bg-purple-50 text-purple-700',
-                                        'Rental Agreement Signed' => 'bg-teal-50 text-teal-700',
-                                        'Occupied' => 'bg-green-50 text-green-700',
+                                        'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                        'Under Negotiation' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                        'Pending Rental Agreement' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                        'Rental Agreement Signed' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                        'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
                                     ];
-                                    $color = $statusColors[$reservation->rental_status] ?? 'bg-gray-50 text-gray-600';
+                                    $color = $statusColors[$reservation->rental_status] ?? 'bg-[#F7FCFC] text-[#64748B]';
                                 @endphp
                                 <span class="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full {{ $color }}">{{ $reservation->rental_status }}</span>
                             </div>
@@ -190,7 +190,7 @@
             {{-- Recent reviews --}}
             <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
                 <div class="flex items-center gap-3 mb-4">
-                    <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                    <div class="w-9 h-9 rounded-xl bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
@@ -223,7 +223,7 @@
                     </div>
                 @empty
                     <div class="py-9 text-center">
-                        <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
+                        <div class="w-11 h-11 rounded-xl bg-[#FBBF24]/[0.10] flex items-center justify-center mx-auto mb-3">
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#F59E0B" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                             </svg>

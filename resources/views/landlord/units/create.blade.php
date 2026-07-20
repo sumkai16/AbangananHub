@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
         {{-- Breadcrumb --}}
         <div class="flex flex-wrap items-center gap-1.5 text-sm text-[#64748B] mb-2">
@@ -31,7 +31,7 @@
 
         {{-- Flash / errors --}}
         @if($errors->any())
-            <div class="mb-6 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm font-medium flex items-start gap-2.5">
+            <div class="mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium flex items-start gap-2.5">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                 </svg>
@@ -77,7 +77,7 @@
                 <div class="lg:col-span-7 space-y-6">
 
                     {{-- Property Information (read-only) --}}
-                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
                         <div class="flex items-center gap-2.5 mb-5">
                             <div class="w-8 h-8 rounded-lg bg-[#156F8C] flex items-center justify-center shrink-0">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -102,7 +102,7 @@
                     </div>
 
                     {{-- Unit Details --}}
-                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
                         <div class="flex items-center gap-2.5 mb-5">
                             <div class="w-8 h-8 rounded-lg bg-[#1F2937] flex items-center justify-center shrink-0">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -199,10 +199,10 @@
                             </label>
                             @php
                                 $statusOptions = [
-                                    'Available' => ['desc' => 'Unit is vacant and ready', 'dot' => 'bg-[#22C55E]', 'active' => 'border-emerald-300 bg-emerald-50'],
-                                    'Reserved' => ['desc' => 'On hold for a tenant', 'dot' => 'bg-[#FBBF24]', 'active' => 'border-amber-300 bg-amber-50'],
-                                    'Occupied' => ['desc' => 'Currently rented', 'dot' => 'bg-[#EF4444]', 'active' => 'border-red-300 bg-red-50'],
-                                    'Maintenance' => ['desc' => 'Temporarily unavailable', 'dot' => 'bg-[#64748B]', 'active' => 'border-slate-300 bg-slate-50'],
+                                    'Available' => ['desc' => 'Unit is vacant and ready', 'dot' => 'bg-[#22C55E]', 'active' => 'border-[#22C55E]/35 bg-[#22C55E]/[0.07]'],
+                                    'Reserved' => ['desc' => 'On hold for a tenant', 'dot' => 'bg-[#FBBF24]', 'active' => 'border-[#FBBF24]/45 bg-[#FBBF24]/[0.10]'],
+                                    'Occupied' => ['desc' => 'Currently rented', 'dot' => 'bg-[#EF4444]', 'active' => 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]'],
+                                    'Maintenance' => ['desc' => 'Temporarily unavailable', 'dot' => 'bg-[#64748B]', 'active' => 'border-[#E2E8F0] bg-[#F7FCFC]'],
                                 ];
                                 $inactiveClass = 'border-[#64748B]/25 bg-white hover:border-[#64748B]/40';
                             @endphp
@@ -241,7 +241,7 @@
                     </div>
 
                     {{-- Unit Photos --}}
-                    <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6"
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6"
                         x-data="{ tab: 'live' }">
                         <div class="flex items-center gap-2.5 mb-3">
                             <div class="w-8 h-8 rounded-lg bg-[#156F8C] flex items-center justify-center shrink-0">
@@ -318,7 +318,7 @@
                         {{-- Upload panel --}}
                         <div x-show="tab === 'upload'" x-cloak>
                             <div id="photo-dropzone"
-                                class="rounded-xl border-2 border-dashed border-[#64748B]/30 bg-white/50 px-6 py-8 text-center cursor-pointer hover:border-[#2AA7A1]/60 transition-colors duration-200">
+                                class="rounded-xl border-2 border-dashed border-[#64748B]/30 bg-[#F7FCFC] px-6 py-8 text-center cursor-pointer hover:border-[#2AA7A1]/60 transition-colors duration-200">
                                 <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5" class="mx-auto mb-2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
                                 </svg>
@@ -330,7 +330,7 @@
 
                         {{-- Live counter --}}
                         <div class="mt-4 flex items-center gap-2 text-[12px]">
-                            <span id="live-count-badge" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                            <span id="live-count-badge" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold bg-[#FBBF24]/[0.10] text-[#B45309] border border-[#FBBF24]/35">
                                 <span id="live-count">0</span> / 3 live photos
                             </span>
                             <span id="total-count" class="text-[#64748B]">0 total</span>
@@ -367,7 +367,7 @@
                 {{-- ── Right rail: live preview + amenities ───────────────── --}}
                 <div class="lg:col-span-5">
                     <div class="space-y-6">
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg overflow-hidden">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
                             <div class="px-5 pt-5 pb-3 flex items-center gap-2 border-b border-[#E2E8F0]/70">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
@@ -445,7 +445,7 @@
                         </p>
 
                         {{-- Unit Amenities --}}
-                        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
                             <div class="flex items-center gap-2.5 mb-5">
                                 <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -597,7 +597,7 @@
                 totalCountEl.textContent = photos.length + ' total';
                 const ok = live >= MIN_LIVE;
                 liveBadge.className = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold border '
-                    + (ok ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200');
+                    + (ok ? 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25' : 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35');
             }
 
             function render() {

@@ -28,7 +28,7 @@
         </div>
 
         @if($errors->any())
-            <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium mb-6">
+            <div class="bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium mb-6">
                 @foreach($errors->all() as $error)
                     <p class="mb-0">{{ $error }}</p>
                 @endforeach
@@ -55,7 +55,7 @@
                     <div class="flex justify-center gap-1.5 mt-3">
                         <span class="bg-[#EEF8F8] text-[#156F8C] text-[11px] font-bold px-2.5 py-1 rounded-full">Tenant</span>
                         @if($user->hasRole('Landlord'))
-                            <span class="bg-green-50 text-green-700 text-[11px] font-bold px-2.5 py-1 rounded-full">Landlord</span>
+                            <span class="bg-[#22C55E]/[0.07] text-[#15803D] text-[11px] font-bold px-2.5 py-1 rounded-full">Landlord</span>
                         @endif
                     </div>
 

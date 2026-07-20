@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-[900px] mx-auto px-4 sm:px-8 lg:px-[50px] py-8">
+    <div class="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {{-- Back link --}}
         <a href="{{ route('landlord.profile.me') }}"
@@ -16,7 +16,7 @@
 
         {{-- Validation errors --}}
         @if($errors->any())
-            <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium mb-6">
+            <div class="bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium mb-6">
                 @foreach($errors->all() as $error)
                     <p>{{ $error }}</p>
                 @endforeach
@@ -28,7 +28,7 @@
             @method('PATCH')
 
             {{-- Profile picture --}}
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 mb-5">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-5">
                 <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Profile picture</h2>
                 <div class="flex items-center gap-5">
                     @if($user->profile_picture)
@@ -57,7 +57,7 @@
             </div>
 
             {{-- Personal info --}}
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 mb-5">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-5">
                 <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Personal information</h2>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -100,7 +100,7 @@
             </div>
 
             {{-- Business info --}}
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-5 mb-5">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-5">
                 <h2 class="text-[15px] font-bold text-[#1F2937] mb-1">Business information</h2>
                 <p class="text-[12px] text-[#64748B] mb-4">Shown on your public landlord profile.</p>
 
