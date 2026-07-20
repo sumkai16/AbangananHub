@@ -3,7 +3,7 @@
 @section('page-title', 'Verification Review')
 
 @section('content')
-    <div x-data="{ previewImage: null }">
+    <div class="max-w-5xl mx-auto" x-data="{ previewImage: null }">
 
         {{-- Back --}}
         <a href="{{ route('admin.verifications.index') }}"

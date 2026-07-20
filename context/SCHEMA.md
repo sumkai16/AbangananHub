@@ -15,7 +15,7 @@
 | password | VARCHAR(255) | NOT NULL | Hashed via Breeze |
 | contact_number | VARCHAR(20) | NULLABLE | |
 | profile_picture | VARCHAR(255) | NULLABLE | Cloudinary URL |
-| account_status | ENUM('Active','Suspended') | DEFAULT 'Active' | |
+| account_status | ENUM('active','suspended','inactive') | DEFAULT 'active' | Normalized to lowercase July 21, 2026 — was `ENUM('Active','Suspended')` with no `inactive` member, which silently didn't match the lowercase values the Users admin UI had been writing/reading (see RULES.md → Concurrency & State Transitions and migration `2026_07_21_000001_normalize_users_account_status`) |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 

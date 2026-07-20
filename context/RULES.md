@@ -34,6 +34,24 @@ Use plan mode for anything multi-file or design-bearing. Skip the ceremony for g
 - 409 for race conditions: e.g. reviewing an already-reviewed verification
 - No `dd()`, `console.log`, or `var_dump` left in committed code
 
+## Concurrency & State Transitions (established July 21, 2026)
+Admin moderation actions (verify/approve/reject/release/suspend) follow a check-then-write pattern — `abort_if($record->status !== 'Pending', 409, ...)` then `->update(...)` — which is not atomic on its own. A double-click or a retried request can pass the check twice before either write commits, double-firing whatever the transition triggers (role grants, `RentalBusiness::firstOrCreate`, a "payment released" system message, a second state flip on something already resolved).
+
+**Any controller action that flips a record's status and does something consequential on that transition (grants a role, creates a related row, moves money, sends a message) must wrap the check + write in `DB::transaction()` with `lockForUpdate()`:**
+```php
+DB::transaction(function () use ($record) {
+    $locked = Model::whereKey($record->getKey())->lockForUpdate()->firstOrFail();
+    abort_if($locked->status !== 'Pending', 409, 'Already reviewed.');
+    $locked->update([...]);
+    // role grants / related-row creation / side effects go here, inside the lock
+});
+```
+Reference implementations: `Admin\VerificationController::approve/reject`, `Admin\PaymentController::release` (money — highest priority), `Admin\ListingController::approve/reject`, `Admin\PropertyUnitController::approve/reject`. `ListingController` previously had no idempotency guard at all before this pass — a bare status check is the floor, not the fix; the lock is what actually closes the race.
+
+**Self-action guards on admin-management screens.** An admin editing their own account through the same form used to manage other admins can strip their own Admin role or suspend themselves with no recovery path. `UserController::update`/`updateStatus` now reject role/status changes where the target is `auth()->id()`. Any future "admin manages other admin-like records" screen needs the same self-target check.
+
+**Hard deletes on `User` cascade** — every FK from `properties`, `reservations`, `payments`, `reviews`, `conversations`/`messages`, `reports`, `favorites`, `notifications`, and `tenant_ratings` back to `users.user_id` is `onDelete('cascade')` (see SCHEMA.md). `UserController::destroy` blocks the hard delete once a user has properties, reservations, or reviews on record, and directs the admin to suspend instead — suspension is reversible, a cascading delete is not. Don't reintroduce an unconditional `$user->delete()`.
+
 ## Model Rules
 - Every model with a custom PK: `protected $primaryKey = 'column_name';` — mandatory, no exceptions
 - Every migration adding columns: immediate `$fillable` audit on the affected model

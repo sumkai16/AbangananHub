@@ -7,6 +7,7 @@ use App\Http\Requests\RejectVerificationRequest;
 use App\Models\LandlordVerification;
 use App\Models\RentalBusiness;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class VerificationController extends Controller
@@ -53,27 +54,33 @@ class VerificationController extends Controller
 
     public function approve(LandlordVerification $verification)
     {
-        abort_if($verification->verification_status !== 'Pending', 409, 'This application has already been reviewed.');
+        DB::transaction(function () use ($verification) {
+            // Row-lock so a double-click / concurrent request can't both pass
+            // this check and race each other into assignRole + RentalBusiness::firstOrCreate.
+            $locked = LandlordVerification::whereKey($verification->getKey())->lockForUpdate()->firstOrFail();
 
-        $verification->update([
-            'verification_status' => 'Approved',
-            'admin_notes' => null,
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now(),
-        ]);
+            abort_if($locked->verification_status !== 'Pending', 409, 'This application has already been reviewed.');
 
-        $verification->user->assignRole('Landlord');
+            $locked->update([
+                'verification_status' => 'Approved',
+                'admin_notes' => null,
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ]);
 
-        RentalBusiness::firstOrCreate(
-            ['landlord_id' => $verification->user_id],
-            [
-                'business_name' => $verification->business_name,
-                'description' => $verification->description,
-                'logo_url' => $verification->logo_url,
-                'contact_number' => $verification->contact_number,
-                'business_address' => $verification->business_address,
-            ]
-        );
+            $locked->user->assignRole('Landlord');
+
+            RentalBusiness::firstOrCreate(
+                ['landlord_id' => $locked->user_id],
+                [
+                    'business_name' => $locked->business_name,
+                    'description' => $locked->description,
+                    'logo_url' => $locked->logo_url,
+                    'contact_number' => $locked->contact_number,
+                    'business_address' => $locked->business_address,
+                ]
+            );
+        });
 
         // TODO: notify the user once the notification pipeline covers this event type.
 
@@ -82,14 +89,18 @@ class VerificationController extends Controller
 
     public function reject(RejectVerificationRequest $request, LandlordVerification $verification)
     {
-        abort_if($verification->verification_status !== 'Pending', 409, 'This application has already been reviewed.');
+        DB::transaction(function () use ($request, $verification) {
+            $locked = LandlordVerification::whereKey($verification->getKey())->lockForUpdate()->firstOrFail();
 
-        $verification->update([
-            'verification_status' => 'Rejected',
-            'admin_notes' => $request->validated('admin_notes'),
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now(),
-        ]);
+            abort_if($locked->verification_status !== 'Pending', 409, 'This application has already been reviewed.');
+
+            $locked->update([
+                'verification_status' => 'Rejected',
+                'admin_notes' => $request->validated('admin_notes'),
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ]);
+        });
 
         return back()->with('status', 'Application rejected.');
     }

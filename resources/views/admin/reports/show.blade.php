@@ -3,7 +3,7 @@
 @section('page-title', 'Report Detail')
 
 @section('content')
-    <div>
+    <div class="max-w-5xl mx-auto">
 
         {{-- Back --}}
         <a href="{{ route('admin.reports.index') }}"

@@ -386,8 +386,8 @@
                 <select name="status" onchange="document.getElementById('userFilterForm').submit()"
                         class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]">
                     <option value="">All statuses</option>
-                    @foreach(['Active', 'Suspended'] as $acctStatus)
-                        <option value="{{ $acctStatus }}" {{ $statusFilter === $acctStatus ? 'selected' : '' }}>{{ $acctStatus }}</option>
+                    @foreach(['active' => 'Active', 'suspended' => 'Suspended', 'inactive' => 'Inactive'] as $val => $label)
+                        <option value="{{ $val }}" {{ $statusFilter === $val ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
             </form>
@@ -421,7 +421,7 @@
                             </td>
                             <td class="px-4 py-2.5">
                                 <span class="text-[10px] font-medium px-2 py-0.5 rounded-full
-                                    {{ $user->account_status === 'Active' ? 'bg-[#22C55E]/[0.07] text-[#15803D]' : 'bg-[#EF4444]/[0.07] text-[#DC2626]' }}">{{ $user->account_status }}</span>
+                                    {{ $user->account_status === 'active' ? 'bg-[#22C55E]/[0.07] text-[#15803D]' : 'bg-[#EF4444]/[0.07] text-[#DC2626]' }}">{{ ucfirst($user->account_status) }}</span>
                             </td>
                             <td class="px-4 py-2.5">
                                 @if($user->verificationApplication)

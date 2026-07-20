@@ -188,7 +188,7 @@ class ReportAnalyticsController extends Controller
         $landlordCount   = UserRole::where('role', 'Landlord')->count();
         $tenantCount     = UserRole::where('role', 'Tenant')->count();
         $noRoleCount     = $totalUsers - ($adminCount + $landlordCount + $tenantCount);
-        $suspendedCount  = User::where('account_status', 'Suspended')->count();
+        $suspendedCount  = User::where('account_status', 'suspended')->count();
 
         // Verification pipeline
         $verifiedCount  = LandlordVerification::where('verification_status', 'Approved')->count();

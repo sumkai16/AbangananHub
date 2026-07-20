@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PropertyUnitController extends Controller
 {
@@ -48,11 +49,16 @@ class PropertyUnitController extends Controller
         if ($unit->property_id !== $property->property_id) {
             abort(404);
         }
-        abort_if(!$unit->isPending(), 409, 'This unit has already been reviewed.');
-        $unit->update([
-            'verification_status' => 'Approved',
-            'rejection_reason'    => null,
-        ]);
+
+        DB::transaction(function () use ($unit) {
+            $locked = PropertyUnit::whereKey($unit->getKey())->lockForUpdate()->firstOrFail();
+            abort_if(!$locked->isPending(), 409, 'This unit has already been reviewed.');
+            $locked->update([
+                'verification_status' => 'Approved',
+                'rejection_reason'    => null,
+            ]);
+        });
+
         return redirect()
             ->route('admin.units.index')
             ->with('success', "Unit '{$unit->unit_label}' approved.");
@@ -63,14 +69,19 @@ class PropertyUnitController extends Controller
         if ($unit->property_id !== $property->property_id) {
             abort(404);
         }
-        abort_if(!$unit->isPending(), 409, 'This unit has already been reviewed.');
         $validated = $request->validate([
            'rejection_reason' => 'required|string|max:500',
         ]);
-        $unit->update([
-            'verification_status' => 'Rejected',
-            'rejection_reason'    => $validated['rejection_reason'] ?? null,
-        ]);
+
+        DB::transaction(function () use ($unit, $validated) {
+            $locked = PropertyUnit::whereKey($unit->getKey())->lockForUpdate()->firstOrFail();
+            abort_if(!$locked->isPending(), 409, 'This unit has already been reviewed.');
+            $locked->update([
+                'verification_status' => 'Rejected',
+                'rejection_reason'    => $validated['rejection_reason'] ?? null,
+            ]);
+        });
+
         return redirect()
             ->route('admin.units.index')
             ->with('success', "Unit '{$unit->unit_label}' rejected.");
