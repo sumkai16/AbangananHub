@@ -97,7 +97,7 @@
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Search by person or property..."
+                            placeholder="Search by person or property..." aria-label="Search by person or property"
                             class="w-full pl-8 pr-3 py-2 text-[12px] text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/15 rounded-lg focus:outline-none focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/20 transition placeholder-[#64748B]" />
                     </form>
                 </div>

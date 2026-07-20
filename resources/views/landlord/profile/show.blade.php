@@ -2,19 +2,6 @@
 @section('content')
     <div class="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-[50px] py-6 pb-10 min-h-[calc(100vh-72px)]">
 
-        {{-- Success flash --}}
-        @if(session('success'))
-            <div class="bg-[#EEF8F8] text-[#1F2937] rounded-xl px-4 py-3 text-[13px] font-medium flex items-center justify-between shadow-sm mb-5">
-                <span class="flex items-center gap-2">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0 text-[#2AA7A1]">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                    {{ session('success') }}
-                </span>
-                <button class="opacity-60 hover:opacity-100 pl-3 focus:outline-none" onclick="this.parentElement.remove()">&#10005;</button>
-            </div>
-        @endif
-
         {{-- Hero profile card --}}
         <div class="relative overflow-hidden rounded-2xl bg-[#2AA7A1] p-6 sm:p-8 mb-5">
             <div class="absolute inset-0 opacity-[0.06] pointer-events-none"

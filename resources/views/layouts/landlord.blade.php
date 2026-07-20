@@ -48,6 +48,8 @@
         });
     ">
 
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#2AA7A1] focus:text-white focus:font-semibold">Skip to main content</a>
+
     <div class="flex min-h-screen">
 
         {{-- Mobile overlay --}}
@@ -450,19 +452,7 @@
                 </div>
             </div>
 
-            {{-- Flash --}}
-            @if(session('error'))
-                <div class="px-4 sm:px-8 lg:px-[50px] pt-4">
-                    <div
-                        class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium flex items-center justify-between shadow-sm">
-                        <span>{{ session('error') }}</span>
-                        <button class="opacity-60 hover:opacity-100 pl-3 focus:outline-none"
-                            onclick="this.parentElement.remove()">&#10005;</button>
-                    </div>
-                </div>
-            @endif
-
-            <main class="flex-1 overflow-x-hidden">
+            <main id="main" class="flex-1 overflow-x-hidden">
                 @yield('content')
             </main>
         </div>
@@ -542,19 +532,7 @@
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>
-    @if(session('status') || session('success'))
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                window.dispatchEvent(new CustomEvent('show-modal', {
-                    detail: {
-                        type: 'success',
-                        title: 'Done',
-                        message: @json(session('status') ?? session('success')),
-                    }
-                }));
-            });
-        </script>
-    @endif
+    @include('partials.flash-modal')
 
     @stack('scripts')
 

@@ -40,7 +40,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..."
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..." aria-label="Search by property name or address"
                         class="pl-10 pr-4 h-11 w-full rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                 </div>
 
@@ -122,18 +122,6 @@
                 </div>
             @endif
         </form>
-
-        {{-- Flash --}}
-        @if(session('success'))
-            <div class="mb-6 px-4 py-3 rounded-xl bg-[#EEF8F8] text-[#1F2937] text-sm font-medium flex items-center gap-2">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                    class="shrink-0 text-[#2AA7A1]">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                </svg>
-                {{ session('success') }}
-            </div>
-        @endif
 
         {{-- Empty state --}}
         @if($properties->isEmpty())

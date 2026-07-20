@@ -180,8 +180,8 @@
                             </div>
                             <h2 class="text-[15px] font-semibold text-[#1F2937]">Account</h2>
                         </div>
-                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">Email address</label>
-                        <input type="email" value="{{ $user->email }}" disabled
+                        <label for="email" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">Email address</label>
+                        <input type="email" id="email" value="{{ $user->email }}" disabled
                             class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-3.5 text-sm text-[#64748B] cursor-not-allowed">
                         <p class="text-[11px] text-[#64748B] mt-1.5">Email can be changed in <a href="{{ route('profile.edit') }}" class="text-[#156F8C] font-semibold hover:underline">Account Settings</a>.</p>
                     </div>

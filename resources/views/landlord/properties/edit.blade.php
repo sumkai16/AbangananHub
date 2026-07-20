@@ -64,9 +64,9 @@
                         <h3 class="text-[16px] font-bold text-[#156F8C] border-b border-gray-50 pb-4">Property details</h3>
 
                         <div>
-                            <label
+                            <label for="title"
                                 class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Title</label>
-                            <input type="text" name="title" value="{{ old('title', $property->title) }}" minlength="10"
+                            <input type="text" id="title" name="title" value="{{ old('title', $property->title) }}" minlength="10"
                                 maxlength="150"
                                 class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                                 required>
@@ -87,13 +87,13 @@
                                 </select>
                             </div>
                             <div>
-                                <label
+                                <label for="rental_fee"
                                     class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Monthly
                                     rent (₱)</label>
                                 <div class="relative">
                                     <span
                                         class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 font-bold text-sm">₱</span>
-                                    <input type="number" step="0.01" min="500" max="999999" name="rental_fee"
+                                    <input type="number" step="0.01" min="500" max="999999" name="rental_fee" id="rental_fee"
                                         value="{{ old('rental_fee', $property->rental_fee) }}"
                                         class="w-full h-12 pl-8 pr-4 rounded-2xl border border-gray-200 text-[14px] font-bold text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                                         required>
@@ -103,34 +103,34 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-gray-50 pt-5">
                             <div>
-                                <label
+                                <label for="occupancy_limit"
                                     class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Occupancy
                                     limit</label>
-                                <input type="number" name="occupancy_limit"
+                                <input type="number" id="occupancy_limit" name="occupancy_limit"
                                     value="{{ old('occupancy_limit', $property->occupancy_limit) }}" min="1" max="100"
                                     class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                                     required>
                             </div>
                             <div>
-                                <label
+                                <label for="latitude"
                                     class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Latitude</label>
-                                <input type="number" step="any" min="-90" max="90" name="latitude"
+                                <input type="number" step="any" min="-90" max="90" name="latitude" id="latitude"
                                     value="{{ old('latitude', $property->latitude) }}" placeholder="10.3157"
                                     class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                             </div>
                             <div>
-                                <label
+                                <label for="longitude"
                                     class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Longitude</label>
-                                <input type="number" step="any" min="-180" max="180" name="longitude"
+                                <input type="number" step="any" min="-180" max="180" name="longitude" id="longitude"
                                     value="{{ old('longitude', $property->longitude) }}" placeholder="123.8854"
                                     class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                             </div>
                         </div>
 
                         <div>
-                            <label
+                            <label for="address"
                                 class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Address</label>
-                            <input type="text" name="address" value="{{ old('address', $property->address) }}"
+                            <input type="text" id="address" name="address" value="{{ old('address', $property->address) }}"
                                 minlength="10" maxlength="255"
                                 class="w-full h-12 px-4 rounded-2xl border border-gray-200 text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                                 required>

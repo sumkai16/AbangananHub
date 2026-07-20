@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Mail\PasswordResetMail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
@@ -130,5 +132,12 @@ public function tenantRatingsReceived()
     public function rentalBusiness()
     {
         return $this->hasOne(RentalBusiness::class, 'landlord_id', 'user_id');
+    }
+
+    // ─── Password Reset ──────────────────────────────────────
+
+    public function sendPasswordResetNotification($token): void
+    {
+        Mail::to($this->email)->send(new PasswordResetMail($this, $token));
     }
 }

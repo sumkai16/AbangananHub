@@ -23,6 +23,8 @@
 
 <body class="font-sans bg-[linear-gradient(135deg,#F7FCFC_0%,#E0F4F4_40%,#F7FCFC_70%,#EEF8F8_100%)] bg-fixed text-[#156F8C] min-h-screen flex flex-col" x-data="{}">
 
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#2AA7A1] focus:text-white focus:font-semibold">Skip to main content</a>
+
     <header id="site-header"
         class="bg-white/85 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-[100] supports-[backdrop-filter]:bg-white/60 transition-all duration-300">
 
@@ -342,7 +344,7 @@
                             class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-gray-200 cursor-pointer hover:bg-gray-50 rounded-l-full transition-colors w-[33%] overflow-hidden">
                             <span
                                 class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Where</span>
-                            <input type="text" name="location" placeholder="Search..."
+                            <input type="text" name="location" placeholder="Search..." aria-label="Where"
                                 class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
                         </div>
 
@@ -365,7 +367,7 @@
                             <div class="flex flex-col justify-center w-[calc(100%-36px)] sm:w-auto overflow-hidden">
                                 <span
                                     class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Budget</span>
-                                <input type="number" name="price_max" placeholder="Max ₱"
+                                <input type="number" name="price_max" placeholder="Max ₱" aria-label="Maximum budget"
                                     class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
                             </div>
                             <button type="submit"
@@ -452,19 +454,7 @@
 
     </header>
 
-    {{-- Flash Messages --}}
-    @if(session('error'))
-        <div class="w-full mx-auto mt-4 px-4 sm:px-6 lg:px-[50px]">
-            <div
-                class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium flex items-center justify-between shadow-sm">
-                <span>{{ session('error') }}</span>
-                <button class="opacity-60 hover:opacity-100 pl-3 focus:outline-none"
-                    onclick="this.parentElement.remove()">✕</button>
-            </div>
-        </div>
-    @endif
-
-    <main class="flex-grow">
+    <main id="main" class="flex-grow">
         @yield('content')
     </main>
 
@@ -554,9 +544,9 @@
     {{-- ========================================== --}}
     @guest
         <div id="auth-modal"
-            class="hidden fixed inset-0 z-[9999] bg-[#156F8C]/40 backdrop-blur-sm items-center justify-center p-4">
+            class="hidden fixed inset-0 z-[9999] bg-[#156F8C]/40 backdrop-blur-sm items-center justify-center p-4 opacity-0 transition-opacity duration-300">
 
-            <div class="bg-white rounded-[24px] shadow-2xl max-w-md w-full p-6 md:p-8 relative transition-all transform scale-100 opacity-100 duration-300 max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            <div class="bg-white rounded-[24px] shadow-2xl max-w-md w-full p-6 md:p-8 relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                 id="auth-modal-content">
 
                 <button type="button" onclick="closeAuthModal()"
@@ -591,7 +581,7 @@
                         @csrf
                         <div class="mb-4">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
-                            <input type="email" name="email" required placeholder="Enter your email"
+                            <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
                                 class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-login-email"></span>
                         </div>
@@ -599,7 +589,7 @@
                         <div class="mb-4">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
                             <div class="relative">
-                                <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password"
+                                <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password" aria-label="Password"
                                     class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                                 <button type="button" onclick="toggleModalPassword('modal-login-password', this)"
                                     class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -622,7 +612,7 @@
                                     class="w-4 h-4 rounded text-[#2AA7A1] border-gray-300 focus:ring-[#2AA7A1]">
                                 Remember me
                             </label>
-                            <a href="#" class="text-[#156F8C] font-semibold hover:underline">Forgot Password?</a>
+                            <a href="#" onclick="openAuthModal('forgot-password'); return false;" class="text-[#156F8C] font-semibold hover:underline">Forgot Password?</a>
                         </div>
 
                         <button type="submit"
@@ -664,14 +654,14 @@
                         <div class="grid grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">First Name</label>
-                                <input type="text" name="first_name" required placeholder="First name"
+                                <input type="text" name="first_name" required placeholder="First name" aria-label="First name"
                                     class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-red-500 mt-1 hidden error-field"
                                     id="error-register-first_name"></span>
                             </div>
                             <div>
                                 <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Last Name</label>
-                                <input type="text" name="last_name" required placeholder="Last name"
+                                <input type="text" name="last_name" required placeholder="Last name" aria-label="Last name"
                                     class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-red-500 mt-1 hidden error-field"
                                     id="error-register-last_name"></span>
@@ -680,7 +670,7 @@
 
                         <div class="mb-3">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Contact Number</label>
-                            <input type="text" name="contact_number" required placeholder="Enter your contact number"
+                            <input type="text" name="contact_number" required placeholder="Enter your contact number" aria-label="Contact number"
                                 class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             <span class="text-xs text-red-500 mt-1 hidden error-field"
                                 id="error-register-contact_number"></span>
@@ -688,21 +678,21 @@
 
                         <div class="mb-3">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
-                            <input type="email" name="email" required placeholder="Enter your email address"
+                            <input type="email" name="email" required placeholder="Enter your email address" aria-label="Email address"
                                 class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-email"></span>
                         </div>
 
                         <div class="mb-3">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
-                            <input type="password" name="password" required placeholder="Create a password"
+                            <input type="password" name="password" required placeholder="Create a password" aria-label="Password"
                                 class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                             <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-password"></span>
                         </div>
 
                         <div class="mb-5">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Confirm Password</label>
-                            <input type="password" name="password_confirmation" required placeholder="Confirm your password"
+                            <input type="password" name="password_confirmation" required placeholder="Confirm your password" aria-label="Confirm password"
                                 class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                         </div>
 
@@ -722,27 +712,115 @@
                     </div>
                 </div>
 
+                {{-- Forgot Password View --}}
+                <div id="forgot-password-form-view" class="hidden">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25">
+                                </path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-[#156F8C]">Abanganan<span
+                                class="text-[#156F8C]">Hub</span></span>
+                    </div>
+
+                    <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Forgot your password?</h2>
+                    <p class="text-[14px] text-gray-400 mt-1 mb-6">No problem. We'll email you a reset link.</p>
+
+                    <form id="ajax-forgot-password-form" onsubmit="handleForgotPasswordSubmit(event, '{{ route('password.email') }}')">
+                        @csrf
+                        <div class="mb-5">
+                            <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
+                            <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
+                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-forgot-password-email"></span>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
+                            Email Password Reset Link
+                        </button>
+                    </form>
+
+                    <p class="text-[13px] text-center text-gray-500 mt-6">
+                        Remembered your password? <a href="#" onclick="openAuthModal('login'); return false;"
+                            class="text-[#156F8C] font-bold hover:underline">Login here</a>
+                    </p>
+
+                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-gray-300 font-bold uppercase">
+                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
+                    </div>
+                </div>
+
+                {{-- Forgot Password: Email Sent View --}}
+                <div id="forgot-password-sent-view" class="hidden">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-[#156F8C]">Abanganan<span
+                                class="text-[#156F8C]">Hub</span></span>
+                    </div>
+
+                    <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Check your email</h2>
+                    <p id="forgot-password-sent-message" class="text-[14px] text-gray-500 mt-1 mb-6 leading-relaxed">
+                        We've emailed you a link to reset your password. It'll expire in 60 minutes.
+                    </p>
+
+                    <button type="button" onclick="openAuthModal('login')"
+                        class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
+                        Back to login
+                    </button>
+
+                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-gray-300 font-bold uppercase">
+                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
+                    </div>
+                </div>
+
             </div>
         </div>
 
         <script>
+            let authModalCloseTimer = null;
+
             function openAuthModal(mode) {
                 const modal = document.getElementById('auth-modal');
-                const loginView = document.getElementById('login-form-view');
-                const registerView = document.getElementById('register-form-view');
+                const panel = document.getElementById('auth-modal-content');
+                const views = {
+                    'login': document.getElementById('login-form-view'),
+                    'register': document.getElementById('register-form-view'),
+                    'forgot-password': document.getElementById('forgot-password-form-view'),
+                    'forgot-password-sent': document.getElementById('forgot-password-sent-view'),
+                };
 
-                if (!modal || !loginView || !registerView) return;
+                if (!modal || !views[mode]) return;
+
+                // Cancel a pending close so reopening mid-animation doesn't hide the modal.
+                clearTimeout(authModalCloseTimer);
 
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
 
-                if (mode === 'login') {
-                    loginView.classList.remove('hidden');
-                    registerView.classList.add('hidden');
-                } else {
-                    registerView.classList.remove('hidden');
-                    loginView.classList.add('hidden');
-                }
+                const errorBag = document.getElementById('modal-error-bag');
+                errorBag?.classList.add('hidden');
+                errorBag && (errorBag.innerText = '');
+
+                Object.values(views).forEach(view => view?.classList.add('hidden'));
+                views[mode].classList.remove('hidden');
+
+                // Double rAF: lets the browser paint the starting state before
+                // transitioning, otherwise the class changes batch and nothing animates.
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0');
+                    panel?.classList.remove('opacity-0', 'scale-95', 'translate-y-4');
+                }));
             }
 
             function toggleModalPassword(fieldId, btn) {
@@ -757,9 +835,17 @@
 
             function closeAuthModal() {
                 const modal = document.getElementById('auth-modal');
+                const panel = document.getElementById('auth-modal-content');
                 if (!modal) return;
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
+
+                modal.classList.add('opacity-0');
+                panel?.classList.add('opacity-0', 'scale-95', 'translate-y-4');
+
+                clearTimeout(authModalCloseTimer);
+                authModalCloseTimer = setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 300);
             }
 
             window.addEventListener('click', function (event) {
@@ -808,6 +894,56 @@
                 } catch (e) {
                     errorBag?.classList.remove('hidden');
                     errorBag && (errorBag.innerText = 'Network error. Please try again.');
+                }
+            };
+
+            window.handleForgotPasswordSubmit = async function (event, endpoint) {
+                event.preventDefault();
+
+                const form = event.target;
+                const emailError = document.getElementById('error-forgot-password-email');
+                emailError?.classList.add('hidden');
+                emailError && (emailError.innerText = '');
+
+                const formData = new FormData(form);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken || '',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+
+                    if (!res.ok) {
+                        const message = data?.errors?.email?.[0] || data?.message || 'Something went wrong. Please try again.';
+                        if (emailError) {
+                            emailError.innerText = message;
+                            emailError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    const sentMessage = document.getElementById('forgot-password-sent-message');
+                    if (sentMessage) {
+                        sentMessage.innerText = data?.status || "We've emailed you a link to reset your password.";
+                    }
+                    openAuthModal('forgot-password-sent');
+                } catch (e) {
+                    if (emailError) {
+                        emailError.innerText = 'Network error. Please try again.';
+                        emailError.classList.remove('hidden');
+                    }
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
                 }
             };
         </script>
@@ -1006,19 +1142,7 @@
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>
-    @if(session('status') || session('success'))
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                window.dispatchEvent(new CustomEvent('show-modal', {
-                    detail: {
-                        type: 'success',
-                        title: 'Done',
-                        message: @json(session('status') ?? session('success')),
-                    }
-                }));
-            });
-        </script>
-    @endif
+    @include('partials.flash-modal')
     @if(session('suspended'))
         <script>
             document.addEventListener('DOMContentLoaded', () => {

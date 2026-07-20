@@ -536,7 +536,7 @@
 
                             <form id="manual-origin-form" class="hidden mt-3 flex gap-2">
                                 <input type="text" id="manual-origin-input"
-                                    placeholder="Enter your starting address in Cebu"
+                                    placeholder="Enter your starting address in Cebu" aria-label="Enter your starting address in Cebu"
                                     class="flex-1 border border-[#EEF8F8] rounded-xl px-4 py-2 text-sm text-[#1F2937] focus:outline-none focus:ring-4 focus:ring-[#2AA7A1]/10 focus:border-[#2AA7A1] transition-all bg-[#E2E8F0]">
                                 <button type="submit"
                                     class="bg-[#2AA7A1] hover:brightness-95 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex-shrink-0">
@@ -821,7 +821,7 @@
                     </div>
 
                     @if(!auth()->check())
-                        <button type="button" x-on:click="$dispatch('open-modal', 'login-modal')"
+                        <button type="button" onclick="openAuthModal('login')"
                             class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all">
                             Log in to inquire
                         </button>
@@ -956,7 +956,7 @@
                             </div>
                         @endif
                     @else
-                        <button type="button" x-on:click="$dispatch('open-modal', 'login-modal')"
+                        <button type="button" onclick="openAuthModal('login')"
                             class="w-full py-3 px-4 rounded-xl border border-[#EEF8F8] bg-white text-[#1F2937] hover:brightness-95 text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-1.5">
                             <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 stroke-width="2">
@@ -1031,7 +1031,7 @@
                             Inquire
                         </button>
                     @else
-                        <button type="button" x-on:click="$dispatch('open-modal', 'login-modal')"
+                        <button type="button" onclick="openAuthModal('login')"
                             class="h-11 px-6 rounded-xl bg-[#FF8A65] text-white text-sm font-bold hover:brightness-95 shadow-sm cursor-pointer transition-all duration-200 shrink-0">
                             Log in to inquire
                         </button>

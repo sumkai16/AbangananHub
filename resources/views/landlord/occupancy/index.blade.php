@@ -190,7 +190,7 @@
                                     class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                                 </svg>
-                                <input type="text" x-model="q" placeholder="Search property or unit..."
+                                <input type="text" x-model="q" placeholder="Search property or unit..." aria-label="Search property or unit"
                                     class="h-9 w-full rounded-xl border border-[#64748B]/25 bg-white pl-9 pr-3 text-[12.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                             </div>
                             <div class="flex items-center gap-1.5 flex-wrap shrink-0">

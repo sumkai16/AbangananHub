@@ -114,15 +114,6 @@
                 class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#2AA7A1] px-5 text-[13px] font-semibold text-white transition hover:brightness-95 active:scale-[0.98]">
                 Update password
             </button>
-            @if (session('status') === 'password-updated')
-                <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2500)"
-                    class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
-                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Updated
-                </p>
-            @endif
         </div>
     </form>
 </div>

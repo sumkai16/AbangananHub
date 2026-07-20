@@ -19,7 +19,7 @@
     x-init="init()"
     class="rounded-2xl border border-[#64748B]/20 bg-[#F7FCFC] p-4"
 >
-    <input type="file" x-ref="fileInput" name="{{ $name }}" class="hidden" accept="video/*">
+    <input type="file" x-ref="fileInput" name="{{ $name }}" class="hidden" accept="video/*" aria-label="Captured video">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-3">

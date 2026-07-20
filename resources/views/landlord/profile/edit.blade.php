@@ -62,27 +62,27 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">First name</label>
-                        <input type="text" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
+                        <label for="first_name" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">First name</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                     </div>
                     <div>
-                        <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Last name</label>
-                        <input type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}" required
+                        <label for="last_name" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Last name</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ old('last_name', $user->last_name) }}" required
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Contact number</label>
-                    <input type="text" name="contact_number" value="{{ old('contact_number', $user->contact_number) }}"
+                    <label for="contact_number" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Contact number</label>
+                    <input type="text" id="contact_number" name="contact_number" value="{{ old('contact_number', $user->contact_number) }}"
                         class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                         placeholder="09XX XXX XXXX">
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-[13px] font-semibold text-[#64748B] mb-1.5">Email address</label>
-                    <input type="email" value="{{ $user->email }}" disabled
+                    <label for="email" class="block text-[13px] font-semibold text-[#64748B] mb-1.5">Email address</label>
+                    <input type="email" id="email" value="{{ $user->email }}" disabled
                         class="w-full px-3.5 py-2.5 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-[14px] text-[#64748B] cursor-not-allowed">
                     <p class="text-[11px] text-[#64748B] mt-1.5">Email can be changed in <a
                             href="{{ route('profile.edit') }}" class="text-[#156F8C] hover:underline">Settings</a>.</p>
@@ -140,8 +140,8 @@
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Business name</label>
-                    <input type="text" name="business_name"
+                    <label for="business_name" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Business name</label>
+                    <input type="text" id="business_name" name="business_name"
                         value="{{ old('business_name', $business->business_name ?? '') }}"
                         class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                         placeholder="e.g. Santos Rentals">
@@ -156,15 +156,15 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Business contact</label>
-                        <input type="text" name="business_contact"
+                        <label for="business_contact" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Business contact</label>
+                        <input type="text" id="business_contact" name="business_contact"
                             value="{{ old('business_contact', $business->contact_number ?? '') }}"
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                             placeholder="09XX XXX XXXX">
                     </div>
                     <div>
-                        <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Business address</label>
-                        <input type="text" name="business_address"
+                        <label for="business_address" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Business address</label>
+                        <input type="text" id="business_address" name="business_address"
                             value="{{ old('business_address', $business->business_address ?? '') }}"
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                             placeholder="Cebu City, Cebu">

@@ -45,8 +45,8 @@
                     <h3 class="text-[16px] font-bold text-[#156F8C] border-b border-gray-50 pb-4">Property details</h3>
 
                     <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Title</label>
-                        <input type="text" name="title" value="{{ old('title') }}" minlength="10" maxlength="150"
+                        <label for="title" class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Title</label>
+                        <input type="text" id="title" name="title" value="{{ old('title') }}" minlength="10" maxlength="150"
                             class="w-full h-12 px-4 rounded-2xl border @error('title') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                             placeholder="e.g., Cozy studio near IT Park" required>
                         @error('title')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
@@ -66,10 +66,10 @@
                             @error('property_type')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Monthly rent (₱)</label>
+                            <label for="rental_fee" class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Monthly rent (₱)</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 font-bold text-sm">₱</span>
-                                <input type="number" step="0.01" min="500" max="999999" name="rental_fee" value="{{ old('rental_fee') }}"
+                                <input type="number" step="0.01" min="500" max="999999" name="rental_fee" id="rental_fee" value="{{ old('rental_fee') }}"
                                     class="w-full h-12 pl-8 pr-4 rounded-2xl border @error('rental_fee') border-red-300 @else border-gray-200 @enderror text-[14px] font-bold text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                                     placeholder="0.00" required>
                             </div>
@@ -79,20 +79,20 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-gray-50 pt-5">
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Occupancy limit</label>
-                            <input type="number" name="occupancy_limit" value="{{ old('occupancy_limit', 1) }}" min="1" max="100"
+                            <label for="occupancy_limit" class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Occupancy limit</label>
+                            <input type="number" id="occupancy_limit" name="occupancy_limit" value="{{ old('occupancy_limit', 1) }}" min="1" max="100"
                                 class="w-full h-12 px-4 rounded-2xl border @error('occupancy_limit') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" required>
                             @error('occupancy_limit')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Latitude</label>
-                            <input type="number" step="any" min="-90" max="90" name="latitude" value="{{ old('latitude') }}" placeholder="10.3157"
+                            <label for="latitude" class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Latitude</label>
+                            <input type="number" step="any" min="-90" max="90" name="latitude" id="latitude" value="{{ old('latitude') }}" placeholder="10.3157"
                                 class="w-full h-12 px-4 rounded-2xl border @error('latitude') border-red-300 @else border-gray-200 @enderror text-[14px] text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                             @error('latitude')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Longitude</label>
-                            <input type="number" step="any" min="-180" max="180" name="longitude" value="{{ old('longitude') }}" placeholder="123.8854"
+                            <label for="longitude" class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Longitude</label>
+                            <input type="number" step="any" min="-180" max="180" name="longitude" id="longitude" value="{{ old('longitude') }}" placeholder="123.8854"
                                 class="w-full h-12 px-4 rounded-2xl border @error('longitude') border-red-300 @else border-gray-200 @enderror text-[14px] text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                             @error('longitude')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror
                         </div>
@@ -100,8 +100,8 @@
                     <p class="text-[11.5px] text-gray-400 -mt-2">Leave latitude/longitude blank for now if you're not sure — you'll be able to set it precisely once map pinning is added.</p>
 
                     <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Address</label>
-                        <input type="text" name="address" value="{{ old('address') }}" minlength="10" maxlength="255"
+                        <label for="address" class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Address</label>
+                        <input type="text" id="address" name="address" value="{{ old('address') }}" minlength="10" maxlength="255"
                             class="w-full h-12 px-4 rounded-2xl border @error('address') border-red-300 @else border-gray-200 @enderror text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                             placeholder="Building, street, barangay, city" required>
                         @error('address')<p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>@enderror

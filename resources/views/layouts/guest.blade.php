@@ -48,6 +48,10 @@
         </div>
 
     </div>
+
+    <x-confirm-modal />
+    <script src="{{ asset('js/modal-confirm.js') }}"></script>
+    @include('partials.flash-modal')
 </body>
 
 </html>

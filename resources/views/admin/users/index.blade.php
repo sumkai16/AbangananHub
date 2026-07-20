@@ -36,7 +36,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
                     </svg>
                     <input type="text" name="search" value="{{ $search }}"
-                        placeholder="Search by name, email, or phone…"
+                        placeholder="Search by name, email, or phone…" aria-label="Search by name, email, or phone"
                         class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" />
                 </div>
                 <select name="role"

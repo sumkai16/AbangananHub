@@ -98,19 +98,19 @@
 
                         <div class="grid sm:grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
+                                <label for="unit_label" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                                     Unit Name / Number <span class="text-[#EF4444]">*</span>
                                 </label>
-                                <input type="text" name="unit_label" x-model="unitLabel" required
+                                <input type="text" id="unit_label" name="unit_label" x-model="unitLabel" required
                                     maxlength="100" placeholder="e.g. Room 101, Bed A, Unit 201"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                             </div>
 
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
+                                <label for="occupancy_limit" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                                     Capacity <span class="text-[#EF4444]">*</span>
                                 </label>
-                                <input type="number" name="occupancy_limit" x-model="capacity" required min="1" max="100"
+                                <input type="number" id="occupancy_limit" name="occupancy_limit" x-model="capacity" required min="1" max="100"
                                     placeholder="Maximum number of occupants"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                             </div>
@@ -118,10 +118,10 @@
 
                         <div class="grid sm:grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
+                                <label for="rental_fee" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                                     Monthly Rent (₱) <span class="text-[#EF4444]">*</span>
                                 </label>
-                                <input type="number" name="rental_fee" x-model="rentalFee" required
+                                <input type="number" id="rental_fee" name="rental_fee" x-model="rentalFee" required
                                     min="500" max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                             </div>
@@ -323,7 +323,7 @@
                                         <span class="text-[12.5px] text-[#1F2937] leading-tight">Others</span>
                                     </label>
                                     <div x-show="others" x-cloak class="col-span-full">
-                                        <input type="text" placeholder="Specify other amenity..."
+                                        <input type="text" placeholder="Specify other amenity..." aria-label="Specify other amenity"
                                             class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                     </div>
                                 </div>

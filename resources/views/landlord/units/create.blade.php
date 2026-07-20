@@ -89,13 +89,13 @@
 
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Rental Business</label>
-                                <input type="text" value="{{ $property->rentalBusiness->business_name ?? 'N/A' }}" disabled
+                                <label for="rental-business" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Rental Business</label>
+                                <input type="text" id="rental-business" value="{{ $property->rentalBusiness->business_name ?? 'N/A' }}" disabled
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 bg-[#EEF8F8] px-3.5 text-[13.5px] text-[#64748B] cursor-not-allowed">
                             </div>
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Property</label>
-                                <input type="text" value="{{ $property->title . ' - ' . $property->address }}" disabled
+                                <label for="property-display" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Property</label>
+                                <input type="text" id="property-display" value="{{ $property->title . ' - ' . $property->address }}" disabled
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 bg-[#EEF8F8] px-3.5 text-[13.5px] text-[#64748B] cursor-not-allowed">
                             </div>
                         </div>
@@ -115,10 +115,10 @@
                         {{-- Row 1 --}}
                         <div class="grid sm:grid-cols-3 gap-4 mb-4">
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
+                                <label for="unit_label" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                                     Unit Name / Number <span class="text-[#EF4444]">*</span>
                                 </label>
-                                <input type="text" name="unit_label" x-model="unitLabel" required maxlength="100"
+                                <input type="text" id="unit_label" name="unit_label" x-model="unitLabel" required maxlength="100"
                                     placeholder="e.g. Room 101, Bed A"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('unit_label')
@@ -141,8 +141,8 @@
                             </div>
 
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Floor</label>
-                                <input type="text" name="floor" x-model="floor" maxlength="50"
+                                <label for="floor" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Floor</label>
+                                <input type="text" id="floor" name="floor" x-model="floor" maxlength="50"
                                     placeholder="e.g. 1st Floor"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('floor')
@@ -154,10 +154,10 @@
                         {{-- Row 2 --}}
                         <div class="grid sm:grid-cols-3 gap-4 mb-5">
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
+                                <label for="rental_fee" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                                     Monthly Rent (₱) <span class="text-[#EF4444]">*</span>
                                 </label>
-                                <input type="number" name="rental_fee" x-model="rentalFee" required min="500"
+                                <input type="number" id="rental_fee" name="rental_fee" x-model="rentalFee" required min="500"
                                     max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('rental_fee')
@@ -166,8 +166,8 @@
                             </div>
 
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Security Deposit (₱)</label>
-                                <input type="number" name="security_deposit" x-model="securityDeposit" min="0"
+                                <label for="security_deposit" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Security Deposit (₱)</label>
+                                <input type="number" id="security_deposit" name="security_deposit" x-model="securityDeposit" min="0"
                                     max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('security_deposit')
@@ -324,7 +324,7 @@
                                 </svg>
                                 <p class="text-[13px] font-semibold text-[#1F2937]">Click to select photos</p>
                                 <p class="text-[11.5px] text-[#64748B] mt-0.5">JPEG, PNG or WEBP — extras beyond your 3 live photos</p>
-                                <input type="file" id="upload-input" multiple accept="image/jpeg,image/png,image/webp" class="hidden">
+                                <input type="file" id="upload-input" multiple accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Select additional unit photos">
                             </div>
                         </div>
 
@@ -337,7 +337,7 @@
                         </div>
 
                         {{-- Hidden aggregated file input for submission --}}
-                        <input type="file" id="photo-input" name="photos[]" multiple class="hidden">
+                        <input type="file" id="photo-input" name="photos[]" multiple class="hidden" aria-label="Unit photos">
 
                         <p id="photo-limit-msg" class="hidden text-[11.5px] text-[#EF4444] mt-2">You can add a maximum of 10 photos.</p>
                         @error('photos')
@@ -474,7 +474,7 @@
                                         <span class="text-[12.5px] text-[#1F2937] leading-tight">Others</span>
                                     </label>
                                     <div x-show="others" x-cloak class="col-span-full">
-                                        <input type="text" placeholder="Specify other amenity..."
+                                        <input type="text" placeholder="Specify other amenity..." aria-label="Specify other amenity"
                                             class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                     </div>
                                 </div>
@@ -620,7 +620,7 @@
                         + '<input type="hidden" name="photo_sources[]" value="' + p.source + '">'
                         + '</div>'
                         + '<div class="p-2">'
-                        + '<input type="text" name="photo_captions[]" maxlength="150" placeholder="Add a caption (optional)" '
+                        + '<input type="text" name="photo_captions[]" maxlength="150" placeholder="Add a caption (optional)" aria-label="Photo caption (optional)" '
                         + 'class="h-9 w-full rounded-lg border border-[#64748B]/25 px-2.5 text-[12px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">'
                         + '</div>';
 

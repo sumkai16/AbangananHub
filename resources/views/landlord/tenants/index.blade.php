@@ -59,7 +59,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search tenants by name or email..."
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search tenants by name or email..." aria-label="Search tenants by name or email"
                         class="pl-10 pr-4 h-11 w-full rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                 </div>
 

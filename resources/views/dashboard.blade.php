@@ -101,7 +101,7 @@
                     </svg>
                     <input type="text" id="reservation-search"
                         class="w-full h-12 border border-gray-200 rounded-full pl-11 pr-5 text-[14px] text-gray-800 bg-white focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition-all outline-none"
-                        placeholder="Search by property or reference…">
+                        placeholder="Search by property or reference…" aria-label="Search by property or reference">
                 </div>
                 <select id="reservation-filter"
                     class="h-12 px-5 border border-gray-200 rounded-full text-[14px] font-semibold text-gray-700 bg-white focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition-all outline-none appearance-none cursor-pointer pr-10 relative">

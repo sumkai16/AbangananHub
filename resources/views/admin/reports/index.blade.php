@@ -21,13 +21,6 @@
             @endif
         </div>
 
-        {{-- Flash --}}
-        @if(session('status'))
-            <div class="mb-6 px-4 py-3 rounded-2xl bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#15803D] text-[13.5px] font-medium">
-                {{ session('status') }}
-            </div>
-        @endif
-
         {{-- Stat summary --}}
         <div class="grid grid-cols-3 gap-3 mb-6">
             @php

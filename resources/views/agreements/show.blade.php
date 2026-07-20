@@ -11,13 +11,6 @@
             Back to Reservations
         </a>
 
-        @if(session('success'))
-            <div
-                class="mb-6 bg-[#EEF8F8]/50 border border-[#2AA7A1]/30 text-[#1F2937] rounded-xl px-4 py-3 text-[13px] font-medium">
-                {{ session('success') }}
-            </div>
-        @endif
-
         @if($errors->any())
             <div
                 class="mb-6 bg-[#EF4444]/8 border border-[#EF4444]/30 text-[#EF4444] rounded-xl px-4 py-3 text-[13px] font-medium">

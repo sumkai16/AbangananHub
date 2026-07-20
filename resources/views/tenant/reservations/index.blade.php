@@ -23,15 +23,6 @@
             </div>
         </div>
 
-        {{-- Flash --}}
-        @if(session('success'))
-            <div class="mb-6 bg-[#EEF8F8] text-[#1F2937] rounded-xl px-4 py-3 text-[13px] font-medium flex items-center gap-2 shadow-sm">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0 text-[#2AA7A1]">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                </svg>
-                {{ session('success') }}
-            </div>
-        @endif
         @if($errors->any())
             <div class="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ $errors->first() }}

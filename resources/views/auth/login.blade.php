@@ -89,11 +89,6 @@
             </div>
 
             {{-- Session alerts --}}
-            @if (session('status'))
-                <div class="mb-4 text-xs text-green-600 bg-green-50 rounded-lg px-4 py-2.5 border border-green-100 font-semibold">
-                    {{ session('status') }}
-                </div>
-            @endif
             @if ($errors->any())
                 <div class="mb-4 flex items-start gap-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg px-4 py-2.5">
                     <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

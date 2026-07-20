@@ -27,7 +27,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input type="text" name="search" value="{{ request('search') }}"
-                placeholder="Search saved properties…"
+                placeholder="Search saved properties…" aria-label="Search saved properties"
                 class="w-full pl-9 pr-4 py-2.5 text-sm text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition placeholder-[#64748B]" />
         </div>
         <select name="type"

@@ -118,8 +118,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-[13px] font-medium text-[#1F2937] mb-1.5">Email Address</label>
-                        <input type="email" value="{{ $user->email }}" disabled
+                        <label for="email" class="block text-[13px] font-medium text-[#1F2937] mb-1.5">Email Address</label>
+                        <input type="email" id="email" value="{{ $user->email }}" disabled
                                class="w-full rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-4 py-2.5 text-[14px] text-[#64748B] cursor-not-allowed" />
                         <p class="text-[12px] text-[#64748B] mt-1">Email can be changed in the password section below.</p>
                     </div>

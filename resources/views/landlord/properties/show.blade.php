@@ -13,16 +13,6 @@
         Back to Properties
     </a>
 
-    {{-- Flash --}}
-    @if(session('success'))
-        <div class="mb-6 px-4 py-3 rounded-xl bg-[#EEF8F8] text-[#1F2937] text-sm font-medium flex items-center gap-2">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0 text-[#2AA7A1]">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-            </svg>
-            {{ session('success') }}
-        </div>
-    @endif
-
     @php
         $images   = $property->media->where('media_type', 'Image')->values();
         $verified = $property->landlord->rentalBusiness()->exists();
@@ -80,7 +70,7 @@
                         <button onclick="openLightbox({{ $i }}); highlightThumb({{ $i }})"
                                 id="thumb-{{ $i }}"
                                 class="shrink-0 w-[72px] h-[54px] rounded-xl overflow-hidden bg-[#EEF8F8] hover:opacity-80 transition-opacity duration-200 border-2 {{ $i === 0 ? 'border-[#1F2937]' : 'border-transparent' }}">
-                            <img src="{{ $img->media_url }}" class="w-full h-full object-cover">
+                            <img src="{{ $img->media_url }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
                         </button>
                     @endforeach
                     @if($images->count() > 4)
@@ -605,7 +595,7 @@
                     @foreach($images as $i => $img)
                         <button onclick="openLightbox({{ $i }})"
                                 class="aspect-square rounded-xl overflow-hidden bg-[#EEF8F8] hover:opacity-90 transition-opacity duration-200">
-                            <img src="{{ $img->media_url }}" class="w-full h-full object-cover">
+                            <img src="{{ $img->media_url }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
                         </button>
                     @endforeach
                 </div>

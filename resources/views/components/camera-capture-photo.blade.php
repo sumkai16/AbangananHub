@@ -24,7 +24,7 @@
     class="rounded-2xl border border-[#64748B]/20 bg-[#F7FCFC] p-4"
 >
     {{-- Hidden input the form actually submits --}}
-    <input type="file" x-ref="fileInput" name="{{ $name }}[]" multiple class="hidden" accept="image/*">
+    <input type="file" x-ref="fileInput" name="{{ $name }}[]" multiple class="hidden" accept="image/*" aria-label="Captured photos">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-3">
@@ -95,7 +95,7 @@
     <div class="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-1" x-show="shots.length > 0">
         <template x-for="(shot, index) in shots" :key="shot.id">
             <div class="relative aspect-square rounded-lg overflow-hidden bg-[#EEF8F8] ring-1 ring-[#64748B]/15 group">
-                <img :src="shot.url" class="w-full h-full object-cover">
+                <img :src="shot.url" alt="Captured photo preview" class="w-full h-full object-cover">
                 <button
                     type="button"
                     @click="remove(index)"

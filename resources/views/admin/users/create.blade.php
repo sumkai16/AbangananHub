@@ -25,14 +25,14 @@
             {{-- Name row --}}
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">First Name <span class="text-red-400">*</span></label>
-                    <input type="text" name="first_name" value="{{ old('first_name') }}" required
+                    <label for="first_name" class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">First Name <span class="text-red-400">*</span></label>
+                    <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required
                         class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('first_name') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                     @error('first_name')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Last Name <span class="text-red-400">*</span></label>
-                    <input type="text" name="last_name" value="{{ old('last_name') }}" required
+                    <label for="last_name" class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Last Name <span class="text-red-400">*</span></label>
+                    <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required
                         class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('last_name') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                     @error('last_name')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
@@ -40,16 +40,16 @@
 
             {{-- Email --}}
             <div>
-                <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Email Address <span class="text-red-400">*</span></label>
-                <input type="email" name="email" value="{{ old('email') }}" required
+                <label for="email" class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Email Address <span class="text-red-400">*</span></label>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" required
                     class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('email') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                 @error('email')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
 
             {{-- Contact --}}
             <div>
-                <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Contact Number</label>
-                <input type="text" name="contact_number" value="{{ old('contact_number') }}"
+                <label for="contact_number" class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Contact Number</label>
+                <input type="text" id="contact_number" name="contact_number" value="{{ old('contact_number') }}"
                     class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                 @error('contact_number')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
@@ -57,14 +57,14 @@
             {{-- Password --}}
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Password <span class="text-red-400">*</span></label>
-                    <input type="password" name="password" required
+                    <label for="password" class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Password <span class="text-red-400">*</span></label>
+                    <input type="password" id="password" name="password" required
                         class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('password') ? 'border-red-300 bg-red-50/40' : 'border-gray-200 bg-gray-50/50' }} focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                     @error('password')<p class="text-[11px] text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Confirm Password <span class="text-red-400">*</span></label>
-                    <input type="password" name="password_confirmation" required
+                    <label for="password_confirmation" class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Confirm Password <span class="text-red-400">*</span></label>
+                    <input type="password" id="password_confirmation" name="password_confirmation" required
                         class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
                 </div>
             </div>

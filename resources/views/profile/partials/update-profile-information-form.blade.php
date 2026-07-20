@@ -77,9 +77,6 @@
                             </button>
                         </p>
                     </div>
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 text-xs font-medium text-emerald-600">Verification link sent to your inbox.</p>
-                    @endif
                 @endif
             </div>
 
@@ -138,15 +135,6 @@
                 class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#2AA7A1] px-5 text-[13px] font-semibold text-white transition hover:brightness-95 active:scale-[0.98]">
                 Save changes
             </button>
-            @if (session('status') === 'profile-updated')
-                <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2500)"
-                    class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
-                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Saved
-                </p>
-            @endif
         </div>
     </form>
 </div>

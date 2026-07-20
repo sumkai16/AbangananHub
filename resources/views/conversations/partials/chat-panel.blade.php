@@ -163,7 +163,7 @@
                                 <div x-show="showReject" x-cloak class="mt-2">
                                     <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST" class="flex gap-2">
                                         @csrf @method('PATCH')
-                                        <input name="rejection_reason" placeholder="Reason (optional)"
+                                        <input name="rejection_reason" placeholder="Reason (optional)" aria-label="Rejection reason (optional)"
                                             class="flex-1 text-[12px] border border-[#E2E8F0] rounded-lg px-3 py-2 text-[#1F2937] placeholder-[#64748B] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1]/10 outline-none">
                                         <button type="submit" class="bg-[#EF4444] hover:brightness-95 text-white text-[12px] font-bold px-4 py-2 rounded-lg transition">Confirm</button>
                                     </form>
@@ -201,7 +201,7 @@
                                 <div x-show="showReject" x-cloak class="mt-2">
                                     <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST" class="flex gap-2">
                                         @csrf @method('PATCH')
-                                        <input name="rejection_reason" placeholder="Reason (optional)"
+                                        <input name="rejection_reason" placeholder="Reason (optional)" aria-label="Rejection reason (optional)"
                                             class="flex-1 text-[12px] border border-[#E2E8F0] rounded-lg px-3 py-2 text-[#1F2937] placeholder-[#64748B] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1]/10 outline-none">
                                         <button type="submit" class="bg-[#EF4444] hover:brightness-95 text-white text-[12px] font-bold px-4 py-2 rounded-lg transition">Confirm</button>
                                     </form>
@@ -471,7 +471,7 @@
             <div class="px-5 py-3 bg-white/50 backdrop-blur-lg border-t border-white/30 flex-shrink-0">        <form id="message-form" class="flex items-center gap-2.5">
                 <input type="text" id="message-input" name="message" required maxlength="2000" autocomplete="off"
                     class="flex-1 bg-[#E2E8F0] border border-transparent focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#1F2937] transition outline-none placeholder-[#64748B]"
-                    placeholder="Message {{ $otherParty->first_name }}...">
+                    placeholder="Message {{ $otherParty->first_name }}..." aria-label="Message {{ $otherParty->first_name }}">
                 <button type="submit"
                     class="bg-[#1F2937] hover:brightness-95 active:scale-[0.98] text-white font-bold text-[13px] px-4 py-2.5 rounded-xl shadow-sm transition inline-flex items-center gap-1.5">
                     <svg class="w-4 h-4 rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
