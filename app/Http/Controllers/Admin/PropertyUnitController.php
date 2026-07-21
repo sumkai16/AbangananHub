@@ -1,9 +1,11 @@
 <?php
 namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PropertyUnitController extends Controller
 {
@@ -24,7 +26,14 @@ class PropertyUnitController extends Controller
             $units = $query->oldest()->paginate(15)->withQueryString();
         }
 
-        return view('admin.units.index', compact('units', 'status'));
+        $counts = [
+            'Pending' => PropertyUnit::where('verification_status', 'Pending')->count(),
+            'Approved' => PropertyUnit::where('verification_status', 'Approved')->count(),
+            'Rejected' => PropertyUnit::where('verification_status', 'Rejected')->count(),
+        ];
+        $counts['All'] = array_sum($counts);
+
+        return view('admin.units.index', compact('units', 'status', 'counts'));
     }
 
     public function show(Property $property, PropertyUnit $unit)
@@ -41,11 +50,24 @@ class PropertyUnitController extends Controller
         if ($unit->property_id !== $property->property_id) {
             abort(404);
         }
-        abort_if(!$unit->isPending(), 409, 'This unit has already been reviewed.');
-        $unit->update([
-            'verification_status' => 'Approved',
-            'rejection_reason'    => null,
-        ]);
+
+        DB::transaction(function () use ($unit) {
+            $locked = PropertyUnit::whereKey($unit->getKey())->lockForUpdate()->firstOrFail();
+            abort_if(!$locked->isPending(), 409, 'This unit has already been reviewed.');
+            $locked->update([
+                'verification_status' => 'Approved',
+                'rejection_reason'    => null,
+            ]);
+        });
+
+        Notification::notify(
+            $property->landlord_id,
+            'listing',
+            'Unit approved',
+            "Unit '{$unit->unit_label}' in {$property->title} was approved and is now bookable.",
+            route('landlord.units.index'),
+        );
+
         return redirect()
             ->route('admin.units.index')
             ->with('success', "Unit '{$unit->unit_label}' approved.");
@@ -56,14 +78,27 @@ class PropertyUnitController extends Controller
         if ($unit->property_id !== $property->property_id) {
             abort(404);
         }
-        abort_if(!$unit->isPending(), 409, 'This unit has already been reviewed.');
         $validated = $request->validate([
            'rejection_reason' => 'required|string|max:500',
         ]);
-        $unit->update([
-            'verification_status' => 'Rejected',
-            'rejection_reason'    => $validated['rejection_reason'] ?? null,
-        ]);
+
+        DB::transaction(function () use ($unit, $validated) {
+            $locked = PropertyUnit::whereKey($unit->getKey())->lockForUpdate()->firstOrFail();
+            abort_if(!$locked->isPending(), 409, 'This unit has already been reviewed.');
+            $locked->update([
+                'verification_status' => 'Rejected',
+                'rejection_reason'    => $validated['rejection_reason'] ?? null,
+            ]);
+        });
+
+        Notification::notify(
+            $property->landlord_id,
+            'listing',
+            'Unit not approved',
+            "Unit '{$unit->unit_label}' in {$property->title} was not approved. Reason: " . $validated['rejection_reason'],
+            route('landlord.units.index'),
+        );
+
         return redirect()
             ->route('admin.units.index')
             ->with('success', "Unit '{$unit->unit_label}' rejected.");

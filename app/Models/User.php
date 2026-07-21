@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Mail\PasswordResetMail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
@@ -107,6 +109,57 @@ public function tenantRatingsReceived()
         return $this->roles()->where('role', $role)->exists();
     }
 
+    /**
+     * Where this user belongs after logging in, registering, or verifying email.
+     * Landlords and admins manage things, so they get a dashboard; tenants
+     * browse, so they go to the listings. Brand-new accounts have no role yet
+     * (Tenant is granted on first browse) and fall through to the same place.
+     *
+     * This is the single source of truth for post-auth destinations — every
+     * auth controller calls it, so login and registration can't drift apart.
+     */
+    public function homeRoute(): string
+    {
+        return match (true) {
+            $this->hasRole('Admin')    => route('admin.dashboard'),
+            $this->hasRole('Landlord') => route('landlord.dashboard'),
+            default                    => route('properties.index'),
+        };
+    }
+
+    /**
+     * True when this user sees the landlord sidebar shell rather than the
+     * public one. Admins are excluded deliberately: they keep browsing the
+     * public site through `layouts.app` even though they also have a shell
+     * of their own.
+     *
+     * Several views pick their layout at runtime from this condition
+     * (conversations, agreements, tenant reservations). It lives here so the
+     * layout choice and the page width can't drift apart — see
+     * `shellContainerClass()`.
+     */
+    public function usesLandlordShell(): bool
+    {
+        return $this->hasRole('Landlord') && ! $this->hasRole('Admin');
+    }
+
+    /**
+     * The page-container width for whichever shell this user is rendering in.
+     * Sidebar shells lose 256px to the nav, so they get the wider work-area
+     * cap; the public shell uses the full viewport and stays narrower.
+     * See DESIGN.md §5.
+     *
+     * `$inSidebarShell` lets a view pass its own layout condition when it
+     * differs from the landlord default (e.g. profile/edit keys off Admin,
+     * landlord/profile/show keys off ownership).
+     */
+    public function shellContainerClass(?bool $inSidebarShell = null): string
+    {
+        $sidebar = $inSidebarShell ?? $this->usesLandlordShell();
+
+        return $sidebar ? 'max-w-[1600px]' : 'max-w-[1400px]';
+    }
+
     // Provide a computed `name` attribute when the DB column is removed.
     public function getNameAttribute($value)
     {
@@ -130,5 +183,12 @@ public function tenantRatingsReceived()
     public function rentalBusiness()
     {
         return $this->hasOne(RentalBusiness::class, 'landlord_id', 'user_id');
+    }
+
+    // ─── Password Reset ──────────────────────────────────────
+
+    public function sendPasswordResetNotification($token): void
+    {
+        Mail::to($this->email)->send(new PasswordResetMail($this, $token));
     }
 }

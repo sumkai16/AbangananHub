@@ -1,7 +1,7 @@
-@extends(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
+@extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8" x-data="{
+    <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-14 min-h-[calc(100vh-72px)] flex flex-col" x-data="{
             modalOpen: false,
             selected: null,
             openModal(reservation) {
@@ -11,47 +11,74 @@
         }">
 
         {{-- Header --}}
-        <div class="flex items-start justify-between mb-6">
+        <div class="flex items-center gap-3.5 mb-6">
+            <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+            </div>
             <div>
-                <h1 class="text-2xl font-bold text-[#1F2937]">My Reservations</h1>
-                <p class="text-sm text-[#64748B] mt-1">Track your rental inquiries and reservations.</p>
+                <h1 class="text-2xl font-bold tracking-tight text-[#1F2937]">My Reservations</h1>
+                <p class="text-sm text-[#64748B] mt-0.5">Track your rental inquiries and reservations.</p>
             </div>
         </div>
 
-        {{-- Flash --}}
-        @if(session('success'))
-            <div class="mb-6 bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-[13px] font-medium">
-                {{ session('success') }}
-            </div>
-        @endif
         @if($errors->any())
-            <div class="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium">
+            <div class="mb-6 bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ $errors->first() }}
             </div>
         @endif
 
         {{-- Summary cards --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-lg">
-                <p class="text-[12px] font-semibold text-[#64748B] mb-1">Total</p>
-                <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['all'] }}</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total</span>
+                    <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                    </div>
+                </div>
+                <span class="text-xl font-extrabold text-[#1F2937]">{{ $counts['all'] }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
-            <div class="bg-[#EEF8F8]/70 backdrop-blur-xl border border-[#2AA7A1]/40 rounded-2xl p-4 shadow-lg">
-                <p class="text-[12px] font-semibold text-[#1F2937] mb-1">In progress</p>
-                <p class="text-2xl font-bold text-[#1F2937]">
+            <div class="bg-white rounded-2xl ring-1 ring-[#2AA7A1]/25 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] font-bold text-[#156F8C] uppercase tracking-wide">In progress</span>
+                    <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <span class="text-xl font-extrabold text-[#1F2937]">
                     {{ $counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'] }}
-                </p>
+                </span>
                 <p class="text-[11px] text-[#64748B] mt-1">Awaiting action</p>
             </div>
-            <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-lg">
-                <p class="text-[12px] font-semibold text-[#64748B] mb-1">Occupied</p>
-                <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['Occupied'] }}</p>
+            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
+                    <div class="w-7 h-7 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#16A34A" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
+                        </svg>
+                    </div>
+                </div>
+                <span class="text-xl font-extrabold text-[#15803D]">{{ $counts['Occupied'] }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
-            <div class="bg-white/70 backdrop-blur-xl border border-[#EF4444]/30 rounded-2xl p-4 shadow-lg">
-                <p class="text-[12px] font-semibold text-[#EF4444] mb-1">Cancelled / Rejected</p>
-                <p class="text-2xl font-bold text-[#1F2937]">{{ $counts['Cancelled'] + $counts['Rejected'] }}</p>
+            <div class="bg-white rounded-2xl ring-1 ring-[#EF4444]/20 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] font-bold text-[#DC2626] uppercase tracking-wide">Cancelled/Rejected</span>
+                    <div class="w-7 h-7 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </div>
+                </div>
+                <span class="text-xl font-extrabold text-[#1F2937]">{{ $counts['Cancelled'] + $counts['Rejected'] }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">All time</p>
             </div>
         </div>
@@ -80,23 +107,35 @@
         </div>
 
         {{-- Table --}}
-        <div class="bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl overflow-hidden shadow-lg">
+        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] overflow-hidden flex-1 flex flex-col">
             @if($reservations->isEmpty())
-                <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
-                    <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5"
-                        class="mb-3">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                    <p class="text-sm font-semibold text-[#1F2937] mb-1">No reservations
+                <div class="flex-1 flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
+                        <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                        </svg>
+                    </div>
+                    <p class="text-[15px] font-bold text-[#1F2937] mb-1">No reservations
                         {{ $status !== 'all' ? 'with this status' : 'yet' }}</p>
-                    <p class="text-[13px] text-[#64748B]">Your rental inquiries and reservations will show up here.</p>
+                    <p class="text-[13px] text-[#64748B] mb-5 max-w-xs">Your rental inquiries and reservations will show up here once you contact a landlord.</p>
+                    @if($status === 'all')
+                        <a href="{{ route('properties.index') }}"
+                            class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all shadow-sm">
+                            Browse properties
+                        </a>
+                    @else
+                        <a href="{{ route('reservations.index') }}"
+                            class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-[#1F2937] bg-white ring-1 ring-[#64748B]/15 hover:bg-[#EEF8F8] transition-all">
+                            View all reservations
+                        </a>
+                    @endif
                 </div>
             @else
                 <div class="overflow-x-auto scrollbar-thin-light">
                 <table class="w-full min-w-[820px] text-left">
                     <thead>
-                        <tr class="bg-[#E2E8F0] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                        <tr class="bg-[#F7FCFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                             <th class="px-5 py-3">Property / Unit</th>
                             <th class="px-5 py-3">Landlord</th>
                             <th class="px-5 py-3">Move-in date</th>
@@ -110,13 +149,13 @@
                             @continue(!$reservation->property)
                             @php
                                 $statusStyles = [
-                                    'Inquiry' => 'bg-amber-100 text-amber-700',
-                                    'Under Negotiation' => 'bg-amber-100 text-amber-700',
-                                    'Pending Rental Agreement' => 'bg-blue-100 text-blue-700',
-                                    'Rental Agreement Signed' => 'bg-blue-100 text-blue-700',
-                                    'Occupied' => 'bg-green-100 text-green-700',
-                                    'Rejected' => 'bg-red-100 text-red-700',
-                                    'Cancelled' => 'bg-[#64748B]/15 text-[#64748B]',
+                                    'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                    'Under Negotiation' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                    'Pending Rental Agreement' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                    'Rental Agreement Signed' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                    'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                                    'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
+                                    'Cancelled' => 'bg-[#64748B]/10 text-[#64748B]',
                                 ];
                                 $landlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));
                                 $modalData = [
@@ -132,10 +171,10 @@
                                     'unit_label' => $reservation->unit->unit_label ?? 'No unit',
                                 ];
                             @endphp
-                            <tr class="border-t border-[#64748B]/10 hover:bg-[#E2E8F0]/40 transition-colors duration-150">
+                            <tr class="border-t border-[#64748B]/10 hover:bg-[#F7FCFC] transition-colors duration-150">
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="w-10 h-10 rounded-lg bg-[#E2E8F0] overflow-hidden shrink-0">
+                                        <div class="w-10 h-10 rounded-lg bg-[#EEF8F8] overflow-hidden shrink-0">
                                             @if($photo = $reservation->property->media->first())
                                                 <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
                                             @endif
@@ -183,7 +222,7 @@
                                                 </button>
                                             </form>
                                             <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                class="text-[12px] font-semibold text-[#1F2937] border border-[#64748B]/20 rounded-lg px-3 py-1.5 hover:bg-[#E2E8F0] transition-all duration-150">
+                                                class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
                                                 Chat
                                             </a>
                                         @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
@@ -200,12 +239,12 @@
                                                 </button>
                                             </form>
                                             <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                class="text-[12px] font-semibold text-[#1F2937] border border-[#64748B]/20 rounded-lg px-3 py-1.5 hover:bg-[#E2E8F0] transition-all duration-150">
+                                                class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
                                                 Chat
                                             </a>
                                         @elseif($reservation->rental_status === 'Occupied')
                                             <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                class="text-[12px] font-semibold text-[#1F2937] border border-[#64748B]/20 rounded-lg px-3 py-1.5 hover:bg-[#E2E8F0] transition-all duration-150">
+                                                class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
                                                 Chat
                                             </a>
                                         @endif
@@ -227,12 +266,19 @@
 
         {{-- Details modal --}}
         <div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div @click="modalOpen = false" class="absolute inset-0 bg-black/40"></div>
-            <div class="relative bg-white/70 backdrop-blur-xl border border-white/30 rounded-2xl shadow-xl w-full max-w-md p-6" x-show="modalOpen" x-transition>
-                <div class="flex items-start justify-between mb-4">
-                    <h2 class="text-lg font-bold text-[#1F2937]">Reservation details</h2>
-                    <button @click="modalOpen = false" class="text-[#64748B] hover:text-[#1F2937]">
-                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div @click="modalOpen = false" class="absolute inset-0 bg-[#1F2937]/40"></div>
+            <div class="relative bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-2xl w-full max-w-md p-6" x-show="modalOpen" x-transition>
+                <div class="flex items-start justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                            </svg>
+                        </div>
+                        <h2 class="text-[16px] font-bold text-[#1F2937]">Reservation details</h2>
+                    </div>
+                    <button @click="modalOpen = false" class="w-8 h-8 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#F7FCFC] hover:text-[#1F2937] transition-colors">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -268,12 +314,12 @@
                             <span class="text-[#64748B]">Occupants</span>
                             <span class="text-[#1F2937]" x-text="selected.occupants_count || '—'"></span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between items-center pt-2 border-t border-[#E2E8F0]">
                             <span class="text-[#64748B]">Status</span>
-                            <span class="font-semibold text-[#1F2937]" x-text="selected.rental_status"></span>
+                            <span class="font-bold text-[#1F2937]" x-text="selected.rental_status"></span>
                         </div>
                         <template x-if="selected.remarks">
-                            <div class="pt-2 border-t border-[#64748B]/15">
+                            <div class="pt-3 border-t border-[#E2E8F0]">
                                 <p class="text-[#64748B] mb-1">Your remarks</p>
                                 <p class="text-[#1F2937]" x-text="selected.remarks"></p>
                             </div>

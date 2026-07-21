@@ -24,7 +24,7 @@
     </style>
 </head>
 
-<body class="font-sans bg-[#F7F8FA] text-[#1F2937] min-h-screen" x-data="{
+<body class="font-sans bg-[#F7FCFC] text-[#1F2937] min-h-screen" x-data="{
         sidebarOpen: false,
         sidebarCollapsed: localStorage.getItem('adminSidebarCollapsed') === 'true',
         userMenuOpen: false
@@ -35,6 +35,8 @@
             document.documentElement.classList.toggle('admin-sidebar-pre-collapsed', value);
         });
     ">
+
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#2AA7A1] focus:text-white focus:font-semibold">Skip to main content</a>
 
     <div class="flex min-h-screen">
 
@@ -76,7 +78,8 @@
 
                 @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
                 <a href="{{ route('notifications.index') }}" data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                    class="relative w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
+                    aria-label="Notifications"
+                    class="relative w-10 h-10 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
                     @if($unread > 0)
                         <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
                     @endif
@@ -418,7 +421,7 @@
                     <form action="{{ route('logout') }}" method="POST" class="shrink-0">
                         @csrf
                         <button type="submit" title="Sign out"
-                            class="group/so relative w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-white/[0.06] transition-colors">
+                            class="group/so relative w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-[#DC2626] hover:bg-white/[0.06] transition-colors">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                             </svg>
@@ -437,9 +440,9 @@
             class="flex-1 flex flex-col min-w-0 transition-all duration-300">
 
             {{-- Mobile-only slim bar (hamburger + notif) --}}
-            <div class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 sticky top-0 z-30">
+            <div class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E8F0] sticky top-0 z-30">
                 <button @click="sidebarOpen = !sidebarOpen"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-600 transition-colors">
+                    class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-[#EEF8F8] text-[#64748B] transition-colors">
                     <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
                     </svg>
@@ -450,9 +453,9 @@
                 @endif
 
                 <a href="{{ route('notifications.index') }}"
-                    class="relative w-9 h-9 flex items-center justify-center rounded-xl border border-gray-100 bg-white text-gray-500 hover:bg-gray-50 hover:text-[#156F8C] transition-all">
+                    class="relative w-9 h-9 flex items-center justify-center rounded-xl border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F7FCFC] hover:text-[#156F8C] transition-all">
                     @if($unread > 0)
-                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-white"></span>
                     @endif
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
@@ -460,15 +463,7 @@
                 </a>
             </div>
 
-            {{-- Flash messages --}}
-            @if(session('error'))
-                <div class="mx-4 sm:mx-6 lg:mx-8 mt-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-[13px] font-medium flex items-center justify-between">
-                    <span>{{ session('error') }}</span>
-                    <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 ml-3">&times;</button>
-                </div>
-            @endif
-
-            <main class="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">
+            <main id="main" class="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">
                 @yield('content')
             </main>
         </div>
@@ -476,19 +471,7 @@
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>
-    @if(session('status') || session('success'))
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                window.dispatchEvent(new CustomEvent('show-modal', {
-                    detail: {
-                        type: 'success',
-                        title: 'Done',
-                        message: @json(session('status') ?? session('success')),
-                    }
-                }));
-            });
-        </script>
-    @endif
+    @include('partials.flash-modal')
 
     @stack('scripts')
 </body>

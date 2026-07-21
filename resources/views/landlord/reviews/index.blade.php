@@ -3,7 +3,7 @@
 @section('page-title', 'Reviews')
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-6 pb-10">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
         <div class="flex items-center gap-3.5 mb-5">
@@ -19,24 +19,12 @@
             </div>
         </div>
 
-        {{-- Flash --}}
-        @if(session('success'))
-            <div class="mb-5 bg-[#EEF8F8] text-[#1F2937] rounded-xl px-4 py-3 text-[13px] font-medium flex items-center gap-2">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                    class="shrink-0 text-[#2AA7A1]">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                </svg>
-                {{ session('success') }}
-            </div>
-        @endif
-
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Reviews</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
@@ -47,10 +35,10 @@
                 <p class="text-[11px] text-[#64748B] mt-1">Across all properties</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Average Rating</span>
-                    <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
@@ -60,16 +48,16 @@
                 <p class="text-[11px] text-[#64748B] mt-1">Out of 5.0 stars</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-amber-100 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Awaiting Reply</span>
-                    <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-amber-500">{{ $stats['unreplied'] }}</span>
+                <span class="text-2xl font-extrabold text-[#B45309]">{{ $stats['unreplied'] }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">Needs your response</p>
             </div>
         </div>
@@ -78,7 +66,7 @@
             <div class="min-w-0">
                 {{-- Filter bar --}}
                 <form method="GET" action="{{ route('landlord.reviews.index') }}"
-                    class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-4 mb-6">
+                    class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
                     <div class="flex flex-wrap items-center gap-2.5">
                         <div class="relative">
                             <select name="property"
@@ -142,7 +130,7 @@
 
                 {{-- Review cards --}}
                 @if($reviews->isEmpty())
-                    <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col items-center justify-center py-16 px-6 text-center">
                         <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
                             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -159,7 +147,7 @@
                 @else
                     <div class="space-y-4" x-data="{ replyOpenId: null }">
                         @foreach($reviews as $review)
-                            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+                            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                                 {{-- Top row --}}
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                     <div class="flex items-center gap-3">
@@ -183,7 +171,7 @@
                                     <div class="flex items-center gap-2">
                                         <div class="flex items-center gap-0.5">
                                             @for($i = 1; $i <= 5; $i++)
-                                                <svg class="w-4 h-4 {{ $i <= $review->rating ? 'text-amber-400' : 'text-[#E2E8F0]' }}"
+                                                <svg class="w-4 h-4 {{ $i <= $review->rating ? 'text-[#B45309]' : 'text-[#E2E8F0]' }}"
                                                     viewBox="0 0 24 24" fill="currentColor">
                                                     <path fill-rule="evenodd"
                                                         d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005z"
@@ -202,14 +190,14 @@
                                 <div class="flex items-center justify-between mt-3">
                                     @if($review->landlord_reply)
                                         <span
-                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#22C55E]/[0.07] text-[#15803D] text-[11px] font-semibold">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span>
                                             Replied
                                         </span>
                                     @else
                                         <span
-                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 text-[11px] font-semibold">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FBBF24]/[0.10] text-[#B45309] text-[11px] font-semibold">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#FBBF24]"></span>
                                             Awaiting reply
                                         </span>
                                         <button type="button"
@@ -258,23 +246,23 @@
 
             {{-- Sidebar: reputation tips --}}
             <aside class="flex flex-col gap-4 lg:sticky lg:top-24">
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                     <h3 class="text-[13px] font-bold text-[#1F2937] mb-3.5">Build your reputation</h3>
                     <ul class="flex flex-col gap-3">
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
+                            <span class="w-5 h-5 rounded-full bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0 mt-0.5">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
                             </span>
                             <span class="text-[12.5px] text-[#64748B] leading-relaxed">Reply to every review — a thoughtful response shows future tenants you're engaged</span>
                         </li>
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
+                            <span class="w-5 h-5 rounded-full bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0 mt-0.5">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
                             </span>
                             <span class="text-[12.5px] text-[#64748B] leading-relaxed">Keep responses professional, even for critical feedback</span>
                         </li>
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
+                            <span class="w-5 h-5 rounded-full bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0 mt-0.5">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
                             </span>
                             <span class="text-[12.5px] text-[#64748B] leading-relaxed">A strong rating increases visibility in property search</span>

@@ -2,7 +2,7 @@
 @section('content')
 @vite(['resources/js/maps/property-map.js'])
 
-<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16">
+<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
     {{-- Back --}}
     <a href="{{ route('landlord.properties.index') }}"
@@ -12,16 +12,6 @@
         </svg>
         Back to Properties
     </a>
-
-    {{-- Flash --}}
-    @if(session('success'))
-        <div class="mb-6 px-4 py-3 rounded-xl bg-[#EEF8F8] text-[#1F2937] text-sm font-medium flex items-center gap-2">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0 text-[#2AA7A1]">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-            </svg>
-            {{ session('success') }}
-        </div>
-    @endif
 
     @php
         $images   = $property->media->where('media_type', 'Image')->values();
@@ -80,7 +70,7 @@
                         <button onclick="openLightbox({{ $i }}); highlightThumb({{ $i }})"
                                 id="thumb-{{ $i }}"
                                 class="shrink-0 w-[72px] h-[54px] rounded-xl overflow-hidden bg-[#EEF8F8] hover:opacity-80 transition-opacity duration-200 border-2 {{ $i === 0 ? 'border-[#1F2937]' : 'border-transparent' }}">
-                            <img src="{{ $img->media_url }}" class="w-full h-full object-cover">
+                            <img src="{{ $img->media_url }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
                         </button>
                     @endforeach
                     @if($images->count() > 4)
@@ -137,7 +127,7 @@
                               data-confirm-button="Delete">
                             @csrf @method('DELETE')
                             <button type="submit"
-                                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors">
                                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                                 </svg>
@@ -150,8 +140,8 @@
 
             {{-- Verified badge --}}
             @if($verified)
-                <div class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-emerald-700 mb-2 w-fit">
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-emerald-500">
+                <div class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#15803D] mb-2 w-fit">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-[#15803D]">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
                     </svg>
                     Verified Property
@@ -196,14 +186,14 @@
 
         {{-- Property Status card --}}
         <div class="w-full lg:w-56 shrink-0">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-4 space-y-3">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 space-y-3">
                 <div class="flex items-center justify-between gap-2">
                     <h3 class="text-xs font-bold text-[#64748B] uppercase tracking-widest">Property Status</h3>
                     @php
                         $statusBg = match($property->verification_status) {
-                            'Approved' => 'bg-emerald-50 text-emerald-700',
-                            'Pending'  => 'bg-amber-50 text-amber-600',
-                            'Rejected' => 'bg-red-50 text-red-600',
+                            'Approved' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                            'Pending'  => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                            'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
                             default    => 'bg-[#EEF8F8] text-[#64748B]',
                         };
                     @endphp
@@ -231,7 +221,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-[#64748B]">Available</span>
-                        <span class="font-semibold text-emerald-600">
+                        <span class="font-semibold text-[#15803D]">
                             {{ $unitStats['available'] }} units
                             @if($unitStats['total'] > 0)
                                 <span class="text-[#64748B] font-normal">({{ round($unitStats['available'] / $unitStats['total'] * 100) }}%)</span>
@@ -240,7 +230,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-[#64748B]">Reserved</span>
-                        <span class="font-semibold text-amber-500">
+                        <span class="font-semibold text-[#B45309]">
                             {{ $unitStats['reserved'] }} units
                             @if($unitStats['total'] > 0)
                                 <span class="text-[#64748B] font-normal">({{ round($unitStats['reserved'] / $unitStats['total'] * 100) }}%)</span>
@@ -286,7 +276,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
 
                 {{-- Property Information --}}
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                     <h3 class="text-sm font-bold text-[#1F2937] mb-4 flex items-center gap-2">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#64748B]">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9-3.75h.008v.008H12V8.25z"/>
@@ -325,7 +315,7 @@
                 </div>
 
                 {{-- Location --}}
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5 flex flex-col">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex flex-col">
                     <h3 class="text-sm font-bold text-[#1F2937] mb-3 flex items-center gap-2">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#64748B]">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
@@ -350,7 +340,7 @@
                 </div>
 
                 {{-- Statistics (SVG donut) --}}
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                     <h3 class="text-sm font-bold text-[#1F2937] mb-4 flex items-center gap-2">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#64748B]">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zm4.5-7.5A1.125 1.125 0 0 1 8.625 4.5h2.25c.621 0 1.125.504 1.125 1.125v13.5c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 7.5 19.125V5.625zm4.5-3A1.125 1.125 0 0 1 13.125 1.5h2.25C16.496 1.5 17 2.004 17 2.625v17.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 12 19.875V2.625z"/>
@@ -400,7 +390,7 @@
                             $legend = [
                                 ['label' => 'Occupied',    'count' => $unitStats['occupied'],  'color' => 'bg-[#22C55E]'],
                                 ['label' => 'Available',   'count' => $unitStats['available'], 'color' => 'bg-[#2AA7A1]'],
-                                ['label' => 'Reserved',    'count' => $unitStats['reserved'],  'color' => 'bg-amber-400'],
+                                ['label' => 'Reserved',    'count' => $unitStats['reserved'],  'color' => 'bg-[#FBBF24]'],
                                 ['label' => 'Maintenance', 'count' => 0,                       'color' => 'bg-[#64748B]/40'],
                             ];
                         @endphp
@@ -428,7 +418,7 @@
             </div>
 
             {{-- Recent Activity --}}
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-bold text-[#1F2937]">Recent Activity</h3>
                     <a href="{{ route('landlord.properties.units.index', $property) }}"
@@ -494,15 +484,15 @@
                         @php
                             $thumb = $unit->media->first();
                             [$avBg] = match($unit->availability_status) {
-                                'Available' => ['bg-emerald-50 text-emerald-700 ring-emerald-200'],
-                                'Reserved'  => ['bg-amber-50 text-amber-600 ring-amber-200'],
-                                'Occupied'  => ['bg-red-50 text-red-600 ring-red-200'],
+                                'Available' => ['bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25'],
+                                'Reserved'  => ['bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35'],
+                                'Occupied'  => ['bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25'],
                                 default     => ['bg-[#EEF8F8] text-[#64748B] ring-[#64748B]/20'],
                             };
                             [$vrBg] = match($unit->verification_status) {
-                                'Approved' => ['bg-emerald-50 text-emerald-700'],
-                                'Pending'  => ['bg-amber-50 text-amber-600'],
-                                'Rejected' => ['bg-red-50 text-red-600'],
+                                'Approved' => ['bg-[#22C55E]/[0.07] text-[#15803D]'],
+                                'Pending'  => ['bg-[#FBBF24]/[0.10] text-[#B45309]'],
+                                'Rejected' => ['bg-[#EF4444]/[0.07] text-[#DC2626]'],
                                 default    => ['bg-[#EEF8F8] text-[#64748B]'],
                             };
                         @endphp
@@ -555,7 +545,7 @@
                                           data-confirm-button="Remove unit">
                                         @csrf @method('DELETE')
                                         <button type="submit"
-                                                class="h-8 px-3 flex items-center gap-1 rounded-full border border-red-200 text-red-500 text-[11px] font-medium hover:bg-red-50 transition-colors duration-200">
+                                                class="h-8 px-3 flex items-center gap-1 rounded-full border border-[#EF4444]/25 text-[#DC2626] text-[11px] font-medium hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
                                             <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                                             </svg>
@@ -580,7 +570,7 @@
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     @foreach($property->amenities as $amenity)
-                        <div class="flex items-center gap-3 bg-white rounded-xl ring-1 ring-[#64748B]/15 px-4 py-3">
+                        <div class="flex items-center gap-3 bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] px-4 py-3">
                             <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-[#2AA7A1]">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
@@ -605,7 +595,7 @@
                     @foreach($images as $i => $img)
                         <button onclick="openLightbox({{ $i }})"
                                 class="aspect-square rounded-xl overflow-hidden bg-[#EEF8F8] hover:opacity-90 transition-opacity duration-200">
-                            <img src="{{ $img->media_url }}" class="w-full h-full object-cover">
+                            <img src="{{ $img->media_url }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
                         </button>
                     @endforeach
                 </div>
@@ -642,7 +632,7 @@
 
                 <div class="space-y-3">
                     @foreach($visibleReviews as $review)
-                        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-5">
+                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                             <div class="flex items-start justify-between gap-4 mb-3">
                                 <div class="flex items-center gap-3">
                                     <div class="w-9 h-9 rounded-full bg-[#EEF8F8] flex items-center justify-center shrink-0 text-sm font-bold text-[#156F8C]">

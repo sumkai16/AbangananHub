@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Report;
 use Illuminate\Http\Request;
 
@@ -23,9 +24,16 @@ class ReportController extends Controller
 
         $reports = $query->latest('report_id')->paginate(15)->withQueryString();
 
+        $counts = [
+            'Pending' => Report::where('report_status', 'Pending')->count(),
+            'Resolved' => Report::where('report_status', 'Resolved')->count(),
+        ];
+        $counts['All'] = array_sum($counts);
+
         return view('admin.reports.index', [
             'reports' => $reports,
             'status' => $status,
+            'counts' => $counts,
         ]);
     }
 
@@ -54,7 +62,7 @@ class ReportController extends Controller
             : ($report->property ? $report->property->landlord : null);
 
         if ($targetUser) {
-            $targetUser->update(['account_status' => 'Suspended']);
+            $targetUser->update(['account_status' => 'suspended']);
             $actionLabel = "Suspended user: {$targetUser->first_name} {$targetUser->last_name}";
         }
     } elseif ($validated['action_taken'] === 'delist_property' && $report->property) {
@@ -66,6 +74,16 @@ class ReportController extends Controller
         $validated['admin_notes'],
         $actionLabel,
         auth()->id()
+    );
+
+    // Only the reporter is told. The reported party is deliberately not
+    // notified that a report existed — that is admin-only moderation state.
+    Notification::notify(
+        $report->reporter_id,
+        'report',
+        'Your report was reviewed',
+        $validated['admin_notes'],
+        route('notifications.index'),
     );
 
     return back()->with('status', 'Report resolved.');

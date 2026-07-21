@@ -8,7 +8,7 @@
         confirmText: null,
         cancelText: 'Cancel',
         onConfirm: null,
-        defaults: { confirm: 'Confirm', success: 'Done', warning: 'Continue', error: 'Try again' },
+        defaults: { confirm: 'Confirm', success: 'OK', warning: 'OK', error: 'OK' },
         show(detail) {
             this.type = detail.type || 'confirm';
             this.title = detail.title || '';
@@ -26,26 +26,33 @@
     x-on:show-modal.window="show($event.detail)"
     x-on:keydown.escape.window="open = false"
     x-show="open" x-cloak
-    x-transition:enter="ease-out duration-200"
+    x-transition:enter="ease-out duration-300"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"
-    x-transition:leave="ease-in duration-150"
+    x-transition:leave="ease-in duration-200"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    class="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm flex items-center justify-center">
 
     <div x-show="open"
         x-on:click.outside="open = false"
-        x-transition:enter="ease-out duration-200"
-        x-transition:enter-start="opacity-0 scale-95"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="ease-in duration-150"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
+        x-transition:enter="ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+        x-transition:enter-start="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
+        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+        x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+        x-transition:leave-end="opacity-0 scale-95 translate-y-2 motion-reduce:scale-100 motion-reduce:translate-y-0"
         class="bg-white rounded-2xl max-w-[370px] w-full mx-4 p-8 pt-7 text-center shadow-lg">
 
         {{-- Icon --}}
-        <div class="w-14 h-14 rounded-full mx-auto mb-5 flex items-center justify-center"
+        <div x-show="open"
+            x-transition:enter="ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300 delay-100"
+            x-transition:enter-start="opacity-0 scale-75 motion-reduce:scale-100"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="w-14 h-14 rounded-full mx-auto mb-5 flex items-center justify-center"
             :class="{
                 'bg-[#EEF8F8] shadow-[0_0_0_6px_rgba(42,167,161,0.08)]': type === 'confirm',
                 'bg-[#ECFDF5] shadow-[0_0_0_6px_rgba(34,197,94,0.08)]': type === 'success',
@@ -74,7 +81,7 @@
         <p class="text-sm text-[#64748B] leading-relaxed mb-6" x-text="message"></p>
 
         <div class="flex gap-3">
-            <button type="button" x-show="type !== 'success'" x-on:click="open = false"
+            <button type="button" x-show="typeof onConfirm === 'function'" x-on:click="open = false"
                 class="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-[#E2E8F0] text-[#64748B] bg-white hover:bg-[#F7FCFC] transition-colors"
                 x-text="cancelText"></button>
 

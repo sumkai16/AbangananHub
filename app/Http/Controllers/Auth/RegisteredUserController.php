@@ -49,10 +49,10 @@ class RegisteredUserController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'redirect_url' => route('dashboard', absolute: false),
+                'redirect_url' => $user->homeRoute(),
             ]);
         }
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect($user->homeRoute());
     }
 }

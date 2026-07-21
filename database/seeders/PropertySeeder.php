@@ -3,9 +3,11 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\Amenity;
 use App\Models\User;
 use App\Models\Property;
 use App\Models\PropertyMedia;
+use App\Models\UnitMedia;
 
 class PropertySeeder extends Seeder
 {
@@ -71,6 +73,22 @@ class PropertySeeder extends Seeder
             'Room'      => $roomRules,
             'Apartment' => $apartmentRules,
             'House'     => $houseRules,
+        ];
+
+        // ─── Unit-level interior photo pool ──────────────
+        $unitImagePool = [
+            'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80',
+            'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80',
+            'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800&q=80',
+            'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=800&q=80',
+            'https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=800&q=80',
+            'https://images.unsplash.com/photo-1585412727339-54e4bae3bbf9?w=800&q=80',
+            'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&q=80',
+            'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=800&q=80',
+            'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80',
+            'https://images.unsplash.com/photo-1594560913095-8cf34bab82ad?w=800&q=80',
+            'https://images.unsplash.com/photo-1560185008-b033106af5c8?w=800&q=80',
+            'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80',
         ];
 
         $properties = [
@@ -751,10 +769,29 @@ class PropertySeeder extends Seeder
             ],
         ];
 
+        $captionPool = [
+            'Sleeping area with natural light',
+            'Freshly cleaned before turnover',
+            'View from the doorway',
+            'Storage and study corner',
+            'Shared comfort room nearby',
+            'Ventilated with ceiling fan',
+        ];
+
+        $amenityIds = Amenity::pluck('amenity_id');
+
+        $maxUnits = 30; // keep the seeded dataset small enough to browse
+        $unitsCreated = 0;
+
         foreach ($properties as $data) {
             $mediaItems = $data['media'];
             $unitItems = $data['units'];
             unset($data['media'], $data['units']);
+
+            // Cap total seeded units — skip properties that would overshoot
+            if ($unitsCreated + count($unitItems) > $maxUnits) {
+                continue;
+            }
 
             // Pick 4–6 random rules from the pool matching this property type
             $pool = $rulesByType[$data['property_type']] ?? $roomRules;
@@ -764,12 +801,34 @@ class PropertySeeder extends Seeder
                 'landlord_id' => $landlord->user_id,
             ]));
 
+            // Create units with their own interior photos + amenities
             foreach ($unitItems as $unitData) {
-                $property->units()->create(array_merge($unitData, [
+                $unit = $property->units()->create(array_merge($unitData, [
                     'verification_status' => $unitData['verification_status'] ?? 'Approved',
                 ]));
+                $unitsCreated++;
+
+                // 3 interior photos per unit in unit_media (what the app reads)
+                $unitPhotos = collect($unitImagePool)->shuffle()->take(3)->values();
+                foreach ($unitPhotos as $i => $url) {
+                    UnitMedia::create([
+                        'unit_id'    => $unit->unit_id,
+                        'media_type' => 'Image',
+                        'media_url'  => $url,
+                        'source'     => 'camera',
+                        'caption'    => $i === 0 ? collect($captionPool)->random() : null,
+                    ]);
+                }
+
+                // 3–6 random amenities per unit
+                if ($amenityIds->isNotEmpty()) {
+                    $unit->amenities()->attach(
+                        $amenityIds->shuffle()->take(rand(3, min(6, $amenityIds->count())))->values()->all()
+                    );
+                }
             }
 
+            // Property-level photos (building exterior, common areas)
             foreach ($mediaItems as $media) {
                 PropertyMedia::create([
                     'property_id' => $property->property_id,

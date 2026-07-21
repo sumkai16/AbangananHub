@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -24,22 +25,44 @@ class PaymentController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $counts = [
+            'Held' => Payment::where('status', 'Held')->count(),
+            'Released' => Payment::where('status', 'Released')->count(),
+            'Pending' => Payment::where('status', 'Pending')->count(),
+        ];
+        $counts['All'] = Payment::count();
+
+        $sums = [
+            'Held' => Payment::where('status', 'Held')->sum('amount'),
+            'Released' => Payment::where('status', 'Released')->sum('amount'),
+        ];
+
         return view('admin.payments.index', [
             'payments' => $payments,
             'status' => $status,
+            'counts' => $counts,
+            'sums' => $sums,
         ]);
     }
 
     public function release(Payment $payment)
     {
-        abort_unless($payment->isHeld(), 409, 'Only held payments can be released.');
+        // Held → Released moves real money conceptually; lock the row so a
+        // double-click or a retried request can't both pass the status check
+        // and release (and message) the same payment twice.
+        DB::transaction(function () use ($payment) {
+            $locked = Payment::whereKey($payment->getKey())->lockForUpdate()->firstOrFail();
 
-        $payment->update([
-            'status' => 'Released',
-            'released_at' => now(),
-            'released_by' => auth()->id(),
-        ]);
+            abort_unless($locked->isHeld(), 409, 'Only held payments can be released.');
 
+            $locked->update([
+                'status' => 'Released',
+                'released_at' => now(),
+                'released_by' => auth()->id(),
+            ]);
+        });
+
+        $payment->refresh();
         $payment->load('reservation.property.landlord');
 
         $landlord = $payment->reservation?->property?->landlord;

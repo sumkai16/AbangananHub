@@ -1,7 +1,7 @@
-@extends(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
+@extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-6" x-data="inboxApp()" x-cloak>
+    <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
         {{-- Header --}}
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -55,7 +55,7 @@
         </div>
 
         {{-- Split panel --}}
-        <div class="flex bg-white/70 backdrop-blur-xl border border-white/30 shadow-lg rounded-2xl overflow-hidden"
+        <div class="flex bg-white ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] rounded-2xl overflow-hidden"
             style="height: calc(100vh - 170px); min-height: 500px;">
 
             {{-- LEFT: Conversation list --}}
@@ -97,7 +97,7 @@
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Search by person or property..."
+                            placeholder="Search by person or property..." aria-label="Search by person or property"
                             class="w-full pl-8 pr-3 py-2 text-[12px] text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/15 rounded-lg focus:outline-none focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/20 transition placeholder-[#64748B]" />
                     </form>
                 </div>
@@ -112,6 +112,22 @@
                             $hasUnread = $conversation->latestMessage
                                 && $conversation->latestMessage->sender_id !== auth()->id()
                                 && !$conversation->latestMessage->is_read;
+
+                            $rowReservation = $conversation->activeReservation;
+                            $rowStatus = $rowReservation?->rental_status;
+                            $rowLabels = [
+                                'Inquiry' => 'Inquiry',
+                                'Under Negotiation' => 'Negotiation',
+                                'Pending Rental Agreement' => 'Agreement',
+                                'Rental Agreement Signed' => 'Signed',
+                                'Occupied' => 'Occupied',
+                            ];
+                            $rowTerminal = in_array($rowStatus, ['Cancelled', 'Rejected']);
+                            // Same derived stage as the chat panel: money held or
+                            // released while still on 'Signed' reads as "Paid".
+                            $rowPaid = $rowStatus === 'Rental Agreement Signed'
+                                && $rowReservation?->payments->whereIn('status', ['Held', 'Released'])->isNotEmpty();
+                            $rowLabel = $rowPaid ? 'Paid' : ($rowLabels[$rowStatus] ?? $rowStatus);
                         @endphp
 
                         <button type="button" @click="loadConversation({{ $conversation->conversation_id }})"
@@ -133,7 +149,7 @@
                                         {{ $conversation->latestMessage ? $conversation->latestMessage->sent_at->diffForHumans(null, true) : '' }}
                                     </span>
                                 </div>
-                                <p
+                                <p data-preview
                                     class="text-[12px] text-[#64748B] truncate mt-0.5 {{ $hasUnread ? 'font-semibold text-[#1F2937]' : '' }}">
                                     {{ $conversation->latestMessage->message ?? 'No messages yet' }}
                                 </p>
@@ -146,10 +162,19 @@
                                     {{ $conversation->property->title }}
                                     @if($conversation->unit) &middot; {{ $conversation->unit->unit_label }} @endif
                                 </p>
+
+                                @if($rowStatus)
+                                    <div class="mt-1.5">
+                                        <span data-stage-pill="{{ $rowStatus }}"
+                                            class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full {{ $rowTerminal ? 'bg-[#E2E8F0] text-[#EF4444]' : 'bg-[#EEF8F8] text-[#156F8C]' }}">
+                                            {{ $rowLabel }}
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
 
                             @if($hasUnread)
-                                <div class="w-2.5 h-2.5 rounded-full bg-[#2AA7A1] flex-shrink-0 mt-2"></div>
+                                <div data-unread-dot class="w-2.5 h-2.5 rounded-full bg-[#2AA7A1] flex-shrink-0 mt-2"></div>
                             @endif
                         </button>
                     @empty
@@ -162,15 +187,23 @@
                                 </svg>
                             </div>
                             <p class="text-[13px] font-bold text-[#1F2937]">No conversations yet</p>
-                            <p class="text-[12px] text-[#64748B] mt-1">When you send inquiries, your conversations will appear
-                                here.</p>
+                            <p class="text-[12px] text-[#64748B] mt-1 max-w-[220px] mx-auto">
+                                {{ $isLandlord ? 'Inquiries from tenants will appear here.' : 'When you send inquiries, your conversations will appear here.' }}
+                            </p>
+                            @if(!$isLandlord)
+                                <a href="{{ route('properties.index') }}"
+                                    class="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-[12.5px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all">
+                                    Browse properties
+                                </a>
+                            @endif
                         </div>
                     @endforelse
                 </div>
 
                 @if($conversations->isNotEmpty())
                     <div class="px-4 py-2 border-t border-[#64748B]/10 flex-shrink-0">
-                        <p class="text-[11px] text-[#64748B] text-center">Showing {{ $conversations->count() }} conversations
+                        <p class="text-[11px] text-[#64748B] text-center">
+                            Showing 1 to {{ $conversations->count() }} of {{ $conversations->count() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->count()) : Str::plural('conversation', $conversations->count()) }}
                         </p>
                     </div>
                 @endif
@@ -225,6 +258,51 @@
                     init() {
                         const active = {{ request('active', 'null') }};
                         if (active) this.loadConversation(active);
+
+                        // Bound once for the page lifetime, not per-conversation:
+                        // this is how a thread you are NOT currently viewing gets
+                        // its list row updated. The per-conversation channel only
+                        // covers the open thread.
+                        // Guarded: if Reverb is unreachable the inbox must still
+                        // work as a normal page rather than dying in init().
+                        if (!window.Echo) return;
+
+                        window.Echo.private('user.{{ auth()->id() }}')
+                            .listen('.ReservationStatusUpdated', (e) => {
+                                if (e.conversation_id !== this.activeId) {
+                                    this.updateListStage(e.conversation_id, e.status);
+                                }
+                            })
+                            .listen('.MessageSent', (e) => {
+                                if (e.conversation_id === this.activeId) return;
+                                this.updateListPreview(e.conversation_id, e.message, e.is_system);
+                            })
+                            .listen('.PaymentStatusUpdated', () => {
+                                // Payment state feeds the derived "Paid" stage and
+                                // swaps the tenant's CTA from "Proceed to payment"
+                                // to "Confirm move-in", so the panel has to re-render.
+                                this.refreshPanel();
+                            });
+                    },
+
+                    updateListPreview(conversationId, message, isSystem) {
+                        const btn = document.querySelector(`button[data-conversation-id="${conversationId}"]`);
+                        if (!btn) return;
+
+                        const preview = btn.querySelector('[data-preview]');
+                        if (preview) {
+                            preview.textContent = message;
+                            // System messages are status narration, not someone
+                            // waiting on a reply — don't mark them unread.
+                            if (!isSystem) preview.classList.add('font-semibold', 'text-[#1F2937]');
+                        }
+
+                        if (!isSystem && !btn.querySelector('[data-unread-dot]')) {
+                            const dot = document.createElement('div');
+                            dot.className = 'w-2.5 h-2.5 rounded-full bg-[#2AA7A1] flex-shrink-0 mt-2';
+                            dot.setAttribute('data-unread-dot', '');
+                            btn.appendChild(dot);
+                        }
                     },
 
                     async loadConversation(id) {
@@ -247,13 +325,13 @@
                             });
                             const html = await res.text();
                             const wrapper = document.getElementById('chat-panel-wrapper');
-                            wrapper.innerHTML = html;
+                            this.replacePanelMarkup(wrapper, html);
 
                             this.loading = false;
 
                             // Format times
                             wrapper.querySelectorAll('.message-time').forEach(el => {
-                                el.textContent = new Date(el.dataset.sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                                if (el.dataset.sentAt) el.textContent = new Date(el.dataset.sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
                             });
 
                             // Scroll to bottom
@@ -308,6 +386,7 @@
                     },
 
                     wireEcho(conversationId) {
+                        if (!window.Echo) return;
                         this.echoListener = conversationId;
                         window.Echo.private('conversation.' + conversationId)
                             .listen('.MessageSent', (e) => {
@@ -318,7 +397,113 @@
                                     sent_at: e.sent_at,
                                     is_system: e.is_system
                                 }, false);
+                            })
+                            .listen('.ReservationStatusUpdated', (e) => {
+                                // The panel is role-dependent (landlord sees
+                                // "Accept & negotiate", tenant sees "Waiting
+                                // for landlord"), so we refetch our own render
+                                // rather than trusting a broadcast payload.
+                                this.refreshPanel();
+                                this.updateListStage(e.conversation_id, e.status);
                             });
+                    },
+
+                    // Re-render the open panel in place. Anything the user has
+                    // already typed and their scroll position both survive —
+                    // losing a half-written message because the other party
+                    // clicked a button would be worse than the stale panel.
+                    async refreshPanel() {
+                        const id = this.activeId;
+                        if (!id) return;
+
+                        const wrapper = document.getElementById('chat-panel-wrapper');
+                        if (!wrapper) return;
+
+                        const oldList = wrapper.querySelector('#message-list');
+                        const oldInput = document.getElementById('message-input');
+                        const draft = oldInput ? oldInput.value : '';
+                        const hadFocus = document.activeElement === oldInput;
+                        // Only pin to the bottom if they were already there;
+                        // someone reading back through history shouldn't get
+                        // yanked down by the other party's status change.
+                        const wasAtBottom = oldList
+                            ? (oldList.scrollHeight - oldList.scrollTop - oldList.clientHeight) < 40
+                            : true;
+                        const oldScroll = oldList ? oldList.scrollTop : 0;
+
+                        let markup;
+                        try {
+                            const res = await fetch('/conversations/' + id, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'text/html'
+                                }
+                            });
+                            if (!res.ok) return;
+                            markup = await res.text();
+                        } catch (e) {
+                            return; // Leave the stale panel up rather than blanking it.
+                        }
+
+                        // Trusted first-party markup: this is the chat-panel
+                        // Blade partial for the authenticated viewer, served by
+                        // a Gate-authorized route, with all interpolation
+                        // escaped by Blade. Same source as loadConversation().
+                        this.replacePanelMarkup(wrapper, markup);
+
+                        wrapper.querySelectorAll('.message-time').forEach(el => {
+                            if (el.dataset.sentAt) el.textContent = new Date(el.dataset.sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                        });
+
+                        const newList = wrapper.querySelector('#message-list');
+                        if (newList) {
+                            newList.scrollTop = wasAtBottom ? newList.scrollHeight : oldScroll;
+                        }
+
+                        const newInput = document.getElementById('message-input');
+                        if (newInput && draft) {
+                            newInput.value = draft;
+                            if (hadFocus) {
+                                newInput.focus();
+                                newInput.setSelectionRange(draft.length, draft.length);
+                            }
+                        }
+
+                        // The form element was replaced, so its listener went
+                        // with it. Echo is bound to the channel, not the DOM,
+                        // so it must NOT be rewired here or every refresh
+                        // stacks another duplicate listener.
+                        this.wireMessageForm(id);
+                    },
+
+                    replacePanelMarkup(wrapper, markup) {
+                        const parsed = new DOMParser().parseFromString(markup, 'text/html');
+                        wrapper.replaceChildren(...parsed.body.childNodes);
+                    },
+
+                    updateListStage(conversationId, status) {
+                        const btn = document.querySelector(`button[data-conversation-id="${conversationId}"]`);
+                        if (!btn) return;
+
+                        const pill = btn.querySelector('[data-stage-pill]');
+                        if (!pill) return;
+
+                        const labels = {
+                            'Inquiry': 'Inquiry',
+                            'Under Negotiation': 'Negotiation',
+                            'Pending Rental Agreement': 'Agreement',
+                            'Rental Agreement Signed': 'Signed',
+                            'Occupied': 'Occupied',
+                            'Cancelled': 'Cancelled',
+                            'Rejected': 'Rejected',
+                        };
+                        const terminal = status === 'Cancelled' || status === 'Rejected';
+
+                        pill.textContent = labels[status] ?? status;
+                        pill.className = terminal
+                            ? 'shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E2E8F0] text-[#EF4444]'
+                            : 'shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EEF8F8] text-[#156F8C]';
+                        pill.setAttribute('data-stage-pill', status);
                     },
 
                     appendMessage(data, isSelf) {
@@ -327,7 +512,7 @@
 
                         if (data.is_system) {
                             const divider = document.createElement('div');
-                            divider.className = 'self-stretch flex items-center gap-3 my-1 px-2';
+                            divider.className = 'self-stretch flex items-center gap-3 my-2 px-2';
                             divider.innerHTML = `
                                 <div class="flex-1 h-px bg-[#E2E8F0]"></div>
                                 <p class="text-xs text-[#64748B] text-center max-w-[70%] leading-relaxed">${this.escapeHtml(data.message)}</p>
@@ -340,32 +525,114 @@
 
                         const currentUserId = {{ auth()->id() }};
                         const self = isSelf || data.sender_id === currentUserId;
-
-                        const bubble = document.createElement('div');
-                        bubble.className = `max-w-[75%] ${self
-                            ? 'self-end bg-[#1F2937] text-white rounded-2xl rounded-tr-sm'
-                            : 'self-start bg-white text-[#1F2937] border border-[#E2E8F0] rounded-2xl rounded-tl-sm'
-                            } px-4 py-2.5 shadow-sm`;
-
                         const time = new Date(data.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
                         const senderFirst = (data.sender_name || '').split(' ')[0];
 
-                        bubble.innerHTML = `
-                                                                ${!self ? `<p class="text-[10px] font-bold text-[#64748B] mb-1 tracking-wide uppercase">${senderFirst}</p>` : ''}
-                                                                <p class="text-[13px] leading-relaxed whitespace-pre-wrap">${this.escapeHtml(data.message)}</p>
-                                                                <div class="flex items-center justify-end mt-1">
-                                                                    <p class="text-[10px] tracking-wide ${self ? 'text-white/40' : 'text-[#64748B]'}">${time}</p>
-                                                                </div>
-                                                            `;
-                        msgList.appendChild(bubble);
+                        // Mirrors the Blade markup in chat-panel.blade.php. If you
+                        // restyle a bubble there, restyle it here too — these two
+                        // renderers have to agree or a message changes appearance
+                        // the moment the page is reloaded.
+                        if (self) {
+                            const wrap = document.createElement('div');
+                            wrap.className = 'group relative max-w-[75%] self-end mb-1.5';
+                            wrap.setAttribute('data-bubble', '');
+
+                            const bubble = document.createElement('div');
+                            bubble.className = 'bg-[#1F2937] text-white rounded-2xl rounded-tr-sm px-4 py-2.5 shadow-sm cursor-default';
+                            bubble.appendChild(this.buildBody(data.message));
+
+                            wrap.appendChild(bubble);
+                            wrap.appendChild(this.buildTime(time, true));
+                            msgList.appendChild(wrap);
+                        } else {
+                            // The previous message in this run loses its avatar —
+                            // Messenger shows it only on the last of a run.
+                            const prevRow = msgList.lastElementChild;
+                            if (prevRow && prevRow.dataset.msgSender === String(data.sender_id)) {
+                                const slot = prevRow.querySelector('[data-avatar-slot]');
+                                if (slot) slot.replaceChildren(this.buildSpacer());
+                                prevRow.classList.remove('mb-1.5');
+                            }
+
+                            const row = document.createElement('div');
+                            row.className = 'flex items-end gap-2 self-start max-w-[85%] mb-1.5';
+                            row.dataset.msgSender = String(data.sender_id);
+
+                            const slot = document.createElement('span');
+                            slot.setAttribute('data-avatar-slot', '');
+                            slot.className = 'contents';
+                            slot.appendChild(this.buildAvatar(data.sender_avatar, senderFirst, data.sender_name));
+                            row.appendChild(slot);
+
+                            const wrap = document.createElement('div');
+                            wrap.className = 'group relative min-w-0';
+                            wrap.setAttribute('data-bubble', '');
+
+                            const bubble = document.createElement('div');
+                            bubble.className = 'bg-white text-[#1F2937] border border-[#E2E8F0] rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm cursor-default';
+
+                            const name = document.createElement('p');
+                            name.className = 'text-[11px] font-bold text-[#156F8C] mb-1';
+                            name.textContent = senderFirst;
+                            bubble.appendChild(name);
+                            bubble.appendChild(this.buildBody(data.message));
+
+                            wrap.appendChild(bubble);
+                            wrap.appendChild(this.buildTime(time, false));
+                            row.appendChild(wrap);
+                            msgList.appendChild(row);
+                        }
+
                         msgList.scrollTop = msgList.scrollHeight;
 
                         // Update sidebar preview
                         const btn = document.querySelector(`button[data-conversation-id="${this.activeId}"]`);
                         if (btn) {
-                            const preview = btn.querySelector('p.truncate');
+                            // Target the preview explicitly — 'p.truncate' also
+                            // matches the property-title line below it.
+                            const preview = btn.querySelector('[data-preview]');
                             if (preview) preview.textContent = data.message;
                         }
+                    },
+
+                    buildBody(message) {
+                        const text = document.createElement('p');
+                        text.className = 'text-[13px] leading-relaxed whitespace-pre-wrap';
+                        text.textContent = message;
+                        return text;
+                    },
+
+                    // Mirrors the .message-time element in chat-panel.blade.php:
+                    // outside the bubble so hiding it costs no height, opacity-only
+                    // so it stays readable to screen readers.
+                    buildTime(time, self) {
+                        const stamp = document.createElement('p');
+                        stamp.className = 'message-time absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] tracking-wide text-[#64748B] opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none '
+                            + (self ? 'right-full mr-2' : 'left-full ml-2');
+                        stamp.textContent = time;
+                        return stamp;
+                    },
+
+                    buildAvatar(url, firstName, fullName) {
+                        if (url) {
+                            const img = document.createElement('img');
+                            img.src = url;
+                            img.alt = fullName || firstName || '';
+                            img.className = 'w-7 h-7 rounded-full object-cover shrink-0 mb-0.5';
+                            return img;
+                        }
+                        const fallback = document.createElement('div');
+                        fallback.className = 'w-7 h-7 rounded-full bg-[#2AA7A1] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mb-0.5';
+                        fallback.setAttribute('aria-hidden', 'true');
+                        fallback.textContent = (firstName || '?').charAt(0).toUpperCase();
+                        return fallback;
+                    },
+
+                    buildSpacer() {
+                        const spacer = document.createElement('div');
+                        spacer.className = 'w-7 shrink-0';
+                        spacer.setAttribute('aria-hidden', 'true');
+                        return spacer;
                     },
 
                     escapeHtml(str) {
@@ -375,6 +642,25 @@
                     }
                 }
             }
+
+            // Timestamps are hover-revealed on pointer devices. Touch has no
+            // hover, so tapping a bubble pins its time instead. Delegated from
+            // document because the panel markup is replaced wholesale whenever
+            // a conversation loads or a status change refreshes it.
+            document.addEventListener('click', (e) => {
+                const bubble = e.target.closest('[data-bubble]');
+                const list = e.target.closest('#message-list');
+                if (!list) return;
+
+                // Tapping empty space in the thread clears any pinned time.
+                list.querySelectorAll('[data-bubble] .message-time.\\!opacity-100').forEach((el) => {
+                    if (!bubble || !bubble.contains(el)) el.classList.remove('!opacity-100');
+                });
+
+                if (!bubble) return;
+                const time = bubble.querySelector('.message-time');
+                if (time) time.classList.toggle('!opacity-100');
+            });
 
             async function resolveConversation(id) {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;

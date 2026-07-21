@@ -37,7 +37,7 @@ class ConversationController extends Controller
                     ->where('is_read', false);
             })->count();
 
-        $query = (clone $base)->with(['tenant', 'landlord', 'property', 'unit', 'latestMessage']);
+        $query = (clone $base)->with(['tenant', 'landlord', 'property', 'unit', 'latestMessage', 'activeReservation.payments']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -119,7 +119,7 @@ class ConversationController extends Controller
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        $conversation->load(['tenant', 'landlord', 'property.media', 'unit', 'messages.sender', 'activeReservation']);
+        $conversation->load(['tenant', 'landlord', 'property.media', 'unit', 'messages.sender', 'activeReservation.payments']);
 
         $otherParty = Auth::id() === $conversation->tenant_id
             ? $conversation->landlord

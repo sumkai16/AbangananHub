@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
             'email'          => 'admin@abangananhub.com',
             'password'       => Hash::make('password'),
             'contact_number' => '09000000001',
-            'account_status' => 'Active',
+            'account_status' => 'active',
         ]);
         UserRole::create(['user_id' => $admin->user_id, 'role' => 'Admin']);
 
@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
             'email'               => 'landlord@abangananhub.com',
             'password'            => Hash::make('password'),
             'contact_number'      => '09171234567',
-            'account_status'      => 'Active',
+            'account_status'      => 'active',
             'profile_visibility'  => 'public',
         ]);
         UserRole::create(['user_id' => $approvedLandlord->user_id, 'role' => 'Landlord']);
@@ -56,7 +56,7 @@ class UserSeeder extends Seeder
             'email'          => 'landlord.pending@abangananhub.com',
             'password'       => Hash::make('password'),
             'contact_number' => '09181112222',
-            'account_status' => 'Active',
+            'account_status' => 'active',
         ]);
         LandlordVerification::create([
             'user_id'             => $pendingLandlord->user_id,
@@ -78,7 +78,7 @@ class UserSeeder extends Seeder
             'email'          => 'landlord.rejected@abangananhub.com',
             'password'       => Hash::make('password'),
             'contact_number' => '09191223344',
-            'account_status' => 'Active',
+            'account_status' => 'active',
         ]);
         LandlordVerification::create([
             'user_id'             => $rejectedLandlord->user_id,
@@ -100,7 +100,7 @@ class UserSeeder extends Seeder
             'email'          => 'axcee@abangananhub.com',
             'password'       => Hash::make('password'),
             'contact_number' => '09181234567',
-            'account_status' => 'Active',
+            'account_status' => 'active',
         ]);
         UserRole::create(['user_id' => $tenant->user_id, 'role' => 'Tenant']);
 

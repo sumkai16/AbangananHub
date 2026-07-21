@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreReservationRequest;
 use App\Models\Conversation;
 use App\Models\Property;
 use App\Models\Reservation;
@@ -42,32 +43,25 @@ class ReservationController extends Controller
         return view('tenant.reservations.index', compact('reservations', 'counts', 'status'));
     }
 
-public function store(Request $request)
+public function store(StoreReservationRequest $request)
     {
-       $request->validate([
-            'unit_id'              => 'required|integer|exists:property_units,unit_id',
-            'target_move_in_date'  => 'nullable|date|after_or_equal:today',
-            'target_move_out_date' => 'nullable|date|after:target_move_in_date',
-            'message'              => 'nullable|string|max:300',
-        ]);
-
-        $unit = \App\Models\PropertyUnit::where('unit_id', $request->unit_id)
+        $unit = PropertyUnit::where('unit_id', $request->unit_id)
             ->where('availability_status', 'Available')
             ->where('verification_status', 'Approved')
             ->first();
 
         if (!$unit) {
-            return back()->withErrors(['unit' => 'This unit is not available.']);
+            return back()->withInput()->with('error', 'This unit is no longer available.');
         }
 
         $property = $unit->property;
 
         if ($property->landlord_id === Auth::id()) {
-            return back()->withErrors(['property' => 'You cannot inquire on your own listing.']);
+            return back()->withInput()->with('error', 'You cannot inquire on your own listing.');
         }
 
         if ($property->verification_status !== 'Approved') {
-            return back()->withErrors(['property' => 'This property is not available.']);
+            return back()->withInput()->with('error', 'This property is not currently available for inquiries.');
         }
 
         // Check for existing active reservation on this unit by this tenant
@@ -77,7 +71,7 @@ public function store(Request $request)
             ->exists();
 
         if ($exists) {
-            return back()->withErrors(['unit' => 'You already have an active inquiry or reservation for this unit.']);
+            return back()->with('warning', 'You already have an active inquiry or reservation for this unit.');
         }
 
         $conversation = Conversation::where('tenant_id', Auth::id())
@@ -132,13 +126,10 @@ public function store(Request $request)
         }
 
         if (!$reservation->cancel()) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
+            return back()->with('error', 'This reservation can no longer be cancelled.');
         }
 
-        // Release unit if it was reserved for this tenant
-        if ($reservation->unit && $reservation->unit->availability_status === 'Reserved') {
-            $reservation->unit->update(['availability_status' => 'Available']);
-        }
+        // Reservation::cancel() already releases the unit via releaseUnit().
 
         return back()->with('success', 'Reservation cancelled.');
     }

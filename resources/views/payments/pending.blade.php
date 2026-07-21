@@ -1,7 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="max-w-xl mx-auto px-4 py-16 text-center">
+    <div class="max-w-xl mx-auto px-4 py-16 text-center min-h-[calc(100vh-72px)] flex flex-col justify-center">
 
         <div class="w-14 h-14 rounded-full bg-[#EEF8F8] flex items-center justify-center mx-auto mb-6">
             <svg class="w-7 h-7 text-[#2AA7A1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -15,17 +15,17 @@
             takes a few seconds.
         </p>
 
-        @if($latestPayment && $latestPayment->isPaid())
-            <div class="p-4 bg-green-50 border border-green-200/60 rounded-xl flex items-center gap-3 text-left mb-6">
-                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5"
+        @if($latestPayment && $latestPayment->isHeld())
+            <div class="p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3 text-left mb-6">
+                <div class="w-8 h-8 rounded-full bg-[#22C55E]/[0.12] flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-[#15803D]" fill="none" stroke="currentColor" stroke-width="2.5"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                 </div>
                 <div>
-                    <p class="text-sm font-bold text-green-800">Payment Confirmed</p>
-                    <p class="text-xs text-green-700 mt-0.5">Your unit is now marked as occupied.</p>
+                    <p class="text-sm font-bold text-[#15803D]">Payment Confirmed</p>
+                    <p class="text-xs text-[#15803D] mt-0.5">Funds are held by AbangananHub. Confirm your move-in on the agreement page to mark the unit as occupied.</p>
                 </div>
             </div>
         @endif

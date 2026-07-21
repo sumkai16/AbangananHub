@@ -3,7 +3,7 @@
 @section('page-title', 'Reviews')
 
 @section('content')
-<div class="max-w-[1400px]">
+<div class="max-w-[1600px] mx-auto">
 
     {{-- Header --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -17,7 +17,7 @@
     {{-- Stat cards --}}
     <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-6">
         @foreach([5, 4, 3, 2, 1] as $stars)
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-4 shadow-sm text-center">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)] text-center">
                 <div class="flex items-center justify-center gap-0.5 mb-1">
                     @for($i = 1; $i <= 5; $i++)
                         <svg class="w-3 h-3" fill="{{ $i <= $stars ? '#FBBF24' : '#E2E8F0' }}" viewBox="0 0 20 20">
@@ -40,8 +40,8 @@
                 $params = array_merge(request()->except(['visibility', 'page']), $key !== 'all' ? ['visibility' => $key] : []);
             @endphp
             <a href="{{ route('admin.reviews.index', $params) }}"
-                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors
-                    {{ $isActive ? 'bg-[#156F8C] text-white' : 'bg-white text-[#1F2937] border border-[#E2E8F0] hover:brightness-95' }}">
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200
+                    {{ $isActive ? 'bg-[#2AA7A1] text-white shadow-sm' : 'bg-white text-[#1F2937] border border-[#E2E8F0] hover:brightness-95' }}">
                 {{ $label }}
                 <span class="text-[11px] {{ $isActive ? 'text-white/70' : 'text-[#64748B]' }}">({{ $count }})</span>
             </a>
@@ -50,7 +50,7 @@
 
     {{-- Filters --}}
     <form method="GET" action="{{ route('admin.reviews.index') }}"
-        class="bg-white border border-[#E2E8F0] rounded-2xl p-4 mb-5 shadow-sm flex flex-col sm:flex-row gap-3">
+        class="bg-white border border-[#E2E8F0] rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
         @if($visibility !== 'all')
             <input type="hidden" name="visibility" value="{{ $visibility }}">
         @endif
@@ -60,11 +60,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
             </svg>
             <input type="text" name="search" value="{{ $search }}"
-                placeholder="Search by tenant, property, or review text…"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+                placeholder="Search by tenant, property, or review text…" aria-label="Search by tenant, property, or review text"
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
         </div>
         <select name="rating"
-            class="h-10 text-[13.5px] rounded-xl border border-gray-200 bg-gray-50/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+            class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
             <option value="all" {{ $rating === 'all' ? 'selected' : '' }}>All ratings</option>
             @foreach([1,2,3,4,5] as $s)
                 <option value="{{ $s }}" {{ $rating == $s ? 'selected' : '' }}>{{ $s }} star{{ $s > 1 ? 's' : '' }}</option>
@@ -82,16 +82,9 @@
         @endif
     </form>
 
-    {{-- Success flash --}}
-    @if(session('success'))
-        <div class="mb-5 px-4 py-3 bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#1F2937] text-[13px] font-semibold rounded-xl">
-            {{ session('success') }}
-        </div>
-    @endif
-
     {{-- List --}}
     @if($reviews->isEmpty())
-        <div class="bg-white border border-[#E2E8F0] rounded-3xl p-16 text-center shadow-sm">
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
             <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] border border-[#E2E8F0] flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
@@ -103,7 +96,7 @@
     @else
         <div class="space-y-3">
             @foreach($reviews as $review)
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 {{ $review->is_hidden ? 'opacity-60' : '' }}"
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 {{ $review->is_hidden ? 'opacity-60' : '' }}"
                     x-data="{ confirmOpen: false }">
 
                     {{-- Rating block --}}

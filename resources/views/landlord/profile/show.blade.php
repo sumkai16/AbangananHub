@@ -1,19 +1,6 @@
 @extends($isOwner ? 'layouts.landlord' : 'layouts.app', $isOwner ? [] : ['searchBar' => false])
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-[50px] py-6 pb-10">
-
-        {{-- Success flash --}}
-        @if(session('success'))
-            <div class="bg-[#EEF8F8] text-[#1F2937] rounded-xl px-4 py-3 text-[13px] font-medium flex items-center justify-between shadow-sm mb-5">
-                <span class="flex items-center gap-2">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0 text-[#2AA7A1]">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                    {{ session('success') }}
-                </span>
-                <button class="opacity-60 hover:opacity-100 pl-3 focus:outline-none" onclick="this.parentElement.remove()">&#10005;</button>
-            </div>
-        @endif
+    <div class="{{ auth()->user()->shellContainerClass($isOwner) }} mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10 min-h-[calc(100vh-72px)]">
 
         {{-- Hero profile card --}}
         <div class="relative overflow-hidden rounded-2xl bg-[#2AA7A1] p-6 sm:p-8 mb-5">
@@ -87,7 +74,7 @@
                     <div class="flex items-center gap-2 mt-4 flex-wrap">
                         <span class="bg-black/15 text-white text-[12px] font-medium px-3 py-1 rounded-full">Landlord</span>
                         @if($verification && $verification->verification_status === 'Approved')
-                            <span class="bg-white text-emerald-700 text-[12px] font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                            <span class="bg-white text-[#15803D] text-[12px] font-semibold px-3 py-1 rounded-full flex items-center gap-1">
                                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -114,7 +101,7 @@
 
         {{-- Business info card --}}
         @if($business)
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5 mb-5">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-5">
                 <div class="flex items-center gap-3 mb-3">
                     @if($business->logo_url)
                         <img src="{{ $business->logo_url }}" alt="{{ $business->business_name }}" class="w-11 h-11 rounded-xl object-cover">
@@ -148,10 +135,10 @@
 
         {{-- Stats row --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Properties</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
+                    <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
                         </svg>
@@ -159,7 +146,7 @@
                 </div>
                 <span class="text-xl font-extrabold text-[#1F2937]">{{ $properties->count() }}</span>
             </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Units</span>
                     <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -170,21 +157,21 @@
                 </div>
                 <span class="text-xl font-extrabold text-[#1F2937]">{{ $totalUnits }}</span>
             </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
-                    <div class="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                    <div class="w-7 h-7 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-xl font-extrabold text-red-500">{{ $occupiedUnits }}</span>
+                <span class="text-xl font-extrabold text-[#DC2626]">{{ $occupiedUnits }}</span>
             </div>
-            <div class="bg-white rounded-2xl ring-1 ring-amber-100 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Avg Rating</span>
-                    <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                    <div class="w-7 h-7 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
@@ -241,7 +228,7 @@
                     </div>
                 @endif
             @else
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] py-10 text-center">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] py-10 text-center">
                     <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
@@ -253,7 +240,7 @@
         </div>
 
         {{-- Reviews received --}}
-        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-[15px] font-bold text-[#1F2937]">Reviews from tenants</h2>
                 @if($averageRating)

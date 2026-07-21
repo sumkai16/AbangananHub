@@ -8,156 +8,161 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Review;
+
 class PropertyController extends Controller
 {
-public function index(Request $request)
-{
-    $query = Property::with(['media', 'landlord', 'amenities', 'units'])
-        ->where('verification_status', 'Approved')
-        ->whereHas('units', function ($q) {
+    public function index(Request $request)
+    {
+        $query = Property::with(['media', 'landlord', 'amenities', 'units'])
+            ->where('verification_status', 'Approved')
+            ->whereHas('units', function ($q) {
+                $q->where('availability_status', 'Available')
+                  ->where('verification_status', 'Approved');
+            });
+
+        if ($request->filled('location')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('address', 'like', '%' . $request->location . '%')
+                  ->orWhere('title', 'like', '%' . $request->location . '%');
+            });
+        }
+        if ($request->filled('type')) {
+            $query->where('property_type', $request->type);
+        }
+        if ($request->filled('price_max')) {
+            $query->whereHas('units', function ($q) use ($request) {
+                $q->where('availability_status', 'Available')
+                  ->where('verification_status', 'Approved')
+                  ->where('rental_fee', '<=', $request->price_max);
+            });
+        }
+        if ($request->boolean('verified')) {
+            $query->whereHas('landlord.rentalBusiness');
+        }
+
+        $query->withMin(['units as min_rental_fee' => function ($q) {
             $q->where('availability_status', 'Available')
-              ->where('verification_status', 'Approved'); // FIX 1: was missing verification_status
-        });
-
-    if ($request->filled('location')) {
-        $query->where(function ($q) use ($request) {
-            $q->where('address', 'like', '%' . $request->location . '%')
-            ->orWhere('title', 'like', '%' . $request->location . '%');
-        });
-    }
-    if ($request->filled('type')) {
-        $query->where('property_type', $request->type);
-    }
-    if ($request->filled('price_max')) {
-        $query->whereHas('units', function ($q) use ($request) { // FIX 2: actually apply price constraint
-            $q->where('availability_status', 'Available')
-              ->where('verification_status', 'Approved')
-              ->where('rental_fee', '<=', $request->price_max);
-        });
-    }
-    if ($request->boolean('verified')) {
-        $query->whereHas('landlord.rentalBusiness');
-    }
-
-    $query->withMin(['units as min_rental_fee' => function ($q) {
-        $q->where('availability_status', 'Available')
-          ->where('verification_status', 'Approved');
-    }], 'rental_fee');
-    $query->withAvg(['reviews as avg_rating' => function ($q) {
-        $q->where('is_hidden', false);
-    }], 'rating');
-
-    $query->withCount(['reviews as review_count' => function ($q) {
-        $q->where('is_hidden', false);
-    }]);
-    match ($request->query('sort')) {
-        'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
-        'price_high' => $query->orderByDesc('min_rental_fee'),
-        default      => $query->latest('created_at'),
-    };
-
-    $properties = $query->paginate(12)->withQueryString();
-
-    $favoritedIds = [];
-    if (auth()->check()) {
-        $favoritedIds = Favorite::where('tenant_id', auth()->user()->user_id)
-            ->pluck('property_id')
-            ->toArray();
-    }
-
-    $mapProperties = $properties->getCollection()->map(function ($property) {
-        $minFee = $property->units
-            ->where('availability_status', 'Available')
-            ->where('verification_status', 'Approved') // FIX 3: already correct here, no change
-            ->min('rental_fee');
-        return [
-            'property_id'   => $property->property_id,
-            'title'         => $property->title,
-            'latitude'      => $property->latitude,
-            'longitude'     => $property->longitude,
-            'rental_fee'    => $minFee,
-            'url'           => route('properties.show', $property->property_id),
-            'property_type' => $property->property_type,
-            'image'         => $property->media->first()?->media_url ?? null,
-        ];
-    })->values();
-
-    return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties'));
-}
- public function show(Property $property)
-{
-    if ($property->verification_status !== 'Approved') {
-        abort(404);
-    }
-
-    $property->load(['media', 'landlord.rentalBusiness', 'amenities', 'units']);
-
-    // Load visible reviews (admins see all, everyone else sees non-hidden only)
-    $reviews = $property->reviews()
-        ->with('tenant')
-        ->when(!auth()->check() || !auth()->user()->roles()->where('role', 'Admin')->exists(), function ($q) {
+              ->where('verification_status', 'Approved');
+        }], 'rental_fee');
+        $query->withAvg(['reviews as avg_rating' => function ($q) {
             $q->where('is_hidden', false);
-        })
-        ->latest()
-        ->get();
+        }], 'rating');
 
-    $avgRating = $reviews->where('is_hidden', false)->avg('rating');
-    $avgRating = $avgRating ? round($avgRating, 1) : null;
+        $query->withCount(['reviews as review_count' => function ($q) {
+            $q->where('is_hidden', false);
+        }]);
+        match ($request->query('sort')) {
+            'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
+            'price_high' => $query->orderByDesc('min_rental_fee'),
+            default      => $query->latest('created_at'),
+        };
 
-    $canReview = auth()->check() && Review::canReview(auth()->id(), $property->property_id);
+        $properties = $query->paginate(12)->withQueryString();
 
-    return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview'));
-}
+        $favoritedIds = [];
+        if (auth()->check()) {
+            $favoritedIds = Favorite::where('tenant_id', auth()->user()->user_id)
+                ->pluck('property_id')
+                ->toArray();
+        }
+
+        $mapProperties = $properties->getCollection()->map(function ($property) {
+            $minFee = $property->units
+                ->where('availability_status', 'Available')
+                ->where('verification_status', 'Approved')
+                ->min('rental_fee');
+            return [
+                'property_id'   => $property->property_id,
+                'title'         => $property->title,
+                'latitude'      => $property->latitude,
+                'longitude'     => $property->longitude,
+                'rental_fee'    => $minFee,
+                'url'           => route('properties.show', $property->property_id),
+                'property_type' => $property->property_type,
+                'image'         => $property->media->first()?->media_url ?? null,
+            ];
+        })->values();
+
+        return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties'));
+    }
+
+    public function show(Property $property)
+    {
+        if ($property->verification_status !== 'Approved') {
+            abort(404);
+        }
+
+        $property->load(['media', 'landlord.rentalBusiness', 'amenities', 'units.amenities', 'units.media']);
+
+        $reviews = $property->reviews()
+            ->with('tenant')
+            ->when(!auth()->check() || !auth()->user()->roles()->where('role', 'Admin')->exists(), function ($q) {
+                $q->where('is_hidden', false);
+            })
+            ->latest()
+            ->get();
+
+        $avgRating = $reviews->where('is_hidden', false)->avg('rating');
+        $avgRating = $avgRating ? round($avgRating, 1) : null;
+
+        $canReview = auth()->check() && Review::canReview(auth()->id(), $property->property_id);
+
+        $isFavorited = auth()->check() && Favorite::where('tenant_id', auth()->id())
+            ->where('property_id', $property->property_id)
+            ->exists();
+
+        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited'));
+    }
 
     public function create()
     {
-       return view('landlord.properties.create');
+        return view('landlord.properties.create');
     }
 
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'title'         => 'required|string|min:10|max:150',
-        'description'   => 'required|string|min:20|max:3000',
-        'property_type' => 'required|in:Bedspace,Room,Apartment,House',
-        'address'       => 'required|string|min:10|max:255',
-        'latitude'      => 'nullable|numeric|between:-90,90',
-        'longitude'     => 'nullable|numeric|between:-180,180',
-        'photos'        => 'required|array|min:1|max:10',
-        'photos.*'      => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-    ]);
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title'         => 'required|string|min:10|max:150',
+            'description'   => 'required|string|min:20|max:3000',
+            'property_type' => 'required|in:Bedspace,Room,Apartment,House',
+            'address'       => 'required|string|min:10|max:255',
+            'latitude'      => 'nullable|numeric|between:-90,90',
+            'longitude'     => 'nullable|numeric|between:-180,180',
+            'photos'        => 'required|array|min:1|max:10',
+            'photos.*'      => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
 
-    $property = null;
+        $property = null;
 
-    DB::transaction(function () use ($validated, $request, &$property) {
-        $property = new Property();
-        $property->landlord_id        = Auth::user()->user_id;
-        $property->title              = $validated['title'];
-        $property->description        = $validated['description'];
-        $property->property_type      = $validated['property_type'];
-        $property->address            = $validated['address'];
-        $property->latitude           = $validated['latitude'] ?? 10.3157;
-        $property->longitude          = $validated['longitude'] ?? 123.8854;
-        $property->verification_status = 'Pending';
-        $property->save();
+        DB::transaction(function () use ($validated, $request, &$property) {
+            $property = new Property();
+            $property->landlord_id         = Auth::user()->user_id;
+            $property->title               = $validated['title'];
+            $property->description         = $validated['description'];
+            $property->property_type       = $validated['property_type'];
+            $property->address             = $validated['address'];
+            $property->latitude            = $validated['latitude'] ?? 10.3157;
+            $property->longitude           = $validated['longitude'] ?? 123.8854;
+            $property->verification_status = 'Pending';
+            $property->save();
 
-        foreach ($request->file('photos') as $photo) {
-            $result = cloudinary()->upload($photo->getRealPath(), [
-                'folder'        => 'abanganan/properties',
-                'resource_type' => 'image',
-            ]);
-            $property->media()->create([
-                'media_type'           => 'Image',
-                'media_url'            => $result->getSecurePath(),
-                'cloudinary_public_id' => $result->getPublicId(),
-            ]);
-        }
-    });
+            foreach ($request->file('photos') as $photo) {
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
+                    'folder'        => 'abanganan/properties',
+                    'resource_type' => 'image',
+                ]);
+                $property->media()->create([
+                    'media_type'           => 'Image',
+                    'media_url'            => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'],
+                ]);
+            }
+        });
 
-    return redirect()
-        ->route('landlord.properties.units.index', $property)
-        ->with('success', 'Property listed! Add units below — they\'re needed before the listing goes live.');
-}
+        return redirect()
+            ->route('landlord.properties.units.index', $property)
+            ->with('success', 'Property listed! Add units below — they\'re needed before the listing goes live.');
+    }
 
     public function edit(Property $property)
     {
@@ -166,73 +171,73 @@ public function store(Request $request)
         }
 
         $property->load('media');
-       return view('landlord.properties.edit', compact('property'));
+        return view('landlord.properties.edit', compact('property'));
     }
 
-  public function update(Request $request, Property $property)
-{
-    if ($property->landlord_id !== Auth::user()->user_id) {
-        abort(403, 'Unauthorized action.');
-    }
+    public function update(Request $request, Property $property)
+    {
+        if ($property->landlord_id !== Auth::user()->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
 
-    $existingPhotoCount = $property->media()->count();
+        $existingPhotoCount = $property->media()->count();
 
-    $validated = $request->validate([
-        'title'         => 'required|string|min:10|max:150',
-        'description'   => 'required|string|min:20|max:3000',
-        'property_type' => 'required|in:Bedspace,Room,Apartment,House',
-        'address'       => 'required|string|min:10|max:255',
-        'latitude'      => 'nullable|numeric|between:-90,90',
-        'longitude'     => 'nullable|numeric|between:-180,180',
-        'photos' => [
-            'nullable',
-            'array',
-            function ($attribute, $value, $fail) use ($existingPhotoCount) {
-                if ($existingPhotoCount + count($value) > 10) {
-                    $fail('A property can have at most 10 photos total. Remove some before adding more.');
-                }
-            },
-        ],
-        'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-    ]);
-
-    DB::transaction(function () use ($validated, $request, $property) {
-        $photosAdded = $request->hasFile('photos');
-
-        $property->fill([
-            'title'          => $validated['title'],
-            'description'    => $validated['description'],
-            'property_type'  => $validated['property_type'],
-            'address'        => $validated['address'],
-            'latitude'       => $validated['latitude'] ?? $property->latitude,
-            'longitude'      => $validated['longitude'] ?? $property->longitude,
+        $validated = $request->validate([
+            'title'         => 'required|string|min:10|max:150',
+            'description'   => 'required|string|min:20|max:3000',
+            'property_type' => 'required|in:Bedspace,Room,Apartment,House',
+            'address'       => 'required|string|min:10|max:255',
+            'latitude'      => 'nullable|numeric|between:-90,90',
+            'longitude'     => 'nullable|numeric|between:-180,180',
+            'photos' => [
+                'nullable',
+                'array',
+                function ($attribute, $value, $fail) use ($existingPhotoCount) {
+                    if ($existingPhotoCount + count($value) > 10) {
+                        $fail('A property can have at most 10 photos total. Remove some before adding more.');
+                    }
+                },
+            ],
+            'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        $detailsChanged = $property->isDirty();
+        DB::transaction(function () use ($validated, $request, $property) {
+            $photosAdded = $request->hasFile('photos');
 
-        if ($detailsChanged || $photosAdded) {
-            $property->verification_status = 'Pending';
-        }
+            $property->fill([
+                'title'         => $validated['title'],
+                'description'   => $validated['description'],
+                'property_type' => $validated['property_type'],
+                'address'       => $validated['address'],
+                'latitude'      => $validated['latitude'] ?? $property->latitude,
+                'longitude'     => $validated['longitude'] ?? $property->longitude,
+            ]);
 
-        $property->save();
+            $detailsChanged = $property->isDirty();
 
-        if ($photosAdded) {
-            foreach ($request->file('photos') as $photo) {
-                $result = cloudinary()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/properties',
-                    'resource_type' => 'image',
-                ]);
-                $property->media()->create([
-                    'media_type'           => 'Image',
-                    'media_url'            => $result->getSecurePath(),
-                    'cloudinary_public_id' => $result->getPublicId(),
-                ]);
+            if ($detailsChanged || $photosAdded) {
+                $property->verification_status = 'Pending';
             }
-        }
-    });
 
-    return redirect()->route('landlord.properties.index')->with('success', 'Property updated. It\'s back in the approval queue.');
-}
+            $property->save();
+
+            if ($photosAdded) {
+                foreach ($request->file('photos') as $photo) {
+                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
+                        'folder'        => 'abanganan/properties',
+                        'resource_type' => 'image',
+                    ]);
+                    $property->media()->create([
+                        'media_type'           => 'Image',
+                        'media_url'            => $result['secure_url'],
+                        'cloudinary_public_id' => $result['public_id'],
+                    ]);
+                }
+            }
+        });
+
+        return redirect()->route('landlord.properties.index')->with('success', 'Property updated. It\'s back in the approval queue.');
+    }
 
     public function destroy(Property $property)
     {
@@ -242,7 +247,7 @@ public function store(Request $request)
 
         foreach ($property->media as $media) {
             if ($media->cloudinary_public_id) {
-                cloudinary()->destroy($media->cloudinary_public_id);
+                cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);
             }
             $media->delete();
         }
@@ -264,7 +269,7 @@ public function store(Request $request)
         $photo = $property->media()->where('media_id', $media)->firstOrFail();
 
         if ($photo->cloudinary_public_id) {
-            cloudinary()->destroy($photo->cloudinary_public_id);
+            cloudinary()->uploadApi()->destroy($photo->cloudinary_public_id);
         }
         $photo->delete();
 

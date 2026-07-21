@@ -9,13 +9,16 @@ use Illuminate\Support\Facades\Auth;
 
 class TenantController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Current tenants (occupied reservations) with the page's search and
+     * property filters applied. Shared by index() and export().
+     */
+    private function filteredQuery(Request $request)
     {
         $landlordId = Auth::user()->user_id;
 
         $query = Reservation::where('rental_status', 'Occupied')
-            ->whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))
-            ->with(['tenant', 'property.media', 'unit', 'conversation']);
+            ->whereHas('property', fn($q) => $q->where('landlord_id', $landlordId));
 
         if ($search = $request->input('search')) {
             $query->whereHas('tenant', function ($q) use ($search) {
@@ -29,7 +32,14 @@ class TenantController extends Controller
             $query->where('property_id', $propertyId);
         }
 
-        $reservations = $query->latest('reservation_date')->paginate(12)->withQueryString();
+        return $query;
+    }
+
+    public function index(Request $request)
+    {
+        $reservations = $this->filteredQuery($request)
+            ->with(['tenant', 'property.media', 'unit', 'conversation'])
+            ->latest('reservation_date')->paginate(12)->withQueryString();
 
         $properties = Auth::user()->properties()
             ->where('verification_status', 'Approved')
@@ -37,5 +47,45 @@ class TenantController extends Controller
             ->get(['property_id', 'title']);
 
         return view('landlord.tenants.index', compact('reservations', 'properties'));
+    }
+
+    /**
+     * CSV of the currently filtered tenants. Streamed and chunked.
+     */
+    public function export(Request $request)
+    {
+        $filename = 'abangananhub-tenants-' . now()->format('Y-m-d') . '.csv';
+
+        $query = $this->filteredQuery($request)
+            ->with(['tenant:user_id,first_name,last_name,email,contact_number',
+                'property:property_id,title', 'unit:unit_id,unit_label,rental_fee']);
+
+        return response()->streamDownload(function () use ($query) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'Tenant', 'Email', 'Contact', 'Property', 'Unit',
+                'Monthly Rent', 'Move In', 'Move Out', 'Occupants',
+            ]);
+
+            $query->chunk(200, function ($reservations) use ($handle) {
+                foreach ($reservations as $reservation) {
+                    $tenant = $reservation->tenant;
+
+                    fputcsv($handle, [
+                        $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
+                        $tenant->email ?? '',
+                        $tenant->contact_number ?? '',
+                        $reservation->property->title ?? '',
+                        $reservation->unit->unit_label ?? '',
+                        $reservation->unit->rental_fee ?? '',
+                        optional($reservation->target_move_in_date)->format('Y-m-d'),
+                        optional($reservation->target_move_out_date)->format('Y-m-d'),
+                        $reservation->occupants_count ?? '',
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 }

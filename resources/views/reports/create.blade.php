@@ -1,7 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-[calc(100vh-72px)] py-10 px-4 sm:px-6 lg:px-8">
        <div class="max-w-5xl mx-auto">
 
             {{-- Header --}}
@@ -31,19 +31,9 @@
                 </div>
             </div>
 
-            {{-- Flash / errors --}}
-            @if(session('success'))
-                <div class="mb-6 px-4 py-3 rounded-xl bg-[#EEF8F8] text-[#1F2937] text-sm font-medium flex items-center gap-2">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                        class="shrink-0 text-[#2AA7A1]">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                    {{ session('success') }}
-                </div>
-            @endif
+            {{-- Errors --}}
             @if($errors->any())
-                <div class="mb-6 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm font-medium">
+                <div class="mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium">
                     @foreach($errors->all() as $error)
                         <p>{{ $error }}</p>
                     @endforeach
@@ -54,7 +44,7 @@
 
                 {{-- Form --}}
                 <form method="POST" action="{{ route('reports.store') }}"
-                    class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-6 sm:p-8 space-y-6"
+                    class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6 sm:p-8 space-y-6"
                     x-data="{ targetType: '{{ old('target_type', $targetType ?? 'property') }}' }">
                     @csrf
 
@@ -204,7 +194,7 @@
 
                 {{-- Side info panel --}}
                 <div class="space-y-4 lg:sticky lg:top-8">
-                    <div class="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg p-5">
+                    <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                         <h2 class="text-[13px] font-bold text-[#1F2937] mb-4">What happens next?</h2>
                         <div class="space-y-4">
                             <div class="flex gap-3">

@@ -21,10 +21,12 @@
     });
 </script>
 
-<body class="font-sans bg-[linear-gradient(135deg,#F7FCFC_0%,#E0F4F4_40%,#F7FCFC_70%,#EEF8F8_100%)] bg-fixed text-[#156F8C] min-h-screen flex flex-col" x-data="{}">
+<body class="font-sans bg-[#F7FCFC] text-[#1F2937] min-h-screen flex flex-col" x-data="{}">
+
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#2AA7A1] focus:text-white focus:font-semibold">Skip to main content</a>
 
     <header id="site-header"
-        class="bg-white/85 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-[100] supports-[backdrop-filter]:bg-white/60 transition-all duration-300">
+        class="bg-white border-b border-[#E2E8F0] sticky top-0 z-[100] transition-all duration-300">
 
         {{-- 1. Nav Row --}}
         <div class="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-[72px] relative">
@@ -50,18 +52,18 @@
                 <div id="nav-search-collapsed"
                     class="absolute left-1/2 -translate-x-1/2 hidden opacity-0 transition-all duration-300 pointer-events-none">
                     <button type="button" id="nav-search-collapsed-btn"
-                        class="flex items-center gap-2 h-[42px] pl-4 pr-2 bg-white rounded-full shadow-[0_2px_16px_rgba(0,0,0,0.12)] border border-gray-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.16)] transition-all duration-200 group"
+                        class="flex items-center gap-2 h-[42px] pl-4 pr-2 bg-white rounded-full shadow-[0_2px_16px_rgba(0,0,0,0.12)] border border-[#E2E8F0] hover:shadow-[0_4px_20px_rgba(0,0,0,0.16)] transition-all duration-200 group"
                         onclick="document.getElementById('site-header').classList.remove('is-scrolled'); window.scrollTo({top:0,behavior:'smooth'})">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
-                            class="text-gray-500 shrink-0">
+                            class="text-[#64748B] shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <span class="text-[13.5px] font-semibold text-gray-800 pr-1">Search</span>
-                        <span class="text-gray-300">·</span>
-                        <span class="text-[13px] text-gray-500 px-1">Any type</span>
-                        <span class="text-gray-300">·</span>
-                        <span class="text-[13px] text-gray-500 pl-1 pr-2">Any price</span>
+                        <span class="text-[13.5px] font-semibold text-[#1F2937] pr-1">Search</span>
+                        <span class="text-[#94A3B8]">·</span>
+                        <span class="text-[13px] text-[#64748B] px-1">Any type</span>
+                        <span class="text-[#94A3B8]">·</span>
+                        <span class="text-[13px] text-[#64748B] pl-1 pr-2">Any price</span>
                         <span class="w-8 h-8 rounded-full bg-[#FF8A65] flex items-center justify-center flex-shrink-0">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -80,19 +82,19 @@
                     <div class="relative hidden sm:block">
                         @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
                             <a href="{{ route('landlord.properties.index') }}"
-                                class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all">
+                                class="flex items-center gap-2 h-10 px-5 border border-[#E2E8F0] rounded-full bg-white text-[13.5px] font-semibold text-[#1F2937] hover:shadow-md transition-all">
                                 Landlord Dashboard
                             </a>
                         @elseif(auth()->user()->hasRole('Admin'))
                             <button id="landlord-btn" aria-expanded="false"
-                                class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all focus:outline-none">
+                                class="flex items-center gap-2 h-10 px-5 border border-[#E2E8F0] rounded-full bg-white text-[13.5px] font-semibold text-[#1F2937] hover:shadow-md transition-all focus:outline-none">
                                 Admin Actions
                             </button>
 
                             <div id="landlord-menu"
-                                class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 py-2 hidden z-50">
+                                class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E8F0] py-2 hidden z-50">
                                 <a href="{{ \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#' }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-b border-gray-100 mb-1">
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-b border-[#E2E8F0] mb-1">
                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -110,7 +112,7 @@
                                     Verification Requests
                                 </a>
                                 <a href="{{ route('admin.users.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-t border-gray-100 mt-1">
+                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-t border-[#E2E8F0] mt-1">
                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -121,7 +123,7 @@
                             </div>
                         @else
                             <a href="{{ route('landlord.verification.create') }}"
-                                class="flex items-center gap-2 h-10 px-5 border border-gray-200 rounded-full bg-white text-[13.5px] font-semibold text-gray-800 hover:shadow-md transition-all">
+                                class="flex items-center gap-2 h-10 px-5 border border-[#E2E8F0] rounded-full bg-white text-[13.5px] font-semibold text-[#1F2937] hover:shadow-md transition-all">
                                 Become a Landlord
                             </a>
                         @endif
@@ -131,7 +133,7 @@
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                         @keydown.escape.window="close()">
                         <button type="button" @click="toggle()"
-                            class="relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white text-gray-600 hover:shadow-md transition-all focus:outline-none">
+                            class="relative flex items-center justify-center w-10 h-10 rounded-full border border-[#E2E8F0] bg-white text-[#64748B] hover:shadow-md transition-all focus:outline-none">
                             <span x-show="unreadCount > 0" x-cloak
                                 class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#2AA7A1] border-2 border-white"></span>
                             <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -145,7 +147,7 @@
                             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-gray-100 z-50 overflow-hidden">
+                            class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E8F0] z-50 overflow-hidden">
                             <div x-ref="dropdownBody">
                                 <div class="px-4 py-8 text-center">
                                     <div
@@ -164,7 +166,7 @@
                     @endphp
                     <div class="relative">
                         <button id="abg-avatar-btn" aria-expanded="false"
-                            class="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-gray-50 transition-colors focus:outline-none">
+                            class="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-[#F7FCFC] transition-colors focus:outline-none">
                             <span
                                 class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
                                 {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
@@ -315,7 +317,7 @@
                     {{-- Guest Actions --}}
                     <div class="flex items-center gap-1 sm:gap-2">
                         <button type="button" onclick="openAuthModal('login')"
-                            class="text-[13px] sm:text-[14px] font-bold text-[#156F8C] hover:bg-gray-100 px-3 sm:px-4 py-2 rounded-full transition-colors focus:outline-none whitespace-nowrap no-underline">
+                            class="text-[13px] sm:text-[14px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] px-3 sm:px-4 py-2 rounded-full transition-colors focus:outline-none whitespace-nowrap no-underline">
                             Log in
                         </button>
 
@@ -336,22 +338,22 @@
 
                 <div class="flex justify-center pb-4 pt-1 px-4 sm:px-6">
                     <form action="{{ route('properties.index') }}" method="GET"
-                        class="flex items-center w-full max-w-[820px] bg-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)] border border-gray-100 transition-all duration-300">
+                        class="flex items-center w-full max-w-[820px] bg-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)] border border-[#E2E8F0] transition-all duration-300">
 
                         <div
-                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-gray-200 cursor-pointer hover:bg-gray-50 rounded-l-full transition-colors w-[33%] overflow-hidden">
+                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-[#E2E8F0] cursor-pointer hover:bg-[#F7FCFC] rounded-l-full transition-colors w-[33%] overflow-hidden">
                             <span
-                                class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Where</span>
-                            <input type="text" name="location" placeholder="Search..."
-                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
+                                class="text-[10px] sm:text-[11px] font-bold text-[#1F2937] tracking-wide uppercase truncate">Where</span>
+                            <input type="text" name="location" placeholder="Search..." aria-label="Where"
+                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-[#64748B] focus:ring-0 placeholder-[#94A3B8] w-full outline-none mt-0.5 truncate">
                         </div>
 
                         <div
-                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-gray-200 hover:bg-gray-50 transition-colors w-[33%] overflow-hidden">
+                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-[#E2E8F0] hover:bg-[#F7FCFC] transition-colors w-[33%] overflow-hidden">
                             <span
-                                class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Type</span>
+                                class="text-[10px] sm:text-[11px] font-bold text-[#1F2937] tracking-wide uppercase truncate">Type</span>
                             <select name="type"
-                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 w-full outline-none appearance-none cursor-pointer mt-0.5 truncate">
+                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-[#64748B] focus:ring-0 w-full outline-none appearance-none cursor-pointer mt-0.5 truncate">
                                 <option value="">Any type</option>
                                 <option value="Bedspace">Bedspace</option>
                                 <option value="Room">Room</option>
@@ -361,12 +363,12 @@
                         </div>
 
                         <div
-                            class="flex-1 flex items-center justify-between pl-3 pr-2 sm:pl-7 sm:pr-2 py-2 hover:bg-gray-50 rounded-r-full transition-colors w-[33%] overflow-hidden">
+                            class="flex-1 flex items-center justify-between pl-3 pr-2 sm:pl-7 sm:pr-2 py-2 hover:bg-[#F7FCFC] rounded-r-full transition-colors w-[33%] overflow-hidden">
                             <div class="flex flex-col justify-center w-[calc(100%-36px)] sm:w-auto overflow-hidden">
                                 <span
-                                    class="text-[10px] sm:text-[11px] font-bold text-gray-800 tracking-wide uppercase truncate">Budget</span>
-                                <input type="number" name="price_max" placeholder="Max ₱"
-                                    class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-gray-600 focus:ring-0 placeholder-gray-400 w-full outline-none mt-0.5 truncate">
+                                    class="text-[10px] sm:text-[11px] font-bold text-[#1F2937] tracking-wide uppercase truncate">Budget</span>
+                                <input type="number" name="price_max" placeholder="Max ₱" aria-label="Maximum budget"
+                                    class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-[#64748B] focus:ring-0 placeholder-[#94A3B8] w-full outline-none mt-0.5 truncate">
                             </div>
                             <button type="submit"
                                 class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#FF8A65] flex items-center justify-center text-white flex-shrink-0 hover:brightness-95 transition-colors ml-1 sm:ml-3 shadow-md">
@@ -384,7 +386,7 @@
                 <div class="flex items-center justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6 overflow-x-auto pb-1"
                     style="-ms-overflow-style:none; scrollbar-width:none;">
                     <a href="{{ route('properties.index') }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
                         data-type="all">
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -393,7 +395,7 @@
                         <span class="text-[12px] font-semibold">All</span>
                     </a>
                     <a href="{{ route('properties.index', ['type' => 'Bedspace']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
                         data-type="Bedspace">
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -402,7 +404,7 @@
                         <span class="text-[12px] font-semibold">Bedspace</span>
                     </a>
                     <a href="{{ route('properties.index', ['type' => 'Room']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
                         data-type="Room">
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -411,7 +413,7 @@
                         <span class="text-[12px] font-semibold">Room</span>
                     </a>
                     <a href="{{ route('properties.index', ['type' => 'Apartment']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
                         data-type="Apartment">
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -420,7 +422,7 @@
                         <span class="text-[12px] font-semibold">Apartment</span>
                     </a>
                     <a href="{{ route('properties.index', ['type' => 'House']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link"
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
                         data-type="House">
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -429,7 +431,7 @@
                         <span class="text-[12px] font-semibold">House</span>
                     </a>
                     <a href="{{ route('favorites.index') }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link">
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link">
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -437,7 +439,7 @@
                         <span class="text-[12px] font-semibold">Saved</span>
                     </a>
                     <a href="{{ route('properties.index', ['verified' => 1]) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all min-w-[56px] category-link">
+                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link">
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -452,24 +454,12 @@
 
     </header>
 
-    {{-- Flash Messages --}}
-    @if(session('error'))
-        <div class="w-full mx-auto mt-4 px-4 sm:px-6 lg:px-[50px]">
-            <div
-                class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium flex items-center justify-between shadow-sm">
-                <span>{{ session('error') }}</span>
-                <button class="opacity-60 hover:opacity-100 pl-3 focus:outline-none"
-                    onclick="this.parentElement.remove()">✕</button>
-            </div>
-        </div>
-    @endif
-
-    <main class="flex-grow">
+    <main id="main" class="flex-grow">
         @yield('content')
     </main>
 
     <footer class="bg-[#0F172A] mt-auto">
-        <div class="w-full px-4 sm:px-6 lg:px-[50px] pt-14 pb-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 pt-14 pb-8">
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
@@ -554,20 +544,20 @@
     {{-- ========================================== --}}
     @guest
         <div id="auth-modal"
-            class="hidden fixed inset-0 z-[9999] bg-[#156F8C]/40 backdrop-blur-sm items-center justify-center p-4">
+            class="hidden fixed inset-0 z-[9999] bg-[#156F8C]/40 backdrop-blur-sm items-center justify-center p-4 opacity-0 transition-opacity duration-300">
 
-            <div class="bg-white rounded-[24px] shadow-2xl max-w-md w-full p-6 md:p-8 relative transition-all transform scale-100 opacity-100 duration-300 max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            <div class="bg-white rounded-[24px] shadow-2xl max-w-md w-full p-6 md:p-8 relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                 id="auth-modal-content">
 
                 <button type="button" onclick="closeAuthModal()"
-                    class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors">
+                    class="absolute top-5 right-5 text-[#94A3B8] hover:text-[#64748B] focus:outline-none transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
 
                 <div id="modal-error-bag"
-                    class="hidden mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100"></div>
+                    class="hidden mb-4 p-3 bg-[#EF4444]/[0.07] text-[#DC2626] rounded-xl text-sm border border-[#EF4444]/20"></div>
 
                 {{-- Login View --}}
                 <div id="login-form-view" class="hidden">
@@ -585,24 +575,24 @@
                     </div>
 
                     <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Welcome Back!</h2>
-                    <p class="text-[14px] text-gray-400 mt-1 mb-6">Login to continue to AbangananHub</p>
+                    <p class="text-[14px] text-[#94A3B8] mt-1 mb-6">Login to continue to AbangananHub</p>
 
                     <form id="ajax-login-form" onsubmit="handleAuthSubmit(event, '{{ route('login') }}')">
                         @csrf
                         <div class="mb-4">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
-                            <input type="email" name="email" required placeholder="Enter your email"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-login-email"></span>
+                            <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
+                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-email"></span>
                         </div>
 
                         <div class="mb-4">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
                             <div class="relative">
-                                <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password"
-                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password" aria-label="Password"
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                                 <button type="button" onclick="toggleModalPassword('modal-login-password', this)"
-                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -613,16 +603,16 @@
                                     </svg>
                                 </button>
                             </div>
-                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-login-password"></span>
+                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-password"></span>
                         </div>
 
                         <div class="flex items-center justify-between text-[13px] mb-6">
-                            <label class="flex items-center gap-2 text-gray-500 cursor-pointer select-none">
+                            <label class="flex items-center gap-2 text-[#64748B] cursor-pointer select-none">
                                 <input type="checkbox" name="remember"
-                                    class="w-4 h-4 rounded text-[#2AA7A1] border-gray-300 focus:ring-[#2AA7A1]">
+                                    class="w-4 h-4 rounded text-[#2AA7A1] border-[#E2E8F0] focus:ring-[#2AA7A1]">
                                 Remember me
                             </label>
-                            <a href="#" class="text-[#156F8C] font-semibold hover:underline">Forgot Password?</a>
+                            <a href="#" onclick="openAuthModal('forgot-password'); return false;" class="text-[#156F8C] font-semibold hover:underline">Forgot Password?</a>
                         </div>
 
                         <button type="submit"
@@ -631,12 +621,12 @@
                         </button>
                     </form>
 
-                    <p class="text-[13px] text-center text-gray-500 mt-6">
+                    <p class="text-[13px] text-center text-[#64748B] mt-6">
                         Don't have an account? <a href="#" onclick="openAuthModal('register')"
                             class="text-[#156F8C] font-bold hover:underline">Register here</a>
                     </p>
 
-                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-gray-300 font-bold uppercase">
+                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-[#94A3B8] font-bold uppercase">
                         © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
                     </div>
                 </div>
@@ -657,53 +647,53 @@
                     </div>
 
                     <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Create an Account</h2>
-                    <p class="text-[14px] text-gray-400 mt-1 mb-6">Join AbangananHub today</p>
+                    <p class="text-[14px] text-[#94A3B8] mt-1 mb-6">Join AbangananHub today</p>
 
                     <form id="ajax-register-form" onsubmit="handleAuthSubmit(event, '{{ route('register') }}')">
                         @csrf
                         <div class="grid grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">First Name</label>
-                                <input type="text" name="first_name" required placeholder="First name"
-                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                                <span class="text-xs text-red-500 mt-1 hidden error-field"
+                                <input type="text" name="first_name" required placeholder="First name" aria-label="First name"
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-first_name"></span>
                             </div>
                             <div>
                                 <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Last Name</label>
-                                <input type="text" name="last_name" required placeholder="Last name"
-                                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                                <span class="text-xs text-red-500 mt-1 hidden error-field"
+                                <input type="text" name="last_name" required placeholder="Last name" aria-label="Last name"
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-last_name"></span>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Contact Number</label>
-                            <input type="text" name="contact_number" required placeholder="Enter your contact number"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-red-500 mt-1 hidden error-field"
+                            <input type="text" name="contact_number" required placeholder="Enter your contact number" aria-label="Contact number"
+                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                 id="error-register-contact_number"></span>
                         </div>
 
                         <div class="mb-3">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
-                            <input type="email" name="email" required placeholder="Enter your email address"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-email"></span>
+                            <input type="email" name="email" required placeholder="Enter your email address" aria-label="Email address"
+                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-email"></span>
                         </div>
 
                         <div class="mb-3">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
-                            <input type="password" name="password" required placeholder="Create a password"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-red-500 mt-1 hidden error-field" id="error-register-password"></span>
+                            <input type="password" name="password" required placeholder="Create a password" aria-label="Password"
+                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-password"></span>
                         </div>
 
                         <div class="mb-5">
                             <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Confirm Password</label>
-                            <input type="password" name="password_confirmation" required placeholder="Confirm your password"
-                                class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[14px] placeholder-gray-300 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                            <input type="password" name="password_confirmation" required placeholder="Confirm your password" aria-label="Confirm password"
+                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
                         </div>
 
                         <button type="submit"
@@ -712,12 +702,84 @@
                         </button>
                     </form>
 
-                    <p class="text-[13px] text-center text-gray-500 mt-6">
+                    <p class="text-[13px] text-center text-[#64748B] mt-6">
                         Already have an account? <a href="#" onclick="openAuthModal('login')"
                             class="text-[#156F8C] font-bold hover:underline">Login here</a>
                     </p>
 
-                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-gray-300 font-bold uppercase">
+                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-[#94A3B8] font-bold uppercase">
+                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
+                    </div>
+                </div>
+
+                {{-- Forgot Password View --}}
+                <div id="forgot-password-form-view" class="hidden">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25">
+                                </path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-[#156F8C]">Abanganan<span
+                                class="text-[#156F8C]">Hub</span></span>
+                    </div>
+
+                    <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Forgot your password?</h2>
+                    <p class="text-[14px] text-[#94A3B8] mt-1 mb-6">No problem. We'll email you a reset link.</p>
+
+                    <form id="ajax-forgot-password-form" onsubmit="handleForgotPasswordSubmit(event, '{{ route('password.email') }}')">
+                        @csrf
+                        <div class="mb-5">
+                            <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
+                            <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
+                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-forgot-password-email"></span>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
+                            Email Password Reset Link
+                        </button>
+                    </form>
+
+                    <p class="text-[13px] text-center text-[#64748B] mt-6">
+                        Remembered your password? <a href="#" onclick="openAuthModal('login'); return false;"
+                            class="text-[#156F8C] font-bold hover:underline">Login here</a>
+                    </p>
+
+                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-[#94A3B8] font-bold uppercase">
+                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
+                    </div>
+                </div>
+
+                {{-- Forgot Password: Email Sent View --}}
+                <div id="forgot-password-sent-view" class="hidden">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-[#156F8C]">Abanganan<span
+                                class="text-[#156F8C]">Hub</span></span>
+                    </div>
+
+                    <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Check your email</h2>
+                    <p id="forgot-password-sent-message" class="text-[14px] text-[#64748B] mt-1 mb-6 leading-relaxed">
+                        We've emailed you a link to reset your password. It'll expire in 60 minutes.
+                    </p>
+
+                    <button type="button" onclick="openAuthModal('login')"
+                        class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
+                        Back to login
+                    </button>
+
+                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-[#94A3B8] font-bold uppercase">
                         © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
                     </div>
                 </div>
@@ -726,23 +788,39 @@
         </div>
 
         <script>
+            let authModalCloseTimer = null;
+
             function openAuthModal(mode) {
                 const modal = document.getElementById('auth-modal');
-                const loginView = document.getElementById('login-form-view');
-                const registerView = document.getElementById('register-form-view');
+                const panel = document.getElementById('auth-modal-content');
+                const views = {
+                    'login': document.getElementById('login-form-view'),
+                    'register': document.getElementById('register-form-view'),
+                    'forgot-password': document.getElementById('forgot-password-form-view'),
+                    'forgot-password-sent': document.getElementById('forgot-password-sent-view'),
+                };
 
-                if (!modal || !loginView || !registerView) return;
+                if (!modal || !views[mode]) return;
+
+                // Cancel a pending close so reopening mid-animation doesn't hide the modal.
+                clearTimeout(authModalCloseTimer);
 
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
 
-                if (mode === 'login') {
-                    loginView.classList.remove('hidden');
-                    registerView.classList.add('hidden');
-                } else {
-                    registerView.classList.remove('hidden');
-                    loginView.classList.add('hidden');
-                }
+                const errorBag = document.getElementById('modal-error-bag');
+                errorBag?.classList.add('hidden');
+                errorBag && (errorBag.innerText = '');
+
+                Object.values(views).forEach(view => view?.classList.add('hidden'));
+                views[mode].classList.remove('hidden');
+
+                // Double rAF: lets the browser paint the starting state before
+                // transitioning, otherwise the class changes batch and nothing animates.
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0');
+                    panel?.classList.remove('opacity-0', 'scale-95', 'translate-y-4');
+                }));
             }
 
             function toggleModalPassword(fieldId, btn) {
@@ -757,9 +835,17 @@
 
             function closeAuthModal() {
                 const modal = document.getElementById('auth-modal');
+                const panel = document.getElementById('auth-modal-content');
                 if (!modal) return;
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
+
+                modal.classList.add('opacity-0');
+                panel?.classList.add('opacity-0', 'scale-95', 'translate-y-4');
+
+                clearTimeout(authModalCloseTimer);
+                authModalCloseTimer = setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 300);
             }
 
             window.addEventListener('click', function (event) {
@@ -808,6 +894,56 @@
                 } catch (e) {
                     errorBag?.classList.remove('hidden');
                     errorBag && (errorBag.innerText = 'Network error. Please try again.');
+                }
+            };
+
+            window.handleForgotPasswordSubmit = async function (event, endpoint) {
+                event.preventDefault();
+
+                const form = event.target;
+                const emailError = document.getElementById('error-forgot-password-email');
+                emailError?.classList.add('hidden');
+                emailError && (emailError.innerText = '');
+
+                const formData = new FormData(form);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken || '',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+
+                    if (!res.ok) {
+                        const message = data?.errors?.email?.[0] || data?.message || 'Something went wrong. Please try again.';
+                        if (emailError) {
+                            emailError.innerText = message;
+                            emailError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    const sentMessage = document.getElementById('forgot-password-sent-message');
+                    if (sentMessage) {
+                        sentMessage.innerText = data?.status || "We've emailed you a link to reset your password.";
+                    }
+                    openAuthModal('forgot-password-sent');
+                } catch (e) {
+                    if (emailError) {
+                        emailError.innerText = 'Network error. Please try again.';
+                        emailError.classList.remove('hidden');
+                    }
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
                 }
             };
         </script>
@@ -938,6 +1074,19 @@
                     unreadCount: {{ auth()->user()->notifications()->where('is_read', false)->count() }},
                     loaded: false,
 
+                    init() {
+                        // Live bell over the existing private user.{id} channel.
+                        // Guarded so a down Reverb still leaves click-to-load working.
+                        if (!window.Echo) return;
+
+                        window.Echo.private('user.{{ auth()->id() }}')
+                            .listen('.NotificationCreated', () => {
+                                this.unreadCount++;
+                                this.loaded = false;
+                                if (this.open) this.fetchRecent();
+                            });
+                    },
+
                     toggle() {
                         this.open = !this.open;
                         if (this.open && !this.loaded) {
@@ -1006,19 +1155,7 @@
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>
-    @if(session('status') || session('success'))
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                window.dispatchEvent(new CustomEvent('show-modal', {
-                    detail: {
-                        type: 'success',
-                        title: 'Done',
-                        message: @json(session('status') ?? session('success')),
-                    }
-                }));
-            });
-        </script>
-    @endif
+    @include('partials.flash-modal')
     @if(session('suspended'))
         <script>
             document.addEventListener('DOMContentLoaded', () => {

@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-[50px] py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {{-- Back link --}}
         <a href="{{ route('landlord.reservations.index', ['status' => 'Occupied']) }}"
@@ -16,7 +16,7 @@
         <p class="text-sm text-[#64748B] mb-8">Share your experience with this tenant to help other landlords.</p>
 
         {{-- Tenant & reservation context card --}}
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-5 mb-6">
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-6">
             <div class="flex items-center gap-4">
                 <div
                     class="w-12 h-12 rounded-full bg-[#2AA7A1] text-white text-lg font-bold flex items-center justify-center shrink-0">
@@ -35,14 +35,14 @@
 
         {{-- Errors --}}
         @if($errors->any())
-            <div class="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium">
+            <div class="mb-6 bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ $errors->first() }}
             </div>
         @endif
 
         {{-- Rating form --}}
         <form action="{{ route('landlord.reservations.rateTenant.store', $reservation) }}" method="POST"
-            class="bg-white border border-[#E2E8F0] rounded-2xl p-6" x-data="{ rating: 0, hovered: 0 }">
+            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6" x-data="{ rating: 0, hovered: 0 }">
             @csrf
 
             {{-- Star picker --}}

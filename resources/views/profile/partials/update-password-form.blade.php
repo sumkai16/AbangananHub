@@ -29,7 +29,7 @@
                         autocomplete="current-password" class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                                focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15">
                     @if($errors->updatePassword->get('current_password'))
-                        <span class="mt-1.5 block text-xs font-medium text-red-500">
+                        <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                             {{ $errors->updatePassword->get('current_password')[0] }}
                         </span>
                     @endif
@@ -46,7 +46,7 @@
                         class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                                focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15">
                     @if($errors->updatePassword->get('password'))
-                        <span class="mt-1.5 block text-xs font-medium text-red-500">
+                        <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                             {{ $errors->updatePassword->get('password')[0] }}
                         </span>
                     @endif
@@ -63,7 +63,7 @@
                         class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                                focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15">
                     @if($errors->updatePassword->get('password_confirmation'))
-                        <span class="mt-1.5 block text-xs font-medium text-red-500">
+                        <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                             {{ $errors->updatePassword->get('password_confirmation')[0] }}
                         </span>
                     @endif
@@ -114,15 +114,6 @@
                 class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#2AA7A1] px-5 text-[13px] font-semibold text-white transition hover:brightness-95 active:scale-[0.98]">
                 Update password
             </button>
-            @if (session('status') === 'password-updated')
-                <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2500)"
-                    class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
-                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Updated
-                </p>
-            @endif
         </div>
     </form>
 </div>

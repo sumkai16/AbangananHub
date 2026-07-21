@@ -22,13 +22,6 @@ class VerificationController extends Controller
             return redirect()->route('landlord.properties.index');
         }
 
-        // Send verification email once per session (first visit only)
-    if ((! $verification || $verification->verification_status === 'Rejected') && ! session('verification_email_sent')) {
-            Mail::to(auth()->user()->email)->send(new VerificationLinkMail(auth()->user()));
-            session(['verification_email_sent' => true]);
-            session()->flash('email_sent', 'We\'ve also sent a verification link to your email. The link expires in 1 hour.');
-        }
-
         return view('landlord.verification.create', compact('verification'));
     }
 

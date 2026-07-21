@@ -3,7 +3,7 @@
 @section('page-title', 'My Profile')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-[1600px] mx-auto space-y-6">
 
     {{-- Stats Row --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -12,7 +12,7 @@
             ['My Reviews', $stats['verifications_reviewed'], 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
             ['Properties Approved', $stats['properties_approved'], 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
         ] as [$label, $value, $icon])
-            <div class="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex items-center gap-4">
+            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] px-5 py-4 flex items-center gap-4">
                 <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
@@ -30,7 +30,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6 items-start">
 
         {{-- Left Column: Avatar Card --}}
-        <div class="lg:sticky lg:top-24 bg-white rounded-2xl border border-gray-100 p-6 text-center">
+        <div class="lg:sticky lg:top-24 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6 text-center">
             <form id="avatar-form" action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
@@ -77,7 +77,7 @@
 
             {{-- Profile Form --}}
             <form action="{{ route('admin.profile.update') }}" method="POST"
-                  class="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-100">
+                  class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] divide-y divide-[#E2E8F0]">
                 @csrf
                 @method('PATCH')
 
@@ -118,8 +118,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-[13px] font-medium text-[#1F2937] mb-1.5">Email Address</label>
-                        <input type="email" value="{{ $user->email }}" disabled
+                        <label for="email" class="block text-[13px] font-medium text-[#1F2937] mb-1.5">Email Address</label>
+                        <input type="email" id="email" value="{{ $user->email }}" disabled
                                class="w-full rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-4 py-2.5 text-[14px] text-[#64748B] cursor-not-allowed" />
                         <p class="text-[12px] text-[#64748B] mt-1">Email can be changed in the password section below.</p>
                     </div>
@@ -139,7 +139,7 @@
 
                 <div class="p-6 flex items-center justify-end gap-3">
                     <a href="{{ route('admin.dashboard') }}"
-                       class="px-5 py-2.5 rounded-xl border border-[#E2E8F0] text-[13px] font-medium text-[#64748B] hover:bg-gray-50 transition-colors">
+                       class="px-5 py-2.5 rounded-xl border border-[#E2E8F0] text-[13px] font-medium text-[#64748B] hover:bg-[#F7FCFC] transition-colors">
                         Cancel
                     </a>
                     <button type="submit"
@@ -150,12 +150,12 @@
             </form>
 
             {{-- Password --}}
-            <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
                 @include('profile.partials.update-password-form')
             </div>
 
             {{-- Danger Zone --}}
-            <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
                 @include('profile.partials.delete-user-form')
             </div>
         </div>

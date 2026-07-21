@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 pb-16" x-data="{ mobileView: 'list' }">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[calc(100vh-72px)]" x-data="{ mobileView: 'list' }">
 
         {{-- HEADER --}}
         <x-section-header title="Browse Properties"
@@ -138,7 +138,7 @@
                                 <div x-data="{ activeSlide: 0, slides: {{ $property->media->count() }} }"
                                     @mouseenter="$refs.nav.classList.remove('opacity-0')"
                                     @mouseleave="$refs.nav.classList.add('opacity-0')"
-                                    class="relative w-full aspect-square rounded-3xl overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-lg transition-all duration-500">
+                                    class="relative w-full aspect-square rounded-3xl overflow-hidden bg-[#EEF8F8] shadow-sm group-hover:shadow-lg transition-all duration-500">
 
                                     @if($property->media->count() > 0)
                                         <div class="flex transition-transform duration-500 ease-out h-full"

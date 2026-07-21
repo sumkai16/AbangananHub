@@ -16,7 +16,7 @@
         $strength = (int) round((count(array_filter($checks)) / count($checks)) * 100);
     @endphp
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-8 sm:py-10">
+    <div class="{{ auth()->user()->shellContainerClass(auth()->user()->hasRole('Admin')) }} mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 min-h-[calc(100vh-72px)]">
 
         {{-- Back to profile --}}
         <a href="{{ route('profile.show') }}"
@@ -33,8 +33,6 @@
             {{-- Security-paper dot texture --}}
             <div class="absolute inset-0 opacity-[0.08] pointer-events-none"
                 style="background-image: radial-gradient(circle at 1px 1px, white 1.3px, transparent 0); background-size: 22px 22px;"></div>
-            {{-- Corner glow --}}
-            <div class="absolute -top-20 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
 
             <div class="relative flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
 
@@ -138,7 +136,7 @@
                             </span>
                         </a>
                         <a href="#danger-zone"
-                            class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-red-600"
+                            class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#DC2626]"
                             data-section="danger-zone">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                                 class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
@@ -253,13 +251,13 @@
                         const active = link.dataset.section === id;
                         link.classList.toggle('text-[#1F2937]', active);
                         link.classList.toggle('font-semibold', active);
-                        link.classList.toggle('text-red-600', active && id === 'danger-zone');
+                        link.classList.toggle('text-[#DC2626]', active && id === 'danger-zone');
                         link.classList.toggle('text-[#64748B]', !active);
 
                         if (active && indicator) {
                             indicator.style.top = link.offsetTop + 'px';
                             indicator.style.height = link.offsetHeight + 'px';
-                            indicator.classList.toggle('bg-red-50', id === 'danger-zone');
+                            indicator.classList.toggle('bg-[#EF4444]/[0.07]', id === 'danger-zone');
                             indicator.classList.toggle('bg-[#EEF8F8]', id !== 'danger-zone');
                         }
                     });

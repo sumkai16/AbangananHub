@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Http\Request;
@@ -110,6 +111,14 @@ class UserController extends Controller
             'roles.*'        => 'in:Admin,Landlord,Tenant',
         ]);
 
+        if ($user->user_id === auth()->id() && !in_array('Admin', $data['roles'], true)) {
+            return back()->withInput()->with('error', 'You cannot remove your own Admin role.');
+        }
+
+        if ($user->user_id === auth()->id() && $data['account_status'] !== 'active') {
+            return back()->withInput()->with('error', 'You cannot change your own account status.');
+        }
+
         $user->update([
             'first_name'     => $data['first_name'],
             'last_name'      => $data['last_name'],
@@ -123,10 +132,12 @@ class UserController extends Controller
         }
 
         // Sync roles: remove old, assign new
-        $user->roles()->delete();
-        foreach ($data['roles'] as $role) {
-            $user->assignRole($role);
-        }
+        \DB::transaction(function () use ($user, $data) {
+            $user->roles()->delete();
+            foreach ($data['roles'] as $role) {
+                $user->assignRole($role);
+            }
+        });
 
         return redirect()->route('admin.users.show', $user)
             ->with('success', 'User updated successfully.');
@@ -138,7 +149,22 @@ class UserController extends Controller
             'status' => 'required|in:active,suspended,inactive',
         ]);
 
+        if ($user->user_id === auth()->id()) {
+            return back()->with('error', 'You cannot change your own account status.');
+        }
+
+        $previous = $user->account_status;
         $user->update(['account_status' => $request->status]);
+
+        if ($previous !== $request->status) {
+            $copy = match ($request->status) {
+                'suspended' => ['Account suspended', 'Your account has been suspended. Contact support if you believe this is a mistake.'],
+                'active'    => ['Account reinstated', 'Your account is active again. Welcome back.'],
+                default     => ['Account deactivated', 'Your account has been set to inactive.'],
+            };
+
+            Notification::notify($user->user_id, 'account', $copy[0], $copy[1], route('notifications.index'));
+        }
 
         return back()->with('success', 'User status updated to ' . ucfirst($request->status) . '.');
     }
@@ -148,6 +174,18 @@ class UserController extends Controller
         // Prevent deleting yourself
         if ($user->user_id === auth()->id()) {
             return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        // Hard-deleting a user cascades to every property, reservation, payment,
+        // review, conversation, and report tied to them (see FK onDelete('cascade')
+        // in the migrations). Block it once there's real activity to lose and
+        // point the admin at suspension instead, which is reversible.
+        $hasActivity = $user->properties()->exists()
+            || $user->reservations()->exists()
+            || $user->reviews()->exists();
+
+        if ($hasActivity) {
+            return back()->with('error', 'This user has properties, reservations, or reviews on record and cannot be deleted — suspend the account instead to preserve that history.');
         }
 
         $user->delete();

@@ -48,6 +48,8 @@
         });
     ">
 
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#2AA7A1] focus:text-white focus:font-semibold">Skip to main content</a>
+
     <div class="flex min-h-screen">
 
         {{-- Mobile overlay --}}
@@ -89,8 +91,8 @@
                 {{-- Notification bell (expanded state) --}}
                 <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="relative"
                     x-data="notificationDropdown()" @click.away="close()" @keydown.escape.window="close()">
-                    <button type="button" @click="toggle()"
-                        class="relative w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
+                    <button type="button" @click="toggle()" aria-label="Notifications"
+                        class="relative w-10 h-10 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
                         <span x-show="unreadCount > 0" x-cloak
                             class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -105,7 +107,7 @@
                         x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
+                        class="absolute top-[calc(100%+10px)] left-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
                         <div x-ref="dropdownBody">
                             <div class="px-4 py-8 text-center">
                                 <div
@@ -120,11 +122,12 @@
             {{-- Nav --}}
             @php $current = request()->route()?->getName() ?? ''; @endphp
 
-            <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5 scrollbar-thin">
-
-                {{-- Notification bell when collapsed (icon only) --}}
-                <div x-show="sidebarCollapsed" x-cloak class="relative mb-2" x-data="notificationDropdown()"
-                    @click.away="close()" @keydown.escape.window="close()">
+            {{-- Notification bell when collapsed (icon only).
+                 Deliberately a direct child of <aside>, NOT inside <nav>: the
+                 nav carries `overflow-x-hidden`, which clipped this panel at
+                 the sidebar edge since it opens rightward via `left-full`. --}}
+            <div x-show="sidebarCollapsed" x-cloak class="relative px-3 pt-5" x-data="notificationDropdown()"
+                @click.away="close()" @keydown.escape.window="close()">
                     <button type="button" @click="toggle()"
                         class="group relative w-full flex items-center justify-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 text-white/60 hover:bg-white/[0.06] hover:text-white/90">
                         <div class="relative">
@@ -156,6 +159,8 @@
                         </div>
                     </div>
                 </div>
+
+            <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5 scrollbar-thin">
 
                 <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                     class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 whitespace-nowrap">
@@ -300,26 +305,43 @@
                     </span>
                 </a>
 
-                {{-- My Reports --}}
-                <a href="{{ route('landlord.reports.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
+                {{-- Analytics --}}
+                <a href="{{ route('landlord.analytics.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.reports') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($current, 'landlord.analytics') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
+                            d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
                     </svg>
-                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">My
-                        Reports</span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Analytics</span>
                     <span x-show="sidebarCollapsed" x-cloak
                         class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                        My Reports
+                        Analytics
                     </span>
                 </a>
 
                 <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                     class="px-3 text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2 mt-6 whitespace-nowrap">
                     Account</p>
+
+                {{-- My Complaints — reports this landlord filed. Lives under
+                     Account, not Insights: it is support history, not insight.
+                     Reports filed *against* anyone stay admin-only. --}}
+                <a href="{{ route('landlord.complaints.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
+                        {{ str_starts_with($current, 'landlord.complaints') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">My Complaints</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        My Complaints
+                    </span>
+                </a>
 
                 {{-- My Profile --}}
                 <a href="{{ route('landlord.profile.me') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
@@ -389,8 +411,8 @@
                     </span>
                     <form action="{{ route('logout') }}" method="POST" class="shrink-0">
                         @csrf
-                        <button type="submit" title="Sign out"
-                            class="group/so relative w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-white/[0.06] transition-colors">
+                        <button type="submit" title="Sign out" aria-label="Sign out"
+                            class="group/so relative w-10 h-10 flex items-center justify-center rounded-lg text-white/30 hover:text-[#DC2626] hover:bg-white/[0.06] transition-colors">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -450,19 +472,7 @@
                 </div>
             </div>
 
-            {{-- Flash --}}
-            @if(session('error'))
-                <div class="px-4 sm:px-8 lg:px-[50px] pt-4">
-                    <div
-                        class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-[13px] font-medium flex items-center justify-between shadow-sm">
-                        <span>{{ session('error') }}</span>
-                        <button class="opacity-60 hover:opacity-100 pl-3 focus:outline-none"
-                            onclick="this.parentElement.remove()">&#10005;</button>
-                    </div>
-                </div>
-            @endif
-
-            <main class="flex-1 overflow-x-hidden">
+            <main id="main" class="flex-1 overflow-x-hidden">
                 @yield('content')
             </main>
         </div>
@@ -474,6 +484,22 @@
                 open: false,
                 unreadCount: {{ auth()->user()->notifications()->where('is_read', false)->count() }},
                 loaded: false,
+
+                init() {
+                    // Live bell. Reuses the private user.{id} channel the inbox
+                    // already subscribes to. Guarded so a down Reverb leaves the
+                    // click-to-load dropdown fully working.
+                    if (!window.Echo) return;
+
+                    window.Echo.private('user.{{ auth()->id() }}')
+                        .listen('.NotificationCreated', () => {
+                            this.unreadCount++;
+                            // Force a refetch next open; if it is already open,
+                            // pull the new row in immediately.
+                            this.loaded = false;
+                            if (this.open) this.fetchRecent();
+                        });
+                },
 
                 toggle() {
                     this.open = !this.open;
@@ -542,19 +568,7 @@
 
     <x-confirm-modal />
     <script src="{{ asset('js/modal-confirm.js') }}"></script>
-    @if(session('status') || session('success'))
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                window.dispatchEvent(new CustomEvent('show-modal', {
-                    detail: {
-                        type: 'success',
-                        title: 'Done',
-                        message: @json(session('status') ?? session('success')),
-                    }
-                }));
-            });
-        </script>
-    @endif
+    @include('partials.flash-modal')
 
     @stack('scripts')
 

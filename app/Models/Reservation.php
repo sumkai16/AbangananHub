@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\MessageSent;
 use Illuminate\Database\Eloquent\Model;
 
 class Reservation extends Model
@@ -41,20 +42,47 @@ class Reservation extends Model
             'tenant_confirmed_move_in_at' => 'datetime',
         ];
     }
+/**
+ * Tenant confirms they have physically moved in.
+ *
+ * This is the escrow release point: the held payment goes to the landlord
+ * in the same transaction that marks the unit occupied. Previously this
+ * only flipped the status and left the payment sitting on 'Held' forever,
+ * so money never actually reached the landlord unless an admin noticed and
+ * released it by hand from the admin Payments screen.
+ *
+ * Callers must hold a lock on this reservation — see
+ * Tenant\AgreementController::confirmMoveIn.
+ */
 public function confirmMoveIn(): bool
 {
     if ($this->rental_status !== 'Rental Agreement Signed') {
         return false;
     }
 
-    // Must have a held payment
-    if (!$this->payments()->where('status', 'Held')->exists()) {
+    // Locked, not just checked: this row is about to move money.
+    $heldPayment = $this->payments()
+        ->where('status', 'Held')
+        ->lockForUpdate()
+        ->first();
+
+    if (! $heldPayment) {
         return false;
     }
 
     $this->rental_status = 'Occupied';
     $this->tenant_confirmed_move_in_at = now();
     $this->save();
+
+    $heldPayment->update([
+        'status'      => 'Released',
+        'released_at' => now(),
+        // Null = released by the platform on tenant confirmation, as opposed
+        // to an admin id when released manually from the admin screen.
+        'released_by' => null,
+    ]);
+
+    $this->releasedPayment = $heldPayment;
 
     if ($this->unit) {
         $this->unit->availability_status = 'Occupied';
@@ -63,6 +91,13 @@ public function confirmMoveIn(): bool
 
     return true;
 }
+
+/**
+ * Set by confirmMoveIn() so the caller can broadcast the release after the
+ * transaction commits — broadcasting inside it would announce a payout that
+ * a rollback could still undo.
+ */
+public ?Payment $releasedPayment = null;
     // ─── Relationships ───────────────────────────────────────
 
     public function property()
@@ -225,12 +260,17 @@ public function confirmMoveIn(): bool
             return;
         }
 
-        Message::create([
+        $message = Message::create([
             'conversation_id' => $this->conversation_id,
             'sender_id' => null,
             'message' => $text,
             'is_system' => true,
             'is_read' => true,
         ]);
+
+        // Without this the row exists but only the party who triggered the
+        // transition ever sees it — they get a fresh render from their own
+        // POST, while the other side's thread stays stale until reload.
+        MessageSent::dispatch($message);
     }
 }

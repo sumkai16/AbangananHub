@@ -24,13 +24,7 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        $user = $request->user();
-
-        $destination = match (true) {
-            $user->hasRole('Admin')    => route('admin.dashboard'),
-            $user->hasRole('Landlord') => route('landlord.dashboard'),
-            default                    => route('properties.index'),
-        };
+        $destination = $request->user()->homeRoute();
 
         if ($request->wantsJson()) {
             return response()->json([

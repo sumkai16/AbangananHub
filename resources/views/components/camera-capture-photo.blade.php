@@ -24,7 +24,7 @@
     class="rounded-2xl border border-[#64748B]/20 bg-[#F7FCFC] p-4"
 >
     {{-- Hidden input the form actually submits --}}
-    <input type="file" x-ref="fileInput" name="{{ $name }}[]" multiple class="hidden" accept="image/*">
+    <input type="file" x-ref="fileInput" name="{{ $name }}[]" multiple class="hidden" accept="image/*" aria-label="Captured photos">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-3">
@@ -44,7 +44,7 @@
         </div>
         <span
             class="text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors duration-200"
-            :class="shots.length >= min ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-200'"
+            :class="shots.length >= min ? 'bg-[#22C55E]/[0.07] text-[#15803D] ring-1 ring-[#22C55E]/25' : 'bg-[#FBBF24]/[0.10] text-[#B45309] ring-1 ring-[#FBBF24]/35'"
         >
             <span x-text="shots.length"></span> / <span x-text="max"></span>
         </span>
@@ -59,7 +59,7 @@
     </div>
 
     {{-- Error state --}}
-    <div x-show="error" x-cloak class="mb-3 px-3 py-2.5 rounded-xl bg-red-50 border border-red-100 text-red-700 text-[12px] font-medium flex items-start gap-2">
+    <div x-show="error" x-cloak class="mb-3 px-3 py-2.5 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-[12px] font-medium flex items-start gap-2">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
         </svg>
@@ -95,7 +95,7 @@
     <div class="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-1" x-show="shots.length > 0">
         <template x-for="(shot, index) in shots" :key="shot.id">
             <div class="relative aspect-square rounded-lg overflow-hidden bg-[#EEF8F8] ring-1 ring-[#64748B]/15 group">
-                <img :src="shot.url" class="w-full h-full object-cover">
+                <img :src="shot.url" alt="Captured photo preview" class="w-full h-full object-cover">
                 <button
                     type="button"
                     @click="remove(index)"

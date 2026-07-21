@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\PropertyUnit;
+use App\Models\Reservation;
+use App\Observers\PropertyUnitObserver;
+use App\Observers\ReservationObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        PropertyUnit::observe(PropertyUnitObserver::class);
+        Reservation::observe(ReservationObserver::class);
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\FavoriteController;
 use App\Http\Controllers\Tenant\ReservationController;
 use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
@@ -30,10 +29,6 @@ use App\Http\Controllers\Admin\ReportAnalyticsController;
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
 Route::get('/about', fn() => view('about'))->name('about');
-
-Route::get('/dashboard', [TenantDashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
 
 // Global Authenticated Routes Group
 Route::middleware('auth')->group(function () {
@@ -108,6 +103,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
       // Reservations
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
+        Route::get('/reservations/export', [App\Http\Controllers\Landlord\ReservationController::class, 'export'])->name('reservations.export');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
@@ -119,6 +115,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
         // Occupancy monitoring
         Route::get('/occupancy', [App\Http\Controllers\Landlord\OccupancyController::class, 'index'])->name('occupancy.index');
+        Route::get('/occupancy/export', [App\Http\Controllers\Landlord\OccupancyController::class, 'export'])->name('occupancy.export');
 
 
         Route::patch('/reviews/{review}/reply', [\App\Http\Controllers\Landlord\ReviewController::class, 'reply'])->name('reviews.reply');
@@ -134,14 +131,21 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
         // Tenants
         Route::get('/tenants', [App\Http\Controllers\Landlord\TenantController::class, 'index'])->name('tenants.index');
+        Route::get('/tenants/export', [App\Http\Controllers\Landlord\TenantController::class, 'export'])->name('tenants.export');
 
         // Reviews
         Route::get('/reviews', [App\Http\Controllers\Landlord\ReviewController::class, 'index'])->name('reviews.index');
 
-        // My Reports
-        Route::get('/reports', [App\Http\Controllers\Landlord\ReportController::class, 'index'])->name('reports.index');
+        // Analytics — rental business performance (INSIGHTS)
+        Route::get('/analytics', [App\Http\Controllers\Landlord\AnalyticsController::class, 'index'])->name('analytics.index');
+        Route::get('/analytics/export', [App\Http\Controllers\Landlord\AnalyticsController::class, 'export'])->name('analytics.export');
+
+        // My Complaints — reports this landlord has filed (ACCOUNT).
+        // Renamed from landlord.reports.* so "Reports" only ever means analytics.
+        Route::get('/complaints', [App\Http\Controllers\Landlord\ReportController::class, 'index'])->name('complaints.index');
         // Units (standalone index)
         Route::get('/units', [App\Http\Controllers\Landlord\UnitIndexController::class, 'index'])->name('units.index');
+        Route::get('/units/export', [App\Http\Controllers\Landlord\UnitIndexController::class, 'export'])->name('units.export');
     });
 
     // Admin-specific routes

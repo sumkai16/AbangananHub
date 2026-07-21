@@ -9,6 +9,15 @@ class Amenity extends Model
         'amenity_name',
     ];
 protected $primaryKey = 'amenity_id';
+
+    // ─── Accessors ───────────────────────────────────────────
+
+    // Convenience alias so views can use $amenity->name
+    public function getNameAttribute(): ?string
+    {
+        return $this->amenity_name;
+    }
+
     // ─── Relationships ───────────────────────────────────────
 
     public function properties(): BelongsToMany

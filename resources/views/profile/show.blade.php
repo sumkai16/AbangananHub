@@ -3,7 +3,7 @@
 @section('title', 'Profile')
 
 @section('content')
-    <div class="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[calc(100vh-72px)]">
 
         {{-- Profile header card --}}
         <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-8 mb-6 flex flex-col sm:flex-row sm:items-center gap-5">
@@ -25,7 +25,7 @@
                         </span>
                     @endforeach
                     @if($user->rentalBusiness)
-                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#22C55E]/[0.07] text-[#15803D] border border-[#22C55E]/20">
                             <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>

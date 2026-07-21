@@ -10,7 +10,7 @@ class EnsureAccountActive
 {
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->account_status === 'Suspended') {
+        if (Auth::check() && Auth::user()->account_status === 'suspended') {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

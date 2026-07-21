@@ -1,9 +1,9 @@
 @extends('layouts.landlord')
 
-@section('page-title', 'My Reports')
+@section('page-title', 'My Complaints')
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[50px] py-6 pb-10">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
         <div class="flex items-center gap-3.5 mb-5">
@@ -14,17 +14,17 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">My Reports</h1>
-                <p class="text-sm text-[#64748B] mt-0.5">Track the status of reports you have filed.</p>
+                <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">My Complaints</h1>
+                <p class="text-sm text-[#64748B] mt-0.5">Track reports you have filed. Only you and the admin can see these.</p>
             </div>
         </div>
 
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Reports</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF2F5] flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
@@ -34,28 +34,28 @@
                 <span class="text-2xl font-extrabold text-[#1F2937]">{{ $stats['total'] }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">All reports you've filed</p>
             </div>
-            <div class="bg-white rounded-2xl ring-1 ring-amber-100 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Pending</span>
-                    <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-amber-500">{{ $stats['pending'] }}</span>
+                <span class="text-2xl font-extrabold text-[#B45309]">{{ $stats['pending'] }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">Awaiting admin review</p>
             </div>
-            <div class="bg-white rounded-2xl ring-1 ring-emerald-100 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Resolved</span>
-                    <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                         </svg>
                     </div>
                 </div>
-                <span class="text-2xl font-extrabold text-emerald-600">{{ $stats['resolved'] }}</span>
+                <span class="text-2xl font-extrabold text-[#15803D]">{{ $stats['resolved'] }}</span>
                 <p class="text-[11px] text-[#64748B] mt-1">Reviewed and closed</p>
             </div>
         </div>
@@ -63,8 +63,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
             <div class="min-w-0">
                 {{-- Filter bar --}}
-                <form method="GET" action="{{ route('landlord.reports.index') }}"
-                    class="bg-white rounded-2xl ring-1 ring-[#64748B]/15 p-4 mb-6">
+                <form method="GET" action="{{ route('landlord.complaints.index') }}"
+                    class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
                     <div class="flex flex-wrap items-center gap-2.5">
                         <div class="relative">
                             <select name="status"
@@ -87,7 +87,7 @@
                         </button>
 
                         @if(request()->hasAny(['status']))
-                            <a href="{{ route('landlord.reports.index') }}"
+                            <a href="{{ route('landlord.complaints.index') }}"
                                 class="h-11 px-4 rounded-xl border border-[#64748B]/25 text-[13.5px] text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 inline-flex items-center gap-1.5">
                                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -108,7 +108,7 @@
 
                 {{-- Report cards --}}
                 @if($reports->isEmpty())
-                    <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col items-center justify-center py-16 px-6 text-center">
                         <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
                             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -128,19 +128,19 @@
                 @else
                     <div class="space-y-3">
                         @foreach($reports as $report)
-                            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+                            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                                 <div class="flex items-start justify-between gap-3 mb-2">
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="text-[13.5px] font-bold text-[#1F2937]">{{ Str::limit($report->report_reason, 60) }}</span>
                                     </div>
                                     @if($report->report_status === 'Resolved')
-                                        <span class="inline-flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        <span class="inline-flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full bg-[#22C55E]/[0.07] text-[#15803D] text-[11px] font-semibold">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span>
                                             Resolved
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 text-[11px] font-semibold">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        <span class="inline-flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full bg-[#FBBF24]/[0.10] text-[#B45309] text-[11px] font-semibold">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#FBBF24]"></span>
                                             Pending
                                         </span>
                                     @endif
@@ -169,7 +169,7 @@
 
                                 @if($report->report_status === 'Resolved' && $report->admin_notes)
                                     <div class="mt-3 pt-3 border-t border-[#64748B]/10 pl-3 border-l-2 border-l-emerald-400">
-                                        <p class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wide">Admin Response</p>
+                                        <p class="text-[11px] font-semibold text-[#15803D] uppercase tracking-wide">Admin Response</p>
                                         <p class="text-[12.5px] text-[#64748B] mt-0.5 leading-relaxed">{{ $report->admin_notes }}</p>
                                     </div>
                                 @endif
@@ -186,7 +186,7 @@
 
             {{-- Sidebar: reporting guidelines --}}
             <aside class="flex flex-col gap-4 lg:sticky lg:top-24">
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                     <h3 class="text-[13px] font-bold text-[#1F2937] mb-3.5">When to file a report</h3>
                     <ul class="flex flex-col gap-3">
                         <li class="flex items-start gap-2.5">

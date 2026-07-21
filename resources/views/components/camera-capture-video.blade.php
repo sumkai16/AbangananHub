@@ -19,7 +19,7 @@
     x-init="init()"
     class="rounded-2xl border border-[#64748B]/20 bg-[#F7FCFC] p-4"
 >
-    <input type="file" x-ref="fileInput" name="{{ $name }}" class="hidden" accept="video/*">
+    <input type="file" x-ref="fileInput" name="{{ $name }}" class="hidden" accept="video/*" aria-label="Captured video">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-3">
@@ -36,7 +36,7 @@
         </div>
         <span
             class="text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 transition-colors duration-200"
-            :class="recordedUrl ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : 'bg-amber-50 text-amber-600 ring-amber-200'"
+            :class="recordedUrl ? 'bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25' : 'bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35'"
         >
             <span x-text="recordedUrl ? 'Recorded' : 'Not recorded'"></span>
         </span>
@@ -51,7 +51,7 @@
     </div>
 
     {{-- Error state --}}
-    <div x-show="error" x-cloak class="mb-3 px-3 py-2.5 rounded-xl bg-red-50 border border-red-100 text-red-700 text-[12px] font-medium flex items-start gap-2">
+    <div x-show="error" x-cloak class="mb-3 px-3 py-2.5 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-[12px] font-medium flex items-start gap-2">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
         </svg>
@@ -70,7 +70,7 @@
 
         {{-- Recording indicator --}}
         <div x-show="recording" x-cloak class="absolute top-3 left-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1">
-            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            <span class="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse"></span>
             <span class="text-white text-[11px] font-semibold tracking-wide" x-text="formattedTime"></span>
         </div>
 
@@ -81,7 +81,7 @@
             @click="startRecording()"
             class="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 h-11 px-5 rounded-full bg-white text-[#1F2937] text-[13px] font-semibold shadow-lg hover:scale-95 active:scale-90 transition-all duration-150"
         >
-            <span class="w-3 h-3 rounded-full bg-red-500"></span>
+            <span class="w-3 h-3 rounded-full bg-[#EF4444]"></span>
             Start Recording
         </button>
 
@@ -91,7 +91,7 @@
             x-show="recording"
             x-cloak
             @click="stopRecording()"
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 h-11 px-5 rounded-full bg-red-500 text-white text-[13px] font-semibold shadow-lg hover:scale-95 active:scale-90 transition-all duration-150"
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 h-11 px-5 rounded-full bg-[#EF4444] text-white text-[13px] font-semibold shadow-lg hover:scale-95 active:scale-90 transition-all duration-150"
         >
             <span class="w-3 h-3 rounded-sm bg-white"></span>
             Stop Recording
@@ -105,7 +105,7 @@
 
     {{-- Retake --}}
     <div x-show="recordedUrl" x-cloak class="flex items-center justify-between">
-        <div class="flex items-center gap-1.5 text-[11px] text-emerald-700">
+        <div class="flex items-center gap-1.5 text-[11px] text-[#15803D]">
             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
             </svg>
