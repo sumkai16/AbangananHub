@@ -43,10 +43,36 @@
                                                     mobileOpen: false,
                                                     mstep: 1,
                                                     openMobile() { this.mstep = this.selectedUnit ? 2 : 1; this.mobileOpen = true; document.body.style.overflow = 'hidden'; },
+
+                                                    init() {
+                                                        // Below lg the desktop sidebar form is hidden, so a validation
+                                                        // error can only have come from the mobile sheet — reopen it on
+                                                        // step 2 or the message renders inside a closed panel.
+                                                        @if($errors->any())
+                                                            if (window.matchMedia('(max-width: 1023px)').matches) {
+                                                                this.$nextTick(() => this.openMobile());
+                                                            }
+                                                        @endif
+                                                    },
                                                     closeMobile() { this.mobileOpen = false; document.body.style.overflow = ''; },
                                                         units: @js($unitsPayload),
                                                     selectedUnit: @js($defaultUnitId),
-                                                    msg: '',
+                                                    msg: @js(old('message', '')),
+
+                                                    moveIn: @js(old('target_move_in_date', '')),
+                                                    moveOut: @js(old('target_move_out_date', '')),
+                                                    minMoveIn: @js(now()->toDateString()),
+                                                    maxMoveIn: @js(now()->addYear()->toDateString()),
+
+                                                    // Move-out can never precede move-in. Bumping move-in past an
+                                                    // already-picked move-out clears it rather than leaving an
+                                                    // invalid pair sitting in the form.
+                                                    onMoveInChange() {
+                                                        if (this.moveOut && this.moveOut <= this.moveIn) this.moveOut = '';
+                                                    },
+
+                                                    get canSubmit() { return !!this.selected && !!this.moveIn },
+
                                                     descExpanded: false,
                                                     allAmenities: false,
 
@@ -835,25 +861,36 @@
                             @csrf
                             <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
 
-                            <div class="grid grid-cols-2 gap-3">
-                                <div
-                                    class="rounded-xl bg-white border border-[#E2E8F0] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
-                                    <label for="target_move_in_date"
-                                        class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
-                                        In</label>
-                                    <input type="date" id="target_move_in_date" name="target_move_in_date"
-                                        min="{{ now()->toDateString() }}" value="{{ old('target_move_in_date') }}"
-                                        class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
+                            <div class="grid grid-cols-2 gap-3 items-start">
+                                <div>
+                                    <div class="rounded-xl bg-white border px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10 @error('target_move_in_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
+                                        <label for="target_move_in_date"
+                                            class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
+                                            In</label>
+                                        <input type="date" id="target_move_in_date" name="target_move_in_date" required
+                                            x-model="moveIn" x-on:change="onMoveInChange()"
+                                            :min="minMoveIn" :max="maxMoveIn"
+                                            @error('target_move_in_date') aria-invalid="true" aria-describedby="target_move_in_date_error" @enderror
+                                            class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
+                                    </div>
+                                    @error('target_move_in_date')
+                                        <p id="target_move_in_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
-                                <div
-                                    class="rounded-xl bg-white border border-[#E2E8F0] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
-                                    <label for="target_move_out_date"
-                                        class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
-                                        Out <span class="normal-case tracking-normal font-semibold">· optional</span></label>
-                                    <input type="date" id="target_move_out_date" name="target_move_out_date"
-                                        value="{{ old('target_move_out_date') }}"
-                                        class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
+                                <div>
+                                    <div class="rounded-xl bg-white border px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10 @error('target_move_out_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
+                                        <label for="target_move_out_date"
+                                            class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
+                                            Out <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                                        <input type="date" id="target_move_out_date" name="target_move_out_date"
+                                            x-model="moveOut" :min="moveIn || minMoveIn" :disabled="!moveIn"
+                                            @error('target_move_out_date') aria-invalid="true" aria-describedby="target_move_out_date_error" @enderror
+                                            class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:text-[#64748B]/50 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
+                                    </div>
+                                    @error('target_move_out_date')
+                                        <p id="target_move_out_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
 
@@ -864,7 +901,7 @@
                                     <span class="normal-case tracking-normal font-semibold">· optional</span></label>
                                 <textarea id="inquiry_message" name="message" rows="3" maxlength="300" x-model="msg"
                                     placeholder="Hi! I'm interested in this unit..."
-                                    class="w-full bg-transparent border-0 p-0 text-sm font-medium text-[#1F2937] placeholder:text-[#64748B]/60 focus:outline-none focus:ring-0 resize-none">{{ old('message') }}</textarea>
+                                    class="w-full bg-transparent border-0 p-0 text-sm font-medium text-[#1F2937] placeholder:text-[#64748B]/60 focus:outline-none focus:ring-0 resize-none"></textarea>
                                 <p class="text-[10px] font-semibold text-[#64748B]/70 text-right">
                                     <span x-text="msg.length"></span>/300
                                 </p>
@@ -877,9 +914,9 @@
                                 </div>
                             </template>
                             <template x-if="!selected || !selected.hasActive">
-                                <button type="submit" :disabled="!selected"
+                                <button type="submit" :disabled="!canSubmit"
                                     class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
-                                    x-text="mode === 'reserve' ? 'Send Reservation Request' : 'Send Inquiry to Landlord'">
+                                    x-text="!selected ? 'Select a unit' : (!moveIn ? 'Choose a move-in date' : (mode === 'reserve' ? 'Send Reservation Request' : 'Send Inquiry to Landlord'))">
                                 </button>
                             </template>
                         </form>
@@ -1144,13 +1181,24 @@
 
                                         <div>
                                             <label for="m_move_in" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move In</label>
-                                            <input type="date" id="m_move_in" name="target_move_in_date" min="{{ now()->toDateString() }}"
-                                                class="w-full h-11 rounded-xl border border-[#E2E8F0] px-3.5 text-sm text-[#1F2937] focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 transition-all">
+                                            <input type="date" id="m_move_in" name="target_move_in_date" required
+                                                x-model="moveIn" x-on:change="onMoveInChange()"
+                                                :min="minMoveIn" :max="maxMoveIn"
+                                                @error('target_move_in_date') aria-invalid="true" aria-describedby="m_move_in_error" @enderror
+                                                class="w-full h-11 rounded-xl border px-3.5 text-sm text-[#1F2937] focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 transition-all @error('target_move_in_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
+                                            @error('target_move_in_date')
+                                                <p id="m_move_in_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                         <div>
                                             <label for="m_move_out" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move Out <span class="font-semibold">(Optional)</span></label>
                                             <input type="date" id="m_move_out" name="target_move_out_date"
-                                                class="w-full h-11 rounded-xl border border-[#E2E8F0] px-3.5 text-sm text-[#1F2937] focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 transition-all">
+                                                x-model="moveOut" :min="moveIn || minMoveIn" :disabled="!moveIn"
+                                                @error('target_move_out_date') aria-invalid="true" aria-describedby="m_move_out_error" @enderror
+                                                class="w-full h-11 rounded-xl border px-3.5 text-sm text-[#1F2937] focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 transition-all disabled:cursor-not-allowed disabled:bg-[#F7FCFC] disabled:text-[#64748B]/50 @error('target_move_out_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
+                                            @error('target_move_out_date')
+                                                <p id="m_move_out_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                         <div>
                                             <label for="m_message" class="block text-[11px] font-bold text-[#64748B] mb-1">Message <span class="font-semibold">(Optional)</span></label>
@@ -1166,9 +1214,9 @@
                                             </div>
                                         </template>
                                         <template x-if="!selected || !selected.hasActive">
-                                            <button type="submit" :disabled="!selected"
-                                                class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]">
-                                                Send Inquiry
+                                            <button type="submit" :disabled="!canSubmit"
+                                                class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
+                                                x-text="!selected ? 'Select a unit' : (!moveIn ? 'Choose a move-in date' : 'Send Inquiry')">
                                             </button>
                                         </template>
                                     </form>

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PaymentStatusUpdated;
+use App\Models\Notification;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -61,6 +63,33 @@ protected function handleCheckoutPaid(array $resource): void
     $reservation = $payment->reservation;
     if ($reservation) {
         $reservation->postSystemMessage($reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.');
+    }
+
+    // The tenant is sitting on the agreement page's "Payment Processing"
+    // spinner waiting for exactly this.
+    PaymentStatusUpdated::dispatch($payment->fresh());
+
+    if ($reservation) {
+        $unitLabel = $reservation->unit?->unit_label ?? $reservation->property?->title;
+        $amount = '₱' . number_format((float) $payment->amount, 2);
+
+        Notification::notify(
+            $reservation->tenant_id,
+            'payment',
+            'Payment received',
+            "Your {$amount} payment for {$unitLabel} is held by AbangananHub until you confirm move-in.",
+            route('agreements.show', $reservation),
+            $reservation->conversation_id,
+        );
+
+        Notification::notify(
+            $reservation->property?->landlord_id,
+            'payment',
+            'Tenant completed payment',
+            "{$amount} for {$unitLabel} is held by AbangananHub until the tenant confirms move-in.",
+            route('conversations.index', ['active' => $reservation->conversation_id]),
+            $reservation->conversation_id,
+        );
     }
 }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +53,14 @@ class ListingController extends Controller
             return $property;
         });
 
+        Notification::notify(
+            $property->landlord_id,
+            'listing',
+            'Listing approved',
+            "Your listing '{$property->title}' was approved and is now visible to tenants.",
+            route('properties.show', $property->property_id),
+        );
+
         return redirect()->back()->with('success', "The listing '{$property->title}' has been approved successfully.");
     }
 
@@ -67,6 +76,14 @@ class ListingController extends Controller
 
             return $property;
         });
+
+        Notification::notify(
+            $property->landlord_id,
+            'listing',
+            'Listing not approved',
+            "Your listing '{$property->title}' was not approved. Review the details and resubmit.",
+            route('landlord.properties.index'),
+        );
 
         return redirect()->back()->with('error', "The listing '{$property->title}' has been rejected.");
     }

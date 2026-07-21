@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\NotificationCreated;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
@@ -16,6 +17,7 @@ class Notification extends Model
         'conversation_id',
         'title',
         'message',
+        'link',
         'is_read',
     ];
 
@@ -40,6 +42,43 @@ class Notification extends Model
     public function notifiable()
     {
         return $this->morphTo('notifiable', 'notifiable_type', 'notifiable_id');
+    }
+
+    /**
+     * The single place a notification is created.
+     *
+     * Every caller goes through here so the broadcast can never be forgotten —
+     * the same failure that left postSystemMessage() writing rows nobody saw
+     * until a reload. Mirrors that method's shape deliberately.
+     *
+     * Returns null when there is no recipient, so callers can hook it up
+     * without null-checking the actor first.
+     */
+    public static function notify(
+        ?int $userId,
+        string $type,
+        string $title,
+        string $message,
+        ?string $link = null,
+        ?int $conversationId = null,
+    ): ?self {
+        if (! $userId) {
+            return null;
+        }
+
+        $notification = static::create([
+            'user_id'         => $userId,
+            'type'            => $type,
+            'title'           => $title,
+            'message'         => $message,
+            'link'            => $link,
+            'conversation_id' => $conversationId,
+            'is_read'         => false,
+        ]);
+
+        NotificationCreated::dispatch($notification);
+
+        return $notification;
     }
 
     public function markAsRead(): bool

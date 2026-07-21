@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use Illuminate\Http\Request;
@@ -59,6 +60,14 @@ class PropertyUnitController extends Controller
             ]);
         });
 
+        Notification::notify(
+            $property->landlord_id,
+            'listing',
+            'Unit approved',
+            "Unit '{$unit->unit_label}' in {$property->title} was approved and is now bookable.",
+            route('landlord.units.index'),
+        );
+
         return redirect()
             ->route('admin.units.index')
             ->with('success', "Unit '{$unit->unit_label}' approved.");
@@ -81,6 +90,14 @@ class PropertyUnitController extends Controller
                 'rejection_reason'    => $validated['rejection_reason'] ?? null,
             ]);
         });
+
+        Notification::notify(
+            $property->landlord_id,
+            'listing',
+            'Unit not approved',
+            "Unit '{$unit->unit_label}' in {$property->title} was not approved. Reason: " . $validated['rejection_reason'],
+            route('landlord.units.index'),
+        );
 
         return redirect()
             ->route('admin.units.index')

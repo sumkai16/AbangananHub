@@ -136,8 +136,13 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         // Reviews
         Route::get('/reviews', [App\Http\Controllers\Landlord\ReviewController::class, 'index'])->name('reviews.index');
 
-        // My Reports
-        Route::get('/reports', [App\Http\Controllers\Landlord\ReportController::class, 'index'])->name('reports.index');
+        // Analytics — rental business performance (INSIGHTS)
+        Route::get('/analytics', [App\Http\Controllers\Landlord\AnalyticsController::class, 'index'])->name('analytics.index');
+        Route::get('/analytics/export', [App\Http\Controllers\Landlord\AnalyticsController::class, 'export'])->name('analytics.export');
+
+        // My Complaints — reports this landlord has filed (ACCOUNT).
+        // Renamed from landlord.reports.* so "Reports" only ever means analytics.
+        Route::get('/complaints', [App\Http\Controllers\Landlord\ReportController::class, 'index'])->name('complaints.index');
         // Units (standalone index)
         Route::get('/units', [App\Http\Controllers\Landlord\UnitIndexController::class, 'index'])->name('units.index');
         Route::get('/units/export', [App\Http\Controllers\Landlord\UnitIndexController::class, 'export'])->name('units.export');

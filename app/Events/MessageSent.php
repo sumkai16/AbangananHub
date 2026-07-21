@@ -20,15 +20,26 @@ class MessageSent implements ShouldBroadcastNow
     {
         $conversation = $this->message->conversation;
 
-        // Determine recipient (the other person in the conversation)
+        $channels = [
+            new PrivateChannel('conversation.' . $this->message->conversation_id),
+        ];
+
+        // System messages have no sender, so there is no single "other
+        // person" — both parties need it on their user channel.
+        if ($this->message->sender_id === null) {
+            $channels[] = new PrivateChannel('user.' . $conversation->tenant_id);
+            $channels[] = new PrivateChannel('user.' . $conversation->landlord_id);
+
+            return $channels;
+        }
+
         $recipientId = $this->message->sender_id === $conversation->tenant_id
             ? $conversation->landlord_id
             : $conversation->tenant_id;
 
-        return [
-            new PrivateChannel('conversation.' . $this->message->conversation_id),
-            new PrivateChannel('user.' . $recipientId),
-        ];
+        $channels[] = new PrivateChannel('user.' . $recipientId);
+
+        return $channels;
     }
 
     public function broadcastAs(): string
@@ -42,12 +53,19 @@ class MessageSent implements ShouldBroadcastNow
         $property = $conversation->property;
         $unit = $conversation->unit;
 
+        $sender = $this->message->sender;
+
         return [
             'message_id'      => $this->message->message_id,
             'conversation_id' => $this->message->conversation_id,
             'sender_id'       => $this->message->sender_id,
-            'sender_name'     => $this->message->sender->first_name . ' ' . $this->message->sender->last_name,
-            'sender_initial'  => strtoupper(substr($this->message->sender->first_name, 0, 1)),
+            // Null on system messages — sender_id is null there, and reading
+            // ->first_name off it would fatal.
+            'sender_name'     => $sender ? $sender->first_name . ' ' . $sender->last_name : null,
+            'sender_initial'  => $sender ? strtoupper(substr($sender->first_name, 0, 1)) : null,
+            // Cloudinary URL — output as-is, never through Storage::url().
+            'sender_avatar'   => $sender?->profile_picture,
+            'is_system'       => (bool) $this->message->is_system,
             'message'         => $this->message->message,
             'sent_at'         => $this->message->sent_at->toIso8601String(),
             'property_title'  => $property?->title ?? '',

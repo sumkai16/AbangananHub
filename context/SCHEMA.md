@@ -201,6 +201,8 @@
 | user_id | FK → users.user_id | NOT NULL | |
 | title | VARCHAR(255) | NOT NULL | |
 | message | TEXT | NOT NULL | |
+| link | VARCHAR(255) | NULLABLE | Destination URL. Added July 21, 2026 — notifications previously had no target of their own, so anything that wasn't a message notification fell back to the index |
+| type | VARCHAR(255) | DEFAULT 'system' | reservation / agreement / payment / verification / listing / review / report / account — drives the dropdown's icon and tint |
 | is_read | BOOLEAN | DEFAULT FALSE | |
 | created_at | TIMESTAMP | | |
 
@@ -293,6 +295,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_caption_to_unit_media_table | Photo captions | Optional per-photo caption shown to tenants | July 2026 |
 | create_occupancy_snapshots_table | Daily occupancy history | Feeds occupancy trend chart | July 2026 |
 | create_occupancy_activities_table | Unit status-change log | Feeds Recent Activities feed | July 2026 |
+| add_link_to_notifications_table | Per-notification destination URL | Notifications had no target except a conversation; every non-message type dead-ended at the index | July 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `firstOrCreate` on unique `amenity_name`); runs before `PropertySeeder` in `DatabaseSeeder`. The amenities table is otherwise empty.

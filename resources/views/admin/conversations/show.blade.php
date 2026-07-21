@@ -74,7 +74,7 @@
                                     </p>
                                     <div class="px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed
                                         {{ $isTenant
-                                            ? 'bg-[#2AA7A1]/8 text-[#1F2937] rounded-bl-sm border border-[#2AA7A1]/10'
+                                            ? 'bg-[#2AA7A1]/10 text-[#1F2937] rounded-bl-sm border border-[#2AA7A1]/10'
                                             : 'bg-[#EEF8F8] text-[#1F2937] rounded-br-sm border border-[#E2E8F0]' }}">
                                         {{ $msg->message }}
                                     </div>

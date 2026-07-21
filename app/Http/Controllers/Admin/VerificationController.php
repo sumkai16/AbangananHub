@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RejectVerificationRequest;
 use App\Models\LandlordVerification;
+use App\Models\Notification;
 use App\Models\RentalBusiness;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -82,7 +83,13 @@ class VerificationController extends Controller
             );
         });
 
-        // TODO: notify the user once the notification pipeline covers this event type.
+        Notification::notify(
+            $verification->user_id,
+            'verification',
+            'You are now a verified landlord',
+            'Your landlord application was approved. You can now list properties and receive inquiries.',
+            route('landlord.dashboard'),
+        );
 
         return back()->with('status', 'Landlord application approved.');
     }
@@ -101,6 +108,16 @@ class VerificationController extends Controller
                 'reviewed_at' => now(),
             ]);
         });
+
+        $reason = $request->validated('admin_notes');
+
+        Notification::notify(
+            $verification->user_id,
+            'verification',
+            'Landlord application not approved',
+            'Your landlord application was not approved.' . ($reason ? ' Reason: ' . $reason : ''),
+            route('landlord.verification.show'),
+        );
 
         return back()->with('status', 'Application rejected.');
     }

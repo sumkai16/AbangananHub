@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Report;
 use Illuminate\Http\Request;
 
@@ -73,6 +74,16 @@ class ReportController extends Controller
         $validated['admin_notes'],
         $actionLabel,
         auth()->id()
+    );
+
+    // Only the reporter is told. The reported party is deliberately not
+    // notified that a report existed — that is admin-only moderation state.
+    Notification::notify(
+        $report->reporter_id,
+        'report',
+        'Your report was reviewed',
+        $validated['admin_notes'],
+        route('notifications.index'),
     );
 
     return back()->with('status', 'Report resolved.');

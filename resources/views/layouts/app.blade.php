@@ -1074,6 +1074,19 @@
                     unreadCount: {{ auth()->user()->notifications()->where('is_read', false)->count() }},
                     loaded: false,
 
+                    init() {
+                        // Live bell over the existing private user.{id} channel.
+                        // Guarded so a down Reverb still leaves click-to-load working.
+                        if (!window.Echo) return;
+
+                        window.Echo.private('user.{{ auth()->id() }}')
+                            .listen('.NotificationCreated', () => {
+                                this.unreadCount++;
+                                this.loaded = false;
+                                if (this.open) this.fetchRecent();
+                            });
+                    },
+
                     toggle() {
                         this.open = !this.open;
                         if (this.open && !this.loaded) {

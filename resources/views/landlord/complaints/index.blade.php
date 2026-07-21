@@ -1,6 +1,6 @@
 @extends('layouts.landlord')
 
-@section('page-title', 'My Reports')
+@section('page-title', 'My Complaints')
 
 @section('content')
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
@@ -14,8 +14,8 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">My Reports</h1>
-                <p class="text-sm text-[#64748B] mt-0.5">Track the status of reports you have filed.</p>
+                <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">My Complaints</h1>
+                <p class="text-sm text-[#64748B] mt-0.5">Track reports you have filed. Only you and the admin can see these.</p>
             </div>
         </div>
 
@@ -63,7 +63,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
             <div class="min-w-0">
                 {{-- Filter bar --}}
-                <form method="GET" action="{{ route('landlord.reports.index') }}"
+                <form method="GET" action="{{ route('landlord.complaints.index') }}"
                     class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
                     <div class="flex flex-wrap items-center gap-2.5">
                         <div class="relative">
@@ -87,7 +87,7 @@
                         </button>
 
                         @if(request()->hasAny(['status']))
-                            <a href="{{ route('landlord.reports.index') }}"
+                            <a href="{{ route('landlord.complaints.index') }}"
                                 class="h-11 px-4 rounded-xl border border-[#64748B]/25 text-[13.5px] text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 inline-flex items-center gap-1.5">
                                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />

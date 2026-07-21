@@ -46,7 +46,7 @@ DB::transaction(function () use ($record) {
     // role grants / related-row creation / side effects go here, inside the lock
 });
 ```
-Reference implementations: `Admin\VerificationController::approve/reject`, `Admin\PaymentController::release` (money — highest priority), `Admin\ListingController::approve/reject`, `Admin\PropertyUnitController::approve/reject`. `ListingController` previously had no idempotency guard at all before this pass — a bare status check is the floor, not the fix; the lock is what actually closes the race.
+Reference implementations: `Admin\VerificationController::approve/reject`, `Admin\PaymentController::release` (money — highest priority), `Admin\ListingController::approve/reject`, `Admin\PropertyUnitController::approve/reject`, `Tenant\AgreementController::sign/confirmMoveIn` (July 2026 — `confirmMoveIn` releases escrow to the landlord and had no lock at all; it was also guarded only by a native `onclick="return confirm()"`, which this codebase does not use). `ListingController` previously had no idempotency guard at all before this pass — a bare status check is the floor, not the fix; the lock is what actually closes the race.
 
 **Self-action guards on admin-management screens.** An admin editing their own account through the same form used to manage other admins can strip their own Admin role or suspend themselves with no recovery path. `UserController::update`/`updateStatus` now reject role/status changes where the target is `auth()->id()`. Any future "admin manages other admin-like records" screen needs the same self-target check.
 

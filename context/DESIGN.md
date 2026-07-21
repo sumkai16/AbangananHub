@@ -195,7 +195,12 @@ grep -rn 'backdrop-blur-xl\|bg-white/70' . --include='*.blade.php'          # co
 grep -rhoE '\b(bg|text|border|ring)-(emerald|amber|red|slate|green|gray|blue|indigo|purple)-[0-9]+' . --include='*.blade.php'
 grep -rnoE '\[#[0-9A-Fa-f]{6}\](/\[0\.[0-9]+\])?[0-9]' . --include='*.blade.php'   # malformed classes
 grep -rn '1A1A2E\|EEF2F5' . --include='*.blade.php'                          # off-palette
+grep -rhoE '\[#[0-9A-Fa-f]{6}\]/[0-9]+' . --include='*.blade.php' | grep -oE '/[0-9]+$' | sort -u
 ```
+
+**The fourth grep catches out-of-scale opacity modifiers, and it found a live one (July 2026).** `bg-[#EF4444]/8` appeared in four places — three warning banners on `agreements/show` and one bubble in `admin/conversations/show`. `8` is **not** in Tailwind's default opacity scale (0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100), so no class was generated and every one of those panels rendered with a fully transparent background — red text and a border floating on white. Confirmed by grepping the built CSS: `EF4444\]\/10`, `\/25`, `\/30`, `\/5` are all emitted, `\/8` is not.
+
+This is the same failure mode as the sed incident above and is *not* caught by the malformed-class grep, which only detects broken *syntax*. An opacity modifier can be perfectly well-formed and still produce nothing. Run the grep above and eyeball the value list against the scale; anything outside it is dead. Use `/[0.08]` bracket syntax if you genuinely need an off-scale value.
 
 **The third grep is the one that matters most, and the lesson behind it.** The bulk migration was done with `sed`, and the substitution list put `bg-emerald-50` *before* `bg-emerald-500`. sed matched the shorter prefix, leaving a stray trailing digit: `bg-emerald-500` → `bg-[#22C55E]/[0.07]0`. That is not a valid Tailwind class, so every solid status fill silently rendered colorless — occupancy bars, legend dots, status pills — across 32 sites in 5 files. It shipped past a "no raw Tailwind colors remain" check, because that check could only detect *un*-migrated input, never *mis*-migrated output. **A validity check on what you produced is not optional; an absence check on what you replaced is not sufficient.** `php artisan view:cache` will not catch it either — a nonsense class name is still valid Blade. Only rendering the page does.
 

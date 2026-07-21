@@ -28,6 +28,6 @@ class ReportController extends Controller
             'resolved' => Report::where('reporter_id', $userId)->where('report_status', 'Resolved')->count(),
         ];
 
-        return view('landlord.reports.index', compact('reports', 'stats'));
+        return view('landlord.complaints.index', compact('reports', 'stats'));
     }
 }

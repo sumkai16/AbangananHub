@@ -66,10 +66,14 @@ class DashboardController extends Controller
             ->where('created_at', '>=', now()->subDays(7))
             ->count();
 
-        $openComplaints = Report::where(function ($q) use ($landlordId, $propertyIds) {
-            $q->where('reported_user_id', $landlordId)
-                ->orWhereIn('property_id', $propertyIds);
-        })->where('report_status', 'Pending')
+        // Reports this landlord FILED and that are still open — matching the
+        // My Complaints page. It previously counted reports filed *against*
+        // them (reported_user_id / their properties), which is moderation
+        // state the admin owns: telling a landlord they have been reported
+        // both leaks the queue and contradicts the confidentiality notice on
+        // the complaints page.
+        $openComplaints = Report::where('reporter_id', $landlordId)
+            ->where('report_status', 'Pending')
             ->count();
 
         $hour = now()->hour;

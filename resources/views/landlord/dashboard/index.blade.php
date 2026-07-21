@@ -162,10 +162,11 @@
                     </div>
                 </a>
 
-                <div class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
+                <a href="{{ route('landlord.complaints.index') }}"
+                    class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
                     <div>
                         <p class="text-[26px] font-extrabold text-[#1F2937] leading-none">{{ $openComplaints }}</p>
-                        <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">Open complaints</p>
+                        <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">My open complaints</p>
                     </div>
                     <div class="w-10 h-10 rounded-xl bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0 group-hover:bg-[#22C55E] transition-colors duration-200">
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#166534" stroke-width="1.75"
@@ -174,7 +175,7 @@
                                 d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                         </svg>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 

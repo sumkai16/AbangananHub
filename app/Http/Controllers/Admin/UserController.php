@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Http\Request;
@@ -152,7 +153,18 @@ class UserController extends Controller
             return back()->with('error', 'You cannot change your own account status.');
         }
 
+        $previous = $user->account_status;
         $user->update(['account_status' => $request->status]);
+
+        if ($previous !== $request->status) {
+            $copy = match ($request->status) {
+                'suspended' => ['Account suspended', 'Your account has been suspended. Contact support if you believe this is a mistake.'],
+                'active'    => ['Account reinstated', 'Your account is active again. Welcome back.'],
+                default     => ['Account deactivated', 'Your account has been set to inactive.'],
+            };
+
+            Notification::notify($user->user_id, 'account', $copy[0], $copy[1], route('notifications.index'));
+        }
 
         return back()->with('success', 'User status updated to ' . ucfirst($request->status) . '.');
     }
