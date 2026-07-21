@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
@@ -71,27 +72,29 @@ class ReservationController extends Controller
             'admin_note' => 'nullable|string|max:500',
         ]);
 
-        if (in_array($reservation->rental_status, ['Occupied', 'Cancelled', 'Rejected'])) {
-            return back()->with('error', 'This reservation cannot be cancelled at its current status.');
-        }
+        DB::transaction(function () use ($request, $reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
-        $reservation->rental_status = 'Cancelled';
-        if ($request->filled('admin_note')) {
-            $reservation->remarks = '[Admin] ' . $request->admin_note;
-        }
-        $reservation->save();
+            abort_if(in_array($locked->rental_status, ['Occupied', 'Cancelled', 'Rejected'], true), 409, 'This reservation cannot be cancelled at its current status.');
 
-        // Free the unit if it was reserved
-        if ($reservation->unit && in_array($reservation->unit->availability_status, ['Reserved', 'Occupied'])) {
-            $otherActive = Reservation::where('unit_id', $reservation->unit_id)
-                ->where('reservation_id', '!=', $reservation->reservation_id)
-                ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
-                ->exists();
-
-            if (!$otherActive) {
-                $reservation->unit->update(['availability_status' => 'Available']);
+            $locked->rental_status = 'Cancelled';
+            if ($request->filled('admin_note')) {
+                $locked->remarks = '[Admin] ' . $request->admin_note;
             }
-        }
+            $locked->save();
+
+            // Free the unit if it was reserved
+            if ($locked->unit && in_array($locked->unit->availability_status, ['Reserved', 'Occupied'], true)) {
+                $otherActive = Reservation::where('unit_id', $locked->unit_id)
+                    ->where('reservation_id', '!=', $locked->reservation_id)
+                    ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+                    ->exists();
+
+                if (!$otherActive) {
+                    $locked->unit->update(['availability_status' => 'Available']);
+                }
+            }
+        });
 
         return back()->with('success', 'Reservation has been cancelled by admin.');
     }
@@ -102,26 +105,28 @@ class ReservationController extends Controller
             'admin_note' => 'nullable|string|max:500',
         ]);
 
-        if (in_array($reservation->rental_status, ['Occupied', 'Cancelled', 'Rejected'])) {
-            return back()->with('error', 'This reservation cannot be rejected at its current status.');
-        }
+        DB::transaction(function () use ($request, $reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
-        $reservation->rental_status    = 'Rejected';
-        $reservation->rejection_reason = $request->filled('admin_note')
-            ? '[Admin] ' . $request->admin_note
-            : '[Admin action]';
-        $reservation->save();
+            abort_if(in_array($locked->rental_status, ['Occupied', 'Cancelled', 'Rejected'], true), 409, 'This reservation cannot be rejected at its current status.');
 
-        if ($reservation->unit && $reservation->unit->availability_status === 'Reserved') {
-            $otherActive = Reservation::where('unit_id', $reservation->unit_id)
-                ->where('reservation_id', '!=', $reservation->reservation_id)
-                ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
-                ->exists();
+            $locked->rental_status    = 'Rejected';
+            $locked->rejection_reason = $request->filled('admin_note')
+                ? '[Admin] ' . $request->admin_note
+                : '[Admin action]';
+            $locked->save();
 
-            if (!$otherActive) {
-                $reservation->unit->update(['availability_status' => 'Available']);
+            if ($locked->unit && $locked->unit->availability_status === 'Reserved') {
+                $otherActive = Reservation::where('unit_id', $locked->unit_id)
+                    ->where('reservation_id', '!=', $locked->reservation_id)
+                    ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+                    ->exists();
+
+                if (!$otherActive) {
+                    $locked->unit->update(['availability_status' => 'Available']);
+                }
             }
-        }
+        });
 
         return back()->with('success', 'Reservation has been rejected by admin.');
     }

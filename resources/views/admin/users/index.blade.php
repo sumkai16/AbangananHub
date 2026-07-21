@@ -95,7 +95,7 @@
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 @if ($user->profile_picture)
-                                                    <img src="{{ asset('storage/' . $user->profile_picture) }}"
+                                                    <img src="{{ $user->profile_picture }}"
                                                         alt="{{ $user->first_name }}"
                                                         class="w-9 h-9 rounded-full object-cover border border-[#E2E8F0] shrink-0" />
                                                 @else
@@ -184,7 +184,7 @@
                         $legendColors = [
                             'Landlord' => '#156F8C',
                             'Tenant'   => '#2AA7A1',
-                            'Admin'    => '#a855f7',
+                            'Admin'    => '#69D2C6',
                             'No role'  => '#E2E8F0',
                         ];
                     @endphp
@@ -244,7 +244,7 @@
                     labels: @json(array_keys($roleCounts)),
                     datasets: [{
                         data: @json(array_values($roleCounts)),
-                        backgroundColor: ['#156F8C', '#2AA7A1', '#a855f7', '#E2E8F0'],
+                        backgroundColor: ['#156F8C', '#2AA7A1', '#69D2C6', '#E2E8F0'],
                         borderWidth: 0,
                     }],
                 },

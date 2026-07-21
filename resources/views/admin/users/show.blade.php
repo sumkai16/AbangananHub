@@ -104,7 +104,7 @@
 
             {{-- Avatar --}}
             @if ($user->profile_picture)
-                <img src="{{ asset('storage/' . $user->profile_picture) }}"
+                <img src="{{ $user->profile_picture }}"
                     alt="{{ $fullName }}"
                     class="w-16 h-16 rounded-2xl object-cover border border-[#E2E8F0] shadow-sm shrink-0" />
             @else
