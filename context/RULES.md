@@ -81,6 +81,21 @@ Reference implementations: `Admin\VerificationController::approve/reject`, `Admi
 - `toOthers()` requires `X-Socket-ID` header via `window.Echo.socketId()`
 - Echo: `.listen('.EventName')` (leading dot) for bare event names
 
+## Performance & Security Review (established July 22, 2026)
+Every controller / request-path change gets a two-front check before it's done — performance and security are standing concerns, not afterthoughts. The July 22 audit found the codebase already clean on both; the point is to keep it that way.
+
+**Performance**
+- Eager-load every relation the view touches, **including nested `->a->b` access in Blade** — a `with(['property.landlord'])` in the controller, not a lazy load in a `@foreach`. `Model::preventLazyLoading` (on in local/dev) will throw if you miss one; watch Debugbar query counts (>25/page = investigate).
+- Keep broadcasts / mail / outbound HTTP out of the synchronous request path where it matters (see Broadcasting — `ShouldBroadcastNow` is a deliberate capstone tradeoff, not a pattern to extend to slow calls).
+- Local dev is IPv4-only on Windows: `127.0.0.1` never `localhost` in `.env` and the browser; OPcache stays enabled in `php.ini`; if pages go slow/unstyled, `ls public/hot` and delete a stale one.
+
+**Security** — every mutating action must have, at minimum, one of:
+- A Policy/Gate (`Gate::authorize()`, or a Form Request `authorize()` delegating to a policy — as `SendMessageRequest` → `ConversationPolicy::view` does), **or**
+- An explicit ownership check (`$model->landlord_id !== Auth::id()` → `abort(403)`; queries scoped by `tenant_id`/`landlord_id`).
+- "Is logged in" is **not** authorization. Route-model-bound resources are the IDOR surface — that's where a new endpoint most easily leaks another user's data.
+- Validate then assign explicit fields — never `Model::create($request->all())` / `->fill($request->all())`. No raw SQL with user input (`selectRaw` is fine for hardcoded aggregates only). Validate file uploads (mime + size).
+- Run `composer audit` periodically; dependency advisories are a free catch.
+
 ## Storage
 - Filter `unit_media`/`property_media` to `media_type === 'Image'` before rendering in `<img>` — the table also holds Video rows, which render as broken images otherwise (applies to galleries, thumbnails, and JS payloads)
 - `Storage::url()` for local files with relative paths only
