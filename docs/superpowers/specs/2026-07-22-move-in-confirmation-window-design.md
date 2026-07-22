@@ -32,11 +32,17 @@ Tenant pays → payment = Held
       │     ├─ tenant disputes   → frozen, admin queue
       │     └─ silence           → Released to landlord      (auto_expiry)
       ├─ tenant confirms first (landlord never marked) → Released (tenant_confirmed)
-      └─ neither asserts         → auto-refund to tenant     (Refunded)
+      └─ neither asserts         → admin review, refund   (phase 1: admin acts;
+                                                           phase 2: automatic)
 ```
 
 A landlord who stalls loses the deposit back to the tenant. A tenant who stalls
 after moving in pays the landlord. Silence is never the winning move.
+
+In phase 1 the landlord-stalls branch reaches the tenant through an admin rather
+than automatically. The incentive still points the same way — a stalling landlord
+does not get paid — but the refund is not instant, and volume here is the signal
+for whether phase 2 is worth building.
 
 ### Clock 1 — the landlord's deadline
 
@@ -59,7 +65,19 @@ The `max()` guards a deposit paid after an optimistic target date has already
 slipped, which would otherwise start the clock already-expired and fire a refund
 on the first nightly run.
 
-**On expiry:** payment → `Refunded`, reservation → `Cancelled`, unit released.
+**On expiry — phase 1 (what we build now):** payment stays `Held`, reservation is
+flagged for admin review, both parties notified. An admin resolves it from the
+existing Payments screen.
+
+**On expiry — phase 2 (deferred):** payment → `Refunded`, reservation →
+`Cancelled`, unit released, automatically.
+
+Phase 1 ships first regardless of what PayMongo supports. It needs no refund API,
+it is less code, and it converts to phase 2 by swapping what happens at expiry.
+The tenant protection is weaker — an admin has to act — but it is never *wrong*,
+whereas an auto-refund built on an unverified integration could fail silently and
+strand a deposit in limbo. Whether the refund can be issued programmatically
+through PayMongo has not been verified; see Open risks.
 
 ### Clock 2 — the tenant's deadline
 
@@ -104,6 +122,12 @@ Admin resolves by releasing, refunding, or restarting the clock with a fresh
 turnover. Disputed payments stay `Held`; the admin queue is simply reservations
 with a non-null `move_in_disputed_at`. No new payment status, no enum change, and
 the existing admin Payments screen keeps working.
+
+**Phase 1 Clock 1 expiries reuse this same queue** — the nightly job writes
+`move_in_disputed_at` with a system-generated `move_in_dispute_reason` ("Landlord
+did not turn over keys by the deadline"). One admin queue, one set of resolution
+actions, no fifth column. The two entry points are distinguishable by whether the
+reason was written by the tenant or the system.
 
 ### Reminders and countdown
 
@@ -173,7 +197,7 @@ Responsibilities:
 
 1. Backfill `move_in_deadline_at` for reservations whose Clock 1 has started
 2. Send Clock 2 reminders at day 3, day 6, and expiry morning
-3. Process Clock 1 expiries → refund
+3. Process Clock 1 expiries → flag for admin review, notify both parties
 4. Process Clock 2 expiries → release
 
 Money-moving rows must be locked with `lockForUpdate()`, following the pattern
@@ -198,11 +222,16 @@ feature.
 
 ## Open risks
 
-- **Clock 1 refunds are the highest-consequence automatic action here.** They
-  cancel a signed agreement without human review. The two-sided turnover assertion
-  narrows the trigger to "nobody claims a handover happened," but this deserves
-  monitoring after launch and possibly an admin notification before the refund
-  fires rather than after.
+- **Whether PayMongo supports programmatic refunds is unverified.** Phase 2 depends
+  on it entirely. This must be confirmed before phase 2 is planned, and it is the
+  reason phase 1 routes Clock 1 expiries through an admin instead.
+- **Clock 1 refunds would be the highest-consequence automatic action here** — they
+  cancel a signed agreement without human review. Phasing defers that risk rather
+  than solving it. Before phase 2 ships, revisit whether the automatic path should
+  notify an admin *before* refunding rather than after.
+- **Phase 1 assumes admin review capacity.** If Clock 1 expiries turn out to be
+  common rather than exceptional, the admin queue becomes the bottleneck and phase 2
+  stops being optional. Track the volume.
 - **A landlord can start Clock 2 unilaterally** by marking a turnover that did not
   happen. The dispute button is the mitigation, which makes the countdown's
   visibility and the reminder cadence load-bearing rather than cosmetic.
