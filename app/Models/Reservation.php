@@ -28,6 +28,11 @@ class Reservation extends Model
         'landlord_tc_accepted_at',
         'tenant_tc_accepted_at',
         'tenant_confirmed_move_in_at',
+        'keys_turned_over_at',
+        'move_in_deadline_at',
+        'move_in_disputed_at',
+        'move_in_dispute_reason',
+        'move_in_last_reminder_on',
     ];
 
     protected function casts(): array
@@ -38,8 +43,12 @@ class Reservation extends Model
             'target_move_out_date' => 'date',
             'agreed_at' => 'datetime',
             'landlord_tc_accepted_at' => 'datetime',
-            'tenant_tc_accepted_at' => 'datetime',  
+            'tenant_tc_accepted_at' => 'datetime',
             'tenant_confirmed_move_in_at' => 'datetime',
+            'keys_turned_over_at' => 'datetime',
+            'move_in_deadline_at' => 'datetime',
+            'move_in_disputed_at' => 'datetime',
+            'move_in_last_reminder_on' => 'date',
         ];
     }
 /**

@@ -22,6 +22,7 @@ class Payment extends Model
     'paid_at',
     'released_at',
     'released_by',
+    'release_reason',
 ];
 
     protected $casts = [
