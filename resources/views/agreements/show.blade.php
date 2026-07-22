@@ -258,25 +258,124 @@
                                 </div>
                             </div>
 
-                            <form action="{{ route('agreements.confirmMoveIn', $reservation) }}" method="POST"
-                                data-confirm="Confirm you have moved in?"
-                                data-confirm-type="warning"
-                                data-confirm-message="This releases your payment to the landlord and cannot be undone. Only confirm if you have physically moved in and verified the unit matches the listing."
-                                data-confirm-button="Yes, I have moved in">
-                                @csrf
-                                <div class="flex items-start gap-3 p-3 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-xl mb-4">
-                                    <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3.75h.008v.008h-.008v-.008z" />
-                                    </svg>
-                                    <p class="text-[12px] text-[#EF4444] leading-relaxed">
-                                        Only confirm after you have physically moved into the unit and verified it matches the listing. Once confirmed, the payment will be released to the landlord.
+                            @php
+                                $daysLeft = $reservation->daysUntilMoveInDeadline();
+                            @endphp
+
+                            @if ($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->move_in_disputed_at)
+                                @if ($reservation->isTurnoverClock())
+                                    {{-- Clock 1: nothing for the tenant to do yet. No countdown — showing one
+                                         here would imply a deadline the tenant can miss, and this one is the
+                                         landlord's. --}}
+                                    <div class="rounded-lg border border-sky-200 bg-sky-50 p-4 mb-4">
+                                        <p class="text-sm font-medium text-sky-900">Payment secured</p>
+                                        <p class="mt-1 text-sm text-sky-800">
+                                            Your deposit is held safely and is not released until you confirm your move-in.
+                                            Your landlord will contact you to turn over the keys.
+                                        </p>
+                                    </div>
+                                @elseif ($daysLeft !== null)
+                                    {{-- Clock 2: live countdown. --}}
+                                    <div class="rounded-lg border p-4 mb-4 {{ $daysLeft <= 1 ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50' }}">
+                                        <p class="text-sm font-semibold {{ $daysLeft <= 1 ? 'text-red-900' : 'text-amber-900' }}">
+                                            @if ($daysLeft < 0)
+                                                Your move-in confirmation window has passed
+                                            @elseif ($daysLeft === 0)
+                                                Today is your last day to confirm your move-in
+                                            @else
+                                                {{ $daysLeft }} {{ Str::plural('day', $daysLeft) }} left to confirm your move-in
+                                            @endif
+                                        </p>
+                                        <p class="mt-1 text-sm {{ $daysLeft <= 1 ? 'text-red-800' : 'text-amber-800' }}">
+                                            @if ($daysLeft < 0)
+                                                Your deadline of {{ $reservation->move_in_deadline_at->format('M j, Y') }} has passed. Your deposit has not been released yet, but it will be released to the landlord automatically. You can still confirm your move-in now &mdash; if something isn't right, use "I haven't received the keys" below.
+                                            @else
+                                                Confirming releases your deposit to the landlord. If you don't confirm by
+                                                {{ $reservation->move_in_deadline_at->format('M j, Y') }}, it is released automatically.
+                                            @endif
+                                        </p>
+                                    </div>
+                                @endif
+                            @endif
+
+                            @unless ($reservation->move_in_disputed_at)
+                                <form action="{{ route('agreements.confirmMoveIn', $reservation) }}" method="POST"
+                                    data-confirm="Confirm you have moved in?"
+                                    data-confirm-type="warning"
+                                    data-confirm-message="This releases your payment to the landlord and cannot be undone. Only confirm if you have physically moved in and verified the unit matches the listing."
+                                    data-confirm-button="Yes, I have moved in">
+                                    @csrf
+                                    <div class="flex items-start gap-3 p-3 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-xl mb-4">
+                                        <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3.75h.008v.008h-.008v-.008z" />
+                                        </svg>
+                                        <p class="text-[12px] text-[#EF4444] leading-relaxed">
+                                            Only confirm after you have physically moved into the unit and verified it matches the listing. Once confirmed, the payment will be released to the landlord.
+                                        </p>
+                                    </div>
+                                    <button type="submit"
+                                        class="w-full bg-[#FF8A65] hover:brightness-95 text-white font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
+                                        I Have Moved In — Confirm Occupancy
+                                    </button>
+                                </form>
+                            @endunless
+
+                            @if ($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->move_in_disputed_at)
+                                <div x-data="{ show: false }" class="mt-3 text-center">
+                                    <button type="button" @click="show = true"
+                                            class="text-xs text-[#64748B] underline hover:text-[#1F2937] cursor-pointer">
+                                        I haven't received the keys
+                                    </button>
+
+                                    <template x-teleport="body">
+                                        <div x-show="show" x-cloak
+                                             class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                                             x-transition:enter="transition ease-out duration-300"
+                                             x-transition:enter-start="opacity-0"
+                                             x-transition:leave="transition ease-in duration-200"
+                                             x-transition:leave-end="opacity-0">
+                                            <div @click.outside="show = false"
+                                                 class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl mx-4"
+                                                 x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+                                                 x-transition:enter-start="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                                                 x-transition:leave="transition ease-in duration-200"
+                                                 x-transition:leave-end="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0">
+                                                <h3 class="text-lg font-bold text-[#1F2937] text-left">Report a move-in issue</h3>
+                                                <p class="mt-2 text-sm text-[#64748B] text-left">
+                                                    Your deposit stays on hold and an administrator will review this. Your landlord will be notified.
+                                                </p>
+
+                                                <form action="{{ route('agreements.disputeMoveIn', $reservation) }}" method="POST" class="mt-4 text-left">
+                                                    @csrf
+                                                    <textarea name="reason" rows="4" required minlength="10"
+                                                              class="w-full rounded-xl border-[#E2E8F0] text-sm"
+                                                              placeholder="Tell us what happened — for example, the landlord hasn't turned over the keys."></textarea>
+                                                    @error('reason')
+                                                        <p class="mt-1 text-sm text-[#EF4444]">{{ $message }}</p>
+                                                    @enderror
+
+                                                    <div class="mt-4 flex justify-end gap-2">
+                                                        <button type="button" @click="show = false"
+                                                                class="rounded-xl px-4 py-2 text-sm text-[#64748B] cursor-pointer">Cancel</button>
+                                                        <button type="submit"
+                                                                class="rounded-xl bg-[#FF8A65] hover:brightness-95 px-4 py-2 text-sm font-bold text-white cursor-pointer transition-all duration-200">
+                                                            Submit report
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            @elseif ($reservation->move_in_disputed_at)
+                                <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                    <p class="text-sm font-bold text-amber-900">Move-in issue under review</p>
+                                    <p class="mt-1 text-xs text-amber-800">
+                                        Reported {{ $reservation->move_in_disputed_at->diffForHumans() }}. Your deposit is on hold
+                                        and the countdown is paused while an administrator reviews this.
                                     </p>
                                 </div>
-                                <button type="submit"
-                                    class="w-full bg-[#FF8A65] hover:brightness-95 text-white font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
-                                    I Have Moved In — Confirm Occupancy
-                                </button>
-                            </form>
+                            @endif
                         </div>
 
                     @else

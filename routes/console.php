@@ -8,6 +8,11 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Move-in escrow clocks — backfills turnover deadlines, sends confirmation
+// reminders, and processes both clock expiries. Runs before the occupancy
+// snapshot so units it marks Occupied are counted the same night.
+Schedule::command('reservations:process-move-in-deadlines')->dailyAt('23:00');
+
 // Daily occupancy snapshot — feeds the occupancy trend chart.
 // Runs via cron/Supervisor on the VPS; locally use `php artisan schedule:work`.
 Schedule::command('occupancy:snapshot')->dailyAt('23:55');

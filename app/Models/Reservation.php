@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Events\MessageSent;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Reservation extends Model
 {
@@ -69,6 +70,12 @@ public function confirmMoveIn(): bool
         return false;
     }
 
+    // A dispute freezes the clock for admin review; the tenant confirming
+    // their own move-in here would release the deposit out from under it.
+    if ($this->move_in_disputed_at !== null) {
+        return false;
+    }
+
     // Locked, not just checked: this row is about to move money.
     $heldPayment = $this->payments()
         ->where('status', 'Held')
@@ -81,14 +88,17 @@ public function confirmMoveIn(): bool
 
     $this->rental_status = 'Occupied';
     $this->tenant_confirmed_move_in_at = now();
+    $this->move_in_deadline_at = null;
     $this->save();
 
     $heldPayment->update([
-        'status'      => 'Released',
-        'released_at' => now(),
-        // Null = released by the platform on tenant confirmation, as opposed
-        // to an admin id when released manually from the admin screen.
-        'released_by' => null,
+        'status'         => 'Released',
+        'released_at'    => now(),
+        // Null = released by the platform, not an admin. release_reason is what
+        // distinguishes a tenant confirming from a timer firing — released_by is
+        // null for both, so it cannot carry that distinction on its own.
+        'released_by'    => null,
+        'release_reason' => 'tenant_confirmed',
     ]);
 
     $this->releasedPayment = $heldPayment;
@@ -107,6 +117,140 @@ public function confirmMoveIn(): bool
  * a rollback could still undo.
  */
 public ?Payment $releasedPayment = null;
+
+    /**
+     * The single held payment for this reservation, if any.
+     *
+     * Both clocks exist only while money is held — no held payment means
+     * nothing to protect and no deadline to run.
+     */
+    public function heldPayment(): ?Payment
+    {
+        return $this->payments()->where('status', 'Held')->first();
+    }
+
+    /**
+     * Which clock is running.
+     *
+     * There is one deadline column and two clocks; turnover is the switch
+     * between them. Before turnover the deadline belongs to the landlord
+     * (Clock 1), after it to the tenant (Clock 2).
+     */
+    public function isTurnoverClock(): bool
+    {
+        return $this->keys_turned_over_at === null;
+    }
+
+    /**
+     * Clock 1's deadline: how long the landlord has to turn over the keys.
+     *
+     * Derived from the move-in date both parties negotiated rather than a flat
+     * timer — a deposit for a move-in next week and one for a move-in in two
+     * months cannot share a countdown.
+     *
+     * max() guards a deposit paid after an optimistic target date already
+     * slipped, which would otherwise produce an already-expired deadline and
+     * escalate on the first nightly run.
+     */
+    public function computeTurnoverDeadline(): ?Carbon
+    {
+        $payment = $this->heldPayment();
+
+        if (! $payment || ! $payment->paid_at) {
+            return null;
+        }
+
+        if (! $this->target_move_in_date) {
+            return $payment->paid_at->copy()
+                ->addDays(config('rentals.turnover_grace_days_no_date'));
+        }
+
+        $start = $this->target_move_in_date->greaterThan($payment->paid_at)
+            ? $this->target_move_in_date->copy()
+            : $payment->paid_at->copy();
+
+        return $start->addDays(config('rentals.turnover_grace_days'));
+    }
+
+    /**
+     * Landlord asserts the keys changed hands. Starts Clock 2.
+     *
+     * Deliberately moves no money: this is a self-interested claim by the party
+     * who gets paid, so it is the weaker of the two turnover assertions. The
+     * tenant's confirmation is what releases the deposit.
+     */
+    public function markKeysTurnedOver(): bool
+    {
+        if ($this->rental_status !== 'Rental Agreement Signed') {
+            return false;
+        }
+
+        if ($this->keys_turned_over_at !== null) {
+            return false;
+        }
+
+        // A dispute freezes this row for admin review; re-arming a payout
+        // clock on it here would let a landlord undo that freeze unilaterally.
+        if ($this->move_in_disputed_at !== null) {
+            return false;
+        }
+
+        if (! $this->heldPayment()) {
+            return false;
+        }
+
+        $this->keys_turned_over_at = now();
+        $this->move_in_deadline_at = now()->addDays(config('rentals.move_in_confirmation_days'));
+        $this->move_in_last_reminder_on = null;
+
+        return $this->save();
+    }
+
+    /**
+     * Tenant asserts the keys never arrived. Freezes the clock for admin review.
+     *
+     * Freezes rather than pauses — no arithmetic on remaining time. A human
+     * resolves it, so partial-time bookkeeping would be a bug farm for a case
+     * that never runs unattended.
+     */
+    public function disputeMoveIn(string $reason): bool
+    {
+        if ($this->rental_status !== 'Rental Agreement Signed') {
+            return false;
+        }
+
+        if ($this->move_in_disputed_at !== null) {
+            return false;
+        }
+
+        $this->move_in_disputed_at = now();
+        $this->move_in_dispute_reason = $reason;
+        $this->move_in_deadline_at = null;
+
+        return $this->save();
+    }
+
+    /**
+     * Whole days left on whichever clock is running. Negative once overdue.
+     */
+    public function daysUntilMoveInDeadline(): ?int
+    {
+        if (! $this->move_in_deadline_at || $this->move_in_disputed_at) {
+            return null;
+        }
+
+        // why: Carbon 3's diffInDays() returns a float and can carry
+        // floating-point noise (e.g. 4.0000000001157 for an exact 4-day
+        // gap). Truncating with (int) can drop that to 3 if the noise ever
+        // lands just under the integer, and ProcessMoveInDeadlines compares
+        // this value with a strict in_array([...], true) — silently
+        // skipping a reminder. round() first, then cast.
+        return (int) round(now()->startOfDay()->diffInDays(
+            $this->move_in_deadline_at->copy()->startOfDay(),
+            false
+        ));
+    }
+
     // ─── Relationships ───────────────────────────────────────
 
     public function property()

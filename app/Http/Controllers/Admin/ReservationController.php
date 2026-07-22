@@ -47,9 +47,17 @@ class ReservationController extends Controller
             $base->where('rental_status', $status);
         }
 
+        // Both entry points to review land in move_in_disputed_at: a tenant
+        // reporting a missing turnover, and the nightly job timing one out.
+        if ($request->query('filter') === 'disputed') {
+            $base->whereNotNull('move_in_disputed_at');
+        }
+
+        $disputedCount = Reservation::whereNotNull('move_in_disputed_at')->count();
+
         $reservations = $base->latest()->paginate(15)->withQueryString();
 
-        return view('admin.reservations.index', compact('reservations', 'counts', 'status', 'search'));
+        return view('admin.reservations.index', compact('reservations', 'counts', 'status', 'search', 'disputedCount'));
     }
 
     public function show(Reservation $reservation)

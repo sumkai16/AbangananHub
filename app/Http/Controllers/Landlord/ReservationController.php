@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Property;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ReservationController extends Controller
@@ -215,4 +217,49 @@ public function advanceToPendingAgreement(Request $request, Reservation $reserva
 
     return back()->with('success', 'Agreement sent to tenant.');
 }
+
+    /**
+     * Landlord asserts the keys changed hands, starting the tenant's clock.
+     *
+     * Locked despite moving no money: it starts a countdown that ends in a
+     * payout, and a double-click would otherwise post the system message twice.
+     * See RULES.md → Concurrency & State Transitions.
+     */
+    public function markTurnedOver(Reservation $reservation)
+    {
+        Gate::authorize('markTurnedOver', $reservation);
+
+        $marked = DB::transaction(function () use ($reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (! $locked->markKeysTurnedOver()) {
+                return false;
+            }
+
+            $days = config('rentals.move_in_confirmation_days');
+
+            $locked->postSystemMessage(
+                "The landlord marked the keys as turned over. {$locked->tenant->name} has {$days} days to confirm move-in, after which the deposit is released automatically."
+            );
+
+            Notification::notify(
+                $locked->tenant_id,
+                'move_in_confirmation_due',
+                'Confirm your move-in',
+                "Your landlord marked the keys as turned over. Confirm your move-in within {$days} days to release your deposit.",
+                route('agreements.show', $locked),
+                $locked->conversation_id,
+            );
+
+            return true;
+        });
+
+        if (! $marked) {
+            return back()->with('error', 'Turnover cannot be marked for this reservation right now.');
+        }
+
+        return back()->with('success', 'Keys marked as turned over. The tenant has been asked to confirm their move-in.');
+    }
 }

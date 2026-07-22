@@ -48,4 +48,15 @@ class ReservationPolicy
     {
         return $this->viewAgreement($user, $reservation);
     }
+
+    /**
+     * Only the landlord who owns the property can assert turnover, and only
+     * while the agreement is signed but unconfirmed.
+     */
+    public function markTurnedOver(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property
+            && $reservation->property->landlord_id === $user->user_id
+            && $reservation->rental_status === 'Rental Agreement Signed';
+    }
 }

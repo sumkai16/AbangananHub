@@ -89,20 +89,34 @@
 
     {{-- Status tabs --}}
     <div class="flex items-center gap-0.5 border-b border-[#E2E8F0] mb-5 overflow-x-auto">
+        @php
+            // "Needs review" is a separate filter dimension layered on top of the
+            // status tabs, not a status itself — while it's active, none of the
+            // status tabs should also read as active or two tabs highlight at once.
+            $disputedActive = request('filter') === 'disputed';
+        @endphp
         <a href="{{ route('admin.reservations.index', array_filter(['search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ $status === 'all' ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                {{ ! $disputedActive && $status === 'all' ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
             All
-            <span class="ml-1 text-[11px] {{ $status === 'all' ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts['all'] }}</span>
+            <span class="ml-1 text-[11px] {{ ! $disputedActive && $status === 'all' ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts['all'] }}</span>
         </a>
         @foreach($allStatuses as $key => $meta)
             <a href="{{ route('admin.reservations.index', array_filter(['status' => $key, 'search' => $search])) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $status === $key ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                    {{ ! $disputedActive && $status === $key ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
                 {{ $meta['label'] }}
-                <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts[$key] }}</span>
+                <span class="ml-1 text-[11px] {{ ! $disputedActive && $status === $key ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts[$key] }}</span>
             </a>
         @endforeach
+        <a href="{{ route('admin.reservations.index', array_filter(['filter' => 'disputed', 'status' => $status, 'search' => $search])) }}"
+            class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
+                {{ $disputedActive ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-gray-600 hover:text-[#1F2937]' }}">
+            Needs review
+            @if ($disputedCount > 0)
+                <span class="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-800">{{ $disputedCount }}</span>
+            @endif
+        </a>
     </div>
 
     {{-- Table --}}
@@ -186,6 +200,12 @@
                                         <span class="w-1.5 h-1.5 rounded-full {{ $allStatuses[$res->rental_status]['dot'] ?? 'bg-[#94A3B8]' }}"></span>
                                         {{ $res->rental_status }}
                                     </span>
+                                    @if ($res->move_in_disputed_at)
+                                        <p class="mt-1 text-xs text-red-700">
+                                            Needs review — {{ $res->move_in_dispute_reason }}
+                                            <span class="text-gray-500">({{ $res->move_in_disputed_at->diffForHumans() }})</span>
+                                        </p>
+                                    @endif
                                 </td>
 
                                 {{-- Actions --}}

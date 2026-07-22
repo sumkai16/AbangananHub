@@ -398,6 +398,20 @@
                                                         Cancel
                                                     </button>
                                                 </form>
+                                                @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
+                                                    <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="h-8 px-3 rounded-lg bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                            Mark keys turned over
+                                                        </button>
+                                                    </form>
+                                                @elseif($reservation->keys_turned_over_at)
+                                                    <p class="text-[11.5px] text-[#64748B] whitespace-nowrap">
+                                                        Keys turned over {{ $reservation->keys_turned_over_at->diffForHumans() }}.
+                                                        Awaiting tenant confirmation.
+                                                    </p>
+                                                @endif
                                             @elseif($reservation->rental_status === 'Occupied')
                                                 @if($reservation->tenantRating)
                                                     <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
@@ -551,6 +565,20 @@
                                             Cancel
                                         </button>
                                     </form>
+                                    @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
+                                        <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="h-8 px-3 rounded-lg bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                Mark keys turned over
+                                            </button>
+                                        </form>
+                                    @elseif($reservation->keys_turned_over_at)
+                                        <p class="text-[11.5px] text-[#64748B] whitespace-nowrap">
+                                            Keys turned over {{ $reservation->keys_turned_over_at->diffForHumans() }}.
+                                            Awaiting tenant confirmation.
+                                        </p>
+                                    @endif
                                 @elseif($reservation->rental_status === 'Occupied')
                                     @if($reservation->tenantRating)
                                         <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
