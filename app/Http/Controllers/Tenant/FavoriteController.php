@@ -17,7 +17,7 @@ class FavoriteController extends Controller
         $availability = $request->query('availability');
 
         $favoritesQuery = Favorite::where('tenant_id', $tenantId)
-            ->with(['property.media', 'property.landlord.verificationApplication', 'property.amenities'])
+            ->with(['property.media', 'property.landlord.verificationApplication', 'property.amenities', 'property.units'])
             ->latest('created_at');
 
         if ($search) {

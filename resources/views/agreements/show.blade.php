@@ -267,17 +267,17 @@
                                     {{-- Clock 1: nothing for the tenant to do yet. No countdown — showing one
                                          here would imply a deadline the tenant can miss, and this one is the
                                          landlord's. --}}
-                                    <div class="rounded-lg border border-sky-200 bg-sky-50 p-4 mb-4">
-                                        <p class="text-sm font-medium text-sky-900">Payment secured</p>
-                                        <p class="mt-1 text-sm text-sky-800">
+                                    <div class="rounded-lg border border-[#2AA7A1]/25 bg-[#EEF8F8] p-4 mb-4">
+                                        <p class="text-sm font-medium text-[#156F8C]">Payment secured</p>
+                                        <p class="mt-1 text-sm text-[#1F2937]">
                                             Your deposit is held safely and is not released until you confirm your move-in.
                                             Your landlord will contact you to turn over the keys.
                                         </p>
                                     </div>
                                 @elseif ($daysLeft !== null)
                                     {{-- Clock 2: live countdown. --}}
-                                    <div class="rounded-lg border p-4 mb-4 {{ $daysLeft <= 1 ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50' }}">
-                                        <p class="text-sm font-semibold {{ $daysLeft <= 1 ? 'text-red-900' : 'text-amber-900' }}">
+                                    <div class="rounded-lg border p-4 mb-4 {{ $daysLeft <= 1 ? 'border-[#EF4444]/25 bg-[#EF4444]/[0.07]' : 'border-[#FBBF24]/35 bg-[#FBBF24]/[0.10]' }}">
+                                        <p class="text-sm font-semibold {{ $daysLeft <= 1 ? 'text-[#DC2626]' : 'text-[#B45309]' }}">
                                             @if ($daysLeft < 0)
                                                 Your move-in confirmation window has passed
                                             @elseif ($daysLeft === 0)
@@ -286,7 +286,7 @@
                                                 {{ $daysLeft }} {{ Str::plural('day', $daysLeft) }} left to confirm your move-in
                                             @endif
                                         </p>
-                                        <p class="mt-1 text-sm {{ $daysLeft <= 1 ? 'text-red-800' : 'text-amber-800' }}">
+                                        <p class="mt-1 text-sm {{ $daysLeft <= 1 ? 'text-[#DC2626]' : 'text-[#B45309]' }}">
                                             @if ($daysLeft < 0)
                                                 Your deadline of {{ $reservation->move_in_deadline_at->format('M j, Y') }} has passed. Your deposit has not been released yet, but it will be released to the landlord automatically. You can still confirm your move-in now &mdash; if something isn't right, use "I haven't received the keys" below.
                                             @else
@@ -368,9 +368,9 @@
                                     </template>
                                 </div>
                             @elseif ($reservation->move_in_disputed_at)
-                                <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                                    <p class="text-sm font-bold text-amber-900">Move-in issue under review</p>
-                                    <p class="mt-1 text-xs text-amber-800">
+                                <div class="mt-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4">
+                                    <p class="text-sm font-bold text-[#B45309]">Move-in issue under review</p>
+                                    <p class="mt-1 text-xs text-[#B45309]">
                                         Reported {{ $reservation->move_in_disputed_at->diffForHumans() }}. Your deposit is on hold
                                         and the countdown is paused while an administrator reviews this.
                                     </p>

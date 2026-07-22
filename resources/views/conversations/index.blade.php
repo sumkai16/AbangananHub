@@ -91,14 +91,14 @@
                     <form method="GET" action="{{ route('conversations.index') }}" class="relative">
                         <input type="hidden" name="status" value="{{ $status }}">
                         @if($propertyId)<input type="hidden" name="property_id" value="{{ $propertyId }}">@endif
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#64748B] pointer-events-none"
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#94A3B8] pointer-events-none"
                             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Search by person or property..." aria-label="Search by person or property"
-                            class="w-full pl-8 pr-3 py-2 text-[12px] text-[#1F2937] bg-[#F7FCFC] border border-[#64748B]/15 rounded-lg focus:outline-none focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/20 transition placeholder-[#64748B]" />
+                            class="w-full pl-8 pr-3 py-2 text-[12px] text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg focus:outline-none focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/20 transition placeholder-[#94A3B8]" />
                     </form>
                 </div>
 

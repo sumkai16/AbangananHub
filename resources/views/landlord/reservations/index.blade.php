@@ -146,14 +146,14 @@
             @endif
             <div class="relative flex-1 min-w-0">
                 <label for="reservation-search" class="sr-only">Search by tenant, unit or property</label>
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="2"
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="2"
                     class="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z" />
                 </svg>
                 <input type="text" id="reservation-search" name="search" value="{{ request('search') }}"
                     placeholder="Search by tenant, unit or property..."
-                    class="w-full h-10 pl-10 pr-4 rounded-xl border border-[#E2E8F0] bg-white text-[13px] text-[#1F2937] placeholder-[#64748B]/70 focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] transition-all duration-200">
+                    class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-2.5">
                 <div>
@@ -399,7 +399,12 @@
                                                     </button>
                                                 </form>
                                                 @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
-                                                    <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST">
+                                                    <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
+                                                        data-confirm="Mark keys as turned over?"
+                                                        data-confirm-type="confirm"
+                                                        data-confirm-message="{{ $reservation->tenant->first_name ?? 'The tenant' }} will have {{ config('rentals.move_in_confirmation_days') }} days to confirm move-in, after which the held deposit is released to you automatically."
+                                                        data-confirm-button="Mark as turned over"
+                                                        data-confirm-cancel="Not yet">
                                                         @csrf
                                                         <button type="submit"
                                                             class="h-8 px-3 rounded-lg bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
@@ -566,7 +571,12 @@
                                         </button>
                                     </form>
                                     @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
-                                        <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST">
+                                        <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
+                                            data-confirm="Mark keys as turned over?"
+                                            data-confirm-type="confirm"
+                                            data-confirm-message="{{ $reservation->tenant->first_name ?? 'The tenant' }} will have {{ config('rentals.move_in_confirmation_days') }} days to confirm move-in, after which the held deposit is released to you automatically."
+                                            data-confirm-button="Mark as turned over"
+                                            data-confirm-cancel="Not yet">
                                             @csrf
                                             <button type="submit"
                                                 class="h-8 px-3 rounded-lg bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
