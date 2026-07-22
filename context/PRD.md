@@ -19,6 +19,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] Favorites (toggle, index, immediate DOM removal on unfavorite)
 - [x] Real-time Chat (Laravel Reverb WebSockets, conversation-based messaging)
 - [x] Reservation System (state machine: Pending → Approved/Rejected/Cancelled, AUX rental process flow with PayMongo sandbox payment)
+- [x] Move-In Confirmation Window (two escrow deadlines expiring toward opposite parties — landlord turnover clock, tenant confirmation clock; tenant dispute freezes both into an admin review queue; nightly `reservations:process-move-in-deadlines` reminds, escalates and auto-releases)
 - [x] Reviews (tenant reviews units post-stay, rating + comment)
 - [x] Notifications (in-app notifications, mark-read endpoints)
 - [x] Admin Dashboard (user management, analytics, report handling)
@@ -29,7 +30,8 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] Landlord CSV export (Units, Reservations, Tenants — filter-aware, alongside the existing Occupancy export)
 
 ## 4. Explicitly Out of Scope
-- Legal dispute handling between landlords and tenants
+- Legal dispute handling between landlords and tenants (the move-in dispute flow only freezes the deposit and queues it for an admin — it renders no judgment)
+- **Refunds.** Nothing in the app writes `payments.status = 'Refunded'`; PayMongo's programmatic refund support is unverified. A landlord who never turns over the keys is escalated to admin review, and that queue drains only by releasing to the landlord. Closing this is Phase 2 of the move-in spec and requires confirming PayMongo first
 - Offline mode (map and real-time features require stable internet)
 - Native mobile app (web only — React Native/Expo deferred to post-deployment)
 - Property types beyond bedspace, room, apartment, house

@@ -104,8 +104,21 @@ Every controller / request-path change gets a two-front check before it's done �
 - Government IDs → `local` disk (private, `storage/app/private/verifications/{user_id}/`)
 - Public media → Cloudinary
 
+## Money-Moving Code (established July 22 2026)
+The move-in escrow is the only place in the app where money moves with no human present. Rules that came out of building it:
+
+- **A background job's outer query selects candidate IDs; the transaction re-fetches each under `lockForUpdate()` and re-checks every condition the outer query filtered on.** The row can change between the two. Writing to a stale instance from an unlocked `get()` is how a near-miss shipped: a concurrent `markKeysTurnedOver()` could have its Clock 2 deadline overwritten by an already-past Clock 1 value, releasing the deposit that same night without the tenant ever getting a confirmation window.
+- **Per-row `try`/`catch` + `Log::error` + continue** in any unattended batch. Without it one bad row (a failed notification, a down Reverb) aborts every remaining row silently until the next night.
+- **Fail in the direction that does not move money.** Where a boundary is ambiguous, prefer the branch that defers a payout by a day over the one that pays early.
+- **A field that records a human's assertion must never be written by a timer.** `tenant_confirmed_move_in_at` stays null on auto-expiry and on admin release; conflating "confirmed" with "timed out" would poison occupancy reporting and destroy the evidence a disputed payout is argued from.
+- **Carbon 3 `diffInDays()` returns a float** (`4.0000000001157`, not `4`). Cast it, and `round()` rather than truncate wherever the result feeds a strict comparison.
+- Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`.
+
 ## Testing
 - Manual testing for capstone scope (no automated test suite)
+- **Axcee tests manually.** When a feature needs verifying, build the fixtures that put the app into each state plus a checklist of what to look at — not a test suite. `escrow:scenarios` is the pattern: additive, tagged, `--clean` teardown, prints login credentials and expected appearance per state.
+- **Time-based features need backdated fixtures.** Anything measured in days cannot be observed by using the app; `Carbon::setTestNow()` does not reach a separate `php artisan` process, so backdate the data instead.
+- Any dev tool that creates or deletes users must refuse to run in production and must restore rows it did not create (see `EscrowVerify::snapshotRealRows`).
 - **Off-the-shelf HTML/a11y scanners mis-parse Blade — verify every finding against the source before fixing.** Two failure modes bit us in July 2026: (1) `->` inside `{{ }}` contains a `>` that naive tag regexes treat as the tag terminator, so tags get truncated and attributes like `alt=` are reported missing when they're present — a scan claimed 48 missing-alt images, only 3 were real; (2) scanners read each Blade file in isolation, so every partial gets flagged for a missing `<main>`/`<nav>` landmark that actually lives in the layout.
 - Critical path: `migrate:fresh --seed` + `route:list` is the standard checkpoint before any view work
 - Verify tinker results before proceeding with controller logic

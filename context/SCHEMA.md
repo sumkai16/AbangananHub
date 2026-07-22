@@ -133,10 +133,29 @@
 | unit_id | FK → property_units.unit_id | NULLABLE | Unit-grain reservations |
 | tenant_id | FK → users.user_id | NOT NULL | |
 | reservation_date | DATE | NOT NULL | |
-| reservation_status | ENUM('Pending','Approved','Rejected','Cancelled') | DEFAULT 'Pending' | |
+| target_move_in_date | DATE | NULLABLE | Negotiated. Clock 1 derives from it — see below |
+| target_move_out_date | DATE | NULLABLE | |
+| duration_of_stay | VARCHAR | NULLABLE | |
+| occupants_count | INT | NULLABLE | |
+| rental_status | VARCHAR | DEFAULT 'Inquiry' | Inquiry → Under Negotiation → Pending Rental Agreement → Rental Agreement Signed → Occupied; or Rejected / Cancelled |
+| agreement_terms_notes | TEXT | NULLABLE | |
+| agreed_at / agreed_ip | TIMESTAMP / VARCHAR | NULLABLE | Set by `signAgreement()` |
+| landlord_tc_accepted_at | TIMESTAMP | NULLABLE | |
+| tenant_tc_accepted_at | TIMESTAMP | NULLABLE | |
+| tenant_confirmed_move_in_at | TIMESTAMP | NULLABLE | **Only** written by a genuine tenant confirmation — never by auto-expiry or admin release |
+| keys_turned_over_at | TIMESTAMP | NULLABLE | Turnover assertion. Null = Clock 1 running, set = Clock 2 running |
+| move_in_deadline_at | TIMESTAMP | NULLABLE | Whichever clock is active. Null = no clock |
+| move_in_disputed_at | TIMESTAMP | NULLABLE | Non-null = frozen, in the admin review queue |
+| move_in_dispute_reason | TEXT | NULLABLE | Tenant's own words, or the system sentence on a Clock 1 timeout |
+| move_in_last_reminder_on | DATE | NULLABLE | Per-day idempotency guard on reminders |
+| rejection_reason | TEXT | NULLABLE | |
 | remarks | TEXT | NULLABLE | |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
+
+Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_disputed_at)` — the nightly command scans on both together.
+
+**One deadline column, two clocks.** `keys_turned_over_at` is the switch: null means the deadline belongs to the landlord (turn over the keys), set means it belongs to the tenant (confirm move-in). Any code reading `move_in_deadline_at` must check which clock it is looking at — `Reservation::isTurnoverClock()` exists for exactly this.
 
 ### conversations
 | Column | Type | Constraints | Notes |
@@ -209,7 +228,22 @@
 ### payments
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
-| (schema per PayMongo implementation) | | | PayMongo sandbox, escrow simulated in app layer |
+| payment_id | BIGINT UNSIGNED | PK | `$primaryKey = 'payment_id'` |
+| reservation_id | FK → reservations.reservation_id | NOT NULL, cascade | |
+| payment_type | ENUM('Initial','Monthly') | NOT NULL | |
+| billing_period | DATE | NULLABLE | |
+| amount | DECIMAL(10,2) | NOT NULL | Serializes as a **string** — `parseFloat()` client-side |
+| payment_method | ENUM('GCash') | NOT NULL | |
+| paymongo_payment_intent_id | VARCHAR | NULLABLE, UNIQUE | |
+| paymongo_payment_id | VARCHAR | NULLABLE | |
+| paymongo_checkout_session_id | VARCHAR | NULLABLE, UNIQUE | |
+| status | ENUM('Pending','Paid','Held','Released','Failed','Refunded') | DEFAULT 'Pending' | `Held` = escrow. **No code writes `Refunded`** — there is no refund action |
+| paid_at | TIMESTAMP | NULLABLE | Clock 1 falls back to this when there is no target move-in date |
+| released_at | TIMESTAMP | NULLABLE | |
+| released_by | BIGINT UNSIGNED | NULLABLE | Admin user id, or null when the platform released it |
+| release_reason | ENUM('tenant_confirmed','auto_expiry','admin_manual') | NULLABLE | |
+
+`released_by` is null for **both** a tenant confirmation and a timer expiry, so it cannot distinguish them on its own — `release_reason` is what carries that, and it is the field a disputed payout is argued from months later. Its three values are written by exactly three paths: `Reservation::confirmMoveIn()`, `ProcessMoveInDeadlines::releaseExpiredConfirmations()`, and `Admin\PaymentController::release()`.
 
 ### tenant_ratings
 | Column | Type | Constraints | Notes |
