@@ -3,8 +3,13 @@
  *
  * Liveness detection powered by face-api.js (TensorFlow.js):
  *   - TinyFaceDetector for fast face detection
- *   - 68-point landmarks for head pose (yaw) and blink (EAR)
+ *   - 68-point landmarks for head pose (yaw + pitch)
  *   - Cross-browser: Chrome, Firefox, Safari
+ *
+ * All images are captured live from the camera — there is no upload path,
+ * so a selfie can't be swapped for a stored photo. When liveness can't run
+ * (no camera models, unsupported browser) the applicant can still capture
+ * manually, but livenessPassed stays false and admin review sees the flag.
  *
  * Config: { ocrCheckUrl: string, csrfToken: string }
  */
@@ -35,9 +40,6 @@ function verificationWizard(config) {
         cameraActive: false,
         cameraError: '',
 
-        idCaptureMethod: null,
-        selfieCaptureMethod: null,
-
         ocrLoading: false,
         ocrResult: null,
         backOcrResult: null,
@@ -52,8 +54,8 @@ function verificationWizard(config) {
         livenessError: false,
         livenessPassed: false,
         livenessStep: 0,
-        livenessSteps: ['Look straight', 'Turn left', 'Turn right', 'Open your mouth'],
-        livenessCompleted: [false, false, false, false],
+        livenessSteps: ['Look straight', 'Turn left', 'Turn right', 'Look up'],
+        livenessCompleted: [],
         livenessFaceDetected: false,
         livenessGuideColor: '#E2E8F0',
         livenessInstruction: 'Preparing face detection...',
@@ -61,10 +63,12 @@ function verificationWizard(config) {
         _livenessFrameId: null,
         _processing: false,
         _holdStart: null,
-        _blinkCount: 0,
-        _lastBlinkState: false,
         _stepPauseUntil: 0,
         _faceApiReady: false,
+        _pitchSamples: [],
+        _pitchBaseline: null,
+
+        get _lastLivenessStep() { return this.livenessSteps.length - 1; },
 
         duplicateSideWarning: false,
         submitting: false,
@@ -89,27 +93,19 @@ function verificationWizard(config) {
                 this.stopLiveness();
                 this.cameraError = '';
 
-                if (newStep === 2) {
-                    if (this.idCaptureMethod === 'camera') {
-                        if (!this.idImageBase64) {
-                            this.idCapturePhase = 'capture-front';
-                            this.$nextTick(() => this.startCamera('environment', this.$refs.videoId));
-                        } else if (this.needsBack && !this.idBackBase64) {
-                            this.idCapturePhase = 'capture-back';
-                            this.$nextTick(() => this.startCamera('environment', this.$refs.videoIdBack));
-                        } else {
-                            this.idCapturePhase = 'done';
-                        }
-                    } else if (!this.idCaptureMethod) {
-                        this.idCapturePhase = 'choose';
+                if (newStep === 2 && this.idCapturePhase !== 'choose') {
+                    if (!this.idImageBase64) {
+                        this.idCapturePhase = 'capture-front';
+                        this.$nextTick(() => this.startCamera('environment', this.$refs.videoId));
+                    } else if (this.needsBack && !this.idBackBase64) {
+                        this.idCapturePhase = 'capture-back';
+                        this.$nextTick(() => this.startCamera('environment', this.$refs.videoIdBack));
+                    } else {
+                        this.idCapturePhase = 'done';
                     }
-                } else if (newStep === 3) {
-                    if (this.selfieCaptureMethod === 'camera' && !this.selfieBase64) {
-                        this.selfieCapturePhase = 'camera';
-                        this.$nextTick(() => this.startSelfieWithLiveness());
-                    } else if (!this.selfieCaptureMethod) {
-                        this.selfieCapturePhase = 'choose';
-                    }
+                } else if (newStep === 3 && this.selfieCapturePhase !== 'choose' && !this.selfieBase64) {
+                    this.selfieCapturePhase = 'camera';
+                    this.$nextTick(() => this.startSelfieWithLiveness());
                 }
             });
 
@@ -118,48 +114,22 @@ function verificationWizard(config) {
                     this.idBackBase64 = '';
                     this.idImageBase64 = '';
                     this.idCapturePhase = 'choose';
-                    this.idCaptureMethod = null;
                 }
             });
         },
 
-        // ── Capture method selection ──────────────────────────
+        // ── Starting a capture ────────────────────────────────
 
-        chooseIdMethod(method) {
-            this.idCaptureMethod = method;
+        startIdCapture() {
             this.cameraError = '';
-            if (method === 'camera') {
-                this.idCapturePhase = 'capture-front';
-                this.$nextTick(() => this.startCamera('environment', this.$refs.videoId));
-            } else {
-                this.idCapturePhase = 'capture-front';
-            }
+            this.idCapturePhase = 'capture-front';
+            this.$nextTick(() => this.startCamera('environment', this.$refs.videoId));
         },
 
-        chooseSelfieMethod(method) {
-            this.selfieCaptureMethod = method;
+        startSelfieCapture() {
             this.cameraError = '';
-            if (method === 'camera') {
-                this.selfieCapturePhase = 'camera';
-                this.$nextTick(() => this.startSelfieWithLiveness());
-            } else {
-                this.selfieCapturePhase = 'camera';
-            }
-        },
-
-        switchIdMethod() {
-            this.stopCamera();
-            this.idCaptureMethod = null;
-            this.idCapturePhase = 'choose';
-            this.cameraError = '';
-        },
-
-        switchSelfieMethod() {
-            this.stopCamera();
-            this.stopLiveness();
-            this.selfieCaptureMethod = null;
-            this.selfieCapturePhase = 'choose';
-            this.cameraError = '';
+            this.selfieCapturePhase = 'camera';
+            this.$nextTick(() => this.startSelfieWithLiveness());
         },
 
         // ── Selfie with liveness ──────────────────────────────
@@ -218,14 +188,13 @@ function verificationWizard(config) {
             this.livenessLoading = false;
             this.livenessActive = true;
             this.livenessStep = 0;
-            this.livenessCompleted = [false, false, false, false];
+            this.livenessCompleted = this.livenessSteps.map(() => false);
             this.livenessPassed = false;
             this._holdStart = null;
-            this._blinkCount = 0;
-            this._lastBlinkState = false;
             this._stepPauseUntil = 0;
             this._processing = false;
-            this._faceGoneAt = null;
+            this._pitchSamples = [];
+            this._pitchBaseline = null;
             this.livenessInstruction = this.livenessSteps[0];
             this.livenessGuideColor = '#E2E8F0';
 
@@ -240,12 +209,8 @@ function verificationWizard(config) {
                 this._processing = true;
 
                 try {
-                    // Lower detection threshold during blink step — closed eyes
-                    // reduce face confidence, so we need to be more lenient
-                    const threshold = this.livenessStep === 3 ? 0.25 : 0.5;
-
                     const detection = await faceapi
-                        .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: threshold }))
+                        .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5 }))
                         .withFaceLandmarks(true); // true = use tiny model
 
                     this._processDetection(detection);
@@ -272,33 +237,13 @@ function verificationWizard(config) {
         // ── Detection processing ──────────────────────────────
 
         _processDetection(detection) {
+            // Losing the face always resets the hold — no step may complete
+            // while we can't see the applicant.
             if (!detection) {
-                // During blink step: brief face loss counts as a blink
-                if (this.livenessStep === 3 && this.livenessFaceDetected) {
-                    // Face was visible last frame, now gone — start tracking disappearance
-                    if (!this._faceGoneAt) this._faceGoneAt = Date.now();
-                }
-
                 this.livenessFaceDetected = false;
-                this.livenessGuideColor = this.livenessStep === 3 ? '#2AA7A1' : '#E2E8F0';
-                if (this.livenessStep !== 3) this._holdStart = null;
+                this.livenessGuideColor = '#E2E8F0';
+                this._holdStart = null;
                 return;
-            }
-
-            // Face reappeared after brief disappearance during blink step
-            if (this.livenessStep === 3 && this._faceGoneAt) {
-                const goneMs = Date.now() - this._faceGoneAt;
-                if (goneMs > 50 && goneMs < 800) {
-                    // Brief disappearance = blink
-                    this._blinkCount++;
-                    if (this._blinkCount >= 2) {
-                        this._faceGoneAt = null;
-                        this._completeLivenessStep();
-                        return;
-                    }
-                    this.livenessInstruction = 'Blink twice (' + this._blinkCount + '/2)';
-                }
-                this._faceGoneAt = null;
             }
 
             this.livenessFaceDetected = true;
@@ -306,14 +251,12 @@ function verificationWizard(config) {
             if (Date.now() < this._stepPauseUntil) return;
 
             const positions = detection.landmarks.positions;
-            const leftEye = detection.landmarks.getLeftEye();
-            const rightEye = detection.landmarks.getRightEye();
 
             const step = this.livenessStep;
             if (step === 0) this._checkLookStraight(positions);
             else if (step === 1) this._checkTurnLeft(positions);
             else if (step === 2) this._checkTurnRight(positions);
-            else if (step === 3) this._checkMouthOpen(positions);
+            else if (step === 3) this._checkLookUp(positions);
         },
 
         // ── Head pose (yaw) from 68-point landmarks ──────────
@@ -336,19 +279,29 @@ function verificationWizard(config) {
             return -(noseOffset / (faceWidth / 2)) * 90;
         },
 
-        // ── Eye Aspect Ratio for blink ────────────────────────
+        // ── Head pitch from 68-point landmarks ────────────────
         //
-        // face-api.js eye points (6 each):
-        //   [0]=outer, [1]=upper-outer, [2]=upper-inner,
-        //   [3]=inner, [4]=lower-inner, [5]=lower-outer
+        // There's no clean 2D formula for pitch the way there is for yaw, so
+        // we use the proportion of the face that sits above the nose:
+        //
+        //   (nose.y - eyeLine.y) / (chin.y - eyeLine.y)
+        //
+        // Scale-invariant, but its resting value shifts with camera height and
+        // face shape — so we never compare it to a fixed number. Step 0 records
+        // the applicant's own resting value and step 3 looks for a delta from
+        // that. Tilting back exposes the underside of the face: eye→nose
+        // compresses while nose→chin expands, so the ratio DROPS when looking
+        // up. Flip PITCH_UP_SIGN if a device ever reports it the other way.
 
-        _getEAR(eyePoints) {
-            const dist = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-            const vertA = dist(eyePoints[1], eyePoints[5]);
-            const vertB = dist(eyePoints[2], eyePoints[4]);
-            const horiz = dist(eyePoints[0], eyePoints[3]);
-            if (horiz < 1) return 0.3;
-            return (vertA + vertB) / (2 * horiz);
+        _getPitch(positions) {
+            const eyeLineY = (positions[36].y + positions[39].y + positions[42].y + positions[45].y) / 4;
+            const chinY = positions[8].y;
+            const noseY = positions[30].y;
+
+            const span = chinY - eyeLineY;
+            if (Math.abs(span) < 1) return null;
+
+            return (noseY - eyeLineY) / span;
         },
 
         // ── Action validators ─────────────────────────────────
@@ -357,12 +310,29 @@ function verificationWizard(config) {
             const yaw = this._getYaw(positions);
             if (Math.abs(yaw) < 15) {
                 this.livenessGuideColor = '#2AA7A1';
+
+                // Sample the resting pitch while the head is held straight —
+                // this becomes the baseline the "Look up" step measures against.
+                const pitch = this._getPitch(positions);
+                if (pitch !== null) this._pitchSamples.push(pitch);
+
                 if (!this._holdStart) this._holdStart = Date.now();
-                else if (Date.now() - this._holdStart > 1000) this._completeLivenessStep();
+                else if (Date.now() - this._holdStart > 1000) {
+                    this._pitchBaseline = this._median(this._pitchSamples);
+                    this._completeLivenessStep();
+                }
             } else {
                 this.livenessGuideColor = '#E2E8F0';
+                this._pitchSamples = [];
                 this._holdStart = null;
             }
+        },
+
+        _median(values) {
+            if (!values.length) return null;
+            const sorted = [...values].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
         },
 
         _checkTurnLeft(positions) {
@@ -389,27 +359,24 @@ function verificationWizard(config) {
             }
         },
 
-        _checkMouthOpen(positions) {
-            // 68-point landmarks: 62 = upper inner lip, 66 = lower inner lip
-            const upperLip = positions[62];
-            const lowerLip = positions[66];
-            const noseTip = positions[30];
-            const chin = positions[8];
+        _checkLookUp(positions) {
+            const PITCH_UP_SIGN = -1;   // ratio drops as the head tilts back
+            const PITCH_DELTA = 0.07;   // how far from resting counts as "up"
 
-            // Normalize mouth opening by nose-to-chin distance (face scale)
-            const faceHeight = Math.abs(chin.y - noseTip.y);
-            if (faceHeight < 1) return;
+            if (this._pitchBaseline === null) return;
 
-            const mouthGap = Math.abs(lowerLip.y - upperLip.y);
-            const mouthRatio = mouthGap / faceHeight;
+            const pitch = this._getPitch(positions);
+            if (pitch === null) return;
 
-            // Mouth open when ratio > 0.3 (roughly)
-            const isOpen = mouthRatio > 0.3;
+            // Require a roughly frontal head — otherwise a leftover turn from
+            // the previous step can skew the ratio enough to pass on its own.
+            const facingForward = Math.abs(this._getYaw(positions)) < 25;
+            const delta = (pitch - this._pitchBaseline) * PITCH_UP_SIGN;
 
-            if (isOpen) {
+            if (facingForward && delta > PITCH_DELTA) {
                 this.livenessGuideColor = '#2AA7A1';
                 if (!this._holdStart) this._holdStart = Date.now();
-                else if (Date.now() - this._holdStart > 600) this._completeLivenessStep();
+                else if (Date.now() - this._holdStart > 500) this._completeLivenessStep();
             } else {
                 this.livenessGuideColor = '#E2E8F0';
                 this._holdStart = null;
@@ -426,7 +393,7 @@ function verificationWizard(config) {
             this.livenessGuideColor = '#22C55E';
             this._holdStart = null;
 
-            if (this.livenessStep < 3) {
+            if (this.livenessStep < this._lastLivenessStep) {
                 this._stepPauseUntil = Date.now() + 600;
                 this.livenessStep++;
                 this.livenessInstruction = this.livenessSteps[this.livenessStep];
@@ -486,35 +453,6 @@ function verificationWizard(config) {
             this.livenessActive = false;
         },
 
-        // ── File upload ───────────────────────────────────────
-
-        handleFileUpload(type, event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            if (!file.type.startsWith('image/')) { this.cameraError = 'Please select an image file (JPEG or PNG).'; return; }
-            if (file.size > 10 * 1024 * 1024) { this.cameraError = 'Image is too large. Max 10MB.'; return; }
-            this.cameraError = '';
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const dataUrl = e.target.result;
-                if (type === 'id') {
-                    this.idImageBase64 = dataUrl;
-                    if (this.needsBack) this.idCapturePhase = 'capture-back';
-                    else { this.idCapturePhase = 'done'; this.runOcrCheck(); }
-                } else if (type === 'idBack') {
-                    this.idBackBase64 = dataUrl;
-                    this.idCapturePhase = 'done';
-                    this.runOcrCheck();
-                } else if (type === 'selfie') {
-                    this.selfieBase64 = dataUrl;
-                    this.selfieCapturePhase = 'done';
-                    this.faceCheckDone = true;
-                    this.faceDetected = false;
-                }
-            };
-            reader.readAsDataURL(file);
-        },
-
         // ── Camera ────────────────────────────────────────────
 
         async startCamera(facingMode, videoEl) {
@@ -531,9 +469,9 @@ function verificationWizard(config) {
                 this.cameraActive = true;
             } catch (err) {
                 console.error('Camera error:', err);
-                if (err.name === 'NotAllowedError') this.cameraError = 'Camera access denied. Allow camera access or upload instead.';
-                else if (err.name === 'NotFoundError') this.cameraError = 'No camera found on this device.';
-                else this.cameraError = 'Could not access camera. Try again or upload instead.';
+                if (err.name === 'NotAllowedError') this.cameraError = 'Camera access denied. Allow camera access in your browser settings, then try again.';
+                else if (err.name === 'NotFoundError') this.cameraError = 'No camera found on this device. Photos must be taken live — please continue on a phone or a device with a camera.';
+                else this.cameraError = 'Could not access camera. Close any other app using it and try again.';
             }
         },
 
@@ -596,26 +534,16 @@ function verificationWizard(config) {
                 this.backOcrResult = null;
                 this.ocrError = false;
                 this.duplicateSideWarning = false;
-                if (this.idCaptureMethod === 'camera') {
-                    this.idCapturePhase = 'capture-front';
-                    this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoId), 500));
-                } else {
-                    this.idCapturePhase = 'capture-front';
-                    this.$nextTick(() => { if (this.$refs.fileInputFront) this.$refs.fileInputFront.value = ''; });
-                }
+                this.idCapturePhase = 'capture-front';
+                this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoId), 500));
             } else if (type === 'idBack') {
                 this.idBackBase64 = '';
                 this.duplicateSideWarning = false;
                 this.ocrResult = null;
                 this.backOcrResult = null;
                 this.ocrError = false;
-                if (this.idCaptureMethod === 'camera') {
-                    this.idCapturePhase = 'capture-back';
-                    this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoIdBack), 500));
-                } else {
-                    this.idCapturePhase = 'capture-back';
-                    this.$nextTick(() => { if (this.$refs.fileInputBack) this.$refs.fileInputBack.value = ''; });
-                }
+                this.idCapturePhase = 'capture-back';
+                this.$nextTick(() => setTimeout(() => this.startCamera('environment', this.$refs.videoIdBack), 500));
             } else {
                 this.selfieBase64 = '';
                 this.faceCheckDone = false;
@@ -623,7 +551,6 @@ function verificationWizard(config) {
                 this.livenessPassed = false;
                 this.livenessError = false;
                 this.selfieCapturePhase = 'choose';
-                this.selfieCaptureMethod = null;
             }
         },
 

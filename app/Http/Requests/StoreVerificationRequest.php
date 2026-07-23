@@ -25,6 +25,7 @@ class StoreVerificationRequest extends FormRequest
             'id_image'         => ['required', 'string'], // base64 from camera (front)
             'id_back'          => ['required_unless:id_type,Passport', 'nullable', 'string'], // base64 from camera (back)
             'selfie'           => ['required', 'string'], // base64 from camera
+            'liveness_passed'  => ['nullable', 'boolean'], // false = manual fallback, admin verifies by hand
             'business_name'    => ['required', 'string', 'max:255'],
             'description'      => ['nullable', 'string', 'max:1000'],
             'logo'             => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],

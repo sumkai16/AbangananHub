@@ -83,6 +83,7 @@
                 <input type="hidden" name="id_image" :value="idImageBase64">
                 <input type="hidden" name="id_back" :value="idBackBase64">
                 <input type="hidden" name="selfie" :value="selfieBase64">
+                <input type="hidden" name="liveness_passed" :value="livenessPassed ? 1 : 0">
 
                 {{-- ═══════════════════════════════════════════════ --}}
                 {{-- STEP 0 — Welcome / Intro --}}
@@ -204,50 +205,18 @@
                                         d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
                                 </svg>
                             </div>
-                            <h2 class="text-lg font-semibold text-[#1F2937] mb-1">Upload your <span x-text="idType"></span>
+                            <h2 class="text-lg font-semibold text-[#1F2937] mb-1">Photograph your <span
+                                    x-text="idType"></span>
                             </h2>
-                            <p class="text-sm text-[#64748B]">Take a clear photo or upload from your gallery.</p>
+                            <p class="text-sm text-[#64748B]">Have your ID ready — the photo is taken live with your
+                                camera.</p>
                         </div>
 
-                        <div class="space-y-3 mb-6">
-                            <button type="button" @click="chooseIdMethod('camera')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
-                                <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-[#1F2937]">Take a photo</p>
-                                    <p class="text-xs text-[#64748B]">Use your camera to capture</p>
-                                </div>
-                                <svg class="w-5 h-5 text-[#64748B] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
-                            </button>
-
-                            <button type="button" @click="chooseIdMethod('upload')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
-                                <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-[#1F2937]">Upload from gallery</p>
-                                    <p class="text-xs text-[#64748B]">Select an existing photo</p>
-                                </div>
-                                <svg class="w-5 h-5 text-[#64748B] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
+                        <div class="mb-6">
+                            <button type="button" @click="startIdCapture()"
+                                class="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                                @include('components.icons.camera')
+                                Open camera
                             </button>
                         </div>
 
@@ -455,8 +424,7 @@
                             </div>
 
                             {{-- CAMERA: Front --}}
-                            <div x-show="idCapturePhase === 'capture-front' && idCaptureMethod === 'camera'"
-                                class="relative">
+                            <div x-show="idCapturePhase === 'capture-front'" class="relative">
                                 <p class="text-xs font-semibold text-[#1F2937] mb-2"
                                     x-text="needsBack ? 'Front of ID' : 'ID data page'"></p>
                                 <div class="relative rounded-xl overflow-hidden bg-black aspect-[4/3]">
@@ -476,8 +444,7 @@
                             </div>
 
                             {{-- CAMERA: Back --}}
-                            <div x-show="idCapturePhase === 'capture-back' && idCaptureMethod === 'camera'"
-                                class="relative">
+                            <div x-show="idCapturePhase === 'capture-back'" class="relative">
                                 <p class="text-xs font-semibold text-[#1F2937] mb-2">Flip your ID and capture the back</p>
                                 <div class="relative rounded-xl overflow-hidden bg-black aspect-[4/3]">
                                     <video x-ref="videoIdBack" autoplay playsinline
@@ -496,49 +463,6 @@
                                 </div>
                             </div>
 
-                            {{-- UPLOAD: Front --}}
-                            <div x-show="idCapturePhase === 'capture-front' && idCaptureMethod === 'upload'">
-                                <p class="text-xs font-semibold text-[#1F2937] mb-2"
-                                    x-text="needsBack ? 'Upload front of ID' : 'Upload ID photo'"></p>
-                                <label
-                                    class="flex flex-col items-center justify-center w-full aspect-[4/3] rounded-xl border-2 border-dashed border-[#E2E8F0] hover:border-[#2AA7A1] bg-[#F7FCFC] cursor-pointer transition-colors duration-150">
-                                    <svg class="w-10 h-10 text-[#64748B] mb-2" xmlns="http://www.w3.org/2000/svg"
-                                        fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                    <span class="text-sm text-[#64748B]">Tap to select a photo</span>
-                                    <span class="text-xs text-[#64748B] mt-1">JPEG or PNG, max 10MB</span>
-                                    <input type="file" x-ref="fileInputFront" accept="image/jpeg,image/png"
-                                        capture="environment" class="hidden" @change="handleFileUpload('id', $event)">
-                                </label>
-                            </div>
-
-                            {{-- UPLOAD: Back --}}
-                            <div x-show="idCapturePhase === 'capture-back' && idCaptureMethod === 'upload'">
-                                <p class="text-xs font-semibold text-[#1F2937] mb-2">Upload back of ID</p>
-                                <label
-                                    class="flex flex-col items-center justify-center w-full aspect-[4/3] rounded-xl border-2 border-dashed border-[#E2E8F0] hover:border-[#2AA7A1] bg-[#F7FCFC] cursor-pointer transition-colors duration-150">
-                                    <svg class="w-10 h-10 text-[#64748B] mb-2" xmlns="http://www.w3.org/2000/svg"
-                                        fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                    <span class="text-sm text-[#64748B]">Tap to select a photo</span>
-                                    <span class="text-xs text-[#64748B] mt-1">JPEG or PNG, max 10MB</span>
-                                    <input type="file" x-ref="fileInputBack" accept="image/jpeg,image/png"
-                                        capture="environment" class="hidden" @change="handleFileUpload('idBack', $event)">
-                                </label>
-                            </div>
-
-                            {{-- Switch method link --}}
-                            <div x-show="idCapturePhase !== 'done'" class="mt-3 text-center">
-                                <button type="button" @click="switchIdMethod()"
-                                    class="text-xs text-[#64748B] hover:text-[#2AA7A1] underline transition-colors">
-                                    <span
-                                        x-text="idCaptureMethod === 'camera' ? 'Upload a photo instead' : 'Use camera instead'"></span>
-                                </button>
-                            </div>
                         </div>
 
                         <div class="mt-6 flex justify-end">
@@ -567,48 +491,32 @@
                                 </svg>
                             </div>
                             <h2 class="text-lg font-semibold text-[#1F2937] mb-1">Face verification</h2>
-                            <p class="text-sm text-[#64748B]">We'll compare this with the photo on your ID.</p>
+                            <p class="text-sm text-[#64748B]">A short live check, then we'll compare it with the photo on
+                                your ID.</p>
                         </div>
 
-                        <div class="space-y-3 mb-6">
-                            <button type="button" @click="chooseSelfieMethod('camera')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
-                                <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-[#1F2937]">Take a selfie</p>
-                                    <p class="text-xs text-[#64748B]">Use your front camera</p>
-                                </div>
-                                <svg class="w-5 h-5 text-[#64748B] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
-                            </button>
+                        {{-- What the liveness check will ask for --}}
+                        <div class="mb-6 p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+                            <p class="text-xs font-semibold text-[#1F2937] mb-3">You'll be asked to:</p>
+                            <ol class="space-y-2">
+                                <template x-for="(label, idx) in livenessSteps" :key="idx">
+                                    <li class="flex items-center gap-3">
+                                        <span
+                                            class="w-5 h-5 rounded-full bg-[#EEF8F8] text-[#156F8C] text-[10px] font-semibold flex items-center justify-center shrink-0"
+                                            x-text="idx + 1"></span>
+                                        <span class="text-sm text-[#64748B]" x-text="label"></span>
+                                    </li>
+                                </template>
+                            </ol>
+                            <p class="text-xs text-[#64748B] mt-3">The photo is taken automatically once all four are
+                                done.</p>
+                        </div>
 
-                            <button type="button" @click="chooseSelfieMethod('upload')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
-                                <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-[#1F2937]">Upload a selfie</p>
-                                    <p class="text-xs text-[#64748B]">Select from your gallery</p>
-                                </div>
-                                <svg class="w-5 h-5 text-[#64748B] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
+                        <div class="mb-6">
+                            <button type="button" @click="startSelfieCapture()"
+                                class="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                                @include('components.icons.camera')
+                                Start face check
                             </button>
                         </div>
 
@@ -635,7 +543,7 @@
                             </template>
 
                             {{-- Camera selfie with liveness overlay --}}
-                            <div x-show="selfieCaptureMethod === 'camera'" class="relative">
+                            <div class="relative">
                                 <div class="relative rounded-xl overflow-hidden bg-black aspect-[3/4] max-w-sm mx-auto">
                                     <video x-ref="videoSelfie" autoplay playsinline class="w-full h-full object-cover"
                                         style="transform: scaleX(-1)"></video>
@@ -734,7 +642,7 @@
                                                 </div>
                                                 <span class="text-[10px] text-[#64748B] leading-tight block max-w-[48px]"
                                                     :class="livenessStep === idx ? 'text-[#2AA7A1] font-medium' : ''"
-                                                    x-text="label.replace('Look ', '').replace('Turn ', '').replace('Open your ', '')"></span>
+                                                    x-text="label.replace('Look ', '').replace('Turn ', '')"></span>
                                             </div>
                                         </template>
                                     </div>
@@ -767,33 +675,10 @@
                                 </div>
                             </div>
 
-                            {{-- Upload selfie --}}
-                            <div x-show="selfieCaptureMethod === 'upload'">
-                                <label
-                                    class="flex flex-col items-center justify-center w-full aspect-[3/4] max-w-sm mx-auto rounded-xl border-2 border-dashed border-[#E2E8F0] hover:border-[#2AA7A1] bg-[#F7FCFC] cursor-pointer transition-colors duration-150">
-                                    <svg class="w-10 h-10 text-[#64748B] mb-2" xmlns="http://www.w3.org/2000/svg"
-                                        fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                    <span class="text-sm text-[#64748B]">Tap to select a selfie</span>
-                                    <span class="text-xs text-[#64748B] mt-1">JPEG or PNG, max 10MB</span>
-                                    <input type="file" x-ref="fileInputSelfie" accept="image/jpeg,image/png" capture="user"
-                                        class="hidden" @change="handleFileUpload('selfie', $event)">
-                                </label>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <button type="button" @click="switchSelfieMethod()"
-                                    class="text-xs text-[#64748B] hover:text-[#2AA7A1] underline transition-colors">
-                                    <span
-                                        x-text="selfieCaptureMethod === 'camera' ? 'Upload a photo instead' : 'Use camera instead'"></span>
-                                </button>
-                            </div>
                         </div>
                     </div>
 
-                    {{-- ── Selfie preview (both modes) ─────────── --}}
+                    {{-- ── Selfie preview ──────────────────────── --}}
                     <div x-show="selfieBase64">
                         <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                             <div class="rounded-xl overflow-hidden border border-[#E2E8F0] max-w-sm mx-auto">
@@ -808,9 +693,10 @@
                                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                     </svg>
                                     <div>
-                                        <p class="text-sm font-semibold text-[#1F2937]">We can't see your face clearly</p>
-                                        <p class="text-xs text-[#64748B] mt-1">Face the camera directly with good lighting.
-                                            You can retake or continue — our team will check.</p>
+                                        <p class="text-sm font-semibold text-[#1F2937]">Live check not completed</p>
+                                        <p class="text-xs text-[#64748B] mt-1">We couldn't run the automatic face check on
+                                            this photo. You can retake it or continue — our team will verify it manually,
+                                            which may take longer.</p>
                                     </div>
                                 </div>
                             </div>

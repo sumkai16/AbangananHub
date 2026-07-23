@@ -33,6 +33,7 @@
 | verification_id | BIGINT UNSIGNED | PK | `$primaryKey = 'verification_id'` |
 | user_id | FK → users.user_id | NOT NULL | |
 | government_id | VARCHAR(255) | NOT NULL | Local disk path (private) |
+| liveness_passed | BOOLEAN | DEFAULT false | False = applicant fell back to manual capture (face-api.js unavailable); admin screen shows a warning banner |
 | verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | |
 | admin_notes | TEXT | NULLABLE | Rejection reason |
 | reviewed_by | FK → users.user_id | NULLABLE | Admin who reviewed |
@@ -306,6 +307,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | create_users_table | Initial users schema — also creates the stock `password_reset_tokens` and `sessions` tables (Laravel default; `password_reset_tokens` backs the forgot-password flow) | Core auth | Early 2026 |
 | create_user_roles_table | Role system | Multi-role support | Early 2026 |
 | create_landlord_verifications_table | Verification pipeline + admin_notes | Identity verification module | Mid 2026 |
+| add_liveness_passed_to_landlord_verifications_table | `liveness_passed` flag | Upload path removed — flags manual-capture fallback for admin review | July 2026 |
 | create_properties_table | Property listings | Core listing module | Mid 2026 |
 | create_property_media_table | Media storage | Cloudinary integration | Mid 2026 |
 | create_amenities_table | Amenity master list | Property features | Mid 2026 |

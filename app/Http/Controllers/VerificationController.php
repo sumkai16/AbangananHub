@@ -199,6 +199,7 @@ public function sendEmailLink(Request $request)
                 'id_back'             => $idBackPath,
                 'id_type'             => $request->input('id_type'),
                 'selfie'              => $selfiePath,
+                'liveness_passed'     => $request->boolean('liveness_passed'),
                 'id_image_hash'       => $idImageHash,
                 'id_number'           => $idNumber,
                 'ocr_name'            => $nameResult['name'],
