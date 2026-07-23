@@ -16,16 +16,6 @@
     $pendingPayment = $reservation?->payments->firstWhere('status', 'Pending');
     $hasSettledPayment = $heldPayment || $releasedPayment;
 
-    $stageLabels = ['Inquiry', 'Negotiation', 'Agreement', 'Signed', 'Paid', 'Occupied'];
-    $currentStageIndex = match ($rentalStatus) {
-        'Inquiry' => 0,
-        'Under Negotiation' => 1,
-        'Pending Rental Agreement' => 2,
-        'Rental Agreement Signed' => $hasSettledPayment ? 4 : 3,
-        'Occupied' => 5,
-        default => false,
-    };
-
     // What this viewer is expected to do right now. Drives the action bar so
     // the role/status branching is stated once instead of being re-derived
     // in four places further down.
@@ -102,55 +92,18 @@
             </div>
         @else
             <div class="px-5 pt-3.5 pb-3 border-b border-[#E2E8F0] bg-[#F7FCFC] flex-shrink-0">
-                <ol class="flex items-start" aria-label="Rental progress">
-                    @foreach($stageLabels as $i => $stage)
-                        @php
-                            $isDone = $currentStageIndex !== false && $i < $currentStageIndex;
-                            $isCurrent = $currentStageIndex !== false && $i === $currentStageIndex;
-                            $isLast = $i === count($stageLabels) - 1;
-                        @endphp
-                        <li class="flex items-start {{ !$isLast ? 'flex-1' : '' }} min-w-0"
-                            @if($isCurrent) aria-current="step" @endif>
-                            <div class="flex flex-col items-center gap-1.5 {{ !$isLast ? 'w-[22px]' : '' }} flex-shrink-0">
-                                @if($isDone)
-                                    <div class="w-[18px] h-[18px] rounded-full bg-[#2AA7A1] flex items-center justify-center">
-                                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                @elseif($isCurrent)
-                                    <div class="w-[18px] h-[18px] rounded-full bg-[#2AA7A1] flex items-center justify-center ring-4 ring-[#2AA7A1]/15">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
-                                    </div>
-                                @else
-                                    <div class="w-[18px] h-[18px] rounded-full border-2 border-[#E2E8F0] bg-white"></div>
-                                @endif
-                            </div>
-
-                            @if(!$isLast)
-                                <div class="flex-1 h-0.5 rounded-full mt-[8px] mx-1 {{ $isDone ? 'bg-[#2AA7A1]' : 'bg-[#E2E8F0]' }}"></div>
-                            @endif
-                        </li>
-                    @endforeach
-                </ol>
-
-                <div class="flex items-start mt-1.5">
-                    @foreach($stageLabels as $i => $label)
-                        @php
-                            $isDone = $currentStageIndex !== false && $i < $currentStageIndex;
-                            $isCurrent = $currentStageIndex !== false && $i === $currentStageIndex;
-                            $isLast = $i === count($stageLabels) - 1;
-                        @endphp
-                        <p class="{{ !$isLast ? 'flex-1' : '' }} text-[9.5px] leading-tight tracking-wide {{ $isLast ? 'text-right' : '' }} {{ $isCurrent ? 'font-bold text-[#156F8C]' : ($isDone ? 'font-semibold text-[#1F2937]' : 'text-[#64748B]') }}">
-                            {{ $label }}
-                        </p>
-                    @endforeach
-                </div>
+                @include('conversations.partials._stage-stepper', ['reservation' => $reservation])
             </div>
         @endif
     @endif
 
     {{-- ===== Action bar — always visible, never behind a toggle ===== --}}
     @if($reservation && !$isTerminal)
-        <div class="px-5 py-3 border-b border-[#E2E8F0] flex-shrink-0 {{ $waitingOnMe ? 'bg-[#EEF8F8]/50' : 'bg-white' }}"
+        {{-- max-h + scroll: this bar is flex-shrink-0, so without a ceiling a
+             tall action (the handover decision card, the escrow prompt, both
+             at once) squeezes the message list to nothing and overflows the
+             panel. Capped, the messages always keep roughly half the height. --}}
+        <div class="px-5 py-3 border-b border-[#E2E8F0] flex-shrink-0 max-h-[55%] overflow-y-auto {{ $waitingOnMe ? 'bg-[#EEF8F8]/50' : 'bg-white' }}"
             x-data="{ showReject: false, showCancel: false, showTc: false }">
 
             {{-- LANDLORD --}}
@@ -223,9 +176,11 @@
 
                 @elseif($rentalStatus === 'Rental Agreement Signed')
                     @if($heldPayment)
-                        <p class="text-[12px] text-[#1F2937] font-medium text-center py-1">
-                            Payment received and held — waiting for {{ $otherParty->first_name }} to confirm move-in
-                        </p>
+                        @include('conversations.partials._move-in-clock', [
+                            'reservation' => $reservation,
+                            'isLandlord'  => true,
+                            'otherParty'  => $otherParty,
+                        ])
                     @elseif($pendingPayment)
                         <p class="text-[12px] text-[#64748B] font-medium text-center py-1">{{ $otherParty->first_name }}'s payment is processing</p>
                     @else
@@ -309,7 +264,13 @@
                              move-in, which is what releases the escrow — not
                              paying again, which is what this branch used to
                              offer regardless of payment state. --}}
-                        <div class="flex items-center gap-2">
+                        @include('conversations.partials._move-in-clock', [
+                            'reservation' => $reservation,
+                            'isLandlord'  => false,
+                            'otherParty'  => $otherParty,
+                        ])
+
+                        <div class="flex items-center gap-2 mt-2">
                             <div class="flex-1 min-w-0">
                                 <p class="text-[12px] font-bold text-[#1F2937]">Payment held by AbangananHub</p>
                                 <p class="text-[11px] text-[#64748B]">Confirm move-in to release &#8369;{{ number_format($heldPayment->amount, 2) }} to the landlord.</p>

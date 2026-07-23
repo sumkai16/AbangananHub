@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Events\PaymentStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Payment;
@@ -50,15 +49,13 @@ class PaymentController extends Controller
 
     public function release(Payment $payment)
     {
-        $shouldBroadcast = false;
-
         // Held → Released moves real money conceptually; lock the row so a
         // double-click or a retried request can't both pass the status check
         // and release (and message) the same payment twice. The reservation
         // is locked too, since an admin release also resolves its dispute
         // and (possibly) flips it to Occupied — matching Reservation::
         // confirmMoveIn()'s locking shape for the same class of mutation.
-        DB::transaction(function () use ($payment, &$shouldBroadcast) {
+        DB::transaction(function () use ($payment) {
             $locked = Payment::whereKey($payment->getKey())->lockForUpdate()->firstOrFail();
 
             abort_unless($locked->isHeld(), 409, 'Only held payments can be released.');
@@ -69,8 +66,6 @@ class PaymentController extends Controller
                 'released_by' => auth()->id(),
                 'release_reason' => 'admin_manual',
             ]);
-
-            $shouldBroadcast = true;
 
             $reservation = $locked->reservation_id
                 ? Reservation::whereKey($locked->reservation_id)->with(['unit', 'property'])->lockForUpdate()->first()
@@ -149,10 +144,10 @@ class PaymentController extends Controller
             ? trim($landlord->first_name.' '.$landlord->last_name)
             : 'the landlord';
 
-        if ($shouldBroadcast) {
-            PaymentStatusUpdated::dispatch($payment);
-        }
-
+        // PaymentObserver broadcasts the Held -> Released transition. Its
+        // $afterCommit is also what the old $shouldBroadcast flag was for: a
+        // rolled-back release never reaches the observer, so there is nothing
+        // left to guard against here.
         return back()->with('success', "Payment released to {$landlordName}.");
     }
 }

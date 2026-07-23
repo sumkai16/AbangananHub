@@ -27,6 +27,12 @@
                 'description' => $unit->description,
                 'amenities' => $unit->amenities->pluck('amenity_name')->values()->toArray(),
                 'occupancy' => $unit->occupancy_limit,
+                // Raw as well as formatted: the cost breakdown needs to sum
+                // rent + deposit, and re-parsing "9,500" client-side to do it
+                // would be a comma-separated bug waiting to happen.
+                'rentRaw' => (float) $unit->rental_fee,
+                'depositRaw' => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
+                'deposit' => $unit->security_deposit !== null ? number_format($unit->security_deposit) : null,
                 'size' => $unit->size ?? null,
                 'available' => $unit->availability_status === 'Available',
                 'hasActive' => $hasActiveReservation,
@@ -37,8 +43,64 @@
     @endphp
 
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 lg:pb-8 min-h-[calc(100vh-72px)]" x-data="{
-                                                    tab: 'overview',
                                                     mode: 'inquiry',
+                                                    inquireOpen: false,
+
+                                                    reportOpen: false,
+                                                    reportCategory: '',
+                                                    reportDetails: '',
+                                                    reportSending: false,
+                                                    reportError: '',
+
+                                                    async submitReport() {
+                                                        if (this.reportSending) return;
+                                                        this.reportSending = true;
+                                                        this.reportError = '';
+
+                                                        try {
+                                                            const res = await fetch('{{ route('reports.store') }}', {
+                                                                method: 'POST',
+                                                                headers: {
+                                                                    'Content-Type': 'application/json',
+                                                                    'Accept': 'application/json',
+                                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                                },
+                                                                body: JSON.stringify({
+                                                                    target_type: 'property',
+                                                                    property_id: {{ $property->property_id }},
+                                                                    category: this.reportCategory,
+                                                                    details: this.reportDetails,
+                                                                }),
+                                                            });
+
+                                                            if (!res.ok) {
+                                                                // 422 carries Laravel's field errors; anything else is
+                                                                // a failure the user can only retry.
+                                                                const body = await res.json().catch(() => ({}));
+                                                                this.reportError = body.errors
+                                                                    ? Object.values(body.errors).flat()[0]
+                                                                    : 'Could not submit your report. Please try again.';
+                                                                return;
+                                                            }
+
+                                                            const data = await res.json();
+                                                            this.reportOpen = false;
+                                                            this.reportCategory = '';
+                                                            this.reportDetails = '';
+
+                                                            window.dispatchEvent(new CustomEvent('show-modal', {
+                                                                detail: {
+                                                                    type: 'success',
+                                                                    title: 'Report submitted',
+                                                                    message: data.message,
+                                                                },
+                                                            }));
+                                                        } catch (e) {
+                                                            this.reportError = 'Network error. Please try again.';
+                                                        } finally {
+                                                            this.reportSending = false;
+                                                        }
+                                                    },
                                                     moreUnits: false,
                                                     mobileOpen: false,
                                                     mstep: 1,
@@ -71,7 +133,12 @@
                                                         if (this.moveOut && this.moveOut <= this.moveIn) this.moveOut = '';
                                                     },
 
-                                                    get canSubmit() { return !!this.selected && !!this.moveIn },
+                                                    // Inquiry needs only a unit; a date is meaningless until
+                                                    // the tenant is actually reserving.
+                                                    get canSubmit() {
+                                                        if (!this.selected) return false;
+                                                        return this.mode === 'reserve' ? !!this.moveIn : true;
+                                                    },
 
                                                     descExpanded: false,
                                                     allAmenities: false,
@@ -108,35 +175,22 @@
                                                         this.slideoutIdx = (this.slideoutIdx + 1) % this.slideoutUnit.media.length;
                                                     },
 
-                                                    goTab(name) {
-                                                        this.tab = name;
-                                                        this.$nextTick(() => window.dispatchEvent(new Event('resize')));
-                                                    }
+                                                    // Sections are always in the DOM now that the tabs are gone,
+                                                    // so the map no longer needs a resize nudge on reveal.
                                                 }">
 
-        {{-- ===== BREADCRUMB ===== --}}
-        <nav class="mb-6 flex items-center gap-1.5 text-sm font-semibold text-[#64748B]" aria-label="Breadcrumb">
-            <a href="{{ url('/') }}" class="hover:text-[#1F2937] transition-colors">Home</a>
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-            <a href="{{ route('properties.index') }}" class="hover:text-[#1F2937] transition-colors">Properties</a>
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-            <span class="text-[#1F2937] truncate max-w-[200px] sm:max-w-xs">{{ $property->title }}</span>
-        </nav>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
 
             {{-- ===================================================== --}}
-            {{-- LEFT REGION: gallery + units | header + tabs --}}
+            {{-- MEDIA RAIL — gallery + units, sticky as one panel      --}}
+            {{--                                                        --}}
+            {{-- Sticky with its own max-height and scroll rather than a --}}
+            {{-- fixed full-height rail: a one-unit property gets the    --}}
+            {{-- immersive rail, a twelve-unit one scrolls its list      --}}
+            {{-- inside the rail instead of pushing the page out of      --}}
+            {{-- alignment. Static below lg, where it simply stacks.     --}}
             {{-- ===================================================== --}}
-            <div class="lg:col-span-7 xl:col-span-8">
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-
-                {{-- ── Column A: gallery + available units ── --}}
-                <div class="space-y-8">
+            <div class="lg:col-span-5 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] space-y-6">
 
                 {{-- ===== 1. IMAGE GALLERY ===== --}}
                 @if($property->media->count() > 0)
@@ -299,228 +353,194 @@
                         @endif
                     </div>
                 @endif
-                </div>
+            </div>
 
-                {{-- ── Column B: header + facts + tabs ── --}}
-                <div class="space-y-6">
+            {{-- ===================================================== --}}
+            {{-- EDITORIAL COLUMN — hero, then stacked detail sections  --}}
+            {{-- ===================================================== --}}
+            <div class="lg:col-span-7 min-w-0">
 
-                {{-- ===== 2. PROPERTY HEADER ===== --}}
-                <div>
-                    <div class="flex flex-wrap items-center gap-2.5 mb-2">
-                        <h1 class="text-2xl font-black text-[#1F2937] tracking-tight">
-                            {{ $property->title }}
-                        </h1>
-                        @if($property->landlord->rentalBusiness)
-                            <span
-                                class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-[#EEF8F8] text-[#1F2937] shadow-sm">
-                                <svg class="w-3.5 h-3.5 text-[#22C55E]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                    stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Verified Landlord
-                            </span>
-                        @endif
-                    </div>
+                {{-- ===== HERO ===== --}}
+                <nav class="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] mb-5" aria-label="Breadcrumb">
+                    <a href="{{ url('/') }}" class="hover:text-[#1F2937] transition-colors">Home</a>
+                    <span aria-hidden="true">·</span>
+                    <a href="{{ route('properties.index') }}" class="hover:text-[#1F2937] transition-colors">Properties</a>
+                    <span aria-hidden="true">·</span>
+                    <span class="text-[#1F2937] truncate max-w-[220px]">{{ $property->title }}</span>
+                </nav>
 
-                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm font-medium text-[#64748B] mb-3">
-                        <span class="flex items-center gap-1.5">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            {{ $property->address }}
-                        </span>
-                        <button type="button" x-on:click="goTab('location')"
-                            class="text-[#156F8C] font-bold hover:brightness-95 transition-all underline underline-offset-2">
-                            View on map
-                        </button>
-                    </div>
+                {{-- font-display is Source Serif 4, reserved for page titles
+                     this size. Card headings and section labels stay on
+                     font-heading (Poppins) — see DESIGN.md §4. --}}
+                <h1 class="font-display text-[30px] sm:text-[38px] font-bold leading-[1.12] tracking-[-0.015em] text-[#1F2937] text-balance">
+                    {{ $property->title }}
+                </h1>
 
-                    <div class="flex items-center gap-1.5 mb-4">
-                        <svg class="w-4 h-4 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                            <path
-                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13.5px] font-medium text-[#64748B]">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 shrink-0 text-[#EF4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {{ $property->address }}
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
                         @if($avgRating)
-                            <span class="text-sm font-black text-[#1F2937]">{{ $avgRating }}</span>
-                            <button type="button" x-on:click="goTab('reviews')"
-                                class="text-sm font-semibold text-[#64748B] hover:text-[#1F2937] transition-colors underline underline-offset-2">
-                                ({{ $reviews->count() }} {{ Str::plural('review', $reviews->count()) }})
-                            </button>
+                            <span class="font-bold text-[#1F2937]">{{ $avgRating }}</span>
+                            <a href="#reviews" class="hover:text-[#1F2937] underline underline-offset-2">
+                                {{ $reviews->count() }} {{ Str::plural('review', $reviews->count()) }}
+                            </a>
                         @else
-                            <span class="text-sm font-semibold text-[#64748B]">No reviews yet</span>
+                            <span>No reviews yet</span>
                         @endif
-                    </div>
+                    </span>
+                </div>
 
-                    @if($property->description)
-                        @if(Str::length($property->description) > 200)
-                            <p class="text-sm text-[#1F2937] leading-relaxed whitespace-pre-line" x-show="!descExpanded">
-                                {{ Str::limit($property->description, 200) }}
+                {{-- Price follows the unit picked in the rail, so there is one
+                     source of truth rather than a hero range that can disagree
+                     with what the form is about to submit. --}}
+                <p class="mt-5 flex items-baseline gap-2">
+                    <span class="font-display text-[34px] sm:text-[40px] font-bold tracking-tight text-[#156F8C]">
+                        &#8369;<span x-text="selected ? selected.price : '{{ number_format($property->units->min('rental_fee') ?? 0) }}'"></span>
+                    </span>
+                    <span class="text-[15px] font-medium text-[#64748B]">/ month</span>
+                </p>
+
+                @if($property->description)
+                    <div class="mt-4 max-w-[62ch]">
+                        @if(Str::length($property->description) > 220)
+                            <p class="text-[15px] text-[#1F2937] leading-relaxed whitespace-pre-line" x-show="!descExpanded">
+                                {{ Str::limit($property->description, 220) }}
                             </p>
-                            <p class="text-sm text-[#1F2937] leading-relaxed whitespace-pre-line" x-show="descExpanded" x-cloak>
-                                {{ $property->description }}
-                            </p>
+                            <p class="text-[15px] text-[#1F2937] leading-relaxed whitespace-pre-line" x-show="descExpanded"
+                                x-cloak>{{ $property->description }}</p>
                             <button type="button" x-on:click="descExpanded = !descExpanded"
-                                class="mt-1.5 text-sm font-bold text-[#156F8C] hover:brightness-95 transition-all underline underline-offset-2"
+                                class="mt-1.5 text-[14px] font-bold text-[#156F8C] hover:brightness-95 transition-all underline underline-offset-2"
                                 x-text="descExpanded ? 'Read less' : 'Read more'"></button>
                         @else
-                            <p class="text-sm text-[#1F2937] leading-relaxed whitespace-pre-line">{{ $property->description }}</p>
+                            <p class="text-[15px] text-[#1F2937] leading-relaxed whitespace-pre-line">
+                                {{ $property->description }}</p>
+                        @endif
+                    </div>
+                @endif
+
+                {{-- ===== FACT TILES ===== --}}
+                <dl class="mt-6 grid grid-cols-2 gap-3">
+                    @php
+                        $availableUnits = $property->units->where('availability_status', 'Available')->count();
+                        $maxCapacity = $property->units->max('capacity');
+                    @endphp
+                    @foreach ([
+                        ['Type', $property->property_type],
+                        ['Capacity', $maxCapacity ? $maxCapacity . ' ' . Str::plural('person', $maxCapacity) : '—'],
+                        ['Landlord', trim($property->landlord->first_name . ' ' . $property->landlord->last_name)],
+                        ['Available', $availableUnits . ' ' . Str::plural('unit', $availableUnits)],
+                    ] as [$label, $value])
+                        <div class="rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
+                            <dt class="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">{{ $label }}</dt>
+                            <dd class="mt-0.5 text-[14.5px] font-bold text-[#1F2937] truncate">{{ $value }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+
+                {{-- ===== PRIMARY ACTION ===== --}}
+                <div class="mt-6 flex items-stretch gap-3">
+                    @if(!auth()->check())
+                        <button type="button" onclick="openAuthModal('login')"
+                            class="flex-1 py-3.5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-[15px] font-bold shadow-sm transition-all">
+                            Log in to inquire
+                        </button>
+                    @elseif($isOwner)
+                        <div class="flex-1 py-3.5 text-center rounded-xl bg-[#E2E8F0] text-[#64748B] text-[15px] font-bold cursor-not-allowed">
+                            This is your listing
+                        </div>
+                    @else
+                        <button type="button" x-on:click="inquireOpen = true"
+                            class="flex-1 py-3.5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-[15px] font-bold shadow-sm transition-all cursor-pointer"
+                            x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Send Inquiry'"
+                            :disabled="selected && selected.hasActive"
+                            :class="selected && selected.hasActive ? 'opacity-60 cursor-not-allowed' : ''">
+                        </button>
+
+                        @if(auth()->user()->hasRole('Tenant'))
+                            <div x-data="{
+                                    fav: @js($isFavorited ?? false),
+                                    busy: false,
+                                    async toggleFav() {
+                                        if (this.busy) return;
+                                        this.busy = true;
+                                        try {
+                                            const res = await fetch('{{ route('favorites.toggle', $property->property_id) }}', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                    'Accept': 'application/json',
+                                                },
+                                            });
+                                            if (res.ok) { const d = await res.json(); this.fav = d.favorited; }
+                                        } finally { this.busy = false; }
+                                    }
+                                }">
+                                <button type="button" x-on:click="toggleFav()" :disabled="busy"
+                                    :aria-pressed="fav"
+                                    class="h-full aspect-square rounded-xl border border-[#E2E8F0] bg-white flex items-center justify-center hover:border-[#2AA7A1] transition-all disabled:opacity-50 cursor-pointer">
+                                    <span class="sr-only" x-text="fav ? 'Remove from favorites' : 'Add to favorites'"></span>
+                                    <svg class="w-5 h-5 transition-colors" :class="fav ? 'text-[#EF4444]' : 'text-[#64748B]'"
+                                        :fill="fav ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
+                                        stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                    </svg>
+                                </button>
+                            </div>
                         @endif
                     @endif
                 </div>
 
-                {{-- ===== 3. AMENITY ICON ROW ===== --}}
-                @if($property->amenities->count() > 0)
-                    <div class="pt-5 border-t border-[#EEF8F8]">
-                        <div class="flex flex-wrap gap-x-4 gap-y-3">
-                            @foreach($property->amenities as $i => $amenity)
-                                <div class="flex flex-col items-center gap-1.5 w-[64px]"
-                                    @if($i >= 5) x-show="allAmenities" x-cloak @endif>
-                                    <span class="w-11 h-11 rounded-xl border border-[#E2E8F0] bg-white shadow-sm flex items-center justify-center shrink-0">
-                                        <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </span>
-                                    <span class="text-[10.5px] font-semibold text-[#64748B] text-center leading-tight truncate w-full">{{ $amenity->amenity_name }}</span>
-                                </div>
-                            @endforeach
+                <p class="mt-2.5 text-[12.5px] font-medium text-[#64748B]">Usually responds within a few hours</p>
 
-                            @if($property->amenities->count() > 5)
-                                <button type="button" x-show="!allAmenities" x-on:click="allAmenities = true"
-                                    class="flex flex-col items-center gap-1.5 w-[64px] cursor-pointer group">
-                                    <span class="w-11 h-11 rounded-xl border border-[#E2E8F0] bg-white shadow-sm group-hover:bg-[#F7FCFC] flex items-center justify-center text-[12px] font-bold text-[#1F2937] transition-colors duration-200">
-                                        +{{ $property->amenities->count() - 5 }}
-                                    </span>
-                                    <span class="text-[10.5px] font-semibold text-[#64748B]">more</span>
-                                </button>
-                            @endif
-                        </div>
+                {{-- ===== LANDLORD ROW ===== --}}
+                <div class="mt-6 pt-6 border-t border-[#E2E8F0] flex items-center gap-3">
+                    <div class="w-11 h-11 shrink-0 rounded-full bg-[#2AA7A1] text-white flex items-center justify-center text-[14px] font-bold">
+                        {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
                     </div>
-                @endif
-
-                {{-- ===== 4. PROPERTY QUICK FACTS ===== --}}
-                <div class="pt-5 border-t border-[#EEF8F8]">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                        <div class="flex items-start gap-2.5">
-                            <span class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                                </svg>
-                            </span>
-                            <div class="min-w-0">
-                                <p class="text-[11px] font-bold text-[#64748B]">Property Type</p>
-                                <p class="text-sm font-bold text-[#1F2937]">{{ $property->property_type }}</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-2.5">
-                            <span class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </span>
-                            <div class="min-w-0">
-                                <p class="text-[11px] font-bold text-[#64748B]">Price Range</p>
-                                <p class="text-sm font-bold text-[#1F2937]">
-                                    @if($minFee)
-                                        ₱{{ number_format($minFee) }}@if($maxFee && $maxFee != $minFee)–₱{{ number_format($maxFee) }}@endif
-                                        <span class="text-[#64748B] font-semibold">/ month</span>
-                                    @else
-                                        —
-                                    @endif
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-2.5">
-                            <span class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                </svg>
-                            </span>
-                            <div class="min-w-0">
-                                <p class="text-[11px] font-bold text-[#64748B]">Landlord</p>
-                                <p class="text-sm font-bold text-[#1F2937] truncate">
-                                    {{ $property->landlord->rentalBusiness->business_name ?? ($property->landlord->first_name . ' ' . $property->landlord->last_name) }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-2.5">
-                            <span class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                                </svg>
-                            </span>
-                            <div class="min-w-0">
-                                <p class="text-[11px] font-bold text-[#64748B]">Available Units</p>
-                                <p class="text-sm font-bold text-[#1F2937]">{{ $availableUnits->count() }} {{ Str::plural('Unit', $availableUnits->count()) }}</p>
-                            </div>
-                        </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[14.5px] font-bold text-[#1F2937] truncate">
+                            {{ trim($property->landlord->first_name . ' ' . $property->landlord->last_name) }}
+                        </p>
+                        {{-- Built in PHP: a directive placed immediately after a
+                             word character isn't matched by Blade's \B@ regex,
+                             so "Landlord@if(...)" renders literally and orphans
+                             the @endif. Same trap as chat-panel's $occupiedNote. --}}
+                        @php
+                            $hostLine = $property->landlord->rentalBusiness
+                                ? 'Landlord · Verified Host'
+                                : 'Landlord';
+                        @endphp
+                        <p class="text-[12.5px] text-[#64748B]">{{ $hostLine }}</p>
                     </div>
+                    <a href="{{ route('landlord.profile.show', $property->landlord_id) }}"
+                        class="shrink-0 text-[13.5px] font-bold text-[#156F8C] hover:brightness-95 transition-all">
+                        View profile &rarr;
+                    </a>
                 </div>
 
-                {{-- ===== 5. TABBED CONTENT ===== --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm overflow-hidden">
-                    {{-- Tab bar --}}
-                    <div class="flex items-center gap-1 px-5 border-b border-[#E2E8F0] overflow-x-auto">
-                        <button type="button" x-on:click="goTab('overview')"
-                            :class="tab === 'overview' ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-[#64748B] hover:text-[#1F2937]'"
-                            class="text-sm font-bold px-3 sm:px-4 py-3 border-b-2 -mb-px transition-all whitespace-nowrap cursor-pointer">
-                            Overview
-                        </button>
-                        <button type="button" x-on:click="goTab('location')"
-                            :class="tab === 'location' ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-[#64748B] hover:text-[#1F2937]'"
-                            class="text-sm font-bold px-3 sm:px-4 py-3 border-b-2 -mb-px transition-all whitespace-nowrap cursor-pointer">
-                            Location
-                        </button>
-                        <button type="button" x-on:click="goTab('reviews')"
-                            :class="tab === 'reviews' ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-[#64748B] hover:text-[#1F2937]'"
-                            class="text-sm font-bold px-3 sm:px-4 py-3 border-b-2 -mb-px transition-all whitespace-nowrap cursor-pointer">
-                            Reviews
-                            @if($property->reviews->count() > 0)
-                                <span class="text-xs">({{ $property->reviews->count() }})</span>
-                            @endif
-                        </button>
-                    </div>
+                @auth
+                    <button type="button" x-on:click="reportOpen = true"
+                        class="mt-3 inline-block text-[12.5px] font-semibold text-[#64748B] hover:text-[#1F2937] underline underline-offset-2 transition-colors cursor-pointer">
+                        Report this listing
+                    </button>
+                @endauth
 
-                    <div class="p-5">
-
-                    {{-- ── Overview tab ── --}}
-                    <div x-show="tab === 'overview'">
-                        <h2 class="text-base font-bold text-[#1F2937] mb-2">Property Details</h2>
-                        <p class="text-sm text-[#1F2937] leading-relaxed whitespace-pre-line mb-6">
-                            {{ $property->description }}
-                        </p>
-
-                        @if($property->amenities->count() > 0)
-                            <h3 class="text-base font-bold text-[#1F2937] mb-4">Amenities</h3>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-                                @foreach($property->amenities as $amenity)
-                                    <div class="flex items-center gap-3 text-sm text-[#1F2937] font-medium">
-                                        <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24"
-                                                stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        </div>
-                                        {{ $amenity->amenity_name }}
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-
-                        @if(!empty($property->house_rules))
-                            <h3 class="text-base font-bold text-[#1F2937] mb-4">House Rules</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                @if(!empty($property->house_rules))
+                <section id="house-rules" class="mt-10 pt-8 border-t border-[#E2E8F0]">
+                    <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">House rules</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 @foreach($property->house_rules as $rule)
                                     <div class="flex items-center gap-3 text-sm text-[#1F2937] font-medium">
                                         <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center flex-shrink-0">
@@ -533,66 +553,136 @@
                                     </div>
                                 @endforeach
                             </div>
-                        @endif
+                </section>
+                @endif
+
+                @if($property->amenities->count() > 0)
+                <section id="amenities" class="mt-10 pt-8 border-t border-[#E2E8F0]">
+                    <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">What this place offers</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        @foreach($property->amenities as $amenity)
+                            <div class="flex items-center gap-3 text-sm text-[#1F2937] font-medium">
+                                <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                {{ $amenity->amenity_name }}
+                            </div>
+                        @endforeach
                     </div>
+                </section>
+                @endif
 
-                    {{-- ── Location tab ── --}}
-                    <div x-show="tab === 'location'" x-cloak>
-                        <h2 class="text-base font-bold text-[#1F2937] mb-1">Where you'll be</h2>
-                        <p class="text-sm font-medium text-[#64748B] mb-4">{{ $property->address }}</p>
+                {{-- ===== LOCATION — compact utility card =====
+                     One bordered card: header (title + address + mode control),
+                     full-bleed map, summary bar. The mode control sits in the
+                     header rather than appearing after routing, so the choice is
+                     visible before you commit to sharing your location. --}}
+                <section id="location" class="mt-10 pt-8 border-t border-[#E2E8F0]">
+                    <div class="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
 
-                        <div id="property-map" data-lat="{{ $property->latitude }}" data-lng="{{ $property->longitude }}"
-                            data-title="{{ $property->title }}"
-                            class="w-full h-72 rounded-2xl overflow-hidden border border-[#EEF8F8] bg-[#E2E8F0] shadow-sm relative">
+                        {{-- Header --}}
+                        <div class="px-4 sm:px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="w-9 h-9 shrink-0 rounded-xl bg-[#EEF8F8] flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </span>
+                                <div class="min-w-0">
+                                    <h2 class="font-heading text-[15px] font-bold tracking-tight text-[#1F2937]">
+                                        Where you'll be</h2>
+                                    <p class="text-[12.5px] text-[#64748B] truncate">{{ $property->address }}</p>
+                                </div>
+                            </div>
+
+                            {{-- Segmented control. Always visible: it's a preference,
+                                 and switching before routing simply decides which
+                                 estimate appears once a route exists. --}}
+                            <div id="directions-modes"
+                                class="flex items-center gap-0.5 p-1 rounded-xl bg-[#F7FCFC] border border-[#E2E8F0]"
+                                role="group" aria-label="Travel mode">
+                                @foreach ([
+                                    ['motorcycle', 'Moto', 'M6.75 18a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm15 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0ZM4.5 18h4.125L12 12h4.5l3 6M9 12h6'],
+                                    ['car', 'Car', 'M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12'],
+                                    ['walk', 'Walk', 'M13.5 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM10.5 9l-3 3.75M10.5 9l3 1.5 1.5 4.5M10.5 9 9 21m6-6-1.5 6'],
+                                ] as $i => [$mode, $label, $path])
+                                    <button type="button" data-mode="{{ $mode }}"
+                                        aria-pressed="{{ $i === 0 ? 'true' : 'false' }}"
+                                        class="directions-mode inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors
+                                            {{ $i === 0 ? 'bg-white text-[#156F8C] shadow-sm' : 'text-[#64748B] hover:text-[#1F2937]' }}">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            stroke-width="1.8" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $path }}" />
+                                        </svg>
+                                        {{ $label }}
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
 
-                        {{-- Directions --}}
-                        <div class="mt-5 pt-4 border-t border-[#EEF8F8]">
-                            <button type="button" id="get-directions-btn"
-                                class="inline-flex items-center gap-2 bg-[#1F2937] hover:brightness-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                    stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M6 12L3.269 3.126A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                                </svg>
-                                Get directions
-                            </button>
+                        {{-- Map — full-bleed between the two bars --}}
+                        <div id="property-map" data-lat="{{ $property->latitude }}" data-lng="{{ $property->longitude }}"
+                            data-title="{{ $property->title }}"
+                            class="w-full h-64 sm:h-72 bg-[#E2E8F0] border-y border-[#E2E8F0] relative">
+                        </div>
 
-                            <div id="directions-panel" class="mt-3"></div>
+                        {{-- Summary bar --}}
+                        <div class="px-4 sm:px-5 py-4">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <div id="directions-panel" class="min-w-0">
+                                    <p class="text-[13.5px] text-[#64748B]">See how far this is from you.</p>
+                                </div>
+
+                                <button type="button" id="get-directions-btn"
+                                    class="shrink-0 inline-flex items-center gap-2 bg-[#1F2937] hover:brightness-95 text-white text-[13px] font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all">
+                                    Get directions
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="2.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                    </svg>
+                                </button>
+                            </div>
 
                             <form id="manual-origin-form" class="hidden mt-3 flex gap-2">
+                                <label for="manual-origin-input" class="sr-only">Your starting address in Cebu</label>
                                 <input type="text" id="manual-origin-input"
-                                    placeholder="Enter your starting address in Cebu" aria-label="Enter your starting address in Cebu"
-                                    class="flex-1 border border-[#EEF8F8] rounded-xl px-4 py-2 text-sm text-[#1F2937] focus:outline-none focus:ring-4 focus:ring-[#2AA7A1]/10 focus:border-[#2AA7A1] transition-all bg-[#E2E8F0]">
+                                    placeholder="Enter your starting address in Cebu"
+                                    class="flex-1 min-w-0 border border-[#E2E8F0] rounded-xl px-4 py-2 text-sm text-[#1F2937] bg-white focus:outline-none focus:ring-4 focus:ring-[#2AA7A1]/10 focus:border-[#2AA7A1] transition-all">
                                 <button type="submit"
-                                    class="bg-[#2AA7A1] hover:brightness-95 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex-shrink-0">
+                                    class="shrink-0 bg-[#2AA7A1] hover:brightness-95 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
                                     Go
                                 </button>
                             </form>
                         </div>
                     </div>
+                </section>
 
-                    {{-- ── Reviews tab ── --}}
-                    <div x-show="tab === 'reviews'" x-cloak>
-                        <div class="flex items-center justify-between mb-5">
-                            <h2 class="text-base font-bold text-[#1F2937]">
-                                Reviews
-                                @if($reviews->count() > 0)
-                                    <span class="text-xs">({{ $reviews->count() }})</span>
-                                @endif
-                            </h2>
-                            @if($avgRating)
-                                <div class="flex items-center gap-1.5 bg-[#E2E8F0] px-2.5 py-1 rounded-lg">
-                                    <svg class="w-3.5 h-3.5 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor"
-                                        stroke="none">
-                                        <path
-                                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                    </svg>
-                                    <span class="text-sm font-black text-[#1F2937]">{{ $avgRating }}</span>
-                                    <span class="text-xs font-semibold text-[#64748B]">/ 5</span>
-                                </div>
+                <section id="reviews" class="mt-10 pt-8 border-t border-[#E2E8F0]">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937]">
+                            Reviews
+                            @if($reviews->count() > 0)
+                                <span class="text-[14px] font-semibold text-[#64748B]">({{ $reviews->count() }})</span>
                             @endif
-                        </div>
+                        </h2>
+                        @if($avgRating)
+                            <div class="flex items-center gap-1.5 bg-[#F7FCFC] border border-[#E2E8F0] px-2.5 py-1 rounded-lg">
+                                <svg class="w-3.5 h-3.5 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor"
+                                    aria-hidden="true">
+                                    <path
+                                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                                <span class="text-sm font-black text-[#1F2937]">{{ $avgRating }}</span>
+                                <span class="text-xs font-semibold text-[#64748B]">/ 5</span>
+                            </div>
+                        @endif
+                    </div>
 
                         {{-- Review submission form --}}
                         @auth
@@ -779,272 +869,241 @@
                                 No reviews yet for this property.
                             </div>
                         @endforelse
-                    </div>
-                    </div>
-                </div>
-
-                </div>
-                </div>
-            </div>
-
-            {{-- ===================================================== --}}
-            {{-- RIGHT SIDEBAR --}}
-            {{-- ===================================================== --}}
-            <div
-                class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-[72px] lg:max-h-[calc(100vh_-_72px_-_1.5rem)] lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] space-y-4 w-full hidden lg:block">
-
-                {{-- ===== 1. INQUIRE / RESERVE CARD ===== --}}
-                <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6">
-
-                    <h2 class="text-base font-bold text-[#1F2937] mb-4">Inquire / Reserve</h2>
-
-                    {{-- Selected unit preview --}}
-                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-3">You're inquiring about:
-                    </p>
-                    <template x-if="selected">
-                        <div class="flex items-center gap-3 mb-5 pb-5 border-b border-[#EEF8F8] sticky">
-                            <template x-if="selected.thumb">
-                                <img :src="selected.thumb" :alt="selected.label"
-                                    class="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#EEF8F8]">
-                            </template>
-                            <template x-if="!selected.thumb">
-                                <span class="w-14 h-14 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-[#64748B]" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor" stroke-width="1.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                                    </svg>
-                                </span>
-                            </template>
-                            <div class="min-w-0">
-                                <p class="text-sm font-bold text-[#1F2937] truncate" x-text="selected.label"></p>
-                                <p class="text-xs font-medium text-[#64748B]" x-text="selected.type"></p>
-                                <p class="text-sm font-black text-[#1F2937]">
-                                    ₱<span x-text="selected.price"></span>
-                                    <span class="text-xs font-semibold text-[#64748B]">/ month</span>
-                                </p>
-                            </div>
-                        </div>
-                    </template>
-                    <template x-if="!selected">
-                        <p class="text-sm font-medium text-[#64748B] mb-5 pb-5 border-b border-[#EEF8F8]">
-                            No units are currently available for this property.
-                        </p>
-                    </template>
-
-                    {{-- Inquiry / Reserve mode toggle --}}
-                    <div class="grid grid-cols-2 gap-2 mb-5">
-                        <button type="button" x-on:click="mode = 'inquiry'"
-                            :class="mode === 'inquiry' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B] hover:text-[#1F2937]'"
-                            class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
-                            Inquiry
-                        </button>
-                        <button type="button" x-on:click="mode = 'reserve'"
-                            :class="mode === 'reserve' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B] hover:text-[#1F2937]'"
-                            class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
-                            Reserve
-                        </button>
-                    </div>
-
-                    @if(!auth()->check())
-                        <button type="button" onclick="openAuthModal('login')"
-                            class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all">
-                            Log in to inquire
-                        </button>
-                    @elseif($isOwner)
-                        <div
-                            class="w-full py-3 text-center rounded-xl bg-[#E2E8F0] text-[#64748B] text-sm font-bold cursor-not-allowed">
-                            This is your listing
-                        </div>
-                    @else
-                        <form action="{{ route('reservations.store') }}" method="POST" class="space-y-4">
-                            @csrf
-                            <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
-
-                            <div class="grid grid-cols-2 gap-3 items-start">
-                                <div>
-                                    <div class="rounded-xl bg-white border px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10 @error('target_move_in_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
-                                        <label for="target_move_in_date"
-                                            class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
-                                            In</label>
-                                        <input type="date" id="target_move_in_date" name="target_move_in_date" required
-                                            x-model="moveIn" x-on:change="onMoveInChange()"
-                                            :min="minMoveIn" :max="maxMoveIn"
-                                            @error('target_move_in_date') aria-invalid="true" aria-describedby="target_move_in_date_error" @enderror
-                                            class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
-                                    </div>
-                                    @error('target_move_in_date')
-                                        <p id="target_move_in_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div>
-                                    <div class="rounded-xl bg-white border px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10 @error('target_move_out_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
-                                        <label for="target_move_out_date"
-                                            class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
-                                            Out <span class="normal-case tracking-normal font-semibold">· optional</span></label>
-                                        <input type="date" id="target_move_out_date" name="target_move_out_date"
-                                            x-model="moveOut" :min="moveIn || minMoveIn" :disabled="!moveIn"
-                                            @error('target_move_out_date') aria-invalid="true" aria-describedby="target_move_out_date_error" @enderror
-                                            class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:text-[#64748B]/50 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
-                                    </div>
-                                    @error('target_move_out_date')
-                                        <p id="target_move_out_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div
-                                class="rounded-xl bg-white border border-[#E2E8F0] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
-                                <label for="inquiry_message"
-                                    class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Message
-                                    <span class="normal-case tracking-normal font-semibold">· optional</span></label>
-                                <textarea id="inquiry_message" name="message" rows="3" maxlength="300" x-model="msg"
-                                    placeholder="Hi! I'm interested in this unit..."
-                                    class="w-full bg-transparent border-0 p-0 text-sm font-medium text-[#1F2937] placeholder:text-[#64748B]/60 focus:outline-none focus:ring-0 resize-none"></textarea>
-                                <p class="text-[10px] font-semibold text-[#64748B]/70 text-right">
-                                    <span x-text="msg.length"></span>/300
-                                </p>
-                            </div>
-
-                            <template x-if="selected && selected.hasActive">
-                                <div
-                                    class="w-full py-3 text-center rounded-xl bg-[#EEF8F8] text-[#1F2937] text-sm font-bold cursor-not-allowed">
-                                    Inquiry already active
-                                </div>
-                            </template>
-                            <template x-if="!selected || !selected.hasActive">
-                                <button type="submit" :disabled="!canSubmit"
-                                    class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
-                                    x-text="!selected ? 'Select a unit' : (!moveIn ? 'Choose a move-in date' : (mode === 'reserve' ? 'Send Reservation Request' : 'Send Inquiry to Landlord'))">
-                                </button>
-                            </template>
-                        </form>
-
-                        <p class="text-xs font-medium text-[#64748B] text-center mt-3">
-                            Usually responds within a few hours
-                        </p>
-
-                        @if(auth()->user()->hasRole('Tenant'))
-                            <div x-data="{
-                                    fav: @js($isFavorited ?? false),
-                                    busy: false,
-                                    async toggleFav() {
-                                        if (this.busy) return;
-                                        this.busy = true;
-                                        try {
-                                            const res = await fetch('{{ route('favorites.toggle', $property->property_id) }}', {
-                                                method: 'POST',
-                                                headers: {
-                                                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                                                    'Accept': 'application/json'
-                                                }
-                                            });
-                                            if (res.ok) { const d = await res.json(); this.fav = d.favorited; }
-                                        } finally { this.busy = false; }
-                                    }
-                                }" class="mt-3">
-                                <button type="button" x-on:click="toggleFav()" :disabled="busy"
-                                    :class="fav ? 'border-[#FF8A65] text-[#FF8A65] bg-[#FF8A65]/5' : 'border-[#E2E8F0] text-[#1F2937] hover:border-[#FF8A65]/50'"
-                                    class="w-full py-3 rounded-xl border bg-white text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all duration-200">
-                                    <svg class="w-4 h-4" :fill="fav ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                                    </svg>
-                                    <span x-text="fav ? 'Saved to Favorites' : 'Add to Favorites'"></span>
-                                </button>
-                            </div>
-                        @endif
-                    @endif
-
-                    @error('unit')
-                        <p class="text-xs text-[#EF4444] font-bold bg-[#E2E8F0] p-2.5 rounded-lg border border-[#EEF8F8] mt-3">
-                            {{ $message }}
-                        </p>
-                    @enderror
-                    @error('property')
-                        <p class="text-xs text-[#EF4444] font-bold bg-[#E2E8F0] p-2.5 rounded-lg border border-[#EEF8F8] mt-3">
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                {{-- Message Landlord --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
-                    @auth
-                        @if(!$isOwner)
-                            <form action="{{ route('conversations.store') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="property_id" value="{{ $property->property_id }}">
-                                <button type="submit"
-                                    class="w-full py-3 px-4 rounded-xl border border-[#EEF8F8] bg-white text-[#1F2937] hover:brightness-95 text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-1.5">
-                                    <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                        stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                    </svg>
-                                    Message landlord
-                                </button>
-                            </form>
-                        @else
-                            <div
-                                class="w-full py-3 px-4 text-center rounded-xl border border-[#EEF8F8] bg-[#E2E8F0] text-[#64748B] text-sm font-bold cursor-not-allowed">
-                                This is your listing
-                            </div>
-                        @endif
-                    @else
-                        <button type="button" onclick="openAuthModal('login')"
-                            class="w-full py-3 px-4 rounded-xl border border-[#EEF8F8] bg-white text-[#1F2937] hover:brightness-95 text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-1.5">
-                            <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            Message landlord
-                        </button>
-                    @endauth
-                </div>
-
-                {{-- ===== 2. LANDLORD INFORMATION CARD ===== --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
-                    <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-3">Landlord Information</p>
-                    <div class="flex items-center gap-3 mb-4">
-                        <div
-                            class="w-11 h-11 rounded-xl bg-[#2AA7A1] text-white text-base font-black flex items-center justify-center flex-shrink-0 shadow-sm">
-                            {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
-                        </div>
-                        <div>
-                            <div class="text-sm font-bold text-[#1F2937]">
-                                {{ $property->landlord->first_name }} {{ $property->landlord->last_name }}
-                            </div>
-                            @if($property->landlord->rentalBusiness)
-                                <div class="flex items-center gap-1 text-xs text-[#22C55E] font-bold mt-0.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Verified Landlord
-                                </div>
-                            @else
-                                <div class="text-xs font-semibold text-[#64748B] mt-0.5">Landlord</div>
-                            @endif
-                        </div>
-                    </div>
-                    <a href="{{ route('landlord.profile.show', $property->landlord_id) }}"
-                        class="block w-full py-2.5 text-center rounded-xl border border-[#EEF8F8] bg-white text-[#1F2937] hover:brightness-95 text-sm font-bold shadow-sm transition-all">
-                        View Landlord Profile
-                    </a>
-                    @auth
-                        <a href="{{ route('reports.create', ['property_id' => $property->property_id]) }}"
-                            class="block w-full py-2.5 text-center rounded-xl border border-[#E2E8F0] bg-white text-[#64748B] hover:text-[#1F2937] hover:border-[#64748B] text-sm font-semibold transition-all mt-2">
-                            Report this listing
-                        </a>
-                    @endauth
-                </div>
+                </section>
 
             </div>
         </div>
+
+        {{-- ===== REPORT LISTING MODAL =====
+             Posts by fetch rather than navigating to /reports: the standalone
+             page redirects back to itself on success, which from here would
+             throw away the selected unit and the scroll position for what is a
+             fire-and-forget action. The controller returns JSON when the
+             request expects it and keeps its redirect for the standalone page,
+             so both entry points share one validated store(). --}}
+        @auth
+            @if(!$isOwner)
+                <template x-teleport="body">
+                    <div x-show="reportOpen" x-cloak class="fixed inset-0 z-[200] overflow-y-auto bg-black/40 backdrop-blur-sm"
+                        x-on:keydown.escape.window="reportOpen = false"
+                        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+                        x-transition:leave="transition ease-in duration-150" x-transition:leave-end="opacity-0">
+                        <div class="min-h-full flex items-center justify-center p-4 sm:p-6">
+                            <div x-on:click.outside="reportOpen = false" role="dialog" aria-modal="true"
+                                aria-labelledby="report-modal-title"
+                                class="w-full max-w-md rounded-2xl bg-white shadow-xl overflow-hidden"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95 motion-reduce:scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-end="opacity-0 scale-95 motion-reduce:scale-100">
+
+                                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-start gap-3">
+                                    <div class="flex-1 min-w-0">
+                                        <h2 id="report-modal-title" class="text-[16px] font-bold text-[#1F2937]">
+                                            Report this listing</h2>
+                                        <p class="mt-0.5 text-[12.5px] text-[#64748B] truncate">{{ $property->title }}</p>
+                                    </div>
+                                    <button type="button" x-on:click="reportOpen = false"
+                                        class="shrink-0 -mr-1 w-8 h-8 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#EEF8F8] hover:text-[#1F2937] transition-colors">
+                                        <span class="sr-only">Close</span>
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            stroke-width="2" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <form x-on:submit.prevent="submitReport" class="px-6 py-5 space-y-4">
+                                    <div>
+                                        <label for="report_category"
+                                            class="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
+                                            What's wrong?</label>
+                                        <select id="report_category" x-model="reportCategory" required
+                                            class="w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 py-2.5 text-sm text-[#1F2937] focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10 outline-none transition-all">
+                                            <option value="" disabled>Choose a reason</option>
+                                            @foreach (\App\Http\Controllers\ReportController::CATEGORIES as $category)
+                                                <option value="{{ $category }}">{{ $category }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label for="report_details"
+                                            class="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
+                                            Details <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                                        <textarea id="report_details" x-model="reportDetails" rows="4" maxlength="1000"
+                                            placeholder="Tell us what you noticed. The more specific, the faster we can act."
+                                            class="w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 py-2.5 text-sm text-[#1F2937] placeholder:text-[#64748B]/60 focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10 outline-none transition-all resize-none"></textarea>
+                                        <p class="mt-1 text-[10.5px] font-semibold text-[#64748B]/70 text-right">
+                                            <span x-text="reportDetails.length"></span>/1000</p>
+                                    </div>
+
+                                    <template x-if="reportError">
+                                        <p class="text-[12.5px] font-semibold text-[#EF4444]" x-text="reportError"></p>
+                                    </template>
+
+                                    <p class="text-[11.5px] text-[#64748B] leading-relaxed">
+                                        Reports go to the AbangananHub team, not to the landlord. They won't know who
+                                        filed it.
+                                    </p>
+
+                                    <div class="flex flex-wrap items-center gap-3 pt-1">
+                                        <button type="submit" :disabled="!reportCategory || reportSending"
+                                            class="px-6 py-2.5 rounded-xl bg-[#EF4444] text-white text-sm font-bold hover:brightness-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                                            x-text="reportSending ? 'Sending…' : 'Submit report'"></button>
+                                        <button type="button" x-on:click="reportOpen = false"
+                                            class="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#1F2937] hover:bg-[#EEF8F8] transition-colors cursor-pointer">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            @endif
+        @endauth
+
+        {{-- ===== INQUIRY MODAL =====
+             The hero carries a single CTA, so the form it used to sit beside
+             lives here. Teleported to body: the editorial column is inside a
+             sticky/overflow context, and a dialog rendered there would be
+             clipped by it. Desktop only — below lg the existing sticky bottom
+             bar and two-step sheet already cover this. --}}
+        @auth
+            @if(!$isOwner)
+                <template x-teleport="body">
+                    <div x-show="inquireOpen" x-cloak class="hidden lg:block fixed inset-0 z-[200] overflow-y-auto bg-black/40 backdrop-blur-sm"
+                        x-on:keydown.escape.window="inquireOpen = false"
+                        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+                        x-transition:leave="transition ease-in duration-150" x-transition:leave-end="opacity-0">
+                        {{-- items-center on a min-h-full track inside an
+                             overflow-y-auto backdrop: centred when the dialog
+                             fits, and still scrollable from the top when it
+                             doesn't, which fixed positioning alone would clip. --}}
+                        <div class="min-h-full flex items-center justify-center p-6">
+                            <div x-on:click.outside="inquireOpen = false" role="dialog" aria-modal="true"
+                                aria-labelledby="inquire-modal-title"
+                                class="w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95 motion-reduce:scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-end="opacity-0 scale-95 motion-reduce:scale-100">
+
+                                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-start gap-3">
+                                    <div class="flex-1 min-w-0">
+                                        <h2 id="inquire-modal-title" class="text-[16px] font-bold text-[#1F2937]">Inquire / Reserve</h2>
+                                        <template x-if="selected">
+                                            <p class="mt-0.5 text-[12.5px] text-[#64748B] truncate">
+                                                <span x-text="selected.label"></span> &middot;
+                                                &#8369;<span x-text="selected.price"></span> / month
+                                            </p>
+                                        </template>
+                                    </div>
+                                    <button type="button" x-on:click="inquireOpen = false"
+                                        class="shrink-0 -mr-1 w-8 h-8 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#EEF8F8] hover:text-[#1F2937] transition-colors">
+                                        <span class="sr-only">Close</span>
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            stroke-width="2" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="px-6 py-5">
+    {{-- Inquiry / Reserve mode toggle --}}
+                        <div class="grid grid-cols-2 gap-2 mb-5">
+                            <button type="button" x-on:click="mode = 'inquiry'"
+                                :class="mode === 'inquiry' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B] hover:text-[#1F2937]'"
+                                class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
+                                Inquiry
+                            </button>
+                            <button type="button" x-on:click="mode = 'reserve'"
+                                :class="mode === 'reserve' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B] hover:text-[#1F2937]'"
+                                class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
+                                Reserve
+                            </button>
+                        </div>
+
+    <form action="{{ route('reservations.store') }}" method="POST" class="space-y-4">
+                                @csrf
+                                <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
+                                {{-- The toggle used to be presentational only, so the
+                                     server couldn't tell the two apart and demanded a
+                                     move-in date either way. Posting it is what lets
+                                     an inquiry be a question rather than a booking. --}}
+                                <input type="hidden" name="mode" :value="mode">
+
+                                {{-- Reserve only: a tenant asking a question hasn't
+                                     decided when they'd move in, and guessing here
+                                     used to set the escrow escalation clock. --}}
+                                <div class="grid grid-cols-2 gap-3 items-start" x-show="mode === 'reserve'" x-cloak>
+                                    <div>
+                                        <div class="rounded-xl bg-white border px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10 @error('target_move_in_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
+                                            <label for="target_move_in_date"
+                                                class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
+                                                In</label>
+                                            <input type="date" id="target_move_in_date" name="target_move_in_date"
+                                                :required="mode === 'reserve'"
+                                                x-model="moveIn" x-on:change="onMoveInChange()"
+                                                :min="minMoveIn" :max="maxMoveIn"
+                                                @error('target_move_in_date') aria-invalid="true" aria-describedby="target_move_in_date_error" @enderror
+                                                class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
+                                        </div>
+                                        @error('target_move_in_date')
+                                            <p id="target_move_in_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div>
+                                        <div class="rounded-xl bg-white border px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10 @error('target_move_out_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
+                                            <label for="target_move_out_date"
+                                                class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
+                                                Out <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                                            <input type="date" id="target_move_out_date" name="target_move_out_date"
+                                                x-model="moveOut" :min="moveIn || minMoveIn" :disabled="!moveIn"
+                                                @error('target_move_out_date') aria-invalid="true" aria-describedby="target_move_out_date_error" @enderror
+                                                class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:text-[#64748B]/50 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
+                                        </div>
+                                        @error('target_move_out_date')
+                                            <p id="target_move_out_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="rounded-xl bg-white border border-[#E2E8F0] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
+                                    <label for="inquiry_message"
+                                        class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Message
+                                        <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                                    <textarea id="inquiry_message" name="message" rows="3" maxlength="300" x-model="msg"
+                                        placeholder="Hi! I'm interested in this unit..."
+                                        class="w-full bg-transparent border-0 p-0 text-sm font-medium text-[#1F2937] placeholder:text-[#64748B]/60 focus:outline-none focus:ring-0 resize-none"></textarea>
+                                    <p class="text-[10px] font-semibold text-[#64748B]/70 text-right">
+                                        <span x-text="msg.length"></span>/300
+                                    </p>
+                                </div>
+
+                                <template x-if="selected && selected.hasActive">
+                                    <div
+                                        class="w-full py-3 text-center rounded-xl bg-[#EEF8F8] text-[#1F2937] text-sm font-bold cursor-not-allowed">
+                                        Inquiry already active
+                                    </div>
+                                </template>
+                                <template x-if="!selected || !selected.hasActive">
+                                    <button type="submit" :disabled="!canSubmit"
+                                        class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
+                                        x-text="!selected ? 'Select a unit' : (mode === 'reserve' ? (!moveIn ? 'Choose a move-in date' : 'Send Reservation Request') : 'Send Inquiry to Landlord')">
+                                    </button>
+                                </template>
+                            </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            @endif
+        @endauth
 
         {{-- ===== MOBILE STICKY INQUIRE BAR + TWO-STEP MODAL ===== --}}
         @if(!$isOwner)
@@ -1175,13 +1234,32 @@
                                         </div>
                                     </template>
 
+                                    {{-- Same two modes as the desktop sidebar. The sheet
+                                         previously offered only "Send Inquiry" yet still
+                                         demanded a move-in date, so a tenant on a phone had
+                                         no way to just ask a question. --}}
+                                    <div class="grid grid-cols-2 gap-2 mb-4">
+                                        <button type="button" x-on:click="mode = 'inquiry'"
+                                            :class="mode === 'inquiry' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B]'"
+                                            class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
+                                            Inquiry
+                                        </button>
+                                        <button type="button" x-on:click="mode = 'reserve'"
+                                            :class="mode === 'reserve' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B]'"
+                                            class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
+                                            Reserve
+                                        </button>
+                                    </div>
+
                                     <form action="{{ route('reservations.store') }}" method="POST" class="space-y-3.5">
                                         @csrf
                                         <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
+                                        <input type="hidden" name="mode" :value="mode">
 
-                                        <div>
+                                        <div x-show="mode === 'reserve'" x-cloak>
                                             <label for="m_move_in" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move In</label>
-                                            <input type="date" id="m_move_in" name="target_move_in_date" required
+                                            <input type="date" id="m_move_in" name="target_move_in_date"
+                                                :required="mode === 'reserve'"
                                                 x-model="moveIn" x-on:change="onMoveInChange()"
                                                 :min="minMoveIn" :max="maxMoveIn"
                                                 @error('target_move_in_date') aria-invalid="true" aria-describedby="m_move_in_error" @enderror
@@ -1190,7 +1268,7 @@
                                                 <p id="m_move_in_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                             @enderror
                                         </div>
-                                        <div>
+                                        <div x-show="mode === 'reserve'" x-cloak>
                                             <label for="m_move_out" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move Out <span class="font-semibold">(Optional)</span></label>
                                             <input type="date" id="m_move_out" name="target_move_out_date"
                                                 x-model="moveOut" :min="moveIn || minMoveIn" :disabled="!moveIn"
@@ -1216,7 +1294,7 @@
                                         <template x-if="!selected || !selected.hasActive">
                                             <button type="submit" :disabled="!canSubmit"
                                                 class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
-                                                x-text="!selected ? 'Select a unit' : (!moveIn ? 'Choose a move-in date' : 'Send Inquiry')">
+                                                x-text="!selected ? 'Select a unit' : (mode === 'reserve' ? (!moveIn ? 'Choose a move-in date' : 'Send Reservation Request') : 'Send Inquiry')">
                                             </button>
                                         </template>
                                     </form>

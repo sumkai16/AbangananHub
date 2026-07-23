@@ -14,6 +14,9 @@ export default {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
                 heading: ['Poppins', ...defaultTheme.fontFamily.sans],
+                // Large page titles only — see DESIGN.md §4. Not for card
+                // headings or section labels; those stay on font-heading.
+                display: ['"Source Serif 4"', 'Georgia', ...defaultTheme.fontFamily.serif],
             },
             colors: {
                 brand: {

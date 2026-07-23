@@ -4,6 +4,26 @@
    aren't visible to Tailwind's content scanner and would get silently purged
    from the production build otherwise. */
 
+/* Contain Leaflet's stacking.
+
+   Leaflet gives its own children high z-indexes — .leaflet-pane is 400,
+   .leaflet-top/.leaflet-control reach 1000. The container is position:relative
+   with z-index:auto, so it forms NO stacking context and those values compete
+   directly with everything else on the page: a map painted straight over the
+   z-[200] report modal on properties/show.
+
+   Setting z-index:0 on a positioned element creates a stacking context, so the
+   400–1000 range is scoped to the map and cannot escape it. Fixes every map at
+   once rather than per page.
+
+   This is very likely why the unit slideout and the photo lightbox on
+   properties/show sit at z-[998] and z-[999] — inflated to out-rank Leaflet
+   instead of containing it. They can come back down to the DESIGN.md scale now,
+   but that is a separate change. */
+.leaflet-container {
+    z-index: 0;
+}
+
 .map-pin__dot {
     display: flex;
     align-items: center;

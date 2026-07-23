@@ -5,6 +5,7 @@ use App\Http\Controllers\Tenant\FavoriteController;
 use App\Http\Controllers\Tenant\ReservationController;
 use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
 use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\HandoverController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\MessageController;
@@ -53,6 +54,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::get('/verifications/{verification}/selfie', [VerificationController::class, 'downloadSelfie'])->name('verifications.selfie');
     Route::get('/verifications/{verification}/id-back', [VerificationController::class, 'downloadIdBack'])->name('verifications.idBack');
     Route::get('/verifications/{verification}/preview/{type}', [VerificationController::class, 'preview'])->name('verifications.preview')->where('type', 'front|back|selfie');
+
+    // Key handover scheduling — symmetric, so it sits outside both role
+    // groups: either party proposes a slot and the other confirms it.
+    Route::post('/reservations/{reservation}/handover/propose', [HandoverController::class, 'propose'])->name('handover.propose');
+    Route::post('/reservations/{reservation}/handover/confirm', [HandoverController::class, 'confirm'])->name('handover.confirm');
 
     // Complaint & Reporting — open to any authenticated user, no role gate
     Route::get('/reports', [App\Http\Controllers\ReportController::class, 'create'])->name('reports.create');

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Tenant;
 
-use App\Events\PaymentStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Reservation;
@@ -104,10 +103,8 @@ public function confirmMoveIn(Reservation $reservation)
         return back()->with('error', 'Move-in cannot be confirmed right now. Your payment must be completed first.');
     }
 
-    // After commit — a payout announced inside the transaction could still be
-    // rolled back underneath the broadcast.
-    PaymentStatusUpdated::dispatch($released->fresh());
-
+    // PaymentObserver broadcasts the Held -> Released transition, and its
+    // $afterCommit keeps that announcement outside this transaction.
     return redirect()
         ->route('agreements.show', $reservation)
         ->with('success', 'Move-in confirmed. Your payment has been released to the landlord.');

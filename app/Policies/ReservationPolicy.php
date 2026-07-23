@@ -59,4 +59,18 @@ class ReservationPolicy
             && $reservation->property->landlord_id === $user->user_id
             && $reservation->rental_status === 'Rental Agreement Signed';
     }
+
+    /**
+     * Scheduling the handover is symmetric — whoever is ready puts up a slot.
+     * Both parties to this reservation qualify; the model enforces the rest
+     * (signed, paid, keys not yet turned over, not disputed).
+     */
+    public function scheduleHandover(User $user, Reservation $reservation): bool
+    {
+        return $reservation->rental_status === 'Rental Agreement Signed'
+            && (
+                $reservation->tenant_id === $user->user_id
+                || $reservation->property?->landlord_id === $user->user_id
+            );
+    }
 }

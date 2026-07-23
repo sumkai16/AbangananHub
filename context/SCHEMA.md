@@ -149,6 +149,10 @@
 | move_in_disputed_at | TIMESTAMP | NULLABLE | Non-null = frozen, in the admin review queue |
 | move_in_dispute_reason | TEXT | NULLABLE | Tenant's own words, or the system sentence on a Clock 1 timeout |
 | move_in_last_reminder_on | DATE | NULLABLE | Per-day idempotency guard on reminders |
+| handover_at | TIMESTAMP | NULLABLE | The agreed key-handover slot. Once confirmed it becomes Clock 1's basis instead of `target_move_in_date` |
+| handover_proposed_by | FK → users.user_id | NULLABLE | Who put the current slot up — the *other* party is the one who may confirm it |
+| handover_proposed_at | TIMESTAMP | NULLABLE | When the current proposal was made |
+| handover_confirmed_at | TIMESTAMP | NULLABLE | Null = proposed only. Set = both agreed, and only then does the slot move `move_in_deadline_at` |
 | rejection_reason | TEXT | NULLABLE | |
 | remarks | TEXT | NULLABLE | |
 | created_at | TIMESTAMP | | |
@@ -308,6 +312,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | create_user_roles_table | Role system | Multi-role support | Early 2026 |
 | create_landlord_verifications_table | Verification pipeline + admin_notes | Identity verification module | Mid 2026 |
 | add_liveness_passed_to_landlord_verifications_table | `liveness_passed` flag | Upload path removed — flags manual-capture fallback for admin review | July 2026 |
+| add_handover_scheduling_to_reservations | 4 `handover_*` columns | Clock 1 anchored to a slot both parties agree on, not the tenant's frozen inquiry-time guess | July 2026 |
 | create_properties_table | Property listings | Core listing module | Mid 2026 |
 | create_property_media_table | Media storage | Cloudinary integration | Mid 2026 |
 | create_amenities_table | Amenity master list | Property features | Mid 2026 |

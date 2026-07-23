@@ -92,7 +92,16 @@ public function create(Request $request)
             'report_status' => 'Pending',
         ]);
 
-        return redirect()->route('reports.create')
-            ->with('success', 'Your report has been submitted. Our team will review it shortly.');
+        $message = 'Your report has been submitted. Our team will review it shortly.';
+
+        // The property page reports from a modal and must not navigate away —
+        // a redirect there would throw out the unit selection and scroll
+        // position for what is a fire-and-forget action. validate() already
+        // returns 422 JSON on this path, so errors need no special handling.
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return redirect()->route('reports.create')->with('success', $message);
     }
 }

@@ -34,6 +34,10 @@ class Reservation extends Model
         'move_in_disputed_at',
         'move_in_dispute_reason',
         'move_in_last_reminder_on',
+        'handover_at',
+        'handover_proposed_by',
+        'handover_proposed_at',
+        'handover_confirmed_at',
     ];
 
     protected function casts(): array
@@ -50,6 +54,9 @@ class Reservation extends Model
             'move_in_deadline_at' => 'datetime',
             'move_in_disputed_at' => 'datetime',
             'move_in_last_reminder_on' => 'date',
+            'handover_at' => 'datetime',
+            'handover_proposed_at' => 'datetime',
+            'handover_confirmed_at' => 'datetime',
         ];
     }
 /**
@@ -170,6 +177,135 @@ public ?Payment $releasedPayment = null;
             : $payment->paid_at->copy();
 
         return $start->addDays(config('rentals.turnover_grace_days'));
+    }
+
+    // ─── Key handover scheduling (Clock 1) ───────────────────
+
+    /**
+     * Whether a handover slot is agreed by both parties, as opposed to merely
+     * proposed by one of them.
+     */
+    public function hasConfirmedHandover(): bool
+    {
+        return $this->handover_at !== null && $this->handover_confirmed_at !== null;
+    }
+
+    public function hasProposedHandover(): bool
+    {
+        return $this->handover_at !== null && $this->handover_confirmed_at === null;
+    }
+
+    /**
+     * The furthest a confirmed slot may push Clock 1.
+     *
+     * Measured from the ORIGINAL deadline, not from now: a cap that moves with
+     * each reschedule isn't a cap. Repeated reschedules converge on this bound.
+     */
+    public function handoverDeadlineCeiling(): ?Carbon
+    {
+        return $this->computeTurnoverDeadline()
+            ?->copy()
+            ->addDays(config('rentals.handover_max_extension_days'));
+    }
+
+    /**
+     * Either party puts a slot forward. Not binding until the other confirms,
+     * so this deliberately does not touch move_in_deadline_at — a proposal
+     * alone must not be able to move the escrow clock in either direction.
+     */
+    public function proposeHandover(Carbon $slot, int $proposedBy): bool
+    {
+        if ($this->rental_status !== 'Rental Agreement Signed') {
+            return false;
+        }
+
+        // Once the keys are with the tenant there is nothing left to schedule,
+        // and a dispute freezes the row for admin review.
+        if ($this->keys_turned_over_at !== null || $this->move_in_disputed_at !== null) {
+            return false;
+        }
+
+        if (! $this->heldPayment()) {
+            return false;
+        }
+
+        $this->handover_at = $slot;
+        $this->handover_proposed_by = $proposedBy;
+        $this->handover_proposed_at = now();
+        // Back to unconfirmed. move_in_deadline_at keeps its last confirmed
+        // value until the new slot is agreed — otherwise proposing a reschedule
+        // would silently shorten the window the other party is relying on.
+        $this->handover_confirmed_at = null;
+
+        return $this->save();
+    }
+
+    /**
+     * The other party agrees. This is the point the slot becomes the basis for
+     * Clock 1, replacing the target_move_in_date the tenant guessed at inquiry
+     * time and nothing has been able to edit since.
+     */
+    public function confirmHandover(int $confirmedBy): bool
+    {
+        if (! $this->hasProposedHandover()) {
+            return false;
+        }
+
+        // The proposer confirming their own slot would make agreement
+        // meaningless — and this value feeds an escalation deadline.
+        if ($this->handover_proposed_by === $confirmedBy) {
+            return false;
+        }
+
+        if ($this->keys_turned_over_at !== null || $this->move_in_disputed_at !== null) {
+            return false;
+        }
+
+        if (! $this->heldPayment()) {
+            return false;
+        }
+
+        $this->handover_confirmed_at = now();
+        $this->move_in_deadline_at = $this->deadlineForConfirmedHandover();
+
+        return $this->save();
+    }
+
+    /**
+     * Clock 1's deadline once a slot is agreed: the slot plus the same grace
+     * the negotiated move-in date gets, clamped to the ceiling. The grace is
+     * intentional — the pair agreed to meet, not to forfeit on a one-day slip.
+     */
+    public function deadlineForConfirmedHandover(): ?Carbon
+    {
+        if ($this->handover_at === null) {
+            return null;
+        }
+
+        $deadline = $this->handover_at->copy()
+            ->addDays(config('rentals.turnover_grace_days'));
+
+        $ceiling = $this->handoverDeadlineCeiling();
+
+        return $ceiling && $deadline->greaterThan($ceiling) ? $ceiling : $deadline;
+    }
+
+    /**
+     * True when the agreed slot wanted a later deadline than the ceiling
+     * allowed, so the UI can say so rather than showing a date nobody chose.
+     */
+    public function handoverDeadlineWasCapped(): bool
+    {
+        if (! $this->hasConfirmedHandover()) {
+            return false;
+        }
+
+        $ceiling = $this->handoverDeadlineCeiling();
+
+        return $ceiling !== null
+            && $this->handover_at->copy()
+                ->addDays(config('rentals.turnover_grace_days'))
+                ->greaterThan($ceiling);
     }
 
     /**

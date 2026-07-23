@@ -248,6 +248,9 @@
     </div>
 
     @push('scripts')
+        {{-- Loaded here, not from the component: the chat panel arrives by AJAX
+             with no layout, so anything the component pushes never renders. --}}
+        <script src="{{ asset('js/datetime-picker.js') }}"></script>
         <script>
             function inboxApp() {
                 return {
@@ -277,11 +280,16 @@
                                 if (e.conversation_id === this.activeId) return;
                                 this.updateListPreview(e.conversation_id, e.message, e.is_system);
                             })
-                            .listen('.PaymentStatusUpdated', () => {
-                                // Payment state feeds the derived "Paid" stage and
-                                // swaps the tenant's CTA from "Proceed to payment"
-                                // to "Confirm move-in", so the panel has to re-render.
-                                this.refreshPanel();
+                            .listen('.PaymentStatusUpdated', (e) => {
+                                // Same split as ReservationStatusUpdated above: this
+                                // channel owns the list rows for threads you are not
+                                // looking at, the conversation channel owns the open
+                                // panel. Paying never changes rental_status — "Paid"
+                                // is derived from payment state — so without this the
+                                // row's stage pill has nothing to move it.
+                                if (e.conversation_id !== this.activeId) {
+                                    this.updateListStage(e.conversation_id, e.stage);
+                                }
                             });
                     },
 
@@ -405,6 +413,23 @@
                                 // rather than trusting a broadcast payload.
                                 this.refreshPanel();
                                 this.updateListStage(e.conversation_id, e.status);
+                            })
+                            .listen('.PaymentStatusUpdated', (e) => {
+                                // Money landing moves the stepper to "Paid" and
+                                // swaps the tenant's CTA from "Proceed to payment"
+                                // to "Confirm move-in", but rental_status doesn't
+                                // change — so ReservationStatusUpdated never fires
+                                // and this is the only signal the panel gets.
+                                this.refreshPanel();
+                                this.updateListStage(e.conversation_id, e.stage);
+                            })
+                            .listen('.HandoverScheduleUpdated', () => {
+                                // Same shape again: proposing or confirming a
+                                // handover slot changes neither rental_status nor
+                                // payment status, so without this the other party
+                                // sees the system message arrive while the strip
+                                // that lets them answer it stays stale.
+                                this.refreshPanel();
                             });
                     },
 
@@ -493,6 +518,9 @@
                             'Under Negotiation': 'Negotiation',
                             'Pending Rental Agreement': 'Agreement',
                             'Rental Agreement Signed': 'Signed',
+                            // Derived, not a rental_status — sent by
+                            // PaymentStatusUpdated once escrow is funded.
+                            'Paid': 'Paid',
                             'Occupied': 'Occupied',
                             'Cancelled': 'Cancelled',
                             'Rejected': 'Rejected',

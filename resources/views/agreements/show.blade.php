@@ -12,7 +12,11 @@
         $processingPayment = $hasPayment && !$heldPayment && !$reservation->isOccupied();
     @endphp
 
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-72px)]">
+    {{-- 1200 = 768 document + 400 action rail + gap. The document keeps the
+         max-w-3xl reading measure it has always had; the rail fills what used
+         to be dead margin, and carries the signing controls so they are on
+         screen from the moment the page loads instead of below the fold. --}}
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-72px)]">
 
         {{-- Page chrome — never printed --}}
         <div class="flex items-center justify-between gap-3 mb-6 print:hidden">
@@ -42,6 +46,10 @@
             <p class="text-sm text-[#64748B] mt-1 print:hidden">Please read the terms below carefully before signing.</p>
         </div>
 
+        {{-- print:block — on paper there is no rail, so the document must not
+             be squeezed into a grid column that no longer has a sibling. --}}
+        <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-8 lg:items-start print:block">
+
         {{-- flush: the card's default p-5 sm:p-6 would collide with the wider
              padding this document wants, and with print:p-0. --}}
         <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0">
@@ -66,8 +74,11 @@
                 </div>
             </div>
 
-            {{-- ===== The agreement body ===== --}}
-            <div class="text-[#1F2937] leading-relaxed border border-[#E2E8F0] rounded-xl p-5 sm:p-6 bg-[#F7FCFC]">
+            {{-- ===== The agreement body =====
+                 No border or tint: this is the document text itself, so it sits
+                 directly on the sheet. Boxing it inside the card that already
+                 frames it was a third nested border for no added meaning. --}}
+            <div class="text-[#1F2937] leading-relaxed">
                 <p class="text-[13.5px] leading-relaxed">
                     This Rental Agreement is entered into between
                     <strong>{{ $landlord->first_name }} {{ $landlord->last_name }}</strong> ("Landlord")
@@ -164,10 +175,49 @@
                 </div>
             @endif
 
-            {{-- ===== Actions (never printed) ===== --}}
-            <div class="print:hidden">
+        </x-card>
+
+        {{-- ===== Action rail — never printed ===== --}}
+        <aside class="mt-6 lg:mt-0 lg:sticky lg:top-8 print:hidden">
+
+            {{-- What you are committing to, restated so the figures are in
+                 view while the controls are. Reading the document is still the
+                 point; this stops the money being off-screen at the moment of
+                 signing. --}}
+            <div class="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-4">
+                <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">At a glance</p>
+                <p class="mt-2 text-2xl font-bold tracking-tight text-[#1F2937]">
+                    &#8369;{{ number_format($reservation->unit->rental_fee, 2) }}
+                    <span class="text-sm font-medium text-[#64748B]">/ month</span>
+                </p>
+                <dl class="mt-4 space-y-2 text-[13px]">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <dt class="text-[#64748B]">Property</dt>
+                        <dd class="font-medium text-[#1F2937] text-right truncate">{{ $reservation->unit->unit_label }}</dd>
+                    </div>
+                    @if($reservation->target_move_in_date)
+                        <div class="flex items-baseline justify-between gap-3">
+                            <dt class="text-[#64748B]">Target move-in</dt>
+                            <dd class="font-medium text-[#1F2937]">{{ $reservation->target_move_in_date->format('M j, Y') }}</dd>
+                        </div>
+                    @endif
+                    @if($reservation->unit->security_deposit)
+                        <div class="flex items-baseline justify-between gap-3">
+                            <dt class="text-[#64748B]">Security deposit</dt>
+                            <dd class="font-medium text-[#1F2937]">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
+                        </div>
+                    @endif
+                    <div class="flex items-baseline justify-between gap-3">
+                        <dt class="text-[#64748B]">Reference</dt>
+                        <dd class="font-medium text-[#1F2937]">{{ $agreementRef }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div>
                 @if($reservation->rental_status === 'Pending Rental Agreement')
-                    <form action="{{ route('agreements.sign', $reservation) }}" method="POST" class="mt-6">
+                    <form action="{{ route('agreements.sign', $reservation) }}" method="POST"
+                        class="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                         @csrf
 
                         <div class="flex items-start gap-3 p-4 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-xl mb-5">
@@ -211,7 +261,7 @@
                     </form>
 
                 @elseif($reservation->isAgreementSigned())
-                    <div class="mt-6 p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3">
+                    <div class="p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-[#22C55E]/15 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 text-[#15803D]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -394,7 +444,7 @@
                     @endif
 
                 @elseif($reservation->isOccupied())
-                    <div class="mt-6 p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3">
+                    <div class="p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-[#22C55E]/15 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 text-[#15803D]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -409,7 +459,9 @@
                     </div>
                 @endif
             </div>
-        </x-card>
+        </aside>
+
+        </div>{{-- /document + rail --}}
 
         <p class="text-[10.5px] text-[#64748B] text-center mt-4 hidden print:block">
             {{ $agreementRef }} &middot; Generated {{ now()->format('F j, Y \a\t g:i A') }} &middot; AbangananHub

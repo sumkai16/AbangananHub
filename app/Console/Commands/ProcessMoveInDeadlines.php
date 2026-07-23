@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Events\PaymentStatusUpdated;
 use App\Models\Notification;
 use App\Models\Reservation;
 use Illuminate\Console\Command;
@@ -328,12 +327,8 @@ class ProcessMoveInDeadlines extends Command
             }
         }
 
-        // After commit — a payout announced inside the transaction could still
-        // be rolled back underneath the broadcast.
-        foreach ($released as $payment) {
-            PaymentStatusUpdated::dispatch($payment->fresh());
-        }
-
+        // PaymentObserver broadcasts each Held -> Released transition, and its
+        // $afterCommit keeps those announcements outside the transactions above.
         $this->info('Released '.count($released)." expired confirmation(s), {$failures} failure(s).");
     }
 }

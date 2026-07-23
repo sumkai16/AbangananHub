@@ -24,4 +24,12 @@ return [
      * [4, 1, 0] on a 7-day window = day 3, day 6, and the morning of expiry.
      */
     'reminder_days_remaining' => [4, 1, 0],
+
+    /*
+     * Ceiling on how far a confirmed handover slot may push Clock 1's deadline,
+     * measured from the ORIGINAL deadline rather than from now — otherwise each
+     * reschedule buys another full window and the escrow never escalates.
+     * Repeated reschedules converge on this bound instead of walking forever.
+     */
+    'handover_max_extension_days' => 30,
 ];

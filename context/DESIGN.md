@@ -39,9 +39,11 @@ Rules:
 - No custom CSS class systems (`abg-*`), no inline `<style>` blocks — pure Tailwind only.
 
 ## 4. Typography
-- Display/heading font: **Poppins** (Google Fonts, loaded in base layout)
-- Body font: **Inter** (Google Fonts, loaded in base layout)
-- Utility font: Inter (same as body — no third font needed)
+- **Page-title font: Source Serif 4** (`font-display`) — added July 2026. **Large page titles only**: the property detail `<h1>` today, home and about when they're redesigned. Not card headings, not section labels, not `<h3>`s — those stay on Poppins. The scope is the whole point: a serif used everywhere stops being a signal and becomes a third font tax.
+  - **Why not Playfair Display**, the obvious pick: §0 names the high-contrast-serif look as an AI default to avoid, and Playfair is the face that look is made of. Source Serif 4 is screen-first, shares Inter's vertical proportions so the two sit together without one reading oversized, and lands *institutional* rather than *fashion-editorial* — which is what §2's "trustworthy, not startup-trendy" asks for.
+  - Loaded in **all four** layouts even though only `layouts/app` uses it today. Google Fonts serves all three families in one request and browsers defer the file until a glyph needs it, so the cost is nil — and it avoids re-creating the bug documented below, where a utility existed app-wide but the font was only linked in two shells.
+- Display/heading font: **Poppins** (`font-heading`) — card titles, section headings, UI labels
+- Body font: **Inter** (`font-sans`, Google Fonts, loaded in base layout)
 - Type scale: 12 / 14 / 16 / 20 / 24 / 32 / 48 (maps to Tailwind `text-xs` through `text-5xl`)
 - Weight rules: Poppins 600–700 for headings, Inter 400 for body, Inter 500 for labels/buttons
 - Line-height: 1.5–1.75 for body text
@@ -83,12 +85,16 @@ Fixed: `tailwind.config.js` now maps `sans` → `Inter` (matching `app.css`) and
   | Mobile sidebar backdrop | `z-40` | admin + landlord layouts |
   | Sidebar (aside) | `z-50` | admin + landlord layouts |
   | Public site header (sticky) + skip link on focus | `z-[100]` | `layouts/app.blade.php` |
-  | Page-level modal (`x-modal`) | `z-[200]` | delete-user-form |
+  | Page-level modal (`x-modal`) | `z-[200]` | delete-user-form, property inquiry modal, handover picker |
   | Unit slideout panel | `z-[998]` | `properties/show` |
   | Photo lightbox | `z-[999]` | `properties/show`, landlord property show |
   | Message toasts (bottom-right) | `z-[9997]` | `partials/message-notifications` |
   | Notification/confirm modal (`x-confirm-modal`) | `z-[9998]` | global |
   | Auth modal | `z-[9999]` | `layouts/app.blade.php` |
+
+
+  **Leaflet is contained, not out-ranked.** Leaflet gives its own children `z-index: 400` (`.leaflet-pane`) up to `1000` (`.leaflet-top`), and its container is `position: relative` with `z-index: auto` — so it forms no stacking context and those values compete with the whole page. A map painted straight over the `z-[200]` report modal on `properties/show`. Fixed once in `resources/css/maps.css` with `.leaflet-container { z-index: 0 }`, which scopes the 400–1000 range inside each map. **Don't raise a modal's z-index to beat a map** — that is almost certainly why the unit slideout and photo lightbox sit at `z-[998]`/`z-[999]`, and they can come back to this scale now.
+  **A modal in `layouts/app` must be `z-[200]`, not `z-50`.** The public site header is `sticky z-[100]`, so a `z-50` overlay renders *behind* it and loses its top ~68px — which on a top-aligned dialog is the title and the close button. The `z-50` modals that work do so by accident: they sit in the admin/landlord shells where the only sticky chrome is `z-30`, or they're vertically centred and short enough that the header never reaches them. Four `z-50` overlays in `layouts/app` are still latent (`agreements/show`, `tenant/reservations/index`, `landlord/verification/create` + `show`) — centred, so they only clip when taller than the viewport.
 
   **The rule when adding a layer:** blocking dialogs outrank passive UI. `x-confirm-modal` sits at `z-[9998]` deliberately — it must cover the sticky header, the slideout, the lightbox and the toasts, because it demands acknowledgement, while the auth modal alone outranks it. It was `z-50` until July 2026, which put it *below* the `z-[100]` public header (the header stayed bright and clickable over the dimmed backdrop) and tied it with the admin/landlord sidebar, where it only won on DOM order.
 
@@ -131,15 +137,82 @@ Dense management lists (e.g. landlord reservations) use a table inside one flat 
 
 Where both a card grid and a table make sense (e.g. landlord Units), offer a grid/table segmented toggle at the right end of the filter bar (two icon buttons in a `bg-[#F7FCFC]` pill; active = white bg + `text-[#156F8C]` + shadow). The choice is client-side Alpine persisted to `localStorage` — both views render server-side and swap via `x-show` (add `x-cloak` to the non-default view). Per-unit derived data is precomputed once in a `@php` loop and shared by both views.
 
-## 6e. Public property page (properties/show) — the reference implementation
-This page went flat first (July 2026) and became the pattern the rest of the app was restyled to in the glassmorphism retirement (§6). It is no longer an exception — it is the reference. Page conventions established here:
-- Three-column layout: gallery + unit picker (col A) | header + amenity tiles + quick facts + tabbed card (col B) | sticky sidebar. Inner `xl:grid-cols-2` inside a `lg:col-span-7/8` left region.
-- Tabs are underline-style (`border-b-2` teal active, `text-[#156F8C]`) inside a flat card — not pill tabs.
+## 6e. Public property page (properties/show) — split-immersive (rebuilt July 2026)
+The page went flat first (July 2026) and became the pattern the rest of the app was restyled to in the glassmorphism retirement (§6). **Rebuilt later that month from a three-column grid into a split-immersive layout** — media rail left, editorial column right.
+
+- **Media rail** (`lg:col-span-5`): gallery + unit list, `lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto`. Sticky *with its own scroll* rather than a fixed full-height rail: a one-unit property gets the immersive panel, a twelve-unit one scrolls its list inside the rail instead of pushing the page out of alignment. Static below `lg`, where it simply stacks above the content.
+- **Editorial column** (`lg:col-span-7`): breadcrumb → `font-display` title → location + rating → price → description → 2×2 fact tiles → single CTA + favourite → landlord row, then stacked `<section>`s (Details, Amenities, Location, Reviews) with `id`s so the hero can link into them.
+- **The tabbed card is gone.** Sections scroll rather than hide behind Overview/Location/Reviews. Better for scanning and for SEO, and it removed `goTab()`'s `window.dispatchEvent(new Event('resize'))` hack — the map was only being nudged because it initialised inside a hidden panel.
+- **Price follows the unit picked in the rail**, so there is one source of truth. A hero price range plus a picker elsewhere is two numbers that can disagree about what the form is submitting.
+- **One CTA; the form lives in a modal** (`inquireOpen`), teleported to body because the editorial column sits in a sticky/overflow context that would clip a dialog rendered inside it. Desktop only — below `lg` the existing sticky bottom bar and two-step sheet already cover it, so there is one form per breakpoint, not two.
 - Unit picker rows: radio + thumb + label/meta, price stacked over an Available badge on the right; >4 units collapse behind a "View all units (N)" button (`moreUnits` Alpine flag).
-- Amenities render as standalone bordered icon squares with the label beneath, 5 visible + "+N more" tile.
-- Sidebar has an Inquiry/Reserve toggle (`mode` flag) — presentational only, both submit `reservations.store`; the label on the coral submit button switches.
-- Mobile (<lg): sidebar is hidden; a teleported sticky bottom bar (selected unit + coral Inquire button) opens a two-step bottom-sheet modal (Select a Unit → Message Landlord) sharing `selectedUnit` state with the desktop sidebar.
-- Prototype's blue accents are always rendered in the locked Ocean Teal/Deep Ocean Blue palette; CTA stays coral #FF8A65.
+- Amenities render as a labelled two/three-column grid in their own section, guarded by `@if(count > 0)` — the 64px icon squares were a compact *preview* near the top of the old layout and read badly at section scale with truncated captions.
+- Mobile (<lg): a teleported sticky bottom bar (selected unit + coral Inquire button) opens a two-step bottom-sheet modal (Select a Unit → Message Landlord) sharing `selectedUnit` state with the desktop rail.
+- Prototype's blue accents are always rendered in the locked Ocean Teal/Deep Ocean Blue palette; CTA stays coral `#FF8A65`.
+
+- **Inquiry and Reserve are a real distinction, not decoration.** `mode` posts as a hidden input and `StoreReservationRequest` validates `in:inquiry,reserve`. **Inquiry collects only a unit and an optional message**; **Reserve** adds move-in (required) and move-out (optional). Both still land at `rental_status = 'Inquiry'`, so the landlord's accept step is unchanged — naming a date is what signals firmer intent. Defaults to Inquiry, and the mobile sheet carries the same toggle.
+  - `target_move_in_date` is `required_if:mode,reserve|nullable`, and `prepareForValidation()` nulls both dates on an inquiry — otherwise a date typed under the Reserve tab and then abandoned still posts, attaching a commitment the tenant backed out of.
+  - This is what stopped a guessed date from driving escrow escalation; see ARCHITECTURE's Clock 1 notes.
+- **No "Message landlord" card.** It posted to `conversations.store` and produced a thread with *no reservation attached* — no stage stepper, no actions, a dead end indistinguishable from Inquiry. Inquiry is the single way to open a conversation from a listing. The route survives for the landlord profile page.
+- **Report this listing opens a modal**, not `/reports?property_id=N`. That page redirects to itself on success, which from here would discard the selected unit and scroll position for a fire-and-forget action. `ReportController::store()` returns JSON only when the request expects it, so the standalone page keeps its redirect and both entry points share one validated action.
+- **Location is a compact utility card**: header (address + segmented travel-mode control), full-bleed map, summary bar (distance, per-mode estimate, directions CTA). The mode control lives in the header and is always visible, so the choice is made *before* deciding to share your location.
+
+**Trap that bit during the rebuild:** `Landlord@if($x) · Verified Host @endif` renders the directive as *literal text* and orphans the `@endif` — Blade's `\B@` regex does not match an `@` preceded by a word character. Build the sentence in PHP instead. This is the second time it has appeared (see `chat-panel`'s `$occupiedNote`); if a page dies with "unexpected token endif", grep for `@if` with no whitespace before it.
+
+## 6f. Multi-step wizard layout (landlord verification) — July 2026
+The verification flow (`landlord/verification/create`) is the pattern for any multi-step task.
+
+**The problem it solves.** It shipped as `max-w-2xl mx-auto` — a 672px column on an 1866px screen — with every step wrapped in a flat white card. A camera feed is already a hard-edged rectangle, so the card framed a frame: two borders, two radii, no added meaning, floating in ~1,200px of dead margin. **`max-w-2xl` is a reading measure; don't reach for it on a page with no prose.** The card was the visible symptom, the width was the cause.
+
+The shape now:
+- **`max-w-[1200px] mx-auto`**, split `lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-11` — a step rail and a stage. 248 + 44 + 896 = 1188, so the widest step (`max-w-4xl`) fills the stage exactly and nothing is sized for space that never gets used. It was briefly 1400px, which left the stage 250px wider than any step's content — **the container has to be sized by the widest step, not by the viewport**, or you rebuild the same dead-margin problem one level in.
+- **Every phase block owns its `max-w-*`, and its footer bar is the last child inside that block.** This is the rule that keeps things aligned: a footer placed at the step root stretches the full stage while the content above it is half that, so the primary button floats off to the right attached to nothing. Widths in use: `max-w-xl` (ready screens), `max-w-2xl` (forms, selfie camera), `max-w-4xl` (ID capture, review). The one deliberate exception is the `lg:hidden` phone hand-off, which spans the stage because on mobile the stage *is* the content width.
+- **Step rail** (`landlord/verification/_stepper`): a sticky vertical list of all five steps with numbers, names, and per-step sublabels (chosen ID type, "Front and back", "Liveness verified"). Done = green check, current = teal fill + white card behind the row, upcoming = hairline outline. It reads `step` from the existing Alpine root — **no new state**. Below `lg` it collapses to the horizontal 5-dash bar plus a "Step N of 5" label and a back chevron, which is close to what the flow shipped with, so the phone experience is unchanged.
+- **Numbering is earned here.** The flow genuinely is a fixed five-step sequence, so the order is information the applicant needs. Don't copy the numbered rail onto content that isn't a real sequence.
+- **No cards on step content.** Each step opens with an eyebrow (`text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]`), a `text-2xl font-bold tracking-tight` heading, and a `max-w-md` supporting line. The instruction outranks the viewfinder — the reverse of what shipped, where "Front of ID" was the smallest text on a screen dominated by a black rectangle.
+- **Capture steps** split again at `xl:grid-cols-[minmax(0,1fr)_300px]`: stage left, a guidance column right holding the requirement checklist and captured-so-far thumbnails. Guidance now sits on screen *at the moment it applies* rather than on the previous screen.
+- **Footer bar** per phase: `mt-7 pt-5 border-t border-[#E2E8F0]`, ghost Back left, primary `ml-auto`. The primary is whatever actually advances *that* phase — "Open camera" and "Start face check" on the ready screens, "Continue" once there's something to continue past — so a disabled Continue never sits next to the real action competing with it. Disabled buttons carry `disabled:hover:brightness-100` so they stop responding to hover.
+- Page-level notices (rejection banner, validation errors) stay capped at `max-w-3xl mx-auto` above the grid — they're prose, so the reading measure is right for them.
+
+**Camera surface layering.** The shutter is `<x-shutter-button>` — the white ring-and-disc a phone camera uses — positioned *inside* the video at `absolute bottom-5 left-1/2`, not as a labelled button below it. **This is a deliberate exception to the "one accent colour for CTAs" rule in §3:** it's a device control layered on a live feed rather than a page-level action, and coral on video reads as a record button. It went through a coral pill first; that fought the surface and had to overlap the frame edge to feel attached, which is a sign the control was in the wrong place to begin with.
+
+Because the shutter owns the bottom of the frame, **every in-video overlay is anchored to `top-4`, never the bottom** — the hint pill on ID capture and the face-detected / no-face pills on the selfie. They were originally at `bottom-4` / `bottom-16` and the shutter landed straight on them. Centred overlays (countdown, the green liveness flash) are unaffected, and the shutter clears both the corner brackets (no horizontal overlap) and the liveness ring (39px).
+
+The control carries only an `aria-label`; the visible instruction lives in the hint pill at the top of the frame, so nothing is said twice. The selfie's shutter renders only in the fallback states (`!livenessActive && !livenessLoading && !livenessPassed`) because the happy path captures itself — one button covering both the CDN-failure and skipped cases, not two.
+
+**Signature: capture brackets** (`<x-capture-brackets />`). Four teal L-shapes on the camera surface, replacing the thin white rectangle that used to float in the feed. Colour is a real state signal, so it only changes where the page actually knows: the selfie ring drives off `livenessGuideColor` (teal → green), while ID framing stays teal because nothing detects whether an ID is lined up — **don't fake a "ready" state the code can't detect.** The shutter overlaps the surface bottom edge (`-mt-6 relative z-10` + a lifted shadow) where a camera puts it, instead of orphaned below the card.
+
+## 6g. Read-then-act pages (rental agreement) — July 2026
+`agreements/show` is a document you must read and then act on. It shipped as `max-w-3xl mx-auto` with the sign controls as the last thing on the page, so on a 1920 screen it was a 768px strip with ~1,150px of dead margin **and** the tenant had to scroll past the whole contract to reach the checkboxes. The action was below the fold on the one page where the action matters most.
+
+Now `max-w-[1200px] mx-auto` split `lg:grid-cols-[minmax(0,1fr)_400px]`: the document keeps its 768px reading measure (deliberately — a contract wants a reading column, unlike the wizard's capture surfaces) and a **sticky action rail** takes the space that was empty. The rail is the same device §6c uses for create/edit forms and §6e for the property sidebar, so this is the established pattern, not a new one.
+
+- The rail leads with an **at-a-glance panel** — rent, property, target move-in, deposit, reference — then the state-dependent controls. Restating the figures beside the controls means the money isn't off-screen at the moment of signing. It doesn't replace reading the document; it stops the commitment being invisible.
+- All five mutually exclusive states live in the rail (sign, pay, escrow held + move-in clocks, processing, occupied). Each is a self-contained white panel; the disputed-move-in modal still teleports to body.
+- **Print needs explicit handling.** The grid carries `print:block` and the rail `print:hidden` — otherwise the document prints squeezed into a grid column whose sibling no longer exists.
+- The agreement body lost its `border + rounded-xl + bg-[#F7FCFC]` wrapper. It's the document text, so it sits directly on the sheet; boxing it inside the card that already frames it was a third nested border carrying no meaning. The parties block and signature block keep their insets — those are data, not prose.
+
+## 6g-bis. The chat panel is a fixed-height flex column — mind what you put in it
+`conversations/partials/chat-panel` is `flex flex-col h-full`: header, stepper, action bar, message list (`flex-1 overflow-y-auto`), composer. **The action bar is `flex-shrink-0`**, so anything tall placed in it takes the space from the messages and then overflows the panel — and because the clipping container has no scroll of its own, a tall action's buttons become unreachable rather than merely cramped. Two rules came out of that:
+- **The bar carries `max-h-[55%] overflow-y-auto`.** A ceiling means no future action, however tall, can crush the thread — reading it is why anyone opened the screen.
+- **Anything approaching full-panel height belongs in a teleported modal, not the bar.** The handover picker (~600px) is `x-teleport="body"` with a scrolling backdrop; it escapes the flex column entirely, and mobile gets a full-width sheet for free. Actions that are a row of buttons stay inline.
+
+Long-lived cards in the bar are collapsible with a chevron in their header (`expanded`), defaulting open only when something is genuinely waiting on this viewer.
+
+## 6h. Date/time picking — `<x-datetime-picker>` (July 2026)
+`<input type="datetime-local">` is not usable here. Browsers render it as an unstyleable segmented control (`07 / 23 / 2026, --:-- --`) that ignores every token in this file, and — the reason that actually matters — it cannot show where the escalation deadline falls, which is the only fact that makes one handover slot better than another.
+
+`resources/views/components/datetime-picker.blade.php`: a month grid beside a time-slot grid, Alpine + Tailwind, **no picker library**. §3 rules out third-party CSS systems, and a runtime CDN dependency has already bitten this app once (face-api on the verification wizard). The grid marks the review deadline, tints days past it amber, and disables anything before `min`.
+
+Composition, as built for the handover scheduler: the status strip **is** the panel's header. Collapsed, it's a one-line tinted strip; open, the same element becomes the tinted head of a bordered white panel — calendar left, times right, actions in a `#F7FCFC` footer bar — so the deadline stays in view beside the calendar being chosen against. The days-left counter becomes a pill in that header but keeps tracking urgency (teal → red at ≤1 day) rather than becoming decorative.
+
+Detail worth copying: **day markers sit under the cell, not inside it.** A dot or underline drawn inside a selected day has to fight the teal fill for contrast; a 2px rule beneath the button never does. Lead-in days from the previous month are rendered greyed rather than blank — an empty corner reads as a rendering fault, a dimmed `30` reads as a date — while the trailing row is left blank, because the lead-in exists to explain where the first week starts and the tail has nothing to explain.
+
+Two traps worth knowing before reusing it:
+- **The behaviour script lives in `public/js/datetime-picker.js`, not in an `@push('scripts')` block inside the component.** `ConversationController` returns the bare `chat-panel` partial on AJAX with no layout, so `@stack('scripts')` never renders — open Messages with no thread selected, click one, and a pushed script would never have run, leaving the component calling an undefined function. **Any component used inside an AJAX-swapped partial has this problem.** Load its JS from the owning page instead.
+- **Dates are parsed as local midnight via `toDate()`, never `new Date(iso)`.** `new Date('2026-08-01')` is read as UTC and renders as July 31 for anyone west of Greenwich — which in a picker means the day you click isn't the day you get.
+
+The default slot renders inside the component's Alpine scope, so caller buttons can bind straight to `value` / `date` / `time` / `label` (e.g. `:disabled="!value"`).
 
 ## 7. Components
 - Border radius default: `rounded-2xl` (standard), `rounded-3xl` (hero sections only)
