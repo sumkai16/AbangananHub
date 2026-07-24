@@ -209,12 +209,18 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 |---|---|---|---|
 | review_id | BIGINT UNSIGNED | PK | `$primaryKey = 'review_id'` |
 | tenant_id | FK → users.user_id | NOT NULL | |
-| property_id | FK → properties.property_id | NULLABLE | |
-| unit_id | FK → property_units.unit_id | NULLABLE | Unit-grain reviews |
-| landlord_id | FK → users.user_id | NOT NULL | |
-| rating | TINYINT | NOT NULL | 1–5 |
+| property_id | FK → properties.property_id | NOT NULL | |
+| landlord_id | FK → users.user_id | NOT NULL | Which landlord owns the property; lets reviews roll up to a landlord score |
+| rating | TINYINT UNSIGNED | NOT NULL | 1–5 |
 | review_comment | TEXT | NULLABLE | Audit: remove test comment "hahaha suled" before defense |
-| created_at | TIMESTAMP | | |
+| landlord_reply | TEXT | NULLABLE | Landlord's reply to the review |
+| landlord_replied_at | TIMESTAMP | NULLABLE | |
+| is_hidden | BOOLEAN | DEFAULT false | Admin-moderated; excluded from every average |
+| created_at / updated_at | TIMESTAMP | | |
+
+`unique(tenant_id, property_id)` — one review per tenant per property.
+
+**Reviews are PROPERTY-grain, not unit-grain** (verified against the migration July 24 2026 — there is **no `unit_id` column**). This table and the relationships list below claimed unit-grain reviews for months; they were wrong, the same filename-vs-body trap as `add_unit_type_floor_deposit_description_to_property_units`. The Overall Ratings feature therefore reports tenant→property (and rolls it up to landlord by `landlord_id`); tenant→unit is deferred until a real `unit_id` is added. `tenant→landlord` and `tenant→property` share this one source. `User::landlordRatingSummary()` aggregates it (hidden excluded).
 
 ### reports
 | Column | Type | Constraints | Notes |
@@ -275,7 +281,15 @@ Index `payments_reservation_period_index` on `(reservation_id, billing_period)` 
 ### tenant_ratings
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
-| (schema per implementation) | | | Landlord rates tenants |
+| rating_id | BIGINT UNSIGNED | PK | `$primaryKey = 'rating_id'` |
+| reservation_id | FK → reservations.reservation_id | UNIQUE, NOT NULL, cascade | One rating per reservation |
+| landlord_id | FK → users.user_id | NOT NULL | The rater |
+| tenant_id | FK → users.user_id | NOT NULL | The rated tenant |
+| rating | TINYINT UNSIGNED | NOT NULL | 1–5 |
+| comment | TEXT | NULLABLE | |
+| created_at / updated_at | TIMESTAMP | | |
+
+Landlord → tenant. **Collected since mid-2026 but never displayed until the Overall Ratings feature (July 24 2026)** — a tenant's received rating now surfaces on their profile, in the admin user detail, and in the admin `/admin/ratings` overview. `User::tenantRatingSummary()` aggregates it; `User::tenantRatingsReceived()` / `tenantRatingsGiven()` are the relations. Fixtures: `php artisan ratings:scenarios` (dev-only, `--clean`) seeds this table plus `reviews`, since the seeder ships neither.
 
 ### rent_reminders
 | Column | Type | Constraints | Notes |
@@ -331,7 +345,9 @@ Written by `PropertyUnitObserver` whenever a unit's `availability_status` change
 - users + users + properties → conversations (tenant + landlord + property scoped)
 - conversations → messages (1:many)
 - users → favorites (1:many)
-- property_units → reviews (1:many — unit-grain)
+- properties → reviews (1:many — **property-grain**, tenant→property; no unit_id)
+- users → reviews (1:many — via landlord_id, for the landlord roll-up)
+- reservations → tenant_ratings (1:1 — landlord→tenant, unique per reservation)
 - users → reports (1:many — as reporter)
 - users → notifications (1:many)
 

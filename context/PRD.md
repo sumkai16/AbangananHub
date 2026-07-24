@@ -32,6 +32,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] Rent Ledger (derived monthly billing periods with Paid/Partial/Overdue/Due status for any occupied tenancy, walk-in or platform; landlord records offline payments — Cash/GCash/Bank/Maya/Check — with printable receipts and a portfolio-wide collections view)
 - [x] End of Tenancy (Completed terminal status returns the unit to the available pool; before this an Occupied reservation had no exit)
 - [x] Rent Reminders (nightly `reservations:process-rent-reminders` notifies the landlord about upcoming/overdue rent for every tenancy, and the platform tenant too; walk-in tenants can't log in so the landlord reminder is their only channel — idempotent, catch-up-safe)
+- [x] Overall Ratings (aggregation of existing reviews + tenant_ratings: admin `/admin/ratings` platform overview with per-relationship averages, distributions, leaderboards and a 6-month trend; role-separated received-rating badges on tenant/landlord profiles and admin user detail. Property-grain; tenant→unit deferred — reviews carry no `unit_id`)
 
 ## 4. Explicitly Out of Scope
 - Legal dispute handling between landlords and tenants (the move-in dispute flow only freezes the deposit and queues it for an admin — it renders no judgment)
