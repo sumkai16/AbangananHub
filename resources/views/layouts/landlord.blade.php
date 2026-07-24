@@ -253,10 +253,10 @@
                     </span>
                 </a>
 
-                {{-- Tenants --}}
+                {{-- Tenants — also lit for the per-tenancy management page --}}
                 <a href="{{ route('landlord.tenants.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.tenants') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($current, 'landlord.tenants') || str_starts_with($current, 'landlord.tenancies') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -266,6 +266,22 @@
                     <span x-show="sidebarCollapsed" x-cloak
                         class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
                         Tenants
+                    </span>
+                </a>
+
+                {{-- Rent & Payments --}}
+                <a href="{{ route('landlord.payments.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
+                        {{ str_starts_with($current, 'landlord.payments') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Rent &amp; Payments</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        Rent &amp; Payments
                     </span>
                 </a>
 

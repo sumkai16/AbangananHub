@@ -20,14 +20,23 @@
                 </div>
             </div>
 
-            {{-- Export carries the active filters --}}
-            <a href="{{ route('landlord.tenants.export', request()->only('search', 'property')) }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                Export
-            </a>
+            <div class="flex items-center gap-2.5 shrink-0">
+                {{-- Export carries the active filters --}}
+                <a href="{{ route('landlord.tenants.export', request()->only('search', 'property')) }}"
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 cursor-pointer">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Export
+                </a>
+                <a href="{{ route('landlord.tenants.walkIn.create') }}"
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#1F2937] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                    </svg>
+                    Add Walk-in Tenant
+                </a>
+            </div>
         </div>
 
         {{-- Stat cards --}}
@@ -137,10 +146,18 @@
                                 {{ $initials ?: '?' }}
                             </div>
                             <div class="min-w-0">
-                                <p class="text-[14.5px] font-bold text-[#1F2937] truncate">
-                                    {{ $reservation->tenant->first_name }} {{ $reservation->tenant->last_name }}
-                                </p>
-                                <p class="text-[12px] text-[#64748B] truncate">{{ $reservation->tenant->email ?? 'No email' }}</p>
+                                <div class="flex items-center gap-1.5">
+                                    <p class="text-[14.5px] font-bold text-[#1F2937] truncate">
+                                        {{ $reservation->tenant->first_name }} {{ $reservation->tenant->last_name }}
+                                    </p>
+                                    @if($reservation->tenant->is_walk_in)
+                                        <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold shrink-0"
+                                            title="Added by you — identity not verified by AbangananHub">
+                                            Walk-in
+                                        </span>
+                                    @endif
+                                </div>
+                                <p class="text-[12px] text-[#64748B] truncate">{{ $reservation->tenant->email ?: 'No email' }}</p>
                             </div>
                         </div>
 
@@ -181,9 +198,9 @@
                         </div>
 
                         <div class="flex items-center gap-2 px-5 pb-5 mt-auto">
-                            <a href="{{ route('landlord.properties.show', $reservation->property) }}"
-                                class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#2AA7A1] text-[#2AA7A1] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
-                                View Property
+                            <a href="{{ route('landlord.tenancies.show', $reservation) }}"
+                                class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                                Manage tenancy
                             </a>
                             @if($reservation->conversation)
                                 <a href="{{ route('conversations.show', $reservation->conversation) }}"
