@@ -105,6 +105,49 @@ public function tenantRatingsReceived()
     {
         return $this->hasMany(TenantRating::class, 'landlord_id', 'user_id');
     }
+
+    // ─── Rating summaries ────────────────────────────────────
+    // A user gets two independent scores that measure different things from
+    // different raters, so they are never blended: what tenants rated them as a
+    // landlord (property reviews rolled up), and what landlords rated them as a
+    // tenant. avg is null (not 0.0) when there are no ratings — a fake zero
+    // reads as a terrible score rather than "unrated".
+
+    /**
+     * This user's rating as a landlord: the average of the reviews tenants left
+     * on their properties. Hidden reviews are excluded, matching every other
+     * landlord-rating display (Landlord\ProfileController, Property::withAvg).
+     */
+    public function landlordRatingSummary(): array
+    {
+        $row = Review::whereIn('property_id', $this->properties()->select('property_id'))
+            ->where('is_hidden', false)
+            ->selectRaw('AVG(rating) as avg, COUNT(*) as c')
+            ->first();
+
+        return [
+            'avg'   => $row->c > 0 ? round((float) $row->avg, 1) : null,
+            'count' => (int) $row->c,
+        ];
+    }
+
+    /**
+     * This user's rating as a tenant: the average of the tenant_ratings
+     * landlords left about them. The only place this score surfaces — it was
+     * collected but never shown before the Overall Ratings feature.
+     */
+    public function tenantRatingSummary(): array
+    {
+        $row = $this->tenantRatingsReceived()
+            ->selectRaw('AVG(rating) as avg, COUNT(*) as c')
+            ->first();
+
+        return [
+            'avg'   => $row->c > 0 ? round((float) $row->avg, 1) : null,
+            'count' => (int) $row->c,
+        ];
+    }
+
     // ─── Role Helpers ────────────────────────────────────────
 
     public function hasRole(string $role): bool
