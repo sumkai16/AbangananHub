@@ -23,6 +23,8 @@ AbangananHub is a server-rendered Laravel MVC application. Blade templates rende
 - **Scheduled commands** (in `app/Console/Commands`, scheduled in `routes/console.php`). Need cron/Supervisor on the VPS; locally run `php artisan schedule:work`.
   - `occupancy:snapshot` (23:55) — per-landlord occupancy history.
   - `reservations:process-move-in-deadlines` (23:00) — backfills Clock 1 deadlines, sends Clock 2 reminders, escalates overdue turnovers, releases expired confirmations. **The only code in the app that moves money with no human present**, hence per-row `lockForUpdate()` + `try/catch`/`Log::error`/continue so one bad row cannot abort the batch. Runs before the snapshot so units it marks Occupied are counted the same night.
+- **`App\Services\RentLedger`** (July 24 2026) — the rent owed on a tenancy, month by month, against what was paid. Periods are **derived, not stored**: a period is a month between move-in and move-out, settled by a `Monthly` payment whose `billing_period` lands in it. One of only two service classes (with `OccupancyRateCalculator`); the arithmetic has three callers and does not belong in a controller. Serves walk-in and platform tenancies identically.
+- **Dev-only walk-in tooling** (`walkin:scenarios`) — six browsable walk-in/ledger states (fully paid, overdue, partial, a platform tenant with recorded rent, an ended tenancy, and a unit with a live reservation for the double-booking guard). Overdue and multi-month states are weeks wide and unreachable by using the app, so they are backdated. Additive, `--clean` teardown via the `users.user_id` cascade, refuses to run in production — same shape as the escrow tooling below.
 - **Dev-only escrow tooling** (`escrow:scenarios`, `escrow:verify`, sharing `Concerns\BuildsEscrowFixtures`). The escrow states are 7–14 days wide and unreachable by using the app normally, so both commands build them by backdating. `escrow:scenarios` creates eight browsable states with login credentials for manual UI checking (`--clean` tears down via the `users.user_id` cascade); `escrow:verify` asserts 33 outcomes and prints a pass/fail table, snapshotting and restoring non-fixture rows first so a run cannot mutate real dev data. Both refuse to run in production.
 
 ## 4. Folder/Module Structure
@@ -94,6 +96,12 @@ Client JS (fetch POST) → MessageController@store → DB insert → `MessageSen
 
 ### Payment Flow
 Tenant initiates → Controller creates PayMongo Checkout Session (server-side) → Redirect to PayMongo → Webhook callback → Payment record created → Reservation status updated
+
+### Two ways a tenancy is born (July 24 2026)
+1. **Platform pipeline** — the original path: Inquiry → Under Negotiation → Pending Rental Agreement → Rental Agreement Signed → Occupied, gated by the escrow above.
+2. **Walk-in** — `Landlord\WalkInTenantController` writes a tenancy that was agreed offline directly to `Occupied`: a lightweight `users` row for the tenant (inactive, unknowable password), a reservation with `conversation_id = null`, the unit flipped to Occupied, and an optional initial payment recorded as `Paid`. No conversation, no agreement, no escrow. `store()` locks the unit and re-checks ownership + availability + no live reservation inside the transaction — the double-booking guard is the point, since a unit's `availability_status` can read Available while a platform reservation is mid-pipeline against it. The `ReservationObserver` correctly stays silent because it returns early on a null `conversation_id`.
+
+Both feed one **rent ledger** (`RentLedger`): the escrow only ever covered the initial payment, so month-two-onward rent is recorded the same way for either kind of tenant. Every recorded payment carries `recorded_by` (landlord-asserted, `Paid`, never escrowed). End-of-tenancy (`Reservation::endTenancy()`) sets `Completed` and returns the unit via the existing `releaseUnit()`.
 
 ### Move-In Escrow — two clocks (July 22 2026)
 The deposit lands on `payments.status = 'Held'` and is governed by two deadlines that expire in **opposite directions**, so neither party profits from inaction.

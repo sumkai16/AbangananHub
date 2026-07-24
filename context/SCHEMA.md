@@ -16,8 +16,13 @@
 | contact_number | VARCHAR(20) | NULLABLE | |
 | profile_picture | VARCHAR(255) | NULLABLE | Cloudinary URL |
 | account_status | ENUM('active','suspended','inactive') | DEFAULT 'active' | Normalized to lowercase July 21, 2026 — was `ENUM('Active','Suspended')` with no `inactive` member, which silently didn't match the lowercase values the Users admin UI had been writing/reading (see RULES.md → Concurrency & State Transitions and migration `2026_07_21_000001_normalize_users_account_status`) |
+| email | VARCHAR(255) | UNIQUE, **NULLABLE** | Was NOT NULL until July 24 2026; made nullable for walk-in tenants who often have only a phone number. MySQL allows many NULLs under a UNIQUE index, so real addresses stay unique. Anything rendering an avatar/name must use `?: '—'`, not assume a value |
+| is_walk_in | BOOLEAN | DEFAULT false | A landlord-entered tenant, not a self-registered account. Cast to bool. Drives the **Walk-in** pill everywhere the user surfaces (landlord tenants, admin users, occupancy, exports) — the identity is landlord-asserted, never platform-verified |
+| created_by_landlord_id | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who added this walk-in. Scopes `User::walkInTenants()` |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
+
+Walk-in tenants (added July 24 2026) are real `users` rows with a random unknowable password and `account_status='inactive'`, so the row can never be logged into — that is why they structurally cannot leave reviews or ratings. Keeping them in `users` (rather than a separate table) is what lets `reservations.tenant_id` stay NOT NULL so the ~20 views reading `$reservation->tenant->…` need no null-handling. Written by `Landlord\WalkInTenantController`.
 
 ### user_roles
 | Column | Type | Constraints | Notes |
@@ -145,8 +150,10 @@ Consequences, all live: `PropertyUnit::$fillable` declares all three, `Landlord\
 | target_move_in_date | DATE | NULLABLE | Negotiated. Clock 1 derives from it — see below |
 | target_move_out_date | DATE | NULLABLE | |
 | duration_of_stay | VARCHAR | NULLABLE | |
+| agreed_monthly_rent | DECIMAL(10,2) | NULLABLE | Rent negotiated for this tenancy; the ledger's "expected". Falls back to `unit->rental_fee` via `Reservation::monthlyRent()`. Added July 24 2026 for walk-ins whose door rent differs from the listed price |
+| rent_due_day | TINYINT UNSIGNED | NULLABLE | Day of month rent falls due (1–28). Falls back to the move-in day via `Reservation::rentDueDay()`, clamped to 28 so it exists in February |
 | occupants_count | INT | NULLABLE | |
-| rental_status | VARCHAR | DEFAULT 'Inquiry' | Inquiry → Under Negotiation → Pending Rental Agreement → Rental Agreement Signed → Occupied; or Rejected / Cancelled |
+| rental_status | VARCHAR | DEFAULT 'Inquiry' | Inquiry → Under Negotiation → Pending Rental Agreement → Rental Agreement Signed → Occupied → **Completed**; or Rejected / Cancelled. `Completed` (July 24 2026) is the end-of-tenancy terminal state; before it an Occupied reservation had no exit and held its unit forever. **`Reservation::TERMINAL_STATUSES` = `['Cancelled','Rejected','Completed']`** is the single source every "is this unit spoken for" query filters on — see RULES.md note on the audit |
 | agreement_terms_notes | TEXT | NULLABLE | |
 | agreed_at / agreed_ip | TIMESTAMP / VARCHAR | NULLABLE | Set by `signAgreement()` |
 | landlord_tc_accepted_at | TIMESTAMP | NULLABLE | |
@@ -243,18 +250,25 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 |---|---|---|---|
 | payment_id | BIGINT UNSIGNED | PK | `$primaryKey = 'payment_id'` |
 | reservation_id | FK → reservations.reservation_id | NOT NULL, cascade | |
-| payment_type | ENUM('Initial','Monthly') | NOT NULL | |
-| billing_period | DATE | NULLABLE | |
+| payment_type | ENUM('Initial','Monthly','Deposit','Utility','Other') | NOT NULL | Widened July 24 2026. **`Monthly` went live** with the rent ledger — it and `billing_period` were in the schema from day one and had never been written by any code until then |
+| billing_period | DATE | NULLABLE | The month a `Monthly` payment settles. The rent ledger derives its periods and matches payments to a month on this — required for `Monthly`, null otherwise |
 | amount | DECIMAL(10,2) | NOT NULL | Serializes as a **string** — `parseFloat()` client-side |
-| payment_method | ENUM('GCash') | NOT NULL | |
+| payment_method | ENUM('GCash','Cash','Bank Transfer','Maya','Check','Other') | NOT NULL | Widened July 24 2026 — was `ENUM('GCash')` only. Escrow still uses GCash; the rest are for landlord-recorded offline payments |
 | paymongo_payment_intent_id | VARCHAR | NULLABLE, UNIQUE | |
 | paymongo_payment_id | VARCHAR | NULLABLE | |
 | paymongo_checkout_session_id | VARCHAR | NULLABLE, UNIQUE | |
-| status | ENUM('Pending','Paid','Held','Released','Failed','Refunded') | DEFAULT 'Pending' | `Held` = escrow. **No code writes `Refunded`** — there is no refund action |
+| status | ENUM('Pending','Paid','Held','Released','Failed','Refunded') | DEFAULT 'Pending' | `Held` = escrow. **`Paid` went live July 24 2026** — a landlord-recorded offline payment (rent ledger), money already received, never escrowed. It counts as revenue (`AnalyticsController::EARNED_STATUSES = ['Paid','Held','Released']`) and can never be released (`Admin\PaymentController::release` refuses anything not `Held`). **No code writes `Refunded`** — there is no refund action |
 | paid_at | TIMESTAMP | NULLABLE | Clock 1 falls back to this when there is no target move-in date |
 | released_at | TIMESTAMP | NULLABLE | |
 | released_by | BIGINT UNSIGNED | NULLABLE | Admin user id, or null when the platform released it |
 | release_reason | ENUM('tenant_confirmed','auto_expiry','admin_manual') | NULLABLE | |
+| recorded_by | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who typed this payment in. **Null = platform-settled (PayMongo); non-null = landlord-asserted.** The only field that distinguishes the two — same role `release_reason` plays for releases. Drives the "Recorded by landlord" badge on the admin payments screen. Added July 24 2026 |
+| reference_no | VARCHAR | NULLABLE | OR number / GCash reference for a recorded payment |
+| payment_notes | TEXT | NULLABLE | Free-text note on a recorded payment |
+
+Index `payments_reservation_period_index` on `(reservation_id, billing_period)` — the rent ledger's per-period lookup.
+
+**The rent ledger has no schedule table.** A billing period is derived: a month between move-in and move-out, settled by a `Monthly` payment whose `billing_period` falls in it (`App\Services\RentLedger`). Editing rent, due day or move-out date can't leave stale rows because there are none — `payments` is the only stored fact. Serves walk-in and platform tenancies identically; the escrow only ever covered the initial payment.
 
 `released_by` is null for **both** a tenant confirmation and a timer expiry, so it cannot distinguish them on its own — `release_reason` is what carries that, and it is the field a disputed payout is argued from months later. Its three values are written by exactly three paths: `Reservation::confirmMoveIn()`, `ProcessMoveInDeadlines::releaseExpiredConfirmations()`, and `Admin\PaymentController::release()`.
 
@@ -345,6 +359,9 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | create_occupancy_snapshots_table | Daily occupancy history | Feeds occupancy trend chart | July 2026 |
 | create_occupancy_activities_table | Unit status-change log | Feeds Recent Activities feed | July 2026 |
 | add_link_to_notifications_table | Per-notification destination URL | Notifications had no target except a conversation; every non-message type dead-ended at the index | July 2026 |
+| add_walk_in_fields_to_users_table | `is_walk_in`, `created_by_landlord_id`; `email` made nullable (raw `ALTER`) | Walk-in tenants entered by landlords; many have only a phone | July 24 2026 |
+| add_rent_terms_to_reservations_table | `agreed_monthly_rent`, `rent_due_day` | Rent ledger inputs; both nullable with fallbacks | July 24 2026 |
+| add_manual_recording_to_payments_table | Widened `payment_method` + `payment_type` enums (raw `ALTER`); added `recorded_by`, `reference_no`, `payment_notes` + `(reservation_id, billing_period)` index | Landlord-recorded offline rent; the escrow only ever covered the initial payment | July 24 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `firstOrCreate` on unique `amenity_name`); runs before `PropertySeeder` in `DatabaseSeeder`. The amenities table is otherwise empty.

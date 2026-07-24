@@ -28,6 +28,9 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] Tenant Ratings (landlord rates tenants)
 - [x] Report Analytics (admin CSV export, data visualization)
 - [x] Landlord CSV export (Units, Reservations, Tenants — filter-aware, alongside the existing Occupancy export)
+- [x] Walk-in Tenants (landlord records an offline-arranged tenancy directly to Occupied — a lightweight non-login tenant account, no escrow; badged Walk-in everywhere as landlord-asserted, not platform-verified)
+- [x] Rent Ledger (derived monthly billing periods with Paid/Partial/Overdue/Due status for any occupied tenancy, walk-in or platform; landlord records offline payments — Cash/GCash/Bank/Maya/Check — with printable receipts and a portfolio-wide collections view)
+- [x] End of Tenancy (Completed terminal status returns the unit to the available pool; before this an Occupied reservation had no exit)
 
 ## 4. Explicitly Out of Scope
 - Legal dispute handling between landlords and tenants (the move-in dispute flow only freezes the deposit and queues it for an admin — it renders no judgment)
