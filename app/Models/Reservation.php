@@ -10,6 +10,16 @@ class Reservation extends Model
 {
     protected $primaryKey = 'reservation_id';
 
+    /**
+     * Statuses that mean "this reservation no longer holds its unit".
+     *
+     * Every query asking whether a unit is spoken for filters on this, so a new
+     * terminal status only has to be added here. 'Completed' joined the two
+     * originals when end-of-tenancy landed — before that an Occupied
+     * reservation had no exit at all and held its unit forever.
+     */
+    public const TERMINAL_STATUSES = ['Cancelled', 'Rejected', 'Completed'];
+
     protected $fillable = [
         'property_id',
         'unit_id',
@@ -19,6 +29,8 @@ class Reservation extends Model
         'target_move_in_date',
         'target_move_out_date',
         'duration_of_stay',
+        'agreed_monthly_rent',
+        'rent_due_day',
         'occupants_count',
         'rental_status',
         'agreement_terms_notes',
@@ -46,6 +58,7 @@ class Reservation extends Model
             'reservation_date' => 'date',
             'target_move_in_date' => 'date',
             'target_move_out_date' => 'date',
+            'agreed_monthly_rent' => 'decimal:2',
             'agreed_at' => 'datetime',
             'landlord_tc_accepted_at' => 'datetime',
             'tenant_tc_accepted_at' => 'datetime',
@@ -442,6 +455,94 @@ public ?Payment $releasedPayment = null;
             && $this->target_move_out_date->isPast();
     }
 
+    public function isCompleted(): bool
+    {
+        return $this->rental_status === 'Completed';
+    }
+
+    /**
+     * A tenancy the landlord entered by hand rather than one that came through
+     * the inquiry pipeline.
+     *
+     * Keyed off the tenant, not the missing conversation: a landlord can
+     * legitimately delete a thread, and a walk-in stays a walk-in either way.
+     */
+    public function isWalkIn(): bool
+    {
+        return (bool) $this->tenant?->is_walk_in;
+    }
+
+    // ─── Rent terms (the ledger's inputs) ────────────────────
+
+    /**
+     * What this tenant owes per month.
+     *
+     * Falls back to the unit's listed price so every pre-existing platform
+     * reservation has a rent without a backfill. The override exists because a
+     * walk-in rent is negotiated at the door and often isn't the list price.
+     */
+    public function monthlyRent(): float
+    {
+        return (float) ($this->agreed_monthly_rent ?? $this->unit?->rental_fee ?? 0);
+    }
+
+    /**
+     * Day of the month rent falls due.
+     *
+     * Defaults to the day they moved in, which is how an informal Philippine
+     * rental almost always works — "same date every month". Clamped to 28 so
+     * the day exists in February; a 31st due date would silently skip months.
+     */
+    public function rentDueDay(): int
+    {
+        $day = $this->rent_due_day
+            ?? $this->target_move_in_date?->day
+            ?? config('rentals.rent_due_day_default');
+
+        return max(1, min(28, (int) $day));
+    }
+
+    /**
+     * The date rent starts accruing. Move-in where there is one, otherwise the
+     * date the reservation was made — a walk-in always supplies a move-in date,
+     * so this fallback only ever covers odd legacy rows.
+     */
+    public function tenancyStartDate(): ?Carbon
+    {
+        $start = $this->target_move_in_date ?? $this->reservation_date;
+
+        return $start ? Carbon::parse($start) : null;
+    }
+
+    /**
+     * Close out an occupied tenancy and hand the unit back.
+     *
+     * Deliberately a separate status from Cancelled: a completed tenancy is a
+     * successful one, and folding it into Cancelled would erase that from the
+     * landlord's history and from analytics. Moves no money — the ledger
+     * records what was collected and is not settled or reversed here.
+     *
+     * Callers must hold a lock on this reservation.
+     */
+    public function endTenancy(?Carbon $on = null): bool
+    {
+        if ($this->rental_status !== 'Occupied') {
+            return false;
+        }
+
+        $this->rental_status = 'Completed';
+        $this->target_move_out_date = $on ?? now();
+        $saved = $this->save();
+
+        if ($saved) {
+            // Already sets vacated_at and flips the unit back to Available,
+            // which fires PropertyUnitObserver and logs the occupancy activity.
+            $this->releaseUnit();
+        }
+
+        return $saved;
+    }
+
     // ─── State Transitions ───────────────────────────────────
 
     public function advanceToNegotiation(): bool
@@ -494,7 +595,7 @@ public ?Payment $releasedPayment = null;
 
     public function reject(?string $reason = null): bool
     {
-        if (in_array($this->rental_status, ['Occupied', 'Cancelled', 'Rejected'])) {
+        if (in_array($this->rental_status, ['Occupied', ...self::TERMINAL_STATUSES], true)) {
             return false;
         }
         $this->rental_status = 'Rejected';
@@ -513,7 +614,7 @@ public ?Payment $releasedPayment = null;
 
     public function cancel(): bool
     {
-        if (in_array($this->rental_status, ['Occupied', 'Cancelled', 'Rejected'])) {
+        if (in_array($this->rental_status, ['Occupied', ...self::TERMINAL_STATUSES], true)) {
             return false;
         }
         $this->rental_status = 'Cancelled';

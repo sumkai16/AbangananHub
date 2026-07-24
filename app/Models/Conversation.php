@@ -51,6 +51,16 @@ class Conversation extends Model
     {
         return $this->hasMany(Reservation::class, 'conversation_id', 'conversation_id');
     }
+    /**
+     * The deal this thread is about, for display in the inbox and chat panel.
+     *
+     * Deliberately NOT Reservation::TERMINAL_STATUSES, unlike every other
+     * "non-terminal reservation" query in the app. Those ask whether a unit is
+     * still spoken for; this one asks what a conversation is about, and a
+     * finished tenancy is still what its thread was about. Excluding
+     * 'Completed' here would blank the stage stepper and the status pill the
+     * moment a landlord ends a tenancy, as though the deal had never happened.
+     */
     public function activeReservation(): HasOne
     {
         return $this->hasOne(Reservation::class, 'conversation_id', 'conversation_id')
