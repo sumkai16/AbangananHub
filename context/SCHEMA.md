@@ -277,6 +277,17 @@ Index `payments_reservation_period_index` on `(reservation_id, billing_period)` 
 |---|---|---|---|
 | (schema per implementation) | | | Landlord rates tenants |
 
+### rent_reminders
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| reminder_id | BIGINT UNSIGNED | PK | `$primaryKey = 'reminder_id'` |
+| reservation_id | FK → reservations.reservation_id | NOT NULL, cascade | |
+| billing_period | DATE | NOT NULL | The month the reminder is about |
+| milestone | VARCHAR(20) | NOT NULL | `due_soon` / `due_today` / `overdue_w1..wN` |
+| created_at | TIMESTAMP | | No `updated_at` — written once, never changed (`RentReminder::UPDATED_AT = null`) |
+
+`unique(reservation_id, billing_period, milestone)` (`rent_reminders_unique_milestone`). Idempotency guard for `reservations:process-rent-reminders` (July 24 2026): each fired milestone records one row, so a missed or repeated nightly run can't gap or double-notify. Same role the escrow loop's `move_in_last_reminder_on` plays, generalised to many periods per tenancy. `RentReminder::firstOrCreate(...)->wasRecentlyCreated` is the send gate.
+
 ### occupancy_snapshots
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
@@ -362,6 +373,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_walk_in_fields_to_users_table | `is_walk_in`, `created_by_landlord_id`; `email` made nullable (raw `ALTER`) | Walk-in tenants entered by landlords; many have only a phone | July 24 2026 |
 | add_rent_terms_to_reservations_table | `agreed_monthly_rent`, `rent_due_day` | Rent ledger inputs; both nullable with fallbacks | July 24 2026 |
 | add_manual_recording_to_payments_table | Widened `payment_method` + `payment_type` enums (raw `ALTER`); added `recorded_by`, `reference_no`, `payment_notes` + `(reservation_id, billing_period)` index | Landlord-recorded offline rent; the escrow only ever covered the initial payment | July 24 2026 |
+| create_rent_reminders_table | Idempotency guard for the nightly rent-reminder command | Reminders need a persisted per-milestone guard so a missed/double run can't gap or spam | July 24 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `firstOrCreate` on unique `amenity_name`); runs before `PropertySeeder` in `DatabaseSeeder`. The amenities table is otherwise empty.

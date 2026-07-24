@@ -16,3 +16,8 @@ Schedule::command('reservations:process-move-in-deadlines')->dailyAt('23:00');
 // Daily occupancy snapshot — feeds the occupancy trend chart.
 // Runs via cron/Supervisor on the VPS; locally use `php artisan schedule:work`.
 Schedule::command('occupancy:snapshot')->dailyAt('23:55');
+
+// Rent reminders — notifies landlords (and platform tenants) about upcoming
+// and overdue monthly rent, read off the ledger. Morning delivery reads better
+// than the nightly escrow run. Idempotent via the rent_reminders guard.
+Schedule::command('reservations:process-rent-reminders')->dailyAt('08:00');

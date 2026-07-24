@@ -48,4 +48,20 @@ return [
      * documented grace window.
      */
     'rent_overdue_grace_days' => 0,
+
+    /*
+     * Rent reminders — how far before the due date the "due soon" nudge fires.
+     */
+    'rent_reminder_lead_days' => 3,
+
+    /*
+     * How often the overdue reminder repeats while a period stays unpaid.
+     */
+    'rent_overdue_reminder_interval_days' => 7,
+
+    /*
+     * Stop reminding after this many overdue weeks, so a tenancy the landlord
+     * forgot to end doesn't generate reminders forever.
+     */
+    'rent_reminder_max_overdue_weeks' => 8,
 ];
