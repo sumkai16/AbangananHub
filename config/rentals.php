@@ -32,4 +32,20 @@ return [
      * Repeated reschedules converge on this bound instead of walking forever.
      */
     'handover_max_extension_days' => 30,
+
+    /*
+     * Rent ledger — day of the month rent falls due, used only when the
+     * reservation carries neither its own rent_due_day nor a move-in date to
+     * take the day from. Capped at 28 by Reservation::rentDueDay() so the day
+     * exists in February.
+     */
+    'rent_due_day_default' => 1,
+
+    /*
+     * Days past the due date before a billing period reads as Overdue rather
+     * than Due. Zero means the day after is already late, which matches how an
+     * informal rental is actually collected; raise it if landlords want a
+     * documented grace window.
+     */
+    'rent_overdue_grace_days' => 0,
 ];
