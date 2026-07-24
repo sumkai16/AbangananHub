@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
-    private const STATUSES = ['All', 'Held', 'Released', 'Pending'];
+    // 'Paid' = a landlord-recorded offline payment (rent ledger). It is never
+    // escrowed, so it can't be released — the list exists so an admin can still
+    // audit that money, clearly separated from platform-settled funds.
+    private const STATUSES = ['All', 'Held', 'Released', 'Paid', 'Pending'];
 
     public function index(Request $request)
     {
@@ -30,6 +33,7 @@ class PaymentController extends Controller
         $counts = [
             'Held' => Payment::where('status', 'Held')->count(),
             'Released' => Payment::where('status', 'Released')->count(),
+            'Paid' => Payment::where('status', 'Paid')->count(),
             'Pending' => Payment::where('status', 'Pending')->count(),
         ];
         $counts['All'] = Payment::count();
@@ -37,6 +41,7 @@ class PaymentController extends Controller
         $sums = [
             'Held' => Payment::where('status', 'Held')->sum('amount'),
             'Released' => Payment::where('status', 'Released')->sum('amount'),
+            'Paid' => Payment::where('status', 'Paid')->sum('amount'),
         ];
 
         return view('admin.payments.index', [

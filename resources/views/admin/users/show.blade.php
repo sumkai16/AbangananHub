@@ -121,8 +121,14 @@
                         <span class="w-1.5 h-1.5 rounded-full {{ strtolower($status) === 'active' ? 'bg-[#22C55E]' : (strtolower($status) === 'suspended' ? 'bg-[#EF4444]' : 'bg-[#94A3B8]') }}"></span>
                         {{ ucfirst($status) }}
                     </span>
+                    @if ($user->is_walk_in)
+                        {{-- Landlord-entered, not self-registered: no login, no verified
+                             identity, and a legitimately blank email. --}}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309]"
+                            title="Walk-in tenant added by a landlord — identity not verified by AbangananHub">Walk-in tenant</span>
+                    @endif
                 </div>
-                <p class="text-[13.5px] text-[#94A3B8] mb-3">{{ $user->email }}</p>
+                <p class="text-[13.5px] text-[#94A3B8] mb-3">{{ $user->email ?: 'No email on file' }}</p>
                 <div class="flex flex-wrap gap-2">
                     @forelse ($user->roles as $userRole)
                         @php

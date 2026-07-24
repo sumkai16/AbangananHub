@@ -57,13 +57,13 @@ class TenantController extends Controller
         $filename = 'abangananhub-tenants-' . now()->format('Y-m-d') . '.csv';
 
         $query = $this->filteredQuery($request)
-            ->with(['tenant:user_id,first_name,last_name,email,contact_number',
+            ->with(['tenant:user_id,first_name,last_name,email,contact_number,is_walk_in',
                 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee']);
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, [
-                'Tenant', 'Email', 'Contact', 'Property', 'Unit',
+                'Tenant', 'Type', 'Email', 'Contact', 'Property', 'Unit',
                 'Monthly Rent', 'Move In', 'Move Out', 'Occupants',
             ]);
 
@@ -73,6 +73,7 @@ class TenantController extends Controller
 
                     fputcsv($handle, [
                         $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
+                        $tenant?->is_walk_in ? 'Walk-in' : 'Platform',
                         $tenant->email ?? '',
                         $tenant->contact_number ?? '',
                         $reservation->property->title ?? '',

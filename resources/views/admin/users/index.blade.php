@@ -106,10 +106,18 @@
                                                     </div>
                                                 @endif
                                                 <div>
-                                                    <p class="text-[13.5px] font-semibold text-[#1F2937]">
-                                                        {{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: '—' }}
-                                                    </p>
-                                                    <p class="text-[12px] text-[#94A3B8]">{{ $user->email }}</p>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <p class="text-[13.5px] font-semibold text-[#1F2937]">
+                                                            {{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: '—' }}
+                                                        </p>
+                                                        @if ($user->is_walk_in)
+                                                            {{-- A landlord-entered tenant, not a self-registered
+                                                                 account — so its blank email is expected, not broken. --}}
+                                                            <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold"
+                                                                title="Walk-in tenant added by a landlord — identity not verified">Walk-in</span>
+                                                        @endif
+                                                    </div>
+                                                    <p class="text-[12px] text-[#94A3B8]">{{ $user->email ?: '—' }}</p>
                                                 </div>
                                             </div>
                                         </td>
