@@ -141,6 +141,23 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/tenants', [App\Http\Controllers\Landlord\TenantController::class, 'index'])->name('tenants.index');
         Route::get('/tenants/export', [App\Http\Controllers\Landlord\TenantController::class, 'export'])->name('tenants.export');
 
+        // Walk-in tenants — tenancies agreed offline and recorded after the
+        // fact. Registered before any /tenants/{param} route so the literal
+        // segments can't be swallowed by a wildcard.
+        Route::get('/tenants/walk-in/create', [App\Http\Controllers\Landlord\WalkInTenantController::class, 'create'])->name('tenants.walkIn.create');
+        Route::post('/tenants/walk-in', [App\Http\Controllers\Landlord\WalkInTenantController::class, 'store'])->name('tenants.walkIn.store');
+
+        // A single tenancy and its rent ledger. Serves walk-in and platform
+        // tenancies alike — the escrow only ever covered the initial payment.
+        Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
+        Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
+
+        // Rent collection
+        Route::get('/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/export', [App\Http\Controllers\Landlord\PaymentController::class, 'export'])->name('payments.export');
+        Route::post('/tenancies/{reservation}/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'store'])->name('payments.store');
+        Route::get('/payments/{payment}/receipt', [App\Http\Controllers\Landlord\PaymentController::class, 'receipt'])->name('payments.receipt');
+
         // Reviews
         Route::get('/reviews', [App\Http\Controllers\Landlord\ReviewController::class, 'index'])->name('reviews.index');
 
