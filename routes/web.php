@@ -151,6 +151,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         // tenancies alike — the escrow only ever covered the initial payment.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
+        // On-demand rent reminder; throttled so a jumpy landlord can't spam a tenant.
+        Route::post('/tenancies/{reservation}/remind', [App\Http\Controllers\Landlord\TenancyController::class, 'remind'])
+            ->middleware('throttle:10,1')->name('tenancies.remind');
 
         // Rent collection
         Route::get('/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'index'])->name('payments.index');

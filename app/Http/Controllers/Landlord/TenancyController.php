@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use App\Services\RentReminderNotifier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -81,5 +83,39 @@ class TenancyController extends Controller
         return redirect()
             ->route('landlord.tenancies.show', $reservation)
             ->with('success', 'Tenancy ended. The unit is available again and the ledger is closed.');
+    }
+
+    /**
+     * Send the tenant an on-demand rent reminder now, instead of waiting for the
+     * nightly job. Only reaches platform tenants — a walk-in has no account to
+     * notify — so the button that posts here is disabled on walk-in cards; this
+     * re-asserts it server-side rather than trusting the disabled attribute.
+     *
+     * Deliberately does not touch the rent_reminders idempotency guard: that
+     * table paces the automatic job, and a landlord clicking "remind" is an
+     * explicit act that shouldn't be suppressed by it (or suppress it).
+     */
+    public function remind(Reservation $reservation, RentReminderNotifier $notifier)
+    {
+        Gate::authorize('viewTenancy', $reservation);
+
+        $reservation->load(['tenant', 'property', 'unit', 'payments']);
+        $tenant = $reservation->tenant;
+
+        if (! $tenant || $tenant->is_walk_in || $tenant->account_status !== 'active') {
+            return back()->with('warning', 'This tenant has no AbangananHub account to notify.');
+        }
+
+        $target = RentLedger::for($reservation)
+            ->periods()
+            ->firstWhere(fn ($p) => $p['status'] !== 'paid');
+
+        if (! $target) {
+            return back()->with('warning', $tenant->first_name . ' has no outstanding rent to be reminded about.');
+        }
+
+        $notifier->sendToTenant($reservation, $target, Carbon::today());
+
+        return back()->with('success', 'Rent reminder sent to ' . $tenant->first_name . '.');
     }
 }

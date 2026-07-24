@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
+use App\Services\RentLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -38,15 +39,22 @@ class TenantController extends Controller
     public function index(Request $request)
     {
         $reservations = $this->filteredQuery($request)
-            ->with(['tenant', 'property.media', 'unit', 'conversation'])
+            ->with(['tenant', 'property.media', 'unit', 'conversation', 'payments'])
             ->latest('reservation_date')->paginate(12)->withQueryString();
+
+        // Rent standing per card, so each knows whether the tenant has anything
+        // to be reminded about. The ledger runs in memory off the already-loaded
+        // payments, and the page shows at most 12 tenancies.
+        $ledger = $reservations->getCollection()->mapWithKeys(fn (Reservation $r) => [
+            $r->reservation_id => RentLedger::for($r)->summary(),
+        ]);
 
         $properties = Auth::user()->properties()
             ->where('verification_status', 'Approved')
             ->orderBy('title')
             ->get(['property_id', 'title']);
 
-        return view('landlord.tenants.index', compact('reservations', 'properties'));
+        return view('landlord.tenants.index', compact('reservations', 'properties', 'ledger'));
     }
 
     /**

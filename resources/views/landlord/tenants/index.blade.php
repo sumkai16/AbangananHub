@@ -138,6 +138,19 @@
                     @php
                         $initials = strtoupper(substr($reservation->tenant->first_name ?? '', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1));
                         $thumb = $reservation->property->media->first() ?? null;
+
+                        // Rent standing → whether a reminder is meaningful.
+                        $summary = $ledger[$reservation->reservation_id] ?? null;
+                        $outstanding = $summary['outstanding'] ?? 0;
+                        $overdueCount = $summary['overdueCount'] ?? 0;
+                        $tenantIsWalkIn = (bool) $reservation->tenant->is_walk_in;
+                        $tenantActive = $reservation->tenant->account_status === 'active';
+                        $canRemind = ! $tenantIsWalkIn && $tenantActive && $outstanding > 0;
+                        $remindReason = $tenantIsWalkIn
+                            ? 'Walk-in tenants have no account to notify'
+                            : (! $tenantActive
+                                ? 'This tenant’s account is inactive'
+                                : ($outstanding <= 0 ? 'No outstanding rent to remind about' : ''));
                     @endphp
                     <div class="group flex flex-col rounded-2xl overflow-hidden bg-white border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.1)] transition-all duration-300">
 
@@ -202,9 +215,37 @@
                                 class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
                                 Manage tenancy
                             </a>
+
+                            {{-- Send rent reminder. Only meaningful for a platform tenant
+                                 with rent outstanding; disabled otherwise, with the reason
+                                 in the tooltip. The controller re-checks server-side. --}}
+                            @if($canRemind)
+                                <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
+                                    data-confirm="Send {{ $reservation->tenant->first_name }} a rent reminder?"
+                                    data-confirm-message="They’ll get an in-app notification about their {{ $overdueCount > 0 ? 'overdue' : 'upcoming' }} rent."
+                                    data-confirm-button="Send reminder">
+                                    @csrf
+                                    <button type="submit" title="Send rent reminder"
+                                        class="h-9 w-9 flex items-center justify-center rounded-full border transition-colors duration-200 cursor-pointer {{ $overdueCount > 0 ? 'border-[#EF4444]/40 text-[#DC2626] hover:bg-[#EF4444]/[0.06]' : 'border-[#64748B]/30 text-[#1F2937] hover:bg-[#EEF8F8]' }}">
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            @else
+                                <button type="button" disabled title="{{ $remindReason }}"
+                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#E2E8F0] text-[#CBD5E1] cursor-not-allowed">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                    </svg>
+                                </button>
+                            @endif
+
                             @if($reservation->conversation)
                                 <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200">
+                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200" title="Open conversation">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
