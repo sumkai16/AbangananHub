@@ -227,6 +227,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
        Route::get('/report-analytics', [ReportAnalyticsController::class, 'index'])->name('report-analytics.index');
        Route::get('/report-analytics/export', [ReportAnalyticsController::class, 'export'])->name('report-analytics.export');
+
+        // Overall ratings — platform-wide averages across the rating relationships
+        Route::get('/ratings', [App\Http\Controllers\Admin\RatingController::class, 'index'])->name('ratings.index');
     });
 
    // Conversations and messages
