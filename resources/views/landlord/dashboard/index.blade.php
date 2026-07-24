@@ -337,6 +337,7 @@
                                         'Reserved' => 'bg-[#FBBF24]',
                                         'Occupied' => 'bg-[#EF4444]',
                                         'Rejected', 'Cancelled' => 'bg-[#EF4444]',
+                                        'Completed' => 'bg-[#64748B]',
                                         default => 'bg-[#2AA7A1]',
                                     };
                                 @endphp

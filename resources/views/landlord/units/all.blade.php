@@ -276,7 +276,7 @@
                         default => ['tile' => 'border-[#E2E8F0] bg-[#F7FCFC]', 'text' => 'text-[#64748B]', 'dot' => 'bg-[#94A3B8]'],
                     };
                     $activeRes = in_array($unit->availability_status, ['Reserved', 'Occupied'], true)
-                        ? $unit->reservations->whereNotIn('rental_status', ['Cancelled', 'Rejected'])->sortByDesc('reservation_id')->first()
+                        ? $unit->reservations->whereNotIn('rental_status', \App\Models\Reservation::TERMINAL_STATUSES)->sortByDesc('reservation_id')->first()
                         : null;
                     $tenantName = $activeRes?->tenant ? trim($activeRes->tenant->first_name . ' ' . $activeRes->tenant->last_name) : null;
                     $unitPayload = [

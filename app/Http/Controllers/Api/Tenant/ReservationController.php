@@ -76,7 +76,7 @@ class ReservationController extends Controller
 
         $exists = Reservation::where('unit_id', $unit->unit_id)
             ->where('tenant_id', $tenantId)
-            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
             ->exists();
 
         if ($exists) {

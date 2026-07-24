@@ -121,8 +121,9 @@
                                 'Pending Rental Agreement' => 'Agreement',
                                 'Rental Agreement Signed' => 'Signed',
                                 'Occupied' => 'Occupied',
+                                'Completed' => 'Completed',
                             ];
-                            $rowTerminal = in_array($rowStatus, ['Cancelled', 'Rejected']);
+                            $rowTerminal = in_array($rowStatus, ['Cancelled', 'Rejected', 'Completed'], true);
                             // Same derived stage as the chat panel: money held or
                             // released while still on 'Signed' reads as "Paid".
                             $rowPaid = $rowStatus === 'Rental Agreement Signed'

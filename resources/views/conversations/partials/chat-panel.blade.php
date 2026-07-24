@@ -4,7 +4,11 @@
     $isLandlord = auth()->id() === $conversation->landlord_id;
     $isTenant = auth()->id() === $conversation->tenant_id;
 
-    $isTerminal = in_array($rentalStatus, ['Cancelled', 'Rejected']);
+    // 'Completed' is the only one of these activeReservation can actually
+    // return — it filters the other two out — but all three are listed so the
+    // check still reads as "the deal is over" rather than as a Completed
+    // special case.
+    $isTerminal = in_array($rentalStatus, ['Cancelled', 'Rejected', 'Completed'], true);
 
     // Payment state, read from the payments table rather than mirrored into
     // rental_status — one fact, one home. "Paid" is a *derived* stage: the

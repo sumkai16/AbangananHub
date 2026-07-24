@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,7 +22,7 @@ class ProfileController extends Controller
             ->get();
 
         $activeReservations = $user->reservations()
-            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
             ->with('property.media')
             ->latest('created_at')
             ->get();

@@ -40,7 +40,7 @@
         $unitsPayload = $approvedUnits->map(function ($unit) use ($property) {
             $hasActiveReservation = auth()->check() && \App\Models\Reservation::where('unit_id', $unit->unit_id)
                 ->where('tenant_id', auth()->id())
-                ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+                ->whereNotIn('rental_status', \App\Models\Reservation::TERMINAL_STATUSES)
                 ->exists();
 
             return [

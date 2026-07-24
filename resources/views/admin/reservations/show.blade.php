@@ -19,12 +19,13 @@
         'Pending Rental Agreement' => 'bg-[#FBBF24]',
         'Rental Agreement Signed'  => 'bg-[#2AA7A1]',
         'Occupied'                 => 'bg-[#22C55E]',
+        'Completed'                => 'bg-[#64748B]',
         'Cancelled'                => 'bg-[#94A3B8]',
         'Rejected'                 => 'bg-[#EF4444]',
     ];
 
     $rs = $reservation->rental_status;
-    $isTerminal = in_array($rs, ['Occupied', 'Cancelled', 'Rejected']);
+    $isTerminal = in_array($rs, ['Occupied', ...\App\Models\Reservation::TERMINAL_STATUSES], true);
 
     $paymentStatusBadge = [
         'Pending'  => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35',
@@ -37,7 +38,12 @@
         'Inquiry', 'Under Negotiation', 'Pending Rental Agreement',
         'Rental Agreement Signed', 'Occupied',
     ];
-    $currentPipelineIndex = array_search($rs, $pipeline);
+    // A completed tenancy ran the whole pipeline, so it reads as finished at
+    // the last step rather than falling through to array_search()'s false and
+    // rendering every step grey.
+    $currentPipelineIndex = $rs === 'Completed'
+        ? count($pipeline) - 1
+        : array_search($rs, $pipeline);
 @endphp
 
 <div class="max-w-5xl mx-auto" x-data="{ cancelOpen: false, rejectOpen: false }">

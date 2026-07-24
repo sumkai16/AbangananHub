@@ -7,13 +7,19 @@ use App\Models\OccupancyActivity;
 use App\Models\OccupancySnapshot;
 use App\Models\Property;
 use App\Models\PropertyUnit;
+use App\Models\Reservation;
 use App\Services\OccupancyRateCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OccupancyController extends Controller
 {
-    private const ACTIVE_STATUSES = ['Cancelled', 'Rejected'];
+    /**
+     * Named for what it selects against, not what it holds — the one use below
+     * is a whereNotIn. The values live on the model so a new terminal status
+     * reaches every occupancy query at once.
+     */
+    private const ACTIVE_STATUSES = Reservation::TERMINAL_STATUSES;
 
     public function index(Request $request)
     {

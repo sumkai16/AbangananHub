@@ -83,7 +83,7 @@ class ReservationController extends Controller
         DB::transaction(function () use ($request, $reservation) {
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
-            abort_if(in_array($locked->rental_status, ['Occupied', 'Cancelled', 'Rejected'], true), 409, 'This reservation cannot be cancelled at its current status.');
+            abort_if(in_array($locked->rental_status, ['Occupied', ...Reservation::TERMINAL_STATUSES], true), 409, 'This reservation cannot be cancelled at its current status.');
 
             $locked->rental_status = 'Cancelled';
             if ($request->filled('admin_note')) {
@@ -95,7 +95,7 @@ class ReservationController extends Controller
             if ($locked->unit && in_array($locked->unit->availability_status, ['Reserved', 'Occupied'], true)) {
                 $otherActive = Reservation::where('unit_id', $locked->unit_id)
                     ->where('reservation_id', '!=', $locked->reservation_id)
-                    ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+                    ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
                     ->exists();
 
                 if (!$otherActive) {
@@ -116,7 +116,7 @@ class ReservationController extends Controller
         DB::transaction(function () use ($request, $reservation) {
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
-            abort_if(in_array($locked->rental_status, ['Occupied', 'Cancelled', 'Rejected'], true), 409, 'This reservation cannot be rejected at its current status.');
+            abort_if(in_array($locked->rental_status, ['Occupied', ...Reservation::TERMINAL_STATUSES], true), 409, 'This reservation cannot be rejected at its current status.');
 
             $locked->rental_status    = 'Rejected';
             $locked->rejection_reason = $request->filled('admin_note')
@@ -127,7 +127,7 @@ class ReservationController extends Controller
             if ($locked->unit && $locked->unit->availability_status === 'Reserved') {
                 $otherActive = Reservation::where('unit_id', $locked->unit_id)
                     ->where('reservation_id', '!=', $locked->reservation_id)
-                    ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+                    ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
                     ->exists();
 
                 if (!$otherActive) {

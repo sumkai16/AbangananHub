@@ -227,7 +227,7 @@ class PropertyUnitController extends Controller
         }
 
         $hasActiveReservation = \App\Models\Reservation::where('unit_id', $unit->unit_id)
-            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+            ->whereNotIn('rental_status', \App\Models\Reservation::TERMINAL_STATUSES)
             ->exists();
 
         if ($hasActiveReservation) {
