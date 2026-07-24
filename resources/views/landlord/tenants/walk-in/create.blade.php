@@ -4,17 +4,24 @@
 
 @section('content')
     @php
-        // Units grouped by property for the cascading select. Only approved and
-        // genuinely free units reach here — the controller already filtered out
-        // anything with a live reservation against it.
-        $unitsByProperty = $properties->mapWithKeys(fn ($property) => [
-            $property->property_id => $property->units->map(fn ($unit) => [
+        // Properties with their available units, for the visual picker. Only
+        // approved, genuinely free units reach here — the controller already
+        // filtered out anything with a live reservation against it. Each unit
+        // carries its own photo, falling back to a property photo, so a landlord
+        // recognises the unit by sight rather than by label alone.
+        $galleryProperties = $properties->map(fn ($property) => [
+            'id'      => $property->property_id,
+            'title'   => $property->title,
+            'address' => $property->address,
+            'units'   => $property->units->map(fn ($unit) => [
                 'id'    => $unit->unit_id,
                 'label' => $unit->unit_label,
                 'rent'  => (float) $unit->rental_fee,
                 'cap'   => $unit->occupancy_limit,
+                'photo' => optional($unit->media->firstWhere('media_type', 'Image'))->media_url
+                    ?? optional($property->media->firstWhere('media_type', 'Image'))->media_url,
             ])->values(),
-        ]);
+        ])->values();
 
         $existingOptions = $existingTenants->map(fn ($tenant) => [
             'id'      => $tenant->user_id,
@@ -89,18 +96,40 @@
                     existingTenantId: @js(old('existing_tenant_id', '')),
                     firstName: @js(old('first_name', '')),
                     lastName: @js(old('last_name', '')),
-                    propertyId: @js(old('property_id', '')),
                     unitId: @js(old('unit_id', '')),
                     moveIn: @js(old('move_in_date', now()->toDateString())),
                     rent: @js(old('agreed_monthly_rent', '')),
                     dueDay: @js(old('rent_due_day', '')),
                     hasPayment: @js((bool) old('initial_amount')),
                     initialAmount: @js(old('initial_amount', '')),
-                    unitsByProperty: @js($unitsByProperty),
+                    galleryProperties: @js($galleryProperties),
                     existingTenants: @js($existingOptions),
+                    pickerOpen: false,
+                    unitSearch: '',
 
-                    get units() { return this.unitsByProperty[this.propertyId] ?? []; },
-                    get unit() { return this.units.find(u => String(u.id) === String(this.unitId)) ?? null; },
+                    openPicker() { this.unitSearch = ''; this.pickerOpen = true; },
+                    // Selecting is the whole action — no separate confirm step.
+                    pick(id) { this.unitId = String(id); this.pickerOpen = false; },
+                    // Flattened once so the summary and rent fallback don't walk
+                    // the grouped structure on every keystroke.
+                    get allUnits() { return this.galleryProperties.flatMap(p => p.units); },
+                    get unit() { return this.allUnits.find(u => String(u.id) === String(this.unitId)) ?? null; },
+                    get selectedProperty() {
+                        return this.galleryProperties.find(p => p.units.some(u => String(u.id) === String(this.unitId))) ?? null;
+                    },
+                    // Properties whose title or any unit label matches the search,
+                    // with non-matching units dropped so the modal narrows as typed.
+                    get filteredProperties() {
+                        const q = this.unitSearch.trim().toLowerCase();
+                        if (!q) return this.galleryProperties;
+                        return this.galleryProperties
+                            .map(p => {
+                                const propMatch = p.title.toLowerCase().includes(q);
+                                const units = propMatch ? p.units : p.units.filter(u => u.label.toLowerCase().includes(q));
+                                return { ...p, units };
+                            })
+                            .filter(p => p.units.length > 0);
+                    },
                     get effectiveRent() {
                         const typed = parseFloat(this.rent);
                         if (!isNaN(typed) && typed > 0) return typed;
@@ -124,7 +153,6 @@
                         if (this.mode === 'existing') return this.tenantName || 'Not selected';
                         return (this.firstName + ' ' + this.lastName).trim() || 'Not entered';
                     },
-                    onPropertyChange() { this.unitId = ''; },
                 }">
                 @csrf
 
@@ -259,37 +287,68 @@
                                 </div>
                             </div>
 
-                            <div class="grid sm:grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label for="property_id" class="{{ $labelClass }}">
-                                        Property <span class="text-[#EF4444]">*</span>
-                                    </label>
-                                    {{-- Named purely so old() can restore it after a failed
-                                         validation pass; the controller reads the property off
-                                         the unit, never off this field. --}}
-                                    <select id="property_id" name="property_id" x-model="propertyId" @change="onPropertyChange()"
-                                        class="{{ $inputClass }} bg-white cursor-pointer">
-                                        <option value="">Select a property…</option>
-                                        @foreach($properties as $property)
-                                            <option value="{{ $property->property_id }}">{{ $property->title }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="unit_id" class="{{ $labelClass }}">
-                                        Unit <span class="text-[#EF4444]">*</span>
-                                    </label>
-                                    <select id="unit_id" name="unit_id" x-model="unitId" :disabled="!propertyId"
-                                        class="{{ $inputClass }} bg-white cursor-pointer disabled:bg-[#F7FCFC] disabled:text-[#94A3B8] disabled:cursor-not-allowed">
-                                        <option value="" x-text="propertyId ? 'Select a unit…' : 'Choose a property first'"></option>
-                                        <template x-for="u in units" :key="u.id">
-                                            <option :value="u.id" x-text="u.label + ' — ₱' + u.rent.toLocaleString('en-PH')"></option>
+                            {{-- Compact unit picker: a trigger that opens the gallery in
+                                 a modal, keeping the form short. Selecting a unit sets
+                                 unit_id; the property is derived from it. --}}
+                            <div class="mb-5">
+                                <label class="{{ $labelClass }}">
+                                    Unit <span class="text-[#EF4444]">*</span>
+                                </label>
+
+                                {{-- The one value that actually posts. --}}
+                                <input type="hidden" name="unit_id" x-model="unitId">
+
+                                {{-- Empty state --}}
+                                <button type="button" x-show="!unit" @click="openPicker()"
+                                    class="w-full flex items-center gap-3 rounded-xl border border-dashed border-[#64748B]/40 bg-[#F7FCFC] px-4 py-3.5 text-left hover:border-[#2AA7A1]/60 hover:bg-[#EEF8F8]/40 transition-all duration-200 cursor-pointer">
+                                    <span class="w-9 h-9 rounded-lg bg-white ring-1 ring-[#64748B]/10 flex items-center justify-center shrink-0">
+                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                        </svg>
+                                    </span>
+                                    <span class="flex-1 min-w-0">
+                                        <span class="block text-[13.5px] font-semibold text-[#1F2937]">Choose a unit</span>
+                                        <span class="block text-[12px] text-[#64748B]">Browse your available units by photo</span>
+                                    </span>
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="2" class="shrink-0">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                    </svg>
+                                </button>
+
+                                {{-- Selected state --}}
+                                <div x-show="unit" x-cloak
+                                    class="flex items-center gap-3 rounded-xl border border-[#2AA7A1]/30 bg-[#EEF8F8]/40 p-2.5">
+                                    <div class="w-14 h-14 rounded-lg bg-white overflow-hidden shrink-0 ring-1 ring-[#64748B]/10">
+                                        <template x-if="unit && unit.photo">
+                                            <img :src="unit ? unit.photo : ''" :alt="unit ? unit.label : ''" class="w-full h-full object-cover">
                                         </template>
-                                    </select>
-                                    @error('unit_id')
-                                        <p class="{{ $errorClass }}">{{ $message }}</p>
-                                    @enderror
+                                        <template x-if="unit && !unit.photo">
+                                            <div class="w-full h-full flex items-center justify-center">
+                                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="1.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                                </svg>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-[13.5px] font-bold text-[#1F2937] truncate" x-text="unit ? unit.label : ''"></p>
+                                        <p class="text-[11.5px] text-[#64748B] truncate" x-text="selectedProperty ? selectedProperty.title : ''"></p>
+                                        <div class="flex items-center gap-2.5 mt-0.5">
+                                            <span class="text-[12.5px] font-bold text-[#2AA7A1]" x-text="unit ? '₱' + unit.rent.toLocaleString('en-PH') : ''"></span>
+                                            <span class="text-[11px] text-[#64748B]" x-show="unit && unit.cap" x-text="unit ? unit.cap + ' pax' : ''"></span>
+                                        </div>
+                                    </div>
+                                    <button type="button" @click="openPicker()"
+                                        class="h-9 px-4 shrink-0 rounded-full border border-[#2AA7A1] text-[#2AA7A1] text-[12px] font-semibold hover:bg-white transition-colors duration-200 cursor-pointer">
+                                        Change
+                                    </button>
                                 </div>
+
+                                @error('unit_id')
+                                    <p class="{{ $errorClass }}">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="grid sm:grid-cols-2 gap-4 mb-4">
@@ -469,8 +528,12 @@
                                 </div>
                                 <div class="flex items-start justify-between gap-3">
                                     <span class="text-[#64748B]">Unit</span>
-                                    <span class="font-semibold text-[#1F2937] text-right"
-                                        x-text="unit ? unit.label : 'Not selected'"></span>
+                                    <span class="font-semibold text-[#1F2937] text-right">
+                                        <span x-text="unit ? unit.label : 'Not selected'"></span>
+                                        <span x-show="selectedProperty" x-cloak
+                                            class="block text-[11px] font-normal text-[#64748B]"
+                                            x-text="selectedProperty ? selectedProperty.title : ''"></span>
+                                    </span>
                                 </div>
                                 <div class="flex items-start justify-between gap-3">
                                     <span class="text-[#64748B]">Move-in</span>
@@ -520,6 +583,128 @@
                         </x-card>
                     </div>
                 </div>
+
+                {{-- Unit picker modal — teleported to body so no card's overflow or
+                     transform can clip it (RULES.md → Modals & Overlays). It keeps
+                     the form's Alpine scope, so picking a card sets unitId on the
+                     hidden input still living inside the form. --}}
+                <template x-teleport="body">
+                    <div x-show="pickerOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        role="dialog" aria-modal="true" aria-labelledby="unit-picker-title"
+                        x-on:keydown.escape.window="pickerOpen = false">
+
+                        {{-- Backdrop --}}
+                        <div x-show="pickerOpen" x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0" @click="pickerOpen = false"
+                            class="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-sm"></div>
+
+                        {{-- Panel --}}
+                        <div x-show="pickerOpen"
+                            x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+                            x-transition:enter-start="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-200"
+                            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                            class="relative w-full max-w-3xl max-h-[85vh] flex flex-col bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
+
+                            {{-- Header + search --}}
+                            <div class="px-6 pt-6 pb-4 border-b border-[#E2E8F0]">
+                                <div class="flex items-start justify-between gap-4 mb-4">
+                                    <div>
+                                        <h2 id="unit-picker-title" class="text-[17px] font-bold text-[#1F2937]">Choose a unit</h2>
+                                        <p class="text-[12.5px] text-[#64748B] mt-0.5">Only approved, currently vacant units are shown.</p>
+                                    </div>
+                                    <button type="button" @click="pickerOpen = false" aria-label="Close"
+                                        class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#F7FCFC] hover:text-[#1F2937] transition-colors duration-200 cursor-pointer">
+                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="relative">
+                                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                                    </svg>
+                                    <label for="unit-search" class="sr-only">Search units</label>
+                                    <input type="text" id="unit-search" x-model="unitSearch"
+                                        placeholder="Search by unit or property…"
+                                        class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
+                                </div>
+                            </div>
+
+                            {{-- Gallery --}}
+                            <div class="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+                                <template x-for="property in filteredProperties" :key="property.id">
+                                    <div>
+                                        <div class="flex items-baseline gap-2 mb-2.5">
+                                            <p class="text-[12.5px] font-bold text-[#1F2937]" x-text="property.title"></p>
+                                            <span class="text-[11px] text-[#94A3B8]"
+                                                x-text="property.units.length + (property.units.length === 1 ? ' unit' : ' units')"></span>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                            <template x-for="u in property.units" :key="u.id">
+                                                <button type="button" @click="pick(u.id)"
+                                                    :class="String(unitId) === String(u.id)
+                                                        ? 'border-[#2AA7A1] ring-2 ring-[#2AA7A1]/30'
+                                                        : 'border-[#E2E8F0] hover:border-[#2AA7A1]/50 hover:shadow-[0_4px_16px_rgba(15,23,42,0.08)]'"
+                                                    class="group relative text-left rounded-xl border overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/40">
+
+                                                    <span x-show="String(unitId) === String(u.id)" x-cloak
+                                                        class="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-[#2AA7A1] flex items-center justify-center shadow">
+                                                        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                        </svg>
+                                                    </span>
+
+                                                    <div class="aspect-[4/3] bg-[#F7FCFC] overflow-hidden">
+                                                        <template x-if="u.photo">
+                                                            <img :src="u.photo" :alt="u.label" class="w-full h-full object-cover">
+                                                        </template>
+                                                        <template x-if="!u.photo">
+                                                            <div class="w-full h-full flex items-center justify-center">
+                                                                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="1.5">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                                                </svg>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+
+                                                    <div class="p-2.5">
+                                                        <p class="text-[12.5px] font-bold text-[#1F2937] truncate" x-text="u.label"></p>
+                                                        <div class="flex items-center justify-between gap-2 mt-1">
+                                                            <span class="text-[12.5px] font-bold text-[#2AA7A1]"
+                                                                x-text="'₱' + u.rent.toLocaleString('en-PH')"></span>
+                                                            <span class="inline-flex items-center gap-1 text-[11px] text-[#64748B]" x-show="u.cap">
+                                                                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                                                </svg>
+                                                                <span x-text="u.cap"></span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {{-- No search matches --}}
+                                <div x-show="filteredProperties.length === 0" x-cloak class="py-10 text-center">
+                                    <p class="text-[13.5px] font-semibold text-[#1F2937]">No units match "<span x-text="unitSearch"></span>"</p>
+                                    <p class="text-[12.5px] text-[#64748B] mt-1">Try a different unit label or property name.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </form>
         @endif
     </div>

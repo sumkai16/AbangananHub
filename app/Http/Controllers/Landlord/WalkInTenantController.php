@@ -38,12 +38,16 @@ class WalkInTenantController extends Controller
         // the guard in store() after the landlord filled the whole form.
         $properties = Property::where('landlord_id', $landlordId)
             ->where('verification_status', 'Approved')
-            ->with(['units' => fn ($q) => $q
-                ->where('verification_status', 'Approved')
-                ->where('availability_status', 'Available')
-                ->whereDoesntHave('reservations', fn ($r) => $r
-                    ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES))
-                ->orderBy('unit_label'),
+            ->with([
+                // property.media is the per-unit photo fallback in the picker.
+                'media',
+                'units' => fn ($q) => $q
+                    ->where('verification_status', 'Approved')
+                    ->where('availability_status', 'Available')
+                    ->whereDoesntHave('reservations', fn ($r) => $r
+                        ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES))
+                    ->with('media')
+                    ->orderBy('unit_label'),
             ])
             ->orderBy('title')
             ->get()
