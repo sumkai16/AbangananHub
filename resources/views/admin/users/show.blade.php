@@ -146,6 +146,24 @@
                         <span class="text-[13px] text-[#94A3B8] italic">No role assigned</span>
                     @endforelse
                 </div>
+
+                {{-- Ratings received — role-separated, shown only where there's a score. --}}
+                @if($landlordRating['avg'] !== null || $tenantRating['avg'] !== null)
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-3">
+                        @if($landlordRating['avg'] !== null)
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">As landlord</span>
+                                <x-star-rating :rating="$landlordRating['avg']" :count="$landlordRating['count']" />
+                            </div>
+                        @endif
+                        @if($tenantRating['avg'] !== null)
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">As tenant</span>
+                                <x-star-rating :rating="$tenantRating['avg']" :count="$tenantRating['count']" />
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             {{-- Member stat --}}

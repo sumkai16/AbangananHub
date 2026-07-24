@@ -170,17 +170,19 @@
             </div>
             <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Avg Rating</span>
+                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rating as landlord</span>
                     <div class="w-7 h-7 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
                     </div>
                 </div>
-                @if($averageRating)
-                    <span class="text-xl font-extrabold text-[#1F2937]">{{ $averageRating }}</span>
+                @if($averageRating !== null)
+                    <span class="text-xl font-extrabold text-[#1F2937]">{{ number_format($averageRating, 1) }}</span>
+                    <span class="text-[12px] text-[#64748B] font-normal ml-1">from {{ $ratingCount }} {{ Str::plural('tenant', $ratingCount) }}</span>
                 @else
-                    <span class="text-[13px] font-medium text-[#64748B]">N/A</span>
+                    <span class="text-xl font-extrabold text-[#94A3B8]">—</span>
+                    <span class="text-[12px] text-[#64748B] font-normal ml-1">No reviews yet</span>
                 @endif
             </div>
         </div>
@@ -243,13 +245,8 @@
         <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-[15px] font-bold text-[#1F2937]">Reviews from tenants</h2>
-                @if($averageRating)
-                    <div class="flex items-center gap-1.5 text-[13px] text-[#64748B]">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="none">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                        {{ $averageRating }} average
-                    </div>
+                @if($averageRating !== null)
+                    <x-star-rating :rating="$averageRating" :count="$ratingCount" />
                 @endif
             </div>
 

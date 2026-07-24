@@ -78,7 +78,9 @@ class ProfileController extends Controller
             ->take(10)
             ->get();
 
-        $averageRating = Review::whereIn('property_id', $propertyIds)->avg('rating');
+        // Shared helper: excludes hidden reviews (the inline avg here used to
+        // include them) and carries the count.
+        $ratingSummary = $user->landlordRatingSummary();
 
         return view('landlord.profile.show', [
             'user' => $user,
@@ -89,7 +91,8 @@ class ProfileController extends Controller
             'totalUnits' => $totalUnits,
             'occupiedUnits' => $occupiedUnits,
             'reviews' => $reviews,
-            'averageRating' => $averageRating ? round($averageRating, 1) : null,
+            'averageRating' => $ratingSummary['avg'],
+            'ratingCount' => $ratingSummary['count'],
         ]);
     }
 

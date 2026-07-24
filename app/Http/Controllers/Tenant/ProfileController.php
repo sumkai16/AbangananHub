@@ -32,6 +32,9 @@ class ProfileController extends Controller
             'favoritesCount' => $user->favorites()->count(),
             'reviews' => $reviews,
             'activeReservations' => $activeReservations,
+            // How landlords have rated this tenant — collected via tenant_ratings
+            // but never shown until now.
+            'tenantRating' => $user->tenantRatingSummary(),
         ]);
     }
 
