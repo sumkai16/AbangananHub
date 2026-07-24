@@ -75,11 +75,11 @@
 | unit_id | BIGINT UNSIGNED | PK | `$primaryKey = 'unit_id'` |
 | property_id | FK → properties.property_id | NOT NULL | |
 | unit_label | VARCHAR(100) | NOT NULL | e.g. "Room A", "Bed 3" — column is `unit_label`, not `unit_name` |
-| unit_type | VARCHAR(50) | NULLABLE | Free text (Bedspace, Room, Apartment, Studio, Dormitory) |
-| floor | VARCHAR(50) | NULLABLE | e.g. "1st Floor" |
+| ~~unit_type~~ | — | **DOES NOT EXIST** | Verified absent July 24 2026 — see the note below the table |
+| ~~floor~~ | — | **DOES NOT EXIST** | Verified absent July 24 2026 |
 | description | TEXT | NULLABLE | |
 | rental_fee | DECIMAL(10,2) | NOT NULL | |
-| security_deposit | DECIMAL(10,2) | NULLABLE | |
+| ~~security_deposit~~ | — | **DOES NOT EXIST** | Verified absent July 24 2026 |
 | occupancy_limit | INT | NULLABLE | |
 | availability_status | ENUM('Available','Reserved','Occupied','Maintenance') | DEFAULT 'Available' | Maintenance added for unit form |
 | vacated_at | TIMESTAMP | NULLABLE | Occupancy tracking |
@@ -87,6 +87,12 @@
 | rejection_reason | TEXT | NULLABLE | Admin rejection note |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
+
+**`unit_type`, `floor` and `security_deposit` are not columns — this table documented them for months and they were never created** (resolved July 24 2026). The cause is a **misnamed migration**: `2026_07_18_022220_add_unit_type_floor_deposit_description_to_property_units` promises all four in its filename, but its body contains a single `ALTER TABLE ... MODIFY COLUMN availability_status` adding the `Maintenance` enum member and nothing else. It is recorded in `migrations` as run (batch 1), so `migrate` reports nothing outstanding and `migrate:fresh` reproduces the gap exactly.
+
+Consequences, all live: `PropertyUnit::$fillable` declares all three, `Landlord\PropertyUnitController::store()/update()` validate and write them, so **creating a unit throws `SQLSTATE[42S22] Unknown column 'unit_type'`** (see ARCHITECTURE.md). Reads fail silently instead — a missing attribute returns null — so `agreements/show` has a "Security deposit" row that can never render, `OccupancyController` reports null deposits, the units CSV exports blanks, and `properties/show`'s unit payload sends `deposit: null` to the cost breakdown. Existing units came from seeders, which is why nothing looked broken.
+
+**Do not trust a migration by its filename.** This one was cross-checked against `Schema::hasColumn` before this entry was written; the previous version of this table was written from the filename alone and was wrong for months.
 
 ### property_media
 | Column | Type | Constraints | Notes |
@@ -119,6 +125,8 @@
 |---|---|---|---|
 | property_id | FK → properties.property_id | | Composite key |
 | amenity_id | FK → amenities.amenity_id | | `belongsToMany` needs all 4 args |
+
+**Empty, and nothing writes to it** (confirmed July 24 2026 — 0 rows vs 130 in `unit_amenities`). Amenities were a property-level concept before the multi-unit model; no landlord form has ever attached one to a property. `properties/show` derives its amenity list from `units.amenities` instead (DESIGN.md §6e), so the `Property::amenities()` relation is now unused by every view — don't eager-load it, and don't read it expecting data.
 
 ### unit_amenities (pivot)
 | Column | Type | Constraints | Notes |
@@ -332,7 +340,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | create_payments_table | PayMongo integration | Payment processing | Mid 2026 |
 | create_tenant_ratings_table | Landlord rates tenants | Tenant accountability | Mid 2026 |
 | add_vacated_at_to_property_units_table | Occupancy tracking | Track when a unit was vacated | July 2026 |
-| add_unit_type_floor_deposit_description_to_property_units | Richer unit fields | unit_type, floor, security_deposit | July 2026 |
+| add_unit_type_floor_deposit_description_to_property_units | **Misnamed — adds none of those columns.** Body is one `ALTER TABLE property_units MODIFY COLUMN availability_status` adding the `Maintenance` member | Filename describes an intent that was never written; see the note under `property_units` | July 2026 |
 | add_caption_to_unit_media_table | Photo captions | Optional per-photo caption shown to tenants | July 2026 |
 | create_occupancy_snapshots_table | Daily occupancy history | Feeds occupancy trend chart | July 2026 |
 | create_occupancy_activities_table | Unit status-change log | Feeds Recent Activities feed | July 2026 |

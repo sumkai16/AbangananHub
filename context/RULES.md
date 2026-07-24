@@ -96,6 +96,18 @@ Every controller / request-path change gets a two-front check before it's done �
 - Validate then assign explicit fields — never `Model::create($request->all())` / `->fill($request->all())`. No raw SQL with user input (`selectRaw` is fine for hardcoded aggregates only). Validate file uploads (mime + size).
 - Run `composer audit` periodically; dependency advisories are a free catch.
 
+## Blade Compile Traps (July 24 2026)
+Blade tokenises a template with `token_get_all()` **before** it strips comments or compiles directives. Two failure modes come out of that, and both were hit in one sitting:
+
+- **Never write a literal PHP open tag inside a Blade comment.** `{{-- ... <?php ... --}}` opens a real PHP token block, and every directive after it in the file silently stops compiling. There is **no error** — the page returns 200 with markup missing. A `<nav>` rendered its opening tag and dropped its entire contents this way. *If a block of Blade vanishes from the output but the page doesn't error, grep the file for `<?php` before suspecting your conditionals.*
+- **Use `@php ... @endphp`, not the inline `@php(...)`.** The inline form emitted an unterminated `<?php(` in `layouts/app`, swallowing the rest of the header. That one at least failed loudly — but as `syntax error, unexpected token "else"` pointing at a line ~300 below the actual cause, so trust the *first* directive above the reported line, not the line itself.
+- Related, already in DESIGN.md §6e: `word@if(...)` renders as literal text, because Blade's `\B@` won't match an `@` preceded by a word character.
+
+**Verify a compile without loading the page:** `Blade::compileString(file_get_contents($view))` written to a temp file and run through `php -l` localises the real error far faster than a stack trace.
+
+## View Composers
+Data the **layout** needs on every page goes in a `View::composer('layouts.app', …)` in `AppServiceProvider::boot`, not a variable each controller passes. The header renders everywhere; a controller that forgot would drop the feature silently on that page only. Cache anything that hits the DB (`Cache::remember`, 10 min is fine for nav-level data) — the layout renders on *every* request, so an uncached query there is a site-wide cost. Current composer: `navAreas` for the header's Areas menu.
+
 ## Storage
 - Filter `unit_media`/`property_media` to `media_type === 'Image'` before rendering in `<img>` — the table also holds Video rows, which render as broken images otherwise (applies to galleries, thumbnails, and JS payloads)
 - `Storage::url()` for local files with relative paths only

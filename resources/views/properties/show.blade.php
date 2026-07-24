@@ -11,6 +11,32 @@
         $minFee = $availableUnits->min('rental_fee');
         $maxFee = $availableUnits->max('rental_fee');
 
+        // Amenities are held per unit (unit_amenities); property_amenities is
+        // empty and has no landlord-facing form, so the property's list is
+        // derived from what its approved units actually offer. Counting the
+        // units carrying each one lets the section say "some units" instead of
+        // implying the whole property has something only one room does.
+        $amenityUnitCounts = [];
+        foreach ($approvedUnits as $unit) {
+            foreach ($unit->amenities->pluck('amenity_name')->unique() as $amenityName) {
+                $amenityUnitCounts[$amenityName] = ($amenityUnitCounts[$amenityName] ?? 0) + 1;
+            }
+        }
+        ksort($amenityUnitCounts, SORT_NATURAL | SORT_FLAG_CASE);
+
+        $offeredAmenities = collect($amenityUnitCounts)
+            ->map(fn($unitsWithIt, $name) => [
+                'name' => $name,
+                'inEveryUnit' => $unitsWithIt === $approvedUnits->count(),
+            ])
+            ->values();
+
+        // The "Some units" tag only means something next to an untagged row.
+        // When no amenity is in every unit it would land on all of them and
+        // distinguish nothing — the section's subtitle already says the list
+        // spans units, so the tag is suppressed rather than repeated.
+        $tagPartialAmenities = $offeredAmenities->contains('inEveryUnit', true);
+
         $unitsPayload = $approvedUnits->map(function ($unit) use ($property) {
             $hasActiveReservation = auth()->check() && \App\Models\Reservation::where('unit_id', $unit->unit_id)
                 ->where('tenant_id', auth()->id())
@@ -537,30 +563,16 @@
                     </button>
                 @endauth
 
-                @if(!empty($property->house_rules))
-                <section id="house-rules" class="mt-10 pt-8 border-t border-[#E2E8F0]">
-                    <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">House rules</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                @foreach($property->house_rules as $rule)
-                                    <div class="flex items-center gap-3 text-sm text-[#1F2937] font-medium">
-                                        <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24"
-                                                stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </div>
-                                        {{ $rule }}
-                                    </div>
-                                @endforeach
-                            </div>
-                </section>
-                @endif
-
-                @if($property->amenities->count() > 0)
+                @if($offeredAmenities->isNotEmpty())
                 <section id="amenities" class="mt-10 pt-8 border-t border-[#E2E8F0]">
                     <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">What this place offers</h2>
+                    @if($approvedUnits->count() > 1)
+                        <p class="-mt-2 mb-4 text-[12.5px] text-[#64748B]">
+                            Across {{ $approvedUnits->count() }} units. Select a unit to see exactly what it includes.
+                        </p>
+                    @endif
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        @foreach($property->amenities as $amenity)
+                        @foreach($offeredAmenities as $amenity)
                             <div class="flex items-center gap-3 text-sm text-[#1F2937] font-medium">
                                 <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center flex-shrink-0">
                                     <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24"
@@ -568,7 +580,31 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
-                                {{ $amenity->amenity_name }}
+                                <span class="min-w-0">
+                                    {{ $amenity['name'] }}
+                                    @if($tagPartialAmenities && ! $amenity['inEveryUnit'])
+                                        <span class="ml-1 align-middle text-[10.5px] font-semibold uppercase tracking-wide text-[#156F8C] bg-[#EEF8F8] rounded px-1.5 py-0.5 whitespace-nowrap">Some units</span>
+                                    @endif
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+                @endif
+
+                @if(!empty($property->house_rules))
+                <section id="house-rules" class="mt-10 pt-8 border-t border-[#E2E8F0]">
+                    <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">House rules</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        @foreach($property->house_rules as $rule)
+                            <div class="flex items-center gap-3 text-sm text-[#1F2937] font-medium">
+                                <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </div>
+                                {{ $rule }}
                             </div>
                         @endforeach
                     </div>

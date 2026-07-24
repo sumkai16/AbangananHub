@@ -9,7 +9,7 @@
     <title>{{ $title ?? 'AbangananHub' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,600;1,8..60,700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <script>
@@ -46,6 +46,61 @@
                     Abanganan<span class="text-[#156F8C]">Hub</span>
                 </span>
             </a>
+
+            {{-- Primary nav — sits beside the logo, deliberately not centred: the
+                 collapsed search pill below is `absolute left-1/2`, and a centred
+                 nav would land underneath it on scroll. Hidden below `lg`, which
+                 matches what phones get today (this header has no mobile menu). --}}
+            <nav aria-label="Primary" class="hidden lg:flex items-center gap-1 ml-8 mr-auto">
+                {{-- Block form, not the inline parenthesised one: that emitted an
+                     unterminated PHP open tag here and swallowed the rest of the
+                     header. Never write a literal PHP open tag in a Blade comment
+                     either — Blade tokenises with token_get_all(), so one inside a
+                     comment still opens a PHP block and silently drops the markup
+                     that follows it. --}}
+                @php
+                    $onBrowse = request()->routeIs('properties.index') || request()->routeIs('home');
+                @endphp
+
+                <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-all cursor-pointer {{ $onBrowse ? 'text-[#156F8C] bg-[#EEF8F8]' : 'text-[#1F2937] hover:bg-[#F7FCFC]' }}">
+                    Browse
+                </a>
+
+                @if($navAreas->isNotEmpty())
+                    <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+                        <button type="button" @click="open = !open" @click.outside="open = false"
+                            :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
+                            class="flex items-center gap-1 px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#F7FCFC] transition-all cursor-pointer">
+                            Areas
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" class="transition-transform duration-200 motion-reduce:transition-none"
+                                :class="open && 'rotate-180'" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
+                            class="absolute top-[calc(100%+8px)] left-0 w-[248px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E8F0] py-2 z-50 motion-reduce:transition-none">
+                            @foreach($navAreas as $area => $count)
+                                <a href="{{ route('properties.index', ['location' => $area]) }}"
+                                    class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#EEF8F8] transition-colors">
+                                    <span class="truncate">{{ $area }}</span>
+                                    <span class="text-[12px] font-bold text-[#64748B] flex-shrink-0">{{ $count }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <a href="{{ route('about') }}#how-it-works"
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#F7FCFC] transition-all cursor-pointer">
+                    How it works
+                </a>
+            </nav>
 
             {{-- Collapsed search pill (shown on scroll) --}}
             @if(($searchBar ?? true) && !View::hasSection('hide_search'))
@@ -337,115 +392,11 @@
                 style="max-height: 200px; opacity: 1;">
 
                 <div class="flex justify-center pb-4 pt-1 px-4 sm:px-6">
-                    <form action="{{ route('properties.index') }}" method="GET"
-                        class="flex items-center w-full max-w-[820px] bg-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)] border border-[#E2E8F0] transition-all duration-300">
-
-                        <div
-                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-[#E2E8F0] cursor-pointer hover:bg-[#F7FCFC] rounded-l-full transition-colors w-[33%] overflow-hidden">
-                            <span
-                                class="text-[10px] sm:text-[11px] font-bold text-[#1F2937] tracking-wide uppercase truncate">Where</span>
-                            <input type="text" name="location" placeholder="Search..." aria-label="Where"
-                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-[#64748B] focus:ring-0 placeholder-[#94A3B8] w-full outline-none mt-0.5 truncate">
-                        </div>
-
-                        <div
-                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-[#E2E8F0] hover:bg-[#F7FCFC] transition-colors w-[33%] overflow-hidden">
-                            <span
-                                class="text-[10px] sm:text-[11px] font-bold text-[#1F2937] tracking-wide uppercase truncate">Type</span>
-                            <select name="type"
-                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-[#64748B] focus:ring-0 w-full outline-none appearance-none cursor-pointer mt-0.5 truncate">
-                                <option value="">Any type</option>
-                                <option value="Bedspace">Bedspace</option>
-                                <option value="Room">Room</option>
-                                <option value="Apartment">Apartment</option>
-                                <option value="House">House</option>
-                            </select>
-                        </div>
-
-                        <div
-                            class="flex-1 flex items-center justify-between pl-3 pr-2 sm:pl-7 sm:pr-2 py-2 hover:bg-[#F7FCFC] rounded-r-full transition-colors w-[33%] overflow-hidden">
-                            <div class="flex flex-col justify-center w-[calc(100%-36px)] sm:w-auto overflow-hidden">
-                                <span
-                                    class="text-[10px] sm:text-[11px] font-bold text-[#1F2937] tracking-wide uppercase truncate">Budget</span>
-                                <input type="number" name="price_max" placeholder="Max ₱" aria-label="Maximum budget"
-                                    class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-[#64748B] focus:ring-0 placeholder-[#94A3B8] w-full outline-none mt-0.5 truncate">
-                            </div>
-                            <button type="submit"
-                                class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#FF8A65] flex items-center justify-center text-white flex-shrink-0 hover:brightness-95 transition-colors ml-1 sm:ml-3 shadow-md">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                    stroke-width="3" class="sm:w-[17px] sm:h-[17px]">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </button>
-                        </div>
-
-                    </form>
+                    <x-search-pill variant="header" />
                 </div>
 
-                <div class="flex items-center justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6 overflow-x-auto pb-1"
-                    style="-ms-overflow-style:none; scrollbar-width:none;">
-                    <a href="{{ route('properties.index') }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="all">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">All</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['type' => 'Bedspace']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="Bedspace">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 7h18M3 7v10m0-10V5m18 2v10m0-10V5M3 17h18M6 12h12M5 5h14" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Bedspace</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['type' => 'Room']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="Room">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 21h18M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Room</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['type' => 'Apartment']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="Apartment">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Apartment</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['type' => 'House']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="House">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 21h18M3 10.5L12 3l9 7.5M5 21V10.5M19 21V10.5M9 21v-6h6v6" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">House</span>
-                    </a>
-                    <a href="{{ route('favorites.index') }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Saved</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['verified' => 1]) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Verified</span>
-                    </a>
+                <div class="px-4 sm:px-6">
+                    <x-category-strip />
                 </div>
 
             </div>{{-- /#header-search-expanded --}}

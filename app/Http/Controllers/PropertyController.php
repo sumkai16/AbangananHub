@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Favorite;
 use App\Models\Property;
+use App\Models\PropertyUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -83,7 +84,24 @@ class PropertyController extends Controller
             ];
         })->values();
 
-        return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties'));
+        // The hero's trust strip states live totals, not the whole-platform
+        // pitch — quoting an aspirational "2,400+ listings" on a page showing
+        // 13 is the one claim a tenant can check instantly. Only computed when
+        // the full hero renders (clean page 1); the compact band shows none.
+        $heroStats = null;
+        if (! $request->hasAny(['location', 'type', 'price_max', 'verified', 'sort']) && $request->integer('page', 1) <= 1) {
+            $availableUnits = fn($q) => $q->where('availability_status', 'Available')
+                ->where('verification_status', 'Approved');
+
+            $heroStats = [
+                'listings' => Property::where('verification_status', 'Approved')
+                    ->whereHas('units', $availableUnits)->count(),
+                'units'    => PropertyUnit::where('availability_status', 'Available')
+                    ->where('verification_status', 'Approved')->count(),
+            ];
+        }
+
+        return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties', 'heroStats'));
     }
 
     public function show(Property $property)
@@ -92,7 +110,8 @@ class PropertyController extends Controller
             abort(404);
         }
 
-        $property->load(['media', 'landlord.rentalBusiness', 'amenities', 'units.amenities', 'units.media']);
+        // No 'amenities' here: the page derives them from units.amenities.
+        $property->load(['media', 'landlord.rentalBusiness', 'units.amenities', 'units.media']);
 
         $reviews = $property->reviews()
             ->with('tenant')
