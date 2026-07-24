@@ -134,51 +134,55 @@
                 @auth
 
                     {{-- Become a Landlord / My Listings / Admin Actions --}}
-                    <div class="relative hidden sm:block">
+                    <div class="hidden sm:block">
                         @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
                             <a href="{{ route('landlord.properties.index') }}"
-                                class="flex items-center gap-2 h-10 px-5 border border-[#E2E8F0] rounded-full bg-white text-[13.5px] font-semibold text-[#1F2937] hover:shadow-md transition-all">
+                                class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#EEF8F8] text-[13.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-all cursor-pointer">
                                 Landlord Dashboard
                             </a>
                         @elseif(auth()->user()->hasRole('Admin'))
-                            <button id="landlord-btn" aria-expanded="false"
-                                class="flex items-center gap-2 h-10 px-5 border border-[#E2E8F0] rounded-full bg-white text-[13.5px] font-semibold text-[#1F2937] hover:shadow-md transition-all focus:outline-none">
-                                Admin Actions
-                            </button>
+                            <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+                                <button type="button" @click="open = !open" @click.outside="open = false"
+                                    :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
+                                    class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#EEF8F8] text-[13.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-all cursor-pointer">
+                                    Admin Actions
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" class="transition-transform duration-200 motion-reduce:transition-none"
+                                        :class="open && 'rotate-180'" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
 
-                            <div id="landlord-menu"
-                                class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E8F0] py-2 hidden z-50">
-                                <a href="{{ \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#' }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-b border-[#E2E8F0] mb-1">
-                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Listing Approval
-                                </a>
-                                <a href="{{ route('admin.verifications.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8]">
-                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                    </svg>
-                                    Verification Requests
-                                </a>
-                                <a href="{{ route('admin.users.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-t border-[#E2E8F0] mt-1">
-                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    Manage Users
-                                </a>
+                                <div x-show="open" x-cloak
+                                    x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-200"
+                                    x-transition:enter-start="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-150"
+                                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                                    class="absolute top-[calc(100%+10px)] right-0 w-[236px] bg-white rounded-2xl shadow-[0_16px_48px_-12px_rgba(15,23,42,0.20)] ring-1 ring-[#E2E8F0] p-1.5 z-50">
+                                    @php
+                                        $adminLinks = [
+                                            ['route' => \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#', 'label' => 'Listing Approval', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+                                            ['route' => route('admin.verifications.index'), 'label' => 'Verification Requests', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
+                                            ['route' => route('admin.users.index'), 'label' => 'Manage Users', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
+                                        ];
+                                    @endphp
+                                    @foreach($adminLinks as $link)
+                                        <a href="{{ $link['route'] }}"
+                                            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#EEF8F8] transition-colors">
+                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                                stroke-width="1.9" class="text-[#64748B] group-hover:text-[#156F8C] transition-colors" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}" />
+                                            </svg>
+                                            {{ $link['label'] }}
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
                         @else
                             <a href="{{ route('landlord.verification.create') }}"
-                                class="flex items-center gap-2 h-10 px-5 border border-[#E2E8F0] rounded-full bg-white text-[13.5px] font-semibold text-[#1F2937] hover:shadow-md transition-all">
+                                class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#EEF8F8] text-[13.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-all cursor-pointer">
                                 Become a Landlord
                             </a>
                         @endif
@@ -187,14 +191,15 @@
                     {{-- Notifications Dropdown --}}
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                         @keydown.escape.window="close()">
-                        <button type="button" @click="toggle()"
-                            class="relative flex items-center justify-center w-10 h-10 rounded-full border border-[#E2E8F0] bg-white text-[#64748B] hover:shadow-md transition-all focus:outline-none">
+                        <button type="button" @click="toggle()" aria-label="Notifications"
+                            :class="open ? 'bg-[#EEF8F8] text-[#156F8C]' : 'text-[#64748B] hover:bg-[#F7FCFC]'"
+                            class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2AA7A1]/40 cursor-pointer">
                             <span x-show="unreadCount > 0" x-cloak
-                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#2AA7A1] border-2 border-white"></span>
-                            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                class="absolute top-[7px] right-[8px] w-2.5 h-2.5 rounded-full bg-[#2AA7A1] ring-2 ring-white"></span>
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                    d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
                             </svg>
                         </button>
 
@@ -219,153 +224,138 @@
                             ? 'Landlord'
                             : (auth()->user()->hasRole('Admin') ? 'Administrator' : 'Tenant');
                     @endphp
-                    <div class="relative">
-                        <button id="abg-avatar-btn" aria-expanded="false"
-                            class="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-[#F7FCFC] transition-colors focus:outline-none">
+                    @php
+                        $userRoles = auth()->user()->roles->pluck('role');
+                        $abgFullName = trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
+                        // One shared row style so every item lines up and hovers identically.
+                        $menuRow = 'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#EEF8F8] transition-colors';
+                        $menuIcon = 'text-[#64748B] group-hover:text-[#156F8C] transition-colors shrink-0';
+                        $menuLabel = 'px-3 pt-2.5 pb-1 text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider';
+                    @endphp
+                    <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+                        <button type="button" @click="open = !open" @click.outside="open = false"
+                            :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
+                            :class="open ? 'bg-[#EEF8F8]' : 'hover:bg-[#F7FCFC]'"
+                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2AA7A1]/40 cursor-pointer">
                             <span
                                 class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
                                 {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
                             </span>
                             <span class="hidden sm:flex flex-col items-start leading-tight">
-                                <span class="text-[13px] font-semibold text-[#1F2937]">{{ auth()->user()->first_name }}
-                                    {{ auth()->user()->last_name }}</span>
+                                <span class="text-[13px] font-semibold text-[#1F2937]">{{ $abgFullName }}</span>
                                 <span class="text-[11px] text-[#64748B]">{{ $abgRoleLabel }}</span>
                             </span>
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2" class="text-[#64748B] hidden sm:block">
+                                stroke-width="2.2" class="text-[#94A3B8] hidden sm:block transition-transform duration-200 motion-reduce:transition-none"
+                                :class="open && 'rotate-180'" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                             </svg>
                         </button>
 
-                        <div id="abg-avatar-menu"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[256px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E8F0] py-1 hidden z-50">
+                        <div x-show="open" x-cloak
+                            x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-200"
+                            x-transition:enter-start="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                            class="absolute top-[calc(100%+10px)] right-0 w-[264px] bg-white rounded-2xl shadow-[0_16px_48px_-12px_rgba(15,23,42,0.20)] ring-1 ring-[#E2E8F0] p-1.5 z-50">
 
-                            {{-- User header --}}
-                            <div class="px-4 py-3.5 border-b border-[#E2E8F0]">
-                                <div class="text-[14px] font-bold text-[#1F2937]">
-                                    {{ trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) }}
-                                </div>
-                                <div class="text-[12px] text-[#64748B] mt-0.5 truncate">
-                                    {{ auth()->user()->email }}
+                            {{-- Account header — the one distinctive touch: a mist band that
+                                 turns the menu into an identity surface, not a flat list. --}}
+                            <div class="flex items-center gap-3 rounded-xl bg-gradient-to-br from-[#EEF8F8] to-[#F7FCFC] px-3 py-3 mb-1">
+                                <span class="w-11 h-11 rounded-full bg-[#2AA7A1] text-white text-[16px] font-bold flex items-center justify-center shrink-0 ring-2 ring-white">
+                                    {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
+                                </span>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="text-[13.5px] font-bold text-[#1F2937] truncate">{{ $abgFullName }}</p>
+                                        <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#156F8C] ring-1 ring-[#2AA7A1]/25">{{ $abgRoleLabel }}</span>
+                                    </div>
+                                    <p class="text-[12px] text-[#64748B] truncate mt-0.5">{{ auth()->user()->email }}</p>
                                 </div>
                             </div>
 
                             {{-- Section: Activity --}}
-                            @php $userRoles = auth()->user()->roles->pluck('role'); @endphp
-                            <div class="py-1">
-                                <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                    Activity</p>
+                            <p class="{{ $menuLabel }}">Activity</p>
 
-                                @if($userRoles->contains('Tenant'))
-                                    <a href="{{ route('reservations.index') }}"
-                                        class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        My Reservations
-                                    </a>
-                                @endif
-
-                                @if($userRoles->contains('Landlord'))
-                                    <a href="{{ route('landlord.reservations.index') }}"
-                                        class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                        </svg>
-                                        Reservation Requests
-                                    </a>
-                                @endif
-
-                                <a href="{{ route('conversations.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            @if($userRoles->contains('Tenant'))
+                                <a href="{{ route('reservations.index') }}" class="{{ $menuRow }}">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    Messages
+                                    My Reservations
                                 </a>
+                            @endif
 
-                                <a href="{{ route('notifications.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            @if($userRoles->contains('Landlord'))
+                                <a href="{{ route('landlord.reservations.index') }}" class="{{ $menuRow }}">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                     </svg>
-                                    Notifications
+                                    Reservation Requests
                                 </a>
+                            @endif
 
-                                <a href="{{ route('favorites.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                    </svg>
-                                    Saved Listings
-                                </a>
-                            </div>
+                            <a href="{{ route('conversations.index') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                                Messages
+                            </a>
 
-                            <div class="h-px bg-[#E2E8F0] mx-3"></div>
+                            <a href="{{ route('notifications.index') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                </svg>
+                                Notifications
+                            </a>
+
+                            <a href="{{ route('favorites.index') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                </svg>
+                                Saved Listings
+                            </a>
+
+                            <div class="h-px bg-[#E2E8F0] mx-2 my-1.5"></div>
 
                             {{-- Section: Account --}}
-                            <div class="py-1">
-                                <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                    Account</p>
-                                <a href="{{ auth()->user()->hasRole('Landlord') ? route('landlord.profile.me') : route('tenant.profile.show') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                    </svg>
-                                    My Profile
-                                </a>
-                                <a href="{{ route('profile.edit') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.991a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.78 7.78 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    Account Settings
-                                </a>
-                                <a href="{{ route('reports.create') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                                    </svg>
-                                    Report a Problem
-                                </a>
-                            </div>
+                            <p class="{{ $menuLabel }}">Account</p>
 
-                            <div class="h-px bg-[#E2E8F0] mx-3"></div>
+                            <a href="{{ auth()->user()->hasRole('Landlord') ? route('landlord.profile.me') : route('tenant.profile.show') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                                My Profile
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.991a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.78 7.78 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Account Settings
+                            </a>
+                            <a href="{{ route('reports.create') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                </svg>
+                                Report a Problem
+                            </a>
+
+                            <div class="h-px bg-[#E2E8F0] mx-2 my-1.5"></div>
 
                             {{-- Sign out --}}
-                            <div class="py-1">
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#EF4444] hover:bg-[#E2E8F0]/60 transition-colors">
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                        </svg>
-                                        Sign out
-                                    </button>
-                                </form>
-                            </div>
-
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#EF4444] hover:bg-[#EF4444]/[0.07] transition-colors cursor-pointer">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="shrink-0" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                                    </svg>
+                                    Sign out
+                                </button>
+                            </form>
                         </div>
                     </div>
                 @else
@@ -900,56 +890,8 @@
         </script>
     @endguest
 
-    {{-- Interactive Layout Dropdown Handler Script --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const landlordBtn = document.getElementById('landlord-btn');
-            const landlordMenu = document.getElementById('landlord-menu');
-            const avatarBtn = document.getElementById('abg-avatar-btn');
-            const avatarMenu = document.getElementById('abg-avatar-menu');
-
-            function toggleDropdown(btn, menu) {
-                if (!btn || !menu) return;
-                const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-
-                // Automatically close alternate menus to prevent stacking layout bugs
-                if (landlordMenu && landlordMenu !== menu) landlordMenu.classList.add('hidden');
-                if (landlordBtn && landlordBtn !== btn) landlordBtn.setAttribute('aria-expanded', 'false');
-                if (avatarMenu && avatarMenu !== menu) avatarMenu.classList.add('hidden');
-                if (avatarBtn && avatarBtn !== btn) avatarBtn.setAttribute('aria-expanded', 'false');
-
-                // Toggle targeted menu view status
-                btn.setAttribute('aria-expanded', !isExpanded);
-                menu.classList.toggle('hidden');
-            }
-
-            if (landlordBtn && landlordMenu) {
-                landlordBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleDropdown(landlordBtn, landlordMenu);
-                });
-            }
-
-            if (avatarBtn && avatarMenu) {
-                avatarBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleDropdown(avatarBtn, avatarMenu);
-                });
-            }
-
-            // Document click listener to clear active menus when navigating outside layout controls
-            document.addEventListener('click', (e) => {
-                if (landlordMenu && !landlordMenu.classList.contains('hidden') && !landlordBtn.contains(e.target) && !landlordMenu.contains(e.target)) {
-                    landlordMenu.classList.add('hidden');
-                    landlordBtn.setAttribute('aria-expanded', 'false');
-                }
-                if (avatarMenu && !avatarMenu.classList.contains('hidden') && !avatarBtn.contains(e.target) && !avatarMenu.contains(e.target)) {
-                    avatarMenu.classList.add('hidden');
-                    avatarBtn.setAttribute('aria-expanded', 'false');
-                }
-            });
-        });
-    </script>
+    {{-- The avatar and Admin Actions menus are Alpine-driven (x-data / @click.outside),
+         matching the Areas and notification dropdowns — no bespoke JS handler needed. --}}
 
     {{-- Airbnb-style scroll-collapse search bar --}}
     <script>
