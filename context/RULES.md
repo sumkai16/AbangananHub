@@ -105,6 +105,9 @@ Blade tokenises a template with `token_get_all()` **before** it strips comments 
 
 **Verify a compile without loading the page:** `Blade::compileString(file_get_contents($view))` written to a temp file and run through `php -l` localises the real error far faster than a stack trace.
 
+## `route()` on a nullable relation (found and fixed July 25 2026)
+`route('conversations.show', $reservation->conversation)` 500s with `UrlGenerationException: Missing required parameter` whenever `$reservation->conversation` is `null` — a reservation doesn't get a conversation until messaging actually starts, so this is a normal, expected state, not an edge case. Every view that links to a model's optional relation via `route()` must guard it first: `@if($reservation->conversation) <a href="{{ route('conversations.show', $reservation->conversation) }}">…</a> @endif`. This had already been done correctly in `landlord/tenancies/show.blade.php` and `landlord/tenants/index.blade.php`, but was missing in `landlord/reservations/index.blade.php` (both grid and table views) and `tenant/reservations/index.blade.php` (three status branches) — it only surfaced once a landlord with an unmessaged reservation loaded the page. **Before wiring a `route()` call to a relation, check whether that relation can be null; if it can, wrap the link, not just the icon or the label.**
+
 ## View Composers
 Data the **layout** needs on every page goes in a `View::composer('layouts.app', …)` in `AppServiceProvider::boot`, not a variable each controller passes. The header renders everywhere; a controller that forgot would drop the feature silently on that page only. Cache anything that hits the DB (`Cache::remember`, 10 min is fine for nav-level data) — the layout renders on *every* request, so an uncached query there is a site-wide cost. Current composer: `navAreas` for the header's Areas menu.
 
