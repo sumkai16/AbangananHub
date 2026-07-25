@@ -82,6 +82,13 @@ class ProfileController extends Controller
         // include them) and carries the count.
         $ratingSummary = $user->landlordRatingSummary();
 
+        // Star-by-star breakdown for the reviews panel's distribution bars.
+        $ratingDistribution = Review::whereIn('property_id', $propertyIds)
+            ->where('is_hidden', false)
+            ->selectRaw('rating, COUNT(*) as c')
+            ->groupBy('rating')
+            ->pluck('c', 'rating');
+
         return view('landlord.profile.show', [
             'user' => $user,
             'isOwner' => $isOwner,
@@ -93,6 +100,7 @@ class ProfileController extends Controller
             'reviews' => $reviews,
             'averageRating' => $ratingSummary['avg'],
             'ratingCount' => $ratingSummary['count'],
+            'ratingDistribution' => $ratingDistribution,
         ]);
     }
 

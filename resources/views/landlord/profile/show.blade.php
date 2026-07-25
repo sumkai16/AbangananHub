@@ -3,101 +3,46 @@
     <div class="{{ auth()->user()->shellContainerClass($isOwner) }} mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10 min-h-[calc(100vh-72px)]">
 
         {{-- Hero profile card --}}
-        <div class="relative overflow-hidden rounded-2xl bg-[#2AA7A1] p-6 sm:p-8 mb-5">
-            <div class="absolute inset-0 opacity-[0.06] pointer-events-none"
-                style="background-image: radial-gradient(circle at 22px 22px, white 1.5px, transparent 0); background-size: 30px 30px;"></div>
-
-            <div class="relative flex flex-col sm:flex-row gap-6 items-start">
-                {{-- Avatar --}}
-                <div class="flex-shrink-0">
-                    @if($user->profile_picture)
-                        <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="w-24 h-24 rounded-full object-cover ring-4 ring-white/10">
-                    @else
-                        <div class="w-24 h-24 rounded-full bg-black/15 ring-4 ring-white/20 flex items-center justify-center text-white text-[32px] font-bold">
-                            {{ strtoupper(substr($user->first_name, 0, 1)) }}{{ strtoupper(substr($user->last_name, 0, 1)) }}
-                        </div>
-                    @endif
-                </div>
-
-                {{-- Info --}}
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-4 flex-wrap">
-                        <div>
-                            <h1 class="text-[22px] font-bold text-white leading-tight">{{ $user->first_name }} {{ $user->last_name }}</h1>
-                            <div class="flex items-center gap-2 mt-2 text-[13px] text-white/90 flex-wrap">
-                                <span class="flex items-center gap-1.5">
-                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                                    </svg>
-                                    {{ $user->email }}
-                                </span>
-                                @if($user->contact_number)
-                                    <span class="text-white/40">|</span>
-                                    <span class="flex items-center gap-1.5">
-                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                                        </svg>
-                                        {{ $user->contact_number }}
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-
-                        @if($isOwner)
-                            <a href="{{ route('landlord.profile.edit') }}" class="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full bg-black/15 hover:bg-black/25 text-[13px] font-semibold text-white transition-all duration-200">
+        <x-profile-hero :user="$user" avatarShape="circle">
+            <x-slot:badges>
+                <span class="bg-black/15 text-white text-[11px] font-medium px-2.5 py-1 rounded-full">Landlord</span>
+                @if($verification && $verification->verification_status === 'Approved')
+                    <span class="bg-white text-[#15803D] text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Verified
+                    </span>
+                @endif
+            </x-slot:badges>
+            <x-slot:actions>
+                @if($isOwner)
+                    <a href="{{ route('landlord.profile.edit') }}" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-white/90 text-[13px] font-semibold text-[#156F8C] transition-all duration-200">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg>
+                        Edit profile
+                    </a>
+                @else
+                    <div class="flex items-center gap-2">
+                        @auth
+                            <a href="{{ route('conversations.store') }}?landlord_id={{ $user->user_id }}" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-[#156F8C] text-[13px] font-semibold hover:bg-white/90 transition-all">
                                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                                 </svg>
-                                Edit profile
+                                Message
                             </a>
-                        @else
-                            <div class="flex items-center gap-2 flex-shrink-0">
-                                @auth
-                                    <a href="{{ route('conversations.store') }}?landlord_id={{ $user->user_id }}" class="flex items-center gap-2 px-4 py-2 rounded-full bg-[#2AA7A1] text-white text-[13px] font-semibold hover:brightness-95 transition-all">
-                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                                        </svg>
-                                        Message
-                                    </a>
-                                    <a href="{{ route('reports.create', ['user_id' => $user->user_id]) }}" class="flex items-center gap-2 px-4 py-2 rounded-full bg-black/15 hover:bg-black/25 text-[13px] font-semibold text-white transition-all">
-                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
-                                        </svg>
-                                        Report
-                                    </a>
-                                @endauth
-                            </div>
-                        @endif
-                    </div>
-
-                    {{-- Badges --}}
-                    <div class="flex items-center gap-2 mt-4 flex-wrap">
-                        <span class="bg-black/15 text-white text-[12px] font-medium px-3 py-1 rounded-full">Landlord</span>
-                        @if($verification && $verification->verification_status === 'Approved')
-                            <span class="bg-white text-[#15803D] text-[12px] font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <a href="{{ route('reports.create', ['user_id' => $user->user_id]) }}" class="flex items-center gap-2 px-4 py-2 rounded-full bg-black/15 hover:bg-black/25 text-[13px] font-semibold text-white transition-all">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
                                 </svg>
-                                Verified
-                            </span>
-                        @endif
-                        <span class="text-[12px] text-white/80 ml-1 flex items-center gap-1.5">
-                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                            </svg>
-                            Member since {{ $user->created_at->format('F Y') }}
-                        </span>
+                                Report
+                            </a>
+                        @endauth
                     </div>
-                </div>
-            </div>
-
-            @if($user->bio)
-                <div class="relative mt-6 pt-6 border-t border-white/10">
-                    <p class="text-[13px] font-semibold text-white/75 mb-1">About</p>
-                    <p class="text-[14px] text-white/80 leading-relaxed">{{ $user->bio }}</p>
-                </div>
-            @endif
-        </div>
+                @endif
+            </x-slot:actions>
+        </x-profile-hero>
 
         {{-- Business info card --}}
         @if($business)
@@ -187,113 +132,126 @@
             </div>
         </div>
 
-        {{-- Properties grid — limited to 6 --}}
-        <div class="mb-6">
-            <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Properties</h2>
-            @if($properties->count())
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    @foreach($properties->take(6) as $property)
-                        <a href="{{ route('properties.show', $property) }}"
-                            class="group block rounded-2xl overflow-hidden bg-white ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] hover:-translate-y-0.5 transition-all duration-300">
-                            @php $thumb = $property->media->first(); @endphp
-                            <div class="relative aspect-[16/10] overflow-hidden bg-[#EEF8F8]">
-                                @if($thumb)
-                                    <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center">
-                                        <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
-                                        </svg>
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="p-3.5">
-                                <p class="text-[13.5px] font-bold text-[#1F2937] truncate">{{ $property->title }}</p>
-                                <p class="text-[12px] text-[#64748B] truncate mt-0.5">{{ $property->address }}</p>
-                                <p class="text-[13px] font-bold text-[#1F2937] mt-1.5">
-                                    @if($property->min_rental_fee)
-                                        ₱{{ number_format($property->min_rental_fee) }}<span class="text-[#64748B] font-normal text-[12px]"> / month</span>
+        {{-- Properties + Reviews side by side --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            {{-- Properties grid — limited to 6 --}}
+            <div class="lg:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-[15px] font-bold text-[#1F2937]">Properties</h2>
+                    <span class="text-[12px] text-[#64748B]">{{ $properties->count() }} total</span>
+                </div>
+                @if($properties->count())
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @foreach($properties->take(6) as $property)
+                            <a href="{{ route('properties.show', $property) }}"
+                                class="group block rounded-2xl overflow-hidden bg-white ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] hover:-translate-y-0.5 transition-all duration-300">
+                                @php $thumb = $property->media->first(); @endphp
+                                <div class="relative aspect-[16/10] overflow-hidden bg-[#EEF8F8]">
+                                    @if($thumb)
+                                        <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
                                     @else
-                                        <span class="text-[#64748B] font-normal text-[12px]">Price not set</span>
+                                        <div class="w-full h-full flex items-center justify-center">
+                                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
+                                            </svg>
+                                        </div>
                                     @endif
-                                </p>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-
-                @if($properties->count() > 6)
-                    <div class="text-center mt-5">
-                       <a href="{{ $isOwner ? route('landlord.properties.index') : route('properties.index', ['landlord' => $user->user_id]) }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[13px] font-semibold text-[#1F2937] bg-white ring-1 ring-[#64748B]/15 hover:bg-[#EEF8F8] transition-all">
-                            Show all {{ $properties->count() }} properties
-                        </a>
+                                </div>
+                                <div class="p-3.5">
+                                    <p class="text-[13.5px] font-bold text-[#1F2937] truncate">{{ $property->title }}</p>
+                                    <p class="text-[12px] text-[#64748B] truncate mt-0.5">{{ $property->address }}</p>
+                                    <p class="text-[13px] font-bold text-[#1F2937] mt-1.5">
+                                        @if($property->min_rental_fee)
+                                            ₱{{ number_format($property->min_rental_fee) }}<span class="text-[#64748B] font-normal text-[12px]"> / month</span>
+                                        @else
+                                            <span class="text-[#64748B] font-normal text-[12px]">Price not set</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            </a>
+                        @endforeach
                     </div>
-                @endif
-            @else
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] py-10 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
-                        </svg>
-                    </div>
-                    <p class="text-[13px] text-[#64748B]">No approved properties yet</p>
-                </div>
-            @endif
-        </div>
 
-        {{-- Reviews received --}}
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-[15px] font-bold text-[#1F2937]">Reviews from tenants</h2>
-                @if($averageRating !== null)
-                    <x-star-rating :rating="$averageRating" :count="$ratingCount" />
+                    @if($properties->count() > 6)
+                        <div class="text-center mt-5">
+                           <a href="{{ $isOwner ? route('landlord.properties.index') : route('properties.index', ['landlord' => $user->user_id]) }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[13px] font-semibold text-[#1F2937] bg-white ring-1 ring-[#64748B]/15 hover:bg-[#EEF8F8] transition-all">
+                                Show all {{ $properties->count() }} properties
+                            </a>
+                        </div>
+                    @endif
+                @else
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] py-10 text-center">
+                        <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
+                            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
+                            </svg>
+                        </div>
+                        <p class="text-[13px] text-[#64748B]">No approved properties yet</p>
+                    </div>
                 @endif
             </div>
 
-            @forelse($reviews as $review)
-                @continue(!$review->property)
-                <div class="py-3 {{ !$loop->first ? 'border-t border-[#64748B]/10' : '' }}">
-                    <div class="flex items-start gap-3">
-                        @if($review->tenant->profile_picture)
-                            <img src="{{ $review->tenant->profile_picture }}" alt="" class="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-0.5">
-                        @else
-                            <div class="w-8 h-8 rounded-full bg-[#EEF8F8] flex items-center justify-center flex-shrink-0 mt-0.5 text-[11px] font-bold text-[#156F8C]">
-                                {{ strtoupper(substr($review->tenant->first_name, 0, 1)) }}{{ strtoupper(substr($review->tenant->last_name, 0, 1)) }}
-                            </div>
-                        @endif
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between mb-1">
-                                <p class="text-[13px] font-semibold text-[#1F2937]">{{ $review->tenant->first_name }} {{ $review->tenant->last_name }}</p>
-                                <div class="flex gap-0.5 flex-shrink-0 ml-2">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="{{ $i <= $review->rating ? '#FBBF24' : '#E2E8F0' }}" stroke="none">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                        </svg>
-                                    @endfor
+            {{-- Reviews received --}}
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-[15px] font-bold text-[#1F2937]">Reviews</h2>
+                    @if($averageRating !== null)
+                        <x-star-rating :rating="$averageRating" :count="$ratingCount" />
+                    @endif
+                </div>
+
+                @if($ratingCount > 0)
+                    {{-- Rating distribution --}}
+                    <div class="space-y-1 mb-4">
+                        @for($star = 5; $star >= 1; $star--)
+                            @php $starCount = $ratingDistribution[$star] ?? 0; @endphp
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] text-[#64748B] w-2.5 shrink-0">{{ $star }}</span>
+                                <div class="flex-1 h-1.5 rounded-full bg-[#E2E8F0] overflow-hidden">
+                                    <div class="h-full bg-[#FBBF24] rounded-full" style="width: {{ $ratingCount > 0 ? round(($starCount / $ratingCount) * 100) : 0 }}%"></div>
                                 </div>
                             </div>
-                            <a href="{{ route('properties.show', $review->property) }}" class="text-[11px] text-[#156F8C] hover:underline">{{ $review->property->title }}</a>
-                            <p class="text-[13px] text-[#64748B] leading-relaxed line-clamp-2 mt-1">{{ $review->review_comment }}</p>
-                            @if($review->landlord_reply)
-                                <div class="mt-2 pl-3 border-l-2 border-[#2AA7A1]/30">
-                                  <p class="text-[11px] font-semibold text-[#156F8C]">{{ $isOwner ? 'Your reply' : 'Landlord reply' }}</p>
-                                    <p class="text-[12px] text-[#64748B] leading-relaxed mt-0.5">{{ $review->landlord_reply }}</p>
-                                </div>
-                            @endif
-                            <p class="text-[11px] text-[#64748B]/70 mt-1.5">{{ $review->created_at->format('M d, Y') }}</p>
+                        @endfor
+                    </div>
+                @endif
+
+                @forelse($reviews->take(4) as $review)
+                    @continue(!$review->property)
+                    <div class="py-3 {{ !$loop->first ? 'border-t border-[#64748B]/10' : '' }}">
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="text-[13px] font-semibold text-[#1F2937] truncate">{{ $review->tenant->first_name }} {{ $review->tenant->last_name }}</p>
+                            <div class="flex gap-0.5 flex-shrink-0 ml-2">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="{{ $i <= $review->rating ? '#FBBF24' : '#E2E8F0' }}" stroke="none">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                    </svg>
+                                @endfor
+                            </div>
                         </div>
+                        <a href="{{ route('properties.show', $review->property) }}" class="text-[11px] text-[#64748B] hover:underline">{{ $review->property->title }}</a>
+                        <p class="text-[13px] text-[#64748B] leading-relaxed line-clamp-2 mt-1">{{ $review->review_comment }}</p>
                     </div>
-                </div>
-            @empty
-                <div class="py-8 text-center">
-                    <div class="w-11 h-11 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-2">
-                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                @empty
+                    <div class="py-8 text-center">
+                        <div class="w-11 h-11 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-2">
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                            </svg>
+                        </div>
+                        <p class="text-[13px] text-[#64748B]">No reviews received yet</p>
+                    </div>
+                @endforelse
+
+                @if($isOwner && $ratingCount > 4)
+                    <a href="{{ route('landlord.reviews.index') }}" class="flex items-center gap-1.5 text-[12.5px] font-semibold text-[#156F8C] hover:underline mt-2">
+                        View all {{ $ratingCount }} reviews
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
-                    </div>
-                    <p class="text-[13px] text-[#64748B]">No reviews received yet</p>
-                </div>
-            @endforelse
+                    </a>
+                @endif
+            </div>
         </div>
 
     </div>

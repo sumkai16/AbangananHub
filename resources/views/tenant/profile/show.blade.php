@@ -7,81 +7,27 @@
 
 
         {{-- Hero profile card --}}
-        <div class="relative overflow-hidden rounded-[28px] bg-[#2AA7A1] p-6 sm:p-8 mb-6 shadow-[0_12px_36px_rgba(21,111,140,0.28)]">
-            <div class="absolute inset-0 opacity-[0.08] pointer-events-none"
-                style="background-image: radial-gradient(circle at 1px 1px, white 1.3px, transparent 0); background-size: 22px 22px;"></div>
-
-            <div class="relative flex flex-col sm:flex-row gap-6 items-start">
-                {{-- Avatar --}}
-                <div class="flex-shrink-0">
-                    @if($user->profile_picture)
-                        <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-4 ring-white/20">
-                    @else
-                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/15 ring-4 ring-white/20 flex items-center justify-center text-white text-[28px] font-black">
-                            {{ strtoupper(substr($user->first_name, 0, 1)) }}{{ strtoupper(substr($user->last_name, 0, 1)) }}
-                        </div>
-                    @endif
-                </div>
-
-                {{-- Info --}}
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-4 flex-wrap">
-                        <div>
-                            <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                                <span class="inline-flex items-center gap-1 bg-white/15 text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Tenant</span>
-                                @if($user->hasRole('Landlord'))
-                                    <span class="inline-flex items-center gap-1 bg-white text-[#156F8C] text-[11px] font-bold px-2.5 py-1 rounded-full">
-                                        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Verified landlord
-                                    </span>
-                                @endif
-                            </div>
-                            <h1 class="text-[24px] sm:text-[28px] font-black tracking-tight text-white leading-tight">{{ $user->first_name }} {{ $user->last_name }}</h1>
-                            <div class="flex items-center gap-2 mt-2 text-[13px] text-white/85 flex-wrap">
-                                <span class="flex items-center gap-1.5">
-                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                                    </svg>
-                                    {{ $user->email }}
-                                </span>
-                                @if($user->contact_number)
-                                    <span class="text-white/40">|</span>
-                                    <span class="flex items-center gap-1.5">
-                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                                        </svg>
-                                        {{ $user->contact_number }}
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-
-                        <a href="{{ route('tenant.profile.edit') }}" class="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full bg-black/15 hover:bg-black/25 text-[13px] font-semibold text-white transition-all duration-200">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                            </svg>
-                            Edit profile
-                        </a>
-                    </div>
-
-                    <p class="text-[12px] text-white/70 mt-3 flex items-center gap-1.5">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+        <x-profile-hero :user="$user" avatarShape="square">
+            <x-slot:badges>
+                <span class="bg-black/15 text-white text-[11px] font-medium px-2.5 py-1 rounded-full">Tenant</span>
+                @if($user->hasRole('Landlord'))
+                    <span class="bg-white text-[#156F8C] text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Member since {{ $user->created_at->format('F Y') }}
-                    </p>
-                </div>
-            </div>
-
-            @if($user->bio)
-                <div class="relative mt-6 pt-6 border-t border-white/10">
-                    <p class="text-[13px] font-semibold text-white/75 mb-1">About</p>
-                    <p class="text-[14px] text-white/85 leading-relaxed">{{ $user->bio }}</p>
-                </div>
-            @endif
-        </div>
+                        Verified landlord
+                    </span>
+                @endif
+            </x-slot:badges>
+            <x-slot:actions>
+                <a href="{{ route('tenant.profile.edit') }}" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-white/90 text-[13px] font-semibold text-[#156F8C] transition-all duration-200">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                    Edit profile
+                </a>
+            </x-slot:actions>
+        </x-profile-hero>
 
         {{-- Stats row --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
