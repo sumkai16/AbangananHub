@@ -380,8 +380,8 @@
                                     <label for="move_in_date" class="{{ $labelClass }}">
                                         Move-in date <span class="text-[#EF4444]">*</span>
                                     </label>
-                                    <input type="date" id="move_in_date" name="move_in_date" x-model="moveIn"
-                                        class="{{ $inputClass }} cursor-pointer">
+                                    <x-date-picker name="move_in_date" id="move_in_date" placeholder="Move-in date"
+                                        x-model="moveIn" />
                                     @error('move_in_date')
                                         <p class="{{ $errorClass }}">{{ $message }}</p>
                                     @enderror
@@ -390,8 +390,8 @@
                                     <label for="move_out_date" class="{{ $labelClass }}">
                                         Move-out date <span class="text-[#64748B] font-normal">(optional)</span>
                                     </label>
-                                    <input type="date" id="move_out_date" name="move_out_date" value="{{ old('move_out_date') }}"
-                                        class="{{ $inputClass }} cursor-pointer">
+                                    <x-date-picker name="move_out_date" id="move_out_date" placeholder="Move-out date"
+                                        value="{{ old('move_out_date') }}" min-expr="moveIn" />
                                     <p class="text-[11.5px] text-[#64748B] mt-1.5">Leave blank for an open-ended stay.</p>
                                     @error('move_out_date')
                                         <p class="{{ $errorClass }}">{{ $message }}</p>
@@ -717,4 +717,6 @@
             </form>
         @endif
     </div>
+
+    <script src="{{ asset('js/date-picker.js') }}"></script>
 @endsection

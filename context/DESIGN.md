@@ -30,7 +30,7 @@ None of the three AI-default looks apply. AbangananHub uses a teal-forward ident
 | Success (Emerald Green) | `#22C55E` | Successful actions, verified statuses |
 | Warning (Amber) | `#FBBF24` | Notifications, cautionary messages |
 | Error (Red) | `#EF4444` | Validation errors, failed actions, critical alerts |
-| Footer background | `#0F172A` | Accepted palette exception for footer only |
+| Footer background | `#0F172A` | Accepted palette exception — footer, and the `<x-date-picker>` popover panel (§6h-bis) |
 
 Rules:
 - One accent color for CTAs (`#FF8A65`) — everything else neutral or teal-family.
@@ -219,6 +219,21 @@ Two traps worth knowing before reusing it:
 - **Dates are parsed as local midnight via `toDate()`, never `new Date(iso)`.** `new Date('2026-08-01')` is read as UTC and renders as July 31 for anyone west of Greenwich — which in a picker means the day you click isn't the day you get.
 
 The default slot renders inside the component's Alpine scope, so caller buttons can bind straight to `value` / `date` / `time` / `label` (e.g. `:disabled="!value"`).
+
+## 6h-bis. Date-only picking — `<x-date-picker>` (July 2026)
+Move-in/move-out fields (`properties/show` reserve form, walk-in tenant creation, tenancy end-date) hit the same unstyleable-native-control problem as §6h but don't need a time slot, so they get their own component rather than a `<x-datetime-picker>` with the time half hidden: `resources/views/components/date-picker.blade.php` + `public/js/date-picker.js`. Same no-library, Alpine+Tailwind construction, same local-midnight `toDate()` parsing trap as §6h.
+
+**Deliberately visually distinct from `<x-datetime-picker>`, both on purpose:**
+- **Circular cells on a dark navy popover**, not the square cells on a white panel §6h uses. A date-only field reads as a lighter, quicker interaction (pick one thing and you're done) than the handover scheduler's two-pane date+time decision, so the two pickers are allowed to look like different controls rather than reskins of one.
+- **The popover background is `#0F172A`** — a second, deliberate use of the color §3 otherwise reserves for the footer only. The *trigger* input stays on the normal light palette (`bg-white border-[#E2E8F0]`, matching every other form field); only the calendar dropdown itself goes dark, the same way the footer is the one place `#0F172A` is allowed to be a large surface. No new hex was introduced for this — the popover uses the existing footer token plus the existing `#2AA7A1` secondary teal for the selected/today cell, not a new "cyan."
+
+**Cross-field reactivity, without touching the caller's `x-data`.** The reserve form's move-out field has always needed a live `min`/`disabled` derived from the sibling move-in field (clearing an already-picked move-out if move-in moves past it, disabling move-out until move-in is set). Rather than have the picker's own Alpine scope block reads of the parent's variables, the component uses:
+- **`x-modelable="date"`** on its root element, so a caller just writes `x-model="moveIn"` on the `<x-date-picker>` tag and gets a real two-way bridge to their existing Alpine variable — no new state needed in the parent's `x-data`.
+- **`minExpr` / `maxExpr` / `disabledExpr` props** — raw Alpine expression strings (e.g. `min-expr="moveIn || minMoveIn"`, `disabled-expr="!moveIn"`) rendered into `x-effect="min = ({{ $minExpr }}) || null"` on the component's root. Because that root sits in the same DOM scope as any ancestor `x-data`, the expression can read the parent's reactive `moveIn` even though the component never declares it — Alpine's scope chain resolves the read up to the ancestor, and the effect re-runs whenever it changes.
+
+This is the pattern to copy for the next form field that needs one Alpine component reacting to a sibling's live value without wiring a shared store: model the value with `x-modelable`, pass everything else as expression-string props evaluated via `x-effect` on the component root.
+
+**Native HTML validation (`required`/`min`/`max`) is intentionally dropped**, same as §6h — a hidden `<input type="date">`... `type="hidden"` posting the ISO value doesn't get native constraint validation from the browser regardless, and none of the three consuming forms actually relied on it: `properties/show`'s submit button is already gated by a JS `canSubmit` computed prop, and the walk-in/tenancy forms are gated by their Form Request rules (`StoreReservationRequest`, `StoreWalkInTenantRequest`) server-side. Losing the native tooltip is an accepted, pre-existing tradeoff — `<x-datetime-picker>` never had it either.
 
 ## 6i. Browse hero (`properties/index`, which is also `/`) — July 24 2026
 `Route::get('/')` points at `PropertyController@index`, so the browse page *is* the site's home page — which is why it carries a hero rather than opening straight on a grid.

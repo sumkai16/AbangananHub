@@ -166,13 +166,13 @@
                 </div>
                 <div>
                     <label for="filter-from" class="sr-only">Requested from</label>
-                    <input type="date" id="filter-from" name="from" value="{{ request('from') }}"
-                        class="h-10 w-full lg:w-36 rounded-xl border border-[#E2E8F0] bg-white text-[13px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] cursor-pointer transition-all duration-200">
+                    <x-date-picker name="from" id="filter-from" value="{{ request('from') }}"
+                        class="w-full lg:w-36" />
                 </div>
                 <div>
                     <label for="filter-to" class="sr-only">Requested until</label>
-                    <input type="date" id="filter-to" name="to" value="{{ request('to') }}"
-                        class="h-10 w-full lg:w-36 rounded-xl border border-[#E2E8F0] bg-white text-[13px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] cursor-pointer transition-all duration-200">
+                    <x-date-picker name="to" id="filter-to" value="{{ request('to') }}"
+                        class="w-full lg:w-36" />
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="submit"
@@ -730,4 +730,6 @@
             </div>
         </template>
     </div>
+
+    <script src="{{ asset('js/date-picker.js') }}"></script>
 @endsection
