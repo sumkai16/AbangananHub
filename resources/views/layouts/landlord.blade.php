@@ -418,10 +418,15 @@
             {{-- ── USER SECTION (sidebar bottom) ── --}}
             <div class="border-t border-white/[0.06] shrink-0">
                 <div class="flex items-center gap-2.5 px-4 py-3">
-                    <span
-                        class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
-                        {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
-                    </span>
+                    @if(auth()->user()->profile_picture)
+                        <img src="{{ auth()->user()->profile_picture }}" alt="{{ auth()->user()->first_name }}"
+                            class="w-9 h-9 rounded-full object-cover shrink-0">
+                    @else
+                        <span
+                            class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
+                            {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
+                        </span>
+                    @endif
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="flex-1 min-w-0">
                         <span
                             class="block text-[12px] font-semibold text-white truncate">{{ auth()->user()->first_name }}

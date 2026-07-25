@@ -19,10 +19,14 @@
 | email | VARCHAR(255) | UNIQUE, **NULLABLE** | Was NOT NULL until July 24 2026; made nullable for walk-in tenants who often have only a phone number. MySQL allows many NULLs under a UNIQUE index, so real addresses stay unique. Anything rendering an avatar/name must use `?: '—'`, not assume a value |
 | is_walk_in | BOOLEAN | DEFAULT false | A landlord-entered tenant, not a self-registered account. Cast to bool. Drives the **Walk-in** pill everywhere the user surfaces (landlord tenants, admin users, occupancy, exports) — the identity is landlord-asserted, never platform-verified |
 | created_by_landlord_id | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who added this walk-in. Scopes `User::walkInTenants()` |
+| provider | VARCHAR(255) | NULLABLE | Added July 25 2026 for Google/Facebook login (`'google'`/`'facebook'`). NULL for password-only accounts. One provider per user — no multi-provider linking table |
+| provider_id | VARCHAR(255) | NULLABLE, UNIQUE with `provider` | The provider's own user ID. An existing account is auto-linked (not duplicated) when a social login's email matches `users.email` |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 
 Walk-in tenants (added July 24 2026) are real `users` rows with a random unknowable password and `account_status='inactive'`, so the row can never be logged into — that is why they structurally cannot leave reviews or ratings. Keeping them in `users` (rather than a separate table) is what lets `reservations.tenant_id` stay NOT NULL so the ~20 views reading `$reservation->tenant->…` need no null-handling. Written by `Landlord\WalkInTenantController`.
+
+Social login accounts (Google/Facebook, added July 25 2026) also get a random unknowable `Hash::make(Str::random(40))` password, same precedent as walk-ins — the account is meant to only ever be entered via the provider, not email/password. Unlike walk-ins, `account_status` stays default (`active`) and `email_verified_at` is set immediately since the provider already verified the address. Written by `Auth\SocialiteController::resolveSocialUser()`.
 
 ### user_roles
 | Column | Type | Constraints | Notes |

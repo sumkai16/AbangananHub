@@ -71,7 +71,8 @@ Reference implementations: `Admin\VerificationController::approve/reject`, `Admi
 - Named routes throughout — no hardcoded URLs in Blade
 - Form Requests for validation
 - Policies for authorization (`Gate::authorize()`, not `$this->authorize()` — Laravel 12 base Controller doesn't include `AuthorizesRequests`)
-- Post-authentication redirects go through `$user->homeRoute()` — never hardcode a destination inside an auth controller. Admin → `admin.dashboard`, Landlord → `landlord.dashboard`, everyone else (tenants and brand-new role-less accounts) → `properties.index`. There is no bare `dashboard` route and no tenant dashboard. Adding a role means adding one arm to `homeRoute()`; all 8 auth entry points then follow automatically.
+- Post-authentication redirects go through `$user->homeRoute()` — never hardcode a destination inside an auth controller. Admin → `admin.dashboard`, Landlord → `landlord.dashboard`, everyone else → `properties.index`. There is no bare `dashboard` route and no tenant dashboard. Adding a role means adding one arm to `homeRoute()`; every auth entry point (including social login) then follows automatically.
+- Every self-registration path (web, mobile API, social login) assigns the Tenant role immediately at account creation — see ARCHITECTURE.md § Post-Auth Destination. Only admin-created accounts start role-less by design.
 - `withQueryString()` on all paginators when filters are active
 - `route:clear` before trusting route behavior in debugging — never `route:cache` during dev
 

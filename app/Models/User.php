@@ -31,6 +31,8 @@ protected $primaryKey = 'user_id';
         'profile_visibility',
         'is_walk_in',
         'created_by_landlord_id',
+        'provider',
+        'provider_id',
     ];
 
     protected $hidden = [
@@ -158,8 +160,10 @@ public function tenantRatingsReceived()
     /**
      * Where this user belongs after logging in, registering, or verifying email.
      * Landlords and admins manage things, so they get a dashboard; tenants
-     * browse, so they go to the listings. Brand-new accounts have no role yet
-     * (Tenant is granted on first browse) and fall through to the same place.
+     * browse, so they go to the listings. Self-registered accounts (web,
+     * mobile, Google/Facebook) are assigned Tenant immediately, so the
+     * default branch only really applies to accounts an admin created
+     * without a role yet.
      *
      * This is the single source of truth for post-auth destinations — every
      * auth controller calls it, so login and registration can't drift apart.
