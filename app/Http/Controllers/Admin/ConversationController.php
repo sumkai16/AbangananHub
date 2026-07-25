@@ -44,8 +44,18 @@ class ConversationController extends Controller
 
     public function show(Conversation $conversation)
     {
-        $conversation->load(['tenant', 'landlord', 'property', 'unit', 'messages.sender']);
+        // activeReservation + payments: without them the admin reviewing a
+        // dispute could read the messages but not see where the rental
+        // actually stands — no stage, no handover schedule, no escrow state,
+        // while both participants see all three in their own thread.
+        $conversation->load([
+            'tenant', 'landlord', 'property', 'unit', 'messages.sender',
+            'activeReservation.payments', 'activeReservation.unit',
+        ]);
 
-        return view('admin.conversations.show', compact('conversation'));
+        return view('admin.conversations.show', [
+            'conversation' => $conversation,
+            'reservation'  => $conversation->activeReservation,
+        ]);
     }
 }

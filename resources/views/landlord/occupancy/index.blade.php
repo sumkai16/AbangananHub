@@ -25,19 +25,15 @@
             <div class="flex items-center gap-2.5 shrink-0">
                 {{-- Property filter --}}
                 <div class="relative">
-                    <select onchange="window.location.href = '{{ route('landlord.occupancy.index') }}' + (this.value ? ('?property=' + this.value) : '')"
-                        class="h-10 appearance-none rounded-xl border border-[#64748B]/25 bg-white pl-3.5 pr-9 text-[13px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition cursor-pointer">
-                        <option value="">All Properties</option>
-                        @foreach($properties as $property)
-                            <option value="{{ $property->property_id }}" {{ $selectedPropertyId === $property->property_id ? 'selected' : '' }}>
-                                {{ $property->title }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="2"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                    </svg>
+                    @php
+                        $occupancyPropertyOptions = collect(['' => 'All Properties'])
+                            ->merge($properties->pluck('title', 'property_id'))
+                            ->all();
+                    @endphp
+                    <x-styled-select :options="$occupancyPropertyOptions"
+                        :selected="$selectedPropertyId !== null ? (string) $selectedPropertyId : ''"
+                        onSelect="window.location.href = '{{ route('landlord.occupancy.index') }}' + (val ? ('?property=' + val) : '')"
+                        class="h-10 rounded-xl border border-[#64748B]/25 bg-white pl-3.5 pr-3.5 text-[13px] font-semibold text-[#1F2937]" />
                 </div>
 
                 {{-- Export --}}

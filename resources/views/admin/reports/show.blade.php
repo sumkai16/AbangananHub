@@ -86,16 +86,17 @@
                     <div>
                         <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Action <span
                                 class="text-[#EF4444]">*</span></label>
-                        <select name="action_taken" required
-                            class="h-11 w-full rounded-xl border border-[#E2E8F0] px-3.5 text-[13px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
-                            <option value="none">No action needed</option>
-                            @if($report->reported_user_id || $report->property)
-                                <option value="suspend_user">Suspend reported user's account</option>
-                            @endif
-                            @if($report->property)
-                                <option value="delist_property">Delist reported property</option>
-                            @endif
-                        </select>
+                        @php
+                            $actionTakenOptions = ['none' => 'No action needed'];
+                            if ($report->reported_user_id || $report->property) {
+                                $actionTakenOptions['suspend_user'] = "Suspend reported user's account";
+                            }
+                            if ($report->property) {
+                                $actionTakenOptions['delist_property'] = 'Delist reported property';
+                            }
+                        @endphp
+                        <x-styled-select name="action_taken" :options="$actionTakenOptions" selected="none" required
+                            class="h-11 w-full rounded-xl border border-[#E2E8F0] px-3.5 text-[13px] text-[#1F2937]" />
                     </div>
 
                     <button type="submit"

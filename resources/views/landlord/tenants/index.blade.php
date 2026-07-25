@@ -20,14 +20,23 @@
                 </div>
             </div>
 
-            {{-- Export carries the active filters --}}
-            <a href="{{ route('landlord.tenants.export', request()->only('search', 'property')) }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                Export
-            </a>
+            <div class="flex items-center gap-2.5 shrink-0">
+                {{-- Export carries the active filters --}}
+                <a href="{{ route('landlord.tenants.export', request()->only('search', 'property')) }}"
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 cursor-pointer">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Export
+                </a>
+                <a href="{{ route('landlord.tenants.walkIn.create') }}"
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#1F2937] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                    </svg>
+                    Add Walk-in Tenant
+                </a>
+            </div>
         </div>
 
         {{-- Stat cards --}}
@@ -65,30 +74,21 @@
             class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-5">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
-                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="15" height="15" fill="none"
+                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search tenants by name or email..." aria-label="Search tenants by name or email"
-                        class="pl-10 pr-4 h-11 w-full rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <div class="relative">
-                        <select name="property"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer max-w-[200px]">
-                            <option value="">All Properties</option>
-                            @foreach($properties as $property)
-                                <option value="{{ $property->property_id }}" @selected(request('property') == $property->property_id)>
-                                    {{ $property->title }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </div>
+                    @php
+                        $tenantsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
+                    @endphp
+                    <x-styled-select name="property" :options="$tenantsPropertyOptions" :selected="(string) request('property', '')"
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[200px]" />
 
                     <button type="submit"
                         class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
@@ -129,6 +129,19 @@
                     @php
                         $initials = strtoupper(substr($reservation->tenant->first_name ?? '', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1));
                         $thumb = $reservation->property->media->first() ?? null;
+
+                        // Rent standing → whether a reminder is meaningful.
+                        $summary = $ledger[$reservation->reservation_id] ?? null;
+                        $outstanding = $summary['outstanding'] ?? 0;
+                        $overdueCount = $summary['overdueCount'] ?? 0;
+                        $tenantIsWalkIn = (bool) $reservation->tenant->is_walk_in;
+                        $tenantActive = $reservation->tenant->account_status === 'active';
+                        $canRemind = ! $tenantIsWalkIn && $tenantActive && $outstanding > 0;
+                        $remindReason = $tenantIsWalkIn
+                            ? 'Walk-in tenants have no account to notify'
+                            : (! $tenantActive
+                                ? 'This tenant’s account is inactive'
+                                : ($outstanding <= 0 ? 'No outstanding rent to remind about' : ''));
                     @endphp
                     <div class="group flex flex-col rounded-2xl overflow-hidden bg-white border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.1)] transition-all duration-300">
 
@@ -137,10 +150,18 @@
                                 {{ $initials ?: '?' }}
                             </div>
                             <div class="min-w-0">
-                                <p class="text-[14.5px] font-bold text-[#1F2937] truncate">
-                                    {{ $reservation->tenant->first_name }} {{ $reservation->tenant->last_name }}
-                                </p>
-                                <p class="text-[12px] text-[#64748B] truncate">{{ $reservation->tenant->email ?? 'No email' }}</p>
+                                <div class="flex items-center gap-1.5">
+                                    <p class="text-[14.5px] font-bold text-[#1F2937] truncate">
+                                        {{ $reservation->tenant->first_name }} {{ $reservation->tenant->last_name }}
+                                    </p>
+                                    @if($reservation->tenant->is_walk_in)
+                                        <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold shrink-0"
+                                            title="Added by you — identity not verified by AbangananHub">
+                                            Walk-in
+                                        </span>
+                                    @endif
+                                </div>
+                                <p class="text-[12px] text-[#64748B] truncate">{{ $reservation->tenant->email ?: 'No email' }}</p>
                             </div>
                         </div>
 
@@ -181,13 +202,41 @@
                         </div>
 
                         <div class="flex items-center gap-2 px-5 pb-5 mt-auto">
-                            <a href="{{ route('landlord.properties.show', $reservation->property) }}"
-                                class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#2AA7A1] text-[#2AA7A1] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
-                                View Property
+                            <a href="{{ route('landlord.tenancies.show', $reservation) }}"
+                                class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                                Manage tenancy
                             </a>
+
+                            {{-- Send rent reminder. Only meaningful for a platform tenant
+                                 with rent outstanding; disabled otherwise, with the reason
+                                 in the tooltip. The controller re-checks server-side. --}}
+                            @if($canRemind)
+                                <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
+                                    data-confirm="Send {{ $reservation->tenant->first_name }} a rent reminder?"
+                                    data-confirm-message="They’ll get an in-app notification about their {{ $overdueCount > 0 ? 'overdue' : 'upcoming' }} rent."
+                                    data-confirm-button="Send reminder">
+                                    @csrf
+                                    <button type="submit" title="Send rent reminder"
+                                        class="h-9 w-9 flex items-center justify-center rounded-full border transition-colors duration-200 cursor-pointer {{ $overdueCount > 0 ? 'border-[#EF4444]/40 text-[#DC2626] hover:bg-[#EF4444]/[0.06]' : 'border-[#64748B]/30 text-[#1F2937] hover:bg-[#EEF8F8]' }}">
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            @else
+                                <button type="button" disabled title="{{ $remindReason }}"
+                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#E2E8F0] text-[#CBD5E1] cursor-not-allowed">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                    </svg>
+                                </button>
+                            @endif
+
                             @if($reservation->conversation)
                                 <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200">
+                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200" title="Open conversation">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />

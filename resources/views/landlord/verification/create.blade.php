@@ -2,10 +2,12 @@
 
 @section('content')
     <div class="min-h-[calc(100vh-72px)] py-8 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-2xl mx-auto"
+        <div class="max-w-[1200px] mx-auto"
             x-data="verificationWizard({ ocrCheckUrl: '{{ route('landlord.verification.ocrCheck') }}', csrfToken: '{{ csrf_token() }}' })"
             x-init="init()">
 
+            {{-- Page-level notices — capped to a readable measure above the grid --}}
+            <div class="max-w-3xl mx-auto">
             {{-- Rejection Banner --}}
             @if($verification && $verification->verification_status === 'Rejected')
                 <div class="mb-6 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-4">
@@ -42,27 +44,6 @@
                     </div>
                 </div>
             @endif
-            {{-- Progress Bar (steps 1-5 only, hidden on intro) --}}
-            <div x-show="step > 0" x-transition:enter.duration.200ms class="mb-8">
-                <div class="flex items-center justify-between mb-2">
-                    <button type="button" @click="prevStep()" x-show="step > 1"
-                        class="p-1.5 rounded-lg text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors">
-                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                        </svg>
-                    </button>
-                    <div x-show="step <= 1" class="w-8"></div>
-                    <div class="flex gap-1.5 flex-1 max-w-[200px] mx-auto">
-                        <template x-for="i in 5" :key="i">
-                            <div class="h-1 flex-1 rounded-full transition-colors duration-300"
-                                :class="step >= i ? 'bg-[#2AA7A1]' : 'bg-[#E2E8F0]'"></div>
-                        </template>
-                    </div>
-                    <div class="w-8"></div>
-                </div>
-            </div>
-
             {{-- Validation Errors --}}
             @if($errors->any())
                 <div class="mb-6 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-4">
@@ -73,6 +54,7 @@
                     </ul>
                 </div>
             @endif
+            </div>
 
             {{-- Form --}}
             <form method="POST" action="{{ route('landlord.verification.store') }}" enctype="multipart/form-data"
@@ -83,11 +65,12 @@
                 <input type="hidden" name="id_image" :value="idImageBase64">
                 <input type="hidden" name="id_back" :value="idBackBase64">
                 <input type="hidden" name="selfie" :value="selfieBase64">
+                <input type="hidden" name="liveness_passed" :value="livenessPassed ? 1 : 0">
 
                 {{-- ═══════════════════════════════════════════════ --}}
                 {{-- STEP 0 — Welcome / Intro --}}
                 {{-- ═══════════════════════════════════════════════ --}}
-                <div x-show="step === 0" x-transition:enter.duration.200ms>
+                <div x-show="step === 0" x-transition:enter.duration.200ms class="max-w-xl mx-auto">
                     <div class="text-center pt-8 pb-6">
                         <div class="w-24 h-24 rounded-full bg-[#EEF8F8] mx-auto mb-6 flex items-center justify-center">
                             <svg class="w-12 h-12 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -152,25 +135,40 @@
                         class="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[#FF8A65] hover:brightness-95 transition-all duration-150">
                         Get started
                     </button>
+
+                    <p class="mt-5 text-center text-xs text-[#64748B] leading-relaxed">Rather do this on your phone?
+                        <button type="button"
+                            x-data="emailLinkButton('{{ route('landlord.verification.sendEmailLink') }}', '{{ csrf_token() }}')"
+                            @click="send()" class="font-semibold text-[#1F2937] hover:text-[#156F8C] transition-colors"
+                            :class="done ? 'pointer-events-none' : ''">
+                            <span x-show="!sending && !done" class="underline">Send myself a link</span>
+                            <span x-show="sending" style="display:none">Sending...</span>
+                            <span x-show="done" style="display:none"
+                                :class="success ? 'text-[#22C55E]' : 'text-[#FBBF24]'" x-text="message"></span>
+                        </button>
+                    </p>
                 </div>
+
+                {{-- ═══════════════════════════════════════════════ --}}
+                {{-- STEPS 1–5 — rail + stage --}}
+                {{-- ═══════════════════════════════════════════════ --}}
+                <div x-show="step > 0" x-transition:enter.duration.200ms
+                    class="grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-11">
+
+                    @include('landlord.verification._stepper')
+
+                    <div class="min-w-0">
 
                 {{-- ═══════════════════════════════════════════════ --}}
                 {{-- STEP 1 — Select ID Type --}}
                 {{-- ═══════════════════════════════════════════════ --}}
-                <div x-show="step === 1" x-transition:enter.duration.200ms>
-                    <div class="text-center mb-6">
-                        <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] mx-auto mb-4 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
-                            </svg>
-                        </div>
-                        <h2 class="text-lg font-semibold text-[#1F2937] mb-1">Select your government ID</h2>
-                        <p class="text-sm text-[#64748B]">Choose a valid, unexpired Philippine government ID.</p>
-                    </div>
+                <div x-show="step === 1" x-transition:enter.duration.200ms class="max-w-2xl">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 1 of 5</p>
+                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]">Which ID will you use?</h1>
+                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">Pick a valid, unexpired Philippine
+                        government ID. You'll photograph it on the next step, so have it with you.</p>
 
-                    <div class="space-y-2 mb-6">
+                    <div class="mt-6 grid sm:grid-cols-2 gap-2">
                         <template x-for="id in idTypes" :key="id">
                             <label
                                 class="flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors duration-150"
@@ -182,11 +180,12 @@
                         </template>
                     </div>
 
-                    <button type="button" @click="nextStep()" :disabled="!idType"
-                        class="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
-                        :class="idType ? 'bg-[#2AA7A1] hover:brightness-95' : 'bg-[#2AA7A1]'">
-                        Continue
-                    </button>
+                    <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                        <button type="button" @click="nextStep()" :disabled="!idType"
+                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
+                            Continue
+                        </button>
+                    </div>
                 </div>
 
                 {{-- ═══════════════════════════════════════════════ --}}
@@ -194,79 +193,56 @@
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step === 2" x-transition:enter.duration.200ms>
 
-                    {{-- ── Method chooser ──────────────────────── --}}
-                    <div x-show="idCapturePhase === 'choose'">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] mx-auto mb-4 flex items-center justify-center">
-                                <svg class="w-8 h-8 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
-                                </svg>
-                            </div>
-                            <h2 class="text-lg font-semibold text-[#1F2937] mb-1">Upload your <span x-text="idType"></span>
-                            </h2>
-                            <p class="text-sm text-[#64748B]">Take a clear photo or upload from your gallery.</p>
-                        </div>
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]"
+                        x-text="idCapturePhase === 'capture-back' ? 'Back of your ' + idType : 'Front of your ' + idType"></p>
+                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]"
+                        x-text="idCapturePhase === 'capture-back' ? 'Now the back of your ID' : 'Line up the front of your ID'">
+                    </h1>
+                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">We read your name and ID number
+                        straight off this photo, so the text has to be sharp.</p>
 
-                        <div class="space-y-3 mb-6">
-                            <button type="button" @click="chooseIdMethod('camera')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
-                                <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-[#1F2937]">Take a photo</p>
-                                    <p class="text-xs text-[#64748B]">Use your camera to capture</p>
-                                </div>
-                                <svg class="w-5 h-5 text-[#64748B] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
+                    {{-- ── Ready screen ────────────────────────── --}}
+                    <div x-show="idCapturePhase === 'choose'" class="mt-6 max-w-xl">
+                        <ul class="space-y-2.5">
+                            @foreach ([
+                                'All four corners inside the brackets',
+                                'No glare across the name or number',
+                                'Flat on a surface, not held in the air',
+                                'The ID is unexpired',
+                            ] as $rule)
+                                <li class="flex items-start gap-2.5">
+                                    <span
+                                        class="w-4 h-4 mt-0.5 shrink-0 rounded-full bg-[#EEF8F8] flex items-center justify-center">
+                                        <svg class="w-2.5 h-2.5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor"
+                                            aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                    </span>
+                                    <span class="text-[13px] text-[#64748B] leading-relaxed">{{ $rule }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+
+                        <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                            <button type="button" @click="prevStep()"
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                Back
                             </button>
-
-                            <button type="button" @click="chooseIdMethod('upload')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
-                                <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-[#1F2937]">Upload from gallery</p>
-                                    <p class="text-xs text-[#64748B]">Select an existing photo</p>
-                                </div>
-                                <svg class="w-5 h-5 text-[#64748B] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
+                            <button type="button" @click="startIdCapture()"
+                                class="ml-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                                @include('components.icons.camera')
+                                Open camera
                             </button>
-                        </div>
-
-                        <div class="p-3.5 rounded-xl bg-[#EEF8F8]">
-                            <div class="flex items-start gap-2.5">
-                                <svg class="h-4 w-4 text-[#2AA7A1] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                                </svg>
-                                <p class="text-xs text-[#64748B] leading-relaxed">Good lighting, flat surface, all 4 corners
-                                    visible. Text must be readable.</p>
-                            </div>
                         </div>
                     </div>
 
-                    {{-- ── Active capture / upload area ─────────── --}}
-                    <div x-show="idCapturePhase !== 'choose'">
-                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                    {{-- ── Active capture area ─────────────────── --}}
+                    <div x-show="idCapturePhase !== 'choose'" class="mt-6 max-w-4xl">
+                        <div class="grid xl:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
+
+                            {{-- Stage --}}
+                            <div class="max-w-2xl">
 
                             <template x-if="cameraError">
                                 <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-3">
@@ -274,8 +250,8 @@
                                 </div>
                             </template>
 
-                            {{-- Thumbnail row --}}
-                            <div x-show="idImageBase64 && idCapturePhase !== 'capture-front'" class="mb-4">
+                            {{-- Thumbnail row (mobile / narrow — the guidance column carries it on xl) --}}
+                            <div x-show="idImageBase64 && idCapturePhase !== 'capture-front'" class="mb-4 xl:hidden">
                                 <div class="grid gap-4" :class="needsBack ? 'grid-cols-2' : 'grid-cols-1 max-w-xs'">
                                     <div class="relative">
                                         <div class="rounded-xl overflow-hidden border-2 border-[#22C55E] cursor-pointer"
@@ -455,96 +431,116 @@
                             </div>
 
                             {{-- CAMERA: Front --}}
-                            <div x-show="idCapturePhase === 'capture-front' && idCaptureMethod === 'camera'"
-                                class="relative">
-                                <p class="text-xs font-semibold text-[#1F2937] mb-2"
-                                    x-text="needsBack ? 'Front of ID' : 'ID data page'"></p>
-                                <div class="relative rounded-xl overflow-hidden bg-black aspect-[4/3]">
+                            <div x-show="idCapturePhase === 'capture-front'">
+                                <div class="relative rounded-2xl overflow-hidden bg-black aspect-[4/3]">
                                     <video x-ref="videoId" autoplay playsinline class="w-full h-full object-cover"></video>
-                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <div class="w-[85%] h-[60%] border-2 border-white/60 rounded-lg"></div>
-                                    </div>
+                                    <x-capture-brackets />
+                                    <p class="absolute inset-x-0 top-4 mx-auto w-fit px-3.5 py-1.5 rounded-full bg-white/90 text-xs font-semibold text-[#1F2937] pointer-events-none">
+                                        Hold steady — move the ID inside the brackets
+                                    </p>
+                                    <x-shutter-button label="Capture the front of your ID" @click="capturePhoto('id')"
+                                        ::disabled="!cameraActive" />
                                 </div>
                                 <canvas x-ref="canvasId" class="hidden"></canvas>
-                                <div class="mt-3 flex justify-center">
-                                    <button type="button" @click="capturePhoto('id')" :disabled="!cameraActive"
-                                        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#FF8A65] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed">
-                                        @include('components.icons.camera')
-                                        <span x-text="needsBack ? 'Capture front' : 'Capture ID'"></span>
-                                    </button>
-                                </div>
                             </div>
 
                             {{-- CAMERA: Back --}}
-                            <div x-show="idCapturePhase === 'capture-back' && idCaptureMethod === 'camera'"
-                                class="relative">
-                                <p class="text-xs font-semibold text-[#1F2937] mb-2">Flip your ID and capture the back</p>
-                                <div class="relative rounded-xl overflow-hidden bg-black aspect-[4/3]">
+                            <div x-show="idCapturePhase === 'capture-back'">
+                                <div class="relative rounded-2xl overflow-hidden bg-black aspect-[4/3]">
                                     <video x-ref="videoIdBack" autoplay playsinline
                                         class="w-full h-full object-cover"></video>
-                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <div class="w-[85%] h-[60%] border-2 border-white/60 rounded-lg"></div>
-                                    </div>
+                                    <x-capture-brackets />
+                                    <p class="absolute inset-x-0 top-4 mx-auto w-fit px-3.5 py-1.5 rounded-full bg-white/90 text-xs font-semibold text-[#1F2937] pointer-events-none">
+                                        Flip your ID over and line up the back
+                                    </p>
+                                    <x-shutter-button label="Capture the back of your ID"
+                                        @click="capturePhoto('idBack')" ::disabled="!cameraActive" />
                                 </div>
                                 <canvas x-ref="canvasIdBack" class="hidden"></canvas>
-                                <div class="mt-3 flex justify-center">
-                                    <button type="button" @click="capturePhoto('idBack')" :disabled="!cameraActive"
-                                        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#FF8A65] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed">
-                                        @include('components.icons.camera')
-                                        Capture back
-                                    </button>
+                            </div>
+
+                            </div>{{-- /stage --}}
+
+                            {{-- Guidance column --}}
+                            <div class="hidden xl:block">
+                                <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#64748B]">Before you
+                                    capture</p>
+                                <ul class="mt-3 space-y-2.5">
+                                    @foreach ([
+                                        'All four corners inside the brackets',
+                                        'No glare across the name or number',
+                                        'Flat on a surface, not held in the air',
+                                    ] as $rule)
+                                        <li class="flex items-start gap-2.5">
+                                            <span
+                                                class="w-4 h-4 mt-0.5 shrink-0 rounded-full bg-[#EEF8F8] flex items-center justify-center">
+                                                <svg class="w-2.5 h-2.5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none" viewBox="0 0 24 24" stroke-width="3.5"
+                                                    stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="m4.5 12.75 6 6 9-13.5" />
+                                                </svg>
+                                            </span>
+                                            <span class="text-[13px] text-[#64748B] leading-relaxed">{{ $rule }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+
+                                <div x-show="idImageBase64">
+                                    <p class="mt-7 text-[11px] font-bold uppercase tracking-[0.09em] text-[#64748B]">
+                                        Captured so far</p>
+                                    <div class="mt-3 grid grid-cols-2 gap-2.5">
+                                        <div>
+                                            <div class="relative rounded-lg overflow-hidden border-2 border-[#22C55E] cursor-pointer"
+                                                @click="openPreview(idImageBase64)">
+                                                <img :src="idImageBase64" alt="Front of ID"
+                                                    class="w-full aspect-[4/3] object-cover">
+                                            </div>
+                                            <div class="flex items-center justify-between mt-1.5">
+                                                <span class="text-[11.5px] text-[#64748B]"
+                                                    x-text="needsBack ? 'Front' : 'ID photo'"></span>
+                                                <button type="button" @click="retakePhoto('id')"
+                                                    class="text-[11.5px] text-[#156F8C] hover:underline">Retake</button>
+                                            </div>
+                                        </div>
+                                        <div x-show="needsBack">
+                                            <template x-if="idBackBase64">
+                                                <div>
+                                                    <div class="rounded-lg overflow-hidden border-2 border-[#22C55E] cursor-pointer"
+                                                        @click="openPreview(idBackBase64)">
+                                                        <img :src="idBackBase64" alt="Back of ID"
+                                                            class="w-full aspect-[4/3] object-cover">
+                                                    </div>
+                                                    <div class="flex items-center justify-between mt-1.5">
+                                                        <span class="text-[11.5px] text-[#64748B]">Back</span>
+                                                        <button type="button" @click="retakePhoto('idBack')"
+                                                            class="text-[11.5px] text-[#156F8C] hover:underline">Retake</button>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template x-if="!idBackBase64">
+                                                <div>
+                                                    <div
+                                                        class="rounded-lg border-[1.5px] border-dashed border-[#E2E8F0] aspect-[4/3] flex items-center justify-center">
+                                                        <span class="text-[11px] text-[#64748B]">Back</span>
+                                                    </div>
+                                                    <p class="mt-1.5 text-[11.5px] text-[#64748B]">Next</p>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {{-- UPLOAD: Front --}}
-                            <div x-show="idCapturePhase === 'capture-front' && idCaptureMethod === 'upload'">
-                                <p class="text-xs font-semibold text-[#1F2937] mb-2"
-                                    x-text="needsBack ? 'Upload front of ID' : 'Upload ID photo'"></p>
-                                <label
-                                    class="flex flex-col items-center justify-center w-full aspect-[4/3] rounded-xl border-2 border-dashed border-[#E2E8F0] hover:border-[#2AA7A1] bg-[#F7FCFC] cursor-pointer transition-colors duration-150">
-                                    <svg class="w-10 h-10 text-[#64748B] mb-2" xmlns="http://www.w3.org/2000/svg"
-                                        fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                    <span class="text-sm text-[#64748B]">Tap to select a photo</span>
-                                    <span class="text-xs text-[#64748B] mt-1">JPEG or PNG, max 10MB</span>
-                                    <input type="file" x-ref="fileInputFront" accept="image/jpeg,image/png"
-                                        capture="environment" class="hidden" @change="handleFileUpload('id', $event)">
-                                </label>
-                            </div>
+                        </div>{{-- /grid --}}
 
-                            {{-- UPLOAD: Back --}}
-                            <div x-show="idCapturePhase === 'capture-back' && idCaptureMethod === 'upload'">
-                                <p class="text-xs font-semibold text-[#1F2937] mb-2">Upload back of ID</p>
-                                <label
-                                    class="flex flex-col items-center justify-center w-full aspect-[4/3] rounded-xl border-2 border-dashed border-[#E2E8F0] hover:border-[#2AA7A1] bg-[#F7FCFC] cursor-pointer transition-colors duration-150">
-                                    <svg class="w-10 h-10 text-[#64748B] mb-2" xmlns="http://www.w3.org/2000/svg"
-                                        fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                    <span class="text-sm text-[#64748B]">Tap to select a photo</span>
-                                    <span class="text-xs text-[#64748B] mt-1">JPEG or PNG, max 10MB</span>
-                                    <input type="file" x-ref="fileInputBack" accept="image/jpeg,image/png"
-                                        capture="environment" class="hidden" @change="handleFileUpload('idBack', $event)">
-                                </label>
-                            </div>
-
-                            {{-- Switch method link --}}
-                            <div x-show="idCapturePhase !== 'done'" class="mt-3 text-center">
-                                <button type="button" @click="switchIdMethod()"
-                                    class="text-xs text-[#64748B] hover:text-[#2AA7A1] underline transition-colors">
-                                    <span
-                                        x-text="idCaptureMethod === 'camera' ? 'Upload a photo instead' : 'Use camera instead'"></span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 flex justify-end">
+                        <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                            <button type="button" @click="prevStep()"
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                Back
+                            </button>
                             <button type="button" @click="nextStep()" :disabled="!idCaptureComplete"
-                                class="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
-                                :class="idCaptureComplete ? 'bg-[#2AA7A1] hover:brightness-95' : 'bg-[#2AA7A1]'">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
                                 Continue
                             </button>
                         </div>
@@ -556,78 +552,50 @@
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step === 3" x-transition:enter.duration.200ms>
 
-                    {{-- ── Method chooser ──────────────────────── --}}
-                    <div x-show="selfieCapturePhase === 'choose' && !selfieBase64">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] mx-auto mb-4 flex items-center justify-center">
-                                <svg class="w-8 h-8 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                                </svg>
-                            </div>
-                            <h2 class="text-lg font-semibold text-[#1F2937] mb-1">Face verification</h2>
-                            <p class="text-sm text-[#64748B]">We'll compare this with the photo on your ID.</p>
-                        </div>
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Live face check</p>
+                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]"
+                        x-text="livenessActive && livenessInstruction ? livenessInstruction : 'Show us it\'s really you'">
+                    </h1>
+                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">Four quick movements prove you're
+                        here in person. We take the photo automatically once they're done, then compare it with the
+                        photo on your ID.</p>
 
-                        <div class="space-y-3 mb-6">
-                            <button type="button" @click="chooseSelfieMethod('camera')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
-                                <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-[#1F2937]">Take a selfie</p>
-                                    <p class="text-xs text-[#64748B]">Use your front camera</p>
-                                </div>
-                                <svg class="w-5 h-5 text-[#64748B] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
+                    {{-- ── Ready screen ────────────────────────── --}}
+                    <div x-show="selfieCapturePhase === 'choose' && !selfieBase64" class="mt-6 max-w-xl">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#64748B]">You'll be asked to</p>
+                        <ol class="mt-3 space-y-2 mb-5">
+                            <template x-for="(label, idx) in livenessSteps" :key="idx">
+                                <li class="flex items-center gap-3">
+                                    <span
+                                        class="w-[22px] h-[22px] rounded-full bg-[#EEF8F8] text-[#156F8C] text-[11px] font-bold flex items-center justify-center shrink-0"
+                                        x-text="idx + 1"></span>
+                                    <span class="text-sm text-[#1F2937]" x-text="label"></span>
+                                </li>
+                            </template>
+                        </ol>
+
+                        <p class="text-[13px] text-[#64748B] leading-relaxed">No sunglasses or hats, and keep your
+                            whole face inside the ring.</p>
+
+                        <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                            <button type="button" @click="prevStep()"
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                Back
                             </button>
-
-                            <button type="button" @click="chooseSelfieMethod('upload')"
-                                class="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] transition-colors duration-150 text-left">
-                                <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-[#156F8C]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-[#1F2937]">Upload a selfie</p>
-                                    <p class="text-xs text-[#64748B]">Select from your gallery</p>
-                                </div>
-                                <svg class="w-5 h-5 text-[#64748B] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
+                            <button type="button" @click="startSelfieCapture()"
+                                class="ml-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                                @include('components.icons.camera')
+                                Start face check
                             </button>
-                        </div>
-
-                        <div class="p-3.5 rounded-xl bg-[#EEF8F8]">
-                            <div class="flex items-start gap-2.5">
-                                <svg class="h-4 w-4 text-[#2AA7A1] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                                </svg>
-                                <p class="text-xs text-[#64748B] leading-relaxed">Face the camera directly, no sunglasses or
-                                    hats, plain well-lit background.</p>
-                            </div>
                         </div>
                     </div>
 
                     {{-- ── Camera selfie capture with liveness ──── --}}
-                    <div x-show="selfieCapturePhase === 'camera' && !selfieBase64">
-                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                    <div x-show="selfieCapturePhase === 'camera' && !selfieBase64" class="mt-6 max-w-2xl">
+                        <div class="grid xl:grid-cols-[380px_minmax(0,1fr)] gap-8 items-start">
+
+                            {{-- Stage --}}
+                            <div class="max-w-[380px]">
                             <template x-if="cameraError">
                                 <div class="mb-4 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/[0.07] p-3">
                                     <p class="text-sm text-[#EF4444]" x-text="cameraError"></p>
@@ -635,8 +603,8 @@
                             </template>
 
                             {{-- Camera selfie with liveness overlay --}}
-                            <div x-show="selfieCaptureMethod === 'camera'" class="relative">
-                                <div class="relative rounded-xl overflow-hidden bg-black aspect-[3/4] max-w-sm mx-auto">
+                            <div class="relative">
+                                <div class="relative rounded-2xl overflow-hidden bg-black aspect-[3/4]">
                                     <video x-ref="videoSelfie" autoplay playsinline class="w-full h-full object-cover"
                                         style="transform: scaleX(-1)"></video>
 
@@ -648,7 +616,7 @@
 
                                     {{-- Face detected indicator --}}
                                     <div x-show="livenessActive && livenessFaceDetected"
-                                        class="absolute bottom-16 left-1/2 -translate-x-1/2 pointer-events-none">
+                                        class="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
                                         <span
                                             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EEF8F8]/90 text-xs font-medium text-[#156F8C]">
                                             <svg class="w-3 h-3 text-[#22C55E]" xmlns="http://www.w3.org/2000/svg"
@@ -662,7 +630,7 @@
 
                                     {{-- No face detected indicator --}}
                                     <div x-show="livenessActive && !livenessFaceDetected && !livenessPassed"
-                                        class="absolute bottom-16 left-1/2 -translate-x-1/2 pointer-events-none">
+                                        class="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
                                         <span
                                             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EF4444]/[0.07] text-xs font-medium text-[#EF4444]">
                                             <svg class="w-3 h-3 text-[#EF4444]" xmlns="http://www.w3.org/2000/svg"
@@ -705,102 +673,82 @@
                                         <span class="text-7xl font-bold text-white drop-shadow-lg"
                                             x-text="countdownValue"></span>
                                     </div>
+
+                                    {{-- Manual shutter — only in the fallback states. The happy path
+                                         captures itself, so no shutter appears while liveness is running. --}}
+                                    <x-shutter-button label="Take your selfie"
+                                        x-show="!livenessActive && !livenessLoading && !livenessPassed"
+                                        @click="skipLiveness(); capturePhoto('selfie')" ::disabled="!cameraActive" />
                                 </div>
                                 <canvas x-ref="canvasSelfie" class="hidden"></canvas>
 
-                                {{-- Liveness instruction + progress dots --}}
-                                <div x-show="livenessActive || livenessLoading" class="mt-4 text-center">
-                                    <p class="text-sm font-semibold text-[#1F2937] mb-3" x-text="livenessInstruction"></p>
-
-                                    <div x-show="livenessActive" class="flex justify-center gap-4">
-                                        <template x-for="(label, idx) in livenessSteps" :key="idx">
-                                            <div class="text-center">
-                                                <div class="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-1 transition-colors duration-300"
-                                                    :class="livenessCompleted[idx] ? 'bg-[#22C55E]' : (livenessStep === idx ? 'border-2 border-[#2AA7A1]' : 'border-2 border-[#E2E8F0]')">
-                                                    <template x-if="livenessCompleted[idx]">
-                                                        <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-                                                            stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="m4.5 12.75 6 6 9-13.5" />
-                                                        </svg>
-                                                    </template>
-                                                    <template x-if="!livenessCompleted[idx] && livenessStep === idx">
-                                                        <div class="w-2 h-2 rounded-full bg-[#2AA7A1]"></div>
-                                                    </template>
-                                                    <template x-if="!livenessCompleted[idx] && livenessStep !== idx">
-                                                        <div class="w-1.5 h-1.5 rounded-full bg-[#E2E8F0]"></div>
-                                                    </template>
-                                                </div>
-                                                <span class="text-[10px] text-[#64748B] leading-tight block max-w-[48px]"
-                                                    :class="livenessStep === idx ? 'text-[#2AA7A1] font-medium' : ''"
-                                                    x-text="label.replace('Look ', '').replace('Turn ', '').replace('Open your ', '')"></span>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-
-                                {{-- Liveness error — fallback to manual capture --}}
-                                <div x-show="livenessError" class="mt-4">
-                                    <div class="p-3 rounded-xl bg-[#FBBF24]/[0.10] mb-3">
-                                        <p class="text-xs text-[#1F2937]">Face detection couldn't load. You can take a
-                                            regular selfie instead — our team will verify manually.</p>
-                                    </div>
-                                    <div class="flex justify-center">
-                                        <button type="button" @click="skipLiveness(); capturePhoto('selfie')"
-                                            :disabled="!cameraActive"
-                                            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#FF8A65] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed">
-                                            @include('components.icons.camera')
-                                            Take selfie
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {{-- Manual capture button (shown when liveness is not active — e.g. skipped) --}}
-                                <div x-show="!livenessActive && !livenessLoading && !livenessError && !livenessPassed"
-                                    class="mt-4 flex justify-center">
-                                    <button type="button" @click="capturePhoto('selfie')" :disabled="!cameraActive"
-                                        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#FF8A65] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed">
-                                        @include('components.icons.camera')
-                                        Take selfie
-                                    </button>
+                                {{-- Liveness unavailable — explains why the shutter is showing --}}
+                                <div x-show="livenessError" class="mt-4 p-3 rounded-xl bg-[#FBBF24]/[0.10]">
+                                    <p class="text-xs text-[#1F2937] leading-relaxed">Face detection couldn't load, so we
+                                        can't run the movement check. Take a regular selfie instead — our team will
+                                        verify it manually.</p>
                                 </div>
                             </div>
 
-                            {{-- Upload selfie --}}
-                            <div x-show="selfieCaptureMethod === 'upload'">
-                                <label
-                                    class="flex flex-col items-center justify-center w-full aspect-[3/4] max-w-sm mx-auto rounded-xl border-2 border-dashed border-[#E2E8F0] hover:border-[#2AA7A1] bg-[#F7FCFC] cursor-pointer transition-colors duration-150">
-                                    <svg class="w-10 h-10 text-[#64748B] mb-2" xmlns="http://www.w3.org/2000/svg"
-                                        fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                                    </svg>
-                                    <span class="text-sm text-[#64748B]">Tap to select a selfie</span>
-                                    <span class="text-xs text-[#64748B] mt-1">JPEG or PNG, max 10MB</span>
-                                    <input type="file" x-ref="fileInputSelfie" accept="image/jpeg,image/png" capture="user"
-                                        class="hidden" @change="handleFileUpload('selfie', $event)">
-                                </label>
+                            </div>{{-- /stage --}}
+
+                            {{-- Movement checklist — mirrors the step rail's language --}}
+                            <div x-show="livenessActive || livenessLoading">
+                                <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#64748B]">Movements</p>
+                                <ol class="mt-3 space-y-0.5">
+                                    <template x-for="(label, idx) in livenessSteps" :key="idx">
+                                        <li class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors duration-200"
+                                            :class="livenessStep === idx ? 'bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)]' : ''">
+                                            <span
+                                                class="w-[22px] h-[22px] shrink-0 rounded-full border-[1.5px] flex items-center justify-center text-[11px] font-bold transition-colors duration-300"
+                                                :class="livenessCompleted[idx]
+                                                    ? 'bg-[#22C55E] border-[#22C55E] text-white'
+                                                    : (livenessStep === idx
+                                                        ? 'bg-[#2AA7A1] border-[#2AA7A1] text-white'
+                                                        : 'bg-white border-[#E2E8F0] text-[#64748B]')">
+                                                <template x-if="livenessCompleted[idx]">
+                                                    <svg class="w-2.5 h-2.5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor"
+                                                        aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="m4.5 12.75 6 6 9-13.5" />
+                                                    </svg>
+                                                </template>
+                                                <template x-if="!livenessCompleted[idx]">
+                                                    <span x-text="idx + 1"></span>
+                                                </template>
+                                            </span>
+                                            <span class="text-[13px] transition-colors duration-200"
+                                                :class="livenessStep === idx || livenessCompleted[idx] ? 'text-[#1F2937] font-semibold' : 'text-[#64748B] font-medium'"
+                                                x-text="label"></span>
+                                        </li>
+                                    </template>
+                                </ol>
+
+                                <div class="mt-5 p-3.5 rounded-xl bg-[#EEF8F8]">
+                                    <p class="text-xs text-[#64748B] leading-relaxed">No sunglasses or hats, and keep your
+                                        whole face inside the ring.</p>
+                                </div>
                             </div>
 
-                            <div class="mt-3 text-center">
-                                <button type="button" @click="switchSelfieMethod()"
-                                    class="text-xs text-[#64748B] hover:text-[#2AA7A1] underline transition-colors">
-                                    <span
-                                        x-text="selfieCaptureMethod === 'camera' ? 'Upload a photo instead' : 'Use camera instead'"></span>
-                                </button>
-                            </div>
+                        </div>
+
+                        <div class="mt-7 pt-5 border-t border-[#E2E8F0]">
+                            <button type="button" @click="prevStep()"
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                Back
+                            </button>
                         </div>
                     </div>
 
-                    {{-- ── Selfie preview (both modes) ─────────── --}}
-                    <div x-show="selfieBase64">
-                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
-                            <div class="rounded-xl overflow-hidden border border-[#E2E8F0] max-w-sm mx-auto">
+                    {{-- ── Selfie preview ──────────────────────── --}}
+                    <div x-show="selfieBase64" class="mt-6 max-w-xl">
+                        <div class="max-w-[380px]">
+                            <div class="rounded-2xl overflow-hidden border-2 border-[#22C55E]">
                                 <img :src="selfieBase64" alt="Captured selfie" class="w-full">
                             </div>
 
-                            <div x-show="faceCheckDone && !faceDetected" class="mt-3 max-w-sm mx-auto">
+                            <div x-show="faceCheckDone && !faceDetected" class="mt-3">
                                 <div class="flex items-start gap-2.5 p-3 rounded-xl bg-[#FBBF24]/[0.10]">
                                     <svg class="w-4 h-4 text-[#FBBF24] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -808,14 +756,15 @@
                                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                     </svg>
                                     <div>
-                                        <p class="text-sm font-semibold text-[#1F2937]">We can't see your face clearly</p>
-                                        <p class="text-xs text-[#64748B] mt-1">Face the camera directly with good lighting.
-                                            You can retake or continue — our team will check.</p>
+                                        <p class="text-sm font-semibold text-[#1F2937]">Live check not completed</p>
+                                        <p class="text-xs text-[#64748B] mt-1">We couldn't run the automatic face check on
+                                            this photo. You can retake it or continue — our team will verify it manually,
+                                            which may take longer.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div x-show="faceCheckDone && faceDetected" class="mt-3 max-w-sm mx-auto">
+                            <div x-show="faceCheckDone && faceDetected" class="mt-3">
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#22C55E]/[0.07]">
                                     <svg class="w-4 h-4 text-[#22C55E] shrink-0" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -823,11 +772,11 @@
                                             d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                     </svg>
                                     <span class="text-sm text-[#1F2937]"
-                                        x-text="livenessPassed ? 'Liveness verified!' : 'Looking good!'"></span>
+                                        x-text="livenessPassed ? 'Liveness verified' : 'Photo captured'"></span>
                                 </div>
                             </div>
 
-                            <div class="mt-3 flex justify-center">
+                            <div class="mt-3">
                                 <button type="button" @click="retakePhoto('selfie')"
                                     class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-[#1F2937] border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
                                     @include('components.icons.refresh')
@@ -836,9 +785,13 @@
                             </div>
                         </div>
 
-                        <div class="mt-6">
+                        <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                            <button type="button" @click="prevStep()"
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                Back
+                            </button>
                             <button type="button" @click="nextStep()" :disabled="!selfieBase64"
-                                class="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
                                 Continue
                             </button>
                         </div>
@@ -848,20 +801,14 @@
                 {{-- ═══════════════════════════════════════════════ --}}
                 {{-- STEP 4 — Business Details --}}
                 {{-- ═══════════════════════════════════════════════ --}}
-                <div x-show="step === 4" x-transition:enter.duration.200ms>
-                    <div class="text-center mb-6">
-                        <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] mx-auto mb-4 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
-                            </svg>
-                        </div>
-                        <h2 class="text-lg font-semibold text-[#1F2937] mb-1">Business details</h2>
-                        <p class="text-sm text-[#64748B]">Tell us about your rental business on AbangananHub.</p>
-                    </div>
+                <div x-show="step === 4" x-transition:enter.duration.200ms class="max-w-2xl">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 4 of 5</p>
+                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]">Tell us about your rental
+                        business</h1>
+                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">This is what tenants see on your
+                        listings. You can change any of it later from your profile.</p>
 
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                    <div class="mt-6">
                         <div class="space-y-4">
                             <div>
                                 <label for="business_name" class="block text-sm font-medium text-[#1F2937] mb-1">Business
@@ -902,11 +849,14 @@
                         </div>
                     </div>
 
-                    <div class="mt-6">
+                    <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                        <button type="button" @click="prevStep()"
+                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                            Back
+                        </button>
                         <button type="button" @click="nextStep()"
                             :disabled="!businessName || !contactNumber || !businessAddress"
-                            class="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
-                            :class="(businessName && contactNumber && businessAddress) ? 'bg-[#2AA7A1] hover:brightness-95' : 'bg-[#2AA7A1]'">
+                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
                             Continue
                         </button>
                     </div>
@@ -915,13 +865,13 @@
                 {{-- ═══════════════════════════════════════════════ --}}
                 {{-- STEP 5 — Review & Submit --}}
                 {{-- ═══════════════════════════════════════════════ --}}
-                <div x-show="step === 5" x-transition:enter.duration.200ms>
-                    <div class="text-center mb-6">
-                        <h2 class="text-lg font-semibold text-[#1F2937]">Review your application</h2>
-                        <p class="text-sm text-[#64748B]">Make sure everything looks correct before submitting.</p>
-                    </div>
+                <div x-show="step === 5" x-transition:enter.duration.200ms class="max-w-4xl">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 5 of 5</p>
+                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]">Check it over before you send</h1>
+                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">An admin reviews every application by
+                        hand. Getting this right the first time is the fastest route to approval.</p>
 
-                    <div class="space-y-4">
+                    <div class="mt-6 space-y-4">
                         {{-- Verification checks --}}
                         <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                             <p class="text-xs font-semibold text-[#64748B] mb-3">Verification checks</p>
@@ -1050,9 +1000,13 @@
                         </div>
                     </div>
 
-                    <div class="mt-6">
+                    <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                        <button type="button" @click="prevStep()"
+                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                            Back
+                        </button>
                         <button type="submit" :disabled="submitting"
-                            class="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white bg-[#FF8A65] hover:brightness-95 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed">
+                            class="ml-auto inline-flex items-center justify-center gap-2 px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#FF8A65] hover:brightness-95 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed">
                             <svg x-show="submitting" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -1064,6 +1018,25 @@
                         </button>
                     </div>
                 </div>
+
+                        {{-- Phone hand-off — the rail carries this on desktop --}}
+                        <div class="lg:hidden mt-7 pt-5 border-t border-[#E2E8F0]">
+                            <p class="text-xs text-[#64748B] leading-relaxed">Rather do this on your phone?
+                                <button type="button"
+                                    x-data="emailLinkButton('{{ route('landlord.verification.sendEmailLink') }}', '{{ csrf_token() }}')"
+                                    @click="send()"
+                                    class="text-left font-semibold text-[#1F2937] hover:text-[#156F8C] transition-colors"
+                                    :class="done ? 'pointer-events-none' : ''">
+                                    <span x-show="!sending && !done" class="underline">Send myself a link</span>
+                                    <span x-show="sending" style="display:none">Sending...</span>
+                                    <span x-show="done" style="display:none"
+                                        :class="success ? 'text-[#22C55E]' : 'text-[#FBBF24]'" x-text="message"></span>
+                                </button>
+                            </p>
+                        </div>
+
+                    </div>{{-- /stage --}}
+                </div>{{-- /rail + stage grid --}}
 
                 {{-- Lightbox --}}
                 <div x-show="previewImage" x-transition:enter="transition ease-out duration-200"
@@ -1080,18 +1053,6 @@
                     </button>
                     <img :src="previewImage" alt="ID Preview" @click.stop
                         class="max-w-full max-h-[85vh] rounded-xl cursor-default">
-                </div>
-                {{-- Continue via email link (all steps) --}}
-                <div class="mt-6 text-center">
-                    <button type="button"
-                        x-data="emailLinkButton('{{ route('landlord.verification.sendEmailLink') }}', '{{ csrf_token() }}')"
-                        @click="send()" class="text-xs text-[#64748B] hover:text-[#2AA7A1] transition-colors"
-                        :class="done ? 'pointer-events-none' : ''">
-                        <span x-show="!sending && !done" class="underline">Continue verification via email</span>
-                        <span x-show="sending" style="display:none">Sending...</span>
-                        <span x-show="done" style="display:none" :class="success ? 'text-[#22C55E]' : 'text-[#FBBF24]'"
-                            x-text="message"></span>
-                    </button>
                 </div>
             </form>
         </div>

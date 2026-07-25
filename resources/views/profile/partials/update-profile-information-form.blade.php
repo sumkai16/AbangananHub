@@ -115,14 +115,16 @@
                     class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
                     Profile visibility
                 </label>
-                <select id="profile_visibility" name="profile_visibility"
-                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15">
-                    @php $visibility = old('profile_visibility', $user->profile_visibility); @endphp
-                    <option value="private" {{ $visibility === 'private' ? 'selected' : '' }}>Private — only you can see your profile</option>
-                    <option value="landlords_only" {{ $visibility === 'landlords_only' ? 'selected' : '' }}>Landlords only — visible to landlords you've reserved with</option>
-                    <option value="public" {{ $visibility === 'public' ? 'selected' : '' }}>Public — visible to everyone</option>
-                </select>
+                @php
+                    $visibility = old('profile_visibility', $user->profile_visibility);
+                    $visibilityOptions = [
+                        'private' => 'Private — only you can see your profile',
+                        'landlords_only' => "Landlords only — visible to landlords you've reserved with",
+                        'public' => 'Public — visible to everyone',
+                    ];
+                @endphp
+                <x-styled-select name="profile_visibility" :options="$visibilityOptions" :selected="$visibility"
+                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937]" />
                 @error('profile_visibility')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror

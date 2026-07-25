@@ -146,27 +146,23 @@
             @endif
             <div class="relative flex-1 min-w-0">
                 <label for="reservation-search" class="sr-only">Search by tenant, unit or property</label>
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="2"
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="2"
                     class="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z" />
                 </svg>
                 <input type="text" id="reservation-search" name="search" value="{{ request('search') }}"
                     placeholder="Search by tenant, unit or property..."
-                    class="w-full h-10 pl-10 pr-4 rounded-xl border border-[#E2E8F0] bg-white text-[13px] text-[#1F2937] placeholder-[#64748B]/70 focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] transition-all duration-200">
+                    class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-2.5">
                 <div>
                     <label for="filter-property" class="sr-only">Property</label>
-                    <select id="filter-property" name="property"
-                        class="h-10 w-full lg:w-44 rounded-xl border border-[#E2E8F0] bg-white text-[13px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] cursor-pointer transition-all duration-200">
-                        <option value="">All Properties</option>
-                        @foreach($properties as $property)
-                            <option value="{{ $property->property_id }}" @selected(request('property') == $property->property_id)>
-                                {{ $property->title }}
-                            </option>
-                        @endforeach
-                    </select>
+                    @php
+                        $reservationsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
+                    @endphp
+                    <x-styled-select name="property" id="filter-property" :options="$reservationsPropertyOptions" :selected="(string) request('property', '')"
+                        class="h-10 w-full lg:w-44 rounded-xl border border-[#E2E8F0] bg-white text-[13px] text-[#1F2937]" />
                 </div>
                 <div>
                     <label for="filter-from" class="sr-only">Requested from</label>
@@ -398,6 +394,25 @@
                                                         Cancel
                                                     </button>
                                                 </form>
+                                                @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
+                                                    <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
+                                                        data-confirm="Mark keys as turned over?"
+                                                        data-confirm-type="confirm"
+                                                        data-confirm-message="{{ $reservation->tenant->first_name ?? 'The tenant' }} will have {{ config('rentals.move_in_confirmation_days') }} days to confirm move-in, after which the held deposit is released to you automatically."
+                                                        data-confirm-button="Mark as turned over"
+                                                        data-confirm-cancel="Not yet">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="h-8 px-3 rounded-lg bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                            Mark keys turned over
+                                                        </button>
+                                                    </form>
+                                                @elseif($reservation->keys_turned_over_at)
+                                                    <p class="text-[11.5px] text-[#64748B] whitespace-nowrap">
+                                                        Keys turned over {{ $reservation->keys_turned_over_at->diffForHumans() }}.
+                                                        Awaiting tenant confirmation.
+                                                    </p>
+                                                @endif
                                             @elseif($reservation->rental_status === 'Occupied')
                                                 @if($reservation->tenantRating)
                                                     <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
@@ -414,14 +429,16 @@
                                                 @endif
                                             @endif
 
-                                            <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                aria-label="Open conversation"
-                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#64748B]/25 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 shrink-0">
-                                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                                                </svg>
-                                            </a>
+                                            @if($reservation->conversation)
+                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                                    aria-label="Open conversation"
+                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#64748B]/25 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 shrink-0">
+                                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                                                    </svg>
+                                                </a>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -551,6 +568,25 @@
                                             Cancel
                                         </button>
                                     </form>
+                                    @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
+                                        <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
+                                            data-confirm="Mark keys as turned over?"
+                                            data-confirm-type="confirm"
+                                            data-confirm-message="{{ $reservation->tenant->first_name ?? 'The tenant' }} will have {{ config('rentals.move_in_confirmation_days') }} days to confirm move-in, after which the held deposit is released to you automatically."
+                                            data-confirm-button="Mark as turned over"
+                                            data-confirm-cancel="Not yet">
+                                            @csrf
+                                            <button type="submit"
+                                                class="h-8 px-3 rounded-lg bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                Mark keys turned over
+                                            </button>
+                                        </form>
+                                    @elseif($reservation->keys_turned_over_at)
+                                        <p class="text-[11.5px] text-[#64748B] whitespace-nowrap">
+                                            Keys turned over {{ $reservation->keys_turned_over_at->diffForHumans() }}.
+                                            Awaiting tenant confirmation.
+                                        </p>
+                                    @endif
                                 @elseif($reservation->rental_status === 'Occupied')
                                     @if($reservation->tenantRating)
                                         <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
@@ -567,14 +603,16 @@
                                     @endif
                                 @endif
 
-                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                    aria-label="Open conversation"
-                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#64748B]/25 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 shrink-0 ml-auto">
-                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                                    </svg>
-                                </a>
+                                @if($reservation->conversation)
+                                    <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                        aria-label="Open conversation"
+                                        class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#64748B]/25 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 shrink-0 ml-auto">
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                                        </svg>
+                                    </a>
+                                @endif
                             </div>
                         </article>
                     @endforeach

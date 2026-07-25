@@ -29,7 +29,7 @@
         
         <div class="mt-0.5 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden {{ $n->is_read ? 'bg-[#EEF8F8] text-[#94A3B8]' : 'bg-[#2AA7A1] text-white' }} shadow-sm">
             @if($senderImage)
-                <img src="{{ asset('storage/' . $senderImage) }}" alt="{{ $senderName }}" class="w-full h-full object-cover">
+                <img src="{{ $senderImage }}" alt="{{ $senderName }}" class="w-full h-full object-cover">
             @else
                 <span class="text-xs font-bold">{{ $initial }}</span>
             @endif

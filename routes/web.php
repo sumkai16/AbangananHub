@@ -5,6 +5,7 @@ use App\Http\Controllers\Tenant\FavoriteController;
 use App\Http\Controllers\Tenant\ReservationController;
 use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
 use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\HandoverController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\MessageController;
@@ -54,6 +55,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::get('/verifications/{verification}/id-back', [VerificationController::class, 'downloadIdBack'])->name('verifications.idBack');
     Route::get('/verifications/{verification}/preview/{type}', [VerificationController::class, 'preview'])->name('verifications.preview')->where('type', 'front|back|selfie');
 
+    // Key handover scheduling — symmetric, so it sits outside both role
+    // groups: either party proposes a slot and the other confirms it.
+    Route::post('/reservations/{reservation}/handover/propose', [HandoverController::class, 'propose'])->name('handover.propose');
+    Route::post('/reservations/{reservation}/handover/confirm', [HandoverController::class, 'confirm'])->name('handover.confirm');
+
     // Complaint & Reporting — open to any authenticated user, no role gate
     Route::get('/reports', [App\Http\Controllers\ReportController::class, 'create'])->name('reports.create');
     Route::post('/reports', [App\Http\Controllers\ReportController::class, 'store'])->name('reports.store');
@@ -79,6 +85,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/reservations/{reservation}/pay', [PaymentController::class, 'createCheckoutSession'])->name('payments.checkout');
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
         Route::post('/reservations/{reservation}/confirm-move-in', [AgreementController::class, 'confirmMoveIn'])->name('agreements.confirmMoveIn');
+        Route::post('/reservations/{reservation}/dispute-move-in', [AgreementController::class, 'disputeMoveIn'])->name('agreements.disputeMoveIn');
         
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
 
@@ -108,6 +115,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
         Route::patch('/reservations/{reservation}/advance-agreement', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToPendingAgreement'])->name('reservations.advanceAgreement');
+        Route::post('/reservations/{reservation}/turned-over', [App\Http\Controllers\Landlord\ReservationController::class, 'markTurnedOver'])->name('reservations.markTurnedOver');
 
         // Units
         Route::resource('properties.units', PropertyUnitController::class);
@@ -132,6 +140,26 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         // Tenants
         Route::get('/tenants', [App\Http\Controllers\Landlord\TenantController::class, 'index'])->name('tenants.index');
         Route::get('/tenants/export', [App\Http\Controllers\Landlord\TenantController::class, 'export'])->name('tenants.export');
+
+        // Walk-in tenants — tenancies agreed offline and recorded after the
+        // fact. Registered before any /tenants/{param} route so the literal
+        // segments can't be swallowed by a wildcard.
+        Route::get('/tenants/walk-in/create', [App\Http\Controllers\Landlord\WalkInTenantController::class, 'create'])->name('tenants.walkIn.create');
+        Route::post('/tenants/walk-in', [App\Http\Controllers\Landlord\WalkInTenantController::class, 'store'])->name('tenants.walkIn.store');
+
+        // A single tenancy and its rent ledger. Serves walk-in and platform
+        // tenancies alike — the escrow only ever covered the initial payment.
+        Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
+        Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
+        // On-demand rent reminder; throttled so a jumpy landlord can't spam a tenant.
+        Route::post('/tenancies/{reservation}/remind', [App\Http\Controllers\Landlord\TenancyController::class, 'remind'])
+            ->middleware('throttle:10,1')->name('tenancies.remind');
+
+        // Rent collection
+        Route::get('/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/export', [App\Http\Controllers\Landlord\PaymentController::class, 'export'])->name('payments.export');
+        Route::post('/tenancies/{reservation}/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'store'])->name('payments.store');
+        Route::get('/payments/{payment}/receipt', [App\Http\Controllers\Landlord\PaymentController::class, 'receipt'])->name('payments.receipt');
 
         // Reviews
         Route::get('/reviews', [App\Http\Controllers\Landlord\ReviewController::class, 'index'])->name('reviews.index');
@@ -199,6 +227,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
        Route::get('/report-analytics', [ReportAnalyticsController::class, 'index'])->name('report-analytics.index');
        Route::get('/report-analytics/export', [ReportAnalyticsController::class, 'export'])->name('report-analytics.export');
+
+        // Overall ratings — platform-wide averages across the rating relationships
+        Route::get('/ratings', [App\Http\Controllers\Admin\RatingController::class, 'index'])->name('ratings.index');
     });
 
    // Conversations and messages

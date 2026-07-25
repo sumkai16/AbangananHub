@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $verifiedLandlords   = LandlordVerification::where('verification_status', 'Approved')->count();
         $totalProperties     = Property::count();
         $totalUnits          = PropertyUnit::count();
-        $activeReservations  = Reservation::whereNotIn('rental_status', ['Cancelled', 'Rejected'])->count();
+        $activeReservations  = Reservation::whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)->count();
 
         $pendingVerifications = LandlordVerification::where('verification_status', 'Pending')->count();
         $pendingListings      = Property::where('verification_status', 'Pending')->count();

@@ -29,12 +29,9 @@
             {{-- Filter bar --}}
             <form method="GET" action="{{ route('tenant.reports.index') }}"
                 class="flex flex-col sm:flex-row sm:items-center gap-2 mb-6">
-                <select name="status"
-                    class="w-full sm:w-48 pl-4 pr-8 py-2.5 rounded-xl border border-[#E2E8F0] bg-white text-[13px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1] focus:border-[#2AA7A1]">
-                    <option value="">All statuses</option>
-                    <option value="Pending" @selected(request('status') === 'Pending')>Pending</option>
-                    <option value="Resolved" @selected(request('status') === 'Resolved')>Resolved</option>
-                </select>
+                <x-styled-select name="status" :options="['' => 'All statuses', 'Pending' => 'Pending', 'Resolved' => 'Resolved']"
+                    :selected="request('status', '')"
+                    class="w-full sm:w-48 pl-4 pr-8 py-2.5 rounded-xl border border-[#E2E8F0] bg-white text-[13px] text-[#1F2937]" />
 
                 <button type="submit"
                     class="bg-[#2AA7A1] text-white rounded-xl px-4 py-2.5 text-[13px] font-semibold hover:brightness-95 transition">

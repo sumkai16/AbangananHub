@@ -8,7 +8,7 @@
     <title>{{ config('app.name', 'AbangananHub') }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,600;1,8..60,700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -25,8 +25,8 @@
             {{-- Background image with darker overlay --}}
             <div class="absolute inset-0">
                 <img src="{{ asset('images/auth-bg.jpg') }}" class="w-full h-full object-cover" alt="" />
-                {{-- Darker gradient overlay: dark at bottom where text is, slightly lighter at top --}}
-                <div class="absolute inset-0 bg-gradient-to-t from-[#1F2937]/90 via-[#1F2937]/60 to-[#1F2937]/30"></div>
+                {{-- Teal-family gradient overlay — matches the auth modal brand panel (§6k) --}}
+                <div class="absolute inset-0 bg-gradient-to-br from-[#0E3A3A]/95 via-[#124F5C]/88 to-[#156F8C]/70"></div>
             </div>
 
             {{-- Content overlay --}}

@@ -26,7 +26,7 @@ class PropertyUnitObserver
 
         // Tenant relevant to this transition, if any (latest non-terminal reservation)
         $tenantId = Reservation::where('unit_id', $unit->unit_id)
-            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
             ->latest('reservation_id')
             ->value('tenant_id');
 

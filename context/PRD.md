@@ -11,7 +11,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 ## 3. MVP Scope (Defensible 13-Module Set)
 - [x] Auth (registration, login, password reset via emailed token, session-based via Laravel Breeze)
 - [x] Role System (Tenant, Landlord, Admin — role assigned on verification approval)
-- [x] Landlord Identity Verification (government ID upload, OCR via Google Cloud Vision, liveness detection via face-api.js, admin review pipeline)
+- [x] Landlord Identity Verification (live camera capture of government ID + selfie — no upload path, OCR via Google Cloud Vision, 4-step liveness detection via face-api.js, admin review pipeline)
 - [x] Property Listing CRUD (landlord creates/edits properties and units, Cloudinary media upload)
 - [x] Property/Unit Approval (admin reviews and approves/rejects listings)
 - [x] Search & Filters (text search, property type, price range, verified-landlord filter, paginated browse)
@@ -19,6 +19,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] Favorites (toggle, index, immediate DOM removal on unfavorite)
 - [x] Real-time Chat (Laravel Reverb WebSockets, conversation-based messaging)
 - [x] Reservation System (state machine: Pending → Approved/Rejected/Cancelled, AUX rental process flow with PayMongo sandbox payment)
+- [x] Move-In Confirmation Window (two escrow deadlines expiring toward opposite parties — landlord turnover clock, tenant confirmation clock; tenant dispute freezes both into an admin review queue; nightly `reservations:process-move-in-deadlines` reminds, escalates and auto-releases)
 - [x] Reviews (tenant reviews units post-stay, rating + comment)
 - [x] Notifications (in-app notifications, mark-read endpoints)
 - [x] Admin Dashboard (user management, analytics, report handling)
@@ -27,9 +28,15 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] Tenant Ratings (landlord rates tenants)
 - [x] Report Analytics (admin CSV export, data visualization)
 - [x] Landlord CSV export (Units, Reservations, Tenants — filter-aware, alongside the existing Occupancy export)
+- [x] Walk-in Tenants (landlord records an offline-arranged tenancy directly to Occupied — a lightweight non-login tenant account, no escrow; badged Walk-in everywhere as landlord-asserted, not platform-verified)
+- [x] Rent Ledger (derived monthly billing periods with Paid/Partial/Overdue/Due status for any occupied tenancy, walk-in or platform; landlord records offline payments — Cash/GCash/Bank/Maya/Check — with printable receipts and a portfolio-wide collections view)
+- [x] End of Tenancy (Completed terminal status returns the unit to the available pool; before this an Occupied reservation had no exit)
+- [x] Rent Reminders (nightly `reservations:process-rent-reminders` notifies the landlord about upcoming/overdue rent for every tenancy, and the platform tenant too; walk-in tenants can't log in so the landlord reminder is their only channel — idempotent, catch-up-safe)
+- [x] Overall Ratings (aggregation of existing reviews + tenant_ratings: admin `/admin/ratings` platform overview with per-relationship averages, distributions, leaderboards and a 6-month trend; role-separated received-rating badges on tenant/landlord profiles and admin user detail. Property-grain; tenant→unit deferred — reviews carry no `unit_id`)
 
 ## 4. Explicitly Out of Scope
-- Legal dispute handling between landlords and tenants
+- Legal dispute handling between landlords and tenants (the move-in dispute flow only freezes the deposit and queues it for an admin — it renders no judgment)
+- **Refunds.** Nothing in the app writes `payments.status = 'Refunded'`; PayMongo's programmatic refund support is unverified. A landlord who never turns over the keys is escalated to admin review, and that queue drains only by releasing to the landlord. Closing this is Phase 2 of the move-in spec and requires confirming PayMongo first
 - Offline mode (map and real-time features require stable internet)
 - Native mobile app (web only — React Native/Expo deferred to post-deployment)
 - Property types beyond bedspace, room, apartment, house

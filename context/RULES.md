@@ -46,7 +46,10 @@ DB::transaction(function () use ($record) {
     // role grants / related-row creation / side effects go here, inside the lock
 });
 ```
-Reference implementations: `Admin\VerificationController::approve/reject`, `Admin\PaymentController::release` (money — highest priority), `Admin\ListingController::approve/reject`, `Admin\PropertyUnitController::approve/reject`, `Tenant\AgreementController::sign/confirmMoveIn` (July 2026 — `confirmMoveIn` releases escrow to the landlord and had no lock at all; it was also guarded only by a native `onclick="return confirm()"`, which this codebase does not use). `ListingController` previously had no idempotency guard at all before this pass — a bare status check is the floor, not the fix; the lock is what actually closes the race.
+Reference implementations: `Admin\VerificationController::approve/reject`, `Admin\PaymentController::release` (money — highest priority), `Admin\ListingController::approve/reject`, `Admin\PropertyUnitController::approve/reject`, `Admin\ReservationController::forceCancel/forceReject`, `Tenant\AgreementController::sign/confirmMoveIn` (July 2026 — `confirmMoveIn` releases escrow to the landlord and had no lock at all; it was also guarded only by a native `onclick="return confirm()"`, which this codebase does not use). `ListingController` previously had no idempotency guard at all before this pass — a bare status check is the floor, not the fix; the lock is what actually closes the race.
+
+## Media URLs — `profile_picture` (bug found and fixed July 21, 2026)
+`users.profile_picture` is stored as a **full Cloudinary URL**, same as `$media->media_url` elsewhere — never wrap it in `asset('storage/...')`. Two admin views (`admin/users/index`, `admin/users/show`) and the notifications dropdown (`favorites/partials/dropdown.blade.php`) did exactly that, producing a mangled, always-broken `<img>` src (`https://yoursite.com/storage/https://res.cloudinary.com/...`) — the same anti-pattern already banned for property media (see DESIGN.md §10), just not previously caught for user avatars. Fixed by outputting `{{ $user->profile_picture }}` directly, matching every other one of the ~20 usages across the app. When adding a new avatar/media `<img>`, grep the rest of the codebase for how that same column is rendered elsewhere before assuming it needs a storage prefix — most media in this app doesn't.
 
 **Self-action guards on admin-management screens.** An admin editing their own account through the same form used to manage other admins can strip their own Admin role or suspend themselves with no recovery path. `UserController::update`/`updateStatus` now reject role/status changes where the target is `auth()->id()`. Any future "admin manages other admin-like records" screen needs the same self-target check.
 
@@ -78,6 +81,33 @@ Reference implementations: `Admin\VerificationController::approve/reject`, `Admi
 - `toOthers()` requires `X-Socket-ID` header via `window.Echo.socketId()`
 - Echo: `.listen('.EventName')` (leading dot) for bare event names
 
+## Performance & Security Review (established July 22, 2026)
+Every controller / request-path change gets a two-front check before it's done — performance and security are standing concerns, not afterthoughts. The July 22 audit found the codebase already clean on both; the point is to keep it that way.
+
+**Performance**
+- Eager-load every relation the view touches, **including nested `->a->b` access in Blade** — a `with(['property.landlord'])` in the controller, not a lazy load in a `@foreach`. `Model::preventLazyLoading` (on in local/dev) will throw if you miss one; watch Debugbar query counts (>25/page = investigate).
+- Keep broadcasts / mail / outbound HTTP out of the synchronous request path where it matters (see Broadcasting — `ShouldBroadcastNow` is a deliberate capstone tradeoff, not a pattern to extend to slow calls).
+- Local dev is IPv4-only on Windows: `127.0.0.1` never `localhost` in `.env` and the browser; OPcache stays enabled in `php.ini`; if pages go slow/unstyled, `ls public/hot` and delete a stale one.
+
+**Security** — every mutating action must have, at minimum, one of:
+- A Policy/Gate (`Gate::authorize()`, or a Form Request `authorize()` delegating to a policy — as `SendMessageRequest` → `ConversationPolicy::view` does), **or**
+- An explicit ownership check (`$model->landlord_id !== Auth::id()` → `abort(403)`; queries scoped by `tenant_id`/`landlord_id`).
+- "Is logged in" is **not** authorization. Route-model-bound resources are the IDOR surface — that's where a new endpoint most easily leaks another user's data.
+- Validate then assign explicit fields — never `Model::create($request->all())` / `->fill($request->all())`. No raw SQL with user input (`selectRaw` is fine for hardcoded aggregates only). Validate file uploads (mime + size).
+- Run `composer audit` periodically; dependency advisories are a free catch.
+
+## Blade Compile Traps (July 24 2026)
+Blade tokenises a template with `token_get_all()` **before** it strips comments or compiles directives. Two failure modes come out of that, and both were hit in one sitting:
+
+- **Never write a literal PHP open tag inside a Blade comment.** `{{-- ... <?php ... --}}` opens a real PHP token block, and every directive after it in the file silently stops compiling. There is **no error** — the page returns 200 with markup missing. A `<nav>` rendered its opening tag and dropped its entire contents this way. *If a block of Blade vanishes from the output but the page doesn't error, grep the file for `<?php` before suspecting your conditionals.*
+- **Use `@php ... @endphp`, not the inline `@php(...)`.** The inline form emitted an unterminated `<?php(` in `layouts/app`, swallowing the rest of the header. That one at least failed loudly — but as `syntax error, unexpected token "else"` pointing at a line ~300 below the actual cause, so trust the *first* directive above the reported line, not the line itself.
+- Related, already in DESIGN.md §6e: `word@if(...)` renders as literal text, because Blade's `\B@` won't match an `@` preceded by a word character.
+
+**Verify a compile without loading the page:** `Blade::compileString(file_get_contents($view))` written to a temp file and run through `php -l` localises the real error far faster than a stack trace.
+
+## View Composers
+Data the **layout** needs on every page goes in a `View::composer('layouts.app', …)` in `AppServiceProvider::boot`, not a variable each controller passes. The header renders everywhere; a controller that forgot would drop the feature silently on that page only. Cache anything that hits the DB (`Cache::remember`, 10 min is fine for nav-level data) — the layout renders on *every* request, so an uncached query there is a site-wide cost. Current composer: `navAreas` for the header's Areas menu.
+
 ## Storage
 - Filter `unit_media`/`property_media` to `media_type === 'Image'` before rendering in `<img>` — the table also holds Video rows, which render as broken images otherwise (applies to galleries, thumbnails, and JS payloads)
 - `Storage::url()` for local files with relative paths only
@@ -86,8 +116,21 @@ Reference implementations: `Admin\VerificationController::approve/reject`, `Admi
 - Government IDs → `local` disk (private, `storage/app/private/verifications/{user_id}/`)
 - Public media → Cloudinary
 
+## Money-Moving Code (established July 22 2026)
+The move-in escrow is the only place in the app where money moves with no human present. Rules that came out of building it:
+
+- **A background job's outer query selects candidate IDs; the transaction re-fetches each under `lockForUpdate()` and re-checks every condition the outer query filtered on.** The row can change between the two. Writing to a stale instance from an unlocked `get()` is how a near-miss shipped: a concurrent `markKeysTurnedOver()` could have its Clock 2 deadline overwritten by an already-past Clock 1 value, releasing the deposit that same night without the tenant ever getting a confirmation window.
+- **Per-row `try`/`catch` + `Log::error` + continue** in any unattended batch. Without it one bad row (a failed notification, a down Reverb) aborts every remaining row silently until the next night.
+- **Fail in the direction that does not move money.** Where a boundary is ambiguous, prefer the branch that defers a payout by a day over the one that pays early.
+- **A field that records a human's assertion must never be written by a timer.** `tenant_confirmed_move_in_at` stays null on auto-expiry and on admin release; conflating "confirmed" with "timed out" would poison occupancy reporting and destroy the evidence a disputed payout is argued from.
+- **Carbon 3 `diffInDays()` returns a float** (`4.0000000001157`, not `4`). Cast it, and `round()` rather than truncate wherever the result feeds a strict comparison.
+- Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`.
+
 ## Testing
 - Manual testing for capstone scope (no automated test suite)
+- **Axcee tests manually.** When a feature needs verifying, build the fixtures that put the app into each state plus a checklist of what to look at — not a test suite. `escrow:scenarios` is the pattern: additive, tagged, `--clean` teardown, prints login credentials and expected appearance per state.
+- **Time-based features need backdated fixtures.** Anything measured in days cannot be observed by using the app; `Carbon::setTestNow()` does not reach a separate `php artisan` process, so backdate the data instead.
+- Any dev tool that creates or deletes users must refuse to run in production and must restore rows it did not create (see `EscrowVerify::snapshotRealRows`).
 - **Off-the-shelf HTML/a11y scanners mis-parse Blade — verify every finding against the source before fixing.** Two failure modes bit us in July 2026: (1) `->` inside `{{ }}` contains a `>` that naive tag regexes treat as the tag terminator, so tags get truncated and attributes like `alt=` are reported missing when they're present — a scan claimed 48 missing-alt images, only 3 were real; (2) scanners read each Blade file in isolation, so every partial gets flagged for a missing `<main>`/`<nav>` landmark that actually lives in the layout.
 - Critical path: `migrate:fresh --seed` + `route:list` is the standard checkpoint before any view work
 - Verify tinker results before proceeding with controller logic
@@ -122,6 +165,7 @@ Audit immediately on paste for:
 - Alpine modals use the two-flag pattern (`modal` = data, `show` = visibility) so leave transitions actually play (`x-if` alone doesn't animate). A child element with its own `x-transition:enter` needs a matching `leave` too, or it vanishes instantly while the parent is still fading out.
 - Modals toggled by plain `classList` (not Alpine) need two extra things or the animation silently never fires: a double `requestAnimationFrame` before removing the start classes — otherwise the display and opacity changes batch into one style recalculation — and a guarded `setTimeout` that defers re-adding `hidden` until the leave transition finishes. Guard it with a stored timer id so reopening mid-close doesn't hide the modal afterwards.
 - One global modal serves all four notification types — confirm, success, warning, error. Trigger it with `window.dispatchEvent(new CustomEvent('show-modal', { detail: { type, title, message, confirmText, cancelText, onConfirm } }))`. Pass `onConfirm` only for genuine confirmations: the Cancel button renders off that callback's presence, so plain notifications get a single OK button. Forms opt in declaratively via `data-confirm` (see `public/js/modal-confirm.js`).
+- **A bare `<button type="submit">` on a consequential, hard-to-reverse action is a defect, not a style choice.** `landlord/reservations/index.blade.php`'s "Mark keys turned over" button (July 22, 2026) started a 7-day auto-release-of-deposit countdown on a single unconfirmed click, with no `data-confirm` at all — found while investigating an unrelated meeting-notes request, not by a review pass looking for it. When touching any form that changes money, a role, or a status a user can't trivially undo, check whether it already has `data-confirm` before assuming it does.
 - Don't build one-off modal components. `login-modal`, `register-modal` and `success-modal` were deleted in July 2026 after being found unrendered anywhere; the auth modal in `layouts/app.blade.php` and `x-confirm-modal` are the only two.
 - Unit detail presentation is one shared pattern (photo top, status pill, teal rent, capacity/deposit tiles, amenity chips) across: unit create/edit Live Preview, occupancy modal, landlord units-page modal, tenant slideout. Reuse it for any new unit surface.
 

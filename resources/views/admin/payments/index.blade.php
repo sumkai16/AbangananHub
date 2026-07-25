@@ -17,6 +17,7 @@
             $stats = [
                 'Held' => ['label' => 'Held', 'value' => $counts['Held'], 'sub' => '₱'.number_format($sums['Held'], 2), 'accent' => 'text-[#B45309]', 'dot' => 'bg-[#FBBF24]'],
                 'Released' => ['label' => 'Released', 'value' => $counts['Released'], 'sub' => '₱'.number_format($sums['Released'], 2), 'accent' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]'],
+                'Paid' => ['label' => 'Recorded', 'value' => $counts['Paid'], 'sub' => '₱'.number_format($sums['Paid'], 2).' offline', 'accent' => 'text-[#156F8C]', 'dot' => 'bg-[#2AA7A1]'],
                 'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'sub' => 'processing', 'accent' => 'text-[#64748B]', 'dot' => 'bg-[#94A3B8]'],
                 'All' => ['label' => 'Total', 'value' => $counts['All'], 'sub' => 'all payments', 'accent' => 'text-[#156F8C]', 'dot' => 'bg-[#156F8C]'],
             ];
@@ -36,7 +37,7 @@
 
     {{-- Tabs --}}
     <div class="flex gap-1 bg-white border border-[#E2E8F0] rounded-2xl p-1 mb-5 w-fit max-w-full overflow-x-auto shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-        @foreach (['All', 'Held', 'Released', 'Pending'] as $tab)
+        @foreach (['All', 'Held', 'Released', 'Paid', 'Pending'] as $tab)
             <a href="{{ route('admin.payments.index', ['status' => $tab]) }}"
                 class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 whitespace-nowrap
                     {{ $status === $tab
@@ -89,10 +90,16 @@
                                             </span>
                                         </div>
                                         <div>
-                                            <p class="text-[13.5px] font-semibold text-[#1F2937]">
-                                                {{ $tenant ? $tenant->first_name.' '.$tenant->last_name : '—' }}
-                                            </p>
-                                            <p class="text-[12px] text-[#64748B]">{{ $tenant->email ?? '' }}</p>
+                                            <div class="flex items-center gap-1.5">
+                                                <p class="text-[13.5px] font-semibold text-[#1F2937]">
+                                                    {{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}
+                                                </p>
+                                                @if ($tenant?->is_walk_in)
+                                                    <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold"
+                                                        title="Walk-in tenant — identity not verified by AbangananHub">Walk-in</span>
+                                                @endif
+                                            </div>
+                                            <p class="text-[12px] text-[#64748B]">{{ $tenant?->email ?: '—' }}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -117,6 +124,11 @@
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#22C55E]/15 text-[11.5px] font-bold text-[#15803D]">
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span>
                                             Released
+                                        </span>
+                                    @elseif ($payment->status === 'Paid')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EEF8F8] text-[11.5px] font-bold text-[#156F8C]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#2AA7A1]"></span>
+                                            Recorded
                                         </span>
                                     @elseif ($payment->status === 'Pending')
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2E8F0] text-[11.5px] font-bold text-[#64748B]">
@@ -147,6 +159,11 @@
                                         <span class="text-[12px] text-[#64748B]">
                                             Released {{ $payment->released_at?->format('M d, Y') }}
                                         </span>
+                                    @elseif ($payment->isManuallyRecorded())
+                                        {{-- Landlord-asserted, never escrowed — deliberately no
+                                             Release button. This is the one row type an admin must
+                                             be able to tell apart from platform-settled money. --}}
+                                        <span class="text-[12px] text-[#64748B]">Recorded by landlord</span>
                                     @else
                                         <span class="text-[12px] text-[#94A3B8]">—</span>
                                     @endif

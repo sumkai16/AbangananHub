@@ -39,12 +39,9 @@
                         placeholder="Search by name, email, or phone…" aria-label="Search by name, email, or phone"
                         class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" />
                 </div>
-                <select name="role"
-                    class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
-                    @foreach (['All', 'Admin', 'Landlord', 'Tenant'] as $r)
-                        <option value="{{ $r }}" {{ $role === $r ? 'selected' : '' }}>{{ $r }}</option>
-                    @endforeach
-                </select>
+                <x-styled-select name="role" :options="array_combine(['All', 'Admin', 'Landlord', 'Tenant'], ['All', 'Admin', 'Landlord', 'Tenant'])"
+                    :selected="$role"
+                    class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-3" />
                 <button type="submit"
                     class="h-10 px-5 text-[13.5px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
                     Filter
@@ -95,7 +92,7 @@
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 @if ($user->profile_picture)
-                                                    <img src="{{ asset('storage/' . $user->profile_picture) }}"
+                                                    <img src="{{ $user->profile_picture }}"
                                                         alt="{{ $user->first_name }}"
                                                         class="w-9 h-9 rounded-full object-cover border border-[#E2E8F0] shrink-0" />
                                                 @else
@@ -106,10 +103,18 @@
                                                     </div>
                                                 @endif
                                                 <div>
-                                                    <p class="text-[13.5px] font-semibold text-[#1F2937]">
-                                                        {{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: '—' }}
-                                                    </p>
-                                                    <p class="text-[12px] text-[#94A3B8]">{{ $user->email }}</p>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <p class="text-[13.5px] font-semibold text-[#1F2937]">
+                                                            {{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: '—' }}
+                                                        </p>
+                                                        @if ($user->is_walk_in)
+                                                            {{-- A landlord-entered tenant, not a self-registered
+                                                                 account — so its blank email is expected, not broken. --}}
+                                                            <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold"
+                                                                title="Walk-in tenant added by a landlord — identity not verified">Walk-in</span>
+                                                        @endif
+                                                    </div>
+                                                    <p class="text-[12px] text-[#94A3B8]">{{ $user->email ?: '—' }}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -184,7 +189,7 @@
                         $legendColors = [
                             'Landlord' => '#156F8C',
                             'Tenant'   => '#2AA7A1',
-                            'Admin'    => '#a855f7',
+                            'Admin'    => '#69D2C6',
                             'No role'  => '#E2E8F0',
                         ];
                     @endphp
@@ -244,7 +249,7 @@
                     labels: @json(array_keys($roleCounts)),
                     datasets: [{
                         data: @json(array_values($roleCounts)),
-                        backgroundColor: ['#156F8C', '#2AA7A1', '#a855f7', '#E2E8F0'],
+                        backgroundColor: ['#156F8C', '#2AA7A1', '#69D2C6', '#E2E8F0'],
                         borderWidth: 0,
                     }],
                 },

@@ -149,8 +149,11 @@
     </div>
 </section>
 
-{{-- ── HOW IT WORKS ─────────────────────────────────────────────────────────── --}}
-<section class="bg-white py-20">
+{{-- ── HOW IT WORKS ───────────────────────────────────────────────────────────
+     The id is the target of the header nav's "How it works" link — the section
+     already existed, it just had nothing to link to. `scroll-mt-[72px]` keeps
+     the heading clear of the sticky header when jumped to. --}}
+<section id="how-it-works" class="bg-white py-20 scroll-mt-[72px]">
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">

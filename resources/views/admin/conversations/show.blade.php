@@ -42,6 +42,15 @@
                     <span class="text-[12px] text-[#94A3B8]">{{ $conversation->messages->count() }} message{{ $conversation->messages->count() !== 1 ? 's' : '' }}</span>
                 </div>
 
+                {{-- Same stepper the participants see, from the same partial —
+                     an admin arbitrating a dispute needs the stage the parties
+                     are looking at, not a second reading of it. --}}
+                @if ($reservation)
+                    <div class="px-6 pt-4 pb-3 border-b border-[#E2E8F0] bg-[#F7FCFC]">
+                        @include('conversations.partials._stage-stepper', ['reservation' => $reservation])
+                    </div>
+                @endif
+
                 @if($conversation->messages->isEmpty())
                     <div class="p-12 text-center">
                         <svg class="w-10 h-10 text-[#94A3B8] mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -97,6 +106,82 @@
 
         {{-- Right: participants + property --}}
         <div class="space-y-4">
+
+            {{-- Move-in & escrow — read-only mirror of what the two parties act
+                 on in their own thread. This is the state an admin actually
+                 needs when a move-in dispute lands in the queue. --}}
+            @if ($reservation)
+                @php
+                    $heldPayment = $reservation->payments->firstWhere('status', 'Held');
+                    $releasedPayment = $reservation->payments->firstWhere('status', 'Released');
+                    $onTurnoverClock = $reservation->isTurnoverClock();
+                    $deadlineAt = $onTurnoverClock
+                        ? ($reservation->move_in_deadline_at ?? $reservation->computeTurnoverDeadline())
+                        : $reservation->move_in_deadline_at;
+                @endphp
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
+                    <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Move-in &amp; escrow</p>
+
+                    @if ($reservation->move_in_disputed_at)
+                        <div class="mb-3 rounded-xl bg-[#FBBF24]/[0.10] px-3 py-2.5">
+                            <p class="text-[12px] font-bold text-[#B45309]">Disputed — awaiting your review</p>
+                            <p class="mt-0.5 text-[11.5px] text-[#B45309]">
+                                Reported {{ $reservation->move_in_disputed_at->diffForHumans() }}. The countdown is paused.
+                            </p>
+                            @if ($reservation->move_in_dispute_reason)
+                                <p class="mt-1.5 text-[11.5px] text-[#1F2937] italic">
+                                    "{{ $reservation->move_in_dispute_reason }}"</p>
+                            @endif
+                        </div>
+                    @endif
+
+                    <dl class="space-y-2 text-[12.5px]">
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-[#94A3B8] shrink-0">Escrow</dt>
+                            <dd class="font-semibold text-right {{ $heldPayment ? 'text-[#156F8C]' : ($releasedPayment ? 'text-[#15803D]' : 'text-[#64748B]') }}">
+                                @if ($heldPayment)
+                                    Held &middot; &#8369;{{ number_format($heldPayment->amount, 2) }}
+                                @elseif ($releasedPayment)
+                                    Released &middot; &#8369;{{ number_format($releasedPayment->amount, 2) }}
+                                @else
+                                    Not funded
+                                @endif
+                            </dd>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-[#94A3B8] shrink-0">Clock</dt>
+                            <dd class="font-semibold text-[#1F2937] text-right">
+                                {{ $onTurnoverClock ? 'Key turnover (landlord)' : 'Move-in confirmation (tenant)' }}
+                            </dd>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-[#94A3B8] shrink-0">Deadline</dt>
+                            <dd class="font-semibold text-[#1F2937] text-right">
+                                {{ $deadlineAt?->format('M d, Y') ?? '—' }}
+                            </dd>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-[#94A3B8] shrink-0">Handover</dt>
+                            <dd class="font-semibold text-right {{ $reservation->hasConfirmedHandover() ? 'text-[#15803D]' : 'text-[#64748B]' }}">
+                                @if ($reservation->hasConfirmedHandover())
+                                    {{ $reservation->handover_at->format('M d, g:i A') }}
+                                @elseif ($reservation->hasProposedHandover())
+                                    {{ $reservation->handover_at->format('M d, g:i A') }} (proposed)
+                                @else
+                                    Not scheduled
+                                @endif
+                            </dd>
+                        </div>
+                        @if ($reservation->keys_turned_over_at)
+                            <div class="flex justify-between gap-3">
+                                <dt class="text-[#94A3B8] shrink-0">Keys marked</dt>
+                                <dd class="font-semibold text-[#1F2937] text-right">
+                                    {{ $reservation->keys_turned_over_at->format('M d, Y') }}</dd>
+                            </div>
+                        @endif
+                    </dl>
+                </div>
+            @endif
 
             {{-- Tenant card --}}
             <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">

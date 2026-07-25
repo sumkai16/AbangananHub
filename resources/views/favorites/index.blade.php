@@ -22,27 +22,20 @@
     <form method="GET" action="{{ route('favorites.index') }}"
         class="flex flex-col sm:flex-row gap-3 mb-8 p-4 bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)]">
         <div class="relative flex-1">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B] pointer-events-none"
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8] pointer-events-none"
                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Search saved properties…" aria-label="Search saved properties"
-                class="w-full pl-9 pr-4 py-2.5 text-sm text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition placeholder-[#64748B]" />
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition placeholder-[#94A3B8]" />
         </div>
-        <select name="type"
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition">
-            <option value="" {{ !request('type') ? 'selected' : '' }}>Any type</option>
-            @foreach(['Bedspace', 'Room', 'Apartment', 'House'] as $t)
-                <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
-            @endforeach
-        </select>
-        <select name="availability"
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition">
-            <option value="" {{ !request('availability') ? 'selected' : '' }}>Any status</option>
-            <option value="Available" {{ request('availability') === 'Available' ? 'selected' : '' }}>Available</option>
-            <option value="Unavailable" {{ request('availability') === 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
-        </select>
+        <x-styled-select name="type" :options="['' => 'Any type', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House']"
+            :selected="request('type', '')" aria-label="Filter by property type"
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl" />
+        <x-styled-select name="availability" :options="['' => 'Any status', 'Available' => 'Available', 'Unavailable' => 'Unavailable']"
+            :selected="request('availability', '')" aria-label="Filter by availability"
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl" />
         <button type="submit"
             class="px-5 py-2.5 text-sm font-bold text-white bg-[#2AA7A1] hover:brightness-95 rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98]">
             Search
@@ -135,8 +128,12 @@
                         </p>
 
                         <p class="text-[14px] font-semibold text-[#156F8C] mt-1.5">
-                            ₱{{ number_format($property->rental_fee) }}
-                            <span class="text-[13px] font-normal text-[#94A3B8]">/month</span>
+                            @if($property->min_rental_fee)
+                                ₱{{ number_format($property->min_rental_fee) }}
+                                <span class="text-[13px] font-normal text-[#94A3B8]">/month</span>
+                            @else
+                                <span class="text-[13px] font-normal text-[#94A3B8]">Price unavailable</span>
+                            @endif
                         </p>
                     </div>
 

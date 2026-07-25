@@ -12,7 +12,11 @@
         $processingPayment = $hasPayment && !$heldPayment && !$reservation->isOccupied();
     @endphp
 
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-72px)]">
+    {{-- 1200 = 768 document + 400 action rail + gap. The document keeps the
+         max-w-3xl reading measure it has always had; the rail fills what used
+         to be dead margin, and carries the signing controls so they are on
+         screen from the moment the page loads instead of below the fold. --}}
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-72px)]">
 
         {{-- Page chrome — never printed --}}
         <div class="flex items-center justify-between gap-3 mb-6 print:hidden">
@@ -42,6 +46,10 @@
             <p class="text-sm text-[#64748B] mt-1 print:hidden">Please read the terms below carefully before signing.</p>
         </div>
 
+        {{-- print:block — on paper there is no rail, so the document must not
+             be squeezed into a grid column that no longer has a sibling. --}}
+        <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-8 lg:items-start print:block">
+
         {{-- flush: the card's default p-5 sm:p-6 would collide with the wider
              padding this document wants, and with print:p-0. --}}
         <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0">
@@ -66,8 +74,11 @@
                 </div>
             </div>
 
-            {{-- ===== The agreement body ===== --}}
-            <div class="text-[#1F2937] leading-relaxed border border-[#E2E8F0] rounded-xl p-5 sm:p-6 bg-[#F7FCFC]">
+            {{-- ===== The agreement body =====
+                 No border or tint: this is the document text itself, so it sits
+                 directly on the sheet. Boxing it inside the card that already
+                 frames it was a third nested border for no added meaning. --}}
+            <div class="text-[#1F2937] leading-relaxed">
                 <p class="text-[13.5px] leading-relaxed">
                     This Rental Agreement is entered into between
                     <strong>{{ $landlord->first_name }} {{ $landlord->last_name }}</strong> ("Landlord")
@@ -164,10 +175,49 @@
                 </div>
             @endif
 
-            {{-- ===== Actions (never printed) ===== --}}
-            <div class="print:hidden">
+        </x-card>
+
+        {{-- ===== Action rail — never printed ===== --}}
+        <aside class="mt-6 lg:mt-0 lg:sticky lg:top-8 print:hidden">
+
+            {{-- What you are committing to, restated so the figures are in
+                 view while the controls are. Reading the document is still the
+                 point; this stops the money being off-screen at the moment of
+                 signing. --}}
+            <div class="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-4">
+                <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">At a glance</p>
+                <p class="mt-2 text-2xl font-bold tracking-tight text-[#1F2937]">
+                    &#8369;{{ number_format($reservation->unit->rental_fee, 2) }}
+                    <span class="text-sm font-medium text-[#64748B]">/ month</span>
+                </p>
+                <dl class="mt-4 space-y-2 text-[13px]">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <dt class="text-[#64748B]">Property</dt>
+                        <dd class="font-medium text-[#1F2937] text-right truncate">{{ $reservation->unit->unit_label }}</dd>
+                    </div>
+                    @if($reservation->target_move_in_date)
+                        <div class="flex items-baseline justify-between gap-3">
+                            <dt class="text-[#64748B]">Target move-in</dt>
+                            <dd class="font-medium text-[#1F2937]">{{ $reservation->target_move_in_date->format('M j, Y') }}</dd>
+                        </div>
+                    @endif
+                    @if($reservation->unit->security_deposit)
+                        <div class="flex items-baseline justify-between gap-3">
+                            <dt class="text-[#64748B]">Security deposit</dt>
+                            <dd class="font-medium text-[#1F2937]">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
+                        </div>
+                    @endif
+                    <div class="flex items-baseline justify-between gap-3">
+                        <dt class="text-[#64748B]">Reference</dt>
+                        <dd class="font-medium text-[#1F2937]">{{ $agreementRef }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div>
                 @if($reservation->rental_status === 'Pending Rental Agreement')
-                    <form action="{{ route('agreements.sign', $reservation) }}" method="POST" class="mt-6">
+                    <form action="{{ route('agreements.sign', $reservation) }}" method="POST"
+                        class="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
                         @csrf
 
                         <div class="flex items-start gap-3 p-4 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-xl mb-5">
@@ -211,7 +261,7 @@
                     </form>
 
                 @elseif($reservation->isAgreementSigned())
-                    <div class="mt-6 p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3">
+                    <div class="p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-[#22C55E]/15 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 text-[#15803D]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -258,25 +308,124 @@
                                 </div>
                             </div>
 
-                            <form action="{{ route('agreements.confirmMoveIn', $reservation) }}" method="POST"
-                                data-confirm="Confirm you have moved in?"
-                                data-confirm-type="warning"
-                                data-confirm-message="This releases your payment to the landlord and cannot be undone. Only confirm if you have physically moved in and verified the unit matches the listing."
-                                data-confirm-button="Yes, I have moved in">
-                                @csrf
-                                <div class="flex items-start gap-3 p-3 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-xl mb-4">
-                                    <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3.75h.008v.008h-.008v-.008z" />
-                                    </svg>
-                                    <p class="text-[12px] text-[#EF4444] leading-relaxed">
-                                        Only confirm after you have physically moved into the unit and verified it matches the listing. Once confirmed, the payment will be released to the landlord.
+                            @php
+                                $daysLeft = $reservation->daysUntilMoveInDeadline();
+                            @endphp
+
+                            @if ($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->move_in_disputed_at)
+                                @if ($reservation->isTurnoverClock())
+                                    {{-- Clock 1: nothing for the tenant to do yet. No countdown — showing one
+                                         here would imply a deadline the tenant can miss, and this one is the
+                                         landlord's. --}}
+                                    <div class="rounded-lg border border-[#2AA7A1]/25 bg-[#EEF8F8] p-4 mb-4">
+                                        <p class="text-sm font-medium text-[#156F8C]">Payment secured</p>
+                                        <p class="mt-1 text-sm text-[#1F2937]">
+                                            Your deposit is held safely and is not released until you confirm your move-in.
+                                            Your landlord will contact you to turn over the keys.
+                                        </p>
+                                    </div>
+                                @elseif ($daysLeft !== null)
+                                    {{-- Clock 2: live countdown. --}}
+                                    <div class="rounded-lg border p-4 mb-4 {{ $daysLeft <= 1 ? 'border-[#EF4444]/25 bg-[#EF4444]/[0.07]' : 'border-[#FBBF24]/35 bg-[#FBBF24]/[0.10]' }}">
+                                        <p class="text-sm font-semibold {{ $daysLeft <= 1 ? 'text-[#DC2626]' : 'text-[#B45309]' }}">
+                                            @if ($daysLeft < 0)
+                                                Your move-in confirmation window has passed
+                                            @elseif ($daysLeft === 0)
+                                                Today is your last day to confirm your move-in
+                                            @else
+                                                {{ $daysLeft }} {{ Str::plural('day', $daysLeft) }} left to confirm your move-in
+                                            @endif
+                                        </p>
+                                        <p class="mt-1 text-sm {{ $daysLeft <= 1 ? 'text-[#DC2626]' : 'text-[#B45309]' }}">
+                                            @if ($daysLeft < 0)
+                                                Your deadline of {{ $reservation->move_in_deadline_at->format('M j, Y') }} has passed. Your deposit has not been released yet, but it will be released to the landlord automatically. You can still confirm your move-in now &mdash; if something isn't right, use "I haven't received the keys" below.
+                                            @else
+                                                Confirming releases your deposit to the landlord. If you don't confirm by
+                                                {{ $reservation->move_in_deadline_at->format('M j, Y') }}, it is released automatically.
+                                            @endif
+                                        </p>
+                                    </div>
+                                @endif
+                            @endif
+
+                            @unless ($reservation->move_in_disputed_at)
+                                <form action="{{ route('agreements.confirmMoveIn', $reservation) }}" method="POST"
+                                    data-confirm="Confirm you have moved in?"
+                                    data-confirm-type="warning"
+                                    data-confirm-message="This releases your payment to the landlord and cannot be undone. Only confirm if you have physically moved in and verified the unit matches the listing."
+                                    data-confirm-button="Yes, I have moved in">
+                                    @csrf
+                                    <div class="flex items-start gap-3 p-3 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-xl mb-4">
+                                        <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3.75h.008v.008h-.008v-.008z" />
+                                        </svg>
+                                        <p class="text-[12px] text-[#EF4444] leading-relaxed">
+                                            Only confirm after you have physically moved into the unit and verified it matches the listing. Once confirmed, the payment will be released to the landlord.
+                                        </p>
+                                    </div>
+                                    <button type="submit"
+                                        class="w-full bg-[#FF8A65] hover:brightness-95 text-white font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
+                                        I Have Moved In — Confirm Occupancy
+                                    </button>
+                                </form>
+                            @endunless
+
+                            @if ($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->move_in_disputed_at)
+                                <div x-data="{ show: false }" class="mt-3 text-center">
+                                    <button type="button" @click="show = true"
+                                            class="text-xs text-[#64748B] underline hover:text-[#1F2937] cursor-pointer">
+                                        I haven't received the keys
+                                    </button>
+
+                                    <template x-teleport="body">
+                                        <div x-show="show" x-cloak
+                                             class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                                             x-transition:enter="transition ease-out duration-300"
+                                             x-transition:enter-start="opacity-0"
+                                             x-transition:leave="transition ease-in duration-200"
+                                             x-transition:leave-end="opacity-0">
+                                            <div @click.outside="show = false"
+                                                 class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl mx-4"
+                                                 x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-300"
+                                                 x-transition:enter-start="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                                                 x-transition:leave="transition ease-in duration-200"
+                                                 x-transition:leave-end="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0">
+                                                <h3 class="text-lg font-bold text-[#1F2937] text-left">Report a move-in issue</h3>
+                                                <p class="mt-2 text-sm text-[#64748B] text-left">
+                                                    Your deposit stays on hold and an administrator will review this. Your landlord will be notified.
+                                                </p>
+
+                                                <form action="{{ route('agreements.disputeMoveIn', $reservation) }}" method="POST" class="mt-4 text-left">
+                                                    @csrf
+                                                    <textarea name="reason" rows="4" required minlength="10"
+                                                              class="w-full rounded-xl border-[#E2E8F0] text-sm"
+                                                              placeholder="Tell us what happened — for example, the landlord hasn't turned over the keys."></textarea>
+                                                    @error('reason')
+                                                        <p class="mt-1 text-sm text-[#EF4444]">{{ $message }}</p>
+                                                    @enderror
+
+                                                    <div class="mt-4 flex justify-end gap-2">
+                                                        <button type="button" @click="show = false"
+                                                                class="rounded-xl px-4 py-2 text-sm text-[#64748B] cursor-pointer">Cancel</button>
+                                                        <button type="submit"
+                                                                class="rounded-xl bg-[#FF8A65] hover:brightness-95 px-4 py-2 text-sm font-bold text-white cursor-pointer transition-all duration-200">
+                                                            Submit report
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            @elseif ($reservation->move_in_disputed_at)
+                                <div class="mt-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4">
+                                    <p class="text-sm font-bold text-[#B45309]">Move-in issue under review</p>
+                                    <p class="mt-1 text-xs text-[#B45309]">
+                                        Reported {{ $reservation->move_in_disputed_at->diffForHumans() }}. Your deposit is on hold
+                                        and the countdown is paused while an administrator reviews this.
                                     </p>
                                 </div>
-                                <button type="submit"
-                                    class="w-full bg-[#FF8A65] hover:brightness-95 text-white font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
-                                    I Have Moved In — Confirm Occupancy
-                                </button>
-                            </form>
+                            @endif
                         </div>
 
                     @else
@@ -295,7 +444,7 @@
                     @endif
 
                 @elseif($reservation->isOccupied())
-                    <div class="mt-6 p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3">
+                    <div class="p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-[#22C55E]/15 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 text-[#15803D]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -310,7 +459,9 @@
                     </div>
                 @endif
             </div>
-        </x-card>
+        </aside>
+
+        </div>{{-- /document + rail --}}
 
         <p class="text-[10.5px] text-[#64748B] text-center mt-4 hidden print:block">
             {{ $agreementRef }} &middot; Generated {{ now()->format('F j, Y \a\t g:i A') }} &middot; AbangananHub

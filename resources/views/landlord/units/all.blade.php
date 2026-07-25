@@ -144,44 +144,26 @@
         <form method="GET" class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
-                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="15" height="15" fill="none"
+                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search units by name or property..." aria-label="Search units by name or property"
-                        class="pl-10 pr-4 h-11 w-full rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <div class="relative">
-                        <select name="property" onchange="this.form.submit()"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer max-w-[180px]">
-                            <option value="">All Properties</option>
-                            @foreach($properties as $property)
-                                <option value="{{ $property->property_id }}" @selected(request('property') == $property->property_id)>
-                                    {{ $property->title }}</option>
-                            @endforeach
-                        </select>
-                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </div>
+                    @php
+                        $unitsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
+                        $unitsStatusOptions = ['' => 'All Status', 'Available' => 'Available', 'Reserved' => 'Reserved', 'Occupied' => 'Occupied', 'Maintenance' => 'Maintenance'];
+                    @endphp
+                    <x-styled-select name="property" :options="$unitsPropertyOptions" :selected="(string) request('property', '')" :autosubmit="true"
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[180px]" />
 
-                    <div class="relative">
-                        <select name="status" onchange="this.form.submit()"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer">
-                            <option value="">All Status</option>
-                            <option value="Available" @selected(request('status') === 'Available')>Available</option>
-                            <option value="Reserved" @selected(request('status') === 'Reserved')>Reserved</option>
-                            <option value="Occupied" @selected(request('status') === 'Occupied')>Occupied</option>
-                            <option value="Maintenance" @selected(request('status') === 'Maintenance')>Maintenance</option>
-                        </select>
-                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </div>
+                    <x-styled-select name="status" :options="$unitsStatusOptions" :selected="request('status', '')" :autosubmit="true"
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
 
                     <button type="submit"
                         class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
@@ -276,7 +258,7 @@
                         default => ['tile' => 'border-[#E2E8F0] bg-[#F7FCFC]', 'text' => 'text-[#64748B]', 'dot' => 'bg-[#94A3B8]'],
                     };
                     $activeRes = in_array($unit->availability_status, ['Reserved', 'Occupied'], true)
-                        ? $unit->reservations->whereNotIn('rental_status', ['Cancelled', 'Rejected'])->sortByDesc('reservation_id')->first()
+                        ? $unit->reservations->whereNotIn('rental_status', \App\Models\Reservation::TERMINAL_STATUSES)->sortByDesc('reservation_id')->first()
                         : null;
                     $tenantName = $activeRes?->tenant ? trim($activeRes->tenant->first_name . ' ' . $activeRes->tenant->last_name) : null;
                     $unitPayload = [

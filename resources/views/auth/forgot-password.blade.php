@@ -8,7 +8,7 @@
 
     {{-- Right panel headline & feature area --}}
     <x-slot name="rightContent">
-        <div class="bg-[#0F172A]/25 backdrop-blur-lg border border-white/15 rounded-2xl p-6 shadow-2xl max-w-xl mx-auto transform transition-all duration-300 hover:border-white/25">
+        <div class="max-w-xl mx-auto">
             <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Forgot your password?<br>
                 <span class="bg-gradient-to-r from-[#69D2C6] via-[#2AA7A1] to-[#156F8C] bg-clip-text text-transparent font-black">No problem.</span>
@@ -20,8 +20,8 @@
     </x-slot>
 
     {{-- Left panel: form --}}
-    <div class="w-full min-h-screen lg:h-screen bg-[#F7FCFC] flex flex-col justify-center items-center px-4 py-6 lg:py-2 overflow-y-auto lg:overflow-hidden">
-        <div class="w-full max-w-md bg-white rounded-2xl border border-[#E2E8F0]/80 p-6 sm:p-8 shadow-xl shadow-[#1F2937]/[0.04] transition-all duration-300">
+    <div class="w-full min-h-screen bg-[#F7FCFC] flex flex-col items-center px-4 py-10 lg:py-14">
+        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-2xl border border-[#E2E8F0]/80 p-6 lg:p-8 shadow-xl shadow-[#1F2937]/[0.04] transition-all duration-300">
 
             {{-- Branding --}}
             <div class="mb-5">
@@ -33,7 +33,7 @@
                     </div>
                     <span class="text-[#156F8C] font-bold text-base tracking-tight">Abanganan<span class="text-[#156F8C]">Hub</span></span>
                 </a>
-                <h2 class="text-xl font-black text-[#156F8C] tracking-tight">Reset your password</h2>
+                <h2 class="text-lg sm:text-xl font-black text-[#156F8C] tracking-tight">Reset your password</h2>
                 <p class="text-[#64748B] text-xs font-medium mt-0.5">We'll email you a link to choose a new one.</p>
             </div>
 
@@ -54,12 +54,12 @@
                 <div>
                     <label for="email" class="block text-xs font-bold text-[#156F8C] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Enter your email"
-                        class="w-full px-3 py-2 bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg text-xs text-[#156F8C] placeholder-[#64748B] transition-all focus:bg-white focus:outline-none focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10" />
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
                 </div>
 
                 {{-- Action Submission Button --}}
                 <div class="pt-1">
-                    <button type="submit" class="w-full py-2 bg-[#2AA7A1] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md shadow-[#2AA7A1]/10 transition-all duration-300 transform active:scale-[0.995]">
+                    <button type="submit" class="w-full bg-gradient-to-r from-[#2AA7A1] to-[#156F8C] text-white font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/20 text-[15px]">
                         Email Password Reset Link
                     </button>
                 </div>

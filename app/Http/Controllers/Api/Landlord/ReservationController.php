@@ -33,7 +33,7 @@ class ReservationController extends Controller
         ];
 
         $status = $request->query('status', 'all');
-        $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected'];
+        $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Completed', 'Cancelled', 'Rejected'];
 
         if (in_array($status, $validStatuses, true)) {
             $base->where('rental_status', $status);
@@ -108,7 +108,7 @@ class ReservationController extends Controller
         if ($unitWasReserved) {
             $otherActiveExists = Reservation::where('unit_id', $reservation->unit_id)
                 ->where('reservation_id', '!=', $reservation->reservation_id)
-                ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+                ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
                 ->exists();
 
             if (! $otherActiveExists) {

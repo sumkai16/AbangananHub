@@ -88,7 +88,12 @@ class UserController extends Controller
     {
         $user->load(['roles', 'verificationApplication', 'rentalBusiness', 'properties', 'reservations']);
 
-        return view('admin.users.show', compact('user'));
+        // Two independent scores, never blended: what tenants rated them as a
+        // landlord, and what landlords rated them as a tenant.
+        $landlordRating = $user->landlordRatingSummary();
+        $tenantRating = $user->tenantRatingSummary();
+
+        return view('admin.users.show', compact('user', 'landlordRating', 'tenantRating'));
     }
 
     public function edit(User $user)

@@ -128,13 +128,10 @@
 
                             <div>
                                 <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Unit Type</label>
-                                <select name="unit_type" x-model="unitType"
-                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3 text-[13.5px] text-[#1F2937] bg-white focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
-                                    <option value="">Select type</option>
-                                    @foreach(['Bedspace', 'Room', 'Apartment', 'Studio', 'Dormitory'] as $type)
-                                        <option value="{{ $type }}">{{ $type }}</option>
-                                    @endforeach
-                                </select>
+                                <x-styled-select name="unit_type" x-model="unitType"
+                                    :options="array_combine(['Bedspace', 'Room', 'Apartment', 'Studio', 'Dormitory'], ['Bedspace', 'Room', 'Apartment', 'Studio', 'Dormitory'])"
+                                    :selected="old('unit_type', '')" placeholder="Select type"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3 text-[13.5px] text-[#1F2937] bg-white" />
                                 @error('unit_type')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -179,13 +176,14 @@
                                 <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                                     Capacity <span class="text-[#EF4444]">*</span>
                                 </label>
-                                <select name="occupancy_limit" x-model="capacity" required
-                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3 text-[13.5px] text-[#1F2937] bg-white focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
-                                    <option value="">Select capacity</option>
-                                    @for($i = 1; $i <= 20; $i++)
-                                        <option value="{{ $i }}">{{ $i }} {{ $i === 1 ? 'person' : 'persons' }}</option>
-                                    @endfor
-                                </select>
+                                @php
+                                    $capacityOptions = collect(range(1, 20))
+                                        ->mapWithKeys(fn ($i) => [(string) $i => $i . ' ' . ($i === 1 ? 'person' : 'persons')])
+                                        ->all();
+                                @endphp
+                                <x-styled-select name="occupancy_limit" x-model="capacity" required
+                                    :options="$capacityOptions" :selected="old('occupancy_limit', '')" placeholder="Select capacity"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3 text-[13.5px] text-[#1F2937] bg-white" />
                                 @error('occupancy_limit')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror

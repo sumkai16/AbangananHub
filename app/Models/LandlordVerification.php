@@ -16,6 +16,7 @@ class LandlordVerification extends Model
         'id_back',
         'id_type',
         'selfie',
+        'liveness_passed',
         'id_image_hash',
         'id_number',
         'ocr_name',
@@ -39,6 +40,7 @@ class LandlordVerification extends Model
             'reviewed_at'    => 'datetime',
             'submitted_at'   => 'datetime',
             'ocr_confidence' => 'integer',
+            'liveness_passed' => 'boolean',
         ];
     }
 

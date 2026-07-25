@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Events\HandoverScheduleUpdated;
 use App\Events\ReservationStatusUpdated;
 use App\Models\Notification;
 use App\Models\Reservation;
@@ -41,13 +42,22 @@ class ReservationObserver
 
     public function updated(Reservation $reservation): void
     {
-        if (! $reservation->wasChanged('rental_status')) {
-            return;
-        }
-
         // A reservation created outside the inquiry flow has no thread to
         // push into; nothing is listening.
         if (! $reservation->conversation_id) {
+            return;
+        }
+
+        // Scheduling moves neither rental_status nor payment status, so none
+        // of the events the inbox refetches on would fire. Hooked here for the
+        // same reason the status broadcast is: no call site, present or
+        // future, can change the slot without the other party's open panel
+        // being told.
+        if ($reservation->wasChanged(['handover_at', 'handover_confirmed_at'])) {
+            HandoverScheduleUpdated::dispatch($reservation);
+        }
+
+        if (! $reservation->wasChanged('rental_status')) {
             return;
         }
 

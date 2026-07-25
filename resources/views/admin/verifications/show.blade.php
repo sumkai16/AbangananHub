@@ -132,7 +132,37 @@
                                 d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                         </svg>
                         <h2 class="text-[14px] font-bold text-[#1F2937]">Selfie</h2>
+
+                        @if ($verification->liveness_passed)
+                            <span
+                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#22C55E]/[0.10] text-[11px] font-semibold text-[#15803D]">
+                                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="2.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                </svg>
+                                Liveness passed
+                            </span>
+                        @else
+                            <span
+                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FBBF24]/[0.16] text-[11px] font-semibold text-[#92400E]">
+                                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                </svg>
+                                No liveness check
+                            </span>
+                        @endif
                     </div>
+
+                    @unless ($verification->liveness_passed)
+                        <div class="mb-4 p-3 rounded-xl bg-[#FBBF24]/[0.10]">
+                            <p class="text-xs text-[#1F2937] leading-relaxed">This selfie was captured without the automatic
+                                liveness check — the applicant's device couldn't run it. Confirm the face matches the ID
+                                photo yourself before approving.</p>
+                        </div>
+                    @endunless
+
                     <div class="max-w-[180px]">
                         <div class="rounded-lg border border-[#E2E8F0] overflow-hidden aspect-[3/4] cursor-pointer hover:border-[#2AA7A1] transition-colors"
                             @click="previewImage = '{{ route('verifications.preview', [$verification, 'selfie']) }}'">

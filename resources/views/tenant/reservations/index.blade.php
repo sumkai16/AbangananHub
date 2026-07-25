@@ -221,10 +221,12 @@
                                                     Cancel
                                                 </button>
                                             </form>
-                                            <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
-                                                Chat
-                                            </a>
+                                            @if($reservation->conversation)
+                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                                    class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
+                                                    Chat
+                                                </a>
+                                            @endif
                                         @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
                                             <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
                                                 data-confirm="Cancel this reservation?"
@@ -238,15 +240,19 @@
                                                     Cancel
                                                 </button>
                                             </form>
-                                            <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
-                                                Chat
-                                            </a>
+                                            @if($reservation->conversation)
+                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                                    class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
+                                                    Chat
+                                                </a>
+                                            @endif
                                         @elseif($reservation->rental_status === 'Occupied')
-                                            <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
-                                                Chat
-                                            </a>
+                                            @if($reservation->conversation)
+                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                                    class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
+                                                    Chat
+                                                </a>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>

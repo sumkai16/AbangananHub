@@ -9,7 +9,7 @@
     <title>{{ $title ?? 'AbangananHub' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,600;1,8..60,700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <script>
@@ -47,6 +47,61 @@
                 </span>
             </a>
 
+            {{-- Primary nav — sits beside the logo, deliberately not centred: the
+                 collapsed search pill below is `absolute left-1/2`, and a centred
+                 nav would land underneath it on scroll. Hidden below `lg`, which
+                 matches what phones get today (this header has no mobile menu). --}}
+            <nav aria-label="Primary" class="hidden lg:flex items-center gap-1 ml-8 mr-auto">
+                {{-- Block form, not the inline parenthesised one: that emitted an
+                     unterminated PHP open tag here and swallowed the rest of the
+                     header. Never write a literal PHP open tag in a Blade comment
+                     either — Blade tokenises with token_get_all(), so one inside a
+                     comment still opens a PHP block and silently drops the markup
+                     that follows it. --}}
+                @php
+                    $onBrowse = request()->routeIs('properties.index') || request()->routeIs('home');
+                @endphp
+
+                <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-all cursor-pointer {{ $onBrowse ? 'text-[#156F8C] bg-[#EEF8F8]' : 'text-[#1F2937] hover:bg-[#F7FCFC]' }}">
+                    Browse
+                </a>
+
+                @if($navAreas->isNotEmpty())
+                    <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+                        <button type="button" @click="open = !open" @click.outside="open = false"
+                            :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
+                            class="flex items-center gap-1 px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#F7FCFC] transition-all cursor-pointer">
+                            Areas
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" class="transition-transform duration-200 motion-reduce:transition-none"
+                                :class="open && 'rotate-180'" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
+                            class="absolute top-[calc(100%+8px)] left-0 w-[248px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E8F0] py-2 z-50 motion-reduce:transition-none">
+                            @foreach($navAreas as $area => $count)
+                                <a href="{{ route('properties.index', ['location' => $area]) }}"
+                                    class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#EEF8F8] transition-colors">
+                                    <span class="truncate">{{ $area }}</span>
+                                    <span class="text-[12px] font-bold text-[#64748B] flex-shrink-0">{{ $count }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <a href="{{ route('about') }}#how-it-works"
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#F7FCFC] transition-all cursor-pointer">
+                    How it works
+                </a>
+            </nav>
+
             {{-- Collapsed search pill (shown on scroll) --}}
             @if(($searchBar ?? true) && !View::hasSection('hide_search'))
                 <div id="nav-search-collapsed"
@@ -79,51 +134,55 @@
                 @auth
 
                     {{-- Become a Landlord / My Listings / Admin Actions --}}
-                    <div class="relative hidden sm:block">
+                    <div class="hidden sm:block">
                         @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
                             <a href="{{ route('landlord.properties.index') }}"
-                                class="flex items-center gap-2 h-10 px-5 border border-[#E2E8F0] rounded-full bg-white text-[13.5px] font-semibold text-[#1F2937] hover:shadow-md transition-all">
+                                class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#EEF8F8] text-[13.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-all cursor-pointer">
                                 Landlord Dashboard
                             </a>
                         @elseif(auth()->user()->hasRole('Admin'))
-                            <button id="landlord-btn" aria-expanded="false"
-                                class="flex items-center gap-2 h-10 px-5 border border-[#E2E8F0] rounded-full bg-white text-[13.5px] font-semibold text-[#1F2937] hover:shadow-md transition-all focus:outline-none">
-                                Admin Actions
-                            </button>
+                            <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+                                <button type="button" @click="open = !open" @click.outside="open = false"
+                                    :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
+                                    class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#EEF8F8] text-[13.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-all cursor-pointer">
+                                    Admin Actions
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" class="transition-transform duration-200 motion-reduce:transition-none"
+                                        :class="open && 'rotate-180'" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
 
-                            <div id="landlord-menu"
-                                class="absolute top-[calc(100%+10px)] right-0 w-[232px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E8F0] py-2 hidden z-50">
-                                <a href="{{ \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#' }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-b border-[#E2E8F0] mb-1">
-                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Listing Approval
-                                </a>
-                                <a href="{{ route('admin.verifications.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8]">
-                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                    </svg>
-                                    Verification Requests
-                                </a>
-                                <a href="{{ route('admin.users.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-[#156F8C] hover:bg-[#EEF8F8] border-t border-[#E2E8F0] mt-1">
-                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    Manage Users
-                                </a>
+                                <div x-show="open" x-cloak
+                                    x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-200"
+                                    x-transition:enter-start="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-150"
+                                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                                    class="absolute top-[calc(100%+10px)] right-0 w-[236px] bg-white rounded-2xl shadow-[0_16px_48px_-12px_rgba(15,23,42,0.20)] ring-1 ring-[#E2E8F0] p-1.5 z-50">
+                                    @php
+                                        $adminLinks = [
+                                            ['route' => \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#', 'label' => 'Listing Approval', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+                                            ['route' => route('admin.verifications.index'), 'label' => 'Verification Requests', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
+                                            ['route' => route('admin.users.index'), 'label' => 'Manage Users', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
+                                        ];
+                                    @endphp
+                                    @foreach($adminLinks as $link)
+                                        <a href="{{ $link['route'] }}"
+                                            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#EEF8F8] transition-colors">
+                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                                stroke-width="1.9" class="text-[#64748B] group-hover:text-[#156F8C] transition-colors" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}" />
+                                            </svg>
+                                            {{ $link['label'] }}
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
                         @else
                             <a href="{{ route('landlord.verification.create') }}"
-                                class="flex items-center gap-2 h-10 px-5 border border-[#E2E8F0] rounded-full bg-white text-[13.5px] font-semibold text-[#1F2937] hover:shadow-md transition-all">
+                                class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#EEF8F8] text-[13.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-all cursor-pointer">
                                 Become a Landlord
                             </a>
                         @endif
@@ -132,14 +191,15 @@
                     {{-- Notifications Dropdown --}}
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                         @keydown.escape.window="close()">
-                        <button type="button" @click="toggle()"
-                            class="relative flex items-center justify-center w-10 h-10 rounded-full border border-[#E2E8F0] bg-white text-[#64748B] hover:shadow-md transition-all focus:outline-none">
+                        <button type="button" @click="toggle()" aria-label="Notifications"
+                            :class="open ? 'bg-[#EEF8F8] text-[#156F8C]' : 'text-[#64748B] hover:bg-[#F7FCFC]'"
+                            class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2AA7A1]/40 cursor-pointer">
                             <span x-show="unreadCount > 0" x-cloak
-                                class="absolute top-[7px] right-[7px] w-2.5 h-2.5 rounded-full bg-[#2AA7A1] border-2 border-white"></span>
-                            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                class="absolute top-[7px] right-[8px] w-2.5 h-2.5 rounded-full bg-[#2AA7A1] ring-2 ring-white"></span>
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                    d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
                             </svg>
                         </button>
 
@@ -164,153 +224,138 @@
                             ? 'Landlord'
                             : (auth()->user()->hasRole('Admin') ? 'Administrator' : 'Tenant');
                     @endphp
-                    <div class="relative">
-                        <button id="abg-avatar-btn" aria-expanded="false"
-                            class="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-[#F7FCFC] transition-colors focus:outline-none">
+                    @php
+                        $userRoles = auth()->user()->roles->pluck('role');
+                        $abgFullName = trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
+                        // One shared row style so every item lines up and hovers identically.
+                        $menuRow = 'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#EEF8F8] transition-colors';
+                        $menuIcon = 'text-[#64748B] group-hover:text-[#156F8C] transition-colors shrink-0';
+                        $menuLabel = 'px-3 pt-2.5 pb-1 text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider';
+                    @endphp
+                    <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+                        <button type="button" @click="open = !open" @click.outside="open = false"
+                            :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
+                            :class="open ? 'bg-[#EEF8F8]' : 'hover:bg-[#F7FCFC]'"
+                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2AA7A1]/40 cursor-pointer">
                             <span
                                 class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
                                 {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
                             </span>
                             <span class="hidden sm:flex flex-col items-start leading-tight">
-                                <span class="text-[13px] font-semibold text-[#1F2937]">{{ auth()->user()->first_name }}
-                                    {{ auth()->user()->last_name }}</span>
+                                <span class="text-[13px] font-semibold text-[#1F2937]">{{ $abgFullName }}</span>
                                 <span class="text-[11px] text-[#64748B]">{{ $abgRoleLabel }}</span>
                             </span>
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2" class="text-[#64748B] hidden sm:block">
+                                stroke-width="2.2" class="text-[#94A3B8] hidden sm:block transition-transform duration-200 motion-reduce:transition-none"
+                                :class="open && 'rotate-180'" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                             </svg>
                         </button>
 
-                        <div id="abg-avatar-menu"
-                            class="absolute top-[calc(100%+10px)] right-0 w-[256px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E8F0] py-1 hidden z-50">
+                        <div x-show="open" x-cloak
+                            x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-200"
+                            x-transition:enter-start="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
+                            class="absolute top-[calc(100%+10px)] right-0 w-[264px] bg-white rounded-2xl shadow-[0_16px_48px_-12px_rgba(15,23,42,0.20)] ring-1 ring-[#E2E8F0] p-1.5 z-50">
 
-                            {{-- User header --}}
-                            <div class="px-4 py-3.5 border-b border-[#E2E8F0]">
-                                <div class="text-[14px] font-bold text-[#1F2937]">
-                                    {{ trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) }}
-                                </div>
-                                <div class="text-[12px] text-[#64748B] mt-0.5 truncate">
-                                    {{ auth()->user()->email }}
+                            {{-- Account header — the one distinctive touch: a mist band that
+                                 turns the menu into an identity surface, not a flat list. --}}
+                            <div class="flex items-center gap-3 rounded-xl bg-gradient-to-br from-[#EEF8F8] to-[#F7FCFC] px-3 py-3 mb-1">
+                                <span class="w-11 h-11 rounded-full bg-[#2AA7A1] text-white text-[16px] font-bold flex items-center justify-center shrink-0 ring-2 ring-white">
+                                    {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
+                                </span>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="text-[13.5px] font-bold text-[#1F2937] truncate">{{ $abgFullName }}</p>
+                                        <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#156F8C] ring-1 ring-[#2AA7A1]/25">{{ $abgRoleLabel }}</span>
+                                    </div>
+                                    <p class="text-[12px] text-[#64748B] truncate mt-0.5">{{ auth()->user()->email }}</p>
                                 </div>
                             </div>
 
                             {{-- Section: Activity --}}
-                            @php $userRoles = auth()->user()->roles->pluck('role'); @endphp
-                            <div class="py-1">
-                                <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                    Activity</p>
+                            <p class="{{ $menuLabel }}">Activity</p>
 
-                                @if($userRoles->contains('Tenant'))
-                                    <a href="{{ route('reservations.index') }}"
-                                        class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        My Reservations
-                                    </a>
-                                @endif
-
-                                @if($userRoles->contains('Landlord'))
-                                    <a href="{{ route('landlord.reservations.index') }}"
-                                        class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                        </svg>
-                                        Reservation Requests
-                                    </a>
-                                @endif
-
-                                <a href="{{ route('conversations.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            @if($userRoles->contains('Tenant'))
+                                <a href="{{ route('reservations.index') }}" class="{{ $menuRow }}">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    Messages
+                                    My Reservations
                                 </a>
+                            @endif
 
-                                <a href="{{ route('notifications.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            @if($userRoles->contains('Landlord'))
+                                <a href="{{ route('landlord.reservations.index') }}" class="{{ $menuRow }}">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                     </svg>
-                                    Notifications
+                                    Reservation Requests
                                 </a>
+                            @endif
 
-                                <a href="{{ route('favorites.index') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                    </svg>
-                                    Saved Listings
-                                </a>
-                            </div>
+                            <a href="{{ route('conversations.index') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                                Messages
+                            </a>
 
-                            <div class="h-px bg-[#E2E8F0] mx-3"></div>
+                            <a href="{{ route('notifications.index') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                </svg>
+                                Notifications
+                            </a>
+
+                            <a href="{{ route('favorites.index') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                </svg>
+                                Saved Listings
+                            </a>
+
+                            <div class="h-px bg-[#E2E8F0] mx-2 my-1.5"></div>
 
                             {{-- Section: Account --}}
-                            <div class="py-1">
-                                <p class="px-4 pt-2.5 pb-1 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                    Account</p>
-                                <a href="{{ auth()->user()->hasRole('Landlord') ? route('landlord.profile.me') : route('tenant.profile.show') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                    </svg>
-                                    My Profile
-                                </a>
-                                <a href="{{ route('profile.edit') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.991a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.78 7.78 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    Account Settings
-                                </a>
-                                <a href="{{ route('reports.create') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#1F2937] hover:bg-[#E2E8F0]/60 transition-colors">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                                    </svg>
-                                    Report a Problem
-                                </a>
-                            </div>
+                            <p class="{{ $menuLabel }}">Account</p>
 
-                            <div class="h-px bg-[#E2E8F0] mx-3"></div>
+                            <a href="{{ auth()->user()->hasRole('Landlord') ? route('landlord.profile.me') : route('tenant.profile.show') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                                My Profile
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.991a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.78 7.78 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Account Settings
+                            </a>
+                            <a href="{{ route('reports.create') }}" class="{{ $menuRow }}">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                </svg>
+                                Report a Problem
+                            </a>
+
+                            <div class="h-px bg-[#E2E8F0] mx-2 my-1.5"></div>
 
                             {{-- Sign out --}}
-                            <div class="py-1">
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full flex items-center gap-3 px-4 py-2 text-[13.5px] font-medium text-[#EF4444] hover:bg-[#E2E8F0]/60 transition-colors">
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                        </svg>
-                                        Sign out
-                                    </button>
-                                </form>
-                            </div>
-
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#EF4444] hover:bg-[#EF4444]/[0.07] transition-colors cursor-pointer">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="shrink-0" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                                    </svg>
+                                    Sign out
+                                </button>
+                            </form>
                         </div>
                     </div>
                 @else
@@ -337,115 +382,11 @@
                 style="max-height: 200px; opacity: 1;">
 
                 <div class="flex justify-center pb-4 pt-1 px-4 sm:px-6">
-                    <form action="{{ route('properties.index') }}" method="GET"
-                        class="flex items-center w-full max-w-[820px] bg-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)] border border-[#E2E8F0] transition-all duration-300">
-
-                        <div
-                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-[#E2E8F0] cursor-pointer hover:bg-[#F7FCFC] rounded-l-full transition-colors w-[33%] overflow-hidden">
-                            <span
-                                class="text-[10px] sm:text-[11px] font-bold text-[#1F2937] tracking-wide uppercase truncate">Where</span>
-                            <input type="text" name="location" placeholder="Search..." aria-label="Where"
-                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-[#64748B] focus:ring-0 placeholder-[#94A3B8] w-full outline-none mt-0.5 truncate">
-                        </div>
-
-                        <div
-                            class="flex-1 flex flex-col justify-center px-3 py-2 sm:px-7 sm:py-3 border-r border-[#E2E8F0] hover:bg-[#F7FCFC] transition-colors w-[33%] overflow-hidden">
-                            <span
-                                class="text-[10px] sm:text-[11px] font-bold text-[#1F2937] tracking-wide uppercase truncate">Type</span>
-                            <select name="type"
-                                class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-[#64748B] focus:ring-0 w-full outline-none appearance-none cursor-pointer mt-0.5 truncate">
-                                <option value="">Any type</option>
-                                <option value="Bedspace">Bedspace</option>
-                                <option value="Room">Room</option>
-                                <option value="Apartment">Apartment</option>
-                                <option value="House">House</option>
-                            </select>
-                        </div>
-
-                        <div
-                            class="flex-1 flex items-center justify-between pl-3 pr-2 sm:pl-7 sm:pr-2 py-2 hover:bg-[#F7FCFC] rounded-r-full transition-colors w-[33%] overflow-hidden">
-                            <div class="flex flex-col justify-center w-[calc(100%-36px)] sm:w-auto overflow-hidden">
-                                <span
-                                    class="text-[10px] sm:text-[11px] font-bold text-[#1F2937] tracking-wide uppercase truncate">Budget</span>
-                                <input type="number" name="price_max" placeholder="Max ₱" aria-label="Maximum budget"
-                                    class="p-0 border-none bg-transparent text-[12px] sm:text-[13.5px] text-[#64748B] focus:ring-0 placeholder-[#94A3B8] w-full outline-none mt-0.5 truncate">
-                            </div>
-                            <button type="submit"
-                                class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#FF8A65] flex items-center justify-center text-white flex-shrink-0 hover:brightness-95 transition-colors ml-1 sm:ml-3 shadow-md">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                    stroke-width="3" class="sm:w-[17px] sm:h-[17px]">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </button>
-                        </div>
-
-                    </form>
+                    <x-search-pill variant="header" />
                 </div>
 
-                <div class="flex items-center justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6 overflow-x-auto pb-1"
-                    style="-ms-overflow-style:none; scrollbar-width:none;">
-                    <a href="{{ route('properties.index') }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="all">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">All</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['type' => 'Bedspace']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="Bedspace">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 7h18M3 7v10m0-10V5m18 2v10m0-10V5M3 17h18M6 12h12M5 5h14" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Bedspace</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['type' => 'Room']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="Room">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 21h18M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Room</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['type' => 'Apartment']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="Apartment">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Apartment</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['type' => 'House']) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link"
-                        data-type="House">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 21h18M3 10.5L12 3l9 7.5M5 21V10.5M19 21V10.5M9 21v-6h6v6" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">House</span>
-                    </a>
-                    <a href="{{ route('favorites.index') }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Saved</span>
-                    </a>
-                    <a href="{{ route('properties.index', ['verified' => 1]) }}"
-                        class="flex flex-col items-center gap-1.5 pb-3 border-b-2 border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0] transition-all min-w-[56px] category-link">
-                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="text-[12px] font-semibold">Verified</span>
-                    </a>
+                <div class="px-4 sm:px-6">
+                    <x-category-strip />
                 </div>
 
             </div>{{-- /#header-search-expanded --}}
@@ -546,244 +487,202 @@
         <div id="auth-modal"
             class="hidden fixed inset-0 z-[9999] bg-[#156F8C]/40 backdrop-blur-sm items-center justify-center p-4 opacity-0 transition-opacity duration-300">
 
-            <div class="bg-white rounded-[24px] shadow-2xl max-w-md w-full p-6 md:p-8 relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            <div class="bg-white rounded-[24px] shadow-2xl max-w-3xl w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
                 id="auth-modal-content">
 
-                <button type="button" onclick="closeAuthModal()"
-                    class="absolute top-5 right-5 text-[#94A3B8] hover:text-[#64748B] focus:outline-none transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+                {{-- Left brand panel (split) --}}
+                <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-gradient-to-br from-[#0E3A3A] via-[#155E6E] to-[#2AA7A1] p-8 flex-col justify-between text-white">
+                    <div class="pointer-events-none absolute -top-12 -right-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
+                    <div class="pointer-events-none absolute bottom-10 -left-14 w-56 h-56 rounded-full bg-white/5 blur-3xl"></div>
 
-                <div id="modal-error-bag"
-                    class="hidden mb-4 p-3 bg-[#EF4444]/[0.07] text-[#DC2626] rounded-xl text-sm border border-[#EF4444]/20"></div>
-
-                {{-- Login View --}}
-                <div id="login-form-view" class="hidden">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
-                                viewBox="0 0 24 24">
+                    <div class="relative z-10">
+                        <div class="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center mb-10 shadow-inner">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25">
-                                </path>
+                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                             </svg>
                         </div>
-                        <span class="text-xl font-bold text-[#156F8C]">Abanganan<span
-                                class="text-[#156F8C]">Hub</span></span>
+                        <h3 id="auth-side-title" class="text-2xl font-black tracking-tight leading-tight">Welcome back</h3>
+                        <p id="auth-side-subtitle" class="text-white/80 text-sm font-medium mt-2.5 leading-relaxed max-w-[16rem]">
+                            Sign in to manage your bookings and stay up to date with AbangananHub.
+                        </p>
                     </div>
 
-                    <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Welcome Back!</h2>
-                    <p class="text-[14px] text-[#94A3B8] mt-1 mb-6">Login to continue to AbangananHub</p>
-
-                    <form id="ajax-login-form" onsubmit="handleAuthSubmit(event, '{{ route('login') }}')">
-                        @csrf
-                        <div class="mb-4">
-                            <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
-                            <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
-                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-email"></span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
-                            <div class="relative">
-                                <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password" aria-label="Password"
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                                <button type="button" onclick="toggleModalPassword('modal-login-password', this)"
-                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z">
-                                        </path>
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-password"></span>
-                        </div>
-
-                        <div class="flex items-center justify-between text-[13px] mb-6">
-                            <label class="flex items-center gap-2 text-[#64748B] cursor-pointer select-none">
-                                <input type="checkbox" name="remember"
-                                    class="w-4 h-4 rounded text-[#2AA7A1] border-[#E2E8F0] focus:ring-[#2AA7A1]">
-                                Remember me
-                            </label>
-                            <a href="#" onclick="openAuthModal('forgot-password'); return false;" class="text-[#156F8C] font-semibold hover:underline">Forgot Password?</a>
-                        </div>
-
-                        <button type="submit"
-                            class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
-                            Login
-                        </button>
-                    </form>
-
-                    <p class="text-[13px] text-center text-[#64748B] mt-6">
-                        Don't have an account? <a href="#" onclick="openAuthModal('register')"
-                            class="text-[#156F8C] font-bold hover:underline">Register here</a>
-                    </p>
-
-                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-[#94A3B8] font-bold uppercase">
-                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
-                    </div>
+                    <div class="relative z-10 text-white/55 text-[11px] font-bold tracking-wide">© {{ date('Y') }} AbangananHub</div>
                 </div>
 
-                {{-- Register View --}}
-                <div id="register-form-view" class="hidden">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25">
-                                </path>
-                            </svg>
-                        </div>
-                        <span class="text-xl font-bold text-[#156F8C]">Abanganan<span
-                                class="text-[#156F8C]">Hub</span></span>
-                    </div>
+                {{-- Right form panel (split) --}}
+                <div class="w-full md:w-[58%] relative bg-white p-6 sm:p-8 md:p-10 max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
-                    <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Create an Account</h2>
-                    <p class="text-[14px] text-[#94A3B8] mt-1 mb-6">Join AbangananHub today</p>
-
-                    <form id="ajax-register-form" onsubmit="handleAuthSubmit(event, '{{ route('register') }}')">
-                        @csrf
-                        <div class="grid grid-cols-2 gap-3 mb-3">
-                            <div>
-                                <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">First Name</label>
-                                <input type="text" name="first_name" required placeholder="First name" aria-label="First name"
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
-                                    id="error-register-first_name"></span>
-                            </div>
-                            <div>
-                                <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Last Name</label>
-                                <input type="text" name="last_name" required placeholder="Last name" aria-label="Last name"
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
-                                    id="error-register-last_name"></span>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Contact Number</label>
-                            <input type="text" name="contact_number" required placeholder="Enter your contact number" aria-label="Contact number"
-                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
-                                id="error-register-contact_number"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
-                            <input type="email" name="email" required placeholder="Enter your email address" aria-label="Email address"
-                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-email"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
-                            <input type="password" name="password" required placeholder="Create a password" aria-label="Password"
-                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-password"></span>
-                        </div>
-
-                        <div class="mb-5">
-                            <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Confirm Password</label>
-                            <input type="password" name="password_confirmation" required placeholder="Confirm your password" aria-label="Confirm password"
-                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                        </div>
-
-                        <button type="submit"
-                            class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
-                            Sign Up
-                        </button>
-                    </form>
-
-                    <p class="text-[13px] text-center text-[#64748B] mt-6">
-                        Already have an account? <a href="#" onclick="openAuthModal('login')"
-                            class="text-[#156F8C] font-bold hover:underline">Login here</a>
-                    </p>
-
-                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-[#94A3B8] font-bold uppercase">
-                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
-                    </div>
-                </div>
-
-                {{-- Forgot Password View --}}
-                <div id="forgot-password-form-view" class="hidden">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25">
-                                </path>
-                            </svg>
-                        </div>
-                        <span class="text-xl font-bold text-[#156F8C]">Abanganan<span
-                                class="text-[#156F8C]">Hub</span></span>
-                    </div>
-
-                    <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Forgot your password?</h2>
-                    <p class="text-[14px] text-[#94A3B8] mt-1 mb-6">No problem. We'll email you a reset link.</p>
-
-                    <form id="ajax-forgot-password-form" onsubmit="handleForgotPasswordSubmit(event, '{{ route('password.email') }}')">
-                        @csrf
-                        <div class="mb-5">
-                            <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
-                            <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
-                                class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
-                            <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-forgot-password-email"></span>
-                        </div>
-
-                        <button type="submit"
-                            class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
-                            Email Password Reset Link
-                        </button>
-                    </form>
-
-                    <p class="text-[13px] text-center text-[#64748B] mt-6">
-                        Remembered your password? <a href="#" onclick="openAuthModal('login'); return false;"
-                            class="text-[#156F8C] font-bold hover:underline">Login here</a>
-                    </p>
-
-                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-[#94A3B8] font-bold uppercase">
-                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
-                    </div>
-                </div>
-
-                {{-- Forgot Password: Email Sent View --}}
-                <div id="forgot-password-sent-view" class="hidden">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-[#2AA7A1] rounded-xl flex items-center justify-center shadow-sm">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                            </svg>
-                        </div>
-                        <span class="text-xl font-bold text-[#156F8C]">Abanganan<span
-                                class="text-[#156F8C]">Hub</span></span>
-                    </div>
-
-                    <h2 class="text-[24px] font-bold text-[#156F8C] tracking-tight leading-tight">Check your email</h2>
-                    <p id="forgot-password-sent-message" class="text-[14px] text-[#64748B] mt-1 mb-6 leading-relaxed">
-                        We've emailed you a link to reset your password. It'll expire in 60 minutes.
-                    </p>
-
-                    <button type="button" onclick="openAuthModal('login')"
-                        class="w-full bg-[#2AA7A1] text-white font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/10 text-[15px]">
-                        Back to login
+                    <button type="button" onclick="closeAuthModal()"
+                        class="absolute top-4 right-4 text-[#94A3B8] hover:text-[#64748B] focus:outline-none transition-colors" aria-label="Close">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                     </button>
 
-                    <div class="text-center mt-8 pt-2 text-[10px] tracking-wider text-[#94A3B8] font-bold uppercase">
-                        © 2026 ABANGANANHUB. ALL RIGHTS RESERVED.
-                    </div>
-                </div>
+                    <div id="modal-error-bag"
+                        class="hidden mb-4 p-3 bg-[#EF4444]/[0.07] text-[#DC2626] rounded-xl text-sm border border-[#EF4444]/20"></div>
 
+                    {{-- Login View --}}
+                    <div id="login-form-view" class="hidden">
+                        <h2 class="text-2xl font-black text-[#156F8C] tracking-tight leading-tight">Login</h2>
+                        <p class="text-sm text-[#94A3B8] mt-1 mb-6">Enter your details to continue</p>
+
+                        <form id="ajax-login-form" onsubmit="handleAuthSubmit(event, '{{ route('login') }}')">
+                            @csrf
+                            <div class="mb-4">
+                                <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
+                                <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-email"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
+                                <div class="relative">
+                                    <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password" aria-label="Password"
+                                        class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                    <button type="button" onclick="toggleModalPassword('modal-login-password', this)"
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]" aria-label="Show password">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z">
+                                            </path>
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-password"></span>
+                            </div>
+
+                            <div class="flex items-center justify-between text-[13px] mb-6">
+                                <label class="flex items-center gap-2 text-[#64748B] cursor-pointer select-none">
+                                    <input type="checkbox" name="remember"
+                                        class="w-4 h-4 rounded text-[#2AA7A1] border-[#E2E8F0] focus:ring-[#2AA7A1]">
+                                    Remember me
+                                </label>
+                                <a href="#" onclick="openAuthModal('forgot-password'); return false;" class="text-[#156F8C] font-semibold hover:underline">Forgot password?</a>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full bg-gradient-to-r from-[#2AA7A1] to-[#156F8C] text-white font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/20 text-[15px]">
+                                Login
+                            </button>
+                        </form>
+
+                        <p class="text-[13px] text-center text-[#64748B] mt-6">
+                            Don't have an account? <a href="#" onclick="openAuthModal('register'); return false;"
+                                class="text-[#156F8C] font-bold hover:underline">Register here</a>
+                        </p>
+                    </div>
+
+                    {{-- Register View --}}
+                    <div id="register-form-view" class="hidden">
+                        <h2 class="text-2xl font-black text-[#156F8C] tracking-tight leading-tight">Create Account</h2>
+                        <p class="text-sm text-[#94A3B8] mt-1 mb-6">Join AbangananHub today</p>
+
+                        <form id="ajax-register-form" onsubmit="handleAuthSubmit(event, '{{ route('register') }}')">
+                            @csrf
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">First Name</label>
+                                    <input type="text" name="first_name" required placeholder="First name" aria-label="First name"
+                                        class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                    <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
+                                        id="error-register-first_name"></span>
+                                </div>
+                                <div>
+                                    <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Last Name</label>
+                                    <input type="text" name="last_name" required placeholder="Last name" aria-label="Last name"
+                                        class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                    <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
+                                        id="error-register-last_name"></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Contact Number</label>
+                                <input type="text" name="contact_number" required placeholder="Enter your contact number" aria-label="Contact number"
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
+                                    id="error-register-contact_number"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
+                                <input type="email" name="email" required placeholder="Enter your email address" aria-label="Email address"
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-email"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
+                                <input type="password" name="password" required placeholder="Create a password" aria-label="Password"
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-password"></span>
+                            </div>
+
+                            <div class="mb-5">
+                                <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Confirm Password</label>
+                                <input type="password" name="password_confirmation" required placeholder="Confirm your password" aria-label="Confirm password"
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                            </div>
+
+                            <button type="submit"
+                                class="w-full bg-gradient-to-r from-[#2AA7A1] to-[#156F8C] text-white font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/20 text-[15px]">
+                                Sign Up
+                            </button>
+                        </form>
+
+                        <p class="text-[13px] text-center text-[#64748B] mt-6">
+                            Already have an account? <a href="#" onclick="openAuthModal('login'); return false;"
+                                class="text-[#156F8C] font-bold hover:underline">Login here</a>
+                        </p>
+                    </div>
+
+                    {{-- Forgot Password View --}}
+                    <div id="forgot-password-form-view" class="hidden">
+                        <h2 class="text-2xl font-black text-[#156F8C] tracking-tight leading-tight">Forgot your password?</h2>
+                        <p class="text-sm text-[#94A3B8] mt-1 mb-6">No problem. We'll email you a reset link.</p>
+
+                        <form id="ajax-forgot-password-form" onsubmit="handleForgotPasswordSubmit(event, '{{ route('password.email') }}')">
+                            @csrf
+                            <div class="mb-5">
+                                <label class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
+                                <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                                <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-forgot-password-email"></span>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full bg-gradient-to-r from-[#2AA7A1] to-[#156F8C] text-white font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/20 text-[15px]">
+                                Email Password Reset Link
+                            </button>
+                        </form>
+
+                        <p class="text-[13px] text-center text-[#64748B] mt-6">
+                            Remembered your password? <a href="#" onclick="openAuthModal('login'); return false;"
+                                class="text-[#156F8C] font-bold hover:underline">Login here</a>
+                        </p>
+                    </div>
+
+                    {{-- Forgot Password: Email Sent View --}}
+                    <div id="forgot-password-sent-view" class="hidden">
+                        <h2 class="text-2xl font-black text-[#156F8C] tracking-tight leading-tight">Check your email</h2>
+                        <p id="forgot-password-sent-message" class="text-sm text-[#64748B] mt-1 mb-6 leading-relaxed">
+                            We've emailed you a link to reset your password. It'll expire in 60 minutes.
+                        </p>
+
+                        <button type="button" onclick="openAuthModal('login')"
+                            class="w-full bg-gradient-to-r from-[#2AA7A1] to-[#156F8C] text-white font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/20 text-[15px]">
+                            Back to login
+                        </button>
+                    </div>
+
+                </div>
             </div>
         </div>
 
@@ -814,6 +713,20 @@
 
                 Object.values(views).forEach(view => view?.classList.add('hidden'));
                 views[mode].classList.remove('hidden');
+
+                // Swap the split-panel side copy to match the active view.
+                const sideCopy = {
+                    'login': ['Welcome back', 'Sign in to manage your bookings and stay up to date with AbangananHub.'],
+                    'register': ['Join us', 'Create an account to start booking with AbangananHub today.'],
+                    'forgot-password': ['Reset password', "Enter your email and we'll send you a secure link to reset it."],
+                    'forgot-password-sent': ['Check your inbox', "We've sent a reset link to your email. Follow it to set a new password."],
+                };
+                const sideTitle = document.getElementById('auth-side-title');
+                const sideSubtitle = document.getElementById('auth-side-subtitle');
+                if (sideTitle && sideSubtitle && sideCopy[mode]) {
+                    sideTitle.textContent = sideCopy[mode][0];
+                    sideSubtitle.textContent = sideCopy[mode][1];
+                }
 
                 // Double rAF: lets the browser paint the starting state before
                 // transitioning, otherwise the class changes batch and nothing animates.
@@ -949,56 +862,8 @@
         </script>
     @endguest
 
-    {{-- Interactive Layout Dropdown Handler Script --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const landlordBtn = document.getElementById('landlord-btn');
-            const landlordMenu = document.getElementById('landlord-menu');
-            const avatarBtn = document.getElementById('abg-avatar-btn');
-            const avatarMenu = document.getElementById('abg-avatar-menu');
-
-            function toggleDropdown(btn, menu) {
-                if (!btn || !menu) return;
-                const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-
-                // Automatically close alternate menus to prevent stacking layout bugs
-                if (landlordMenu && landlordMenu !== menu) landlordMenu.classList.add('hidden');
-                if (landlordBtn && landlordBtn !== btn) landlordBtn.setAttribute('aria-expanded', 'false');
-                if (avatarMenu && avatarMenu !== menu) avatarMenu.classList.add('hidden');
-                if (avatarBtn && avatarBtn !== btn) avatarBtn.setAttribute('aria-expanded', 'false');
-
-                // Toggle targeted menu view status
-                btn.setAttribute('aria-expanded', !isExpanded);
-                menu.classList.toggle('hidden');
-            }
-
-            if (landlordBtn && landlordMenu) {
-                landlordBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleDropdown(landlordBtn, landlordMenu);
-                });
-            }
-
-            if (avatarBtn && avatarMenu) {
-                avatarBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleDropdown(avatarBtn, avatarMenu);
-                });
-            }
-
-            // Document click listener to clear active menus when navigating outside layout controls
-            document.addEventListener('click', (e) => {
-                if (landlordMenu && !landlordMenu.classList.contains('hidden') && !landlordBtn.contains(e.target) && !landlordMenu.contains(e.target)) {
-                    landlordMenu.classList.add('hidden');
-                    landlordBtn.setAttribute('aria-expanded', 'false');
-                }
-                if (avatarMenu && !avatarMenu.classList.contains('hidden') && !avatarBtn.contains(e.target) && !avatarMenu.contains(e.target)) {
-                    avatarMenu.classList.add('hidden');
-                    avatarBtn.setAttribute('aria-expanded', 'false');
-                }
-            });
-        });
-    </script>
+    {{-- The avatar and Admin Actions menus are Alpine-driven (x-data / @click.outside),
+         matching the Areas and notification dropdowns — no bespoke JS handler needed. --}}
 
     {{-- Airbnb-style scroll-collapse search bar --}}
     <script>

@@ -104,7 +104,7 @@
 
             {{-- Avatar --}}
             @if ($user->profile_picture)
-                <img src="{{ asset('storage/' . $user->profile_picture) }}"
+                <img src="{{ $user->profile_picture }}"
                     alt="{{ $fullName }}"
                     class="w-16 h-16 rounded-2xl object-cover border border-[#E2E8F0] shadow-sm shrink-0" />
             @else
@@ -121,8 +121,14 @@
                         <span class="w-1.5 h-1.5 rounded-full {{ strtolower($status) === 'active' ? 'bg-[#22C55E]' : (strtolower($status) === 'suspended' ? 'bg-[#EF4444]' : 'bg-[#94A3B8]') }}"></span>
                         {{ ucfirst($status) }}
                     </span>
+                    @if ($user->is_walk_in)
+                        {{-- Landlord-entered, not self-registered: no login, no verified
+                             identity, and a legitimately blank email. --}}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309]"
+                            title="Walk-in tenant added by a landlord — identity not verified by AbangananHub">Walk-in tenant</span>
+                    @endif
                 </div>
-                <p class="text-[13.5px] text-[#94A3B8] mb-3">{{ $user->email }}</p>
+                <p class="text-[13.5px] text-[#94A3B8] mb-3">{{ $user->email ?: 'No email on file' }}</p>
                 <div class="flex flex-wrap gap-2">
                     @forelse ($user->roles as $userRole)
                         @php
@@ -140,6 +146,24 @@
                         <span class="text-[13px] text-[#94A3B8] italic">No role assigned</span>
                     @endforelse
                 </div>
+
+                {{-- Ratings received — role-separated, shown only where there's a score. --}}
+                @if($landlordRating['avg'] !== null || $tenantRating['avg'] !== null)
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-3">
+                        @if($landlordRating['avg'] !== null)
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">As landlord</span>
+                                <x-star-rating :rating="$landlordRating['avg']" :count="$landlordRating['count']" />
+                            </div>
+                        @endif
+                        @if($tenantRating['avg'] !== null)
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">As tenant</span>
+                                <x-star-rating :rating="$tenantRating['avg']" :count="$tenantRating['count']" />
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             {{-- Member stat --}}

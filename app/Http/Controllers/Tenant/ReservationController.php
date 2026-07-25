@@ -28,7 +28,7 @@ class ReservationController extends Controller
         ];
 
         $status = $request->query('status', 'all');
-        $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected'];
+        $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Completed', 'Cancelled', 'Rejected'];
 
         if (in_array($status, $validStatuses, true)) {
             $base->where('rental_status', $status);
@@ -67,7 +67,7 @@ public function store(StoreReservationRequest $request)
         // Check for existing active reservation on this unit by this tenant
         $exists = Reservation::where('unit_id', $unit->unit_id)
             ->where('tenant_id', Auth::id())
-            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
             ->exists();
 
         if ($exists) {

@@ -15,12 +15,18 @@ use Illuminate\Support\Facades\Auth;
 class AnalyticsController extends Controller
 {
     /**
-     * Revenue counts money the tenant has actually parted with: 'Held' is paid
-     * and sitting in escrow, 'Released' has reached the landlord. 'Pending' is
-     * a checkout session that may never complete, so it is deliberately not
-     * revenue.
+     * Revenue counts money the tenant has actually parted with: 'Paid' is a
+     * payment the landlord recorded as collected offline (a walk-in's deposit,
+     * a monthly rent handed over in person), 'Held' is paid and sitting in
+     * escrow, 'Released' has reached the landlord. All three are money that has
+     * arrived; 'Pending' is a checkout session that may never complete, so it
+     * is deliberately not revenue.
+     *
+     * 'Paid' was added when the rent ledger shipped — without it every
+     * landlord-recorded payment was invisible here, so a landlord collecting
+     * rent by hand would see their revenue chart flatline.
      */
-    private const EARNED_STATUSES = ['Held', 'Released'];
+    private const EARNED_STATUSES = ['Paid', 'Held', 'Released'];
 
     public function index(Request $request)
     {
@@ -190,7 +196,7 @@ class AnalyticsController extends Controller
     private function activeReservationCount($propertyIds): int
     {
         return Reservation::whereIn('property_id', $propertyIds)
-            ->whereNotIn('rental_status', ['Cancelled', 'Rejected'])
+            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
             ->count();
     }
 
