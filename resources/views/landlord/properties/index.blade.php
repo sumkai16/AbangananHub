@@ -45,32 +45,15 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <div class="relative">
-                        <select name="status"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer">
-                            <option value="">All Status</option>
-                            <option value="Approved" @selected(request('status') === 'Approved')>Approved</option>
-                            <option value="Pending" @selected(request('status') === 'Pending')>Pending</option>
-                            <option value="Rejected" @selected(request('status') === 'Rejected')>Rejected</option>
-                        </select>
-                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </div>
+                    @php
+                        $listStatusOptions = ['' => 'All Status', 'Approved' => 'Approved', 'Pending' => 'Pending', 'Rejected' => 'Rejected'];
+                        $listTypeOptions = ['' => 'All Types', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House for Rent'];
+                    @endphp
+                    <x-styled-select name="status" :options="$listStatusOptions" :selected="request('status', '')"
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
 
-                    <div class="relative">
-                        <select name="type"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer">
-                            <option value="">All Types</option>
-                            <option value="Bedspace" @selected(request('type') === 'Bedspace')>Bedspace</option>
-                            <option value="Room" @selected(request('type') === 'Room')>Room</option>
-                            <option value="Apartment" @selected(request('type') === 'Apartment')>Apartment</option>
-                            <option value="House" @selected(request('type') === 'House')>House for Rent</option>
-                        </select>
-                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </div>
+                    <x-styled-select name="type" :options="$listTypeOptions" :selected="request('type', '')"
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
 
                     <button type="submit"
                         class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">

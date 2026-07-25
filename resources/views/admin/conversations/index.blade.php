@@ -48,12 +48,9 @@
                 placeholder="Search by tenant, landlord, or property…" aria-label="Search by tenant, landlord, or property"
                 class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
         </div>
-        <select name="status"
-            class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]/50 px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
-            <option value="all"     {{ $status === 'all'     ? 'selected' : '' }}>All statuses</option>
-            <option value="Open"    {{ $status === 'Open'    ? 'selected' : '' }}>Open</option>
-            <option value="Resolved"{{ $status === 'Resolved'? 'selected' : '' }}>Resolved</option>
-        </select>
+        <x-styled-select name="status" :options="['all' => 'All statuses', 'Open' => 'Open', 'Resolved' => 'Resolved']"
+            :selected="$status"
+            class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]/50 px-3" />
         <button type="submit"
             class="h-10 px-5 text-[13.5px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-all duration-200 shadow-sm cursor-pointer">
             Filter

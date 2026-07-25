@@ -6,6 +6,29 @@
 
     $modalInput = 'h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition';
     $modalLabel = 'block text-[12px] font-semibold text-[#1F2937] mb-1.5';
+
+    $paymentTypeOptions = [
+        'Monthly' => 'Monthly rent',
+        'Deposit' => 'Security deposit',
+        'Initial' => 'Initial payment',
+        'Utility' => 'Utilities',
+        'Other' => 'Other',
+    ];
+
+    $billingPeriodOptions = $periodOptions->mapWithKeys(function ($option) {
+        $suffix = match ($option['status']) {
+            'overdue' => ' — overdue, ₱' . number_format(max(0, $option['balance']), 2) . ' left',
+            'partial' => ' — ₱' . number_format(max(0, $option['balance']), 2) . ' left',
+            'paid' => ' — already settled',
+            default => ' — ₱' . number_format(max(0, $option['balance']), 2) . ' due',
+        };
+        return [$option['period']->toDateString() => $option['label'] . $suffix];
+    })->all();
+
+    $paymentMethodOptions = array_combine(
+        ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'],
+        ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'],
+    );
 @endphp
 
 {{--
@@ -68,14 +91,9 @@
                             <label for="payment_type" class="{{ $modalLabel }}">
                                 What for <span class="text-[#EF4444]">*</span>
                             </label>
-                            <select id="payment_type" name="payment_type" x-model="type"
-                                class="{{ $modalInput }} bg-white cursor-pointer">
-                                <option value="Monthly">Monthly rent</option>
-                                <option value="Deposit">Security deposit</option>
-                                <option value="Initial">Initial payment</option>
-                                <option value="Utility">Utilities</option>
-                                <option value="Other">Other</option>
-                            </select>
+                            <x-styled-select name="payment_type" x-model="type"
+                                :options="$paymentTypeOptions" selected="Monthly"
+                                class="{{ $modalInput }} bg-white" />
                         </div>
 
                         <div>
@@ -93,23 +111,9 @@
                         <label for="billing_period" class="{{ $modalLabel }}">
                             Which month <span class="text-[#EF4444]">*</span>
                         </label>
-                        <select id="billing_period" name="billing_period" x-model="period"
-                            class="{{ $modalInput }} bg-white cursor-pointer">
-                            @foreach($periodOptions as $option)
-                                <option value="{{ $option['period']->toDateString() }}">
-                                    {{ $option['label'] }}
-                                    @if($option['status'] === 'overdue')
-                                        — overdue, ₱{{ number_format(max(0, $option['balance']), 2) }} left
-                                    @elseif($option['status'] === 'partial')
-                                        — ₱{{ number_format(max(0, $option['balance']), 2) }} left
-                                    @elseif($option['status'] === 'paid')
-                                        — already settled
-                                    @else
-                                        — ₱{{ number_format(max(0, $option['balance']), 2) }} due
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
+                        <x-styled-select name="billing_period" x-model="period"
+                            :options="$billingPeriodOptions" :selected="$defaultPeriod ? $defaultPeriod['period']->toDateString() : ''"
+                            class="{{ $modalInput }} bg-white" panel-class="max-w-[360px]" />
                     </div>
 
                     <div class="grid sm:grid-cols-2 gap-4 mb-4">
@@ -117,12 +121,9 @@
                             <label for="modal_payment_method" class="{{ $modalLabel }}">
                                 Method <span class="text-[#EF4444]">*</span>
                             </label>
-                            <select id="modal_payment_method" name="payment_method"
-                                class="{{ $modalInput }} bg-white cursor-pointer">
-                                @foreach(['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'] as $method)
-                                    <option value="{{ $method }}">{{ $method }}</option>
-                                @endforeach
-                            </select>
+                            <x-styled-select name="payment_method"
+                                :options="$paymentMethodOptions" selected="Cash"
+                                class="{{ $modalInput }} bg-white" />
                         </div>
                         <div>
                             <label for="paid_at" class="{{ $modalLabel }}">

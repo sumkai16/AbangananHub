@@ -97,12 +97,9 @@
             {{-- Status --}}
             <div>
                 <label class="block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1.5">Account Status <span class="text-[#DC2626]">*</span></label>
-                <select name="account_status"
-                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
-                    @foreach (['active' => 'Active', 'suspended' => 'Suspended', 'inactive' => 'Inactive'] as $val => $label)
-                        <option value="{{ $val }}" {{ old('account_status', 'active') === $val ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
+                <x-styled-select name="account_status" :options="['active' => 'Active', 'suspended' => 'Suspended', 'inactive' => 'Inactive']"
+                    :selected="old('account_status', 'active')"
+                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]" />
                 @error('account_status')<p class="text-[11px] text-[#DC2626] mt-1">{{ $message }}</p>@enderror
             </div>
 

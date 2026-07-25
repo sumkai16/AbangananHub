@@ -77,14 +77,9 @@
                                 <label
                                     class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Property
                                     type</label>
-                                <select name="property_type"
-                                    class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
-                                    required>
-                                    <option value="Bedspace" {{ old('property_type', $property->property_type) == 'Bedspace' ? 'selected' : '' }}>Bedspace</option>
-                                    <option value="Room" {{ old('property_type', $property->property_type) == 'Room' ? 'selected' : '' }}>Room</option>
-                                    <option value="Apartment" {{ old('property_type', $property->property_type) == 'Apartment' ? 'selected' : '' }}>Apartment</option>
-                                    <option value="House" {{ old('property_type', $property->property_type) == 'House' ? 'selected' : '' }}>House</option>
-                                </select>
+                                <x-styled-select name="property_type" :options="['Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House']"
+                                    :selected="old('property_type', $property->property_type)" required
+                                    class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] font-medium text-[#156F8C]" />
                             </div>
                             <div>
                                 <label for="rental_fee"

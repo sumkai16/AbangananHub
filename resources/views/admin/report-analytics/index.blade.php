@@ -14,13 +14,9 @@
     {{-- Top bar: dropdown + export --}}
     <div class="flex items-center justify-between mb-5">
         <form method="GET" action="{{ route('admin.report-analytics.index') }}" id="sectionForm">
-            <select name="section"
-                onchange="document.getElementById('sectionForm').submit()"
-                class="text-sm font-medium pl-3 pr-8 py-2 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937] focus:outline-none focus:ring-1 focus:ring-[#156F8C] focus:border-[#156F8C]">
-                <option value="properties" {{ $section === 'properties' ? 'selected' : '' }}>Properties and units</option>
-                <option value="reservations" {{ $section === 'reservations' ? 'selected' : '' }}>Reservations</option>
-                <option value="users" {{ $section === 'users' ? 'selected' : '' }}>Users</option>
-            </select>
+            <x-styled-select name="section" :options="['properties' => 'Properties and units', 'reservations' => 'Reservations', 'users' => 'Users']"
+                :selected="$section" :autosubmit="true"
+                class="text-sm font-medium pl-3 pr-8 py-2 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]" />
         </form>
 
        <a href="{{ route('admin.report-analytics.export', array_merge(request()->query(), ['section' => $section])) }}"
@@ -113,20 +109,14 @@
         <div class="flex items-center justify-between mb-2.5">
             <form method="GET" action="{{ route('admin.report-analytics.index') }}" class="flex items-center gap-2" id="propFilterForm">
                 <input type="hidden" name="section" value="properties">
-                <select name="type" onchange="document.getElementById('propFilterForm').submit()"
-                        class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]">
-                    <option value="">All types</option>
-                    @foreach(['Bedspace', 'Room', 'Apartment', 'House'] as $type)
-                        <option value="{{ $type }}" {{ $typeFilter === $type ? 'selected' : '' }}>{{ $type }}</option>
-                    @endforeach
-                </select>
-                <select name="status" onchange="document.getElementById('propFilterForm').submit()"
-                        class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]">
-                    <option value="">All statuses</option>
-                    @foreach(['Approved', 'Pending', 'Rejected'] as $status)
-                        <option value="{{ $status }}" {{ $statusFilter === $status ? 'selected' : '' }}>{{ $status }}</option>
-                    @endforeach
-                </select>
+                @php
+                    $propTypeOptions = ['' => 'All types'] + array_combine(['Bedspace', 'Room', 'Apartment', 'House'], ['Bedspace', 'Room', 'Apartment', 'House']);
+                    $propStatusOptions = ['' => 'All statuses'] + array_combine(['Approved', 'Pending', 'Rejected'], ['Approved', 'Pending', 'Rejected']);
+                @endphp
+                <x-styled-select name="type" :options="$propTypeOptions" :selected="$typeFilter" :autosubmit="true"
+                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]" />
+                <x-styled-select name="status" :options="$propStatusOptions" :selected="$statusFilter" :autosubmit="true"
+                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]" />
             </form>
             <span class="text-xs text-[#64748B]">Showing {{ $properties->total() }} properties</span>
         </div>
@@ -250,20 +240,15 @@
         <div class="flex items-center justify-between mb-2.5">
             <form method="GET" action="{{ route('admin.report-analytics.index') }}" class="flex items-center gap-2" id="resFilterForm">
                 <input type="hidden" name="section" value="reservations">
-                <select name="status" onchange="document.getElementById('resFilterForm').submit()"
-                        class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]">
-                    <option value="">All statuses</option>
-                    @foreach(['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Rejected', 'Cancelled'] as $s)
-                        <option value="{{ $s }}" {{ $statusFilter === $s ? 'selected' : '' }}>{{ $s }}</option>
-                    @endforeach
-                </select>
-                <select name="time" onchange="document.getElementById('resFilterForm').submit()"
-                        class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]">
-                    <option value="">All time</option>
-                    <option value="7" {{ $timeFilter === '7' ? 'selected' : '' }}>Last 7 days</option>
-                    <option value="30" {{ $timeFilter === '30' ? 'selected' : '' }}>Last 30 days</option>
-                    <option value="90" {{ $timeFilter === '90' ? 'selected' : '' }}>Last 90 days</option>
-                </select>
+                @php
+                    $resStatusList = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Rejected', 'Cancelled'];
+                    $resStatusOptions = ['' => 'All statuses'] + array_combine($resStatusList, $resStatusList);
+                    $resTimeOptions = ['' => 'All time', '7' => 'Last 7 days', '30' => 'Last 30 days', '90' => 'Last 90 days'];
+                @endphp
+                <x-styled-select name="status" :options="$resStatusOptions" :selected="$statusFilter" :autosubmit="true"
+                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]" />
+                <x-styled-select name="time" :options="$resTimeOptions" :selected="$timeFilter" :autosubmit="true"
+                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]" />
             </form>
             <span class="text-xs text-[#64748B]">Showing {{ $reservations->total() }} reservations</span>
         </div>
@@ -376,20 +361,14 @@
         <div class="flex items-center justify-between mb-2.5">
             <form method="GET" action="{{ route('admin.report-analytics.index') }}" class="flex items-center gap-2" id="userFilterForm">
                 <input type="hidden" name="section" value="users">
-                <select name="role" onchange="document.getElementById('userFilterForm').submit()"
-                        class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]">
-                    <option value="">All roles</option>
-                    @foreach(['Admin', 'Landlord', 'Tenant'] as $role)
-                        <option value="{{ $role }}" {{ $roleFilter === $role ? 'selected' : '' }}>{{ $role }}</option>
-                    @endforeach
-                </select>
-                <select name="status" onchange="document.getElementById('userFilterForm').submit()"
-                        class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]">
-                    <option value="">All statuses</option>
-                    @foreach(['active' => 'Active', 'suspended' => 'Suspended', 'inactive' => 'Inactive'] as $val => $label)
-                        <option value="{{ $val }}" {{ $statusFilter === $val ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
+                @php
+                    $userRoleOptions = ['' => 'All roles'] + array_combine(['Admin', 'Landlord', 'Tenant'], ['Admin', 'Landlord', 'Tenant']);
+                    $userStatusOptions = ['' => 'All statuses', 'active' => 'Active', 'suspended' => 'Suspended', 'inactive' => 'Inactive'];
+                @endphp
+                <x-styled-select name="role" :options="$userRoleOptions" :selected="$roleFilter" :autosubmit="true"
+                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]" />
+                <x-styled-select name="status" :options="$userStatusOptions" :selected="$statusFilter" :autosubmit="true"
+                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]" />
             </form>
             <span class="text-xs text-[#64748B]">Showing {{ $users->total() }} users</span>
         </div>

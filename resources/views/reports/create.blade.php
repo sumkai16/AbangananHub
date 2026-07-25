@@ -128,16 +128,11 @@
                             <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                                 Select Property <span class="text-[#EF4444]">*</span>
                             </label>
-                            <select name="property_id"
-                                class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
-                                <option value="">Select a property...</option>
-                                @foreach($properties as $property)
-                                    <option value="{{ $property->property_id }}"
-                                        @selected(old('property_id') == $property->property_id)>
-                                        {{ $property->title }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            @php
+                                $propertyOptions = ['' => 'Select a property...'] + $properties->pluck('title', 'property_id')->all();
+                            @endphp
+                            <x-styled-select name="property_id" :options="$propertyOptions" :selected="(string) old('property_id', '')"
+                                class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937]" />
                         </div>
 
                         {{-- User picker --}}
@@ -145,15 +140,13 @@
                             <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                                 Select User <span class="text-[#EF4444]">*</span>
                             </label>
-                            <select name="reported_user_id"
-                                class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
-                                <option value="">Select a user...</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->user_id }}" @selected(old('reported_user_id') == $user->user_id)>
-                                        {{ $user->first_name }} {{ $user->last_name }} ({{ $user->email }})
-                                    </option>
-                                @endforeach
-                            </select>
+                            @php
+                                $reportedUserOptions = ['' => 'Select a user...'] + $users->mapWithKeys(fn ($user) => [
+                                    (string) $user->user_id => $user->first_name . ' ' . $user->last_name . ' (' . $user->email . ')',
+                                ])->all();
+                            @endphp
+                            <x-styled-select name="reported_user_id" :options="$reportedUserOptions" :selected="(string) old('reported_user_id', '')"
+                                class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937]" />
                         </div>
 
                         <div class="h-px bg-[#E2E8F0]"></div>
@@ -164,13 +157,11 @@
                         <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                             Reason <span class="text-[#EF4444]">*</span>
                         </label>
-                        <select name="category"
-                            class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
-                            <option value="">Select a reason...</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category }}" @selected(old('category') === $category)>{{ $category }}</option>
-                            @endforeach
-                        </select>
+                        @php
+                            $categoryOptions = ['' => 'Select a reason...'] + array_combine($categories, $categories);
+                        @endphp
+                        <x-styled-select name="category" :options="$categoryOptions" :selected="old('category', '')"
+                            class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937]" />
                     </div>
 
                     {{-- Details --}}

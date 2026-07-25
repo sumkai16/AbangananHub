@@ -30,19 +30,12 @@
                 placeholder="Search saved properties…" aria-label="Search saved properties"
                 class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition placeholder-[#94A3B8]" />
         </div>
-        <select name="type"
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition">
-            <option value="" {{ !request('type') ? 'selected' : '' }}>Any type</option>
-            @foreach(['Bedspace', 'Room', 'Apartment', 'House'] as $t)
-                <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
-            @endforeach
-        </select>
-        <select name="availability"
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition">
-            <option value="" {{ !request('availability') ? 'selected' : '' }}>Any status</option>
-            <option value="Available" {{ request('availability') === 'Available' ? 'selected' : '' }}>Available</option>
-            <option value="Unavailable" {{ request('availability') === 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
-        </select>
+        <x-styled-select name="type" :options="['' => 'Any type', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House']"
+            :selected="request('type', '')" aria-label="Filter by property type"
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl" />
+        <x-styled-select name="availability" :options="['' => 'Any status', 'Available' => 'Available', 'Unavailable' => 'Unavailable']"
+            :selected="request('availability', '')" aria-label="Filter by availability"
+            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl" />
         <button type="submit"
             class="px-5 py-2.5 text-sm font-bold text-white bg-[#2AA7A1] hover:brightness-95 rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98]">
             Search

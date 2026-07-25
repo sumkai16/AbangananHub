@@ -66,17 +66,9 @@
                 <form method="GET" action="{{ route('landlord.complaints.index') }}"
                     class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
                     <div class="flex flex-wrap items-center gap-2.5">
-                        <div class="relative">
-                            <select name="status"
-                                class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer">
-                                <option value="">All Statuses</option>
-                                <option value="Pending" @selected(request('status') === 'Pending')>Pending</option>
-                                <option value="Resolved" @selected(request('status') === 'Resolved')>Resolved</option>
-                            </select>
-                            <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                            </svg>
-                        </div>
+                        <x-styled-select name="status" :options="['' => 'All Statuses', 'Pending' => 'Pending', 'Resolved' => 'Resolved']"
+                            :selected="request('status', '')"
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
 
                         <button type="submit"
                             class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">

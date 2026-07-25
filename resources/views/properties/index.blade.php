@@ -191,15 +191,13 @@
                 @foreach(request()->except(['sort', 'page']) as $key => $value)
                     <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                 @endforeach
-                <label for="sort" class="text-[13px] text-[#64748B] font-medium hidden sm:inline">Sort by</label>
-                <select id="sort" name="sort" onchange="this.form.submit()"
-                    class="h-9 text-[13px] font-semibold rounded-full border border-[#64748B]/30 bg-white text-[#1F2937] pl-3.5 pr-8 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all cursor-pointer">
-                    <option value="newest" {{ request('sort', 'newest') === 'newest' ? 'selected' : '' }}>Newest</option>
-                    <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>Price: Low to High
-                    </option>
-                    <option value="price_high" {{ request('sort') === 'price_high' ? 'selected' : '' }}>Price: High to Low
-                    </option>
-                </select>
+                <label id="sort-label" class="text-[13px] text-[#64748B] font-medium hidden sm:inline">Sort by</label>
+                <x-styled-select name="sort" :options="[
+                    'newest' => 'Newest',
+                    'price_low' => 'Price: Low to High',
+                    'price_high' => 'Price: High to Low',
+                ]" :selected="request('sort', 'newest')" aria-labelledby="sort-label" :autosubmit="true"
+                    class="h-9 text-[13px] font-semibold rounded-full border border-[#64748B]/30 bg-white text-[#1F2937] pl-3.5 pr-8" />
             </form>
         </div>
 

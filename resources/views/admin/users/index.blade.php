@@ -39,12 +39,9 @@
                         placeholder="Search by name, email, or phone…" aria-label="Search by name, email, or phone"
                         class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" />
                 </div>
-                <select name="role"
-                    class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-3 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
-                    @foreach (['All', 'Admin', 'Landlord', 'Tenant'] as $r)
-                        <option value="{{ $r }}" {{ $role === $r ? 'selected' : '' }}>{{ $r }}</option>
-                    @endforeach
-                </select>
+                <x-styled-select name="role" :options="array_combine(['All', 'Admin', 'Landlord', 'Tenant'], ['All', 'Admin', 'Landlord', 'Tenant'])"
+                    :selected="$role"
+                    class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-3" />
                 <button type="submit"
                     class="h-10 px-5 text-[13.5px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
                     Filter

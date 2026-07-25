@@ -79,35 +79,19 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <div class="relative">
+                    <div>
                         <label for="filter-property" class="sr-only">Filter by property</label>
-                        <select id="filter-property" name="property"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer max-w-[200px]">
-                            <option value="">All Properties</option>
-                            @foreach($properties as $property)
-                                <option value="{{ $property->property_id }}" @selected($propertyId == $property->property_id)>
-                                    {{ $property->title }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12"
-                            height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
+                        @php
+                            $paymentPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
+                        @endphp
+                        <x-styled-select name="property" id="filter-property" :options="$paymentPropertyOptions" :selected="(string) ($propertyId ?? '')"
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[200px]" />
                     </div>
 
-                    <div class="relative">
+                    <div>
                         <label for="filter-status" class="sr-only">Filter by standing</label>
-                        <select id="filter-status" name="status"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer">
-                            @foreach($filters as $value => $label)
-                                <option value="{{ $value }}" @selected($statusFilter === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12"
-                            height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
+                        <x-styled-select name="status" id="filter-status" :options="$filters" :selected="$statusFilter"
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
                     </div>
 
                     <button type="submit"

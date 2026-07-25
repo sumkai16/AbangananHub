@@ -32,6 +32,27 @@
         $inputClass = 'h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition';
         $labelClass = 'block text-[12px] font-semibold text-[#1F2937] mb-1.5';
         $errorClass = 'text-[11.5px] text-[#EF4444] mt-1';
+
+        $existingTenantOptions = $existingTenants->mapWithKeys(fn ($tenant) => [
+            (string) $tenant->user_id => trim($tenant->first_name . ' ' . $tenant->last_name)
+                . ' — ' . ($tenant->contact_number ?: ($tenant->email ?: 'no contact')),
+        ])->all();
+
+        $dueDayOptions = collect(range(1, 28))->mapWithKeys(fn ($d) => [(string) $d => (string) $d])->all();
+
+        $occupantsOptions = collect(range(1, 20))
+            ->mapWithKeys(fn ($i) => [(string) $i => $i . ' ' . ($i === 1 ? 'person' : 'persons')])
+            ->all();
+
+        $initialTypeOptions = [
+            'Initial' => 'Initial payment (deposit + advance)',
+            'Deposit' => 'Security deposit only',
+        ];
+
+        $paymentMethodOptions = array_combine(
+            ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'],
+            ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'],
+        );
     @endphp
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
@@ -194,16 +215,9 @@
                                     <label for="existing_tenant_id" class="{{ $labelClass }}">
                                         Existing walk-in tenant <span class="text-[#EF4444]">*</span>
                                     </label>
-                                    <select id="existing_tenant_id" name="existing_tenant_id" x-model="existingTenantId"
-                                        class="{{ $inputClass }} bg-white cursor-pointer">
-                                        <option value="">Select a tenant…</option>
-                                        @foreach($existingTenants as $tenant)
-                                            <option value="{{ $tenant->user_id }}" @selected(old('existing_tenant_id') == $tenant->user_id)>
-                                                {{ trim($tenant->first_name . ' ' . $tenant->last_name) }}
-                                                — {{ $tenant->contact_number ?: ($tenant->email ?: 'no contact') }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <x-styled-select name="existing_tenant_id" x-model="existingTenantId"
+                                        :options="$existingTenantOptions" :selected="old('existing_tenant_id', '')"
+                                        placeholder="Select a tenant…" class="{{ $inputClass }} bg-white" />
                                     <p class="text-[11.5px] text-[#64748B] mt-1.5">
                                         Reuses the person you already recorded instead of creating a duplicate.
                                     </p>
@@ -388,28 +402,18 @@
                                 </div>
                                 <div>
                                     <label for="rent_due_day" class="{{ $labelClass }}">Rent due day</label>
-                                    <select id="rent_due_day" name="rent_due_day" x-model="dueDay"
-                                        class="{{ $inputClass }} bg-white cursor-pointer">
-                                        <option value="">Same day as move-in</option>
-                                        @for($d = 1; $d <= 28; $d++)
-                                            <option value="{{ $d }}" @selected(old('rent_due_day') == $d)>{{ $d }}</option>
-                                        @endfor
-                                    </select>
+                                    <x-styled-select name="rent_due_day" x-model="dueDay" :options="$dueDayOptions"
+                                        :selected="old('rent_due_day', '')" placeholder="Same day as move-in"
+                                        class="{{ $inputClass }} bg-white" />
                                     @error('rent_due_day')
                                         <p class="{{ $errorClass }}">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
                                     <label for="occupants_count" class="{{ $labelClass }}">Occupants</label>
-                                    <select id="occupants_count" name="occupants_count"
-                                        class="{{ $inputClass }} bg-white cursor-pointer">
-                                        <option value="">Not specified</option>
-                                        @for($i = 1; $i <= 20; $i++)
-                                            <option value="{{ $i }}" @selected(old('occupants_count') == $i)>
-                                                {{ $i }} {{ $i === 1 ? 'person' : 'persons' }}
-                                            </option>
-                                        @endfor
-                                    </select>
+                                    <x-styled-select name="occupants_count" :options="$occupantsOptions"
+                                        :selected="old('occupants_count', '')" placeholder="Not specified"
+                                        class="{{ $inputClass }} bg-white" />
                                     @error('occupants_count')
                                         <p class="{{ $errorClass }}">{{ $message }}</p>
                                     @enderror
@@ -465,10 +469,8 @@
                                         <label for="initial_type" class="{{ $labelClass }}">
                                             What it was for <span class="text-[#EF4444]">*</span>
                                         </label>
-                                        <select id="initial_type" name="initial_type" class="{{ $inputClass }} bg-white cursor-pointer">
-                                            <option value="Initial" @selected(old('initial_type', 'Initial') === 'Initial')>Initial payment (deposit + advance)</option>
-                                            <option value="Deposit" @selected(old('initial_type') === 'Deposit')>Security deposit only</option>
-                                        </select>
+                                        <x-styled-select name="initial_type" :options="$initialTypeOptions"
+                                            :selected="old('initial_type', 'Initial')" class="{{ $inputClass }} bg-white" />
                                         @error('initial_type')
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
                                         @enderror
@@ -480,11 +482,8 @@
                                         <label for="payment_method" class="{{ $labelClass }}">
                                             Method <span class="text-[#EF4444]">*</span>
                                         </label>
-                                        <select id="payment_method" name="payment_method" class="{{ $inputClass }} bg-white cursor-pointer">
-                                            @foreach(['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'] as $method)
-                                                <option value="{{ $method }}" @selected(old('payment_method', 'Cash') === $method)>{{ $method }}</option>
-                                            @endforeach
-                                        </select>
+                                        <x-styled-select name="payment_method" :options="$paymentMethodOptions"
+                                            :selected="old('payment_method', 'Cash')" class="{{ $inputClass }} bg-white" />
                                         @error('payment_method')
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
                                         @enderror

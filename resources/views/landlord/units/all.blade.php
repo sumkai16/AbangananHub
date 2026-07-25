@@ -155,33 +155,15 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <div class="relative">
-                        <select name="property" onchange="this.form.submit()"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer max-w-[180px]">
-                            <option value="">All Properties</option>
-                            @foreach($properties as $property)
-                                <option value="{{ $property->property_id }}" @selected(request('property') == $property->property_id)>
-                                    {{ $property->title }}</option>
-                            @endforeach
-                        </select>
-                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </div>
+                    @php
+                        $unitsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
+                        $unitsStatusOptions = ['' => 'All Status', 'Available' => 'Available', 'Reserved' => 'Reserved', 'Occupied' => 'Occupied', 'Maintenance' => 'Maintenance'];
+                    @endphp
+                    <x-styled-select name="property" :options="$unitsPropertyOptions" :selected="(string) request('property', '')" :autosubmit="true"
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[180px]" />
 
-                    <div class="relative">
-                        <select name="status" onchange="this.form.submit()"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/30 appearance-none transition cursor-pointer">
-                            <option value="">All Status</option>
-                            <option value="Available" @selected(request('status') === 'Available')>Available</option>
-                            <option value="Reserved" @selected(request('status') === 'Reserved')>Reserved</option>
-                            <option value="Occupied" @selected(request('status') === 'Occupied')>Occupied</option>
-                            <option value="Maintenance" @selected(request('status') === 'Maintenance')>Maintenance</option>
-                        </select>
-                        <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </div>
+                    <x-styled-select name="status" :options="$unitsStatusOptions" :selected="request('status', '')" :autosubmit="true"
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
 
                     <button type="submit"
                         class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">

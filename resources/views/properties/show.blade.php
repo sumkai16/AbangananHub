@@ -954,13 +954,10 @@
                                         <label for="report_category"
                                             class="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">
                                             What's wrong?</label>
-                                        <select id="report_category" x-model="reportCategory" required
-                                            class="w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 py-2.5 text-sm text-[#1F2937] focus:border-[#2AA7A1] focus:ring-4 focus:ring-[#2AA7A1]/10 outline-none transition-all">
-                                            <option value="" disabled>Choose a reason</option>
-                                            @foreach (\App\Http\Controllers\ReportController::CATEGORIES as $category)
-                                                <option value="{{ $category }}">{{ $category }}</option>
-                                            @endforeach
-                                        </select>
+                                        <x-styled-select x-model="reportCategory"
+                                            :options="array_combine(\App\Http\Controllers\ReportController::CATEGORIES, \App\Http\Controllers\ReportController::CATEGORIES)"
+                                            placeholder="Choose a reason"
+                                            class="w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 py-2.5 text-sm text-[#1F2937]" />
                                     </div>
 
                                     <div>
