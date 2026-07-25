@@ -9,6 +9,7 @@ use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -29,15 +30,24 @@ use Illuminate\Support\Str;
  */
 class WalkInTenantController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
         $landlordId = Auth::id();
+
+        // Arriving from a specific property's "Add Walk-in Tenant" action
+        // narrows the gallery to that property alone, instead of making the
+        // landlord re-find it among everything they own. Just a query param,
+        // not a route-bound model — the query below still scopes by
+        // landlord_id, so a tampered id simply yields no match rather than
+        // leaking another landlord's property.
+        $scopedPropertyId = $request->integer('property') ?: null;
 
         // Only units a tenant could actually be placed in: approved by an admin
         // and not currently spoken for. Showing anything else would just fail
         // the guard in store() after the landlord filled the whole form.
         $properties = Property::where('landlord_id', $landlordId)
             ->where('verification_status', 'Approved')
+            ->when($scopedPropertyId, fn ($q) => $q->where('property_id', $scopedPropertyId))
             ->with([
                 // property.media is the per-unit photo fallback in the picker.
                 'media',
@@ -60,7 +70,7 @@ class WalkInTenantController extends Controller
             ->orderBy('first_name')
             ->get(['user_id', 'first_name', 'last_name', 'email', 'contact_number']);
 
-        return view('landlord.tenants.walk-in.create', compact('properties', 'existingTenants'));
+        return view('landlord.tenants.walk-in.create', compact('properties', 'existingTenants', 'scopedPropertyId'));
     }
 
     public function store(StoreWalkInTenantRequest $request)

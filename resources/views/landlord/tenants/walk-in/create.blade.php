@@ -74,6 +74,12 @@
                 Record a tenant who arranged the rental with you directly. The unit is marked occupied straight away — there is no
                 inquiry, agreement or online payment step.
             </p>
+            @if($scopedPropertyId && $properties->isNotEmpty())
+                <p class="text-[12.5px] text-[#156F8C] font-medium mt-1.5">
+                    Showing units from <strong>{{ $properties->first()->title }}</strong> only —
+                    <a href="{{ route('landlord.tenants.walkIn.create') }}" class="underline hover:no-underline">show all properties</a>
+                </p>
+            @endif
         </div>
 
         @if($errors->any())
@@ -125,7 +131,11 @@
                     initialAmount: @js(old('initial_amount', '')),
                     galleryProperties: @js($galleryProperties),
                     existingTenants: @js($existingOptions),
-                    pickerOpen: false,
+                    // Arriving scoped to one property (from that property's
+                    // Add Walk-in Tenant action) means there's no property to
+                    // choose between — open straight to its units instead of
+                    // making the landlord click Choose a unit first.
+                    pickerOpen: @js((bool) ($scopedPropertyId && $properties->isNotEmpty())),
                     unitSearch: '',
 
                     openPicker() { this.unitSearch = ''; this.pickerOpen = true; },

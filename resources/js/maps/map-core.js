@@ -20,7 +20,12 @@ const ICONS = {
 
 export { L };
 
-export function createMap(elementId, centerLat, centerLng, zoom = 15) {
+// 'voyager' (default, every browse/detail map) is a stylized basemap — clean
+// for scanning a city, but it draws no rooftops, so it can't tell a landlord
+// which building is theirs. 'satellite' is for the one page where that
+// matters: pinning your own property. Esri's free (no API key) World Imagery
+// tile service, same family the location picker uses.
+export function createMap(elementId, centerLat, centerLng, zoom = 15, style = 'voyager') {
     const map = L.map(elementId, {
         scrollWheelZoom: true, // Allow zoom with scroll
         zoomSnap: 0.25,        // Fractional zooming for smooth scrolling
@@ -28,12 +33,27 @@ export function createMap(elementId, centerLat, centerLng, zoom = 15) {
         wheelPxPerZoomLevel: 100 // How fast the scroll wheel zooms
     }).setView([centerLat, centerLng], zoom);
 
-    // Use CartoDB Voyager tiles for a clean, modern, premium look (similar to Airbnb)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 20,
-        subdomains: 'abcd',
-    }).addTo(map);
+    if (style === 'satellite') {
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+            maxZoom: 20,
+        }).addTo(map);
+
+        // Imagery alone has no street names or barangay boundaries — this
+        // reference layer overlays just labels/lines on top of it, semi
+        // transparent handled by Esri's own tile styling.
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 20,
+        }).addTo(map);
+    } else {
+        // CartoDB Voyager tiles for a clean, modern, premium look (similar to Airbnb)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            maxZoom: 20,
+            subdomains: 'abcd',
+        }).addTo(map);
+    }
 
     // Re-enable scroll zoom once the user clicks into the map — standard
     // Leaflet pattern to balance page scrolling against map zooming.
