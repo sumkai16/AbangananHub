@@ -25,8 +25,8 @@
             {{-- Background image with darker overlay --}}
             <div class="absolute inset-0">
                 <img src="{{ asset('images/auth-bg.jpg') }}" class="w-full h-full object-cover" alt="" />
-                {{-- Darker gradient overlay: dark at bottom where text is, slightly lighter at top --}}
-                <div class="absolute inset-0 bg-gradient-to-t from-[#1F2937]/90 via-[#1F2937]/60 to-[#1F2937]/30"></div>
+                {{-- Teal-family gradient overlay — matches the auth modal brand panel (§6k) --}}
+                <div class="absolute inset-0 bg-gradient-to-br from-[#0E3A3A]/95 via-[#124F5C]/88 to-[#156F8C]/70"></div>
             </div>
 
             {{-- Content overlay --}}
