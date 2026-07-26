@@ -120,6 +120,8 @@ public function update(Request $request)
         'first_name' => ['required', 'string', 'max:255'],
         'last_name' => ['required', 'string', 'max:255'],
         'contact_number' => ['nullable', 'string', 'max:20'],
+        'gcash_number' => ['nullable', 'string', 'max:20'],
+        'gcash_account_name' => ['nullable', 'string', 'max:255'],
         'bio' => ['nullable', 'string', 'max:1000'],
         'profile_picture' => ['nullable', 'image', 'max:2048'],
         'business_name' => ['nullable', 'string', 'max:255'],
@@ -147,7 +149,7 @@ public function update(Request $request)
 
     // Update user fields
     $user->update(collect($validated)->only([
-        'first_name', 'last_name', 'contact_number', 'bio', 'profile_picture',
+        'first_name', 'last_name', 'contact_number', 'gcash_number', 'gcash_account_name', 'bio', 'profile_picture',
     ])->toArray());
 
     // Update or create rental business

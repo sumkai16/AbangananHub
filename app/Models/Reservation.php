@@ -119,6 +119,9 @@ public function confirmMoveIn(): bool
         // null for both, so it cannot carry that distinction on its own.
         'released_by'    => null,
         'release_reason' => 'tenant_confirmed',
+        // The money is now owed to the landlord — see
+        // docs/specs/2026-07-26-landlord-payout-design.md.
+        'payout_status'  => 'Pending Payout',
     ]);
 
     $this->releasedPayment = $heldPayment;

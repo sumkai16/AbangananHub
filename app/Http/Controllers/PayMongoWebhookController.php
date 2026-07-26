@@ -50,6 +50,10 @@ protected function handleCheckoutPaid(array $resource): void
 
     $paymentIntentId = $resource['attributes']['payment_intent']['id'] ?? null;
     $paymongoPaymentId = $resource['attributes']['payments'][0]['id'] ?? null;
+    $paymentMethod = Payment::resolvePaymongoMethod(
+        $resource['attributes']['payment_method_used']
+            ?? $resource['attributes']['payments'][0]['attributes']['source']['type'] ?? null
+    ) ?? $payment->payment_method;
 
     // Monthly rent settles straight to the landlord — there is no handover
     // left to protect once a tenant already occupies the unit, unlike the
@@ -58,9 +62,14 @@ protected function handleCheckoutPaid(array $resource): void
 
     $payment->update([
         'status' => $isRent ? 'Paid' : 'Held',
+        'payment_method' => $paymentMethod,
         'paymongo_payment_intent_id' => $paymentIntentId,
         'paymongo_payment_id' => $paymongoPaymentId,
         'paid_at' => now(),
+        // Rent settles straight to the landlord with no escrow step, so it is
+        // payout-eligible the moment it's paid. The initial payment isn't —
+        // it only becomes payout-eligible once escrow releases it.
+        'payout_status' => $isRent ? 'Pending Payout' : null,
     ]);
 
     // The broadcast and both notifications are raised by PaymentObserver off

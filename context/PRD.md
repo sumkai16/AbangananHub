@@ -30,10 +30,11 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - [x] Landlord CSV export (Units, Reservations, Tenants — filter-aware, alongside the existing Occupancy export)
 - [x] Walk-in Tenants (landlord records an offline-arranged tenancy directly to Occupied — a lightweight non-login tenant account, no escrow; badged Walk-in everywhere as landlord-asserted, not platform-verified)
 - [x] Rent Ledger (derived monthly billing periods with Paid/Partial/Overdue/Due status for any occupied tenancy, walk-in or platform; landlord records offline payments — Cash/GCash/Bank/Maya/Check — with printable receipts and a portfolio-wide collections view)
-- [x] Tenant Online Rent Payment (platform tenants pay their single earliest unsettled billing period via PayMongo GCash checkout, settling straight to Paid — no escrow, since the initial-payment escrow only ever protected the pre-move-in handover; realtime via the existing Reverb `PaymentStatusUpdated` broadcast, so the landlord's ledger and the tenant's own read-only ledger page both update live without a refresh. Walk-in tenants can't log in, so they stay offline-only)
+- [x] Tenant Online Rent Payment (platform tenants pay their single earliest unsettled billing period via PayMongo GCash/QRPh checkout, settling straight to Paid — no escrow, since the initial-payment escrow only ever protected the pre-move-in handover; realtime via the existing Reverb `PaymentStatusUpdated` broadcast, so the landlord's ledger and the tenant's own read-only ledger page both update live without a refresh. Walk-in tenants can't log in, so they stay offline-only)
 - [x] End of Tenancy (Completed terminal status returns the unit to the available pool; before this an Occupied reservation had no exit)
 - [x] Rent Reminders (nightly `reservations:process-rent-reminders` notifies the landlord about upcoming/overdue rent for every tenancy, and the platform tenant too; walk-in tenants can't log in so the landlord reminder is their only channel — idempotent, catch-up-safe)
 - [x] Overall Ratings (aggregation of existing reviews + tenant_ratings: admin `/admin/ratings` platform overview with per-relationship averages, distributions, leaderboards and a 6-month trend; role-separated received-rating badges on tenant/landlord profiles and admin user detail. Property-grain; tenant→unit deferred — reviews carry no `unit_id`)
+- [x] Landlord Payouts (money released/paid to a landlord lands in the platform's own PayMongo balance, not theirs — `payments.payout_status` tracks whether an admin has since sent it on manually via GCash and recorded a reference; admin payouts queue grouped by landlord, landlord-facing pending/history view, `users.gcash_number`/`gcash_account_name` payout destination. No real disbursement API — manual transfer only, same spirit as the escrow simulation. See `docs/specs/2026-07-26-landlord-payout-design.md`)
 
 ## 4. Explicitly Out of Scope
 - Legal dispute handling between landlords and tenants (the move-in dispute flow only freezes the deposit and queues it for an admin — it renders no judgment)
@@ -52,7 +53,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - Hosting: Hostinger VPS, Ubuntu, Nginx, Supervisor (for Laravel Reverb), SSL
 - Auth: Laravel Breeze (session-based), Laravel Sanctum (API layer for future mobile)
 - Third-party integrations:
-  - PayMongo (sandbox/test, GCash — escrow simulated in app layer)
+  - PayMongo (sandbox/test, GCash/QRPh — escrow simulated in app layer)
   - Cloudinary (v3 SDK — public media: property/unit photos, profile pictures, logos)
   - Google Cloud Vision API (OCR for landlord ID verification)
   - face-api.js / TensorFlow.js (liveness detection in verification wizard)

@@ -73,7 +73,7 @@ class PaymentController extends Controller
                                 'quantity' => 1,
                             ],
                         ],
-                        'payment_method_types' => ['gcash'],
+                        'payment_method_types' => ['gcash', 'qrph'],
                         'success_url' => route('payments.success', $reservation),
                         'cancel_url' => route('agreements.show', $reservation),
                     ],
@@ -121,6 +121,10 @@ public function success(Reservation $reservation)
 
                 $latestPayment->update([
                     'status' => 'Held',
+                    'payment_method' => Payment::resolvePaymongoMethod(
+                        $response->json('data.attributes.payment_method_used')
+                            ?? $payments[0]['attributes']['source']['type'] ?? null
+                    ) ?? $latestPayment->payment_method,
                     'paymongo_payment_intent_id' => $paymentIntentId,
                     'paymongo_payment_id' => $paymongoPaymentId,
                     'paid_at' => now(),
@@ -209,7 +213,7 @@ public function success(Reservation $reservation)
                                 'quantity' => 1,
                             ],
                         ],
-                        'payment_method_types' => ['gcash'],
+                        'payment_method_types' => ['gcash', 'qrph'],
                         'success_url' => route('payments.rent.success', $reservation),
                         'cancel_url' => route('tenancy.show', $reservation),
                     ],
@@ -256,6 +260,11 @@ public function success(Reservation $reservation)
 
                     $latestPayment->update([
                         'status' => 'Paid',
+                        'payout_status' => 'Pending Payout',
+                        'payment_method' => Payment::resolvePaymongoMethod(
+                        $response->json('data.attributes.payment_method_used')
+                            ?? $payments[0]['attributes']['source']['type'] ?? null
+                    ) ?? $latestPayment->payment_method,
                         'paymongo_payment_intent_id' => $paymentIntentId,
                         'paymongo_payment_id' => $paymongoPaymentId,
                         'paid_at' => now(),

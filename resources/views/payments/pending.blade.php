@@ -11,7 +11,7 @@
 
         <h1 class="text-xl font-extrabold text-[#1F2937] tracking-tight mb-2">Payment Being Confirmed</h1>
         <p class="text-sm text-[#64748B] leading-relaxed max-w-sm mx-auto mb-8">
-            Your GCash payment has been submitted. We're waiting for confirmation from the payment provider — this usually
+            Your payment has been submitted. We're waiting for confirmation from the payment provider — this usually
             takes a few seconds.
         </p>
 

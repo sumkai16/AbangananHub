@@ -169,6 +169,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/tenancies/{reservation}/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/{payment}/receipt', [App\Http\Controllers\Landlord\PaymentController::class, 'receipt'])->name('payments.receipt');
 
+        // A landlord's own view of what AbangananHub owes them and has paid
+        // out. See docs/specs/2026-07-26-landlord-payout-design.md.
+        Route::get('/payouts', [App\Http\Controllers\Landlord\PayoutController::class, 'index'])->name('payouts.index');
+
         // Reviews
         Route::get('/reviews', [App\Http\Controllers\Landlord\ReviewController::class, 'index'])->name('reviews.index');
 
@@ -236,6 +240,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
         Route::get('/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
         Route::post('/payments/{payment}/release', [App\Http\Controllers\Admin\PaymentController::class, 'release'])->name('payments.release');
+
+        // Landlord payouts — manual GCash transfer queue, see
+        // docs/specs/2026-07-26-landlord-payout-design.md
+        Route::get('/payouts', [App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
+        Route::post('/payouts/{user}/mark-paid-out', [App\Http\Controllers\Admin\PayoutController::class, 'markPaidOut'])->name('payouts.markPaidOut');
 
         // Profile
         Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');

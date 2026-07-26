@@ -14,6 +14,8 @@
 | email | VARCHAR(255) | UNIQUE, NOT NULL | |
 | password | VARCHAR(255) | NOT NULL | Hashed via Breeze |
 | contact_number | VARCHAR(20) | NULLABLE | |
+| gcash_number | VARCHAR(20) | NULLABLE | Added July 26 2026 — a landlord's payout destination. `User::hasPayoutDestination()` requires this and `gcash_account_name` both set before the admin payouts queue will let a payout be recorded |
+| gcash_account_name | VARCHAR(255) | NULLABLE | Added July 26 2026 — name on the GCash account, so an admin can verify before sending |
 | profile_picture | VARCHAR(255) | NULLABLE | Cloudinary URL |
 | account_status | ENUM('active','suspended','inactive') | DEFAULT 'active' | Normalized to lowercase July 21, 2026 — was `ENUM('Active','Suspended')` with no `inactive` member, which silently didn't match the lowercase values the Users admin UI had been writing/reading (see RULES.md → Concurrency & State Transitions and migration `2026_07_21_000001_normalize_users_account_status`) |
 | email | VARCHAR(255) | UNIQUE, **NULLABLE** | Was NOT NULL until July 24 2026; made nullable for walk-in tenants who often have only a phone number. MySQL allows many NULLs under a UNIQUE index, so real addresses stay unique. Anything rendering an avatar/name must use `?: '—'`, not assume a value |
@@ -266,7 +268,7 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | payment_type | ENUM('Initial','Monthly','Deposit','Utility','Other') | NOT NULL | Widened July 24 2026. **`Monthly` went live** with the rent ledger — it and `billing_period` were in the schema from day one and had never been written by any code until then |
 | billing_period | DATE | NULLABLE | The month a `Monthly` payment settles. The rent ledger derives its periods and matches payments to a month on this — required for `Monthly`, null otherwise |
 | amount | DECIMAL(10,2) | NOT NULL | Serializes as a **string** — `parseFloat()` client-side |
-| payment_method | ENUM('GCash','Cash','Bank Transfer','Maya','Check','Other') | NOT NULL | Widened July 24 2026 — was `ENUM('GCash')` only. Escrow still uses GCash; the rest are for landlord-recorded offline payments |
+| payment_method | ENUM('GCash','QRPh','Cash','Bank Transfer','Maya','Check','Other') | NOT NULL | Widened July 24 2026 (offline methods) and July 26 2026 (QRPh online). Escrow uses GCash/QRPh via PayMongo; the rest are for landlord-recorded offline payments |
 | paymongo_payment_intent_id | VARCHAR | NULLABLE, UNIQUE | |
 | paymongo_payment_id | VARCHAR | NULLABLE | |
 | paymongo_checkout_session_id | VARCHAR | NULLABLE, UNIQUE | |
@@ -278,8 +280,12 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | recorded_by | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who typed this payment in. **Null = platform-settled (PayMongo); non-null = landlord-asserted.** The only field that distinguishes the two — same role `release_reason` plays for releases. Drives the "Recorded by landlord" badge on the admin payments screen. Added July 24 2026 |
 | reference_no | VARCHAR | NULLABLE | OR number / GCash reference for a recorded payment |
 | payment_notes | TEXT | NULLABLE | Free-text note on a recorded payment |
+| payout_status | ENUM('Pending Payout','Paid Out') | NULLABLE | Added July 26 2026. Null = not payout-eligible (most rows — `Pending`/`Held`/`Failed`, or landlord-recorded offline payments, which need no platform payout). Set to `Pending Payout` the instant a payment becomes money owed to a landlord (initial payment `Released`, or `Paid` monthly rent), by every code path that writes those statuses. See `docs/specs/2026-07-26-landlord-payout-design.md` |
+| paid_out_at | TIMESTAMP | NULLABLE | When an admin recorded the manual GCash transfer as sent |
+| paid_out_by | FK → users.user_id | NULLABLE, nullOnDelete | Admin who recorded the payout |
+| payout_reference | VARCHAR | NULLABLE | The GCash transaction reference the admin typed in after sending |
 
-Index `payments_reservation_period_index` on `(reservation_id, billing_period)` — the rent ledger's per-period lookup.
+Index `payments_reservation_period_index` on `(reservation_id, billing_period)` — the rent ledger's per-period lookup. Index on `payout_status` for the admin payouts queue.
 
 **The rent ledger has no schedule table.** A billing period is derived: a month between move-in and move-out, settled by a `Monthly` payment whose `billing_period` falls in it (`App\Services\RentLedger`). Editing rent, due day or move-out date can't leave stale rows because there are none — `payments` is the only stored fact. Serves walk-in and platform tenancies identically; the escrow only ever covered the initial payment.
 

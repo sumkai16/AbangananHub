@@ -99,6 +99,27 @@
                 </div>
             </div>
 
+            {{-- Payout details --}}
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-5">
+                <h2 class="text-[15px] font-bold text-[#1F2937] mb-1">Payout details</h2>
+                <p class="text-[12px] text-[#64748B] mb-4">Where AbangananHub sends the rent and deposits it collects on your behalf. Both fields are required before you can be paid out.</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="gcash_number" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">GCash number</label>
+                        <input type="text" id="gcash_number" name="gcash_number" value="{{ old('gcash_number', $user->gcash_number) }}"
+                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
+                            placeholder="09XX XXX XXXX">
+                    </div>
+                    <div>
+                        <label for="gcash_account_name" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">GCash account name</label>
+                        <input type="text" id="gcash_account_name" name="gcash_account_name" value="{{ old('gcash_account_name', $user->gcash_account_name) }}"
+                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
+                            placeholder="Name on the GCash account">
+                    </div>
+                </div>
+            </div>
+
             {{-- Business info --}}
             <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-5">
                 <h2 class="text-[15px] font-bold text-[#1F2937] mb-1">Business information</h2>

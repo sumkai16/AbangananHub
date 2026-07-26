@@ -23,6 +23,10 @@ class Payment extends Model
     'released_at',
     'released_by',
     'release_reason',
+    'payout_status',
+    'paid_out_at',
+    'paid_out_by',
+    'payout_reference',
     'recorded_by',
     'reference_no',
     'payment_notes',
@@ -33,6 +37,7 @@ class Payment extends Model
         'paid_at' => 'datetime',
         'amount' => 'decimal:2',
         'released_at' => 'datetime',
+        'paid_out_at' => 'datetime',
     ];
 
     public function reservation(): BelongsTo
@@ -48,9 +53,33 @@ class Payment extends Model
         return $this->belongsTo(User::class, 'recorded_by', 'user_id');
     }
 
+    /**
+     * The admin who recorded that this payment's payout was actually sent.
+     */
+    public function payoutRecorder(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'paid_out_by', 'user_id');
+    }
+
     public function isPaid(): bool
     {
         return $this->status === 'Paid';
+    }
+
+    /**
+     * Maps PayMongo's `payment_method_used` (or the `source.type`/`type` on a
+     * paid checkout session's payments[0], depending on which shape PayMongo
+     * hands back) to this table's payment_method enum label. Returns null if
+     * the method can't be identified, so callers can fall back to whatever
+     * the placeholder already had rather than overwrite it with garbage.
+     */
+    public static function resolvePaymongoMethod(?string $method): ?string
+    {
+        return match ($method) {
+            'gcash' => 'GCash',
+            'qrph' => 'QRPh',
+            default => null,
+        };
     }
 
     /**
@@ -75,4 +104,14 @@ public function isReleased(): bool
 {
     return $this->status === 'Released';
 }
+
+    public function isPendingPayout(): bool
+    {
+        return $this->payout_status === 'Pending Payout';
+    }
+
+    public function isPaidOut(): bool
+    {
+        return $this->payout_status === 'Paid Out';
+    }
 }

@@ -71,6 +71,7 @@ class PaymentController extends Controller
                 'released_at' => now(),
                 'released_by' => auth()->id(),
                 'release_reason' => 'admin_manual',
+                'payout_status' => 'Pending Payout',
             ]);
 
             $reservation = $locked->reservation_id
