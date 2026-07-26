@@ -369,6 +369,26 @@ a red pill is `AuditLog::DESTRUCTIVE_ACTIONS`. **When adding a new consequential
 key to `ACTION_LABELS` and call `AuditLog::record()` inside that action's transaction** — the filter
 dropdown reads from the same constant, so an unlisted action is invisible to the filter.
 
+### settings
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| setting_id | BIGINT UNSIGNED | PK | `$primaryKey = 'setting_id'` |
+| key | VARCHAR(100) | UNIQUE, NOT NULL | Must exist in `Setting::DEFINITIONS` or it is refused |
+| value | TEXT | NOT NULL | Cast per the key's `type` — `integer`, or `integer_list` stored comma-separated |
+| created_at / updated_at | TIMESTAMP | | |
+
+**Overrides only.** A key with no row falls through to `config/rentals.php`, which stays the defaults
+*and* the documentation for what each key means. Clearing a field in the admin form **deletes** the row
+rather than writing a copy of the default, so a key is never silently pinned to today's default.
+
+`Setting::overrides()` is `Cache::rememberForever`'d under `settings.rentals.overrides` and busted by
+`Setting::put()`, so the boot-time merge in `AppServiceProvider` costs a cache read, not a query. Only
+the 10 keys in `Setting::DEFINITIONS` are editable; each declares its type, validation rule, label,
+help text and group, and both the form and `UpdateSettingsRequest` derive from that one map.
+
+Every change writes a `settings.update` audit row with a `label => 'before → after'` metadata entry per
+changed key, inside the same transaction as the writes.
+
 ## 3. Relationships
 - users → user_roles (1:many — a user can have multiple roles)
 - users → landlord_verifications (1:many — resubmission possible after rejection)

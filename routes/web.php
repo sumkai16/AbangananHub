@@ -243,6 +243,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
         // Audit logs — read-only by design; audit rows are append-only.
         Route::get('/audit-logs', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
+
+        // System settings — whitelisted overrides of config/rentals.php
+        Route::get('/settings', [App\Http\Controllers\Admin\SettingController::class, 'edit'])->name('settings.edit');
+        Route::patch('/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
     });
 
    // Conversations and messages

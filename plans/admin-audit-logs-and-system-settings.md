@@ -136,7 +136,18 @@ Follows the conventions settled today: `<x-page-header>` with icon slot, a `<x-s
 
 ---
 
-# Feature 2 — System Settings
+# Feature 2 — System Settings ✅ SHIPPED July 26 2026
+
+Built as planned; D6–D8 all held. Two small refinements made during the build:
+
+- **Clearing a field deletes the row** rather than storing the current default, so a key is never
+  silently pinned to whatever the default happened to be on the day it was cleared (checklist item 5).
+- **The boot merge is wrapped in `try`/`catch`.** `AppServiceProvider::boot()` runs before the
+  migration that creates the table, so an unguarded read broke `artisan migrate` on a fresh install.
+  A failed read now leaves the file defaults standing.
+
+Verified: overrides apply to a fresh `artisan` process (D6 caveat), an untouched key still reads its
+file default, and clearing returns the override set to empty.
 
 ## Problem
 The escrow clocks are business rules that currently require a code deploy to change: `move_in_confirmation_days`, `turnover_grace_days`, `turnover_grace_days_no_date`, `handover_max_extension_days`, `reminder_days_remaining`, plus the rent-ledger keys.

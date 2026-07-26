@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
+use App\Models\Setting;
 use App\Observers\PaymentObserver;
 use App\Observers\PropertyUnitObserver;
 use App\Observers\ReservationObserver;
@@ -31,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Surface N+1 queries immediately in local/dev; stays silent in production.
         Model::preventLazyLoading(! app()->isProduction());
+
+        $this->applyRentalSettingOverrides();
 
         Payment::observe(PaymentObserver::class);
         PropertyUnit::observe(PropertyUnitObserver::class);
@@ -61,5 +64,28 @@ class AppServiceProvider extends ServiceProvider
                     ->take(6);
             }));
         });
+    }
+
+    /**
+     * Merge admin-set overrides over config/rentals.php.
+     *
+     * Keeping the merge here means the 13 existing `config('rentals.*')` call sites
+     * — in Reservation, RentLedger, two console commands and two controllers — need
+     * no change, and unset keys keep the documented file default. It runs for
+     * console commands too, so ProcessMoveInDeadlines and ProcessRentReminders pick
+     * up admin changes as well, which is the intent.
+     *
+     * The table is missing before the migration that creates it runs, so a failed
+     * read must leave the file defaults in place rather than break `artisan`.
+     */
+    private function applyRentalSettingOverrides(): void
+    {
+        try {
+            foreach (Setting::overrides() as $key => $value) {
+                config(["rentals.$key" => $value]);
+            }
+        } catch (\Throwable) {
+            // Defaults stand.
+        }
     }
 }

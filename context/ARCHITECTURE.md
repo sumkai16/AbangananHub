@@ -182,12 +182,37 @@ the double-fire the locks were added to prevent.
 Read-only surface: `Admin\AuditLogController@index` only. No store/update/destroy and no "clear logs"
 button anywhere, by design. Retention/pruning is deliberately unimplemented — see Known Tradeoffs.
 
+### System Settings (July 26 2026)
+The escrow and rent-ledger clocks are admin-editable at `admin/settings` instead of needing a deploy.
+
+**DB-backed override of `config()` at boot, not a settings service.** `config('rentals.*')` is read in
+13 places (`Reservation`, `RentLedger`, `ProcessMoveInDeadlines`, `ProcessRentReminders`, two
+controllers). Rewriting all 13 to call a service would be a large, risky diff for no gain, so
+`AppServiceProvider::boot()` merges `Setting::overrides()` over the config and every call site stays
+untouched. `config/rentals.php` remains the defaults and the documentation; an unset key falls through
+to it. The read is cached forever and busted on write, so this costs a cache read per request.
+
+Because it runs in `boot()`, **console commands see admin changes too** — the scheduled deadline and
+rent-reminder jobs pick up new values without a restart, which is the intent (verified July 26 2026).
+The merge is wrapped in a `try`/`catch`: before the `settings` migration has run the table is missing,
+and a failed read must leave the file defaults standing rather than break `artisan`.
+
+**Whitelisted, typed, validated.** Not a free-form key/value editor. `Setting::DEFINITIONS` declares
+each of the 10 editable keys with its type, validation rule, label, help text and group;
+`UpdateSettingsRequest` derives its rules from that map and the form renders from it, so an admin cannot
+set a grace period to `-5` or `banana` and cannot introduce a key the app doesn't read.
+
+Changes write a `settings.update` audit row with before/after per changed key — the dependency that
+made the audit trail the correct first build.
+
 ## 6. Key Decisions Log
 
 | Decision | Reason | Date |
 |---|---|---|
 | Audit log actor FK is `set null`, not `cascade` | Every other user FK cascades; an audit trail that dies with the account it indicts is worthless. Denormalized name/email keep rows readable | July 26 2026 |
 | Audit writes are explicit, inside the existing transaction | Observers can't see intent (reason, admin-override, hard deletes); in-transaction placement prevents phantom rows on rollback and double-logging on a 409 | July 26 2026 |
+| Settings override `config()` at boot rather than replacing the 13 `config('rentals.*')` call sites | KISS: the file keeps documenting the defaults, no call site changes, and an unset key still falls through | July 26 2026 |
+| Settings are a whitelist (`Setting::DEFINITIONS`), not free-form key/value | A free editor lets an admin set a negative grace period or a key nothing reads; one map drives the form, the validation and the casts | July 26 2026 |
 | Session-based auth (Breeze) over Sanctum SPA | Simpler for server-rendered Blade; Sanctum reserved for API layer | Early 2026 |
 | Reverb over Pusher | Free, self-hosted, no third-party dependency for capstone | Early 2026 |
 | Text search over Haversine radius | Cebu-scoped platform doesn't need geo-radius — address text match is sufficient | Mid 2026 |
