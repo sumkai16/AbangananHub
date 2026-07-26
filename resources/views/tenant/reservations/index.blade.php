@@ -137,6 +137,9 @@
                                     'Cancelled' => 'bg-[#64748B]/10 text-[#64748B]',
                                 ];
                                 $landlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));
+                                $journeySteps = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied'];
+                                $isTerminal = in_array($reservation->rental_status, ['Rejected', 'Cancelled']);
+                                $stepIndex = array_search($reservation->rental_status, $journeySteps);
                                 $modalData = [
                                     'reservation_id' => $reservation->reservation_id,
                                     'reservation_date' => $reservation->reservation_date?->format('M d, Y'),
@@ -148,6 +151,9 @@
                                     'landlord_contact' => $reservation->property->landlord->contact_number ?? '—',
                                     'property_title' => $reservation->property->title,
                                     'unit_label' => $reservation->unit->unit_label ?? 'No unit',
+                                    'property_photo' => $reservation->property->media->first()?->media_url,
+                                    'is_terminal' => $isTerminal,
+                                    'step_index' => $isTerminal ? -1 : $stepIndex,
                                 ];
                             @endphp
                             <tr class="border-t border-[#64748B]/10 hover:bg-[#F7FCFC] transition-colors duration-150">
@@ -254,68 +260,139 @@
         @endif
 
         {{-- Details modal --}}
-        <div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div @click="modalOpen = false" class="absolute inset-0 bg-[#1F2937]/40"></div>
-            <div class="relative bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-2xl w-full max-w-md p-6" x-show="modalOpen" x-transition>
-                <div class="flex items-start justify-between mb-5">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                            </svg>
-                        </div>
-                        <h2 class="text-[16px] font-bold text-[#1F2937]">Reservation details</h2>
-                    </div>
-                    <button @click="modalOpen = false" class="w-8 h-8 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#F7FCFC] hover:text-[#1F2937] transition-colors">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
+        <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4" x-data="{
+                journey: ['Inquiry', 'Negotiation', 'Agreement', 'Signed', 'Occupied']
+            }">
+            <div @click="modalOpen = false" class="absolute inset-0 bg-[#1F2937]/40 backdrop-blur-sm"></div>
 
-                <template x-if="selected">
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Landlord</span>
-                            <span class="font-semibold text-[#1F2937]" x-text="selected.landlord_name"></span>
+            <template x-if="selected">
+                <div class="relative bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col"
+                    x-show="modalOpen" x-transition
+                    @keydown.escape.window="modalOpen = false">
+
+                    {{-- Photo banner --}}
+                    <div class="relative h-32 shrink-0 bg-gradient-to-br from-[#156F8C] to-[#2AA7A1] overflow-hidden">
+                        <template x-if="selected.property_photo">
+                            <img :src="selected.property_photo" alt="" class="w-full h-full object-cover">
+                        </template>
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0F172A]/70 via-[#0F172A]/10 to-transparent"></div>
+                        <button @click="modalOpen = false" class="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/25 transition-colors">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <div class="absolute bottom-0 left-0 right-0 px-5 pb-3">
+                            <p class="text-[15px] font-bold text-white truncate" x-text="selected.property_title"></p>
+                            <p class="text-[12px] text-white/85 truncate" x-text="selected.unit_label"></p>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Contact</span>
-                            <span class="text-[#1F2937]" x-text="selected.landlord_contact"></span>
+                    </div>
+
+                    <div class="overflow-y-auto scrollbar-thin-light px-5 py-5 space-y-5">
+
+                        {{-- Status progress visualization --}}
+                        <template x-if="!selected.is_terminal">
+                            <div>
+                                <div class="flex items-center justify-between mb-2.5">
+                                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Reservation journey</p>
+                                    <span class="text-[11px] font-bold text-[#156F8C]" x-text="selected.rental_status"></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <template x-for="(step, i) in journey" :key="i">
+                                        <div class="flex items-center flex-1 last:flex-none">
+                                            <div class="flex flex-col items-center gap-1.5 shrink-0">
+                                                <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors duration-300"
+                                                    :class="i < selected.step_index ? 'bg-[#2AA7A1] text-white' :
+                                                            i === selected.step_index ? 'bg-[#156F8C] text-white ring-4 ring-[#156F8C]/15' :
+                                                            'bg-[#F1F5F9] text-[#94A3B8]'">
+                                                    <template x-if="i < selected.step_index">
+                                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="i >= selected.step_index"><span x-text="i + 1"></span></template>
+                                                </div>
+                                                <span class="text-[9px] font-semibold text-center leading-tight w-14"
+                                                    :class="i <= selected.step_index ? 'text-[#1F2937]' : 'text-[#94A3B8]'"
+                                                    x-text="step"></span>
+                                            </div>
+                                            <div class="flex-1 h-[2px] mx-0.5 -mt-4 rounded-full transition-colors duration-300"
+                                                x-show="i < journey.length - 1"
+                                                :class="i < selected.step_index ? 'bg-[#2AA7A1]' : 'bg-[#F1F5F9]'"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="selected.is_terminal">
+                            <div class="flex items-center gap-3 rounded-xl px-4 py-3"
+                                :class="selected.rental_status === 'Rejected' ? 'bg-[#EF4444]/[0.07]' : 'bg-[#64748B]/10'">
+                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                    :class="selected.rental_status === 'Rejected' ? 'stroke-[#DC2626]' : 'stroke-[#64748B]'">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <p class="text-[13px] font-bold" :class="selected.rental_status === 'Rejected' ? 'text-[#DC2626]' : 'text-[#64748B]'" x-text="'This reservation was ' + selected.rental_status.toLowerCase()"></p>
+                            </div>
+                        </template>
+
+                        {{-- Landlord --}}
+                        <div class="flex items-center gap-3 rounded-xl ring-1 ring-[#E2E8F0] px-4 py-3">
+                            <div class="w-9 h-9 rounded-full bg-[#EEF8F8] flex items-center justify-center shrink-0 text-[#156F8C] font-bold text-[13px]" x-text="selected.landlord_name.charAt(0)"></div>
+                            <div class="min-w-0">
+                                <p class="text-[13px] font-semibold text-[#1F2937] truncate" x-text="selected.landlord_name"></p>
+                                <p class="text-[12px] text-[#64748B]" x-text="selected.landlord_contact"></p>
+                            </div>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Property</span>
-                            <span class="text-[#1F2937]" x-text="selected.property_title"></span>
+
+                        {{-- Info grid --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="rounded-xl bg-[#F7FCFC] px-3.5 py-3">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                    </svg>
+                                    <span class="text-[10px] font-bold text-[#64748B] uppercase tracking-wide">Move-in</span>
+                                </div>
+                                <p class="text-[13px] font-semibold text-[#1F2937]" x-text="selected.reservation_date || '—'"></p>
+                            </div>
+                            <div class="rounded-xl bg-[#F7FCFC] px-3.5 py-3">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="text-[10px] font-bold text-[#64748B] uppercase tracking-wide">Duration</span>
+                                </div>
+                                <p class="text-[13px] font-semibold text-[#1F2937]" x-text="selected.duration_of_stay || '—'"></p>
+                            </div>
+                            <div class="rounded-xl bg-[#F7FCFC] px-3.5 py-3">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                    </svg>
+                                    <span class="text-[10px] font-bold text-[#64748B] uppercase tracking-wide">Occupants</span>
+                                </div>
+                                <p class="text-[13px] font-semibold text-[#1F2937]" x-text="selected.occupants_count || '—'"></p>
+                            </div>
+                            <div class="rounded-xl bg-[#F7FCFC] px-3.5 py-3">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="text-[10px] font-bold text-[#64748B] uppercase tracking-wide">Status</span>
+                                </div>
+                                <p class="text-[13px] font-semibold text-[#1F2937]" x-text="selected.rental_status"></p>
+                            </div>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Unit</span>
-                            <span class="text-[#1F2937]" x-text="selected.unit_label"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Move-in date</span>
-                            <span class="text-[#1F2937]" x-text="selected.reservation_date"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Duration of stay</span>
-                            <span class="text-[#1F2937]" x-text="selected.duration_of_stay || '—'"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Occupants</span>
-                            <span class="text-[#1F2937]" x-text="selected.occupants_count || '—'"></span>
-                        </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-[#E2E8F0]">
-                            <span class="text-[#64748B]">Status</span>
-                            <span class="font-bold text-[#1F2937]" x-text="selected.rental_status"></span>
-                        </div>
+
                         <template x-if="selected.remarks">
-                            <div class="pt-3 border-t border-[#E2E8F0]">
-                                <p class="text-[#64748B] mb-1">Your remarks</p>
-                                <p class="text-[#1F2937]" x-text="selected.remarks"></p>
+                            <div class="pt-4 border-t border-[#E2E8F0]">
+                                <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide mb-1.5">Your remarks</p>
+                                <p class="text-[13px] text-[#1F2937] leading-relaxed" x-text="selected.remarks"></p>
                             </div>
                         </template>
                     </div>
-                </template>
-            </div>
+                </div>
+            </template>
         </div>
     </div>
 @endsection
