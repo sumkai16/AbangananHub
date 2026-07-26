@@ -141,7 +141,7 @@
         </div>
 
         {{-- Filters --}}
-        <form method="GET" class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
+        <form method="GET" class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
@@ -151,6 +151,7 @@
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search units by name or property..." aria-label="Search units by name or property"
+                        x-on:input.debounce.400ms="$el.form.requestSubmit()"
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
                 </div>
 

@@ -109,38 +109,9 @@
             </div>
         </div>
 
-        {{-- Status tabs --}}
-        <div class="flex items-center gap-1 bg-white border border-[#E2E8F0] rounded-2xl p-1.5 mb-4 w-fit max-w-full overflow-x-auto scrollbar-thin-light shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-            @foreach([
-                'all' => 'All',
-                'Inquiry' => 'Inquiry',
-                'Under Negotiation' => 'Negotiation',
-                'Pending Rental Agreement' => 'Pending Agreement',
-                'Rental Agreement Signed' => 'Signed',
-                'Occupied' => 'Occupied',
-                'Rejected' => 'Rejected',
-                'Cancelled' => 'Cancelled',
-            ] as $key => $label)
-                <a href="{{ route('landlord.reservations.index', array_filter([
-                        'status' => $key === 'all' ? null : $key,
-                        'search' => request('search'),
-                        'property' => request('property'),
-                        'from' => request('from'),
-                        'to' => request('to'),
-                    ])) }}"
-                    class="px-4 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 whitespace-nowrap inline-flex items-center gap-1.5
-                              {{ $status === $key ? 'bg-[#2AA7A1] text-white shadow-sm' : 'text-[#64748B] hover:text-[#1F2937] hover:bg-[#F7FCFC]' }}">
-                    {{ $label }}
-                    <span class="text-[11px] {{ $status === $key ? 'text-white/80' : 'text-[#64748B]/70' }}">
-                        {{ $key === 'all' ? $counts['all'] : $counts[$key] }}
-                    </span>
-                </a>
-            @endforeach
-        </div>
-
         {{-- Search + filters --}}
         <form method="GET" action="{{ route('landlord.reservations.index') }}"
-            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-3 mb-4 flex flex-col lg:flex-row gap-2.5">
+            class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-3 mb-4 flex flex-col lg:flex-row gap-2.5">
             @if($status !== 'all')
                 <input type="hidden" name="status" value="{{ $status }}">
             @endif
@@ -153,6 +124,7 @@
                 </svg>
                 <input type="text" id="reservation-search" name="search" value="{{ request('search') }}"
                     placeholder="Search by tenant, unit or property..."
+                    x-on:input.debounce.400ms="$el.form.requestSubmit()"
                     class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-2.5">
@@ -162,7 +134,7 @@
                         $reservationsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                     @endphp
                     <x-styled-select name="property" id="filter-property" :options="$reservationsPropertyOptions" :selected="(string) request('property', '')"
-                        class="h-10 w-full lg:w-44 rounded-xl border border-[#E2E8F0] bg-white text-[13px] text-[#1F2937]" />
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[200px]" />
                 </div>
                 <div>
                     <label for="filter-from" class="sr-only">Requested from</label>
@@ -208,6 +180,35 @@
                 </div>
             </div>
         </form>
+
+        {{-- Status tabs --}}
+        <div class="flex items-center gap-0.5 border-b border-[#E2E8F0] mb-5 overflow-x-auto">
+            @foreach([
+                'all' => 'All',
+                'Inquiry' => 'Inquiry',
+                'Under Negotiation' => 'Negotiation',
+                'Pending Rental Agreement' => 'Pending Agreement',
+                'Rental Agreement Signed' => 'Signed',
+                'Occupied' => 'Occupied',
+                'Rejected' => 'Rejected',
+                'Cancelled' => 'Cancelled',
+            ] as $key => $label)
+                <a href="{{ route('landlord.reservations.index', array_filter([
+                        'status' => $key === 'all' ? null : $key,
+                        'search' => request('search'),
+                        'property' => request('property'),
+                        'from' => request('from'),
+                        'to' => request('to'),
+                    ])) }}"
+                    class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
+                        {{ $status === $key ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                    {{ $label }}
+                    <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">
+                        {{ $key === 'all' ? $counts['all'] : $counts[$key] }}
+                    </span>
+                </a>
+            @endforeach
+        </div>
 
         {{-- Reservations table --}}
         @if($reservations->isEmpty())

@@ -229,20 +229,43 @@
                     class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/30 uppercase tracking-widest whitespace-nowrap">
                     Property Management</p>
 
-                @foreach ([
-                    ['Rental Businesses', 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'],
-                    ['Properties', 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
-                    ['Units', 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z'],
-                ] as [$label, $icon])
-                    <div class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-white/30 cursor-not-allowed select-none">
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
-                        </svg>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap flex-1">{{ $label }}</span>
-                        <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
-                            class="text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
-                    </div>
-                @endforeach
+                {{-- Rental Businesses (upcoming) --}}
+                <div class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-white/30 cursor-not-allowed select-none">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap flex-1">Rental Businesses</span>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
+                        class="text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/25 px-1.5 py-0.5 rounded-full whitespace-nowrap">Soon</span>
+                </div>
+
+                {{-- Properties --}}
+                <a href="{{ route('admin.catalogue.properties.index') }}"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
+                        {{ str_starts_with($cur ?? '', 'admin.catalogue.properties') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap flex-1">Properties</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
+                        Properties
+                    </span>
+                </a>
+
+                {{-- Units --}}
+                <a href="{{ route('admin.catalogue.units.index') }}"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
+                        {{ str_starts_with($cur ?? '', 'admin.catalogue.units') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap flex-1">Units</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
+                        Units
+                    </span>
+                </a>
 
                 {{-- ── RESERVATIONS & INQUIRIES ── --}}
                 <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak

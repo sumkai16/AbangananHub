@@ -60,20 +60,23 @@ Social login accounts (Google/Facebook, added July 25 2026) also get a random un
 | updated_at | TIMESTAMP | | |
 
 ### properties
+**Verified against `2026_..._create_properties_table.php` July 26 2026 — the row below was wrong for
+an unknown period: `business_id` does not exist (no property↔business FK; a business only links via
+`landlord_id` → `rental_businesses.landlord_id`), `rental_fee`/`occupancy_limit`/`availability_status`
+don't exist either (those live on `property_units` — `Property` exposes them only as derived
+accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL`, not nullable.**
+
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | property_id | BIGINT UNSIGNED | PK | `$primaryKey = 'property_id'` |
 | landlord_id | FK → users.user_id | NOT NULL | |
-| business_id | FK → rental_businesses.business_id | NULLABLE | |
 | title | VARCHAR(255) | NOT NULL | |
 | description | TEXT | NULLABLE | |
+| house_rules | JSON | NULLABLE | cast to `array` |
 | property_type | ENUM('Bedspace','Room','Apartment','House') | NOT NULL | |
 | address | VARCHAR(255) | NOT NULL | Text-searched for browse |
-| latitude | DECIMAL(10,8) | NULLABLE | `parseFloat()` client-side |
-| longitude | DECIMAL(11,8) | NULLABLE | |
-| rental_fee | DECIMAL(10,2) | NOT NULL | Eloquent serializes as string |
-| occupancy_limit | INT | NULLABLE | |
-| availability_status | ENUM('Available','Reserved','Occupied') | DEFAULT 'Available' | |
+| latitude | DECIMAL(10,7) | NOT NULL | `parseFloat()` client-side |
+| longitude | DECIMAL(10,7) | NOT NULL | |
 | verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | Admin approval |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |

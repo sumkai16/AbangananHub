@@ -63,7 +63,7 @@
                 :class="activeId ? 'hidden lg:flex' : 'flex'">
 
                 {{-- Tabs --}}
-                <div class="flex items-center gap-1 p-2 bg-[#F7FCFC] border-b border-[#64748B]/10 flex-shrink-0">
+                <div class="flex items-center gap-0.5 px-2 bg-[#F7FCFC] border-b border-[#64748B]/10 flex-shrink-0">
                     @php
                         $tabs = [
                             'all' => ['label' => 'Active', 'count' => $activeCount],
@@ -74,13 +74,11 @@
                     @endphp
                     @foreach ($tabs as $key => $tab)
                                 <a href="{{ route('conversations.index', array_filter(['status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
-                                    class="flex-1 text-center py-2 rounded-lg text-[12px] font-bold transition-all duration-150 {{ $status === $key
-                        ? 'bg-[#2AA7A1] text-white shadow-sm'
-                        : 'text-[#64748B] hover:text-[#1F2937] hover:bg-white' }}">
+                                    class="flex-1 text-center py-2.5 text-[12px] font-semibold border-b-2 transition-colors
+                                        {{ $status === $key ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
                                     {{ $tab['label'] }}
                                     @if($tab['count'] > 0)
-                                        <span
-                                            class="ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full {{ $status === $key ? 'bg-white/20 text-white' : 'bg-[#E2E8F0] text-[#64748B]' }}">{{ $tab['count'] }}</span>
+                                        <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $tab['count'] }}</span>
                                     @endif
                                 </a>
                     @endforeach
@@ -98,6 +96,7 @@
                         </svg>
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Search by person or property..." aria-label="Search by person or property"
+                            x-on:input.debounce.400ms="$el.form.requestSubmit()"
                             class="w-full pl-8 pr-3 py-2 text-[12px] text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg focus:outline-none focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/20 transition placeholder-[#94A3B8]" />
                     </form>
                 </div>

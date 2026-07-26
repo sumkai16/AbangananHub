@@ -6,14 +6,14 @@
     @php
         $standingStyles = [
             'overdue' => ['pill' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25', 'label' => 'Behind'],
-            'due'     => ['pill' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35', 'label' => 'Due'],
+            'due' => ['pill' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35', 'label' => 'Due'],
             'settled' => ['pill' => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25', 'label' => 'Up to date'],
         ];
 
         $filters = [
-            'all'     => 'All tenancies',
+            'all' => 'All tenancies',
             'overdue' => 'Behind on rent',
-            'due'     => 'Due this month',
+            'due' => 'Due this month',
             'settled' => 'Up to date',
         ];
     @endphp
@@ -31,7 +31,8 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">Rent &amp; Payments</h1>
-                    <p class="text-sm text-[#64748B] mt-0.5">Rent collection across every occupied unit, worst standing first.</p>
+                    <p class="text-sm text-[#64748B] mt-0.5">Rent collection across every occupied unit, worst standing
+                        first.</p>
                 </div>
             </div>
 
@@ -49,10 +50,10 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
             @php
                 $stats = [
-                    ['label' => 'Collected',    'value' => '₱' . number_format($totals['collected'], 2),   'tone' => 'text-[#15803D]', 'sub' => 'All time, this portfolio'],
-                    ['label' => 'Outstanding',  'value' => '₱' . number_format($totals['outstanding'], 2), 'tone' => 'text-[#1F2937]', 'sub' => 'Unpaid rent to date'],
-                    ['label' => 'Overdue',      'value' => '₱' . number_format($totals['overdue'], 2),     'tone' => $totals['overdue'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]', 'sub' => 'Past its due date'],
-                    ['label' => 'Behind',       'value' => (string) $totals['behind'],                     'tone' => $totals['behind'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]', 'sub' => 'Tenancies needing a nudge'],
+                    ['label' => 'Collected', 'value' => '₱' . number_format($totals['collected'], 2), 'tone' => 'text-[#15803D]', 'sub' => 'All time, this portfolio'],
+                    ['label' => 'Outstanding', 'value' => '₱' . number_format($totals['outstanding'], 2), 'tone' => 'text-[#1F2937]', 'sub' => 'Unpaid rent to date'],
+                    ['label' => 'Overdue', 'value' => '₱' . number_format($totals['overdue'], 2), 'tone' => $totals['overdue'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]', 'sub' => 'Past its due date'],
+                    ['label' => 'Behind', 'value' => (string) $totals['behind'], 'tone' => $totals['behind'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]', 'sub' => 'Tenancies needing a nudge'],
                 ];
             @endphp
             @foreach($stats as $stat)
@@ -66,15 +67,17 @@
 
         {{-- Filter bar --}}
         <form method="GET" action="{{ route('landlord.payments.index') }}"
-            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-5">
+            class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-5">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
-                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search tenants by name or email..." aria-label="Search tenants by name or email"
+                        x-on:input.debounce.400ms="$el.form.requestSubmit()"
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
                 </div>
 
@@ -84,7 +87,8 @@
                         @php
                             $paymentPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                         @endphp
-                        <x-styled-select name="property" id="filter-property" :options="$paymentPropertyOptions" :selected="(string) ($propertyId ?? '')"
+                        <x-styled-select name="property" id="filter-property" :options="$paymentPropertyOptions"
+                            :selected="(string) ($propertyId ?? '')"
                             class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[200px]" />
                     </div>
 
@@ -106,7 +110,8 @@
                     @if(request()->hasAny(['search', 'property']) || $statusFilter !== 'all')
                         <a href="{{ route('landlord.payments.index') }}"
                             class="h-11 px-4 rounded-xl border border-[#64748B]/25 text-[13.5px] text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 inline-flex items-center gap-1.5 cursor-pointer">
-                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                             </svg>
                             Clear
@@ -127,7 +132,8 @@
                 </div>
                 <p class="text-[14px] font-semibold text-[#1F2937]">Nothing to collect yet</p>
                 <p class="text-[13px] text-[#64748B] mt-1 max-w-md">
-                    Rent tracking starts once a unit is occupied — either through a platform reservation or a walk-in tenant you add.
+                    Rent tracking starts once a unit is occupied — either through a platform reservation or a walk-in tenant you
+                    add.
                 </p>
                 <a href="{{ route('landlord.tenants.walkIn.create') }}"
                     class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#1F2937] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
@@ -140,13 +146,26 @@
                     <table class="w-full min-w-[900px]">
                         <thead class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
                             <tr>
-                                <th scope="col" class="px-5 sm:px-6 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Tenant</th>
-                                <th scope="col" class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Unit</th>
-                                <th scope="col" class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rent</th>
-                                <th scope="col" class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Collected</th>
-                                <th scope="col" class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Outstanding</th>
-                                <th scope="col" class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Standing</th>
-                                <th scope="col" class="px-5 sm:px-6 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                                <th scope="col"
+                                    class="px-5 sm:px-6 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                                    Tenant</th>
+                                <th scope="col"
+                                    class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                                    Unit</th>
+                                <th scope="col"
+                                    class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                                    Rent</th>
+                                <th scope="col"
+                                    class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                                    Collected</th>
+                                <th scope="col"
+                                    class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                                    Outstanding</th>
+                                <th scope="col"
+                                    class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                                    Standing</th>
+                                <th scope="col"
+                                    class="px-5 sm:px-6 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
                                     <span class="sr-only">Actions</span>
                                 </th>
                             </tr>
@@ -163,7 +182,8 @@
                                 <tr class="hover:bg-[#F7FCFC] transition-colors duration-150">
                                     <td class="px-5 sm:px-6 py-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-full bg-[#EEF8F8] flex items-center justify-center text-[12px] font-bold text-[#156F8C] shrink-0">
+                                            <div
+                                                class="w-9 h-9 rounded-full bg-[#EEF8F8] flex items-center justify-center text-[12px] font-bold text-[#156F8C] shrink-0">
                                                 {{ $initials ?: '?' }}
                                             </div>
                                             <div class="min-w-0">
@@ -172,12 +192,14 @@
                                                 </p>
                                                 <div class="flex items-center gap-1.5 mt-0.5">
                                                     @if($tenant?->is_walk_in)
-                                                        <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold">
+                                                        <span
+                                                            class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold">
                                                             Walk-in
                                                         </span>
                                                     @endif
                                                     @if($reservation->rental_status === 'Completed')
-                                                        <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#E2E8F0] bg-[#F7FCFC] text-[#64748B] text-[10px] font-bold">
+                                                        <span
+                                                            class="inline-flex items-center h-5 px-2 rounded-full border border-[#E2E8F0] bg-[#F7FCFC] text-[#64748B] text-[10px] font-bold">
                                                             Ended
                                                         </span>
                                                     @endif
@@ -189,8 +211,10 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <p class="text-[13px] font-medium text-[#1F2937]">{{ $reservation->unit->unit_label ?? '—' }}</p>
-                                        <p class="text-[11px] text-[#64748B] truncate max-w-[180px]">{{ $reservation->property->title ?? '' }}</p>
+                                        <p class="text-[13px] font-medium text-[#1F2937]">
+                                            {{ $reservation->unit->unit_label ?? '—' }}</p>
+                                        <p class="text-[11px] text-[#64748B] truncate max-w-[180px]">
+                                            {{ $reservation->property->title ?? '' }}</p>
                                     </td>
                                     <td class="px-4 py-4 text-[13px] text-[#64748B] text-right whitespace-nowrap">
                                         ₱{{ number_format($summary['monthlyRent'], 2) }}
@@ -198,16 +222,19 @@
                                     <td class="px-4 py-4 text-[13px] font-semibold text-[#15803D] text-right whitespace-nowrap">
                                         ₱{{ number_format($summary['collected'], 2) }}
                                     </td>
-                                    <td class="px-4 py-4 text-[13px] text-right whitespace-nowrap {{ $summary['outstanding'] > 0 ? 'font-semibold text-[#DC2626]' : 'text-[#64748B]' }}">
+                                    <td
+                                        class="px-4 py-4 text-[13px] text-right whitespace-nowrap {{ $summary['outstanding'] > 0 ? 'font-semibold text-[#DC2626]' : 'text-[#64748B]' }}">
                                         ₱{{ number_format($summary['outstanding'], 2) }}
                                     </td>
                                     <td class="px-4 py-4">
-                                        <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $style['pill'] }}">
+                                        <span
+                                            class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $style['pill'] }}">
                                             {{ $style['label'] }}
                                         </span>
                                         @if($summary['overdueCount'] > 0)
                                             <p class="text-[11px] text-[#DC2626] mt-1">
-                                                {{ $summary['overdueCount'] }} {{ \Illuminate\Support\Str::plural('month', $summary['overdueCount']) }} behind
+                                                {{ $summary['overdueCount'] }}
+                                                {{ \Illuminate\Support\Str::plural('month', $summary['overdueCount']) }} behind
                                             </p>
                                         @endif
                                     </td>

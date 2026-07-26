@@ -44,15 +44,13 @@
         </div>
 
         {{-- Tabs --}}
-        <div class="flex gap-1 bg-white border border-[#E2E8F0] rounded-2xl p-1 mb-5 w-fit max-w-full overflow-x-auto shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+        <div class="flex items-center gap-0.5 border-b border-[#E2E8F0] mb-6 overflow-x-auto">
             @foreach (['Pending', 'Approved', 'Rejected', 'All'] as $tab)
                 <a href="{{ route('admin.units.index', ['status' => $tab]) }}"
-                    class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 whitespace-nowrap
-                        {{ $status === $tab
-                            ? 'bg-[#2AA7A1] text-white shadow-sm'
-                            : 'text-[#64748B] hover:text-[#1F2937] hover:bg-[#F7FCFC]' }}">
+                    class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
+                        {{ $status === $tab ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
                     {{ $tab }}
-                    <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-white/80' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
+                    <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
                 </a>
             @endforeach
         </div>

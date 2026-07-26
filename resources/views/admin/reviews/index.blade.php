@@ -31,26 +31,9 @@
         @endforeach
     </div>
 
-    {{-- Visibility tabs --}}
-    <div class="flex items-center gap-1 mb-5">
-        @foreach(['all' => 'All', 'visible' => 'Visible', 'hidden' => 'Hidden'] as $key => $label)
-            @php
-                $isActive = $visibility === $key;
-                $count = $counts[$key];
-                $params = array_merge(request()->except(['visibility', 'page']), $key !== 'all' ? ['visibility' => $key] : []);
-            @endphp
-            <a href="{{ route('admin.reviews.index', $params) }}"
-                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200
-                    {{ $isActive ? 'bg-[#2AA7A1] text-white shadow-sm' : 'bg-white text-[#1F2937] border border-[#E2E8F0] hover:brightness-95' }}">
-                {{ $label }}
-                <span class="text-[11px] {{ $isActive ? 'text-white/70' : 'text-[#64748B]' }}">({{ $count }})</span>
-            </a>
-        @endforeach
-    </div>
-
     {{-- Filters --}}
     <form method="GET" action="{{ route('admin.reviews.index') }}"
-        class="bg-white border border-[#E2E8F0] rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
+        class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
         @if($visibility !== 'all')
             <input type="hidden" name="visibility" value="{{ $visibility }}">
         @endif
@@ -61,6 +44,7 @@
             </svg>
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant, property, or review text…" aria-label="Search by tenant, property, or review text"
+                x-on:input.debounce.400ms="$el.form.requestSubmit()"
                 class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
         </div>
         @php
@@ -82,6 +66,23 @@
             </a>
         @endif
     </form>
+
+    {{-- Visibility tabs --}}
+    <div class="flex items-center gap-0.5 border-b border-[#E2E8F0] mb-6 overflow-x-auto">
+        @foreach(['all' => 'All', 'visible' => 'Visible', 'hidden' => 'Hidden'] as $key => $label)
+            @php
+                $isActive = $visibility === $key;
+                $count = $counts[$key];
+                $params = array_merge(request()->except(['visibility', 'page']), $key !== 'all' ? ['visibility' => $key] : []);
+            @endphp
+            <a href="{{ route('admin.reviews.index', $params) }}"
+                class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
+                    {{ $isActive ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                {{ $label }}
+                <span class="ml-1 text-[11px] {{ $isActive ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $count }}</span>
+            </a>
+        @endforeach
+    </div>
 
     {{-- List --}}
     @if($reviews->isEmpty())

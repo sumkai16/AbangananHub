@@ -38,7 +38,7 @@
 
     {{-- Filters --}}
     <form method="GET" action="{{ route('admin.conversations.index') }}"
-        class="bg-white border border-[#E2E8F0] rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
+        class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1">
             <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -46,6 +46,7 @@
             </svg>
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant, landlord, or property…" aria-label="Search by tenant, landlord, or property"
+                x-on:input.debounce.400ms="$el.form.requestSubmit()"
                 class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC]/50 focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
         </div>
         <x-styled-select name="status" :options="['all' => 'All statuses', 'Open' => 'Open', 'Resolved' => 'Resolved']"

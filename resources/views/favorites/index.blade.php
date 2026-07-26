@@ -28,6 +28,7 @@
             </svg>
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Search saved properties…" aria-label="Search saved properties"
+                x-on:input.debounce.400ms="$el.form.requestSubmit()"
                 class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition placeholder-[#94A3B8]" />
         </div>
         <x-styled-select name="type" :options="['' => 'Any type', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House']"
