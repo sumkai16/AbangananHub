@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -56,6 +57,14 @@ class ReviewController extends Controller
         $review->update(['is_hidden' => !$review->is_hidden]);
 
         $action = $review->is_hidden ? 'hidden' : 'unhidden';
+
+        AuditLog::record(
+            'review.visibility_change',
+            "Review #{$review->getKey()} {$action}.",
+            $review,
+            null,
+            ['is_hidden' => $review->is_hidden ? 'yes' : 'no'],
+        );
 
         return back()->with('success', "Review {$action} successfully.");
     }

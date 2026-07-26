@@ -1072,32 +1072,25 @@
                                      used to set the escrow escalation clock. --}}
                                 <div class="grid grid-cols-2 gap-3 items-start" x-show="mode === 'reserve'" x-cloak>
                                     <div>
-                                        <div class="rounded-xl bg-white border px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10 @error('target_move_in_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
-                                            <label for="target_move_in_date"
-                                                class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
-                                                In</label>
-                                            <input type="date" id="target_move_in_date" name="target_move_in_date"
-                                                :required="mode === 'reserve'"
-                                                x-model="moveIn" x-on:change="onMoveInChange()"
-                                                :min="minMoveIn" :max="maxMoveIn"
-                                                @error('target_move_in_date') aria-invalid="true" aria-describedby="target_move_in_date_error" @enderror
-                                                class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
-                                        </div>
+                                        <label for="target_move_in_date"
+                                            class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Move
+                                            In</label>
+                                        <x-date-picker name="target_move_in_date" id="target_move_in_date"
+                                            placeholder="Move-in date"
+                                            x-model="moveIn" x-on:change="onMoveInChange()"
+                                            min-expr="minMoveIn" max-expr="maxMoveIn" />
                                         @error('target_move_in_date')
                                             <p id="target_move_in_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <div>
-                                        <div class="rounded-xl bg-white border px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10 @error('target_move_out_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
-                                            <label for="target_move_out_date"
-                                                class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Move
-                                                Out <span class="normal-case tracking-normal font-semibold">· optional</span></label>
-                                            <input type="date" id="target_move_out_date" name="target_move_out_date"
-                                                x-model="moveOut" :min="moveIn || minMoveIn" :disabled="!moveIn"
-                                                @error('target_move_out_date') aria-invalid="true" aria-describedby="target_move_out_date_error" @enderror
-                                                class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-[#1F2937] focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:text-[#64748B]/50 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer">
-                                        </div>
+                                        <label for="target_move_out_date"
+                                            class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Move
+                                            Out <span class="normal-case tracking-normal font-semibold">· optional</span></label>
+                                        <x-date-picker name="target_move_out_date" id="target_move_out_date"
+                                            placeholder="Move-out date"
+                                            x-model="moveOut" min-expr="moveIn || minMoveIn" disabled-expr="!moveIn" />
                                         @error('target_move_out_date')
                                             <p id="target_move_out_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                         @enderror
@@ -1291,22 +1284,19 @@
 
                                         <div x-show="mode === 'reserve'" x-cloak>
                                             <label for="m_move_in" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move In</label>
-                                            <input type="date" id="m_move_in" name="target_move_in_date"
-                                                :required="mode === 'reserve'"
+                                            <x-date-picker name="target_move_in_date" id="m_move_in"
+                                                placeholder="Move-in date"
                                                 x-model="moveIn" x-on:change="onMoveInChange()"
-                                                :min="minMoveIn" :max="maxMoveIn"
-                                                @error('target_move_in_date') aria-invalid="true" aria-describedby="m_move_in_error" @enderror
-                                                class="w-full h-11 rounded-xl border px-3.5 text-sm text-[#1F2937] focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 transition-all @error('target_move_in_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
+                                                min-expr="minMoveIn" max-expr="maxMoveIn" />
                                             @error('target_move_in_date')
                                                 <p id="m_move_in_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                             @enderror
                                         </div>
                                         <div x-show="mode === 'reserve'" x-cloak>
                                             <label for="m_move_out" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move Out <span class="font-semibold">(Optional)</span></label>
-                                            <input type="date" id="m_move_out" name="target_move_out_date"
-                                                x-model="moveOut" :min="moveIn || minMoveIn" :disabled="!moveIn"
-                                                @error('target_move_out_date') aria-invalid="true" aria-describedby="m_move_out_error" @enderror
-                                                class="w-full h-11 rounded-xl border px-3.5 text-sm text-[#1F2937] focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 transition-all disabled:cursor-not-allowed disabled:bg-[#F7FCFC] disabled:text-[#64748B]/50 @error('target_move_out_date') border-[#EF4444] @else border-[#E2E8F0] @enderror">
+                                            <x-date-picker name="target_move_out_date" id="m_move_out"
+                                                placeholder="Move-out date"
+                                                x-model="moveOut" min-expr="moveIn || minMoveIn" disabled-expr="!moveIn" />
                                             @error('target_move_out_date')
                                                 <p id="m_move_out_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                             @enderror
@@ -1562,6 +1552,8 @@
             </div>
         </div>
     @endif
+
+    <script src="{{ asset('js/date-picker.js') }}"></script>
 
     @push('scripts')
         <script>

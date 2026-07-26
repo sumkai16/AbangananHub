@@ -6,52 +6,62 @@
     <div class="max-w-[1600px] mx-auto">
 
         {{-- Page header --}}
-        <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">Reports</h1>
-                <p class="text-sm text-[#64748B] mt-1">Review complaints submitted against listings and users.</p>
-            </div>
+        <x-page-header title="Reports" subtitle="Review complaints submitted against listings and users.">
             @if ($counts['Pending'] > 0)
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-[#FBBF24]/15 px-3 py-1.5 text-xs font-semibold text-[#92600A]">
-                    <svg class="h-3.5 w-3.5 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor">
-                        <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
-                    </svg>
-                    {{ $counts['Pending'] }} awaiting review
-                </span>
+                <x-slot:actions>
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-[#FBBF24]/15 px-3 py-1.5 text-xs font-semibold text-[#92600A]">
+                        <svg class="h-3.5 w-3.5 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                        </svg>
+                        {{ $counts['Pending'] }} awaiting review
+                    </span>
+                </x-slot:actions>
             @endif
-        </div>
+        </x-page-header>
 
         {{-- Stat summary --}}
         <div class="grid grid-cols-3 gap-3 mb-6">
             @php
                 $stats = [
-                    'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'accent' => 'text-[#B45309]', 'dot' => 'bg-[#FBBF24]'],
-                    'Resolved' => ['label' => 'Resolved', 'value' => $counts['Resolved'], 'accent' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]'],
-                    'All' => ['label' => 'Total', 'value' => $counts['All'], 'accent' => 'text-[#156F8C]', 'dot' => 'bg-[#156F8C]'],
+                    'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'valueColor' => '#B45309', 'iconBg' => 'rgba(251,191,36,0.10)', 'iconColor' => '#B45309'],
+                    'Resolved' => ['label' => 'Resolved', 'value' => $counts['Resolved'], 'valueColor' => '#15803D', 'iconBg' => 'rgba(34,197,94,0.07)', 'iconColor' => '#059669'],
+                    'All' => ['label' => 'Total', 'value' => $counts['All'], 'valueColor' => '#156F8C', 'iconBg' => '#EEF8F8', 'iconColor' => '#156F8C'],
                 ];
             @endphp
             @foreach ($stats as $key => $stat)
-                <a href="{{ route('admin.reports.index', ['status' => $key]) }}"
-                    class="bg-white border border-[#E2E8F0] rounded-2xl px-4 py-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-all duration-200 hover:shadow-xl {{ $status === $key ? 'ring-2 ring-[#2AA7A1]' : '' }}">
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full {{ $stat['dot'] }}"></span>
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{{ $stat['label'] }}</p>
-                    </div>
-                    <p class="text-2xl font-bold {{ $stat['accent'] }} mt-1">{{ $stat['value'] }}</p>
-                </a>
+                <x-stat-card :label="$stat['label']" :value="$stat['value']" :value-color="$stat['valueColor']" :icon-bg="$stat['iconBg']"
+                    :href="route('admin.reports.index', ['status' => $key])"
+                    :class="$status === $key ? 'ring-2 ring-[#2AA7A1]' : ''">
+                    <x-slot:icon>
+                        @switch($key)
+                            @case('Pending')
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                @break
+                            @case('Resolved')
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                @break
+                            @default
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M9 17V9m4 8V5m4 12v-6" />
+                                </svg>
+                        @endswitch
+                    </x-slot:icon>
+                </x-stat-card>
             @endforeach
         </div>
 
         {{-- Tabs --}}
-        <div class="flex gap-1 bg-white border border-[#E2E8F0] rounded-2xl p-1 mb-5 w-fit max-w-full overflow-x-auto shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+        <div class="flex items-center gap-0.5 border-b border-[#E2E8F0] mb-6 overflow-x-auto">
             @foreach (['Pending', 'Resolved', 'All'] as $tab)
                 <a href="{{ route('admin.reports.index', ['status' => $tab]) }}"
-                    class="px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 whitespace-nowrap
-                        {{ $status === $tab
-                            ? 'bg-[#2AA7A1] text-white shadow-sm'
-                            : 'text-[#64748B] hover:text-[#1F2937] hover:bg-[#F7FCFC]' }}">
+                    class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
+                        {{ $status === $tab ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
                     {{ $tab }}
-                    <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-white/80' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
+                    <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
                 </a>
             @endforeach
         </div>

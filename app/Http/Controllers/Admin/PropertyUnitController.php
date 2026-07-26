@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\PropertyUnit;
@@ -51,13 +52,21 @@ class PropertyUnitController extends Controller
             abort(404);
         }
 
-        DB::transaction(function () use ($unit) {
+        DB::transaction(function () use ($unit, $property) {
             $locked = PropertyUnit::whereKey($unit->getKey())->lockForUpdate()->firstOrFail();
             abort_if(!$locked->isPending(), 409, 'This unit has already been reviewed.');
             $locked->update([
                 'verification_status' => 'Approved',
                 'rejection_reason'    => null,
             ]);
+
+            AuditLog::record(
+                'unit.approve',
+                "Approved unit '{$locked->unit_label}' in {$property->title}.",
+                $locked,
+                null,
+                ['property_id' => $property->property_id, 'landlord_id' => $property->landlord_id],
+            );
         });
 
         Notification::notify(
@@ -82,13 +91,21 @@ class PropertyUnitController extends Controller
            'rejection_reason' => 'required|string|max:500',
         ]);
 
-        DB::transaction(function () use ($unit, $validated) {
+        DB::transaction(function () use ($unit, $validated, $property) {
             $locked = PropertyUnit::whereKey($unit->getKey())->lockForUpdate()->firstOrFail();
             abort_if(!$locked->isPending(), 409, 'This unit has already been reviewed.');
             $locked->update([
                 'verification_status' => 'Rejected',
                 'rejection_reason'    => $validated['rejection_reason'] ?? null,
             ]);
+
+            AuditLog::record(
+                'unit.reject',
+                "Rejected unit '{$locked->unit_label}' in {$property->title}.",
+                $locked,
+                $validated['rejection_reason'] ?? null,
+                ['property_id' => $property->property_id, 'landlord_id' => $property->landlord_id],
+            );
         });
 
         Notification::notify(

@@ -6,21 +6,14 @@
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
-                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">My Tenants</h1>
-                    <p class="text-sm text-[#64748B] mt-0.5">Tenants currently occupying units across your properties.</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2.5 shrink-0">
+        <x-page-header title="My Tenants" subtitle="Tenants currently occupying units across your properties.">
+            <x-slot:icon>
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+            </x-slot:icon>
+            <x-slot:actions>
                 {{-- Export carries the active filters --}}
                 <a href="{{ route('landlord.tenants.export', request()->only('search', 'property')) }}"
                     class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 cursor-pointer">
@@ -36,42 +29,32 @@
                     </svg>
                     Add Walk-in Tenant
                 </a>
-            </div>
-        </div>
+            </x-slot:actions>
+        </x-page-header>
 
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Tenants</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#1F2937]">{{ $reservations->total() }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">Currently occupying units</p>
-            </div>
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Properties with Tenants</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#1F2937]">{{ $reservations->pluck('property_id')->unique()->count() }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">Out of your approved properties</p>
-            </div>
+            <x-stat-card label="Total Tenants" :value="$reservations->total()" value-color="#1F2937" icon-bg="#EEF8F8" sub="Currently occupying units">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+            <x-stat-card label="Properties with Tenants" :value="$reservations->pluck('property_id')->unique()->count()" sub="Out of your approved properties">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
         </div>
 
         {{-- Filter bar --}}
         <form method="GET" action="{{ route('landlord.tenants.index') }}"
-            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-5">
+            class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-5">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
@@ -80,6 +63,7 @@
                             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search tenants by name or email..." aria-label="Search tenants by name or email"
+                        x-on:input.debounce.400ms="$el.form.requestSubmit()"
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
                 </div>
 

@@ -38,10 +38,10 @@ class RegisteredUserController extends Controller
             'password'       => Hash::make($request->password),
         ]);
 
-        // Every new account starts with no role.
-        // Tenant role gets assigned when they first browse/search.
-        // Landlord role requires a separate verification application.
-        // We don't assign anything here intentionally.
+        // Every self-registered account starts as a Tenant, matching
+        // Api\AuthController::register (mobile). Landlord role requires a
+        // separate verification application on top of this.
+        $user->assignRole('Tenant');
 
         event(new Registered($user));
 

@@ -145,6 +145,8 @@
                 </div>
             </form>
 
+            <x-social-login-buttons />
+
             <p class="text-center text-xs text-[#64748B] font-medium mt-5">
                 Don't have an account?
                 <a href="{{ route('register') }}" class="text-[#156F8C] font-bold hover:underline ml-1">Register here</a>

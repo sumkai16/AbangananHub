@@ -119,6 +119,15 @@
                             </svg>
                             Manage Units
                         </a>
+                        @if($unitStats['available'] > 0)
+                            <a href="{{ route('landlord.tenants.walkIn.create', ['property' => $property->property_id]) }}"
+                               class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#1F2937] hover:bg-[#EEF8F8] transition-colors">
+                                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#64748B]">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v6m3-3h-6M9 12a3.75 3.75 0 1 0 0-7.5A3.75 3.75 0 0 0 9 12Zm-6.5 8.25a7.5 7.5 0 0 1 13 0"/>
+                                </svg>
+                                Add Walk-in Tenant
+                            </a>
+                        @endif
                         <div class="h-px bg-[#64748B]/10 mx-3 my-1"></div>
                         <form method="POST" action="{{ route('properties.destroy', $property) }}"
                               data-confirm="Delete this property?"

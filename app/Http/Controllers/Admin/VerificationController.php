@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RejectVerificationRequest;
+use App\Models\AuditLog;
 use App\Models\LandlordVerification;
 use App\Models\Notification;
 use App\Models\RentalBusiness;
@@ -81,6 +82,14 @@ class VerificationController extends Controller
                     'business_address' => $locked->business_address,
                 ]
             );
+
+            AuditLog::record(
+                'verification.approve',
+                "Approved landlord verification for {$locked->user->email}.",
+                $locked,
+                null,
+                ['landlord_id' => $locked->user_id, 'business_name' => $locked->business_name],
+            );
         });
 
         Notification::notify(
@@ -107,6 +116,14 @@ class VerificationController extends Controller
                 'reviewed_by' => auth()->id(),
                 'reviewed_at' => now(),
             ]);
+
+            AuditLog::record(
+                'verification.reject',
+                "Rejected landlord verification for {$locked->user->email}.",
+                $locked,
+                $request->validated('admin_notes'),
+                ['landlord_id' => $locked->user_id],
+            );
         });
 
         $reason = $request->validated('admin_notes');

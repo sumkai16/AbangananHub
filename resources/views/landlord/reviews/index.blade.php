@@ -6,60 +6,41 @@
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
-        <div class="flex items-center gap-3.5 mb-5">
-            <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+        <x-page-header title="Reviews" subtitle="What tenants are saying about your properties.">
+            <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z" />
                 </svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">Reviews</h1>
-                <p class="text-sm text-[#64748B] mt-0.5">What tenants are saying about your properties.</p>
-            </div>
-        </div>
+            </x-slot:icon>
+        </x-page-header>
 
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Reviews</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#1F2937]">{{ $stats['total'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">Across all properties</p>
-            </div>
+            <x-stat-card label="Total Reviews" :value="$stats['total']" sub="Across all properties">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Average Rating</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#1F2937]">{{ number_format($stats['avg'], 1) }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">Out of 5.0 stars</p>
-            </div>
+            <x-stat-card label="Average Rating" :value="number_format($stats['avg'], 1)" icon-bg="rgba(251,191,36,0.10)" sub="Out of 5.0 stars">
+                <x-slot:icon>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Awaiting Reply</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#B45309]">{{ $stats['unreplied'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">Needs your response</p>
-            </div>
+            <x-stat-card label="Awaiting Reply" :value="$stats['unreplied']" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)" sub="Needs your response">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">

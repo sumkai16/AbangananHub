@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\MessageController;
@@ -22,6 +23,12 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+    // Mobile-ready: verifies a token a native Google/Facebook SDK produced
+    // on-device and exchanges it for a Sanctum token. Unused until the
+    // mobile app exists.
+    Route::post('/{provider}/token', [SocialiteController::class, 'verifyToken'])
+        ->whereIn('provider', ['google', 'facebook']);
 });
 
 // ─── Public browse ───────────────────────────────────────────

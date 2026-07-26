@@ -6,20 +6,18 @@
     <div class="max-w-[1600px] mx-auto space-y-6">
 
         {{-- ── Page Header ─────────────────────────────────────────── --}}
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight">Dashboard</h1>
-                <p class="text-[13.5px] text-[#94A3B8] mt-0.5">Welcome back! Here's what's happening on AbangananHub.</p>
-            </div>
-            <div
-                class="hidden sm:flex items-center gap-2 bg-white border border-[#E2E8F0] rounded-2xl px-4 py-2.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] text-[13px] text-[#64748B]">
-                <svg class="w-4 h-4 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-                {{ now()->subDays(6)->format('M j') }} – {{ now()->format('M j, Y') }}
-            </div>
-        </div>
+        <x-page-header title="Dashboard" subtitle="Welcome back! Here's what's happening on AbangananHub.">
+            <x-slot:actions>
+                <div
+                    class="hidden sm:flex items-center gap-2 bg-white border border-[#E2E8F0] rounded-2xl px-4 py-2.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] text-[13px] text-[#64748B]">
+                    <svg class="w-4 h-4 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                    </svg>
+                    {{ now()->subDays(6)->format('M j') }} – {{ now()->format('M j, Y') }}
+                </div>
+            </x-slot:actions>
+        </x-page-header>
 
         {{-- ── Stat Cards ───────────────────────────────────────────── --}}
 
@@ -35,31 +33,24 @@
                     ['label' => 'Pending Items', 'value' => $pendingItems, 'icon' => 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z', 'color' => 'red', 'sub' => 'Requires your action'],
                 ];
                 $colorMap = [
-                    'blue' => ['icon_bg' => 'bg-[#EEF8F8]', 'icon_text' => 'text-[#156F8C]', 'val_text' => 'text-[#156F8C]'],
-                    'emerald' => ['icon_bg' => 'bg-[#22C55E]/[0.07]', 'icon_text' => 'text-[#15803D]', 'val_text' => 'text-[#15803D]'],
-                    'purple' => ['icon_bg' => 'bg-[#EEF8F8]', 'icon_text' => 'text-[#156F8C]', 'val_text' => 'text-[#156F8C]'],
-                    'amber' => ['icon_bg' => 'bg-[#FBBF24]/[0.10]', 'icon_text' => 'text-[#B45309]', 'val_text' => 'text-[#B45309]'],
-                    'red' => ['icon_bg' => 'bg-[#EF4444]/[0.07]', 'icon_text' => 'text-[#DC2626]', 'val_text' => 'text-[#DC2626]'],
+                    'blue' => ['icon_bg' => '#EEF8F8', 'val_color' => '#156F8C'],
+                    'emerald' => ['icon_bg' => 'rgba(34,197,94,0.07)', 'val_color' => '#15803D'],
+                    'purple' => ['icon_bg' => '#EEF8F8', 'val_color' => '#156F8C'],
+                    'amber' => ['icon_bg' => 'rgba(251,191,36,0.10)', 'val_color' => '#B45309'],
+                    'red' => ['icon_bg' => 'rgba(239,68,68,0.07)', 'val_color' => '#DC2626'],
                 ];
             @endphp
 
             @foreach($statCards as $card)
                 @php $c = $colorMap[$card['color']]; @endphp
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                    <div class="flex items-center justify-between mb-3">
-                        <p class="text-[11.5px] font-bold text-[#94A3B8] uppercase tracking-wider leading-tight">
-                            {{ $card['label'] }}</p>
-                        <div class="w-8 h-8 rounded-xl {{ $c['icon_bg'] }} flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 {{ $c['icon_text'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $card['icon'] }}" />
-                            </svg>
-                        </div>
-                    </div>
-                    <p class="text-[28px] font-extrabold {{ $c['val_text'] }} leading-none">{{ number_format($card['value']) }}
-                    </p>
-                    <p class="text-[11.5px] text-[#94A3B8] mt-1.5">{{ $card['sub'] }}</p>
-                </div>
+                <x-stat-card :label="$card['label']" :value="number_format($card['value'])" :value-color="$c['val_color']"
+                    :icon-bg="$c['icon_bg']" :sub="$card['sub']">
+                    <x-slot:icon>
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $c['val_color'] }}" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $card['icon'] }}" />
+                        </svg>
+                    </x-slot:icon>
+                </x-stat-card>
             @endforeach
         </div>
 

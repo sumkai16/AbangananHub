@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Report;
 use Illuminate\Http\Request;
@@ -74,6 +75,14 @@ class ReportController extends Controller
         $validated['admin_notes'],
         $actionLabel,
         auth()->id()
+    );
+
+    AuditLog::record(
+        'report.resolve',
+        "Resolved report #{$report->getKey()}. {$actionLabel}.",
+        $report,
+        $validated['admin_notes'],
+        ['action_taken' => $validated['action_taken']],
     );
 
     // Only the reporter is told. The reported party is deliberately not

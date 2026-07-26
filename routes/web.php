@@ -20,6 +20,8 @@ use App\Http\Controllers\Admin\ReservationController as AdminReservationControll
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\ConversationController as AdminConversationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\PropertyCatalogueController;
+use App\Http\Controllers\Admin\UnitCatalogueController;
 use App\Http\Controllers\Landlord\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Tenant\AgreementController;
@@ -214,6 +216,14 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/properties/{property}/units/{unit}/approve', [AdminPropertyUnitController::class, 'approve'])->name('units.approve');
         Route::post('/properties/{property}/units/{unit}/reject', [AdminPropertyUnitController::class, 'reject'])->name('units.reject');
 
+        // Property & unit catalogues — full inventory across all statuses,
+        // distinct from the approval queues above.
+        Route::get('/catalogue/properties/export', [PropertyCatalogueController::class, 'export'])->name('catalogue.properties.export');
+        Route::get('/catalogue/properties/{property}', [PropertyCatalogueController::class, 'show'])->name('catalogue.properties.show');
+        Route::get('/catalogue/properties', [PropertyCatalogueController::class, 'index'])->name('catalogue.properties.index');
+        Route::get('/catalogue/units/export', [UnitCatalogueController::class, 'export'])->name('catalogue.units.export');
+        Route::get('/catalogue/units', [UnitCatalogueController::class, 'index'])->name('catalogue.units.index');
+
         Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/{report}', [App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
         Route::patch('/reports/{report}/resolve', [App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
@@ -230,6 +240,13 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
         // Overall ratings — platform-wide averages across the rating relationships
         Route::get('/ratings', [App\Http\Controllers\Admin\RatingController::class, 'index'])->name('ratings.index');
+
+        // Audit logs — read-only by design; audit rows are append-only.
+        Route::get('/audit-logs', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
+
+        // System settings — whitelisted overrides of config/rentals.php
+        Route::get('/settings', [App\Http\Controllers\Admin\SettingController::class, 'edit'])->name('settings.edit');
+        Route::patch('/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
     });
 
    // Conversations and messages

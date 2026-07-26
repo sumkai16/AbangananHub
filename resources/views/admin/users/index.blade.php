@@ -6,12 +6,13 @@
 <div class="max-w-[1600px] mx-auto">
 
     {{-- Page header --}}
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-            <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight">System Users</h1>
-            <p class="text-[13.5px] text-[#64748B] mt-1">View and manage all registered accounts.</p>
-        </div>
-        <div class="flex items-center gap-3">
+    <x-page-header title="System Users" subtitle="View and manage all registered accounts.">
+        <x-slot:icon>
+            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0112.226-2.517M15 19.128c-.132-.036-.264-.075-.396-.117M15 15.75a4.125 4.125 0 100-8.25 4.125 4.125 0 000 8.25zM4.5 7.5a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z" />
+            </svg>
+        </x-slot:icon>
+        <x-slot:actions>
             <span class="text-[13px] font-semibold text-[#64748B]">{{ number_format($users->total()) }} total</span>
             <a href="{{ route('admin.users.create') }}"
                 class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
@@ -20,8 +21,8 @@
                 </svg>
                 Create User
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6 items-start">
 
@@ -29,7 +30,7 @@
         <div class="min-w-0">
             {{-- Filters --}}
             <form method="GET" action="{{ route('admin.users.index') }}"
-                class="bg-white border border-[#E2E8F0] rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
+                class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
                 <div class="relative flex-1">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -37,6 +38,7 @@
                     </svg>
                     <input type="text" name="search" value="{{ $search }}"
                         placeholder="Search by name, email, or phone…" aria-label="Search by name, email, or phone"
+                        x-on:input.debounce.400ms="$el.form.requestSubmit()"
                         class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" />
                 </div>
                 <x-styled-select name="role" :options="array_combine(['All', 'Admin', 'Landlord', 'Tenant'], ['All', 'Admin', 'Landlord', 'Tenant'])"

@@ -330,8 +330,10 @@
                             data-confirm-type="warning">
                             @csrf
                             <label for="move_out_date" class="{{ $labelClass }}">Move-out date</label>
-                            <input type="date" id="move_out_date" name="move_out_date" value="{{ now()->toDateString() }}"
-                                max="{{ now()->toDateString() }}" class="{{ $inputClass }} cursor-pointer mb-3">
+                            <div class="mb-3">
+                                <x-date-picker name="move_out_date" id="move_out_date" placeholder="Move-out date"
+                                    value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" />
+                            </div>
 
                             <button type="submit"
                                 class="w-full h-11 rounded-full border border-[#EF4444]/30 text-[#DC2626] text-sm font-semibold hover:bg-[#EF4444]/[0.06] transition-all duration-200 cursor-pointer">
@@ -358,4 +360,6 @@
     @if($isActive)
         @include('landlord.tenancies.partials.record-payment-modal')
     @endif
+
+    <script src="{{ asset('js/date-picker.js') }}"></script>
 @endsection

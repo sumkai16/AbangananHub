@@ -194,6 +194,8 @@
                 </div>
             </form>
 
+            <x-social-login-buttons />
+
             {{-- Landlord CTA Callout Node --}}
             <div class="mt-3.5 flex items-center justify-between gap-2 bg-[#E2E8F0]/30 border border-[#E2E8F0] rounded-xl p-2.5 shadow-inner">
                 <div class="flex items-center gap-2">

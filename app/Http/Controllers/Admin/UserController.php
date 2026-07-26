@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\UserRole;
@@ -67,18 +68,30 @@ class UserController extends Controller
             'roles.*'        => 'in:Admin,Landlord,Tenant',
         ]);
 
-        $user = User::create([
-            'first_name'     => $data['first_name'],
-            'last_name'      => $data['last_name'],
-            'email'          => $data['email'],
-            'password'       => Hash::make($data['password']),
-            'contact_number' => $data['contact_number'] ?? null,
-            'account_status' => $data['account_status'],
-        ]);
+        $user = \DB::transaction(function () use ($data) {
+            $user = User::create([
+                'first_name'     => $data['first_name'],
+                'last_name'      => $data['last_name'],
+                'email'          => $data['email'],
+                'password'       => Hash::make($data['password']),
+                'contact_number' => $data['contact_number'] ?? null,
+                'account_status' => $data['account_status'],
+            ]);
 
-        foreach ($data['roles'] as $role) {
-            $user->assignRole($role);
-        }
+            foreach ($data['roles'] as $role) {
+                $user->assignRole($role);
+            }
+
+            AuditLog::record(
+                'user.create',
+                "Created account for {$data['email']}.",
+                $user,
+                null,
+                ['roles' => implode(', ', $data['roles']), 'account_status' => $data['account_status']],
+            );
+
+            return $user;
+        });
 
         return redirect()->route('admin.users.show', $user)
             ->with('success', 'User created successfully.');
@@ -124,6 +137,12 @@ class UserController extends Controller
             return back()->withInput()->with('error', 'You cannot change your own account status.');
         }
 
+        $before = [
+            'email'          => $user->email,
+            'account_status' => $user->account_status,
+            'roles'          => $user->roles()->pluck('role')->sort()->implode(', '),
+        ];
+
         $user->update([
             'first_name'     => $data['first_name'],
             'last_name'      => $data['last_name'],
@@ -132,16 +151,43 @@ class UserController extends Controller
             'account_status' => $data['account_status'],
         ]);
 
-        if (!empty($data['password'])) {
+        $passwordReset = ! empty($data['password']);
+        if ($passwordReset) {
             $user->update(['password' => Hash::make($data['password'])]);
         }
 
         // Sync roles: remove old, assign new
-        \DB::transaction(function () use ($user, $data) {
+        \DB::transaction(function () use ($user, $data, $before, $passwordReset) {
             $user->roles()->delete();
             foreach ($data['roles'] as $role) {
                 $user->assignRole($role);
             }
+
+            $after = [
+                'email'          => $data['email'],
+                'account_status' => $data['account_status'],
+                'roles'          => collect($data['roles'])->sort()->implode(', '),
+            ];
+
+            // Only record what actually moved, so the log reads as a diff
+            // rather than a dump of every field on the form.
+            $changes = [];
+            foreach ($after as $field => $value) {
+                if ($before[$field] !== $value) {
+                    $changes[$field] = $before[$field] . ' → ' . $value;
+                }
+            }
+            if ($passwordReset) {
+                $changes['password'] = 'reset by admin';
+            }
+
+            AuditLog::record(
+                'user.update',
+                "Updated account {$user->email}." . ($changes ? '' : ' No tracked fields changed.'),
+                $user,
+                null,
+                $changes,
+            );
         });
 
         return redirect()->route('admin.users.show', $user)
@@ -160,6 +206,14 @@ class UserController extends Controller
 
         $previous = $user->account_status;
         $user->update(['account_status' => $request->status]);
+
+        AuditLog::record(
+            'user.status_change',
+            "Changed {$user->email} status to " . ucfirst($request->status) . '.',
+            $user,
+            null,
+            ['from' => $previous, 'to' => $request->status],
+        );
 
         if ($previous !== $request->status) {
             $copy = match ($request->status) {
@@ -193,7 +247,26 @@ class UserController extends Controller
             return back()->with('error', 'This user has properties, reservations, or reviews on record and cannot be deleted — suspend the account instead to preserve that history.');
         }
 
-        $user->delete();
+        // The audit row and the delete must commit together: the target is gone
+        // afterwards, so a lost log entry leaves no other trace of the action.
+        // auditable is null by design — the referenced row no longer exists, so
+        // the identifying detail is snapshotted into metadata instead.
+        \DB::transaction(function () use ($user) {
+            AuditLog::record(
+                'user.delete',
+                "Deleted account {$user->email}.",
+                null,
+                null,
+                [
+                    'user_id' => $user->user_id,
+                    'email'   => $user->email,
+                    'name'    => trim($user->first_name . ' ' . $user->last_name),
+                    'roles'   => $user->roles()->pluck('role')->implode(', '),
+                ],
+            );
+
+            $user->delete();
+        });
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User deleted successfully.');

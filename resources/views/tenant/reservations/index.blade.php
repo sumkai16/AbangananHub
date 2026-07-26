@@ -11,17 +11,13 @@
         }">
 
         {{-- Header --}}
-        <div class="flex items-center gap-3.5 mb-6">
-            <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+        <x-page-header title="My Reservations" subtitle="Track your rental inquiries and reservations.">
+            <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight text-[#1F2937]">My Reservations</h1>
-                <p class="text-sm text-[#64748B] mt-0.5">Track your rental inquiries and reservations.</p>
-            </div>
-        </div>
+            </x-slot:icon>
+        </x-page-header>
 
         @if($errors->any())
             <div class="mb-6 bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium">
@@ -31,56 +27,39 @@
 
         {{-- Summary cards --}}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-xl font-extrabold text-[#1F2937]">{{ $counts['all'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">All time</p>
-            </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#2AA7A1]/25 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-[#156F8C] uppercase tracking-wide">In progress</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-xl font-extrabold text-[#1F2937]">
-                    {{ $counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'] }}
-                </span>
-                <p class="text-[11px] text-[#64748B] mt-1">Awaiting action</p>
-            </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#16A34A" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-xl font-extrabold text-[#15803D]">{{ $counts['Occupied'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">All time</p>
-            </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#EF4444]/20 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-[#DC2626] uppercase tracking-wide">Cancelled/Rejected</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-xl font-extrabold text-[#1F2937]">{{ $counts['Cancelled'] + $counts['Rejected'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">All time</p>
-            </div>
+            <x-stat-card label="Total" :value="$counts['all']" sub="All time">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="In progress"
+                :value="$counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed']"
+                sub="Awaiting action">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="Occupied" :value="$counts['Occupied']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="All time">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#16A34A" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="Cancelled/Rejected" :value="$counts['Cancelled'] + $counts['Rejected']" icon-bg="rgba(239,68,68,0.07)" sub="All time">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
         </div>
 
         {{-- Status tabs --}}

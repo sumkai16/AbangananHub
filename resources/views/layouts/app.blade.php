@@ -237,10 +237,15 @@
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
                             :class="open ? 'bg-[#EEF8F8]' : 'hover:bg-[#F7FCFC]'"
                             class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2AA7A1]/40 cursor-pointer">
-                            <span
-                                class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
-                                {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
-                            </span>
+                            @if(auth()->user()->profile_picture)
+                                <img src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
+                                    class="w-9 h-9 rounded-full object-cover shrink-0">
+                            @else
+                                <span
+                                    class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
+                                    {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
+                                </span>
+                            @endif
                             <span class="hidden sm:flex flex-col items-start leading-tight">
                                 <span class="text-[13px] font-semibold text-[#1F2937]">{{ $abgFullName }}</span>
                                 <span class="text-[11px] text-[#64748B]">{{ $abgRoleLabel }}</span>
@@ -264,9 +269,14 @@
                             {{-- Account header — the one distinctive touch: a mist band that
                                  turns the menu into an identity surface, not a flat list. --}}
                             <div class="flex items-center gap-3 rounded-xl bg-gradient-to-br from-[#EEF8F8] to-[#F7FCFC] px-3 py-3 mb-1">
-                                <span class="w-11 h-11 rounded-full bg-[#2AA7A1] text-white text-[16px] font-bold flex items-center justify-center shrink-0 ring-2 ring-white">
-                                    {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
-                                </span>
+                                @if(auth()->user()->profile_picture)
+                                    <img src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
+                                        class="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-white">
+                                @else
+                                    <span class="w-11 h-11 rounded-full bg-[#2AA7A1] text-white text-[16px] font-bold flex items-center justify-center shrink-0 ring-2 ring-white">
+                                        {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
+                                    </span>
+                                @endif
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-1.5">
                                         <p class="text-[13.5px] font-bold text-[#1F2937] truncate">{{ $abgFullName }}</p>
@@ -573,6 +583,8 @@
                             </button>
                         </form>
 
+                        <x-social-login-buttons />
+
                         <p class="text-[13px] text-center text-[#64748B] mt-6">
                             Don't have an account? <a href="#" onclick="openAuthModal('register'); return false;"
                                 class="text-[#156F8C] font-bold hover:underline">Register here</a>
@@ -636,6 +648,8 @@
                                 Sign Up
                             </button>
                         </form>
+
+                        <x-social-login-buttons />
 
                         <p class="text-[13px] text-center text-[#64748B] mt-6">
                             Already have an account? <a href="#" onclick="openAuthModal('login'); return false;"

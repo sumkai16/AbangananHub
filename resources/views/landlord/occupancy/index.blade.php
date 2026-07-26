@@ -3,26 +3,28 @@
 @section('content')
     @php
         $statusStyles = [
-            'Available'   => ['tile' => 'border-[#22C55E]/25 bg-[#22C55E]/[0.07]', 'text' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]', 'verb' => 'was made available'],
-            'Reserved'    => ['tile' => 'border-[#FBBF24]/35 bg-[#FBBF24]/[0.10]', 'text' => 'text-[#B45309]', 'dot' => 'bg-[#FBBF24]', 'verb' => 'was reserved'],
-            'Occupied'    => ['tile' => 'border-[#EF4444]/25 bg-[#EF4444]/[0.07]', 'text' => 'text-[#DC2626]', 'dot' => 'bg-[#EF4444]', 'verb' => 'was occupied'],
-            'Maintenance' => ['tile' => 'border-[#E2E8F0] bg-[#F7FCFC]',           'text' => 'text-[#64748B]', 'dot' => 'bg-[#94A3B8]', 'verb' => 'is now under maintenance'],
+            'Available'   => ['tile' => 'border-[#22C55E]/25 bg-[#22C55E]/[0.07]', 'text' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]', 'chip' => 'bg-[#22C55E]/[0.12] text-[#15803D] border-[#22C55E]/45', 'verb' => 'was made available'],
+            'Reserved'    => ['tile' => 'border-[#FBBF24]/35 bg-[#FBBF24]/[0.10]', 'text' => 'text-[#B45309]', 'dot' => 'bg-[#FBBF24]', 'chip' => 'bg-[#FBBF24]/[0.18] text-[#B45309] border-[#FBBF24]/60', 'verb' => 'was reserved'],
+            'Occupied'    => ['tile' => 'border-[#EF4444]/25 bg-[#EF4444]/[0.07]', 'text' => 'text-[#DC2626]', 'dot' => 'bg-[#EF4444]', 'chip' => 'bg-[#EF4444]/[0.12] text-[#DC2626] border-[#EF4444]/45', 'verb' => 'was occupied'],
+            'Maintenance' => ['tile' => 'border-[#E2E8F0] bg-[#F7FCFC]',           'text' => 'text-[#64748B]', 'dot' => 'bg-[#94A3B8]', 'chip' => 'bg-[#94A3B8]/[0.15] text-[#64748B] border-[#94A3B8]/50', 'verb' => 'is now under maintenance'],
         ];
-        $availPctAll = $totalUnits > 0 ? round($availableUnits / $totalUnits * 100) : 0;
-        $reservedPctAll = $totalUnits > 0 ? round($reservedUnits / $totalUnits * 100) : 0;
-        $occupiedPctAll = $totalUnits > 0 ? round($occupiedUnits / $totalUnits * 100) : 0;
+        $pct = fn ($n) => $totalUnits > 0 ? round($n / $totalUnits * 100) : 0;
+        $availPctAll = $pct($availableUnits);
+        $reservedPctAll = $pct($reservedUnits);
+        $occupiedPctAll = $pct($occupiedUnits);
+        $maintenancePctAll = $pct($maintenanceUnits);
     @endphp
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
-            <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">Occupancy Monitoring</h1>
-                <p class="text-sm text-[#64748B] mt-0.5">Monitor the occupancy status of all your rental units in real-time.</p>
-            </div>
-
-            <div class="flex items-center gap-2.5 shrink-0">
+        <x-page-header title="Occupancy Monitoring" subtitle="Monitor the occupancy status of all your rental units in real-time.">
+            <x-slot:icon>
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
+                </svg>
+            </x-slot:icon>
+            <x-slot:actions>
                 {{-- Property filter --}}
                 <div class="relative">
                     @php
@@ -44,84 +46,57 @@
                     </svg>
                     Export Report
                 </a>
-            </div>
-        </div>
+            </x-slot:actions>
+        </x-page-header>
 
         {{-- Stat cards --}}
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-            {{-- Total --}}
-            <div class="rounded-2xl border border-[#E2E8F0] bg-[#EEF8F8] p-4">
-                <div class="flex items-center gap-3">
-                    <span class="w-10 h-10 rounded-full bg-[#156F8C] flex items-center justify-center shrink-0">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
-                        </svg>
-                    </span>
-                    <div class="min-w-0">
-                        <p class="text-[12px] font-semibold text-[#64748B]">Total Units</p>
-                        <p class="text-2xl font-extrabold text-[#1F2937] leading-tight">{{ $totalUnits }}</p>
-                    </div>
-                </div>
-                <p class="text-[11px] text-[#64748B] mt-2">All rental units</p>
-            </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+            <x-stat-card label="Total Units" :value="$totalUnits" sub="All rental units">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            {{-- Available --}}
-            <div class="rounded-2xl border border-[#22C55E]/25 bg-[#22C55E]/[0.07] p-4">
-                <div class="flex items-center gap-3">
-                    <span class="w-10 h-10 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                        </svg>
-                    </span>
-                    <div class="min-w-0">
-                        <p class="text-[12px] font-semibold text-[#64748B]">Available</p>
-                        <p class="text-2xl font-extrabold text-[#15803D] leading-tight">{{ $availableUnits }}</p>
-                    </div>
-                </div>
-                <p class="text-[11px] text-[#64748B] mt-2">{{ $availPctAll }}% of total</p>
-            </div>
+            <x-stat-card label="Available" :value="$availableUnits" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
+                :percent="$availPctAll" bar-color="#22C55E" :sub="$availPctAll.'% of total'">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            {{-- Reserved --}}
-            <div class="rounded-2xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4">
-                <div class="flex items-center gap-3">
-                    <span class="w-10 h-10 rounded-full bg-[#FBBF24] flex items-center justify-center shrink-0">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                        </svg>
-                    </span>
-                    <div class="min-w-0">
-                        <p class="text-[12px] font-semibold text-[#64748B]">Reserved</p>
-                        <p class="text-2xl font-extrabold text-[#B45309] leading-tight">{{ $reservedUnits }}</p>
-                    </div>
-                </div>
-                <p class="text-[11px] text-[#64748B] mt-2">{{ $reservedPctAll }}% of total</p>
-            </div>
+            <x-stat-card label="Reserved" :value="$reservedUnits" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)"
+                :percent="$reservedPctAll" bar-color="#FBBF24" :sub="$reservedPctAll.'% of total'">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            {{-- Occupied --}}
-            <div class="rounded-2xl border border-[#EF4444]/25 bg-[#EF4444]/[0.07] p-4">
-                <div class="flex items-center gap-3">
-                    <span class="w-10 h-10 rounded-full bg-[#EF4444] flex items-center justify-center shrink-0">
-                        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                    </span>
-                    <div class="min-w-0">
-                        <p class="text-[12px] font-semibold text-[#64748B]">Occupied</p>
-                        <p class="text-2xl font-extrabold text-[#DC2626] leading-tight">{{ $occupiedUnits }}</p>
-                    </div>
-                </div>
-                <p class="text-[11px] text-[#64748B] mt-2">{{ $occupiedPctAll }}% of total</p>
-            </div>
+            <x-stat-card label="Occupied" :value="$occupiedUnits" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)"
+                :percent="$occupiedPctAll" bar-color="#EF4444" :sub="$occupiedPctAll.'% of total'">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            {{-- Occupancy rate --}}
-            <x-card class="col-span-2 lg:col-span-1 !p-4">
-                <p class="text-[12px] font-semibold text-[#64748B] text-center">Occupancy Rate</p>
-                <p class="text-3xl font-extrabold text-[#156F8C] text-center leading-tight mt-1">{{ $aggregateRate }}%</p>
-                <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-3 overflow-hidden">
-                    <div class="h-full rounded-full bg-[#2AA7A1]" style="width: {{ $aggregateRate }}%"></div>
-                </div>
-                <p class="text-[11px] text-[#64748B] mt-2 text-center">{{ $occupiedUnits }} of {{ $totalUnits }} units occupied</p>
-            </x-card>
+            <x-stat-card label="Maintenance" :value="$maintenanceUnits" value-color="#64748B" icon-bg="rgba(148,163,184,0.15)"
+                :percent="$maintenancePctAll" bar-color="#94A3B8" :sub="$maintenancePctAll.'% of total'">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card class="col-span-2 sm:col-span-3 lg:col-span-1" label="Occupancy Rate" :value="$aggregateRate.'%'" value-color="#156F8C"
+                :percent="$aggregateRate" bar-color="#2AA7A1" :sub="$occupiedUnits.' of '.$totalUnits.' units occupied'" />
         </div>
 
         {{-- Main grid --}}
@@ -135,6 +110,12 @@
                     x-data="{
                         groups: @js($unitStatusOverview),
                         styles: @js(collect($statusStyles)->map(fn ($s) => ['tile' => $s['tile'], 'text' => $s['text'], 'dot' => $s['dot']])),
+                        segs: [
+                            { key: 'available',   color: '#22C55E', label: 'Available' },
+                            { key: 'reserved',    color: '#FBBF24', label: 'Reserved' },
+                            { key: 'occupied',    color: '#EF4444', label: 'Occupied' },
+                            { key: 'maintenance', color: '#94A3B8', label: 'Maintenance' },
+                        ],
                         q: '',
                         status: '',
                         open: {},
@@ -189,8 +170,10 @@
                                     :class="status === '' ? 'bg-[#1F2937] text-white border-[#1F2937]' : 'bg-white text-[#64748B] border-[#64748B]/25 hover:border-[#64748B]/40'"
                                     class="h-8 px-3 rounded-full border text-[11.5px] font-semibold transition-colors duration-150 cursor-pointer">All</button>
                                 @foreach($statusStyles as $name => $s)
+                                    {{-- Active chip tints to its own status: colour is reserved for
+                                         status (DESIGN §3), so four chips all going charcoal wastes it. --}}
                                     <button type="button" x-on:click="status = status === '{{ $name }}' ? '' : '{{ $name }}'"
-                                        :class="status === '{{ $name }}' ? 'bg-[#1F2937] text-white border-[#1F2937]' : 'bg-white text-[#64748B] border-[#64748B]/25 hover:border-[#64748B]/40'"
+                                        :class="status === '{{ $name }}' ? '{{ $s['chip'] }}' : 'bg-white text-[#64748B] border-[#64748B]/25 hover:border-[#64748B]/40'"
                                         class="h-8 px-3 rounded-full border text-[11.5px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 cursor-pointer">
                                         <span class="w-2 h-2 rounded-full {{ $s['dot'] }}"></span>{{ $name }}
                                     </button>
@@ -199,7 +182,7 @@
                         </div>
 
                         {{-- Scrollable property groups --}}
-                        <div class="max-h-[440px] overflow-y-auto scrollbar-thin-light -mr-2 pr-2">
+                        <div class="max-h-[560px] overflow-y-auto scrollbar-thin-light -mr-2 pr-2">
                             <template x-for="g in groups" :key="g.property_id">
                                 <div x-show="groupVisible(g)" class="border-t border-[#64748B]/10 first:border-t-0 py-3">
                                     <button type="button" x-on:click="toggle(g)" class="w-full flex items-center gap-2.5 text-left group">
@@ -212,12 +195,22 @@
                                         </svg>
                                         <span class="text-[13px] font-bold text-[#1F2937] group-hover:text-[#156F8C] transition-colors truncate" x-text="g.title"></span>
 
-                                        {{-- Mini status counts (visible without expanding) --}}
-                                        <span class="flex items-center gap-2 ml-auto shrink-0 text-[11px] font-semibold text-[#1F2937]">
-                                            <span class="flex items-center gap-1" x-show="g.available > 0"><span class="w-2 h-2 rounded-full bg-[#22C55E]"></span><span x-text="g.available"></span></span>
-                                            <span class="flex items-center gap-1" x-show="g.reserved > 0"><span class="w-2 h-2 rounded-full bg-[#FBBF24]"></span><span x-text="g.reserved"></span></span>
-                                            <span class="flex items-center gap-1" x-show="g.occupied > 0"><span class="w-2 h-2 rounded-full bg-[#EF4444]"></span><span x-text="g.occupied"></span></span>
-                                            <span class="flex items-center gap-1" x-show="g.maintenance > 0"><span class="w-2 h-2 rounded-full bg-[#94A3B8]"></span><span x-text="g.maintenance"></span></span>
+                                        {{-- Mini mix bar + counts (visible without expanding).
+                                             Per-property only: the stat rail is portfolio-wide and
+                                             says nothing about how any one property is doing. --}}
+                                        <span class="flex items-center gap-2.5 ml-auto shrink-0 text-[11px] font-semibold text-[#1F2937]">
+                                            <span class="hidden sm:flex h-2 w-24 rounded-full overflow-hidden bg-[#E2E8F0] gap-px" x-show="g.total > 0">
+                                                <template x-for="s in segs" :key="s.key">
+                                                    <span class="h-full" x-show="g[s.key] > 0"
+                                                        :style="`width: ${g[s.key] / g.total * 100}%; background-color: ${s.color}`"
+                                                        :title="`${s.label}: ${g[s.key]}`"></span>
+                                                </template>
+                                            </span>
+                                            <template x-for="s in segs" :key="s.key">
+                                                <span class="flex items-center gap-1" x-show="g[s.key] > 0">
+                                                    <span class="w-2 h-2 rounded-full" :style="`background-color: ${s.color}`"></span><span x-text="g[s.key]"></span>
+                                                </span>
+                                            </template>
                                             <span class="text-[#64748B] font-normal" x-text="g.total + (g.total === 1 ? ' unit' : ' units')"></span>
                                         </span>
                                     </button>
@@ -362,85 +355,110 @@
                     </template>
                 </div>
 
-                {{-- Recent Activities --}}
+            </div>
+
+            {{-- ── RIGHT: vacancy watch + activity ─────────────────── --}}
+            <div class="lg:col-span-2 space-y-4">
+
+                {{-- Vacancy Watch — replaced the 30-day trend chart. A landlord
+                     can't act on what occupancy was three weeks ago; they can act
+                     on which unit has sat empty longest and what it's costing. --}}
                 <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
-                    <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Recent Activities</h2>
+                    <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Vacancy Watch</h2>
+
+                    @if($vacancy['count'] === 0)
+                        <div class="flex flex-col items-center justify-center py-8 text-center">
+                            <div class="w-11 h-11 rounded-xl bg-[#22C55E]/[0.10] flex items-center justify-center mb-3">
+                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#15803D" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                                </svg>
+                            </div>
+                            <p class="text-[13px] font-semibold text-[#1F2937]">No vacant units</p>
+                            <p class="text-[11.5px] text-[#64748B] mt-1 max-w-[230px]">Every unit is reserved, occupied, or under maintenance.</p>
+                        </div>
+                    @else
+                        {{-- The headline: rent the portfolio is not earning. This is
+                             the one figure that makes an empty unit feel like a cost
+                             rather than a status. --}}
+                        <div class="rounded-xl bg-[#F7FCFC] border border-[#E2E8F0] px-4 py-3.5 mb-4">
+                            <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rent not being earned</p>
+                            <p class="text-[22px] font-extrabold text-[#B45309] mt-1 leading-none">
+                                ₱{{ number_format($vacancy['idle_rent']) }}<span class="text-[12px] font-semibold text-[#64748B]"> / month</span>
+                            </p>
+                            <p class="text-[11.5px] text-[#64748B] mt-1.5">
+                                Across {{ $vacancy['count'] }} vacant {{ Str::plural('unit', $vacancy['count']) }}
+                            </p>
+                        </div>
+
+                        <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide mb-2.5">Empty longest</p>
+                        <div class="space-y-2">
+                            @foreach($vacancy['units'] as $unit)
+                                @php
+                                    // Same 60-day threshold the admin unit catalogue uses for
+                                    // "stale", so one number defines a long vacancy app-wide.
+                                    $days = $unit['days'];
+                                    $tone = match (true) {
+                                        $days >= 60 => ['bg-[#EF4444]/[0.07]', 'text-[#DC2626]'],
+                                        $days >= 30 => ['bg-[#FBBF24]/[0.12]', 'text-[#B45309]'],
+                                        default     => ['bg-[#F7FCFC]',        'text-[#64748B]'],
+                                    };
+                                @endphp
+                                <a href="{{ $unit['edit_url'] }}"
+                                    class="flex items-center gap-3 rounded-xl border border-[#E2E8F0] px-3 py-2.5 hover:bg-[#F7FCFC] transition-colors duration-150">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-[12.5px] font-semibold text-[#1F2937] truncate">{{ $unit['label'] }}</p>
+                                        <p class="text-[11px] text-[#64748B] truncate">{{ $unit['property'] }}</p>
+                                    </div>
+                                    <div class="shrink-0 text-right">
+                                        <span class="inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tone[0] }} {{ $tone[1] }}">
+                                            {{ $days }}{{ $days === 1 ? ' day' : ' days' }}
+                                        </span>
+                                        <p class="text-[11px] text-[#64748B] mt-1">₱{{ number_format($unit['rent']) }}/mo</p>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+
+                        <p class="text-[11px] text-[#64748B] mt-3">
+                            Counted from when the unit was last vacated, or from when it was listed if it has never been let.
+                        </p>
+                    @endif
+                </div>
+
+                {{-- Recent Activity — a timeline: the connecting rule ties the
+                     status dots into one sequence rather than four loose rows. --}}
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                    <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Recent Activity</h2>
                     @if($recentActivities->isEmpty())
                         <p class="text-[12px] text-[#64748B] py-4 text-center">No occupancy changes recorded yet.</p>
                     @else
-                        <div class="space-y-3">
-                            @foreach($recentActivities as $activity)
-                                @php
-                                    $st = $statusStyles[$activity->to_status] ?? $statusStyles['Available'];
-                                    $person = $activity->tenant?->first_name
-                                        ? trim($activity->tenant->first_name . ' ' . $activity->tenant->last_name)
-                                        : ($activity->actor?->first_name ? trim($activity->actor->first_name . ' ' . $activity->actor->last_name) : null);
-                                @endphp
-                                <div class="flex items-start gap-3">
-                                    <span class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 {{ $st['tile'] }}">
-                                        <span class="w-2 h-2 rounded-full {{ $st['dot'] }}"></span>
-                                    </span>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-[12.5px] text-[#1F2937] leading-snug">
-                                            <span class="font-semibold">{{ $activity->unit?->unit_label ?? 'A unit' }}</span>
-                                            in {{ $activity->property?->title ?? 'a property' }} {{ $st['verb'] }}
-                                        </p>
-                                        <p class="text-[11px] text-[#64748B] mt-0.5">
-                                            @if($person)by {{ $person }} &middot; @endif{{ $activity->created_at->diffForHumans() }}
-                                        </p>
+                        <div class="relative">
+                            {{-- Timeline rule, stopped short of the last dot's centre. --}}
+                            <span class="absolute left-[13px] top-3 bottom-6 w-px bg-[#E2E8F0]" aria-hidden="true"></span>
+                            <div class="space-y-3.5">
+                                @foreach($recentActivities as $activity)
+                                    @php
+                                        $st = $statusStyles[$activity->to_status] ?? $statusStyles['Available'];
+                                        $person = $activity->tenant?->first_name
+                                            ? trim($activity->tenant->first_name . ' ' . $activity->tenant->last_name)
+                                            : ($activity->actor?->first_name ? trim($activity->actor->first_name . ' ' . $activity->actor->last_name) : null);
+                                    @endphp
+                                    <div class="relative flex items-start gap-3">
+                                        <span class="w-[27px] h-[27px] rounded-full border flex items-center justify-center shrink-0 bg-white z-10 {{ $st['tile'] }}">
+                                            <span class="w-2 h-2 rounded-full {{ $st['dot'] }}"></span>
+                                        </span>
+                                        <div class="flex-1 min-w-0 pt-0.5">
+                                            <p class="text-[12.5px] text-[#1F2937] leading-snug">
+                                                <span class="font-semibold">{{ $activity->unit?->unit_label ?? 'A unit' }}</span>
+                                                in {{ $activity->property?->title ?? 'a property' }} {{ $st['verb'] }}
+                                            </p>
+                                            <p class="text-[11px] text-[#64748B] mt-0.5">
+                                                @if($person)by {{ $person }} &middot; @endif{{ $activity->created_at->diffForHumans() }}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- ── RIGHT: donut + trend ────────────────────────────── --}}
-            <div class="lg:col-span-2 space-y-4">
-
-                {{-- Occupancy Summary donut --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
-                    <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Occupancy Summary</h2>
-                    <div class="relative h-44">
-                        <canvas id="occupancyStatusChart"></canvas>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <p class="text-[22px] font-bold text-[#156F8C] leading-none">{{ $aggregateRate }}%</p>
-                            <p class="text-[10px] text-[#64748B] mt-1">Occupied</p>
-                        </div>
-                    </div>
-                    <div class="space-y-2.5 text-[12.5px] mt-5">
-                        @php
-                            $legend = [
-                                ['Occupied', $occupiedUnits, 'bg-[#EF4444]'],
-                                ['Available', $availableUnits, 'bg-[#22C55E]'],
-                                ['Reserved', $reservedUnits, 'bg-[#FBBF24]'],
-                                ['Maintenance', $maintenanceUnits, 'bg-[#94A3B8]'],
-                            ];
-                        @endphp
-                        @foreach($legend as [$label, $count, $dot])
-                            <div class="flex items-center justify-between">
-                                <span class="flex items-center gap-2 text-[#64748B]"><span class="w-2.5 h-2.5 rounded-full {{ $dot }}"></span>{{ $label }}</span>
-                                <span class="font-bold text-[#1F2937]">{{ $count }} <span class="font-normal text-[#64748B]">({{ $totalUnits > 0 ? round($count / $totalUnits * 100) : 0 }}%)</span></span>
+                                @endforeach
                             </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                {{-- Occupancy Trend --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
-                    <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Occupancy Trend (Last 30 Days)</h2>
-                    @if(count($trend['data']) < 2)
-                        <div class="flex flex-col items-center justify-center h-40 text-center">
-                            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="1.5" class="mb-2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-                            </svg>
-                            <p class="text-[12.5px] font-semibold text-[#1F2937]">Trend is building</p>
-                            <p class="text-[11px] text-[#64748B] mt-1 max-w-[220px]">A daily snapshot is recorded automatically. The trend line appears once there are at least two days of data.</p>
-                        </div>
-                    @else
-                        <div class="relative h-40">
-                            <canvas id="occupancyTrendChart"></canvas>
                         </div>
                     @endif
                 </div>
@@ -454,61 +472,6 @@
     </div>
 @endsection
 
-@push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const statusCtx = document.getElementById('occupancyStatusChart');
-            if (statusCtx) {
-                new Chart(statusCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Occupied', 'Available', 'Reserved', 'Maintenance'],
-                        datasets: [{
-                            data: [{{ $occupiedUnits }}, {{ $availableUnits }}, {{ $reservedUnits }}, {{ $maintenanceUnits }}],
-                            backgroundColor: ['#EF4444', '#10b981', '#f59e0b', '#94a3b8'],
-                            borderWidth: 0,
-                            borderRadius: 6,
-                            hoverOffset: 4,
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '74%',
-                        plugins: { legend: { display: false } },
-                    },
-                });
-            }
-
-            const trendCtx = document.getElementById('occupancyTrendChart');
-            if (trendCtx) {
-                new Chart(trendCtx, {
-                    type: 'line',
-                    data: {
-                        labels: @js($trend['labels']),
-                        datasets: [{
-                            data: @js($trend['data']),
-                            borderColor: '#156F8C',
-                            backgroundColor: 'rgba(42, 167, 161, 0.12)',
-                            fill: true,
-                            tension: 0.35,
-                            pointRadius: 3,
-                            pointBackgroundColor: '#156F8C',
-                            borderWidth: 2,
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } }, grid: { color: '#E2E8F0' } },
-                            x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } },
-                        },
-                    },
-                });
-            }
-        });
-    </script>
-@endpush
+{{-- No @push('scripts') here any more. The page's only chart was the occupancy
+     trend line; with that gone the Chart.js CDN tag went with it, so this view
+     no longer pulls a ~200KB third-party bundle it has nothing to draw with. --}}

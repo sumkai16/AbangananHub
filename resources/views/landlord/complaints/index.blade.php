@@ -6,58 +6,39 @@
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
-        <div class="flex items-center gap-3.5 mb-5">
-            <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+        <x-page-header title="My Complaints" subtitle="Track reports you have filed. Only you and the admin can see these.">
+            <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                 </svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">My Complaints</h1>
-                <p class="text-sm text-[#64748B] mt-0.5">Track reports you have filed. Only you and the admin can see these.</p>
-            </div>
-        </div>
+            </x-slot:icon>
+        </x-page-header>
 
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Reports</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#1F2937]">{{ $stats['total'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">All reports you've filed</p>
-            </div>
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Pending</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#B45309]">{{ $stats['pending'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">Awaiting admin review</p>
-            </div>
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Resolved</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#15803D]">{{ $stats['resolved'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">Reviewed and closed</p>
-            </div>
+            <x-stat-card label="Total Reports" :value="$stats['total']" sub="All reports you've filed">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+            <x-stat-card label="Pending" :value="$stats['pending']" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)" sub="Awaiting admin review">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+            <x-stat-card label="Resolved" :value="$stats['resolved']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="Reviewed and closed">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">

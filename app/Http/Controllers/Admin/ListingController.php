@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Property;
 use Illuminate\Http\Request;
@@ -50,6 +51,14 @@ class ListingController extends Controller
             abort_if($property->verification_status !== 'Pending', 409, 'This listing has already been reviewed.');
             $property->update(['verification_status' => 'Approved']);
 
+            AuditLog::record(
+                'listing.approve',
+                "Approved listing '{$property->title}'.",
+                $property,
+                null,
+                ['landlord_id' => $property->landlord_id],
+            );
+
             return $property;
         });
 
@@ -73,6 +82,14 @@ class ListingController extends Controller
             $property = Property::where('property_id', $property_id)->lockForUpdate()->firstOrFail();
             abort_if($property->verification_status !== 'Pending', 409, 'This listing has already been reviewed.');
             $property->update(['verification_status' => 'Rejected']);
+
+            AuditLog::record(
+                'listing.reject',
+                "Rejected listing '{$property->title}'.",
+                $property,
+                null,
+                ['landlord_id' => $property->landlord_id],
+            );
 
             return $property;
         });

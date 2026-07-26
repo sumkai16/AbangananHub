@@ -19,10 +19,14 @@
 | email | VARCHAR(255) | UNIQUE, **NULLABLE** | Was NOT NULL until July 24 2026; made nullable for walk-in tenants who often have only a phone number. MySQL allows many NULLs under a UNIQUE index, so real addresses stay unique. Anything rendering an avatar/name must use `?: '—'`, not assume a value |
 | is_walk_in | BOOLEAN | DEFAULT false | A landlord-entered tenant, not a self-registered account. Cast to bool. Drives the **Walk-in** pill everywhere the user surfaces (landlord tenants, admin users, occupancy, exports) — the identity is landlord-asserted, never platform-verified |
 | created_by_landlord_id | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who added this walk-in. Scopes `User::walkInTenants()` |
+| provider | VARCHAR(255) | NULLABLE | Added July 25 2026 for Google/Facebook login (`'google'`/`'facebook'`). NULL for password-only accounts. One provider per user — no multi-provider linking table |
+| provider_id | VARCHAR(255) | NULLABLE, UNIQUE with `provider` | The provider's own user ID. An existing account is auto-linked (not duplicated) when a social login's email matches `users.email` |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 
 Walk-in tenants (added July 24 2026) are real `users` rows with a random unknowable password and `account_status='inactive'`, so the row can never be logged into — that is why they structurally cannot leave reviews or ratings. Keeping them in `users` (rather than a separate table) is what lets `reservations.tenant_id` stay NOT NULL so the ~20 views reading `$reservation->tenant->…` need no null-handling. Written by `Landlord\WalkInTenantController`.
+
+Social login accounts (Google/Facebook, added July 25 2026) also get a random unknowable `Hash::make(Str::random(40))` password, same precedent as walk-ins — the account is meant to only ever be entered via the provider, not email/password. Unlike walk-ins, `account_status` stays default (`active`) and `email_verified_at` is set immediately since the provider already verified the address. Written by `Auth\SocialiteController::resolveSocialUser()`.
 
 ### user_roles
 | Column | Type | Constraints | Notes |
@@ -56,20 +60,23 @@ Walk-in tenants (added July 24 2026) are real `users` rows with a random unknowa
 | updated_at | TIMESTAMP | | |
 
 ### properties
+**Verified against `2026_..._create_properties_table.php` July 26 2026 — the row below was wrong for
+an unknown period: `business_id` does not exist (no property↔business FK; a business only links via
+`landlord_id` → `rental_businesses.landlord_id`), `rental_fee`/`occupancy_limit`/`availability_status`
+don't exist either (those live on `property_units` — `Property` exposes them only as derived
+accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL`, not nullable.**
+
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | property_id | BIGINT UNSIGNED | PK | `$primaryKey = 'property_id'` |
 | landlord_id | FK → users.user_id | NOT NULL | |
-| business_id | FK → rental_businesses.business_id | NULLABLE | |
 | title | VARCHAR(255) | NOT NULL | |
 | description | TEXT | NULLABLE | |
+| house_rules | JSON | NULLABLE | cast to `array` |
 | property_type | ENUM('Bedspace','Room','Apartment','House') | NOT NULL | |
 | address | VARCHAR(255) | NOT NULL | Text-searched for browse |
-| latitude | DECIMAL(10,8) | NULLABLE | `parseFloat()` client-side |
-| longitude | DECIMAL(11,8) | NULLABLE | |
-| rental_fee | DECIMAL(10,2) | NOT NULL | Eloquent serializes as string |
-| occupancy_limit | INT | NULLABLE | |
-| availability_status | ENUM('Available','Reserved','Occupied') | DEFAULT 'Available' | |
+| latitude | DECIMAL(10,7) | NOT NULL | `parseFloat()` client-side |
+| longitude | DECIMAL(10,7) | NOT NULL | |
 | verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | Admin approval |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
@@ -312,7 +319,11 @@ Landlord → tenant. **Collected since mid-2026 but never displayed until the Ov
 | occupancy_rate | DECIMAL(5,2) | DEFAULT 0 | From `OccupancyRateCalculator` |
 | created_at / updated_at | TIMESTAMP | | |
 
-Written daily by the `occupancy:snapshot` command (scheduled 23:55); feeds the occupancy trend chart. `updateOrCreate` on (landlord_id, date) so re-running is idempotent.
+Written daily by the `occupancy:snapshot` command (scheduled 23:55). `updateOrCreate` on (landlord_id, date) so re-running is idempotent.
+
+**Write-only since July 26 2026, deliberately.** Its only reader was the occupancy trend chart, which was removed from `landlord/occupancy` (see ARCHITECTURE.md's decision log). The command still runs because occupancy history cannot be reconstructed after the fact — `property_units` stores only each unit's *current* status — so stopping it would permanently foreclose bringing a trend back. **Do not prune this table or its command as dead code.**
+
+Known inconsistency, unresolved: `SnapshotOccupancy` counts *all* units, while the `occupancy_rate` it stores comes from `OccupancyRateCalculator`, which counts only `verification_status = 'Approved'` ones. So `occupancy_rate` will not equal `occupied_units / total_units` for any landlord with unapproved units. Settle this before anything reads the table again.
 
 ### occupancy_activities
 | Column | Type | Constraints | Notes |
@@ -328,6 +339,59 @@ Written daily by the `occupancy:snapshot` command (scheduled 23:55); feeds the o
 | created_at / updated_at | TIMESTAMP | | `index(landlord_id, created_at)` |
 
 Written by `PropertyUnitObserver` whenever a unit's `availability_status` changes (any path); feeds the Recent Activities feed.
+
+### audit_logs
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| log_id | BIGINT UNSIGNED | PK | `$primaryKey = 'log_id'` |
+| actor_id | FK → users.user_id | NULLABLE | **`onDelete('set null')` — the one user FK in this schema that does NOT cascade** |
+| actor_name | VARCHAR(255) | NOT NULL | Snapshot, so the row survives the account |
+| actor_email | VARCHAR(255) | NOT NULL | Snapshot |
+| action | VARCHAR(60) | NOT NULL | `'payment.release'` — see `AuditLog::ACTION_LABELS` |
+| auditable_type | VARCHAR(255) | NULLABLE | Laravel morph; null when the target was deleted |
+| auditable_id | BIGINT UNSIGNED | NULLABLE | |
+| summary | VARCHAR(255) | NOT NULL | Human sentence, rendered verbatim |
+| reason | TEXT | NULLABLE | Rejection reason / admin note |
+| metadata | JSON | NULLABLE | Before/after values, amounts; cast to `array` |
+| ip_address | VARCHAR(45) | NULLABLE | 45 chars fits IPv6 |
+| created_at | TIMESTAMP | NULLABLE | **No `updated_at`** — `const UPDATED_AT = null` |
+
+Indexes: `created_at`, `(action, created_at)`, `(auditable_type, auditable_id)`.
+
+**Append-only.** Rows are written by `AuditLog::record()` called from inside the acting controller's
+existing `DB::transaction()` + `lockForUpdate()` block, so a rolled-back action leaves no phantom row
+and a 409 on the idempotency guard doesn't log twice (verified July 26 2026). Nothing updates or
+deletes an audit row — there is no route, controller method, or UI affordance for it, deliberately.
+
+**Why `set null` and not `cascade`:** every other FK to `users.user_id` cascades (see §Hard deletes in
+RULES.md). An audit log must not — deleting a user would erase exactly the history proving what they
+did. `actor_name`/`actor_email` are denormalized at write time so the row stays readable once the FK
+is nulled; the index view shows an "Account deleted" note when `actor_id` is null.
+
+Instrumented actions (15) live in `AuditLog::ACTION_LABELS`; the destructive subset that renders with
+a red pill is `AuditLog::DESTRUCTIVE_ACTIONS`. **When adding a new consequential admin action, add its
+key to `ACTION_LABELS` and call `AuditLog::record()` inside that action's transaction** — the filter
+dropdown reads from the same constant, so an unlisted action is invisible to the filter.
+
+### settings
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| setting_id | BIGINT UNSIGNED | PK | `$primaryKey = 'setting_id'` |
+| key | VARCHAR(100) | UNIQUE, NOT NULL | Must exist in `Setting::DEFINITIONS` or it is refused |
+| value | TEXT | NOT NULL | Cast per the key's `type` — `integer`, or `integer_list` stored comma-separated |
+| created_at / updated_at | TIMESTAMP | | |
+
+**Overrides only.** A key with no row falls through to `config/rentals.php`, which stays the defaults
+*and* the documentation for what each key means. Clearing a field in the admin form **deletes** the row
+rather than writing a copy of the default, so a key is never silently pinned to today's default.
+
+`Setting::overrides()` is `Cache::rememberForever`'d under `settings.rentals.overrides` and busted by
+`Setting::put()`, so the boot-time merge in `AppServiceProvider` costs a cache read, not a query. Only
+the 10 keys in `Setting::DEFINITIONS` are editable; each declares its type, validation rule, label,
+help text and group, and both the form and `UpdateSettingsRequest` derive from that one map.
+
+Every change writes a `settings.update` audit row with a `label => 'before → after'` metadata entry per
+changed key, inside the same transaction as the writes.
 
 ## 3. Relationships
 - users → user_roles (1:many — a user can have multiple roles)
@@ -383,7 +447,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_vacated_at_to_property_units_table | Occupancy tracking | Track when a unit was vacated | July 2026 |
 | add_unit_type_floor_deposit_description_to_property_units | **Misnamed — adds none of those columns.** Body is one `ALTER TABLE property_units MODIFY COLUMN availability_status` adding the `Maintenance` member | Filename describes an intent that was never written; see the note under `property_units` | July 2026 |
 | add_caption_to_unit_media_table | Photo captions | Optional per-photo caption shown to tenants | July 2026 |
-| create_occupancy_snapshots_table | Daily occupancy history | Feeds occupancy trend chart | July 2026 |
+| create_occupancy_snapshots_table | Daily occupancy history | Fed the occupancy trend chart; write-only since the chart's removal July 26 2026 — kept because the history can't be rebuilt later | July 2026 |
 | create_occupancy_activities_table | Unit status-change log | Feeds Recent Activities feed | July 2026 |
 | add_link_to_notifications_table | Per-notification destination URL | Notifications had no target except a conversation; every non-message type dead-ended at the index | July 2026 |
 | add_walk_in_fields_to_users_table | `is_walk_in`, `created_by_landlord_id`; `email` made nullable (raw `ALTER`) | Walk-in tenants entered by landlords; many have only a phone | July 24 2026 |

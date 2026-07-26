@@ -31,7 +31,7 @@
 
         {{-- Filter toolbar --}}
         <form method="GET" action="{{ route('landlord.properties.index') }}"
-            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-8">
+            class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-8">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
                 <div class="relative flex-1 min-w-[200px]">
@@ -41,6 +41,7 @@
                             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..." aria-label="Search by property name or address"
+                        x-on:input.debounce.400ms="$el.form.requestSubmit()"
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
                 </div>
 
