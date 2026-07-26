@@ -15,7 +15,7 @@
             takes a few seconds.
         </p>
 
-        @if($latestPayment && $latestPayment->isHeld())
+        @if($latestPayment && ($latestPayment->isHeld() || $latestPayment->isPaid()))
             <div class="p-4 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 rounded-xl flex items-center gap-3 text-left mb-6">
                 <div class="w-8 h-8 rounded-full bg-[#22C55E]/[0.12] flex items-center justify-center shrink-0">
                     <svg class="w-4 h-4 text-[#15803D]" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -25,14 +25,20 @@
                 </div>
                 <div>
                     <p class="text-sm font-bold text-[#15803D]">Payment Confirmed</p>
-                    <p class="text-xs text-[#15803D] mt-0.5">Funds are held by AbangananHub. Confirm your move-in on the agreement page to mark the unit as occupied.</p>
+                    <p class="text-xs text-[#15803D] mt-0.5">
+                        @if($latestPayment->isHeld())
+                            Funds are held by AbangananHub. Confirm your move-in on the agreement page to mark the unit as occupied.
+                        @else
+                            Your rent payment has been recorded.
+                        @endif
+                    </p>
                 </div>
             </div>
         @endif
 
-        <a href="{{ route('agreements.show', $reservation) }}"
+        <a href="{{ $returnRoute ?? route('agreements.show', $reservation) }}"
             class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-[#1F2937] hover:brightness-95 text-white font-bold text-sm transition">
-            Back to Agreement
+            {{ isset($returnRoute) ? 'Back to Rent Ledger' : 'Back to Agreement' }}
         </a>
     </div>
 @endsection

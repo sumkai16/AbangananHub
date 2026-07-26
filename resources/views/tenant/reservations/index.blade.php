@@ -226,6 +226,10 @@
                                                 </a>
                                             @endif
                                         @elseif($reservation->rental_status === 'Occupied')
+                                            <a href="{{ route('tenancy.show', $reservation) }}"
+                                                class="text-[12px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
+                                                Rent
+                                            </a>
                                             @if($reservation->conversation)
                                                 <a href="{{ route('conversations.show', $reservation->conversation) }}"
                                                     class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Services\RentLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -132,4 +133,144 @@ public function success(Reservation $reservation)
 
     return view('payments.pending', compact('reservation', 'latestPayment'));
 }
+
+    /**
+     * Rent payment checkout — settles the tenant's single earliest unsettled
+     * billing period, direct to 'Paid'. No escrow: unlike the initial payment,
+     * there is no handover left to protect once a tenant is already occupying
+     * the unit.
+     */
+    public function createRentCheckoutSession(Reservation $reservation)
+    {
+        Gate::authorize('payRent', $reservation);
+
+        $reservation->loadMissing('unit', 'tenant');
+
+        if (!$reservation->unit) {
+            return back()->withErrors(['payment' => 'This unit is no longer available. Please contact your landlord.']);
+        }
+
+        $period = RentLedger::for($reservation)->unsettledPeriods()->first();
+
+        if (!$period) {
+            return back()->with('success', 'Your rent is already fully paid.');
+        }
+
+        $billingPeriod = $period['period']->copy()->startOfMonth();
+        $balance = round((float) $period['balance'], 2);
+
+        $placeholder = DB::transaction(function () use ($reservation, $billingPeriod, $balance) {
+            $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
+
+            if ($locked->rental_status !== 'Occupied') {
+                return null;
+            }
+
+            $existingPending = Payment::where('reservation_id', $locked->reservation_id)
+                ->where('payment_type', 'Monthly')
+                ->whereDate('billing_period', $billingPeriod->toDateString())
+                ->where('status', 'Pending')
+                ->whereNotNull('paymongo_checkout_session_id')
+                ->exists();
+
+            if ($existingPending) {
+                return null;
+            }
+
+            return Payment::create([
+                'reservation_id' => $locked->reservation_id,
+                'payment_type' => 'Monthly',
+                'billing_period' => $billingPeriod,
+                'amount' => $balance,
+                'payment_method' => 'GCash',
+                'status' => 'Pending',
+            ]);
+        });
+
+        if (!$placeholder) {
+            return back()->withErrors(['payment' => 'A payment session is already in progress, or this tenancy is no longer active.']);
+        }
+
+        $amount = (int) round($balance * 100); // PayMongo expects cents
+
+        $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
+            ->post('https://api.paymongo.com/v1/checkout_sessions', [
+                'data' => [
+                    'attributes' => [
+                        'send_email_receipt' => false,
+                        'show_description' => true,
+                        'show_line_items' => true,
+                        'description' => $reservation->unit->unit_name . ' — Rent for ' . $period['label'],
+                        'line_items' => [
+                            [
+                                'currency' => 'PHP',
+                                'amount' => $amount,
+                                'name' => $reservation->unit->unit_name . ' — Rent (' . $period['label'] . ')',
+                                'quantity' => 1,
+                            ],
+                        ],
+                        'payment_method_types' => ['gcash'],
+                        'success_url' => route('payments.rent.success', $reservation),
+                        'cancel_url' => route('tenancy.show', $reservation),
+                    ],
+                ],
+            ]);
+
+        if ($response->failed()) {
+            $placeholder->delete();
+
+            return back()->withErrors(['payment' => 'Could not create payment session. Please try again.']);
+        }
+
+        $checkoutData = $response->json('data');
+
+        $placeholder->update([
+            'paymongo_checkout_session_id' => $checkoutData['id'],
+        ]);
+
+        return redirect($checkoutData['attributes']['checkout_url']);
+    }
+
+    public function rentSuccess(Reservation $reservation)
+    {
+        Gate::authorize('payRent', $reservation);
+
+        $reservation->load(['unit', 'tenant']);
+
+        $latestPayment = Payment::where('reservation_id', $reservation->reservation_id)
+            ->where('payment_type', 'Monthly')
+            ->latest('payment_id')
+            ->first();
+
+        if ($latestPayment && $latestPayment->status === 'Pending' && $latestPayment->paymongo_checkout_session_id) {
+            $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
+                ->get("https://api.paymongo.com/v1/checkout_sessions/{$latestPayment->paymongo_checkout_session_id}");
+
+            if ($response->ok()) {
+                $sessionStatus = $response->json('data.attributes.status');
+                $payments = $response->json('data.attributes.payments') ?? [];
+
+                if ($sessionStatus === 'paid' || count($payments) > 0) {
+                    $paymongoPaymentId = $payments[0]['id'] ?? null;
+                    $paymentIntentId = $response->json('data.attributes.payment_intent.id');
+
+                    $latestPayment->update([
+                        'status' => 'Paid',
+                        'paymongo_payment_intent_id' => $paymentIntentId,
+                        'paymongo_payment_id' => $paymongoPaymentId,
+                        'paid_at' => now(),
+                    ]);
+
+                    $label = $latestPayment->billing_period?->format('M Y') ?? 'this period';
+                    $reservation->postSystemMessage($reservation->tenant->name . ' paid rent for ' . $label . ' online.');
+                }
+            }
+        }
+
+        return view('payments.pending', [
+            'reservation' => $reservation,
+            'latestPayment' => $latestPayment,
+            'returnRoute' => route('tenancy.show', $reservation),
+        ]);
+    }
 }

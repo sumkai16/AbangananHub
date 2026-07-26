@@ -88,7 +88,13 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
         Route::post('/reservations/{reservation}/confirm-move-in', [AgreementController::class, 'confirmMoveIn'])->name('agreements.confirmMoveIn');
         Route::post('/reservations/{reservation}/dispute-move-in', [AgreementController::class, 'disputeMoveIn'])->name('agreements.disputeMoveIn');
-        
+
+        // A tenant's own tenancy and rent ledger — read-only except for the
+        // one earliest unsettled period, which can be paid online via GCash.
+        Route::get('/tenancy/{reservation}', [App\Http\Controllers\Tenant\TenancyController::class, 'show'])->name('tenancy.show');
+        Route::post('/tenancy/{reservation}/pay-rent', [PaymentController::class, 'createRentCheckoutSession'])->name('payments.rentCheckout');
+        Route::get('/tenancy/{reservation}/rent-success', [PaymentController::class, 'rentSuccess'])->name('payments.rent.success');
+
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
 
         // Reports
