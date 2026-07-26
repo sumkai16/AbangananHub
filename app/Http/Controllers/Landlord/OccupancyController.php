@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
 use App\Models\OccupancyActivity;
-use App\Models\OccupancySnapshot;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
@@ -86,15 +85,36 @@ class OccupancyController extends Controller
             ];
         })->values();
 
-        // ── Occupancy Trend (last 30 days of snapshots) ──────
-        $snapshots = OccupancySnapshot::where('landlord_id', $landlordId)
-            ->where('snapshot_date', '>=', now()->subDays(29)->toDateString())
-            ->orderBy('snapshot_date')
-            ->get();
+        // ── Vacancy Watch ────────────────────────────────────
+        // Replaced the 30-day occupancy trend chart. The trend answered "what
+        // was my occupancy three weeks ago" — history the landlord already
+        // lived through and cannot act on. This answers "which empty units are
+        // costing me money, and how much", which is the decision the page is
+        // actually opened to make.
+        $vacantUnits = $units->where('availability_status', 'Available')->values();
 
-        $trend = [
-            'labels' => $snapshots->map(fn ($s) => $s->snapshot_date->format('M j'))->values()->all(),
-            'data'   => $snapshots->map(fn ($s) => (float) $s->occupancy_rate)->values()->all(),
+        // A unit that has never been let has no vacated_at, so it has been empty
+        // since it was created — that is a longer, more urgent vacancy than a
+        // recently-ended tenancy, not an absent one.
+        $vacancy = [
+            'count'      => $vacantUnits->count(),
+            'idle_rent'  => (float) $vacantUnits->sum('rental_fee'),
+            'units'      => $vacantUnits
+                ->map(function (PropertyUnit $unit) use ($scopedProperties) {
+                    $since = $unit->vacated_at ?? $unit->created_at;
+
+                    return [
+                        'label'    => $unit->unit_label,
+                        'property' => $scopedProperties->firstWhere('property_id', $unit->property_id)?->title,
+                        'days'     => $since ? (int) $since->startOfDay()->diffInDays(now()->startOfDay()) : null,
+                        'rent'     => (float) $unit->rental_fee,
+                        'never_let' => $unit->vacated_at === null,
+                        'edit_url' => route('landlord.properties.units.edit', [$unit->property_id, $unit->unit_id]),
+                    ];
+                })
+                ->sortByDesc('days')
+                ->take(5)
+                ->values(),
         ];
 
         // ── Recent Activities ────────────────────────────────
@@ -120,7 +140,7 @@ class OccupancyController extends Controller
             'maintenanceUnits'   => $maintenanceUnits,
             'aggregateRate'      => $aggregateRate,
             'unitStatusOverview' => $unitStatusOverview,
-            'trend'              => $trend,
+            'vacancy'            => $vacancy,
             'recentActivities'   => $recentActivities,
         ]);
     }

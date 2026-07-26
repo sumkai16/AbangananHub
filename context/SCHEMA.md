@@ -319,7 +319,11 @@ Landlord → tenant. **Collected since mid-2026 but never displayed until the Ov
 | occupancy_rate | DECIMAL(5,2) | DEFAULT 0 | From `OccupancyRateCalculator` |
 | created_at / updated_at | TIMESTAMP | | |
 
-Written daily by the `occupancy:snapshot` command (scheduled 23:55); feeds the occupancy trend chart. `updateOrCreate` on (landlord_id, date) so re-running is idempotent.
+Written daily by the `occupancy:snapshot` command (scheduled 23:55). `updateOrCreate` on (landlord_id, date) so re-running is idempotent.
+
+**Write-only since July 26 2026, deliberately.** Its only reader was the occupancy trend chart, which was removed from `landlord/occupancy` (see ARCHITECTURE.md's decision log). The command still runs because occupancy history cannot be reconstructed after the fact — `property_units` stores only each unit's *current* status — so stopping it would permanently foreclose bringing a trend back. **Do not prune this table or its command as dead code.**
+
+Known inconsistency, unresolved: `SnapshotOccupancy` counts *all* units, while the `occupancy_rate` it stores comes from `OccupancyRateCalculator`, which counts only `verification_status = 'Approved'` ones. So `occupancy_rate` will not equal `occupied_units / total_units` for any landlord with unapproved units. Settle this before anything reads the table again.
 
 ### occupancy_activities
 | Column | Type | Constraints | Notes |
@@ -443,7 +447,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_vacated_at_to_property_units_table | Occupancy tracking | Track when a unit was vacated | July 2026 |
 | add_unit_type_floor_deposit_description_to_property_units | **Misnamed — adds none of those columns.** Body is one `ALTER TABLE property_units MODIFY COLUMN availability_status` adding the `Maintenance` member | Filename describes an intent that was never written; see the note under `property_units` | July 2026 |
 | add_caption_to_unit_media_table | Photo captions | Optional per-photo caption shown to tenants | July 2026 |
-| create_occupancy_snapshots_table | Daily occupancy history | Feeds occupancy trend chart | July 2026 |
+| create_occupancy_snapshots_table | Daily occupancy history | Fed the occupancy trend chart; write-only since the chart's removal July 26 2026 — kept because the history can't be rebuilt later | July 2026 |
 | create_occupancy_activities_table | Unit status-change log | Feeds Recent Activities feed | July 2026 |
 | add_link_to_notifications_table | Per-notification destination URL | Notifications had no target except a conversation; every non-message type dead-ended at the index | July 2026 |
 | add_walk_in_fields_to_users_table | `is_walk_in`, `created_by_landlord_id`; `email` made nullable (raw `ALTER`) | Walk-in tenants entered by landlords; many have only a phone | July 24 2026 |
