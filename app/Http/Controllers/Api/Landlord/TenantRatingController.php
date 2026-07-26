@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\Reservation;
 use App\Models\TenantRating;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +27,7 @@ class TenantRatingController extends Controller
                 'already_rated' => (bool) $rating,
                 'can_rate'      => ! $rating && $reservation->rental_status === 'Occupied',
                 'rating'        => $rating,
-                'tenant'        => $reservation->tenant()->select('user_id', 'first_name', 'last_name', 'profile_picture')->first(),
+                'tenant'        => new UserResource($reservation->tenant()->select('user_id', 'first_name', 'last_name', 'profile_picture')->first()),
             ],
         ]);
     }

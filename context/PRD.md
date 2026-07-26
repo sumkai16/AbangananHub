@@ -40,7 +40,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - Legal dispute handling between landlords and tenants (the move-in dispute flow only freezes the deposit and queues it for an admin — it renders no judgment)
 - **Refunds.** Nothing in the app writes `payments.status = 'Refunded'`; PayMongo's programmatic refund support is unverified. A landlord who never turns over the keys is escalated to admin review, and that queue drains only by releasing to the landlord. Closing this is Phase 2 of the move-in spec and requires confirming PayMongo first
 - Offline mode (map and real-time features require stable internet)
-- Native mobile app (web only — React Native/Expo deferred to post-deployment)
+- ~~Native mobile app~~ — **no longer out of scope as of July 27 2026.** A React Native + Expo client for Tenant + Landlord is planned in `plans/mobile-app.md`; the server-side unblocking (Phase 0) is done. Admin stays web-only. Note this is *additive* to the defense scope — every module below is already demonstrable on web, so mobile is upside, not a dependency
 - Property types beyond bedspace, room, apartment, house
 - Coverage area beyond Cebu, Philippines
 - Live production PayMongo merchant account (sandbox only for capstone)

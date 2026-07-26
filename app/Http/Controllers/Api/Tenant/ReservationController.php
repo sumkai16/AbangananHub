@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ReservationResource;
 use App\Models\Conversation;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
@@ -32,6 +33,8 @@ class ReservationController extends Controller
             ->latest()
             ->paginate(10)
             ->withQueryString();
+
+        $reservations->getCollection()->transform(fn (Reservation $r) => (new ReservationResource($r))->resolve());
 
         return response()->json(array_merge($reservations->toArray(), [
             'counts' => $counts,
@@ -124,7 +127,7 @@ class ReservationController extends Controller
         }
 
         return response()->json([
-            'data' => $reservation->load(['property.media', 'unit', 'conversation']),
+            'data' => new ReservationResource($reservation->load(['property.media', 'unit', 'conversation'])),
         ], 201);
     }
 
@@ -145,7 +148,7 @@ class ReservationController extends Controller
             $reservation->unit->update(['availability_status' => 'Available']);
         }
 
-        return response()->json(['data' => $reservation->fresh(['unit'])]);
+        return response()->json(['data' => new ReservationResource($reservation->fresh(['unit']))]);
     }
 
     private function statusCounts($base): array

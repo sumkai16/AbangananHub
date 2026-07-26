@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ConversationResource;
+use App\Http\Resources\UserResource;
 use App\Models\Conversation;
 use App\Models\Notification;
 use App\Models\Property;
@@ -69,8 +71,8 @@ class ConversationController extends Controller
             ->map(function (Conversation $conversation) use ($userId) {
                 $isTenant = $conversation->tenant_id === $userId;
 
-                return array_merge($conversation->toArray(), [
-                    'other_party' => $isTenant ? $conversation->landlord : $conversation->tenant,
+                return array_merge((new ConversationResource($conversation))->resolve(), [
+                    'other_party' => new UserResource($isTenant ? $conversation->landlord : $conversation->tenant),
                     'has_unread'  => $conversation->latestMessage
                         && $conversation->latestMessage->sender_id !== $userId
                         && ! $conversation->latestMessage->is_read,
@@ -128,7 +130,7 @@ class ConversationController extends Controller
         ]);
 
         return response()->json(
-            ['data' => $conversation],
+            ['data' => new ConversationResource($conversation)],
             $conversation->wasRecentlyCreated ? 201 : 200
         );
     }
@@ -169,8 +171,8 @@ class ConversationController extends Controller
             : $conversation->tenant;
 
         return response()->json([
-            'data' => array_merge($conversation->toArray(), [
-                'other_party' => $otherParty,
+            'data' => array_merge((new ConversationResource($conversation))->resolve(), [
+                'other_party' => new UserResource($otherParty),
             ]),
         ]);
     }

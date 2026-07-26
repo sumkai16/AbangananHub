@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PropertyResource;
+use App\Http\Resources\ReviewResource;
 use App\Models\Favorite;
 use App\Models\Property;
 use App\Models\Review;
@@ -17,7 +19,13 @@ class PropertyController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $properties = Property::with(['media', 'landlord:user_id,first_name,last_name,profile_picture', 'amenities'])
+        // 'units' must be eager-loaded here: Property::getMinRentalFeeAttribute()
+        // (and its two siblings) unconditionally read $this->units, so without
+        // it every row lazy-loads and preventLazyLoading throws on a real
+        // request. The parallel web PropertyController::index() already does
+        // this; this endpoint never had — found via a probe, since nothing has
+        // ever sent it a real HTTP request before now (July 27 2026).
+        $properties = Property::with(['media', 'landlord:user_id,first_name,last_name,profile_picture', 'amenities', 'units'])
             ->browsable()
             ->browseFilters([
                 'location'  => $request->query('location'),
@@ -37,7 +45,7 @@ class PropertyController extends Controller
 
         $properties->getCollection()->transform(function (Property $property) use ($favoritedIds) {
             $property->setAttribute('is_favorited', in_array($property->property_id, $favoritedIds));
-            return $property;
+            return (new PropertyResource($property))->resolve();
         });
 
         return response()->json($properties);
@@ -72,8 +80,8 @@ class PropertyController extends Controller
         $user = auth('sanctum')->user();
 
         return response()->json([
-            'data' => array_merge($property->toArray(), [
-                'reviews'      => $reviews,
+            'data' => array_merge((new PropertyResource($property))->resolve(), [
+                'reviews'      => ReviewResource::collection($reviews),
                 'avg_rating'   => $avgRating ? round($avgRating, 1) : null,
                 'review_count' => $reviews->count(),
                 'can_review'   => $user ? Review::canReview($user->user_id, $property->property_id) : false,

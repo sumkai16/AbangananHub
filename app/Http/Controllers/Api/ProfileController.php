@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +20,7 @@ class ProfileController extends Controller
 
         return response()->json([
             'data' => [
-                'user'  => $user,
+                'user'  => new UserResource($user),
                 'roles' => $user->roles()->pluck('role'),
             ],
         ]);
@@ -59,7 +60,7 @@ class ProfileController extends Controller
 
         $user->update($validated);
 
-        return response()->json(['data' => $user->fresh()]);
+        return response()->json(['data' => new UserResource($user->fresh())]);
     }
 
     /**

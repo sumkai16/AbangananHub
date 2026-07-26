@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PropertyResource;
+use App\Http\Resources\ReviewResource;
 use App\Models\PropertyUnit;
 use App\Models\Review;
 use App\Models\User;
@@ -62,10 +64,10 @@ class ProfileController extends Controller
                 'is_owner'        => $isOwner,
                 'business'        => $user->rentalBusiness,
                 'is_verified'     => (bool) $user->rentalBusiness,
-                'properties'      => $properties,
+                'properties'      => PropertyResource::collection($properties),
                 'total_units'     => $units->count(),
                 'occupied_units'  => $units->where('availability_status', 'Occupied')->count(),
-                'reviews'         => $reviews,
+                'reviews'         => ReviewResource::collection($reviews),
                 'average_rating'  => $averageRating ? round($averageRating, 1) : null,
             ],
         ]);

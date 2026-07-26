@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ReviewResource;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\Review;
@@ -50,6 +51,6 @@ class ReviewController extends Controller
             'message'         => $user->first_name . ' ' . $user->last_name . ' left a ' . $validated['rating'] . '-star review on ' . $property->title . '.',
         ]);
 
-        return response()->json(['data' => $review], 201);
+        return response()->json(['data' => new ReviewResource($review)], 201);
     }
 }

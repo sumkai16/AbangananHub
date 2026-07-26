@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
@@ -88,7 +89,7 @@ class SocialiteController extends Controller
         $user = $this->resolveSocialUser($provider, $socialUser);
 
         return response()->json([
-            'user'  => $user,
+            'user'  => new UserResource($user),
             'token' => $user->createToken($request->string('device_name'))->plainTextToken,
             'roles' => $user->roles()->pluck('role'),
         ]);

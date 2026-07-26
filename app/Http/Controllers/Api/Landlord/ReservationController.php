@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ReservationResource;
+use App\Models\Notification;
 use App\Models\Reservation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
@@ -45,6 +48,8 @@ class ReservationController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $reservations->getCollection()->transform(fn (Reservation $r) => (new ReservationResource($r))->resolve());
+
         return response()->json(array_merge($reservations->toArray(), [
             'counts' => $counts,
         ]));
@@ -58,7 +63,7 @@ class ReservationController extends Controller
             throw ValidationException::withMessages(['reservation' => ['This reservation cannot move to negotiation right now.']]);
         }
 
-        return response()->json(['data' => $reservation->fresh()]);
+        return response()->json(['data' => new ReservationResource($reservation->fresh())]);
     }
 
     public function advanceToPendingAgreement(Request $request, Reservation $reservation): JsonResponse
@@ -73,7 +78,7 @@ class ReservationController extends Controller
             throw ValidationException::withMessages(['reservation' => ['This reservation cannot move to Pending Rental Agreement right now.']]);
         }
 
-        return response()->json(['data' => $reservation->fresh()]);
+        return response()->json(['data' => new ReservationResource($reservation->fresh())]);
     }
 
     public function reject(Request $request, Reservation $reservation): JsonResponse
@@ -92,7 +97,7 @@ class ReservationController extends Controller
             $reservation->unit->update(['availability_status' => 'Available']);
         }
 
-        return response()->json(['data' => $reservation->fresh(['unit'])]);
+        return response()->json(['data' => new ReservationResource($reservation->fresh(['unit']))]);
     }
 
     public function cancel(Request $request, Reservation $reservation): JsonResponse
@@ -116,6 +121,46 @@ class ReservationController extends Controller
             }
         }
 
-        return response()->json(['data' => $reservation->fresh(['unit'])]);
+        return response()->json(['data' => new ReservationResource($reservation->fresh(['unit']))]);
+    }
+
+    /**
+     * Mirrors Landlord\ReservationController::markTurnedOver — same lock,
+     * same system message, same notification. Starts Clock 2.
+     */
+    public function markTurnedOver(Reservation $reservation): JsonResponse
+    {
+        Gate::authorize('markTurnedOver', $reservation);
+
+        $marked = DB::transaction(function () use ($reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
+
+            if (! $locked->markKeysTurnedOver()) {
+                return false;
+            }
+
+            $days = config('rentals.move_in_confirmation_days');
+
+            $locked->postSystemMessage(
+                "The landlord marked the keys as turned over. {$locked->tenant->name} has {$days} days to confirm move-in, after which the deposit is released automatically."
+            );
+
+            Notification::notify(
+                $locked->tenant_id,
+                'move_in_confirmation_due',
+                'Confirm your move-in',
+                "Your landlord marked the keys as turned over. Confirm your move-in within {$days} days to release your deposit.",
+                route('agreements.show', $locked),
+                $locked->conversation_id,
+            );
+
+            return true;
+        });
+
+        if (! $marked) {
+            throw ValidationException::withMessages(['reservation' => ['Turnover cannot be marked for this reservation right now.']]);
+        }
+
+        return response()->json(['data' => new ReservationResource($reservation->fresh())]);
     }
 }
