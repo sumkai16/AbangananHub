@@ -1,4 +1,7 @@
-@extends(auth()->user()->hasRole('Admin') ? 'layouts.admin' : 'layouts.app', auth()->user()->hasRole('Admin') ? [] : ['searchBar' => false])
+@extends(
+    auth()->user()->hasRole('Admin') ? 'layouts.admin' : (auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app'),
+    auth()->user()->hasRole('Admin') || auth()->user()->usesLandlordShell() ? [] : ['searchBar' => false]
+)
 @section('title', 'Account Settings')
 @section('page-title', 'Account Settings')
 @section('content')

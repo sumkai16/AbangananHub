@@ -39,26 +39,22 @@
     }">
 
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
-                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                </svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">Units</h1>
-                <p class="text-sm text-[#64748B] mt-0.5">Full inventory of every unit on the platform, across all statuses.</p>
-            </div>
-        </div>
-        <a href="{{ route('admin.catalogue.units.export', request()->query()) }}"
-            class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    <x-page-header title="Units" subtitle="Full inventory of every unit on the platform, across all statuses.">
+        <x-slot:icon>
+            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm0 9.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
             </svg>
-            Export CSV
-        </a>
-    </div>
+        </x-slot:icon>
+        <x-slot:actions>
+            <a href="{{ route('admin.catalogue.units.export', request()->query()) }}"
+                class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Export CSV
+            </a>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Occupancy stat cards --}}
     @php
@@ -67,66 +63,40 @@
         $occupiedPct = $counts['total'] > 0 ? round($counts['occupied'] / $counts['total'] * 100) : 0;
     @endphp
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Units</span>
-                <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25z" />
-                    </svg>
-                </div>
-            </div>
-            <span class="text-2xl font-extrabold text-[#1F2937]">{{ number_format($counts['total']) }}</span>
-            <p class="text-[11px] text-[#64748B] mt-1">{{ $counts['occupancy_rate'] }}% occupied</p>
-        </div>
+        <x-stat-card label="Total Units" :value="number_format($counts['total'])" :sub="$counts['occupancy_rate'].'% occupied'">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25z" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
 
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Available</span>
-                <div class="w-8 h-8 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </div>
-            </div>
-            <span class="text-2xl font-extrabold text-[#15803D]">{{ number_format($counts['available']) }}</span>
-            <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-2.5 overflow-hidden">
-                <div class="h-full rounded-full bg-[#22C55E] transition-all duration-300" style="width: {{ $availPct }}%"></div>
-            </div>
-            <p class="text-[11px] text-[#64748B] mt-1.5">{{ $availPct }}% of total units</p>
-        </div>
+        <x-stat-card label="Available" :value="number_format($counts['available'])" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
+            :percent="$availPct" bar-color="#22C55E" :sub="$availPct.'% of total units'">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
 
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reserved</span>
-                <div class="w-8 h-8 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </div>
-            </div>
-            <span class="text-2xl font-extrabold text-[#B45309]">{{ number_format($counts['reserved']) }}</span>
-            <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-2.5 overflow-hidden">
-                <div class="h-full rounded-full bg-[#FBBF24] transition-all duration-300" style="width: {{ $reservedPct }}%"></div>
-            </div>
-            <p class="text-[11px] text-[#64748B] mt-1.5">{{ $reservedPct }}% of total units</p>
-        </div>
+        <x-stat-card label="Reserved" :value="number_format($counts['reserved'])" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)"
+            :percent="$reservedPct" bar-color="#FBBF24" :sub="$reservedPct.'% of total units'">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
 
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
-                <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                    </svg>
-                </div>
-            </div>
-            <span class="text-2xl font-extrabold text-[#DC2626]">{{ number_format($counts['occupied']) }}</span>
-            <div class="w-full h-1.5 rounded-full bg-[#E2E8F0] mt-2.5 overflow-hidden">
-                <div class="h-full rounded-full bg-[#EF4444] transition-all duration-300" style="width: {{ $occupiedPct }}%"></div>
-            </div>
-            <p class="text-[11px] text-[#64748B] mt-1.5">{{ $occupiedPct }}% occupancy rate</p>
-        </div>
+        <x-stat-card label="Occupied" :value="number_format($counts['occupied'])" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)"
+            :percent="$occupiedPct" bar-color="#EF4444" :sub="$occupiedPct.'% occupancy rate'">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
     </div>
 
     {{-- Search + filters + view toggle --}}

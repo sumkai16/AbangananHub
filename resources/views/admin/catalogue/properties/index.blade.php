@@ -34,78 +34,55 @@
     }">
 
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
-                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                </svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">Properties</h1>
-                <p class="text-sm text-[#64748B] mt-0.5">Full catalogue of every listing on the platform, across all statuses.</p>
-            </div>
-        </div>
-        <a href="{{ route('admin.catalogue.properties.export', request()->query()) }}"
-            class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    <x-page-header title="Properties" subtitle="Full catalogue of every listing on the platform, across all statuses.">
+        <x-slot:icon>
+            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
             </svg>
-            Export CSV
-        </a>
-    </div>
+        </x-slot:icon>
+        <x-slot:actions>
+            <a href="{{ route('admin.catalogue.properties.export', request()->query()) }}"
+                class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Export CSV
+            </a>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Stat cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total</span>
-                <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                    </svg>
-                </div>
-            </div>
-            <span class="text-2xl font-extrabold text-[#1F2937]">{{ number_format($counts['total']) }}</span>
-            <p class="text-[11px] text-[#64748B] mt-1">All properties</p>
-        </div>
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Approved</span>
-                <div class="w-8 h-8 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </div>
-            </div>
-            <span class="text-2xl font-extrabold text-[#15803D]">{{ number_format($counts['approved']) }}</span>
-            <p class="text-[11px] text-[#64748B] mt-1">Live to tenants</p>
-        </div>
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Pending</span>
-                <div class="w-8 h-8 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </div>
-            </div>
-            <span class="text-2xl font-extrabold text-[#B45309]">{{ number_format($counts['pending']) }}</span>
-            <p class="text-[11px] text-[#64748B] mt-1">Awaiting review</p>
-        </div>
-        <a href="{{ route('admin.catalogue.properties.index', array_merge(request()->query(), ['health' => 'no-media'])) }}"
-            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 hover:bg-[#F7FCFC] transition-colors duration-200">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Needs Attention</span>
-                <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                    </svg>
-                </div>
-            </div>
-            <span class="text-2xl font-extrabold text-[#DC2626]">{{ number_format($counts['needs_attention']) }}</span>
-            <p class="text-[11px] text-[#64748B] mt-1">Missing photos, pin, or units</p>
-        </a>
+        <x-stat-card label="Total" :value="number_format($counts['total'])" sub="All properties">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
+        <x-stat-card label="Approved" :value="number_format($counts['approved'])" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="Live to tenants">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
+        <x-stat-card label="Pending" :value="number_format($counts['pending'])" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)" sub="Awaiting review">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
+        <x-stat-card label="Needs Attention" :value="number_format($counts['needs_attention'])" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)"
+            sub="Missing photos, pin, or units"
+            :href="route('admin.catalogue.properties.index', array_merge(request()->query(), ['health' => 'no-media']))">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
     </div>
 
     {{-- Search + filters + view toggle --}}

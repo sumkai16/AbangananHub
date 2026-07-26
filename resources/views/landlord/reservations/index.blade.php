@@ -19,29 +19,24 @@
         }">
 
         {{-- Header --}}
-        <div class="flex items-start justify-between mb-5">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
-                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-[#1F2937]">Reservations</h1>
-                    <p class="text-sm text-[#64748B] mt-0.5">Manage and respond to reservation requests from tenants.</p>
-                </div>
-            </div>
-
-            {{-- Export carries the active filters and status tab --}}
-            <a href="{{ route('landlord.reservations.export', request()->only('search', 'property', 'from', 'to', 'status')) }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        <x-page-header title="Reservations" subtitle="Manage and respond to reservation requests from tenants.">
+            <x-slot:icon>
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                 </svg>
-                Export
-            </a>
-        </div>
+            </x-slot:icon>
+            <x-slot:actions>
+                {{-- Export carries the active filters and status tab --}}
+                <a href="{{ route('landlord.reservations.export', request()->only('search', 'property', 'from', 'to', 'status')) }}"
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Export
+                </a>
+            </x-slot:actions>
+        </x-page-header>
 
         @if($errors->any())
             <div class="mb-6 bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium">
@@ -55,58 +50,38 @@
             $rejectedCount = $counts['Rejected'] + $counts['Cancelled'];
         @endphp
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#1F2937]">{{ $counts['all'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">All time</p>
-            </div>
+            <x-stat-card label="Total" :value="$counts['all']" sub="All time">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">In Progress</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#2AA7A1]">{{ $inProgressCount }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">Awaiting action</p>
-            </div>
+            <x-stat-card label="In Progress" :value="$inProgressCount" value-color="#2AA7A1" sub="Awaiting action">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#15803D]">{{ $counts['Occupied'] }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">All time</p>
-            </div>
+            <x-stat-card label="Occupied" :value="$counts['Occupied']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="All time">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rejected / Cancelled</span>
-                    <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-2xl font-extrabold text-[#DC2626]">{{ $rejectedCount }}</span>
-                <p class="text-[11px] text-[#64748B] mt-1">All time</p>
-            </div>
+            <x-stat-card label="Rejected / Cancelled" :value="$rejectedCount" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)" sub="All time">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
         </div>
 
         {{-- Search + filters --}}

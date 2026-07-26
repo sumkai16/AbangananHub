@@ -28,38 +28,52 @@
 <div class="max-w-[1600px] mx-auto">
 
     {{-- Header --}}
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-            <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight">Reservations</h1>
-            <p class="text-[13.5px] text-[#64748B] mt-1">System-wide view of all reservations across all properties.</p>
-        </div>
-        <span class="text-[13px] font-semibold text-[#94A3B8]">{{ number_format($counts['all']) }} total</span>
-    </div>
+    <x-page-header title="Reservations" subtitle="System-wide view of all reservations across all properties.">
+        <x-slot:icon>
+            <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+            </svg>
+        </x-slot:icon>
+        <x-slot:actions>
+            <span class="text-[13px] font-semibold text-[#94A3B8]">{{ number_format($counts['all']) }} total</span>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Stat cards --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-            <p class="text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1">Total</p>
-            <p class="text-[28px] font-extrabold text-[#1F2937] leading-none">{{ number_format($counts['all']) }}</p>
-            <p class="text-[11px] text-[#94A3B8] mt-1">All time</p>
-        </div>
-        <div class="bg-[#22C55E]/[0.07] border border-[#22C55E]/20 rounded-2xl p-4 shadow-sm">
-            <p class="text-[11px] font-bold uppercase tracking-widest text-[#15803D] mb-1">Occupied</p>
-            <p class="text-[28px] font-extrabold text-[#15803D] leading-none">{{ number_format($counts['Occupied']) }}</p>
-            <p class="text-[11px] text-[#15803D] mt-1">Units currently rented</p>
-        </div>
-        <div class="bg-[#EEF8F8] border border-[#2AA7A1]/20 rounded-2xl p-4 shadow-sm">
-            <p class="text-[11px] font-bold uppercase tracking-widest text-[#156F8C] mb-1">In Progress</p>
-            <p class="text-[28px] font-extrabold text-[#156F8C] leading-none">
-                {{ number_format($counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed']) }}
-            </p>
-            <p class="text-[11px] text-[#156F8C] mt-1">Active pipeline</p>
-        </div>
-        <div class="bg-[#EF4444]/[0.07] border border-[#EF4444]/20 rounded-2xl p-4 shadow-sm">
-            <p class="text-[11px] font-bold uppercase tracking-widest text-[#DC2626] mb-1">Closed</p>
-            <p class="text-[28px] font-extrabold text-[#DC2626] leading-none">{{ number_format($counts['Cancelled'] + $counts['Rejected']) }}</p>
-            <p class="text-[11px] text-[#DC2626] mt-1">Cancelled + Rejected</p>
-        </div>
+        <x-stat-card label="Total" :value="number_format($counts['all'])" sub="All time">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
+
+        <x-stat-card label="Occupied" :value="number_format($counts['Occupied'])" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="Units currently rented">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
+
+        <x-stat-card label="In Progress" :value="number_format($counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'])"
+            value-color="#156F8C" icon-bg="#EEF8F8" sub="Active pipeline">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
+                    <circle cx="12" cy="12" r="9" stroke="#156F8C" stroke-width="2" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
+
+        <x-stat-card label="Closed" :value="number_format($counts['Cancelled'] + $counts['Rejected'])" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)" sub="Cancelled + Rejected">
+            <x-slot:icon>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
     </div>
 
     {{-- Search --}}

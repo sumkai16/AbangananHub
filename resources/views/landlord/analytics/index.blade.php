@@ -30,13 +30,13 @@
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
-        <div class="flex flex-wrap items-end justify-between gap-4 mb-5">
-            <div>
-                <h1 class="text-2xl font-bold text-[#1F2937]">Analytics</h1>
-                <p class="text-sm text-[#64748B] mt-1">Overview of your rental business performance.</p>
-            </div>
-
-            <div class="flex items-center gap-2">
+        <x-page-header title="Analytics" subtitle="Overview of your rental business performance.">
+            <x-slot:icon>
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+                </svg>
+            </x-slot:icon>
+            <x-slot:actions>
                 <form method="GET" action="{{ route('landlord.analytics.index') }}">
                     <label for="range" class="sr-only">Date range</label>
                     <div class="relative">
@@ -55,8 +55,8 @@
                     </svg>
                     Export Report
                 </a>
-            </div>
-        </div>
+            </x-slot:actions>
+        </x-page-header>
 
         {{-- ===== Stat cards ===== --}}
         @php
@@ -67,7 +67,7 @@
                  'icon' => 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z'],
                 ['label' => 'Occupied Units', 'value' => number_format($stats['occupied']), 'sub' => $stats['occupancyRate'] . '% occupancy rate', 'tint' => '#22C55E', 'box' => 'bg-[#22C55E]/10', 'delta' => null,
                  'icon' => 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z'],
-                ['label' => 'Revenue', 'value' => '&#8369;' . number_format($stats['revenue'], 2), 'sub' => 'Collected this period', 'tint' => '#FF8A65', 'box' => 'bg-[#FF8A65]/10', 'delta' => $stats['revenueDelta'],
+                ['label' => 'Revenue', 'value' => '₱' . number_format($stats['revenue'], 2), 'sub' => 'Collected this period', 'tint' => '#FF8A65', 'box' => 'bg-[#FF8A65]/10', 'delta' => $stats['revenueDelta'],
                  'icon' => 'M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['label' => 'Active Reservations', 'value' => number_format($stats['reservations']), 'sub' => 'Currently in progress', 'tint' => '#FBBF24', 'box' => 'bg-[#FBBF24]/10', 'delta' => $stats['reservationsDelta'],
                  'icon' => 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5'],
@@ -76,29 +76,19 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mb-4">
             @foreach($cards as $card)
-                <x-card class="!p-4">
-                    <div class="flex items-start gap-3">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 {{ $card['box'] }}">
-                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="{{ $card['tint'] }}" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $card['icon'] }}" />
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">{{ $card['label'] }}</p>
-                            <p class="text-xl font-bold text-[#1F2937] mt-0.5 truncate">{!! $card['value'] !!}</p>
-                            <p class="text-[11px] text-[#64748B] mt-0.5 truncate">{{ $card['sub'] }}</p>
-                        </div>
-                    </div>
-                    @if($card['delta'] !== null)
-                        <p class="text-[11px] font-semibold mt-2.5 flex items-center gap-1 {{ $card['delta'] >= 0 ? 'text-[#15803D]' : 'text-[#DC2626]' }}">
-                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
-                                class="{{ $card['delta'] >= 0 ? '' : 'rotate-180' }}">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-                            </svg>
-                            {{ abs($card['delta']) }}% vs previous period
-                        </p>
-                    @endif
-                </x-card>
+                @php
+                    $deltaSub = $card['delta'] !== null
+                        ? ($card['delta'] >= 0 ? '▲ ' : '▼ ') . abs($card['delta']) . '% vs previous period'
+                        : null;
+                @endphp
+                <x-stat-card :label="$card['label']" :value="$card['value']" :value-color="$card['tint']" :icon-bg="$card['tint'].'1A'"
+                    :sub="$deltaSub ?? $card['sub']">
+                    <x-slot:icon>
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $card['tint'] }}" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $card['icon'] }}" />
+                        </svg>
+                    </x-slot:icon>
+                </x-stat-card>
             @endforeach
         </div>
 

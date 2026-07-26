@@ -21,48 +21,67 @@
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
-                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">Rent &amp; Payments</h1>
-                    <p class="text-sm text-[#64748B] mt-0.5">Rent collection across every occupied unit, worst standing
-                        first.</p>
-                </div>
-            </div>
-
-            <a href="{{ route('landlord.payments.export', request()->only('property')) }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <x-page-header title="Rent & Payments" subtitle="Rent collection across every occupied unit, worst standing first.">
+            <x-slot:icon>
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
-                Export
-            </a>
-        </div>
+            </x-slot:icon>
+            <x-slot:actions>
+                <a href="{{ route('landlord.payments.export', request()->only('property')) }}"
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Export
+                </a>
+            </x-slot:actions>
+        </x-page-header>
 
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            @php
-                $stats = [
-                    ['label' => 'Collected', 'value' => '₱' . number_format($totals['collected'], 2), 'tone' => 'text-[#15803D]', 'sub' => 'All time, this portfolio'],
-                    ['label' => 'Outstanding', 'value' => '₱' . number_format($totals['outstanding'], 2), 'tone' => 'text-[#1F2937]', 'sub' => 'Unpaid rent to date'],
-                    ['label' => 'Overdue', 'value' => '₱' . number_format($totals['overdue'], 2), 'tone' => $totals['overdue'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]', 'sub' => 'Past its due date'],
-                    ['label' => 'Behind', 'value' => (string) $totals['behind'], 'tone' => $totals['behind'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]', 'sub' => 'Tenancies needing a nudge'],
-                ];
-            @endphp
-            @foreach($stats as $stat)
-                <x-card class="!p-4">
-                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide mb-2">{{ $stat['label'] }}</p>
-                    <p class="text-2xl font-extrabold {{ $stat['tone'] }}">{{ $stat['value'] }}</p>
-                    <p class="text-[11px] text-[#64748B] mt-1">{{ $stat['sub'] }}</p>
-                </x-card>
-            @endforeach
+            <x-stat-card label="Collected" :value="'₱' . number_format($totals['collected'], 2)" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
+                sub="All time, this portfolio">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="Outstanding" :value="'₱' . number_format($totals['outstanding'], 2)" value-color="#1F2937" icon-bg="#EEF8F8"
+                sub="Unpaid rent to date">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="Overdue" :value="'₱' . number_format($totals['overdue'], 2)"
+                :value-color="$totals['overdue'] > 0 ? '#DC2626' : '#1F2937'"
+                :icon-bg="$totals['overdue'] > 0 ? 'rgba(239,68,68,0.07)' : '#EEF8F8'"
+                sub="Past its due date">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $totals['overdue'] > 0 ? '#DC2626' : '#B45309' }}" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="Behind" :value="$totals['behind']"
+                :value-color="$totals['behind'] > 0 ? '#DC2626' : '#1F2937'"
+                :icon-bg="$totals['behind'] > 0 ? 'rgba(239,68,68,0.07)' : '#EEF8F8'"
+                sub="Tenancies needing a nudge">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $totals['behind'] > 0 ? '#DC2626' : '#1F2937' }}" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
         </div>
 
         {{-- Filter bar --}}

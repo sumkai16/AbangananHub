@@ -6,32 +6,52 @@
 <div class="max-w-[1600px] mx-auto">
 
     {{-- Page header --}}
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">Payment Management</h1>
-        <p class="text-sm text-[#64748B] mt-1">Manage escrow payments and releases.</p>
-    </div>
+    <x-page-header title="Payment Management" subtitle="Manage escrow payments and releases." />
 
     {{-- Stat summary --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         @php
             $stats = [
-                'Held' => ['label' => 'Held', 'value' => $counts['Held'], 'sub' => '₱'.number_format($sums['Held'], 2), 'accent' => 'text-[#B45309]', 'dot' => 'bg-[#FBBF24]'],
-                'Released' => ['label' => 'Released', 'value' => $counts['Released'], 'sub' => '₱'.number_format($sums['Released'], 2), 'accent' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]'],
-                'Paid' => ['label' => 'Recorded', 'value' => $counts['Paid'], 'sub' => '₱'.number_format($sums['Paid'], 2).' offline', 'accent' => 'text-[#156F8C]', 'dot' => 'bg-[#2AA7A1]'],
-                'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'sub' => 'processing', 'accent' => 'text-[#64748B]', 'dot' => 'bg-[#94A3B8]'],
-                'All' => ['label' => 'Total', 'value' => $counts['All'], 'sub' => 'all payments', 'accent' => 'text-[#156F8C]', 'dot' => 'bg-[#156F8C]'],
+                'Held' => ['label' => 'Held', 'value' => $counts['Held'], 'sub' => '₱'.number_format($sums['Held'], 2), 'valueColor' => '#B45309', 'iconBg' => 'rgba(251,191,36,0.10)', 'iconColor' => '#B45309'],
+                'Released' => ['label' => 'Released', 'value' => $counts['Released'], 'sub' => '₱'.number_format($sums['Released'], 2), 'valueColor' => '#15803D', 'iconBg' => 'rgba(34,197,94,0.07)', 'iconColor' => '#059669'],
+                'Paid' => ['label' => 'Recorded', 'value' => $counts['Paid'], 'sub' => '₱'.number_format($sums['Paid'], 2).' offline', 'valueColor' => '#156F8C', 'iconBg' => '#EEF8F8', 'iconColor' => '#156F8C'],
+                'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'sub' => 'processing', 'valueColor' => '#64748B', 'iconBg' => 'rgba(148,163,184,0.12)', 'iconColor' => '#64748B'],
+                'All' => ['label' => 'Total', 'value' => $counts['All'], 'sub' => 'all payments', 'valueColor' => '#156F8C', 'iconBg' => '#EEF8F8', 'iconColor' => '#156F8C'],
             ];
         @endphp
         @foreach ($stats as $key => $stat)
-            <a href="{{ route('admin.payments.index', ['status' => $key]) }}"
-                class="bg-white border border-[#E2E8F0] rounded-2xl px-4 py-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-all duration-200 hover:shadow-xl {{ $status === $key ? 'ring-2 ring-[#2AA7A1]' : '' }}">
-                <div class="flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full {{ $stat['dot'] }}"></span>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{{ $stat['label'] }}</p>
-                </div>
-                <p class="text-2xl font-bold {{ $stat['accent'] }} mt-1">{{ $stat['value'] }}</p>
-                <p class="text-[11px] text-[#94A3B8] mt-0.5 truncate">{{ $stat['sub'] }}</p>
-            </a>
+            <x-stat-card :label="$stat['label']" :value="$stat['value']" :sub="$stat['sub']" :value-color="$stat['valueColor']" :icon-bg="$stat['iconBg']"
+                :href="route('admin.payments.index', ['status' => $key])"
+                :class="$status === $key ? 'ring-2 ring-[#2AA7A1]' : ''">
+                <x-slot:icon>
+                    @switch($key)
+                        @case('Held')
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                            @break
+                        @case('Released')
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                            @break
+                        @case('Paid')
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 3.75h6M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
+                            @break
+                        @case('Pending')
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            @break
+                        @default
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M9 17V9m4 8V5m4 12v-6" />
+                            </svg>
+                    @endswitch
+                </x-slot:icon>
+            </x-stat-card>
         @endforeach
     </div>
 
