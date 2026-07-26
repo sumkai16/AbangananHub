@@ -240,6 +240,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
         // Overall ratings — platform-wide averages across the rating relationships
         Route::get('/ratings', [App\Http\Controllers\Admin\RatingController::class, 'index'])->name('ratings.index');
+
+        // Audit logs — read-only by design; audit rows are append-only.
+        Route::get('/audit-logs', [App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
     });
 
    // Conversations and messages

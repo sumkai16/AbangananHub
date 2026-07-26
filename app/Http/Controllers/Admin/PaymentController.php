@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Reservation;
@@ -139,6 +140,18 @@ class PaymentController extends Controller
                     $reservation->conversation_id,
                 );
             }
+
+            AuditLog::record(
+                'payment.release',
+                "Released held payment #{$locked->payment_id} to the landlord.",
+                $locked,
+                null,
+                [
+                    'amount'         => $locked->amount,
+                    'reservation_id' => $locked->reservation_id,
+                    'ended_lifecycle' => $reservation ? ($reservation->rental_status === 'Occupied') : false,
+                ],
+            );
         });
 
         $payment->refresh();

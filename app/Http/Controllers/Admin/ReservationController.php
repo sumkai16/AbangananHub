@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -85,11 +86,21 @@ class ReservationController extends Controller
 
             abort_if(in_array($locked->rental_status, ['Occupied', ...Reservation::TERMINAL_STATUSES], true), 409, 'This reservation cannot be cancelled at its current status.');
 
+            $previousStatus = $locked->rental_status;
+
             $locked->rental_status = 'Cancelled';
             if ($request->filled('admin_note')) {
                 $locked->remarks = '[Admin] ' . $request->admin_note;
             }
             $locked->save();
+
+            AuditLog::record(
+                'reservation.force_cancel',
+                "Force-cancelled reservation #{$locked->reservation_id}.",
+                $locked,
+                $request->input('admin_note'),
+                ['from_status' => $previousStatus, 'to_status' => 'Cancelled'],
+            );
 
             // Free the unit if it was reserved
             if ($locked->unit && in_array($locked->unit->availability_status, ['Reserved', 'Occupied'], true)) {
@@ -118,11 +129,21 @@ class ReservationController extends Controller
 
             abort_if(in_array($locked->rental_status, ['Occupied', ...Reservation::TERMINAL_STATUSES], true), 409, 'This reservation cannot be rejected at its current status.');
 
+            $previousStatus = $locked->rental_status;
+
             $locked->rental_status    = 'Rejected';
             $locked->rejection_reason = $request->filled('admin_note')
                 ? '[Admin] ' . $request->admin_note
                 : '[Admin action]';
             $locked->save();
+
+            AuditLog::record(
+                'reservation.force_reject',
+                "Force-rejected reservation #{$locked->reservation_id}.",
+                $locked,
+                $request->input('admin_note'),
+                ['from_status' => $previousStatus, 'to_status' => 'Rejected'],
+            );
 
             if ($locked->unit && $locked->unit->availability_status === 'Reserved') {
                 $otherActive = Reservation::where('unit_id', $locked->unit_id)

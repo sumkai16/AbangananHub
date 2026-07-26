@@ -336,6 +336,39 @@ Written daily by the `occupancy:snapshot` command (scheduled 23:55); feeds the o
 
 Written by `PropertyUnitObserver` whenever a unit's `availability_status` changes (any path); feeds the Recent Activities feed.
 
+### audit_logs
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| log_id | BIGINT UNSIGNED | PK | `$primaryKey = 'log_id'` |
+| actor_id | FK → users.user_id | NULLABLE | **`onDelete('set null')` — the one user FK in this schema that does NOT cascade** |
+| actor_name | VARCHAR(255) | NOT NULL | Snapshot, so the row survives the account |
+| actor_email | VARCHAR(255) | NOT NULL | Snapshot |
+| action | VARCHAR(60) | NOT NULL | `'payment.release'` — see `AuditLog::ACTION_LABELS` |
+| auditable_type | VARCHAR(255) | NULLABLE | Laravel morph; null when the target was deleted |
+| auditable_id | BIGINT UNSIGNED | NULLABLE | |
+| summary | VARCHAR(255) | NOT NULL | Human sentence, rendered verbatim |
+| reason | TEXT | NULLABLE | Rejection reason / admin note |
+| metadata | JSON | NULLABLE | Before/after values, amounts; cast to `array` |
+| ip_address | VARCHAR(45) | NULLABLE | 45 chars fits IPv6 |
+| created_at | TIMESTAMP | NULLABLE | **No `updated_at`** — `const UPDATED_AT = null` |
+
+Indexes: `created_at`, `(action, created_at)`, `(auditable_type, auditable_id)`.
+
+**Append-only.** Rows are written by `AuditLog::record()` called from inside the acting controller's
+existing `DB::transaction()` + `lockForUpdate()` block, so a rolled-back action leaves no phantom row
+and a 409 on the idempotency guard doesn't log twice (verified July 26 2026). Nothing updates or
+deletes an audit row — there is no route, controller method, or UI affordance for it, deliberately.
+
+**Why `set null` and not `cascade`:** every other FK to `users.user_id` cascades (see §Hard deletes in
+RULES.md). An audit log must not — deleting a user would erase exactly the history proving what they
+did. `actor_name`/`actor_email` are denormalized at write time so the row stays readable once the FK
+is nulled; the index view shows an "Account deleted" note when `actor_id` is null.
+
+Instrumented actions (15) live in `AuditLog::ACTION_LABELS`; the destructive subset that renders with
+a red pill is `AuditLog::DESTRUCTIVE_ACTIONS`. **When adding a new consequential admin action, add its
+key to `ACTION_LABELS` and call `AuditLog::record()` inside that action's transaction** — the filter
+dropdown reads from the same constant, so an unlisted action is invisible to the filter.
+
 ## 3. Relationships
 - users → user_roles (1:many — a user can have multiple roles)
 - users → landlord_verifications (1:many — resubmission possible after rejection)

@@ -161,10 +161,33 @@ Form submit (multipart) → Controller → `cloudinary()->uploadApi()->upload($f
 ### Unit Photos — Live Capture
 Unit create requires photos: **≥3 must be live camera captures** (anti-fraud — proves the unit is real/current), uploads are extras (≤10 total). Client-side `getUserMedia` draws frames to a canvas → `toBlob` → injected into an aggregated `photos[]` file input via `DataTransfer`, kept index-aligned with `photo_sources[]` (camera|upload) and `photo_captions[]` hidden inputs. Controller validates the alignment and the live-count, then persists `source` + `caption` per `unit_media` row. Requires HTTPS or localhost (browser constraint).
 
+### Admin Audit Trail (July 26 2026)
+15 consequential admin actions write an append-only `audit_logs` row via `AuditLog::record()`:
+force-cancel/reject a reservation, approve/reject verifications, listings and units, release a held
+payment, create/update/suspend/delete a user, change review visibility, resolve a report.
+
+**Explicit calls, not a model observer.** `OccupancyActivity` uses an observer because it tracks one
+column on one model. An audit trail needs *intent*, which a model event cannot see: the rejection
+reason, the fact that a status write was an admin override rather than the normal flow (a force-cancel
+and a tenant cancel produce an identical diff), and actions with no surviving row at all (a hard
+delete). Tradeoff accepted: a future action can forget to log. Mitigated by keeping the call adjacent
+to the `->update()` it describes and enumerating every action in `AuditLog::ACTION_LABELS`.
+
+**Writes go inside the action's existing `DB::transaction()` + `lockForUpdate()`** (see RULES.md
+§ Concurrency). That placement is what makes the trail trustworthy: a rolled-back action leaves no
+phantom entry, and a repeat submit that 409s on the idempotency guard does not log a second time —
+both verified July 26 2026. Putting the log write *after* the transaction would reintroduce exactly
+the double-fire the locks were added to prevent.
+
+Read-only surface: `Admin\AuditLogController@index` only. No store/update/destroy and no "clear logs"
+button anywhere, by design. Retention/pruning is deliberately unimplemented — see Known Tradeoffs.
+
 ## 6. Key Decisions Log
 
 | Decision | Reason | Date |
 |---|---|---|
+| Audit log actor FK is `set null`, not `cascade` | Every other user FK cascades; an audit trail that dies with the account it indicts is worthless. Denormalized name/email keep rows readable | July 26 2026 |
+| Audit writes are explicit, inside the existing transaction | Observers can't see intent (reason, admin-override, hard deletes); in-transaction placement prevents phantom rows on rollback and double-logging on a 409 | July 26 2026 |
 | Session-based auth (Breeze) over Sanctum SPA | Simpler for server-rendered Blade; Sanctum reserved for API layer | Early 2026 |
 | Reverb over Pusher | Free, self-hosted, no third-party dependency for capstone | Early 2026 |
 | Text search over Haversine radius | Cebu-scoped platform doesn't need geo-radius — address text match is sufficient | Mid 2026 |
@@ -242,6 +265,8 @@ Unit create requires photos: **≥3 must be live camera captures** (anti-fraud �
 - **No caching layer** — No Redis/Memcached. DB queries are fast enough at capstone data volumes.
 - **No rate limiting on API** — Sanctum API layer is scaffolded but not rate-limited. Non-issue until mobile app ships.
 - **Single admin** — No admin role hierarchy or permission granularity. One admin account handles everything.
+- **Audit logs grow unbounded** — no retention policy, pruning job, or archival. `audit_logs` is append-only and nothing ever deletes from it. Fine at capstone volume (a handful of admin actions a day); a production deployment would need a prune job or partitioning. Deliberately not built now: a delete path is the one thing that could undermine the trail's credibility, so it should be added as an explicit, audited operation rather than a convenience.
+- **Audit coverage is admin-only and opt-in per action** — landlord and tenant actions are not audited, and a newly added admin action logs nothing until someone adds the `AuditLog::record()` call. There is no test or static check enforcing coverage.
 - **No automated testing** — Manual testing only. Time constraint; automated tests are a post-defense improvement. The one exception is `escrow:verify`, a self-checking Artisan command covering the money paths — not a test suite, and deliberately not PHPUnit (that would need four factories and a MySQL test database, since the migrations use raw `ALTER TABLE ... MODIFY COLUMN` and SQLite in-memory cannot run them).
 - **PowerShell dev environment** — Compound artisan/tinker commands with `$` variables are unreliable; workarounds required.
 - **Escrow is simulated** — PayMongo sandbox handles payment capture, but the escrow hold-and-release logic is application-layer simulation, not a real escrow service.
