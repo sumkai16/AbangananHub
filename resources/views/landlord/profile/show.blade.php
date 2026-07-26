@@ -193,7 +193,7 @@
             </div>
 
             {{-- Reviews received --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+            <div class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 self-start">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-[15px] font-bold text-[#1F2937]">Reviews</h2>
                     @if($averageRating !== null)

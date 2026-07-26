@@ -24,7 +24,7 @@
         <div class="mb-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="min-w-0">
-                    <h1 class="text-[20px] sm:text-[22px] font-bold text-[#156F8C] truncate">
+                    <h1 class="font-heading text-[20px] sm:text-[22px] font-bold text-[#156F8C] truncate">
                         <span class="sm:hidden">{{ $greeting }}, {{ auth()->user()->first_name }}!</span>
                         <span class="hidden sm:inline">{{ $greeting }}, {{ $greetingName }}!</span>
                     </h1>
@@ -65,7 +65,7 @@
         <div class="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4 mb-6">
 
             {{-- Occupancy donut --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+            <x-card class="!p-5">
                 <p class="text-[12px] font-bold text-[#64748B] uppercase tracking-wide mb-4">Unit Status</p>
                 <div class="flex md:flex-col items-center gap-5 md:gap-4">
                     <div class="relative shrink-0">
@@ -113,69 +113,53 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </x-card>
 
             {{-- Attention tiles --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <a href="{{ route('landlord.reservations.index') }}"
-                    class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
-                    <div>
-                        <p class="text-[26px] font-extrabold text-[#1F2937] leading-none">{{ $pendingReservations }}</p>
-                        <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">Pending reservations</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0 group-hover:bg-[#EF4444] transition-colors duration-200">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="1.75"
+                <x-stat-card href="{{ route('landlord.reservations.index') }}" label="Pending reservations"
+                    :value="$pendingReservations" icon-bg="#EF444412" class="group">
+                    <x-slot:icon>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="1.75"
                             class="group-hover:stroke-white transition-colors duration-200">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                    </div>
-                </a>
+                    </x-slot:icon>
+                </x-stat-card>
 
-                <a href="{{ route('conversations.index') }}"
-                    class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
-                    <div>
-                        <p class="text-[26px] font-extrabold text-[#1F2937] leading-none">{{ $unreadMessages }}</p>
-                        <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">Unread messages</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0 group-hover:bg-[#2AA7A1] transition-colors duration-200">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.75"
+                <x-stat-card href="{{ route('conversations.index') }}" label="Unread messages"
+                    :value="$unreadMessages" icon-bg="#EEF8F8" class="group">
+                    <x-slot:icon>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.75"
                             class="group-hover:stroke-white transition-colors duration-200">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                         </svg>
-                    </div>
-                </a>
+                    </x-slot:icon>
+                </x-stat-card>
 
-                <a href="{{ route('landlord.reviews.index') }}"
-                    class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
-                    <div>
-                        <p class="text-[26px] font-extrabold text-[#1F2937] leading-none">{{ $newReviews }}</p>
-                        <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">New reviews this week</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0 group-hover:bg-[#FBBF24] transition-colors duration-200">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#92400E" stroke-width="1.75"
+                <x-stat-card href="{{ route('landlord.reviews.index') }}" label="New reviews this week"
+                    :value="$newReviews" icon-bg="#FBBF241A" class="group">
+                    <x-slot:icon>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#92400E" stroke-width="1.75"
                             class="group-hover:stroke-white transition-colors duration-200">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                         </svg>
-                    </div>
-                </a>
+                    </x-slot:icon>
+                </x-stat-card>
 
-                <a href="{{ route('landlord.complaints.index') }}"
-                    class="group bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex items-start justify-between hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.1)] transition-all duration-200">
-                    <div>
-                        <p class="text-[26px] font-extrabold text-[#1F2937] leading-none">{{ $openComplaints }}</p>
-                        <p class="text-[12.5px] text-[#64748B] mt-2 font-medium">My open complaints</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-[#22C55E]/[0.07] flex items-center justify-center shrink-0 group-hover:bg-[#22C55E] transition-colors duration-200">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#166534" stroke-width="1.75"
+                <x-stat-card href="{{ route('landlord.complaints.index') }}" label="My open complaints"
+                    :value="$openComplaints" icon-bg="#22C55E12" class="group">
+                    <x-slot:icon>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#166534" stroke-width="1.75"
                             class="group-hover:stroke-white transition-colors duration-200">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                         </svg>
-                    </div>
-                </a>
+                    </x-slot:icon>
+                </x-stat-card>
             </div>
         </div>
 
@@ -192,7 +176,7 @@
                                     d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                             </svg>
                         </div>
-                        <h2 class="text-[15px] font-bold text-[#1F2937]">Your properties</h2>
+                        <h2 class="font-heading text-[15px] font-bold text-[#1F2937]">Your properties</h2>
                     </div>
                     <a href="{{ route('landlord.properties.index') }}"
                         class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#2AA7A1] hover:text-[#156F8C] transition-colors duration-200">
@@ -204,7 +188,7 @@
                 </div>
 
                 @if($properties->isEmpty())
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-8 text-center">
+                    <x-card class="!p-8 text-center">
                         <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
                             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -221,9 +205,9 @@
                             </svg>
                             List a property
                         </a>
-                    </div>
+                    </x-card>
                 @else
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] divide-y divide-[#64748B]/10 overflow-hidden">
+                    <x-card flush class="divide-y divide-[#64748B]/10">
                         @foreach($properties->take(5) as $property)
                             @php
                                 $propTotal = max($property['total_units'], 1);
@@ -291,7 +275,7 @@
                                 and {{ $properties->count() - 5 }} more
                             </a>
                         @endif
-                    </div>
+                    </x-card>
                 @endif
             </div>
 
@@ -305,7 +289,7 @@
                                     d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                             </svg>
                         </div>
-                        <h2 class="text-[15px] font-bold text-[#1F2937]">Recent activity</h2>
+                        <h2 class="font-heading text-[15px] font-bold text-[#1F2937]">Recent activity</h2>
                     </div>
                     <a href="{{ route('landlord.reservations.index') }}"
                         class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#2AA7A1] hover:text-[#156F8C] transition-colors duration-200">
@@ -316,7 +300,7 @@
                     </a>
                 </div>
 
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+                <x-card flush>
                     @if($recentActivity->isEmpty())
                         <div class="flex flex-col items-center justify-center py-12 px-5 text-center">
                             <div class="w-11 h-11 rounded-xl bg-[#EEF8F8] flex items-center justify-center mb-3">
@@ -370,7 +354,7 @@
                             @endforeach
                         </div>
                     @endif
-                </div>
+                </x-card>
             </div>
 
         </div>
