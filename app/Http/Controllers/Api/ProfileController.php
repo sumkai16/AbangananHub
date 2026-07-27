@@ -79,4 +79,22 @@ class ProfileController extends Controller
 
         return response()->json(['message' => 'Password updated.']);
     }
+
+    /**
+     * Registers this device's Expo push token, called on login/app start.
+     * One token per user (see the migration) — a device re-registering just
+     * overwrites the previous token, so a second device silently takes over
+     * push for that account. Acceptable for now: nothing in the product
+     * distinguishes devices per user.
+     */
+    public function updatePushToken(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'expo_push_token' => ['required', 'string', 'max:255'],
+        ]);
+
+        $request->user()->update(['expo_push_token' => $validated['expo_push_token']]);
+
+        return response()->json(['message' => 'Push token registered.']);
+    }
 }

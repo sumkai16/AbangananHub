@@ -28,6 +28,7 @@ use App\Http\Controllers\Tenant\AgreementController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\PayMongoWebhookController;
 use App\Http\Controllers\Admin\ReportAnalyticsController;
+use App\Http\Controllers\Auth\WebviewLoginController;
 
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
@@ -285,4 +286,9 @@ Route::get('/properties', [PropertyController::class, 'index'])->name('propertie
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 // PayMongo webhook — no auth, CSRF excluded in bootstrap/app.php
 Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
+
+// Bridges a mobile WebView (Bearer token, no session) into a logged-in web
+// session — see Api\AuthController::webviewTicket. Outside the auth
+// middleware on purpose: the WebView has no session to require yet.
+Route::get('/auth/webview-login/{ticket}', WebviewLoginController::class)->name('auth.webviewLogin');
 require __DIR__.'/auth.php';

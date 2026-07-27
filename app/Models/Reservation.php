@@ -397,10 +397,67 @@ public ?Payment $releasedPayment = null;
         // lands just under the integer, and ProcessMoveInDeadlines compares
         // this value with a strict in_array([...], true) — silently
         // skipping a reminder. round() first, then cast.
+        return $this->wholeDaysUntil($this->move_in_deadline_at);
+    }
+
+    private function wholeDaysUntil(Carbon $at): int
+    {
+        // why: Carbon 3's diffInDays() returns a float and can carry
+        // floating-point noise — see daysUntilMoveInDeadline() above.
         return (int) round(now()->startOfDay()->diffInDays(
-            $this->move_in_deadline_at->copy()->startOfDay(),
+            $at->copy()->startOfDay(),
             false
         ));
+    }
+
+    /**
+     * The whole live-clock state in one answer, for any client that has to
+     * render a countdown.
+     *
+     * There is one deadline column and two clocks, and deciding which is
+     * running is not a lookup — it depends on turnover, on a dispute, and (for
+     * Clock 1 before the first nightly backfill) on a value that is computed
+     * rather than stored. `_move-in-clock.blade.php` derived all of that
+     * inline; the mobile client would have had to derive it again, and two
+     * clients disagreeing about which escrow clock is live is exactly the
+     * failure worth spending a method to avoid.
+     *
+     * Returns null when no clock is running — a clock exists only while money
+     * is held, which is the same condition `chat-panel.blade.php` uses to
+     * decide whether to render the partial at all.
+     */
+    public function moveInClockState(): ?array
+    {
+        if ($this->rental_status !== 'Rental Agreement Signed') {
+            return null;
+        }
+
+        // Use the eager-loaded collection when there is one: this is called
+        // per row on the reservations list, and heldPayment() would issue a
+        // query each time.
+        $held = $this->relationLoaded('payments')
+            ? $this->payments->firstWhere('status', 'Held')
+            : $this->heldPayment();
+
+        if (! $held) {
+            return null;
+        }
+
+        $onTurnoverClock = $this->isTurnoverClock();
+        $disputed = $this->move_in_disputed_at !== null;
+
+        // Within Clock 1 the computed value covers the window before the
+        // nightly backfill has written move_in_deadline_at.
+        $deadlineAt = $onTurnoverClock
+            ? ($this->move_in_deadline_at ?? $this->computeTurnoverDeadline())
+            : $this->move_in_deadline_at;
+
+        return [
+            'active_clock'   => $onTurnoverClock ? 'turnover' : 'confirmation',
+            'deadline_at'    => $deadlineAt,
+            'days_remaining' => $disputed || ! $deadlineAt ? null : $this->wholeDaysUntil($deadlineAt),
+            'disputed'       => $disputed,
+        ];
     }
 
     // ─── Relationships ───────────────────────────────────────

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Events\NotificationCreated;
+use App\Services\ExpoPushNotifier;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
@@ -77,6 +78,17 @@ class Notification extends Model
         ]);
 
         NotificationCreated::dispatch($notification);
+
+        // Push is a third side effect on the same hook the row write and the
+        // broadcast use — living anywhere else risks a creation site that
+        // gets the in-app notification but silently never pushes.
+        // Fetched fresh rather than via $notification->user: this model was
+        // just created without eager-loading, and preventLazyLoading() turns
+        // an implicit relation load into a 500 (see ARCHITECTURE.md).
+        $recipient = User::find($userId);
+        if ($recipient) {
+            app(ExpoPushNotifier::class)->send($recipient, $title, $message, $link);
+        }
 
         return $notification;
     }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\PropertyController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\Landlord\AnalyticsController as LandlordAnalyticsController;
 use App\Http\Controllers\Api\Landlord\DashboardController as LandlordDashboardController;
 use App\Http\Controllers\Api\Landlord\OccupancyController as LandlordOccupancyController;
@@ -40,6 +41,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:6,1');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+    Route::post('/webview-ticket', [AuthController::class, 'webviewTicket'])->middleware('auth:sanctum');
 
     // Mobile-ready: verifies a token a native Google/Facebook SDK produced
     // on-device and exchanges it for a Sanctum token. Unused until the
@@ -72,12 +74,19 @@ Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->group(function (
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
+    Route::patch('/profile/push-token', [ProfileController::class, 'updatePushToken']);
 
     // Conversations & messages
     Route::get('/conversations', [ConversationController::class, 'index']);
     Route::post('/conversations', [ConversationController::class, 'store']);
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show']);
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store']);
+    Route::post('/conversations/{conversation}/resolve', [ConversationController::class, 'resolve']);
+
+    // Filing a report is unscoped (either role reports a listing or a
+    // user), matching the web `reports.store` route. "My reports" is
+    // tenant-only, matching `tenant.reports.index` — see below.
+    Route::post('/reports', [ReportController::class, 'store']);
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
@@ -117,11 +126,16 @@ Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->group(function (
         Route::post('/tenant/tenancy/{reservation}/payment/reconcile', [TenantPaymentController::class, 'reconcileRent']);
 
         Route::post('/reviews', [ReviewController::class, 'store']);
+
+        Route::get('/tenant/reports', [ReportController::class, 'index']);
     });
 
     // ── Landlord ────────────────────────────────────────────
     Route::middleware('landlord')->prefix('landlord')->group(function () {
         Route::get('/dashboard', [LandlordDashboardController::class, 'index']);
+
+        Route::get('/profile/me', [LandlordProfileController::class, 'me']);
+        Route::patch('/profile/me', [LandlordProfileController::class, 'update']);
 
         Route::get('/properties', [LandlordPropertyController::class, 'index']);
         Route::get('/properties/{property}', [LandlordPropertyController::class, 'show']);

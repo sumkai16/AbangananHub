@@ -40,6 +40,13 @@ class ReservationResource extends ApiResource
             'created_at'                  => $this->attr('created_at'),
             'updated_at'                  => $this->attr('updated_at'),
 
+            // Which escrow clock is running, resolved server-side. The raw
+            // timestamps above are not enough to decide it (see
+            // Reservation::moveInClockState()), and a client re-deriving it
+            // could disagree with what the web view shows the counterparty.
+            // Null when no clock is running.
+            'move_in_clock'               => $this->resource->moveInClockState(),
+
             'property'     => new PropertyResource($this->whenLoaded('property')),
             'unit'         => new PropertyUnitResource($this->whenLoaded('unit')),
             'tenant'       => new UserResource($this->whenLoaded('tenant')),

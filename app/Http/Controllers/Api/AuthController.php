@@ -8,7 +8,9 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 
@@ -101,4 +103,28 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out.']);
     }
 
+    /**
+     * A single-use, short-lived ticket that bridges this Bearer-token
+     * session into a *session-guard* login for a WebView. The landlord KYC
+     * wizard (face-api.js liveness, OCR) stays web UI in a native shell
+     * rather than being ported — see plans/mobile-app.md — and that web UI
+     * has no idea what a Sanctum token is.
+     *
+     * The ticket itself is the credential: an unguessable 40-char random
+     * string, cached for 2 minutes, deleted the instant it's redeemed
+     * (`Api\AuthController`'s counterpart, `AuthController::webviewLogin`
+     * (web) on the other end). Single use is enforced by that deletion, not
+     * by the short TTL alone — an unexpired ticket is still replayable
+     * inside its window if it isn't also destroyed on first use.
+     */
+    public function webviewTicket(Request $request): JsonResponse
+    {
+        $ticket = Str::random(40);
+
+        Cache::put("webview_ticket:{$ticket}", $request->user()->user_id, now()->addMinutes(2));
+
+        return response()->json([
+            'url' => route('auth.webviewLogin', ['ticket' => $ticket]),
+        ]);
+    }
 }

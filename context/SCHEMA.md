@@ -52,14 +52,35 @@ Social login accounts (Google/Facebook, added July 25 2026) also get a random un
 | submitted_at | TIMESTAMP | | |
 
 ### rental_businesses
+**Corrected July 27 2026 — this table was missing four real columns
+(`description`, `logo_url`, `logo_public_id`, `contact_number`,
+`business_address`) and had the wrong name for one (`business_logo` doesn't
+exist; the real column is `logo_url`).**
+
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | business_id | BIGINT UNSIGNED | PK | `$primaryKey = 'business_id'` |
-| landlord_id | FK → users.user_id | NOT NULL | |
-| business_name | VARCHAR(255) | NOT NULL | |
-| business_logo | VARCHAR(255) | NULLABLE | Cloudinary URL |
+| landlord_id | FK → users.user_id | NOT NULL, UNIQUE | one business per landlord |
+| business_name | VARCHAR(255) | NULLABLE | made nullable July 27 2026 — see note below |
+| description | TEXT | NULLABLE | |
+| logo_url | VARCHAR(255) | NULLABLE | Cloudinary secure_url |
+| logo_public_id | VARCHAR(255) | NULLABLE | Cloudinary public_id, needed to `destroy()` the old logo on replace |
+| contact_number | VARCHAR(255) | NULLABLE | made nullable July 27 2026 |
+| business_address | VARCHAR(255) | NULLABLE | made nullable July 27 2026 |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
+
+**`business_name`, `contact_number` and `business_address` were `NOT NULL`
+with no default until `2026_07_27_000002_make_rental_businesses_columns_nullable`,**
+even though `Landlord\ProfileController@update` (and its API mirror,
+`Api\Landlord\ProfileController@update`) validate all three as `nullable`
+and only write whatever was actually submitted. A blank text input reaches
+the controller as an empty string, which `ConvertEmptyStringsToNull` turns
+into `null` before validation runs — so a landlord's **first** profile save
+crashed with `SQLSTATE[HY000] 1364` the moment any one of the three was left
+blank. Same shape as the `property_units` bug above: validation promised
+optional, the schema never agreed. Found via the mobile API's landlord
+profile probe, but it was reachable from the web form the whole time.
 
 ### properties
 **Verified against `2026_..._create_properties_table.php` July 26 2026 — the row below was wrong for
@@ -89,11 +110,11 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | unit_id | BIGINT UNSIGNED | PK | `$primaryKey = 'unit_id'` |
 | property_id | FK → properties.property_id | NOT NULL | |
 | unit_label | VARCHAR(100) | NOT NULL | e.g. "Room A", "Bed 3" — column is `unit_label`, not `unit_name` |
-| ~~unit_type~~ | — | **DOES NOT EXIST** | Verified absent July 24 2026 — see the note below the table |
-| ~~floor~~ | — | **DOES NOT EXIST** | Verified absent July 24 2026 |
+| unit_type | VARCHAR(50) | NULLABLE | Added July 27 2026 — see the note below the table |
+| floor | VARCHAR(50) | NULLABLE | Added July 27 2026 |
 | description | TEXT | NULLABLE | |
 | rental_fee | DECIMAL(10,2) | NOT NULL | |
-| ~~security_deposit~~ | — | **DOES NOT EXIST** | Verified absent July 24 2026 |
+| security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026 |
 | occupancy_limit | INT | NULLABLE | |
 | availability_status | ENUM('Available','Reserved','Occupied','Maintenance') | DEFAULT 'Available' | Maintenance added for unit form |
 | vacated_at | TIMESTAMP | NULLABLE | Occupancy tracking |
@@ -102,9 +123,11 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 
-**`unit_type`, `floor` and `security_deposit` are not columns — this table documented them for months and they were never created** (resolved July 24 2026). The cause is a **misnamed migration**: `2026_07_18_022220_add_unit_type_floor_deposit_description_to_property_units` promises all four in its filename, but its body contains a single `ALTER TABLE ... MODIFY COLUMN availability_status` adding the `Maintenance` enum member and nothing else. It is recorded in `migrations` as run (batch 1), so `migrate` reports nothing outstanding and `migrate:fresh` reproduces the gap exactly.
+**`unit_type`, `floor` and `security_deposit` were missing for months and were finally created July 27 2026** by `2026_07_27_000000_add_unit_type_floor_security_deposit_to_property_units`. The original cause was a **misnamed migration**: `2026_07_18_022220_add_unit_type_floor_deposit_description_to_property_units` promises all four in its filename, but its body contains a single `ALTER TABLE ... MODIFY COLUMN availability_status` adding the `Maintenance` enum member and nothing else. It was recorded in `migrations` as run (batch 1), so `migrate` reported nothing outstanding and `migrate:fresh` reproduced the gap exactly — which is why a *new* migration was needed rather than a re-run.
 
-Consequences, all live: `PropertyUnit::$fillable` declares all three, `Landlord\PropertyUnitController::store()/update()` validate and write them, so **creating a unit throws `SQLSTATE[42S22] Unknown column 'unit_type'`** (see ARCHITECTURE.md). Reads fail silently instead — a missing attribute returns null — so `agreements/show` has a "Security deposit" row that can never render, `OccupancyController` reports null deposits, the units CSV exports blanks, and `properties/show`'s unit payload sends `deposit: null` to the cost breakdown. Existing units came from seeders, which is why nothing looked broken.
+Until then: `PropertyUnit::$fillable` declared all three and `Landlord\PropertyUnitController::store()/update()` validated and wrote them, so **creating a unit threw `SQLSTATE[42S22] Unknown column 'unit_type'`**. Reads failed silently instead — a missing attribute returns null — so `agreements/show`'s "Security deposit" row could never render, `OccupancyController` reported null deposits, the units CSV exported blanks, and `properties/show`'s unit payload sent `deposit: null` to the cost breakdown. All of those now carry real values for units created after the fix; units that predate it (seeder rows) have NULL in the three columns, which every consumer already handles.
+
+Column sizes were taken from the validation the controllers were already enforcing (`string|max:50` ×2, `numeric|max:999999.99`), not chosen fresh.
 
 **Do not trust a migration by its filename.** This one was cross-checked against `Schema::hasColumn` before this entry was written; the previous version of this table was written from the filename alone and was wrong for months.
 
@@ -453,6 +476,9 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_vacated_at_to_property_units_table | Occupancy tracking | Track when a unit was vacated | July 2026 |
 | add_unit_type_floor_deposit_description_to_property_units | **Misnamed — adds none of those columns.** Body is one `ALTER TABLE property_units MODIFY COLUMN availability_status` adding the `Maintenance` member | Filename describes an intent that was never written; see the note under `property_units` | July 2026 |
 | add_caption_to_unit_media_table | Photo captions | Optional per-photo caption shown to tenants | July 2026 |
+| add_unit_type_floor_security_deposit_to_property_units | Actually adds the three columns the July 18 filename promised | Unit creation was throwing `SQLSTATE[42S22]`; sizes match the validation the controllers already enforced | July 27 2026 |
+| add_expo_push_token_to_users_table | Device push registration | Mobile client push notifications | July 27 2026 |
+| make_rental_businesses_columns_nullable | `business_name`/`contact_number`/`business_address` NOT NULL → nullable | Matches validation that was already `nullable`; fixes an `SQLSTATE[HY000] 1364` crash on a landlord's first profile save with any field left blank | July 27 2026 |
 | create_occupancy_snapshots_table | Daily occupancy history | Fed the occupancy trend chart; write-only since the chart's removal July 26 2026 — kept because the history can't be rebuilt later | July 2026 |
 | create_occupancy_activities_table | Unit status-change log | Feeds Recent Activities feed | July 2026 |
 | add_link_to_notifications_table | Per-notification destination URL | Notifications had no target except a conversation; every non-message type dead-ended at the index | July 2026 |

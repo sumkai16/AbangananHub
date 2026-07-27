@@ -35,6 +35,7 @@ protected $primaryKey = 'user_id';
         'created_by_landlord_id',
         'provider',
         'provider_id',
+        'expo_push_token',
     ];
 
     protected $hidden = [

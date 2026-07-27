@@ -176,4 +176,13 @@ class ConversationController extends Controller
             ]),
         ]);
     }
+
+    public function resolve(Conversation $conversation): JsonResponse
+    {
+        Gate::authorize('resolve', $conversation);
+
+        $conversation->update(['status' => 'Resolved']);
+
+        return response()->json(['data' => new ConversationResource($conversation->fresh())]);
+    }
 }

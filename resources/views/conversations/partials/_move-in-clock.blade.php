@@ -19,19 +19,16 @@
 --}}
 
 @php
-    $disputed = $reservation->move_in_disputed_at !== null;
-    $onTurnoverClock = $reservation->isTurnoverClock();
+    // Which clock, its deadline and the days left all come from
+    // Reservation::moveInClockState() so this view and the mobile client
+    // (ReservationResource's `move_in_clock`) cannot drift apart. This block
+    // used to derive all three inline.
+    $clock = $reservation->moveInClockState();
 
-    // Within Clock 1, move_in_deadline_at is Clock 1's own deadline — written
-    // by the nightly backfill, or by a confirmed handover slot. Falling back to
-    // the computed value covers the window before the first nightly run.
-    $deadlineAt = $onTurnoverClock
-        ? ($reservation->move_in_deadline_at ?? $reservation->computeTurnoverDeadline())
-        : $reservation->move_in_deadline_at;
-
-    $daysLeft = $disputed || ! $deadlineAt
-        ? null
-        : (int) round(now()->startOfDay()->diffInDays($deadlineAt->copy()->startOfDay(), false));
+    $disputed = $clock['disputed'];
+    $onTurnoverClock = $clock['active_clock'] === 'turnover';
+    $deadlineAt = $clock['deadline_at'];
+    $daysLeft = $clock['days_remaining'];
 
     $urgent = ! $disputed && $daysLeft !== null && $daysLeft <= 1;
 
