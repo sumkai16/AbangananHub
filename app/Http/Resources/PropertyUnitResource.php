@@ -28,6 +28,7 @@ class PropertyUnitResource extends ApiResource
 
             'property'             => new PropertyResource($this->whenLoaded('property')),
             'media'                => UnitMediaResource::collection($this->whenLoaded('media')),
+            'amenities'            => $this->whenLoaded('amenities'),
         ];
     }
 }

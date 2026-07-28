@@ -67,6 +67,7 @@ class PropertyController extends Controller
             'landlord.rentalBusiness',
             'units' => fn ($q) => $q->where('verification_status', 'Approved'),
             'units.media',
+            'units.amenities',
         ]);
 
         $reviews = $property->reviews()
