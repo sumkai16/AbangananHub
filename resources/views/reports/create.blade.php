@@ -1,4 +1,4 @@
-@extends('layouts.app', ['searchBar' => false])
+@extends(auth()->check() && auth()->user()->hasRole('Landlord') ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
     <div class="min-h-[calc(100vh-72px)] py-10 px-4 sm:px-6 lg:px-8">

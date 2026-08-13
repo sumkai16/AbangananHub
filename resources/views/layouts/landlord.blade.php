@@ -76,7 +76,7 @@
 
             {{-- Logo + Notification bell --}}
             @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
-            <div class="flex items-center justify-between h-[72px] border-b border-white/[0.06] shrink-0 px-5">
+            <div class="flex items-center justify-between h-[64px] border-b border-white/[0.06] shrink-0 px-5">
                 <a href="{{ route('landlord.dashboard') }}"
                     class="flex items-center gap-2.5 overflow-hidden no-underline">
                     <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shadow-sm shrink-0">

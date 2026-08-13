@@ -1,7 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
-    <div class="min-h-screen py-12">
+    <div class="min-h-screen pt-6 pb-8">
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
 
             <div

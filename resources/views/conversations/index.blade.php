@@ -1,22 +1,22 @@
 @extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
-    <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
+    <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
         {{-- Header --}}
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-[#E2E8F0] bg-gradient-to-r from-white via-[#F7FCFC] to-[#F4F9FB] p-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)]">
             <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1F2937] to-[#0F172A] shadow-[0_10px_20px_rgba(15,23,42,0.18)]">
                     <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">
+                    <h1 class="text-2xl font-bold tracking-tight text-[#1F2937]">
                         {{ $isLandlord ? 'Inquiries / Messages' : 'Messages' }}
                     </h1>
-                    <p class="text-[13px] text-[#64748B] mt-0.5">
+                    <p class="mt-0.5 text-[13px] text-[#64748B]">
                         {{ $isLandlord ? 'View and respond to inquiries from tenants.' : 'Manage your active inquiries and conversation threads.' }}
                     </p>
                 </div>
@@ -25,7 +25,7 @@
             @if($isLandlord && $landlordProperties->isNotEmpty())
                 <div class="relative" x-data="{ filterOpen: false }">
                     <button @click="filterOpen = !filterOpen" type="button"
-                        class="flex items-center gap-2 h-10 px-4 rounded-xl border border-[#64748B]/25 bg-white text-[13px] font-medium text-[#1F2937] hover:bg-[#F7FCFC] transition focus:outline-none">
+                        class="flex h-10 items-center gap-2 rounded-xl border border-[#CBD5E1] bg-white px-4 text-[13px] font-medium text-[#1F2937] shadow-[0_6px_18px_rgba(15,23,42,0.04)] transition hover:border-[#2AA7A1]/50 hover:bg-[#F7FCFC] focus:outline-none">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
@@ -38,14 +38,14 @@
                     <div x-show="filterOpen" @click.away="filterOpen = false" x-cloak
                         x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95"
                         x-transition:enter-end="opacity-100 scale-100"
-                        class="absolute right-0 top-[calc(100%+6px)] w-[240px] bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] ring-1 ring-[#64748B]/10 py-1 z-50">
+                        class="absolute right-0 top-[calc(100%+6px)] z-50 w-[240px] rounded-2xl border border-[#E2E8F0] bg-white py-1 shadow-[0_20px_45px_rgba(15,23,42,0.12)]">
                         <a href="{{ route('conversations.index', array_filter(['status' => $status !== 'all' ? $status : null])) }}"
-                            class="block px-4 py-2 text-[13px] font-medium text-[#1F2937] hover:bg-[#F7FCFC] transition {{ !$propertyId ? 'bg-[#EEF8F8]' : '' }}">
+                            class="block px-4 py-2.5 text-[13px] font-medium text-[#1F2937] transition hover:bg-[#F7FCFC] {{ !$propertyId ? 'bg-[#EEF8F8]' : '' }}">
                             All Properties
                         </a>
                         @foreach($landlordProperties as $prop)
                             <a href="{{ route('conversations.index', array_filter(['status' => $status !== 'all' ? $status : null, 'property_id' => $prop->property_id])) }}"
-                                class="block px-4 py-2 text-[13px] font-medium text-[#1F2937] hover:bg-[#F7FCFC] transition truncate {{ $propertyId == $prop->property_id ? 'bg-[#EEF8F8]' : '' }}">
+                                class="block truncate px-4 py-2.5 text-[13px] font-medium text-[#1F2937] transition hover:bg-[#F7FCFC] {{ $propertyId == $prop->property_id ? 'bg-[#EEF8F8]' : '' }}">
                                 {{ $prop->title }}
                             </a>
                         @endforeach
@@ -55,7 +55,7 @@
         </div>
 
         {{-- Split panel --}}
-        <div class="flex bg-white ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] rounded-2xl overflow-hidden"
+        <div class="flex overflow-hidden rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06)]"
             style="height: calc(100vh - 170px); min-height: 500px;">
 
             {{-- LEFT: Conversation list --}}
@@ -63,7 +63,7 @@
                 :class="activeId ? 'hidden lg:flex' : 'flex'">
 
                 {{-- Tabs --}}
-                <div class="flex items-center gap-0.5 px-2 bg-[#F7FCFC] border-b border-[#64748B]/10 flex-shrink-0">
+                <div class="flex flex-shrink-0 items-center gap-0.5 border-b border-[#E2E8F0] bg-[#F8FAFC] px-2 pb-1 pt-2">
                     @php
                         $tabs = [
                             'all' => ['label' => 'Active', 'count' => $activeCount],
@@ -74,8 +74,8 @@
                     @endphp
                     @foreach ($tabs as $key => $tab)
                                 <a href="{{ route('conversations.index', array_filter(['status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
-                                    class="flex-1 text-center py-2.5 text-[12px] font-semibold border-b-2 transition-colors
-                                        {{ $status === $key ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                                    class="flex-1 rounded-t-xl border-b-2 py-2.5 text-center text-[12px] font-semibold transition-all
+                                        {{ $status === $key ? 'border-[#2AA7A1] bg-white text-[#1F2937] shadow-[0_-2px_0_rgba(42,167,161,0.1)]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
                                     {{ $tab['label'] }}
                                     @if($tab['count'] > 0)
                                         <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $tab['count'] }}</span>
@@ -85,11 +85,11 @@
                 </div>
 
                 {{-- Search --}}
-                <div class="px-3 py-2.5 border-b border-[#64748B]/10 flex-shrink-0">
+                <div class="flex-shrink-0 border-b border-[#E2E8F0] bg-[#F8FAFC] px-3 py-3">
                     <form method="GET" action="{{ route('conversations.index') }}" class="relative">
                         <input type="hidden" name="status" value="{{ $status }}">
                         @if($propertyId)<input type="hidden" name="property_id" value="{{ $propertyId }}">@endif
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#94A3B8] pointer-events-none"
+                        <svg class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#94A3B8]"
                             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -97,7 +97,7 @@
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Search by person or property..." aria-label="Search by person or property"
                             x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                            class="w-full pl-8 pr-3 py-2 text-[12px] text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-lg focus:outline-none focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/20 transition placeholder-[#94A3B8]" />
+                            class="w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-8 pr-3 text-[12px] text-[#1F2937] placeholder-[#94A3B8] shadow-[0_4px_10px_rgba(15,23,42,0.02)] transition focus:border-[#2AA7A1] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20" />
                     </form>
                 </div>
 
@@ -131,29 +131,29 @@
                         @endphp
 
                         <button type="button" @click="loadConversation({{ $conversation->conversation_id }})"
-                            class="w-full text-left px-4 py-3.5 border-b border-[#64748B]/10 hover:bg-[#F7FCFC] transition-colors flex items-start gap-3 group"
-                            :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#EEF8F8] border-l-2 border-l-[#2AA7A1]' : 'border-l-2 border-l-transparent'"
+                            class="group flex w-full items-start gap-3 border-b border-[#E2E8F0] px-4 py-3.5 text-left transition-all duration-200 hover:bg-[#F8FAFC]"
+                            :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#EEF8F8] shadow-[inset_2px_0_0_#2AA7A1]' : 'bg-white'"
                             data-conversation-id="{{ $conversation->conversation_id }}">
 
                             <div
-                                class="w-10 h-10 rounded-full bg-[#EEF8F8] text-[#156F8C] flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                                class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#DBF6F4] to-[#C7F0EF] text-[11px] font-bold text-[#156F8C] shadow-[0_8px_18px_rgba(42,167,161,0.12)]">
                                 {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
                             </div>
 
-                            <div class="flex-1 min-w-0">
+                            <div class="min-w-0 flex-1">
                                 <div class="flex items-baseline justify-between gap-2">
-                                    <h3 class="text-[13px] font-bold text-[#1F2937] truncate">
+                                    <h3 class="truncate text-[13px] font-bold text-[#1F2937]">
                                         {{ $otherParty->first_name }} {{ $otherParty->last_name }}
                                     </h3>
-                                    <span class="text-[10px] text-[#64748B] flex-shrink-0 whitespace-nowrap">
+                                    <span class="shrink-0 whitespace-nowrap text-[10px] text-[#64748B]">
                                         {{ $conversation->latestMessage ? $conversation->latestMessage->sent_at->diffForHumans(null, true) : '' }}
                                     </span>
                                 </div>
                                 <p data-preview
-                                    class="text-[12px] text-[#64748B] truncate mt-0.5 {{ $hasUnread ? 'font-semibold text-[#1F2937]' : '' }}">
+                                    class="mt-0.5 truncate text-[12px] {{ $hasUnread ? 'font-semibold text-[#1F2937]' : 'text-[#64748B]' }}">
                                     {{ $conversation->latestMessage->message ?? 'No messages yet' }}
                                 </p>
-                                <p class="text-[11px] text-[#64748B] truncate mt-0.5 flex items-center gap-1">
+                                <p class="mt-1 flex items-center gap-1 truncate text-[11px] text-[#64748B]">
                                     <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -166,7 +166,7 @@
                                 @if($rowStatus)
                                     <div class="mt-1.5">
                                         <span data-stage-pill="{{ $rowStatus }}"
-                                            class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full {{ $rowTerminal ? 'bg-[#E2E8F0] text-[#EF4444]' : 'bg-[#EEF8F8] text-[#156F8C]' }}">
+                                            class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold {{ $rowTerminal ? 'bg-[#E2E8F0] text-[#EF4444]' : 'bg-[#EEF8F8] text-[#156F8C]' }}">
                                             {{ $rowLabel }}
                                         </span>
                                     </div>
@@ -174,25 +174,25 @@
                             </div>
 
                             @if($hasUnread)
-                                <div data-unread-dot class="w-2.5 h-2.5 rounded-full bg-[#2AA7A1] flex-shrink-0 mt-2"></div>
+                                <div data-unread-dot class="mt-2 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#2AA7A1] shadow-[0_0_0_3px_rgba(42,167,161,0.15)]"></div>
                             @endif
                         </button>
                     @empty
                         <div class="px-4 py-12 text-center">
-                            <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
-                                <svg class="w-6 h-6 text-[#156F8C]" fill="none" stroke="currentColor"
+                            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(42,167,161,0.12)]">
+                                <svg class="h-6 w-6 text-[#156F8C]" fill="none" stroke="currentColor"
                                     stroke-width="1.5" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                 </svg>
                             </div>
                             <p class="text-[13px] font-bold text-[#1F2937]">No conversations yet</p>
-                            <p class="text-[12px] text-[#64748B] mt-1 max-w-[220px] mx-auto">
+                            <p class="mx-auto mt-1 max-w-[220px] text-[12px] leading-5 text-[#64748B]">
                                 {{ $isLandlord ? 'Inquiries from tenants will appear here.' : 'When you send inquiries, your conversations will appear here.' }}
                             </p>
                             @if(!$isLandlord)
                                 <a href="{{ route('properties.index') }}"
-                                    class="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-[12.5px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all">
+                                    class="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#2AA7A1] px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_10px_20px_rgba(42,167,161,0.25)] transition hover:brightness-95">
                                     Browse properties
                                 </a>
                             @endif
@@ -221,16 +221,16 @@
                     All conversations
                 </button>
                 {{-- Empty state --}}
-                <div x-show="!activeId" class="flex-1 flex items-center justify-center">
+                <div x-show="!activeId" class="flex flex-1 items-center justify-center bg-gradient-to-br from-[#F8FBFC] via-white to-[#F5FBFB]">
                     <div class="text-center">
-                        <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
-                            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
+                        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[22px] bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(42,167,161,0.12)]">
+                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
                         </div>
                         <p class="text-[14px] font-bold text-[#1F2937]">Select a conversation</p>
-                        <p class="text-[12px] text-[#64748B] mt-1">Choose from your conversations on the left to start
+                        <p class="mt-1 text-[12px] leading-5 text-[#64748B]">Choose from your conversations on the left to start
                             messaging.</p>
                     </div>
                 </div>

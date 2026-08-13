@@ -243,14 +243,95 @@
                     </div>
                 @endforelse
 
+                <div class="mt-4 rounded-2xl border border-[#E2E8F0] bg-gradient-to-br from-[#F7FBFC] via-white to-[#EEF8F8] p-4 shadow-[0_6px_18px_rgba(21,111,140,0.05)]">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75A2.25 2.25 0 016 4.5h12a2.25 2.25 0 012.25 2.25v9A2.25 2.25 0 0118 18h-2.25l-3.75 3.75L8.25 18H6A2.25 2.25 0 013.75 15.75v-9z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#156F8C]">Landlord snapshot</h3>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div class="rounded-xl bg-white p-2.5 ring-1 ring-[#64748B]/10">
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-[#64748B]">Properties</p>
+                            <p class="mt-1 text-lg font-extrabold text-[#1F2937]">{{ $properties->count() }}</p>
+                        </div>
+                        <div class="rounded-xl bg-white p-2.5 ring-1 ring-[#64748B]/10">
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-[#64748B]">Avg rating</p>
+                            <p class="mt-1 text-lg font-extrabold text-[#1F2937]">{{ $averageRating !== null ? number_format($averageRating, 1) : '—' }}</p>
+                        </div>
+                    </div>
+
+                    @if($isOwner)
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <a href="{{ route('landlord.properties.index') }}" class="inline-flex items-center justify-center px-3 py-2 rounded-full bg-[#156F8C] text-white text-[12px] font-semibold hover:bg-[#125d7a] transition-all">
+                                Manage properties
+                            </a>
+                            <a href="{{ route('landlord.reviews.index') }}" class="inline-flex items-center justify-center px-3 py-2 rounded-full bg-white ring-1 ring-[#64748B]/15 text-[#1F2937] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-all">
+                                View reviews
+                            </a>
+                        </div>
+                    @else
+                        <p class="mt-3 text-[12px] text-[#64748B] leading-relaxed">Looking for a closer look at this landlord? Start a conversation to ask about availability, move-in dates, or property details.</p>
+                    @endif
+                </div>
+
                 @if($isOwner && $ratingCount > 4)
-                    <a href="{{ route('landlord.reviews.index') }}" class="flex items-center gap-1.5 text-[12.5px] font-semibold text-[#156F8C] hover:underline mt-2">
+                    <a href="{{ route('landlord.reviews.index') }}" class="flex items-center gap-1.5 text-[12.5px] font-semibold text-[#156F8C] hover:underline mt-3">
                         View all {{ $ratingCount }} reviews
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
                     </a>
                 @endif
+            </div>
+        </div>
+
+        <div class="mt-6 rounded-[28px] border border-[#E2E8F0] bg-gradient-to-br from-[#F8FBFC] via-white to-[#EEF8F8] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#156F8C]">Why tenants choose this landlord</p>
+                    <h3 class="mt-2 text-[22px] font-bold text-[#1F2937] leading-tight">A dependable place to live, with a smoother move-in experience.</h3>
+                </div>
+                @if(!$isOwner)
+                    <a href="{{ route('conversations.store') }}?landlord_id={{ $user->user_id }}" class="inline-flex items-center justify-center px-5 py-3 rounded-full bg-[#156F8C] text-white text-[13px] font-semibold hover:bg-[#125d7a] transition-all">
+                        Message this landlord
+                    </a>
+                @endif
+            </div>
+
+            <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="rounded-2xl bg-white p-4 ring-1 ring-[#E2E8F0] shadow-[0_1px_4px_rgba(15,23,42,0.04)]">
+                    <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center mb-3">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <p class="text-[13px] font-bold text-[#1F2937]">Verified landlord</p>
+                    <p class="mt-1 text-[12px] text-[#64748B] leading-relaxed">Identity and business details are checked for stronger trust and transparency.</p>
+                </div>
+
+                <div class="rounded-2xl bg-white p-4 ring-1 ring-[#E2E8F0] shadow-[0_1px_4px_rgba(15,23,42,0.04)]">
+                    <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center mb-3">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 .972-.616 1.816-1.5 2.097-1.333.43-3.17.713-5.25.713s-3.917-.283-5.25-.713A2.363 2.363 0 013.75 15.894v-4.286c0-.969.616-1.813 1.5-2.097m15.5 0v-1.586A2.25 2.25 0 0018.5 4.5H5.5A2.25 2.25 0 003.25 6.925v1.586M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                        </svg>
+                    </div>
+                    <p class="text-[13px] font-bold text-[#1F2937]">Fast communication</p>
+                    <p class="mt-1 text-[12px] text-[#64748B] leading-relaxed">Quick responses help tenants secure rooms and understand listing details faster.</p>
+                </div>
+
+                <div class="rounded-2xl bg-white p-4 ring-1 ring-[#E2E8F0] shadow-[0_1px_4px_rgba(15,23,42,0.04)]">
+                    <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center mb-3">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m4-2a8 8 0 11-16 0 8 8 0 0116 0z" />
+                        </svg>
+                    </div>
+                    <p class="text-[13px] font-bold text-[#1F2937]">Responsive support</p>
+                    <p class="mt-1 text-[12px] text-[#64748B] leading-relaxed">A clear listing history and helpful landlord profile make decisions easier for renters.</p>
+                </div>
             </div>
         </div>
 

@@ -29,7 +29,7 @@
         class="bg-white border-b border-[#E2E8F0] sticky top-0 z-[100] transition-all duration-300">
 
         {{-- 1. Nav Row --}}
-        <div class="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-[72px] relative">
+        <div class="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-[64px] relative">
 
             {{-- Logo --}}
             <a href="{{ route('properties.index') }}"
@@ -389,9 +389,9 @@
         @if(($searchBar ?? true) && !View::hasSection('hide_search'))
 
             <div id="header-search-expanded" class="transition-all duration-300 overflow-hidden"
-                style="max-height: 200px; opacity: 1;">
+                style="max-height: 80px; opacity: 1;">
 
-                <div class="flex justify-center pb-4 pt-1 px-4 sm:px-6">
+                <div class="flex justify-center pb-2 pt-0 px-4 sm:px-6">
                     <x-search-pill variant="header" />
                 </div>
 
