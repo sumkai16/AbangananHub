@@ -1017,7 +1017,7 @@
                         <div class="min-h-full flex items-center justify-center p-6">
                             <div x-on:click.outside="inquireOpen = false" role="dialog" aria-modal="true"
                                 aria-labelledby="inquire-modal-title"
-                                class="w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden"
+                                class="w-full max-w-lg rounded-2xl bg-white shadow-xl"
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 scale-95 motion-reduce:scale-100"
                                 x-transition:leave="transition ease-in duration-150"

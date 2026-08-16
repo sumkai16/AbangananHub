@@ -22,8 +22,13 @@ class PayoutController extends Controller
             fn ($q) => $q->where('landlord_id', $landlordId)
         )->with(['reservation.tenant', 'reservation.property:property_id,title', 'reservation.unit:unit_id,unit_label']);
 
+        // Rent payments never get `released_at` (only the escrowed Initial
+        // payment does — see Reservation::release()), so ordering by that
+        // column alone leaves rent rows NULL and unsorted relative to each
+        // other, out of step with the "Settled" column the view actually
+        // displays (released_at ?? paid_at).
         $pending = (clone $query)->where('payout_status', 'Pending Payout')
-            ->latest('released_at')
+            ->orderByRaw('COALESCE(released_at, paid_at) DESC')
             ->get();
 
         $paidOutTotal = (clone $query)->where('payout_status', 'Paid Out')->sum('amount');

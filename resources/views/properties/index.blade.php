@@ -21,11 +21,15 @@
          its own bottom edge off screen. min-h (not h) so a short laptop or a
          landscape phone grows the section instead of clipping the search pill. --}}
     <section
-        class="relative overflow-hidden bg-gradient-to-br from-[#156F8C] via-[#1F2937] to-[#156F8C] {{ $heroExpanded ? 'min-h-[calc(100vh-72px)] flex items-center py-16' : 'py-7' }}">
+        class="relative z-20 bg-gradient-to-br from-[#156F8C] via-[#1F2937] to-[#156F8C] {{ $heroExpanded ? 'min-h-[calc(100vh-72px)] flex items-center py-16' : 'py-7' }}">
 
-        {{-- Depth only: a single aqua bloom off the top-right corner. --}}
-        <div class="pointer-events-none absolute -top-32 -right-24 w-[520px] h-[520px] rounded-full bg-[#69D2C6]/10 blur-3xl"
-            aria-hidden="true"></div>
+        {{-- Depth only: a single aqua bloom off the top-right corner. Clipped to its
+             own wrapper (not the section) so the section's overflow stays visible —
+             a section-level overflow-hidden would clip the search pill's open
+             dropdown panel whenever the collapsed band is shorter than the panel. --}}
+        <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+            <div class="absolute -top-32 -right-24 w-[520px] h-[520px] rounded-full bg-[#69D2C6]/10 blur-3xl"></div>
+        </div>
 
         <div class="relative w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -46,7 +50,7 @@
                 <h1 class="sr-only">Browse properties</h1>
             @endif
 
-            <div class="{{ $heroExpanded ? 'mt-9' : '' }}">
+            <div class="flex justify-center {{ $heroExpanded ? 'mt-9' : '' }}">
                 <x-search-pill variant="hero" />
             </div>
 

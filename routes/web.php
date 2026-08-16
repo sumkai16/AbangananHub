@@ -88,6 +88,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/reservations/{reservation}/pay', [PaymentController::class, 'createCheckoutSession'])->name('payments.checkout');
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
         Route::post('/reservations/{reservation}/confirm-move-in', [AgreementController::class, 'confirmMoveIn'])->name('agreements.confirmMoveIn');
+        // confirmMoveIn is a state-changing POST-only action, but a reload/bookmark/
+        // back-forward navigation to this URL lands here as GET — send it to the
+        // agreement page instead of surfacing a raw 405.
+        Route::get('/reservations/{reservation}/confirm-move-in', fn (\App\Models\Reservation $reservation) => redirect()->route('agreements.show', $reservation));
         Route::post('/reservations/{reservation}/dispute-move-in', [AgreementController::class, 'disputeMoveIn'])->name('agreements.disputeMoveIn');
 
         // A tenant's own tenancy and rent ledger — read-only except for the
