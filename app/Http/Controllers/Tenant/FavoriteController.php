@@ -29,8 +29,13 @@ class FavoriteController extends Controller
             $favoritesQuery->whereHas('property', fn($q) => $q->where('property_type', $type));
         }
 
-        if ($availability) {
-            $favoritesQuery->whereHas('property', fn($q) => $q->where('availability_status', $availability));
+        // availability_status lives on property_units, not properties — "available"
+        // means the property has at least one available unit, same definition
+        // PropertyController::index uses for the public browse filter.
+        if ($availability === 'Available') {
+            $favoritesQuery->whereHas('property.units', fn($q) => $q->where('availability_status', 'Available'));
+        } elseif ($availability === 'Unavailable') {
+            $favoritesQuery->whereDoesntHave('property.units', fn($q) => $q->where('availability_status', 'Available'));
         }
 
         $favorites = $favoritesQuery->get();

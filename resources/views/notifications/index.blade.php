@@ -1,10 +1,10 @@
 @php
     $searchBar = false;
 @endphp
-@extends('layouts.app')
+@extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app')
 
 @section('content')
-<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[calc(100vh-72px)]">
+<div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[calc(100vh-72px)]">
 
     {{-- Header --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -51,7 +51,7 @@
     </div>
 
     @if($notifications->isEmpty())
-        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-10 text-center">
+        <x-card flush class="p-10 text-center">
             <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
@@ -63,9 +63,9 @@
             <p class="text-[13px] text-[#64748B] mt-1">
                 {{ $tab === 'unread' ? 'All notifications have been read.' : 'When you get updates, they\'ll show up here.' }}
             </p>
-        </div>
+        </x-card>
     @else
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-0 bg-white ring-1 ring-[#64748B]/10 rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(15,23,42,0.05)] min-h-[500px]">
+        <x-card flush class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-0 min-h-[500px]">
 
             {{-- LEFT: Notification list --}}
             <div class="{{ $selected ? 'hidden' : 'flex' }} lg:flex border-r border-[#E2E8F0] flex-col divide-y divide-[#E2E8F0] overflow-y-auto max-h-[700px]">
@@ -298,7 +298,7 @@
                 @endif
             </div>
 
-        </div>
+        </x-card>
 
         @if($notifications->hasPages())
             <div class="mt-5 flex justify-center">{{ $notifications->links() }}</div>

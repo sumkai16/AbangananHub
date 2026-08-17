@@ -39,7 +39,7 @@
 
             {{-- Live preview sidebar --}}
             <aside class="lg:sticky lg:top-24 h-fit flex flex-col gap-4">
-                <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-6 text-center">
+                <x-card flush class="p-6 text-center">
                     <div id="sidebar-avatar" class="mx-auto mb-4">
                         @if($user->profile_picture)
                             <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="w-20 h-20 rounded-2xl object-cover mx-auto ring-4 ring-[#EEF8F8]">
@@ -69,7 +69,7 @@
                             <p class="text-[11px] text-[#64748B] mt-0.5">Saved</p>
                         </div>
                     </div>
-                </div>
+                </x-card>
 
                 {{-- Privacy note --}}
                 <div class="rounded-2xl bg-[#EEF8F8] p-5">
@@ -92,7 +92,7 @@
                     @method('PATCH')
 
                     {{-- Photo --}}
-                    <div class="rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] bg-white p-6 sm:p-8 mb-5">
+                    <x-card flush class="p-6 sm:p-8 mb-5">
                         <div class="flex items-center gap-3 mb-5">
                             <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
@@ -122,12 +122,15 @@
                                 </label>
                                 <input type="file" name="profile_picture" id="profile_picture" class="hidden" accept="image/*">
                                 <p class="text-[11px] text-[#64748B] mt-1.5">JPG, PNG. Max 2MB. Cropped to square.</p>
+                                @error('profile_picture')
+                                    <p class="text-[11px] text-[#EF4444] mt-1.5 font-medium">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
-                    </div>
+                    </x-card>
 
                     {{-- Personal info --}}
-                    <div class="rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] bg-white p-6 sm:p-8 mb-5">
+                    <x-card flush class="p-6 sm:p-8 mb-5">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
@@ -143,12 +146,18 @@
                                 <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $user->first_name) }}" required
                                     class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                                            focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15">
+                                @error('first_name')
+                                    <p class="text-[11px] text-[#EF4444] mt-1.5 font-medium">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label for="last_name" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">Last name</label>
                                 <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $user->last_name) }}" required
                                     class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                                            focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15">
+                                @error('last_name')
+                                    <p class="text-[11px] text-[#EF4444] mt-1.5 font-medium">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -158,6 +167,9 @@
                                 placeholder="09171234567"
                                 class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
                                        focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
+                            @error('contact_number')
+                                <p class="text-[11px] text-[#EF4444] mt-1.5 font-medium">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -167,11 +179,14 @@
                                 class="w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 py-2.5 text-sm text-[#1F2937] outline-none transition resize-none
                                        focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">{{ old('bio', $user->bio) }}</textarea>
                             <p class="text-[11px] text-[#64748B] mt-1.5 text-right"><span x-text="bio">0</span>/1000</p>
+                            @error('bio')
+                                <p class="text-[11px] text-[#EF4444] mt-1.5 font-medium">{{ $message }}</p>
+                            @enderror
                         </div>
-                    </div>
+                    </x-card>
 
                     {{-- Account (read-only email) --}}
-                    <div class="rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] bg-white p-6 sm:p-8 mb-6">
+                    <x-card flush class="p-6 sm:p-8 mb-6">
                         <div class="flex items-center gap-3 mb-5">
                             <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                                 <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
@@ -184,7 +199,7 @@
                         <input type="email" id="email" value="{{ $user->email }}" disabled
                             class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-3.5 text-sm text-[#64748B] cursor-not-allowed">
                         <p class="text-[11px] text-[#64748B] mt-1.5">Email can be changed in <a href="{{ route('profile.edit') }}" class="text-[#156F8C] font-semibold hover:underline">Account Settings</a>.</p>
-                    </div>
+                    </x-card>
 
                     {{-- Submit --}}
                     <div class="flex items-center justify-end gap-3">
