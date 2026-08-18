@@ -25,7 +25,7 @@
 
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#2AA7A1] focus:text-white focus:font-semibold">Skip to main content</a>
 
-    <header id="site-header"
+    <header id="site-header" x-data="{ mobileNavOpen: false, mobileAreasOpen: false }"
         class="bg-white border-b border-[#E2E8F0] sticky top-0 z-[100] transition-all duration-300">
 
         {{-- 1. Nav Row --}}
@@ -131,6 +131,20 @@
 
             {{-- Right Actions --}}
             <div class="flex items-center gap-3">
+
+                {{-- Mobile nav toggle — this header has no `lg:flex` primary nav
+                     below `lg` (see the comment above), so this is the only way a
+                     phone visitor reaches Browse/Areas/How it works. --}}
+                <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Menu"
+                    :aria-expanded="mobileNavOpen ? 'true' : 'false'" aria-haspopup="true" aria-controls="mobile-nav-panel"
+                    :class="mobileNavOpen ? 'bg-[#EEF8F8] text-[#156F8C]' : 'text-[#64748B] hover:bg-[#F7FCFC]'"
+                    class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2AA7A1]/40 cursor-pointer">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path x-show="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        <path x-show="mobileNavOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
                 @auth
 
                     {{-- Become a Landlord / My Listings / Admin Actions --}}
@@ -402,6 +416,87 @@
             </div>{{-- /#header-search-expanded --}}
 
         @endif
+
+        {{-- 3. Mobile nav panel — the `lg:hidden` counterpart to the primary
+             nav at the top of this file, which is `hidden` below `lg`. Same
+             transition timing as the Areas/Avatar dropdowns above it, so it
+             reads as one design system rather than a bolted-on menu. --}}
+        <div x-show="mobileNavOpen" x-cloak id="mobile-nav-panel" @click.outside="mobileNavOpen = false"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-1"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="lg:hidden border-t border-[#E2E8F0] bg-white px-4 py-3">
+
+            <a href="{{ route('properties.index') }}" @click="mobileNavOpen = false"
+                @if($onBrowse) aria-current="page" @endif
+                class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold {{ $onBrowse ? 'text-[#156F8C] bg-[#EEF8F8]' : 'text-[#1F2937] hover:bg-[#F7FCFC]' }}">
+                Browse
+            </a>
+
+            @if($navAreas->isNotEmpty())
+                <button type="button" @click="mobileAreasOpen = !mobileAreasOpen"
+                    :aria-expanded="mobileAreasOpen ? 'true' : 'false'"
+                    class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#1F2937] hover:bg-[#F7FCFC] cursor-pointer">
+                    Areas
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        class="transition-transform duration-200 motion-reduce:transition-none" :class="mobileAreasOpen && 'rotate-180'" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="mobileAreasOpen" x-cloak
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-100"
+                    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                    class="pl-3.5">
+                    @foreach($navAreas as $area => $count)
+                        <a href="{{ route('properties.index', ['location' => $area]) }}" @click="mobileNavOpen = false"
+                            class="flex items-center justify-between gap-3 px-3.5 py-2 text-[13.5px] font-semibold text-[#1F2937] hover:bg-[#EEF8F8] rounded-xl transition-colors">
+                            <span class="truncate">{{ $area }}</span>
+                            <span class="text-[12px] font-bold text-[#64748B] flex-shrink-0">{{ $count }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+
+            <a href="{{ route('about') }}#how-it-works" @click="mobileNavOpen = false"
+                class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#1F2937] hover:bg-[#F7FCFC]">
+                How it works
+            </a>
+
+            @auth
+                <div class="h-px bg-[#E2E8F0] my-2"></div>
+
+                @if(auth()->user()->hasRole('Landlord') && !auth()->user()->hasRole('Admin'))
+                    <a href="{{ route('landlord.properties.index') }}" @click="mobileNavOpen = false"
+                        class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#156F8C] bg-[#EEF8F8] hover:brightness-95">
+                        Landlord Dashboard
+                    </a>
+                @elseif(auth()->user()->hasRole('Admin'))
+                    @php
+                        $mobileAdminLinks = [
+                            ['route' => \Illuminate\Support\Facades\Route::has('admin.listings.approval') ? route('admin.listings.approval') : '#', 'label' => 'Listing Approval'],
+                            ['route' => route('admin.verifications.index'), 'label' => 'Verification Requests'],
+                            ['route' => route('admin.users.index'), 'label' => 'Manage Users'],
+                        ];
+                    @endphp
+                    @foreach($mobileAdminLinks as $link)
+                        <a href="{{ $link['route'] }}" @click="mobileNavOpen = false"
+                            class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#156F8C] bg-[#EEF8F8] hover:brightness-95 {{ !$loop->first ? 'mt-1.5' : '' }}">
+                            {{ $link['label'] }}
+                        </a>
+                    @endforeach
+                @else
+                    <a href="{{ route('landlord.verification.create') }}" @click="mobileNavOpen = false"
+                        class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#156F8C] bg-[#EEF8F8] hover:brightness-95">
+                        Become a Landlord
+                    </a>
+                @endif
+            @endauth
+        </div>
 
     </header>
 

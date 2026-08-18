@@ -86,7 +86,7 @@
         </div>
 
         {{-- Table --}}
-        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] overflow-hidden flex-1 flex flex-col">
+        <x-card flush class="flex-1 flex flex-col">
             @if($reservations->isEmpty())
                 <div class="flex-1 flex flex-col items-center justify-center py-16 px-6 text-center">
                     <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
@@ -251,7 +251,7 @@
                 </table>
                 </div>
             @endif
-        </div>
+        </x-card>
 
         @if($reservations->hasPages())
             <div class="mt-5">

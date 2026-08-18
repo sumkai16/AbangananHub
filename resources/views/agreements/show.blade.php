@@ -379,7 +379,7 @@
 
                                     <template x-teleport="body">
                                         <div x-show="show" x-cloak
-                                             class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                                             class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm"
                                              x-transition:enter="transition ease-out duration-300"
                                              x-transition:enter-start="opacity-0"
                                              x-transition:leave="transition ease-in duration-200"

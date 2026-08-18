@@ -1,7 +1,7 @@
-@extends('layouts.app', ['searchBar' => false])
+@extends(auth()->user()->usesLandlordShell() ? 'layouts.landlord' : 'layouts.app', ['searchBar' => false])
 
 @section('content')
-<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-16 min-h-[calc(100vh-72px)]">
+<div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-16 min-h-[calc(100vh-72px)]">
 
     {{-- HEADER --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -19,8 +19,8 @@
     </div>
 
     {{-- Search & Filter Bar --}}
-    <form method="GET" action="{{ route('favorites.index') }}"
-        class="flex flex-col sm:flex-row gap-3 mb-8 p-4 bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)]">
+    <x-card flush class="mb-8">
+    <form method="GET" action="{{ route('favorites.index') }}" class="flex flex-col sm:flex-row gap-3 p-4">
         <div class="relative flex-1">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8] pointer-events-none"
                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -48,6 +48,7 @@
             </a>
         @endif
     </form>
+    </x-card>
 
     @if($favorites->count() > 0)
 
@@ -143,7 +144,7 @@
         </div>
 
     @else
-        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] py-16 px-8 text-center">
+        <x-card flush class="py-16 px-8 text-center">
             <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-4">
                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -155,7 +156,7 @@
                 class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all shadow-sm">
                 Browse properties
             </a>
-        </div>
+        </x-card>
     @endif
 
 </div>

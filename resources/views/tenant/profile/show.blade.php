@@ -32,7 +32,7 @@
         {{-- Stats row --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {{-- Rating as a tenant — what landlords rated this tenant. --}}
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            <x-card flush class="p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rating as tenant</span>
                     <div class="w-7 h-7 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
@@ -48,8 +48,8 @@
                     <span class="text-xl font-extrabold text-[#94A3B8]">—</span>
                     <span class="text-[12px] text-[#64748B] font-normal ml-1">No ratings yet</span>
                 @endif
-            </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            </x-card>
+            <x-card flush class="p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Saved</span>
                     <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -60,8 +60,8 @@
                 </div>
                 <span class="text-xl font-extrabold text-[#1F2937]">{{ $favoritesCount }}</span>
                 <span class="text-[12px] text-[#64748B] font-normal ml-1">{{ Str::plural('listing', $favoritesCount) }}</span>
-            </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            </x-card>
+            <x-card flush class="p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reviews</span>
                     <div class="w-7 h-7 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
@@ -72,8 +72,8 @@
                 </div>
                 <span class="text-xl font-extrabold text-[#1F2937]">{{ $reviews->count() }}</span>
                 <span class="text-[12px] text-[#64748B] font-normal ml-1">written</span>
-            </div>
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-4">
+            </x-card>
+            <x-card flush class="p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reservations</span>
                     <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -84,14 +84,14 @@
                 </div>
                 <span class="text-xl font-extrabold text-[#1F2937]">{{ $activeReservations->count() }}</span>
                 <span class="text-[12px] text-[#64748B] font-normal ml-1">active</span>
-            </div>
+            </x-card>
         </div>
 
         {{-- Two-column: Reservations + Reviews --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {{-- Active reservations --}}
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+            <x-card flush class="p-5">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-9 h-9 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
@@ -149,10 +149,10 @@
                         </a>
                     </div>
                 @endforelse
-            </div>
+            </x-card>
 
             {{-- Recent reviews --}}
-            <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] p-5">
+            <x-card flush class="p-5">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-9 h-9 rounded-xl bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B">
@@ -196,7 +196,7 @@
                         <p class="text-[11.5px] text-[#64748B]/80 mt-1">Reviews appear here once you've completed a stay.</p>
                     </div>
                 @endforelse
-            </div>
+            </x-card>
         </div>
 
     </div>
