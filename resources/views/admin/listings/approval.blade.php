@@ -105,9 +105,10 @@
                     <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-start gap-4">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-3 flex-wrap">
-                                <h3 class="text-[16px] font-bold text-[#1F2937] leading-snug">
+                                <a href="{{ route('admin.catalogue.properties.show', $property) }}"
+                                    class="text-[16px] font-bold text-[#1F2937] leading-snug hover:text-[#156F8C] transition-colors">
                                     {{ $property->title }}
-                                </h3>
+                                </a>
                                 <div class="flex items-center gap-1.5 shrink-0">
                                     <x-verification-status-badge :status="$property->verification_status" />
                                     @if ($property->publication_status !== 'Published')
@@ -141,6 +142,14 @@
                         {{-- Actions --}}
                         @if ($property->verification_status === 'Pending')
                             <div class="flex sm:flex-col gap-2 sm:items-stretch shrink-0 sm:w-[130px]">
+                                <a href="{{ route('admin.catalogue.properties.show', $property) }}"
+                                    class="flex-1 sm:flex-none w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl border border-[#64748B]/30 text-[#1F2937] text-[13px] font-bold hover:bg-[#EEF8F8] transition-colors duration-200">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Review
+                                </a>
                                 <form method="POST" action="{{ route('admin.listings.approve', $property->property_id) }}" class="flex-1 sm:flex-none">
                                     @csrf
                                     <button type="submit"

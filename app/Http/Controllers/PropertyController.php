@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Landlord\StorePropertyRequest;
 use App\Http\Requests\Landlord\UpdatePropertyRequest;
 use App\Models\Amenity;
 use App\Models\Favorite;
@@ -105,57 +104,18 @@ class PropertyController extends Controller
         return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited'));
     }
 
-    public function create()
-    {
-        $amenities = Amenity::forProperty()->orderBy('category')->orderBy('amenity_name')->get();
-
-        return view('landlord.properties.create', compact('amenities'));
-    }
-
-    public function store(StorePropertyRequest $request)
-    {
-        $validated = $request->validated();
-
-        $property = null;
-
-        DB::transaction(function () use ($validated, $request, &$property) {
-            $property = new Property();
-            $property->landlord_id         = Auth::user()->user_id;
-            $property->title               = $validated['title'];
-            $property->description         = $validated['description'];
-            $property->property_type       = $validated['property_type'];
-            $property->address             = $validated['address'];
-            $property->city_municipality   = $validated['city_municipality'];
-            $property->barangay            = $validated['barangay'] ?? null;
-            $property->latitude            = $validated['latitude'];
-            $property->longitude           = $validated['longitude'];
-            $property->verification_status = 'Pending';
-            $property->save();
-
-            $property->amenities()->sync($validated['amenities'] ?? []);
-
-            foreach ($request->file('photos') as $photo) {
-                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/properties',
-                    'resource_type' => 'image',
-                ]);
-                $property->media()->create([
-                    'media_type'           => 'Image',
-                    'media_url'            => $result['secure_url'],
-                    'cloudinary_public_id' => $result['public_id'],
-                ]);
-            }
-        });
-
-        return redirect()
-            ->route('landlord.properties.units.index', $property)
-            ->with('success', 'Property listed! Add units below — they\'re needed before the listing goes live.');
-    }
-
     public function edit(Property $property)
     {
         if ($property->landlord_id !== Auth::user()->user_id) {
             abort(403, 'Unauthorized access.');
+        }
+
+        // A Draft isn't submitted yet — it's edited through the wizard it
+        // was created in, not this single-page form (which assumes a
+        // property that already has everything the form doesn't collect,
+        // like units and documents).
+        if ($property->isDraft()) {
+            return redirect()->route('properties.wizard.resume', $property);
         }
 
         $property->load('media', 'amenities');

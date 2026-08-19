@@ -103,6 +103,35 @@ class Property extends Model
         return $this->publication_status === 'Suspended';
     }
 
+    public function isDraft(): bool
+    {
+        return $this->publication_status === 'Draft';
+    }
+
+    /**
+     * Which wizard step an in-progress Draft should resume at, derived from
+     * what the row actually has rather than a stored pointer — a stored
+     * `current_step` column would drift the moment something is edited
+     * outside the wizard. A property row only exists once Location (step 2)
+     * is saved, so that step is never a resume target.
+     */
+    public function resumeWizardStep(): string
+    {
+        if ($this->amenities()->count() === 0) {
+            return 'amenities';
+        }
+
+        if ($this->documents()->count() === 0) {
+            return 'documents';
+        }
+
+        if ($this->units()->count() === 0) {
+            return 'units';
+        }
+
+        return 'review';
+    }
+
     /**
      * The public "Verified Property" badge's single source of truth — a
      * property is only badge-worthy once a document actually backs it, not
@@ -135,6 +164,18 @@ class Property extends Model
     public function scopeApproved($query)
     {
         return $query->where('verification_status', 'Approved');
+    }
+
+    /**
+     * Excludes in-progress wizard Drafts. Every admin-facing query over all
+     * properties (the approval queue and its counts, the catalogue) must
+     * route through this rather than hand-checking publication_status, so a
+     * half-built listing never surfaces where an admin would mistake it for
+     * something actually awaiting review.
+     */
+    public function scopeSubmitted($query)
+    {
+        return $query->where('publication_status', '!=', 'Draft');
     }
 
     /**

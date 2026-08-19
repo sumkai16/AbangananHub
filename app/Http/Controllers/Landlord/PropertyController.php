@@ -37,7 +37,10 @@ class PropertyController extends Controller
         }
 
         if ($status = $request->input('status')) {
-            $query->where('verification_status', $status);
+            // A Draft's verification_status is 'Pending' by default (the
+            // column default, not a real submission) — filtering the
+            // Pending bucket must not pull unsubmitted drafts into it.
+            $query->where('verification_status', $status)->submitted();
         }
 
         if ($type = $request->input('type')) {

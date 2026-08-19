@@ -30,7 +30,8 @@ class PropertyUnitController extends Controller
     {
         $this->authorizeProperty($property);
         $amenities = Amenity::orderBy('amenity_name')->get();
-        return view('landlord.units.create', compact('property', 'amenities'));
+        $fromWizard = request()->query('from') === 'wizard';
+        return view('landlord.units.create', compact('property', 'amenities', 'fromWizard'));
     }
 
     public function store(Request $request, Property $property)
@@ -41,6 +42,9 @@ class PropertyUnitController extends Controller
             'unit_label'          => 'required|string|max:100',
             'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
+            'bedrooms'            => 'nullable|integer|min:0|max:20',
+            'bathrooms'           => 'nullable|integer|min:0|max:20',
+            'is_furnished'        => 'nullable|boolean',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             'security_deposit'    => 'nullable|numeric|min:0|max:999999.99',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
@@ -79,6 +83,9 @@ class PropertyUnitController extends Controller
                 'unit_label'          => $validated['unit_label'],
                 'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
+                'bedrooms'            => $validated['bedrooms'] ?? null,
+                'bathrooms'           => $validated['bathrooms'] ?? null,
+                'is_furnished'        => $request->has('is_furnished') ? $validated['is_furnished'] : null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],
@@ -117,8 +124,11 @@ class PropertyUnitController extends Controller
             }
         });
 
-        return redirect()
-            ->route('landlord.properties.units.index', $property)
+        return redirect(
+                $request->input('from') === 'wizard'
+                    ? route('properties.wizard.units', $property)
+                    : route('landlord.properties.units.index', $property)
+            )
             ->with('success', 'Unit submitted for admin review.');
     }
 
@@ -132,7 +142,8 @@ class PropertyUnitController extends Controller
 
         $unit->load('media', 'amenities');
         $amenities = Amenity::orderBy('amenity_name')->get();
-        return view('landlord.units.edit', compact('property', 'unit', 'amenities'));
+        $fromWizard = request()->query('from') === 'wizard';
+        return view('landlord.units.edit', compact('property', 'unit', 'amenities', 'fromWizard'));
     }
 
     public function update(Request $request, Property $property, PropertyUnit $unit)
@@ -147,6 +158,9 @@ class PropertyUnitController extends Controller
             'unit_label'          => 'required|string|max:100',
             'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
+            'bedrooms'            => 'nullable|integer|min:0|max:20',
+            'bathrooms'           => 'nullable|integer|min:0|max:20',
+            'is_furnished'        => 'nullable|boolean',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             'security_deposit'    => 'nullable|numeric|min:0|max:999999.99',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
@@ -176,6 +190,9 @@ class PropertyUnitController extends Controller
                 'unit_label'          => $validated['unit_label'],
                 'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
+                'bedrooms'            => $validated['bedrooms'] ?? null,
+                'bathrooms'           => $validated['bathrooms'] ?? null,
+                'is_furnished'        => $request->has('is_furnished') ? $validated['is_furnished'] : null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],
@@ -213,8 +230,11 @@ class PropertyUnitController extends Controller
             }
         });
 
-        return redirect()
-            ->route('landlord.properties.units.index', $property)
+        return redirect(
+                $request->input('from') === 'wizard'
+                    ? route('properties.wizard.units', $property)
+                    : route('landlord.properties.units.index', $property)
+            )
             ->with('success', $materialChanged ? 'Unit updated and resubmitted for review.' : 'Unit updated.');
     }
 

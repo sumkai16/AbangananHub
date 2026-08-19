@@ -63,7 +63,7 @@
         @endphp
 
         <form method="POST" action="{{ route('landlord.properties.units.update', [$property, $unit]) }}"
-            enctype="multipart/form-data"
+            enctype="multipart/form-data" x-on:submit="submitting = true"
             x-data="{
                 unitLabel: @js(old('unit_label', $unit->unit_label)),
                 capacity: @js(old('occupancy_limit', $unit->occupancy_limit)),
@@ -74,10 +74,14 @@
                 statusMeta: @js($statusMeta),
                 unitType: @js($unit->unit_type ?? ''),
                 floor: @js($unit->floor ?? ''),
+                submitting: false,
                 peso(v) { return (v === '' || v === null || isNaN(v)) ? null : '₱' + Number(v).toLocaleString('en-PH', { maximumFractionDigits: 2 }); },
             }">
             @csrf
             @method('PUT')
+            @if($fromWizard ?? false)
+                <input type="hidden" name="from" value="wizard">
+            @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
@@ -118,11 +122,59 @@
 
                         <div class="grid sm:grid-cols-2 gap-4 mb-4">
                             <div>
+                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Unit Type</label>
+                                <x-styled-select name="unit_type" x-model="unitType"
+                                    :options="array_combine(['Bedspace', 'Room', 'Apartment', 'Studio', 'Dormitory'], ['Bedspace', 'Room', 'Apartment', 'Studio', 'Dormitory'])"
+                                    :selected="old('unit_type', $unit->unit_type ?? '')" placeholder="Select type"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3 text-[13.5px] text-[#1F2937] bg-white" />
+                            </div>
+                            <div>
+                                <label for="floor" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Floor</label>
+                                <input type="text" id="floor" name="floor" x-model="floor" maxlength="50" placeholder="e.g. 1st Floor"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                            </div>
+                        </div>
+
+                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label for="bedrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bedrooms</label>
+                                <input type="number" id="bedrooms" name="bedrooms" value="{{ old('bedrooms', $unit->bedrooms) }}" min="0" max="20"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                            </div>
+                            <div>
+                                <label for="bathrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bathrooms</label>
+                                <input type="number" id="bathrooms" name="bathrooms" value="{{ old('bathrooms', $unit->bathrooms) }}" min="0" max="20"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                            </div>
+                            <div>
+                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Furnished?</label>
+                                @php $furnishedOld = old('is_furnished', $unit->is_furnished === null ? null : (int) $unit->is_furnished); @endphp
+                                <div class="flex items-center gap-4 h-11">
+                                    <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
+                                        <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                        Yes
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
+                                        <input type="radio" name="is_furnished" value="0" @checked((string) $furnishedOld === '0') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                        No
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                            <div>
                                 <label for="rental_fee" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
                                     Monthly Rent (₱) <span class="text-[#EF4444]">*</span>
                                 </label>
                                 <input type="number" id="rental_fee" name="rental_fee" x-model="rentalFee" required
                                     min="500" max="999999.99" step="0.01" placeholder="e.g. 3500"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                            </div>
+                            <div>
+                                <label for="security_deposit" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Security Deposit (₱)</label>
+                                <input type="number" id="security_deposit" name="security_deposit" value="{{ old('security_deposit', $unit->security_deposit) }}" min="0"
+                                    max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                             </div>
                         </div>
@@ -155,6 +207,13 @@
                                     </label>
                                 @endforeach
                             </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label for="description" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Description</label>
+                            <textarea id="description" name="description" rows="3" maxlength="300"
+                                placeholder="Add any note or description about this unit..."
+                                class="w-full rounded-xl border border-[#64748B]/30 px-3.5 py-2.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition resize-none">{{ old('description', $unit->description) }}</textarea>
                         </div>
                     </div>
 
@@ -209,13 +268,17 @@
 
                     {{-- Actions --}}
                     <div class="flex items-center gap-3">
-                        <a href="{{ route('landlord.properties.units.index', $property) }}"
+                        <a href="{{ ($fromWizard ?? false) ? route('properties.wizard.units', $property) : route('landlord.properties.units.index', $property) }}"
                             class="h-11 px-6 inline-flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#1F2937] text-sm font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
                             Cancel
                         </a>
-                        <button type="submit"
-                            class="h-11 px-6 inline-flex items-center justify-center rounded-full bg-[#1F2937] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200">
-                            Save Changes
+                        <button type="submit" :disabled="submitting"
+                            class="h-11 px-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#1F2937] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 disabled:opacity-70 disabled:cursor-wait">
+                            <svg x-show="submitting" x-cloak class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span x-text="submitting ? 'Saving…' : 'Save Changes'"></span>
                         </button>
                     </div>
                 </div>

@@ -15,7 +15,7 @@ class PropertyCatalogueController extends Controller
      */
     private function filteredQuery(Request $request)
     {
-        $query = Property::query();
+        $query = Property::query()->submitted();
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {

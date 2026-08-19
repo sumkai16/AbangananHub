@@ -31,6 +31,7 @@ class ListingController extends Controller
         }
 
         $query = Property::with(['landlord', 'media', 'units'])
+            ->submitted()
             ->when($status === 'Suspended', fn ($q) => $q->where('publication_status', 'Suspended'))
             ->when(! in_array($status, ['All', 'Suspended'], true), fn ($q) => $q->where('verification_status', $status));
 
@@ -39,12 +40,12 @@ class ListingController extends Controller
             : $query->latest()->paginate(15)->withQueryString();
 
         $counts = [
-            'Pending' => Property::where('verification_status', 'Pending')->count(),
-            'Approved' => Property::where('verification_status', 'Approved')->count(),
-            'Rejected' => Property::where('verification_status', 'Rejected')->count(),
+            'Pending' => Property::submitted()->where('verification_status', 'Pending')->count(),
+            'Approved' => Property::submitted()->where('verification_status', 'Approved')->count(),
+            'Rejected' => Property::submitted()->where('verification_status', 'Rejected')->count(),
             'Suspended' => Property::where('publication_status', 'Suspended')->count(),
         ];
-        $counts['All'] = Property::count();
+        $counts['All'] = Property::submitted()->count();
 
         return view('admin.listings.approval', compact('pendingListings', 'status', 'counts'));
     }

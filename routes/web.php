@@ -12,6 +12,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\Landlord\PropertyUnitController;
 use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
+use App\Http\Controllers\Landlord\PropertyWizardController;
 use App\Http\Controllers\Landlord\PropertyDocumentController as LandlordPropertyDocumentController;
 use App\Http\Controllers\Admin\PropertyUnitController as AdminPropertyUnitController;
 use App\Http\Controllers\Admin\PropertyDocumentController as AdminPropertyDocumentController;
@@ -71,10 +72,30 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
     // Landlord-only routes (property create/edit/delete — no prefix, uses /properties URIs)
     Route::middleware('landlord')->group(function () {
-        Route::resource('properties', PropertyController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('properties', PropertyController::class)->only(['edit', 'update', 'destroy']);
         Route::delete('/properties/{property}/media/{media}', [PropertyController::class, 'destroyMedia'])->name('properties.media.destroy');
         Route::post('/properties/{property}/publish', [PropertyController::class, 'publish'])->name('properties.publish');
         Route::post('/properties/{property}/unpublish', [PropertyController::class, 'unpublish'])->name('properties.unpublish');
+
+        // Property creation wizard — Info -> Location -> Amenities -> Documents -> Units -> Review.
+        // A real Draft row is created once Location (step 2) is saved; steps
+        // 3-6 operate on that row. See plans/property-creation-wizard.md.
+        Route::get('/properties/create', [PropertyWizardController::class, 'createInfo'])->name('properties.create');
+        Route::post('/properties/wizard/info', [PropertyWizardController::class, 'storeInfo'])->name('properties.wizard.info.store');
+        Route::get('/properties/wizard/location', [PropertyWizardController::class, 'createLocation'])->name('properties.wizard.location.create');
+        Route::post('/properties/wizard/location', [PropertyWizardController::class, 'storeLocation'])->name('properties.wizard.location.store');
+
+        Route::get('/properties/{property}/wizard', [PropertyWizardController::class, 'resume'])->name('properties.wizard.resume');
+        Route::get('/properties/{property}/wizard/info', [PropertyWizardController::class, 'editInfo'])->name('properties.wizard.info.edit');
+        Route::put('/properties/{property}/wizard/info', [PropertyWizardController::class, 'updateInfo'])->name('properties.wizard.info.update');
+        Route::get('/properties/{property}/wizard/location', [PropertyWizardController::class, 'editLocation'])->name('properties.wizard.location.edit');
+        Route::put('/properties/{property}/wizard/location', [PropertyWizardController::class, 'updateLocation'])->name('properties.wizard.location.update');
+        Route::get('/properties/{property}/wizard/amenities', [PropertyWizardController::class, 'amenities'])->name('properties.wizard.amenities');
+        Route::post('/properties/{property}/wizard/amenities', [PropertyWizardController::class, 'storeAmenities'])->name('properties.wizard.amenities.store');
+        Route::get('/properties/{property}/wizard/documents', [PropertyWizardController::class, 'documents'])->name('properties.wizard.documents');
+        Route::get('/properties/{property}/wizard/units', [PropertyWizardController::class, 'units'])->name('properties.wizard.units');
+        Route::get('/properties/{property}/wizard/review', [PropertyWizardController::class, 'review'])->name('properties.wizard.review');
+        Route::post('/properties/{property}/wizard/submit', [PropertyWizardController::class, 'submit'])->name('properties.wizard.submit');
     });
 
     // Tenant-accessible routes
