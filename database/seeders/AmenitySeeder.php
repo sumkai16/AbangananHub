@@ -9,53 +9,63 @@ class AmenitySeeder extends Seeder
 {
     public function run(): void
     {
+        // category => [amenity_name => scope]. 'both' shows on both the
+        // property and unit forms. Keyed on amenity_name (already UNIQUE) via
+        // updateOrCreate below, so re-seeding never shifts an amenity_id and
+        // orphans the unit_amenities/property_amenities pivot rows.
         $amenities = [
-            // Connectivity & power
-            'Wi-Fi',
-            'Air Conditioning',
-            'Electric Fan',
-            'Backup Generator',
-            'Submeter (Electricity)',
-            'Submeter (Water)',
-
-            // Kitchen & laundry
-            'Shared Kitchen',
-            'Private Kitchen',
-            'Refrigerator',
-            'Microwave',
-            'Water Dispenser',
-            'Washing Machine',
-            'Laundry Area',
-
-            // Bath & comfort
-            'Private Bathroom',
-            'Shared Bathroom',
-            'Hot Shower',
-            'Bed Included',
-            'Study Table',
-            'Wardrobe / Cabinet',
-
-            // Building & access
-            'Elevator',
-            'Parking Space',
-            'Motorcycle Parking',
-            'CCTV',
-            '24/7 Security',
-            'Gated Entrance',
-            'Balcony',
-            'Rooftop Access',
-
-            // Rules & extras
-            'Pet Friendly',
-            'Curfew',
-            'Visitors Allowed',
-            'Near Public Transport',
-            'Near School / University',
-            'Near Market / Grocery',
+            'Connectivity & power' => [
+                'Wi-Fi'                  => 'both',
+                'Air Conditioning'       => 'unit',
+                'Electric Fan'           => 'unit',
+                'Backup Generator'       => 'property',
+                'Submeter (Electricity)' => 'unit',
+                'Submeter (Water)'       => 'unit',
+            ],
+            'Kitchen & laundry' => [
+                'Shared Kitchen'    => 'property',
+                'Private Kitchen'   => 'unit',
+                'Refrigerator'      => 'unit',
+                'Microwave'         => 'unit',
+                'Water Dispenser'   => 'property',
+                'Washing Machine'   => 'property',
+                'Laundry Area'      => 'property',
+            ],
+            'Bath & comfort' => [
+                'Private Bathroom'    => 'unit',
+                'Shared Bathroom'     => 'unit',
+                'Hot Shower'          => 'unit',
+                'Bed Included'        => 'unit',
+                'Study Table'         => 'unit',
+                'Wardrobe / Cabinet'  => 'unit',
+            ],
+            'Building & access' => [
+                'Elevator'            => 'property',
+                'Parking Space'       => 'property',
+                'Motorcycle Parking'  => 'property',
+                'CCTV'                => 'property',
+                '24/7 Security'       => 'property',
+                'Gated Entrance'      => 'property',
+                'Balcony'             => 'unit',
+                'Rooftop Access'      => 'property',
+            ],
+            'Rules & extras' => [
+                'Pet Friendly'              => 'property',
+                'Curfew'                    => 'property',
+                'Visitors Allowed'          => 'property',
+                'Near Public Transport'     => 'property',
+                'Near School / University'  => 'property',
+                'Near Market / Grocery'     => 'property',
+            ],
         ];
 
-        foreach ($amenities as $name) {
-            Amenity::firstOrCreate(['amenity_name' => $name]);
+        foreach ($amenities as $category => $items) {
+            foreach ($items as $name => $scope) {
+                Amenity::updateOrCreate(
+                    ['amenity_name' => $name],
+                    ['scope' => $scope, 'category' => $category],
+                );
+            }
         }
     }
 }

@@ -31,7 +31,7 @@ This is a discovery/scope doc, not an approved implementation plan yet.
 
 ## New scope items (added 2026-08-19, on top of the doc)
 
-### A. Cebu-wide location validation on property creation
+### A. Cebu-wide location validation on property creation — **planned & implemented Aug 2026**, see `plans/cebu-validation-occupancy-amenities.md`
 - Property location (used in both `store()` and `update()` in `PropertyController`) must be
   validated as within Cebu — not just Cebu City, all of Cebu (province-wide: cities/municipalities
   across mainland Cebu + islands like Mactan/Lapu-Lapu, Bantayan, Camotes, etc.).
@@ -41,17 +41,19 @@ This is a discovery/scope doc, not an approved implementation plan yet.
 - Needs a decision on validation method (bounding box vs. reverse geocoding vs. dropdown of Cebu
   cities/municipalities) before implementation.
 
-### B. Occupant count validation against selected unit (walk-in tenant flow)
+### B. Occupant count validation against selected unit (walk-in tenant flow) — **planned & implemented Aug 2026**, see `plans/cebu-validation-occupancy-amenities.md`
 - `StoreWalkInTenantRequest::rules()` validates `occupants_count` as `integer|min:1|max:20`,
   independent of which unit was selected.
-- `property_units.occupancy_limit` (nullable INT) already exists in schema and is meant to cap
-  this per-unit but is never checked here.
+- **Correction (Aug 2026): `property_units.occupancy_limit` is `NOT NULL`, not nullable** — it's
+  `required|integer|min:1|max:100` on every unit create/update. The note below was wrong; the fix
+  needed no null-guard on the unit side.
 - Fix: validate `occupants_count <= unit.occupancy_limit` when the unit has a limit set (rule
   needs access to the selected `unit_id`'s `occupancy_limit`, e.g. a closure rule or
   `after()` hook in the FormRequest). Same fix likely needed wherever else occupants_count is
-  set (e.g. the platform inquiry/reservation pipeline, if it also collects this) — needs check.
+  set (e.g. the platform inquiry/reservation pipeline, if it also collects this) — checked:
+  `StoreReservationRequest` doesn't collect `occupants_count` at all, so nothing to fix there.
 
-### C. Property-level amenities at creation
+### C. Property-level amenities at creation — **planned & implemented Aug 2026**, see `plans/cebu-validation-occupancy-amenities.md`
 - Add an amenities step/field to property creation (and edit), writing to `property_amenities`
   (which currently exists but is dead — 0 rows, nothing writes to it per `SCHEMA.md`).
 - Needs decision on whether property amenities remain a separate concept from unit amenities (per

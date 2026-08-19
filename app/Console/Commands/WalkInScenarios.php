@@ -182,9 +182,10 @@ class WalkInScenarios extends Command
             'title'               => '[walkin-fixture] '.$o['first'].' '.$o['last'],
             'description'         => 'Fixture property for walk-in testing.',
             'property_type'       => 'Apartment',
-            'address'             => 'Fixture Address, Butuan City',
-            'latitude'            => 8.9475,
-            'longitude'           => 125.5406,
+            'address'             => 'Fixture Address, Lahug, Cebu City, Cebu',
+            'city_municipality'   => 'Cebu City',
+            'latitude'            => 10.3280,
+            'longitude'           => 123.8980,
             'verification_status' => 'Approved',
         ]);
 

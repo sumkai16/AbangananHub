@@ -94,7 +94,7 @@
                         <div id="location-picker-map-wrapper" class="relative rounded-2xl overflow-hidden border @error('latitude') border-[#EF4444]/35 @elseif ($errors->has('longitude')) border-[#EF4444]/35 @else border-[#E2E8F0] @enderror">
                             <div id="location-picker-map" class="h-[240px] w-full"></div>
                             <div id="location-picker-hint" class="absolute top-3 left-3 z-[1000] bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-[12px] font-bold text-[#156F8C] shadow-sm pointer-events-none">
-                                Tap the map to pin your location
+                                Tap the map to pin your location — Cebu only
                             </div>
                         </div>
                         <div id="location-picker-placeholder" class="hidden h-[240px] w-full rounded-2xl border border-dashed border-[#E2E8F0] bg-[#F7FCFC] items-center justify-center text-[12px] font-medium text-[#94A3B8] text-center px-4">
@@ -104,6 +104,7 @@
                             <p id="location-picker-address-line" class="text-[12px] text-[#64748B] truncate">Address will appear here after pinning.</p>
                             <p id="location-picker-latlng" class="text-[11px] text-[#94A3B8] shrink-0">Lat — · Lng —</p>
                         </div>
+                        <p id="location-picker-cebu-warning" class="hidden text-xs text-[#DC2626] mt-1.5">That pin looks like it's outside Cebu — double-check before submitting.</p>
                         <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
                         <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
                         @error('latitude')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
@@ -116,6 +117,49 @@
                             class="w-full h-12 px-4 rounded-2xl border @error('address') border-[#EF4444]/35 @else border-[#E2E8F0] @enderror text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                             placeholder="Pin your location on the map above, or type it manually" required>
                         @error('address')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">City / Municipality</label>
+                            <div id="city-municipality-picker" data-lgus="{{ json_encode(config('cebu.lgus')) }}">
+                                <x-styled-select name="city_municipality"
+                                    :options="array_combine(config('cebu.lgus'), config('cebu.lgus'))"
+                                    :selected="old('city_municipality', '')" placeholder="Select — Cebu only" required
+                                    class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('city_municipality') ? 'border-[#EF4444]/35' : 'border-[#E2E8F0]' }} text-[14px] font-medium text-[#156F8C]" />
+                            </div>
+                            @error('city_municipality')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="barangay" class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Barangay <span class="text-[#94A3B8] normal-case font-medium">(optional)</span></label>
+                            <input type="text" id="barangay" name="barangay" value="{{ old('barangay') }}" maxlength="100"
+                                class="w-full h-12 px-4 rounded-2xl border @error('barangay') border-[#EF4444]/35 @else border-[#E2E8F0] @enderror text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
+                                placeholder="e.g., Lahug">
+                            @error('barangay')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Building amenities <span class="text-[#94A3B8] normal-case font-medium">(optional)</span></label>
+                        <p class="text-[12px] text-[#64748B] mb-3">Shared, building-wide features — not what's inside a specific unit.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 p-4 rounded-2xl border border-[#E2E8F0] bg-[#F7FCFC]">
+                            @foreach($amenities->groupBy('category') as $category => $group)
+                                <div>
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1.5">{{ $category }}</p>
+                                    <div class="space-y-1.5">
+                                        @foreach($group as $amenity)
+                                            <label class="flex items-center gap-2 text-[13px] font-medium text-[#1F2937] cursor-pointer">
+                                                <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
+                                                    @checked(collect(old('amenities', []))->contains($amenity->amenity_id))
+                                                    class="rounded border-[#E2E8F0] text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                                {{ $amenity->name }}
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        @error('amenities')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                     </div>
 
                     <div>

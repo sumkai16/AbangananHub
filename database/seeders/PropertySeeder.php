@@ -778,7 +778,8 @@ class PropertySeeder extends Seeder
             'Ventilated with ceiling fan',
         ];
 
-        $amenityIds = Amenity::pluck('amenity_id');
+        $unitAmenityIds = Amenity::forUnit()->pluck('amenity_id');
+        $propertyAmenityIds = Amenity::forProperty()->pluck('amenity_id');
 
         $maxUnits = 30; // keep the seeded dataset small enough to browse
         $unitsCreated = 0;
@@ -797,9 +798,23 @@ class PropertySeeder extends Seeder
             $pool = $rulesByType[$data['property_type']] ?? $roomRules;
             $data['house_rules'] = collect($pool)->shuffle()->take(rand(4, 6))->values()->all();
 
+            // Every address here is "..., <LGU>, Cebu" — same shape parsed by
+            // the add_locality_to_properties_table migration's backfill.
+            $addressParts = array_map('trim', explode(',', $data['address']));
+            $data['city_municipality'] = count($addressParts) >= 2
+                ? $addressParts[count($addressParts) - 2]
+                : 'Cebu City';
+
             $property = Property::create(array_merge($data, [
                 'landlord_id' => $landlord->user_id,
             ]));
+
+            // 3–6 random building-wide amenities on the property itself
+            if ($propertyAmenityIds->isNotEmpty()) {
+                $property->amenities()->attach(
+                    $propertyAmenityIds->shuffle()->take(rand(3, min(6, $propertyAmenityIds->count())))->values()->all()
+                );
+            }
 
             // Create units with their own interior photos + amenities
             foreach ($unitItems as $unitData) {
@@ -821,9 +836,9 @@ class PropertySeeder extends Seeder
                 }
 
                 // 3–6 random amenities per unit
-                if ($amenityIds->isNotEmpty()) {
+                if ($unitAmenityIds->isNotEmpty()) {
                     $unit->amenities()->attach(
-                        $amenityIds->shuffle()->take(rand(3, min(6, $amenityIds->count())))->values()->all()
+                        $unitAmenityIds->shuffle()->take(rand(3, min(6, $unitAmenityIds->count())))->values()->all()
                     );
                 }
             }

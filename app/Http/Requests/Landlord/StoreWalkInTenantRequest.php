@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Landlord;
 
+use App\Models\PropertyUnit;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -51,6 +53,32 @@ class StoreWalkInTenantRequest extends FormRequest
             'payment_date'         => ['nullable', 'date', 'before_or_equal:today'],
             'reference_no'         => ['nullable', 'string', 'max:255'],
         ];
+    }
+
+    /**
+     * occupants_count has no fixed ceiling of its own — it must not exceed
+     * whichever unit the tenant is moving into. Done here rather than as a
+     * closure rule because it needs a second field (unit_id) to look up.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $occupants = $this->input('occupants_count');
+            $unitId = $this->input('unit_id');
+
+            if ($occupants === null || $unitId === null) {
+                return;
+            }
+
+            $limit = PropertyUnit::where('unit_id', $unitId)->value('occupancy_limit');
+
+            if ($limit !== null && (int) $occupants > (int) $limit) {
+                $validator->errors()->add(
+                    'occupants_count',
+                    "This unit allows up to {$limit} occupant" . ($limit == 1 ? '' : 's') . '.'
+                );
+            }
+        });
     }
 
     public function messages(): array

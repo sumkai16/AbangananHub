@@ -13,6 +13,8 @@ class Property extends Model
     'house_rules',
     'property_type',
     'address',
+    'city_municipality',
+    'barangay',
     'latitude',
     'longitude',
     'verification_status',

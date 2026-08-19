@@ -40,10 +40,6 @@
 
         $dueDayOptions = collect(range(1, 28))->mapWithKeys(fn ($d) => [(string) $d => (string) $d])->all();
 
-        $occupantsOptions = collect(range(1, 20))
-            ->mapWithKeys(fn ($i) => [(string) $i => $i . ' ' . ($i === 1 ? 'person' : 'persons')])
-            ->all();
-
         $initialTypeOptions = [
             'Initial' => 'Initial payment (deposit + advance)',
             'Deposit' => 'Security deposit only',
@@ -125,6 +121,7 @@
                     lastName: @js(old('last_name', '')),
                     unitId: @js(old('unit_id', '')),
                     moveIn: @js(old('move_in_date', now()->toDateString())),
+                    occupants: @js(old('occupants_count', '')),
                     rent: @js(old('agreed_monthly_rent', '')),
                     dueDay: @js(old('rent_due_day', '')),
                     hasPayment: @js((bool) old('initial_amount')),
@@ -137,7 +134,24 @@
                     // making the landlord click Choose a unit first.
                     pickerOpen: @js((bool) ($scopedPropertyId && $properties->isNotEmpty())),
                     unitSearch: '',
+                    occupantsPickerOpen: false,
 
+                    init() {
+                        // A unit switch can invalidate a previously-picked
+                        // occupant count (e.g. 5 chosen against a 6-cap unit,
+                        // then switched to a 2-cap one) — the dropdown itself
+                        // no longer offers 5, so the stale value has to go too.
+                        this.$watch('unitId', () => {
+                            const cap = this.unit ? this.unit.cap : null;
+                            if (cap && this.occupants && parseInt(this.occupants) > cap) {
+                                this.occupants = '';
+                            }
+                        });
+                    },
+                    get occupantsOptions() {
+                        const cap = this.unit ? this.unit.cap : 20;
+                        return Array.from({ length: cap }, (_, i) => i + 1);
+                    },
                     openPicker() { this.unitSearch = ''; this.pickerOpen = true; },
                     // Selecting is the whole action — no separate confirm step.
                     pick(id) { this.unitId = String(id); this.pickerOpen = false; },
@@ -421,9 +435,39 @@
                                 </div>
                                 <div>
                                     <label for="occupants_count" class="{{ $labelClass }}">Occupants</label>
-                                    <x-styled-select name="occupants_count" :options="$occupantsOptions"
-                                        :selected="old('occupants_count', '')" placeholder="Not specified"
-                                        class="{{ $inputClass }} bg-white" />
+                                    {{-- Not x-styled-select: its option list is baked in at
+                                    render time and can't react to which unit is picked, but
+                                    this field's valid range depends on unit.cap. Same visual
+                                    language, driven by the occupantsOptions getter instead. --}}
+                                    <div class="relative" @click.outside="occupantsPickerOpen = false">
+                                        <input type="hidden" name="occupants_count" :value="occupants">
+                                        <button type="button" id="occupants_count" @click="occupantsPickerOpen = !occupantsPickerOpen"
+                                            :aria-expanded="occupantsPickerOpen" aria-haspopup="listbox"
+                                            class="{{ $inputClass }} bg-white flex items-center justify-between gap-2 cursor-pointer">
+                                            <span x-text="occupants ? (occupants + ' ' + (parseInt(occupants) === 1 ? 'person' : 'persons')) : 'Not specified'" class="truncate"></span>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                                class="flex-shrink-0 text-[#64748B] transition-transform duration-200" :class="occupantsPickerOpen ? 'rotate-180' : ''" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                        <div x-show="occupantsPickerOpen" x-transition
+                                            role="listbox"
+                                            class="absolute z-30 mt-2 min-w-full w-max max-h-[280px] overflow-y-auto bg-white rounded-xl border border-[#E2E8F0] shadow-[0_12px_32px_rgba(15,23,42,0.14)] py-1.5"
+                                            style="display: none;">
+                                            <template x-for="n in occupantsOptions" :key="n">
+                                                <button type="button" @click="occupants = String(n); occupantsPickerOpen = false" role="option" :aria-selected="String(occupants) === String(n)"
+                                                    class="w-full flex items-center justify-between gap-3 text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer hover:bg-[#EEF8F8]"
+                                                    :class="String(occupants) === String(n) ? 'text-[#156F8C] font-semibold bg-[#EEF8F8]/70' : 'text-[#1F2937]'">
+                                                    <span x-text="n + ' ' + (n === 1 ? 'person' : 'persons')" class="truncate"></span>
+                                                    <svg x-show="String(occupants) === String(n)" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#2AA7A1]" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11.5px] text-[#64748B] mt-1.5" x-show="unit" x-text="unit ? ('Capped at ' + unit.cap + ' for this unit.') : ''"></p>
                                     @error('occupants_count')
                                         <p class="{{ $errorClass }}">{{ $message }}</p>
                                     @enderror

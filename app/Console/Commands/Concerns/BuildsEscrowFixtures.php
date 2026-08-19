@@ -100,10 +100,11 @@ trait BuildsEscrowFixtures
             'title'               => '[escrow-fixture] ' . $label,
             'description'         => 'Fixture property for escrow testing.',
             'property_type'       => 'Apartment',
-            'address'             => 'Fixture Address, Butuan City',
+            'address'             => 'Fixture Address, Lahug, Cebu City, Cebu',
+            'city_municipality'   => 'Cebu City',
             // properties.latitude/longitude carry no database default.
-            'latitude'            => 8.9475,
-            'longitude'           => 125.5406,
+            'latitude'            => 10.3280,
+            'longitude'           => 123.8980,
             'verification_status' => 'Approved',
         ]);
 

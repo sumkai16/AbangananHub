@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Landlord\StorePropertyRequest;
+use App\Http\Requests\Landlord\UpdatePropertyRequest;
+use App\Models\Amenity;
 use App\Models\Favorite;
 use App\Models\Property;
 use App\Models\PropertyUnit;
@@ -110,8 +113,7 @@ class PropertyController extends Controller
             abort(404);
         }
 
-        // No 'amenities' here: the page derives them from units.amenities.
-        $property->load(['media', 'landlord.rentalBusiness', 'units.amenities', 'units.media']);
+        $property->load(['media', 'amenities', 'landlord.rentalBusiness', 'units.amenities', 'units.media']);
 
         $reviews = $property->reviews()
             ->with('tenant')
@@ -135,21 +137,14 @@ class PropertyController extends Controller
 
     public function create()
     {
-        return view('landlord.properties.create');
+        $amenities = Amenity::forProperty()->orderBy('category')->orderBy('amenity_name')->get();
+
+        return view('landlord.properties.create', compact('amenities'));
     }
 
-    public function store(Request $request)
+    public function store(StorePropertyRequest $request)
     {
-        $validated = $request->validate([
-            'title'         => 'required|string|min:10|max:150',
-            'description'   => 'required|string|min:20|max:3000',
-            'property_type' => 'required|in:Bedspace,Room,Apartment,House',
-            'address'       => 'required|string|min:10|max:255',
-            'latitude'      => 'nullable|numeric|between:-90,90',
-            'longitude'     => 'nullable|numeric|between:-180,180',
-            'photos'        => 'required|array|min:1|max:10',
-            'photos.*'      => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-        ]);
+        $validated = $request->validated();
 
         $property = null;
 
@@ -160,10 +155,14 @@ class PropertyController extends Controller
             $property->description         = $validated['description'];
             $property->property_type       = $validated['property_type'];
             $property->address             = $validated['address'];
-            $property->latitude            = $validated['latitude'] ?? 10.3157;
-            $property->longitude           = $validated['longitude'] ?? 123.8854;
+            $property->city_municipality   = $validated['city_municipality'];
+            $property->barangay            = $validated['barangay'] ?? null;
+            $property->latitude            = $validated['latitude'];
+            $property->longitude           = $validated['longitude'];
             $property->verification_status = 'Pending';
             $property->save();
+
+            $property->amenities()->sync($validated['amenities'] ?? []);
 
             foreach ($request->file('photos') as $photo) {
                 $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
@@ -189,47 +188,32 @@ class PropertyController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $property->load('media');
-        return view('landlord.properties.edit', compact('property'));
+        $property->load('media', 'amenities');
+        $amenities = Amenity::forProperty()->orderBy('category')->orderBy('amenity_name')->get();
+
+        return view('landlord.properties.edit', compact('property', 'amenities'));
     }
 
-    public function update(Request $request, Property $property)
+    public function update(UpdatePropertyRequest $request, Property $property)
     {
         if ($property->landlord_id !== Auth::user()->user_id) {
             abort(403, 'Unauthorized action.');
         }
 
-        $existingPhotoCount = $property->media()->count();
-
-        $validated = $request->validate([
-            'title'         => 'required|string|min:10|max:150',
-            'description'   => 'required|string|min:20|max:3000',
-            'property_type' => 'required|in:Bedspace,Room,Apartment,House',
-            'address'       => 'required|string|min:10|max:255',
-            'latitude'      => 'nullable|numeric|between:-90,90',
-            'longitude'     => 'nullable|numeric|between:-180,180',
-            'photos' => [
-                'nullable',
-                'array',
-                function ($attribute, $value, $fail) use ($existingPhotoCount) {
-                    if ($existingPhotoCount + count($value) > 10) {
-                        $fail('A property can have at most 10 photos total. Remove some before adding more.');
-                    }
-                },
-            ],
-            'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($validated, $request, $property) {
             $photosAdded = $request->hasFile('photos');
 
             $property->fill([
-                'title'         => $validated['title'],
-                'description'   => $validated['description'],
-                'property_type' => $validated['property_type'],
-                'address'       => $validated['address'],
-                'latitude'      => $validated['latitude'] ?? $property->latitude,
-                'longitude'     => $validated['longitude'] ?? $property->longitude,
+                'title'             => $validated['title'],
+                'description'       => $validated['description'],
+                'property_type'     => $validated['property_type'],
+                'address'           => $validated['address'],
+                'city_municipality' => $validated['city_municipality'],
+                'barangay'          => $validated['barangay'] ?? null,
+                'latitude'          => $validated['latitude'],
+                'longitude'         => $validated['longitude'],
             ]);
 
             $detailsChanged = $property->isDirty();
@@ -239,6 +223,8 @@ class PropertyController extends Controller
             }
 
             $property->save();
+
+            $property->amenities()->sync($validated['amenities'] ?? []);
 
             if ($photosAdded) {
                 foreach ($request->file('photos') as $photo) {

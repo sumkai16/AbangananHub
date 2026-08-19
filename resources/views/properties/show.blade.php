@@ -11,11 +11,14 @@
         $minFee = $availableUnits->min('rental_fee');
         $maxFee = $availableUnits->max('rental_fee');
 
-        // Amenities are held per unit (unit_amenities); property_amenities is
-        // empty and has no landlord-facing form, so the property's list is
-        // derived from what its approved units actually offer. Counting the
-        // units carrying each one lets the section say "some units" instead of
-        // implying the whole property has something only one room does.
+        // Building-wide amenities (Wi-Fi, CCTV, parking) live on the property
+        // itself now (property_amenities). Per-unit amenities (AC, private
+        // bathroom) still vary by room, so that list stays derived from what
+        // approved units actually offer — counting the units carrying each
+        // one lets the section say "some units" instead of implying the
+        // whole property has something only one room does.
+        $buildingAmenities = $property->amenities->pluck('amenity_name')->sort(SORT_NATURAL | SORT_FLAG_CASE)->values();
+
         $amenityUnitCounts = [];
         foreach ($approvedUnits as $unit) {
             foreach ($unit->amenities->pluck('amenity_name')->unique() as $amenityName) {
@@ -563,9 +566,28 @@
                     </button>
                 @endauth
 
+                @if($buildingAmenities->isNotEmpty())
+                <section id="building-amenities" class="mt-10 pt-8 border-t border-[#E2E8F0]">
+                    <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">Building amenities</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        @foreach($buildingAmenities as $amenityName)
+                            <div class="flex items-center gap-3 text-sm text-[#1F2937] font-medium">
+                                <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <span class="min-w-0">{{ $amenityName }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+                @endif
+
                 @if($offeredAmenities->isNotEmpty())
                 <section id="amenities" class="mt-10 pt-8 border-t border-[#E2E8F0]">
-                    <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">What this place offers</h2>
+                    <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">{{ $buildingAmenities->isNotEmpty() ? 'Room amenities' : 'What this place offers' }}</h2>
                     @if($approvedUnits->count() > 1)
                         <p class="-mt-2 mb-4 text-[12.5px] text-[#64748B]">
                             Across {{ $approvedUnits->count() }} units. Select a unit to see exactly what it includes.

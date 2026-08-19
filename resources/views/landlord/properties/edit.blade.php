@@ -1,6 +1,7 @@
 @extends('layouts.landlord')
 
 @section('content')
+    @vite(['resources/js/maps/location-picker.js'])
     <div class="min-h-screen pt-6 pb-8">
         <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -96,30 +97,34 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-[#E2E8F0] pt-5">
-                            <div>
-                                <label for="occupancy_limit"
-                                    class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Occupancy
-                                    limit</label>
-                                <input type="number" id="occupancy_limit" name="occupancy_limit"
-                                    value="{{ old('occupancy_limit', $property->occupancy_limit) }}" min="1" max="100"
-                                    class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
-                                    required>
+                        <div class="border-t border-[#E2E8F0] pt-5">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Landlord location</label>
+                                <button type="button" id="location-picker-expand" class="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#156F8C] hover:text-[#0E5670] transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/>
+                                    </svg>
+                                    Expand map
+                                </button>
                             </div>
-                            <div>
-                                <label for="latitude"
-                                    class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Latitude</label>
-                                <input type="number" step="any" min="-90" max="90" name="latitude" id="latitude"
-                                    value="{{ old('latitude', $property->latitude) }}" placeholder="10.3157"
-                                    class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+                            <div id="location-picker-map-wrapper" class="relative rounded-2xl overflow-hidden border @error('latitude') border-[#EF4444]/35 @elseif ($errors->has('longitude')) border-[#EF4444]/35 @else border-[#E2E8F0] @enderror">
+                                <div id="location-picker-map" class="h-[240px] w-full"></div>
+                                <div id="location-picker-hint" class="absolute top-3 left-3 z-[1000] bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-[12px] font-bold text-[#156F8C] shadow-sm pointer-events-none">
+                                    Tap the map to pin your location — Cebu only
+                                </div>
                             </div>
-                            <div>
-                                <label for="longitude"
-                                    class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Longitude</label>
-                                <input type="number" step="any" min="-180" max="180" name="longitude" id="longitude"
-                                    value="{{ old('longitude', $property->longitude) }}" placeholder="123.8854"
-                                    class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+                            <div id="location-picker-placeholder" class="hidden h-[240px] w-full rounded-2xl border border-dashed border-[#E2E8F0] bg-[#F7FCFC] items-center justify-center text-[12px] font-medium text-[#94A3B8] text-center px-4">
+                                Map opened in full screen — tap Done to bring it back here.
                             </div>
+                            <div class="flex items-center justify-between gap-3 mt-2">
+                                <p id="location-picker-address-line" class="text-[12px] text-[#64748B] truncate">Pinned location</p>
+                                <p id="location-picker-latlng" class="text-[11px] text-[#94A3B8] shrink-0">Lat — · Lng —</p>
+                            </div>
+                            <p id="location-picker-cebu-warning" class="hidden text-xs text-[#DC2626] mt-1.5">That pin looks like it's outside Cebu — double-check before submitting.</p>
+                            <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $property->latitude) }}">
+                            <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $property->longitude) }}">
+                            @error('latitude')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
+                            @error('longitude')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
@@ -129,6 +134,51 @@
                                 minlength="10" maxlength="255"
                                 class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                                 required>
+                            @error('address')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">City / Municipality</label>
+                                <div id="city-municipality-picker" data-lgus="{{ json_encode(config('cebu.lgus')) }}">
+                                    <x-styled-select name="city_municipality"
+                                        :options="array_combine(config('cebu.lgus'), config('cebu.lgus'))"
+                                        :selected="old('city_municipality', $property->city_municipality)" placeholder="Select — Cebu only" required
+                                        class="w-full h-12 px-4 rounded-2xl border {{ $errors->has('city_municipality') ? 'border-[#EF4444]/35' : 'border-[#E2E8F0]' }} text-[14px] font-medium text-[#156F8C]" />
+                                </div>
+                                @error('city_municipality')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label for="barangay" class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Barangay <span class="text-[#94A3B8] normal-case font-medium">(optional)</span></label>
+                                <input type="text" id="barangay" name="barangay" value="{{ old('barangay', $property->barangay) }}" maxlength="100"
+                                    class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
+                                    placeholder="e.g., Lahug">
+                                @error('barangay')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Building amenities <span class="text-[#94A3B8] normal-case font-medium">(optional)</span></label>
+                            <p class="text-[12px] text-[#64748B] mb-3">Shared, building-wide features — not what's inside a specific unit.</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 p-4 rounded-2xl border border-[#E2E8F0] bg-[#F7FCFC]">
+                                @php $selectedAmenityIds = old('amenities', $property->amenities->pluck('amenity_id')->all()); @endphp
+                                @foreach($amenities->groupBy('category') as $category => $group)
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1.5">{{ $category }}</p>
+                                        <div class="space-y-1.5">
+                                            @foreach($group as $amenity)
+                                                <label class="flex items-center gap-2 text-[13px] font-medium text-[#1F2937] cursor-pointer">
+                                                    <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
+                                                        @checked(collect($selectedAmenityIds)->contains($amenity->amenity_id))
+                                                        class="rounded border-[#E2E8F0] text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                                    {{ $amenity->name }}
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            @error('amenities')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
@@ -238,6 +288,29 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="location-picker-modal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 sm:p-8" role="dialog" aria-modal="true" aria-label="Pin your property location" aria-hidden="true">
+        <div id="location-picker-modal-backdrop" class="absolute inset-0 bg-[#0F172A]/60 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
+        <div id="location-picker-modal-panel" class="relative w-full max-w-5xl h-[85vh] bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden opacity-0 translate-y-4 scale-95 transition-all duration-300">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0] shrink-0">
+                <div>
+                    <p class="text-[15px] font-bold text-[#1F2937]">Pin your property location</p>
+                    <p class="text-[12px] text-[#64748B] mt-0.5">Tap or drag the pin, then confirm.</p>
+                </div>
+                <button type="button" id="location-picker-modal-close" aria-label="Close" class="w-9 h-9 rounded-full flex items-center justify-center text-[#64748B] hover:bg-[#F7FCFC] hover:text-[#1F2937] transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="location-picker-modal-slot" class="flex-1 relative min-h-0"></div>
+            <div class="px-5 py-4 border-t border-[#E2E8F0] shrink-0 flex items-center justify-end">
+                <button type="button" id="location-picker-modal-done" class="h-11 px-6 rounded-full bg-[#2AA7A1] text-white font-bold text-[13.5px] shadow-sm hover:brightness-95 transition-all">
+                    Done
+                </button>
+            </div>
         </div>
     </div>
 

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Landlord\StorePropertyRequest;
+use App\Http\Requests\Landlord\UpdatePropertyRequest;
 use App\Http\Resources\PropertyResource;
 use App\Models\Property;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -23,18 +24,9 @@ class PropertyWriteController extends Controller
         abort_if($property->landlord_id !== auth()->id(), 403);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StorePropertyRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'title'         => 'required|string|min:10|max:150',
-            'description'   => 'required|string|min:20|max:3000',
-            'property_type' => 'required|in:Bedspace,Room,Apartment,House',
-            'address'       => 'required|string|min:10|max:255',
-            'latitude'      => 'nullable|numeric|between:-90,90',
-            'longitude'     => 'nullable|numeric|between:-180,180',
-            'photos'        => 'required|array|min:1|max:10',
-            'photos.*'      => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-        ]);
+        $validated = $request->validated();
 
         $property = null;
 
@@ -45,10 +37,14 @@ class PropertyWriteController extends Controller
             $property->description         = $validated['description'];
             $property->property_type       = $validated['property_type'];
             $property->address             = $validated['address'];
-            $property->latitude            = $validated['latitude'] ?? 10.3157;
-            $property->longitude           = $validated['longitude'] ?? 123.8854;
+            $property->city_municipality   = $validated['city_municipality'];
+            $property->barangay            = $validated['barangay'] ?? null;
+            $property->latitude            = $validated['latitude'];
+            $property->longitude           = $validated['longitude'];
             $property->verification_status = 'Pending';
             $property->save();
+
+            $property->amenities()->sync($validated['amenities'] ?? []);
 
             foreach ($request->file('photos') as $photo) {
                 $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
@@ -66,41 +62,24 @@ class PropertyWriteController extends Controller
         return response()->json(['data' => new PropertyResource($property->load('media'))], 201);
     }
 
-    public function update(Request $request, Property $property): JsonResponse
+    public function update(UpdatePropertyRequest $request, Property $property): JsonResponse
     {
         $this->authorizeProperty($property);
 
-        $existingPhotoCount = $property->media()->count();
-
-        $validated = $request->validate([
-            'title'         => 'required|string|min:10|max:150',
-            'description'   => 'required|string|min:20|max:3000',
-            'property_type' => 'required|in:Bedspace,Room,Apartment,House',
-            'address'       => 'required|string|min:10|max:255',
-            'latitude'      => 'nullable|numeric|between:-90,90',
-            'longitude'     => 'nullable|numeric|between:-180,180',
-            'photos' => [
-                'nullable',
-                'array',
-                function ($attribute, $value, $fail) use ($existingPhotoCount) {
-                    if ($existingPhotoCount + count($value) > 10) {
-                        $fail('A property can have at most 10 photos total. Remove some before adding more.');
-                    }
-                },
-            ],
-            'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($validated, $request, $property) {
             $photosAdded = $request->hasFile('photos');
 
             $property->fill([
-                'title'         => $validated['title'],
-                'description'   => $validated['description'],
-                'property_type' => $validated['property_type'],
-                'address'       => $validated['address'],
-                'latitude'      => $validated['latitude'] ?? $property->latitude,
-                'longitude'     => $validated['longitude'] ?? $property->longitude,
+                'title'             => $validated['title'],
+                'description'       => $validated['description'],
+                'property_type'     => $validated['property_type'],
+                'address'           => $validated['address'],
+                'city_municipality' => $validated['city_municipality'],
+                'barangay'          => $validated['barangay'] ?? null,
+                'latitude'          => $validated['latitude'],
+                'longitude'         => $validated['longitude'],
             ]);
 
             $detailsChanged = $property->isDirty();
@@ -110,6 +89,8 @@ class PropertyWriteController extends Controller
             }
 
             $property->save();
+
+            $property->amenities()->sync($validated['amenities'] ?? []);
 
             if ($photosAdded) {
                 foreach ($request->file('photos') as $photo) {

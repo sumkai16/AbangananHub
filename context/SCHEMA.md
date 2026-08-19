@@ -98,7 +98,9 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | house_rules | JSON | NULLABLE | cast to `array` |
 | property_type | ENUM('Bedspace','Room','Apartment','House') | NOT NULL | |
 | address | VARCHAR(255) | NOT NULL | Text-searched for browse |
-| latitude | DECIMAL(10,7) | NOT NULL | `parseFloat()` client-side |
+| city_municipality | VARCHAR(100) | NOT NULL | Added Aug 2026 — must be one of `config('cebu.lgus')`, enforced by `StorePropertyRequest`/`UpdatePropertyRequest`. Backfilled from `address`'s second-to-last comma segment |
+| barangay | VARCHAR(100) | NULLABLE | Added Aug 2026 |
+| latitude | DECIMAL(10,7) | NOT NULL | `parseFloat()` client-side. Bounded to Cebu (`App\Rules\WithinCebu`, `config('cebu.bounds')`) since Aug 2026 — no more silent fallback to a hardcoded downtown point when omitted; a pin is required |
 | longitude | DECIMAL(10,7) | NOT NULL | |
 | verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | Admin approval |
 | created_at | TIMESTAMP | | |
@@ -156,6 +158,8 @@ Column sizes were taken from the validation the controllers were already enforci
 |---|---|---|---|
 | amenity_id | BIGINT UNSIGNED | PK | `$primaryKey = 'amenity_id'` |
 | amenity_name | VARCHAR(255) | NOT NULL | |
+| scope | ENUM('property','unit','both') | DEFAULT 'both' | Added Aug 2026. Display filter only — `Amenity::forProperty()`/`forUnit()` scopes, each also returning `both`. Not enforced in validation, so a later reclassification never breaks previously-saved data |
+| category | VARCHAR(50) | NULLABLE | Added Aug 2026. Groups the checkbox UI on both the property and unit forms — `AmenitySeeder` is the source of truth |
 
 ### property_amenities (pivot)
 | Column | Type | Constraints | Notes |
@@ -163,7 +167,7 @@ Column sizes were taken from the validation the controllers were already enforci
 | property_id | FK → properties.property_id | | Composite key |
 | amenity_id | FK → amenities.amenity_id | | `belongsToMany` needs all 4 args |
 
-**Empty, and nothing writes to it** (confirmed July 24 2026 — 0 rows vs 130 in `unit_amenities`). Amenities were a property-level concept before the multi-unit model; no landlord form has ever attached one to a property. `properties/show` derives its amenity list from `units.amenities` instead (DESIGN.md §6e), so the `Property::amenities()` relation is now unused by every view — don't eager-load it, and don't read it expecting data.
+**No longer empty (as of Aug 2026).** Was 0 rows/no landlord-facing form through July 2026 (see the superseded note this replaces). `PropertyController::store()`/`update()` now sync `amenities[]` here directly, restricted by the form to `scope = property` amenities. A one-time migration (`promote_building_amenities_to_properties`) seeded it by moving every `scope = property` row already sitting in `unit_amenities` up to the unit's property (deduped per property) and deleting the unit-side row — so existing landlords' building-level tags (Water Dispenser, 24/7 Security, CCTV, etc.) didn't just vanish when the two concepts split. `properties/show` now renders this as its own "Building amenities" section, separate from the per-unit list (DESIGN.md §6e). `Property::amenities()` is safe to eager-load again.
 
 ### unit_amenities (pivot)
 | Column | Type | Constraints | Notes |
@@ -486,7 +490,10 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_rent_terms_to_reservations_table | `agreed_monthly_rent`, `rent_due_day` | Rent ledger inputs; both nullable with fallbacks | July 24 2026 |
 | add_manual_recording_to_payments_table | Widened `payment_method` + `payment_type` enums (raw `ALTER`); added `recorded_by`, `reference_no`, `payment_notes` + `(reservation_id, billing_period)` index | Landlord-recorded offline rent; the escrow only ever covered the initial payment | July 24 2026 |
 | create_rent_reminders_table | Idempotency guard for the nightly rent-reminder command | Reminders need a persisted per-milestone guard so a missed/double run can't gap or spam | July 24 2026 |
+| add_locality_to_properties_table | `city_municipality` (NOT NULL, backfilled), `barangay` (nullable); repointed the 8 escrow/walk-in fixture rows off their placeholder Butuan City coordinate first | Cebu-only validation needed a structured locality, not just free-text `address` | Aug 2026 |
+| add_scope_and_category_to_amenities_table | `scope` ENUM('property','unit','both') DEFAULT 'both', `category` VARCHAR(50) nullable | Property-level and unit-level amenities needed to be distinguishable | Aug 2026 |
+| promote_building_amenities_to_properties | Moves every `unit_amenities` row whose amenity is `scope = 'property'` up to `property_amenities` (deduped per property), deletes the unit-side row. Invokes `AmenitySeeder` itself first so `scope` is populated before it reads it. **`down()` is a no-op** — collapsing several units' tags onto one property is lossy, not reversible | Without this, `property_amenities` would launch empty and ~half of `unit_amenities`'s 130 rows (the building-level ones landlords had already entered) would go from attached-but-invisible to silently dropped on the next unit edit | Aug 2026 |
 
 ### Seeders
-- `AmenitySeeder` — 33 common amenities (idempotent via `firstOrCreate` on unique `amenity_name`); runs before `PropertySeeder` in `DatabaseSeeder`. The amenities table is otherwise empty.
+- `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.
 - `Amenity` model exposes a `name` accessor aliasing `amenity_name` (views use `$amenity->name`).
