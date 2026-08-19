@@ -109,6 +109,40 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 
 **Visibility funnels through one place**: `Property::isLive()` (single-row) and `scopeLive()`/`scopeBrowsable()` (query) are the only sanctioned checks for "can a tenant see this" — `verification_status = 'Approved' AND publication_status = 'Published'`, `scopeBrowsable()` additionally requiring an available approved unit. Before Aug 2026 this predicate was hand-copied in three places (`Property::scopeBrowsable()`, web `PropertyController::index()`, and the `navAreas` header composer in `AppServiceProvider`); all three now call the scope.
 
+### property_documents
+Added Aug 2026 — proof of ownership, tax declarations, and permits, one per property. The second
+upload path (after `landlord_verifications`) to use the **private** disk (`storage/app/private`)
+rather than Cloudinary: these are sensitive legal documents that must never get a public Cloudinary
+URL, so they're served only through policy-gated controller routes
+(`Landlord\PropertyDocumentController::preview/download`, `PropertyDocumentPolicy@view`), mirroring
+`landlord_verifications`/`VerificationController` exactly.
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| document_id | BIGINT UNSIGNED | PK | `$primaryKey = 'document_id'` |
+| property_id | FK → properties.property_id | NOT NULL, cascade | |
+| document_type | VARCHAR(100) | NOT NULL | Validated against `PropertyDocument::TYPES` |
+| file_path | VARCHAR(255) | NULLABLE | **NULL = admin-requested, not yet uploaded** — a "requested" document is a row with no file, not a fifth status |
+| file_name | VARCHAR(255) | NULLABLE | Landlord's original filename |
+| document_number | VARCHAR(100) | NULLABLE | TCT no., tax dec no., permit no. |
+| status | ENUM('Pending','Verified','Rejected') | DEFAULT 'Pending' | **`Expired` is deliberately not a stored member** — see below |
+| rejection_reason | TEXT | NULLABLE | Required by `RejectPropertyDocumentRequest` when rejecting |
+| expiry_date | DATE | NULLABLE | Permits expire; titles don't |
+| verified_by | FK → users.user_id | NULLABLE, set null | |
+| verified_at | TIMESTAMP | NULLABLE | |
+| requested_by | FK → users.user_id | NULLABLE, set null | Set when an admin requests the document |
+| created_at / updated_at | TIMESTAMP | | |
+
+Index on `(property_id, status)`. `Expired` is computed on read (`PropertyDocument::isExpired()` /
+`getDisplayStatusAttribute()`) from `status = 'Verified' AND expiry_date < today` rather than stored —
+the same lesson as `publication_status` (see `properties` above): a nightly job maintaining a stored
+`Expired` state can drift, so nothing maintains it. `Property::hasVerifiedDocuments()`
+(`scopeCurrentlyValid()`) is the single source of truth behind the public "Verified Property" badge on
+`properties/show.blade.php` — the badge is no longer unconditional decoration on every approved
+listing with photos, it requires an actual currently-valid verified document. Documents never gate
+property approval itself; the admin uses judgment, with the "request a document" action
+(`requested_by`) as the lever for a specific missing one.
+
 ### property_units
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
@@ -436,6 +470,7 @@ changed key, inside the same transaction as the writes.
 - rental_businesses → properties (1:many)
 - users → properties (1:many — via landlord_id)
 - properties → property_units (1:many — units are the atomic rentable thing)
+- properties → property_documents (1:many — verification documents, admin-only)
 - properties → property_media (1:many)
 - property_units → unit_media (1:many)
 - properties ↔ amenities (many:many via property_amenities)
@@ -497,6 +532,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_scope_and_category_to_amenities_table | `scope` ENUM('property','unit','both') DEFAULT 'both', `category` VARCHAR(50) nullable | Property-level and unit-level amenities needed to be distinguishable | Aug 2026 |
 | promote_building_amenities_to_properties | Moves every `unit_amenities` row whose amenity is `scope = 'property'` up to `property_amenities` (deduped per property), deletes the unit-side row. Invokes `AmenitySeeder` itself first so `scope` is populated before it reads it. **`down()` is a no-op** — collapsing several units' tags onto one property is lossy, not reversible | Without this, `property_amenities` would launch empty and ~half of `unit_amenities`'s 130 rows (the building-level ones landlords had already entered) would go from attached-but-invisible to silently dropped on the next unit edit | Aug 2026 |
 | add_publication_status_to_properties_table | `publication_status` ENUM('Draft','Published','Unpublished','Suspended') DEFAULT 'Published'. Every existing row backfills to `Published` — publication was never a concept before this column | Split "is this legitimate" from "should it be live right now", closing a real hole: the admin report flow's "delist property" action reused `verification_status = 'Rejected'`, which the next landlord edit + admin re-approval cycle silently undid | Aug 2026 |
+| create_property_documents_table | Proof of ownership / tax declaration / permits per property, private-disk file storage, admin verify/reject/request workflow | Admins were approving listings on the landlord's word alone — nothing proved the right to rent out *this* property. Second upload path (after `landlord_verifications`) off the public Cloudinary flow | Aug 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.

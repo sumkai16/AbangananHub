@@ -210,6 +210,20 @@
                     </span>
                 </a>
 
+                {{-- Property Documents --}}
+                <a href="{{ route('admin.documents.index') }}"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150
+                        {{ str_starts_with($cur ?? '', 'admin.documents') ? 'bg-[#2AA7A1] text-white' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap flex-1">Property Documents</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
+                        Property Documents
+                    </span>
+                </a>
+
                 {{-- Unit Approvals --}}
                 <a href="{{ route('admin.units.index') }}"
                     class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150

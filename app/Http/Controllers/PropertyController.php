@@ -79,7 +79,11 @@ class PropertyController extends Controller
             abort(404);
         }
 
-        $property->load(['media', 'amenities', 'landlord.rentalBusiness', 'units.amenities', 'units.media']);
+        // documents: status/expiry only for the badge — file_path never reaches a renter's browser.
+        $property->load([
+            'media', 'amenities', 'landlord.rentalBusiness', 'units.amenities', 'units.media',
+            'documents:document_id,property_id,status,expiry_date',
+        ]);
 
         $reviews = $property->reviews()
             ->with('tenant')

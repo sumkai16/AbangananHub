@@ -102,6 +102,17 @@
                     </svg>
                     Add Unit
                 </a>
+                @php $documentNudgeCount = $property->documents->filter(fn ($d) => $d->status === 'Rejected' || $d->isRequested())->count(); @endphp
+                <a href="{{ route('landlord.properties.documents.index', $property) }}"
+                   class="relative inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-[#64748B]/30 text-[#1F2937] text-sm font-medium hover:bg-[#EEF8F8] transition-colors duration-200">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#64748B]">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+                    </svg>
+                    Documents
+                    @if($documentNudgeCount > 0)
+                        <span class="inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $documentNudgeCount }}</span>
+                    @endif
+                </a>
                 <div class="relative">
                     <button @click="moreOpen = !moreOpen"
                             class="inline-flex items-center gap-1 h-9 px-3 rounded-full border border-[#64748B]/30 text-[#1F2937] text-sm font-medium hover:bg-[#EEF8F8] transition-colors duration-200">

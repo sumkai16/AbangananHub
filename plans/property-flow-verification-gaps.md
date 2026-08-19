@@ -15,9 +15,11 @@ This is a discovery/scope doc, not an approved implementation plan yet.
 2. **Property-level amenities are not collected at creation.** `property_amenities` pivot exists
    in schema but is empty and unused (`SCHEMA.md` note — "nothing writes to it"). Only unit-level
    amenities (`unit_amenities`) are functional. See scope item below.
-3. **No property verification documents.** No `property_documents` table, no upload UI, no admin
-   review/approve/reject-with-reason flow for legal docs (proof of ownership, tax declaration,
-   permits, etc.). Only `landlord_verifications` (identity, not property legitimacy) exists.
+3. **No property verification documents — planned & implemented Aug 2026**, see
+   `plans/property-documents-verification.md`. `property_documents` table + private-disk upload,
+   landlord documents page, admin verify/reject-with-reason/request-a-document flow. The public
+   "Verified Property" badge now requires an actual currently-valid verified document instead of
+   being unconditional decoration on any approved listing with photos.
 4. **No Cebu-only location restriction.** `address` is free text; `latitude`/`longitude` are
    optional and fall back to a hardcoded point (`10.3157, 123.8854`) if omitted. No province/city/
    barangay breakdown, no boundary validation. See scope item below.

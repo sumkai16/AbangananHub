@@ -137,6 +137,54 @@
                 @endif
             </div>
 
+            {{-- Verification Documents — full review lives in Verification & Approvals →
+                 Property Documents, so it's reachable without drilling into a specific
+                 property first. This card is a scoped summary + the request action, which
+                 does need this property's context. --}}
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+                <div class="flex items-center justify-between px-5 pt-5 pb-3">
+                    <h2 class="text-[13px] font-bold uppercase tracking-widest text-[#94A3B8]">Verification Documents</h2>
+                    <a href="{{ route('admin.documents.index', ['status' => 'All']) }}"
+                        class="text-[12.5px] font-semibold text-[#156F8C] hover:underline">Review in Verification &amp; Approvals →</a>
+                </div>
+
+                @if($property->documents->isEmpty())
+                    <p class="px-5 pb-4 text-[13.5px] text-[#94A3B8]">No documents submitted yet.</p>
+                @else
+                    <div class="px-5 pb-4 flex flex-wrap gap-2">
+                        @foreach($property->documents->sortByDesc('updated_at') as $document)
+                            <a href="{{ route('admin.documents.show', $document) }}"
+                               class="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] pl-3 pr-1 py-1 hover:bg-[#F7FCFC] transition-colors">
+                                <span class="text-[12.5px] font-medium text-[#1F2937]">{{ $document->document_type }}</span>
+                                <x-document-status-badge :document="$document" />
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+
+                {{-- Request a document --}}
+                <div class="px-5 py-4 bg-[#F7FCFC] border-t border-[#E2E8F0]" x-data="{ requesting: false }">
+                    <button type="button" @click="requesting = !requesting"
+                        class="text-[12.5px] font-semibold text-[#156F8C] hover:underline">
+                        + Request a document
+                    </button>
+                    <form x-show="requesting" x-cloak method="POST" action="{{ route('admin.properties.documents.request', $property) }}"
+                        class="mt-3 flex flex-wrap items-end gap-2">
+                        @csrf
+                        <div class="flex-1 min-w-[200px]">
+                            @php
+                                $requestDocumentTypeOptions = ['' => 'Select a document type'] + array_combine(\App\Models\PropertyDocument::TYPES, \App\Models\PropertyDocument::TYPES);
+                            @endphp
+                            <x-styled-select name="document_type" required :options="$requestDocumentTypeOptions" :selected="''"
+                                class="h-9 w-full rounded-lg border border-[#E2E8F0] px-3 text-[13px] text-[#1F2937] bg-white" />
+                        </div>
+                        <button type="submit" class="h-9 px-4 rounded-lg bg-[#1F2937] text-white text-[12.5px] font-bold hover:brightness-95 transition-all">
+                            Request
+                        </button>
+                    </form>
+                </div>
+            </div>
+
             {{-- Reservations --}}
             <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
                 <h2 class="text-[13px] font-bold uppercase tracking-widest text-[#94A3B8] px-5 pt-5 pb-3">Reservation History</h2>

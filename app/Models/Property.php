@@ -76,6 +76,11 @@ class Property extends Model
         return $this->hasMany(Report::class, 'property_id', 'property_id');
     }
 
+    public function documents()
+    {
+        return $this->hasMany(PropertyDocument::class, 'property_id', 'property_id');
+    }
+
     // ─── Status Helpers ──────────────────────────────────────
 
     public function isApproved(): bool
@@ -96,6 +101,16 @@ class Property extends Model
     public function isSuspended(): bool
     {
         return $this->publication_status === 'Suspended';
+    }
+
+    /**
+     * The public "Verified Property" badge's single source of truth — a
+     * property is only badge-worthy once a document actually backs it, not
+     * merely because the listing itself was approved.
+     */
+    public function hasVerifiedDocuments(): bool
+    {
+        return $this->documents()->currentlyValid()->exists();
     }
 
     /**

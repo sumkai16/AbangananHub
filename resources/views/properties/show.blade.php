@@ -227,12 +227,14 @@
                         <div
                             class="relative rounded-3xl overflow-hidden bg-[#E2E8F0] aspect-[4/3] border border-[#EEF8F8] shadow-sm group">
 
-                            <span class="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 bg-[#156F8C] text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Verified Property
-                            </span>
+                            @if($property->hasVerifiedDocuments())
+                                <span class="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 bg-[#156F8C] text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Verified Property
+                                </span>
+                            @endif
                             <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
                                 onclick="openLightboxAtHero()">

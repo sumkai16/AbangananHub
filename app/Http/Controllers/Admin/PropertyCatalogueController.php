@@ -131,6 +131,7 @@ class PropertyCatalogueController extends Controller
             'units.media' => fn ($q) => $q->where('media_type', 'Image')->orderBy('media_id')->limit(1),
             'reservations.tenant:user_id,first_name,last_name',
             'reviews' => fn ($q) => $q->where('is_hidden', false),
+            'documents.verifier:user_id,first_name,last_name',
         ]);
 
         return view('admin.catalogue.properties.show', compact('property'));

@@ -59,6 +59,7 @@ class PropertyController extends Controller
             'units' => fn($q) => $q->orderBy('unit_label'),
             'units.media',
             'reviews' => fn($q) => $q->with('tenant')->latest()->take(20),
+            'documents',
         ]);
 
         $unitStats = [

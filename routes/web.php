@@ -12,7 +12,9 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\Landlord\PropertyUnitController;
 use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
+use App\Http\Controllers\Landlord\PropertyDocumentController as LandlordPropertyDocumentController;
 use App\Http\Controllers\Admin\PropertyUnitController as AdminPropertyUnitController;
+use App\Http\Controllers\Admin\PropertyDocumentController as AdminPropertyDocumentController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -136,6 +138,14 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::resource('properties.units', PropertyUnitController::class);
         Route::delete('/properties/{property}/units/{unit}/media/{media}', [PropertyUnitController::class, 'destroyMedia'])->name('properties.units.media.destroy');
 
+        // Property verification documents (proof of ownership, tax dec, permits — private disk, policy-gated)
+        Route::get('/properties/{property}/documents', [LandlordPropertyDocumentController::class, 'index'])->name('properties.documents.index');
+        Route::post('/properties/{property}/documents', [LandlordPropertyDocumentController::class, 'store'])->name('properties.documents.store');
+        Route::post('/properties/{property}/documents/{document}/replace', [LandlordPropertyDocumentController::class, 'replace'])->name('properties.documents.replace');
+        Route::delete('/properties/{property}/documents/{document}', [LandlordPropertyDocumentController::class, 'destroy'])->name('properties.documents.destroy');
+        Route::get('/properties/{property}/documents/{document}/preview', [LandlordPropertyDocumentController::class, 'preview'])->name('properties.documents.preview');
+        Route::get('/properties/{property}/documents/{document}/download', [LandlordPropertyDocumentController::class, 'download'])->name('properties.documents.download');
+
         // Occupancy monitoring
         Route::get('/occupancy', [App\Http\Controllers\Landlord\OccupancyController::class, 'index'])->name('occupancy.index');
         Route::get('/occupancy/export', [App\Http\Controllers\Landlord\OccupancyController::class, 'export'])->name('occupancy.export');
@@ -209,6 +219,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/verifications/{verification}/approve', [AdminVerificationController::class, 'approve'])->name('verifications.approve');
         Route::post('/verifications/{verification}/reject', [AdminVerificationController::class, 'reject'])->name('verifications.reject');
 
+        // Property verification documents — cross-property queue, mirrors Landlord Verifications.
+        Route::get('/documents', [AdminPropertyDocumentController::class, 'index'])->name('documents.index');
+        Route::get('/documents/{document}', [AdminPropertyDocumentController::class, 'show'])->name('documents.show');
+
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
@@ -233,6 +247,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/properties/{property}/units/{unit}', [AdminPropertyUnitController::class, 'show'])->name('units.show');
         Route::post('/properties/{property}/units/{unit}/approve', [AdminPropertyUnitController::class, 'approve'])->name('units.approve');
         Route::post('/properties/{property}/units/{unit}/reject', [AdminPropertyUnitController::class, 'reject'])->name('units.reject');
+
+        // Property verification documents — review lands on the catalogue "show" page.
+        Route::post('/properties/{property}/documents/request', [AdminPropertyDocumentController::class, 'request'])->name('properties.documents.request');
+        Route::post('/properties/{property}/documents/{document}/verify', [AdminPropertyDocumentController::class, 'verify'])->name('properties.documents.verify');
+        Route::post('/properties/{property}/documents/{document}/reject', [AdminPropertyDocumentController::class, 'reject'])->name('properties.documents.reject');
 
         // Property & unit catalogues — full inventory across all statuses,
         // distinct from the approval queues above.
