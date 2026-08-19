@@ -56,7 +56,7 @@ class PropertyController extends Controller
      */
     public function show(Property $property): JsonResponse
     {
-        if ($property->verification_status !== 'Approved') {
+        if (! $property->isLive()) {
             abort(404);
         }
 

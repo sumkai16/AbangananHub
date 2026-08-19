@@ -210,6 +210,36 @@
                         {{ $property->verification_status }}
                     </span>
                 </div>
+
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-[13px] text-[#64748B]">Visibility</span>
+                    <x-publication-status-badge :status="$property->publication_status" />
+                </div>
+
+                @if($property->publication_status === 'Suspended')
+                    <p class="text-[12px] text-[#DC2626] bg-[#EF4444]/[0.06] rounded-xl px-3 py-2 leading-relaxed">
+                        This listing was suspended by an admin and is hidden from tenants. Contact support if you believe this was a mistake.
+                    </p>
+                @elseif($property->publication_status === 'Published')
+                    <form method="POST" action="{{ route('properties.unpublish', $property) }}"
+                        data-confirm="Unpublish this listing?"
+                        data-confirm-message="It will be hidden from tenants until you publish it again. You can do this anytime.">
+                        @csrf
+                        <button type="submit"
+                            class="w-full h-9 rounded-xl border border-[#E2E8F0] hover:bg-[#F7FCFC] text-[12.5px] font-semibold text-[#1F2937] transition-colors">
+                            Unpublish
+                        </button>
+                    </form>
+                @elseif($property->publication_status === 'Unpublished')
+                    <form method="POST" action="{{ route('properties.publish', $property) }}">
+                        @csrf
+                        <button type="submit"
+                            class="w-full h-9 rounded-xl bg-[#2AA7A1] hover:brightness-95 text-white text-[12.5px] font-semibold transition-all shadow-sm">
+                            Publish
+                        </button>
+                    </form>
+                @endif
+
                 <div class="space-y-2.5 text-[13px]">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-[#64748B]">Property ID</span>

@@ -71,6 +71,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::middleware('landlord')->group(function () {
         Route::resource('properties', PropertyController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
         Route::delete('/properties/{property}/media/{media}', [PropertyController::class, 'destroyMedia'])->name('properties.media.destroy');
+        Route::post('/properties/{property}/publish', [PropertyController::class, 'publish'])->name('properties.publish');
+        Route::post('/properties/{property}/unpublish', [PropertyController::class, 'unpublish'])->name('properties.unpublish');
     });
 
     // Tenant-accessible routes
@@ -200,6 +202,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/listings/approval', [ListingController::class, 'approval'])->name('listings.approval');
         Route::post('/listings/{property_id}/approve', [ListingController::class, 'approve'])->name('listings.approve');
         Route::post('/listings/{property_id}/reject', [ListingController::class, 'reject'])->name('listings.reject');
+        Route::post('/listings/{property_id}/unsuspend', [ListingController::class, 'unsuspend'])->name('listings.unsuspend');
 
         Route::get('/verifications', [AdminVerificationController::class, 'index'])->name('verifications.index');
         Route::get('/verifications/{verification}', [AdminVerificationController::class, 'show'])->name('verifications.show');

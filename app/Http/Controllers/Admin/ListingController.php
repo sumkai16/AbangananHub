@@ -11,10 +11,16 @@ use Illuminate\Support\Facades\DB;
 
 class ListingController extends Controller
 {
-    private const STATUSES = ['Pending', 'Approved', 'Rejected', 'All'];
+    private const STATUSES = ['Pending', 'Approved', 'Rejected', 'Suspended', 'All'];
 
     /**
      * Display the list of properties pending admin approval.
+     *
+     * 'Suspended' filters on publication_status instead of verification_status
+     * — a suspended property keeps whatever verification_status it already
+     * had (almost always Approved, since it was live before a report took it
+     * down), so it would otherwise be invisible in this queue, findable only
+     * by scrolling the Approved tab.
      */
     public function approval(Request $request)
     {
@@ -24,8 +30,9 @@ class ListingController extends Controller
             $status = 'Pending';
         }
 
-        $query = Property::with('landlord')
-            ->when($status !== 'All', fn ($q) => $q->where('verification_status', $status));
+        $query = Property::with(['landlord', 'media', 'units'])
+            ->when($status === 'Suspended', fn ($q) => $q->where('publication_status', 'Suspended'))
+            ->when(! in_array($status, ['All', 'Suspended'], true), fn ($q) => $q->where('verification_status', $status));
 
         $pendingListings = $status === 'Pending'
             ? $query->oldest()->paginate(15)->withQueryString()
@@ -35,8 +42,9 @@ class ListingController extends Controller
             'Pending' => Property::where('verification_status', 'Pending')->count(),
             'Approved' => Property::where('verification_status', 'Approved')->count(),
             'Rejected' => Property::where('verification_status', 'Rejected')->count(),
+            'Suspended' => Property::where('publication_status', 'Suspended')->count(),
         ];
-        $counts['All'] = array_sum($counts);
+        $counts['All'] = Property::count();
 
         return view('admin.listings.approval', compact('pendingListings', 'status', 'counts'));
     }
@@ -103,5 +111,39 @@ class ListingController extends Controller
         );
 
         return redirect()->back()->with('error', "The listing '{$property->title}' has been rejected.");
+    }
+
+    /**
+     * Lift a moderation suspension (set via a report's "delist property"
+     * action). The only path back to Published from Suspended — a landlord
+     * cannot self-clear this via publish/unpublish.
+     */
+    public function unsuspend($property_id)
+    {
+        $property = DB::transaction(function () use ($property_id) {
+            $property = Property::where('property_id', $property_id)->lockForUpdate()->firstOrFail();
+            abort_if($property->publication_status !== 'Suspended', 409, 'This listing is not suspended.');
+            $property->update(['publication_status' => 'Published']);
+
+            AuditLog::record(
+                'listing.unsuspend',
+                "Unsuspended listing '{$property->title}'.",
+                $property,
+                null,
+                ['landlord_id' => $property->landlord_id],
+            );
+
+            return $property;
+        });
+
+        Notification::notify(
+            $property->landlord_id,
+            'listing',
+            'Listing reinstated',
+            "Your listing '{$property->title}' is visible to tenants again.",
+            route('properties.show', $property->property_id),
+        );
+
+        return redirect()->back()->with('success', "The listing '{$property->title}' has been reinstated.");
     }
 }

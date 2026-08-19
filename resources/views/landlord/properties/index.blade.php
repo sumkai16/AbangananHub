@@ -171,10 +171,15 @@
                             @endif
 
                             {{-- Status chip --}}
-                            <span
-                                class="absolute top-3 left-3 inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 {{ $statusBg }}">
-                                {{ $statusText }}
-                            </span>
+                            <div class="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                                <span
+                                    class="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 {{ $statusBg }}">
+                                    {{ $statusText }}
+                                </span>
+                                @if($property->publication_status !== 'Published')
+                                    <x-publication-status-badge :status="$property->publication_status" />
+                                @endif
+                            </div>
                         </a>
 
                         {{-- Body --}}
@@ -324,9 +329,14 @@
 
                                     {{-- Status --}}
                                     <td class="px-4 py-3.5">
-                                        <span class="inline-flex px-2.5 py-1 rounded-full ring-1 text-[11px] font-semibold whitespace-nowrap {{ $statusBg }}">
-                                            {{ $statusText }}
-                                        </span>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="inline-flex px-2.5 py-1 rounded-full ring-1 text-[11px] font-semibold whitespace-nowrap {{ $statusBg }}">
+                                                {{ $statusText }}
+                                            </span>
+                                            @if($property->publication_status !== 'Published')
+                                                <x-publication-status-badge :status="$property->publication_status" />
+                                            @endif
+                                        </div>
                                     </td>
 
                                     {{-- Actions --}}

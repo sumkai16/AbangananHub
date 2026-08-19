@@ -46,9 +46,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.app', function ($view) {
             $view->with('navAreas', Cache::remember('nav_areas', now()->addMinutes(10), function () {
                 return Property::query()
-                    ->where('verification_status', 'Approved')
-                    ->whereHas('units', fn($q) => $q->where('availability_status', 'Available')
-                        ->where('verification_status', 'Approved'))
+                    ->browsable()
                     ->pluck('address')
                     ->map(function ($address) {
                         // Addresses are free text shaped "Barangay, City, Cebu";

@@ -210,22 +210,23 @@
                                             <img src="{{ str_starts_with($url, 'http') ? $url : Storage::url($url) }}"
                                                 class="w-full h-full object-cover group-hover/img:scale-105 transition-all duration-300"
                                                 alt="Property photo">
-                                            <form
-                                                action="{{ route('properties.media.destroy', [$property->property_id, $img->media_id]) }}"
-                                                method="POST" data-confirm="Remove this photo?" data-confirm-type="warning"
-                                                data-confirm-message="The photo will be removed from this listing."
-                                                data-confirm-button="Remove" class="absolute top-1.5 right-1.5">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="w-6 h-6 rounded-full bg-white/95 hover:bg-[#EF4444]/[0.07] text-[#DC2626] flex items-center justify-center shadow-sm transition-all duration-200">
-                                                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24"
-                                                        stroke="currentColor" stroke-width="2.5">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            </form>
+                                            {{-- type="submit" + form="..." targets the standalone form rendered
+                                            after </form> below, by id — a real <form> nested inside this page's
+                                            main edit <form> is invalid HTML. Browsers silently "repair" that by
+                                            closing the outer form early at the nested form's closing tag, which
+                                            can leave the Save Changes button outside any form, or — worse — let
+                                            this delete form's method-spoofing hidden input merge into the outer
+                                            form's fields, so submitting "Save Changes" would ship a stray
+                                            _method=DELETE the server prioritizes over the edit form's own PUT,
+                                            deleting the whole property instead of saving the edit. --}}
+                                            <button type="submit" form="destroy-media-{{ $img->media_id }}"
+                                                class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white/95 hover:bg-[#EF4444]/[0.07] text-[#DC2626] flex items-center justify-center shadow-sm transition-all duration-200">
+                                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
                                         </div>
                                     @empty
                                         <div
@@ -290,6 +291,19 @@
             </form>
         </div>
     </div>
+
+    {{-- Per-photo delete forms, siblings of (not nested in) the main edit
+    form above — see the comment by the "Remove photo" button for why. --}}
+    @foreach($property->media as $img)
+        <form id="destroy-media-{{ $img->media_id }}"
+            action="{{ route('properties.media.destroy', [$property->property_id, $img->media_id]) }}"
+            method="POST" data-confirm="Remove this photo?" data-confirm-type="warning"
+            data-confirm-message="The photo will be removed from this listing."
+            data-confirm-button="Remove" class="hidden">
+            @csrf
+            @method('DELETE')
+        </form>
+    @endforeach
 
     <div id="location-picker-modal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 sm:p-8" role="dialog" aria-modal="true" aria-label="Pin your property location" aria-hidden="true">
         <div id="location-picker-modal-backdrop" class="absolute inset-0 bg-[#0F172A]/60 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>

@@ -19,6 +19,7 @@ class PropertyResource extends ApiResource
             'latitude'             => $this->attr('latitude'),
             'longitude'            => $this->attr('longitude'),
             'verification_status'  => $this->attr('verification_status'),
+            'publication_status'   => $this->attr('publication_status'),
             'created_at'           => $this->attr('created_at'),
             'updated_at'           => $this->attr('updated_at'),
 

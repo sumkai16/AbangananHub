@@ -73,7 +73,7 @@ class ReservationController extends Controller
             throw ValidationException::withMessages(['property' => ['You cannot inquire on your own listing.']]);
         }
 
-        if ($property->verification_status !== 'Approved') {
+        if (! $property->isLive()) {
             throw ValidationException::withMessages(['property' => ['This property is not available.']]);
         }
 

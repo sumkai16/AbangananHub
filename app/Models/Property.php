@@ -18,6 +18,7 @@ class Property extends Model
     'latitude',
     'longitude',
     'verification_status',
+    'publication_status',
 ];
 
     protected function casts(): array
@@ -92,6 +93,28 @@ class Property extends Model
         return $this->verification_status === 'Rejected';
     }
 
+    public function isSuspended(): bool
+    {
+        return $this->publication_status === 'Suspended';
+    }
+
+    /**
+     * "Is this listing publicly viewable at all" — the single source of
+     * truth for the property-page 404 gate and the tenant reservation gate.
+     * Deliberately does NOT require an available unit (the public page
+     * renders fine with none); that stricter condition is scopeBrowsable().
+     *
+     * Two independent facts, both required: verification_status answers "is
+     * this legitimate" (admin's call), publication_status answers "should it
+     * be live right now" (landlord's call day-to-day, admin's call when
+     * Suspended). Neither implies the other.
+     */
+    public function isLive(): bool
+    {
+        return $this->verification_status === 'Approved'
+            && $this->publication_status === 'Published';
+    }
+
     // ─── Scopes ──────────────────────────────────────────────
 
     public function scopeApproved($query)
@@ -100,7 +123,20 @@ class Property extends Model
     }
 
     /**
-     * Base tenant-facing browse query: approved properties that have at
+     * Query equivalent of isLive() — every tenant-facing visibility check
+     * (browse, the Areas header menu, gates) must route through this scope
+     * or isLive() rather than comparing verification_status directly, so a
+     * future visibility rule only needs to change in one place.
+     */
+    public function scopeLive($query)
+    {
+        return $query
+            ->where('verification_status', 'Approved')
+            ->where('publication_status', 'Published');
+    }
+
+    /**
+     * Base tenant-facing browse query: live properties that have at
      * least one available, approved unit, plus the aggregate columns the
      * listing UIs rely on (min_rental_fee, avg_rating, review_count).
      * Shared by the web PropertyController query and the API.
@@ -108,7 +144,7 @@ class Property extends Model
     public function scopeBrowsable($query)
     {
         return $query
-            ->where('verification_status', 'Approved')
+            ->live()
             ->whereHas('units', function ($q) {
                 $q->where('availability_status', 'Available')
                   ->where('verification_status', 'Approved');

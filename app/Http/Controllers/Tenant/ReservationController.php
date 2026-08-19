@@ -60,7 +60,7 @@ public function store(StoreReservationRequest $request)
             return back()->withInput()->with('error', 'You cannot inquire on your own listing.');
         }
 
-        if ($property->verification_status !== 'Approved') {
+        if (! $property->isLive()) {
             return back()->withInput()->with('error', 'This property is not currently available for inquiries.');
         }
 

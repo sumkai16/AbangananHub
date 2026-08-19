@@ -17,51 +17,17 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Property::with(['media', 'landlord', 'amenities', 'units'])
-            ->where('verification_status', 'Approved')
-            ->whereHas('units', function ($q) {
-                $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved');
-            });
-
-        if ($request->filled('location')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('address', 'like', '%' . $request->location . '%')
-                  ->orWhere('title', 'like', '%' . $request->location . '%');
-            });
-        }
-        if ($request->filled('type')) {
-            $query->where('property_type', $request->type);
-        }
-        if ($request->filled('price_max')) {
-            $query->whereHas('units', function ($q) use ($request) {
-                $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved')
-                  ->where('rental_fee', '<=', $request->price_max);
-            });
-        }
-        if ($request->boolean('verified')) {
-            $query->whereHas('landlord.rentalBusiness');
-        }
-
-        $query->withMin(['units as min_rental_fee' => function ($q) {
-            $q->where('availability_status', 'Available')
-              ->where('verification_status', 'Approved');
-        }], 'rental_fee');
-        $query->withAvg(['reviews as avg_rating' => function ($q) {
-            $q->where('is_hidden', false);
-        }], 'rating');
-
-        $query->withCount(['reviews as review_count' => function ($q) {
-            $q->where('is_hidden', false);
-        }]);
-        match ($request->query('sort')) {
-            'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
-            'price_high' => $query->orderByDesc('min_rental_fee'),
-            default      => $query->latest('created_at'),
-        };
-
-        $properties = $query->paginate(12)->withQueryString();
+        $properties = Property::with(['media', 'landlord', 'amenities', 'units'])
+            ->browsable()
+            ->browseFilters([
+                'location'  => $request->query('location'),
+                'type'      => $request->query('type'),
+                'price_max' => $request->query('price_max'),
+                'verified'  => $request->boolean('verified'),
+                'sort'      => $request->query('sort'),
+            ])
+            ->paginate(12)
+            ->withQueryString();
 
         $favoritedIds = [];
         if (auth()->check()) {
@@ -109,7 +75,7 @@ class PropertyController extends Controller
 
     public function show(Property $property)
     {
-        if ($property->verification_status !== 'Approved') {
+        if (! $property->isLive()) {
             abort(404);
         }
 
@@ -242,6 +208,41 @@ class PropertyController extends Controller
         });
 
         return redirect()->route('landlord.properties.index')->with('success', 'Property updated. It\'s back in the approval queue.');
+    }
+
+    /**
+     * Landlord-controlled visibility toggle. Deliberately narrow: only
+     * Published <-> Unpublished. A Suspended listing was taken down by
+     * admin moderation (Admin\ReportController) and must stay hidden until
+     * an admin lifts it (Admin\ListingController::unsuspend) — allowing this
+     * endpoint to publish out of Suspended would make that moderation action
+     * meaningless. Draft has no producer yet (the property wizard will set
+     * it), so it isn't reachable here either.
+     */
+    public function publish(Property $property)
+    {
+        if ($property->landlord_id !== Auth::user()->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        abort_if($property->publication_status !== 'Unpublished', 409, 'This listing cannot be published from its current state.');
+
+        $property->update(['publication_status' => 'Published']);
+
+        return back()->with('success', "'{$property->title}' is visible to tenants again.");
+    }
+
+    public function unpublish(Property $property)
+    {
+        if ($property->landlord_id !== Auth::user()->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        abort_if($property->publication_status !== 'Published', 409, 'This listing cannot be unpublished from its current state.');
+
+        $property->update(['publication_status' => 'Unpublished']);
+
+        return back()->with('success', "'{$property->title}' has been hidden from tenants. You can publish it again anytime.");
     }
 
     public function destroy(Property $property)

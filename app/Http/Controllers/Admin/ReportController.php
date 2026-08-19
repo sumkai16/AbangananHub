@@ -67,7 +67,13 @@ class ReportController extends Controller
             $actionLabel = "Suspended user: {$targetUser->first_name} {$targetUser->last_name}";
         }
     } elseif ($validated['action_taken'] === 'delist_property' && $report->property) {
-        $report->property->update(['verification_status' => 'Rejected']);
+        // Suspended, not Rejected — this is a moderation takedown, not a
+        // verdict on whether the listing was ever legitimate. Rejected would
+        // get silently cleared the next time the listing is edited and
+        // re-approved (PropertyController::update() resets verification_status
+        // to Pending on any material change); publication_status is untouched
+        // by that reset, so a suspension survives it.
+        $report->property->update(['publication_status' => 'Suspended']);
         $actionLabel = "Delisted property: {$report->property->title}";
     }
 

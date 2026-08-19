@@ -21,9 +21,12 @@ This is a discovery/scope doc, not an approved implementation plan yet.
 4. **No Cebu-only location restriction.** `address` is free text; `latitude`/`longitude` are
    optional and fall back to a hardcoded point (`10.3157, 123.8854`) if omitted. No province/city/
    barangay breakdown, no boundary validation. See scope item below.
-5. **Single status field, not two.** `properties.verification_status` is
-   Pending/Approved/Rejected only — no separate publication status (Draft/Unpublished/Published/
-   Suspended/Archived), so "verified but currently unpublished" isn't representable.
+5. **Single status field, not two — planned & implemented Aug 2026**, see
+   `plans/property-publication-status.md`. `properties.publication_status`
+   (Draft/Published/Unpublished/Suspended — no Archived, deliberately: no producer/consumer for it)
+   now sits alongside `verification_status`. `Draft` has no producer yet (reserved for the
+   wizard item below). Scoped down from the doc: units were not given the same split
+   (a suspended property already hides its units transitively).
 6. **No submission checklist.** Missing-field feedback is per-field Laravel validation errors,
    not a consolidated "Your property cannot be submitted yet — missing: X, Y, Z" summary.
 7. **Units are added after the property is already created/Pending**, rather than being one step
