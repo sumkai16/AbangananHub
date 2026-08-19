@@ -610,7 +610,7 @@
 
         {{-- Details modal --}}
         <template x-teleport="body">
-            <div x-show="modalOpen" x-cloak class="fixed inset-0 z-30 flex items-center justify-center p-4">
+            <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
                 <div @click="modalOpen = false" class="absolute inset-0 bg-black/40"></div>
                 <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6" x-show="modalOpen" x-transition>
                     <div class="flex items-start justify-between mb-4">
@@ -674,7 +674,7 @@
 
         {{-- Send agreement modal --}}
         <template x-teleport="body">
-            <div x-show="agreementOpen" x-cloak class="fixed inset-0 z-30 flex items-center justify-center p-4">
+            <div x-show="agreementOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
                 <div @click="agreementOpen = false" class="absolute inset-0 bg-black/40"></div>
                 <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6" x-show="agreementOpen" x-transition>
                     <div class="flex items-start justify-between mb-4">

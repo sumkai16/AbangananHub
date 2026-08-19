@@ -108,6 +108,9 @@
                                 <input type="text" id="unit_label" name="unit_label" x-model="unitLabel" required
                                     maxlength="100" placeholder="e.g. Room 101, Bed A, Unit 201"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                @error('unit_label')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div>
@@ -117,6 +120,9 @@
                                 <input type="number" id="occupancy_limit" name="occupancy_limit" x-model="capacity" required min="1" max="100"
                                     placeholder="Maximum number of occupants"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                @error('occupancy_limit')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -127,11 +133,17 @@
                                     :options="array_combine(['Bedspace', 'Room', 'Apartment', 'Studio', 'Dormitory'], ['Bedspace', 'Room', 'Apartment', 'Studio', 'Dormitory'])"
                                     :selected="old('unit_type', $unit->unit_type ?? '')" placeholder="Select type"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3 text-[13.5px] text-[#1F2937] bg-white" />
+                                @error('unit_type')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label for="floor" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Floor</label>
                                 <input type="text" id="floor" name="floor" x-model="floor" maxlength="50" placeholder="e.g. 1st Floor"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                @error('floor')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -140,11 +152,17 @@
                                 <label for="bedrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bedrooms</label>
                                 <input type="number" id="bedrooms" name="bedrooms" value="{{ old('bedrooms', $unit->bedrooms) }}" min="0" max="20"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                @error('bedrooms')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label for="bathrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bathrooms</label>
                                 <input type="number" id="bathrooms" name="bathrooms" value="{{ old('bathrooms', $unit->bathrooms) }}" min="0" max="20"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                @error('bathrooms')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Furnished?</label>
@@ -159,6 +177,9 @@
                                         No
                                     </label>
                                 </div>
+                                @error('is_furnished')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -170,12 +191,18 @@
                                 <input type="number" id="rental_fee" name="rental_fee" x-model="rentalFee" required
                                     min="500" max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                @error('rental_fee')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label for="security_deposit" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Security Deposit (₱)</label>
                                 <input type="number" id="security_deposit" name="security_deposit" value="{{ old('security_deposit', $unit->security_deposit) }}" min="0"
                                     max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                @error('security_deposit')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
@@ -207,6 +234,9 @@
                                     </label>
                                 @endforeach
                             </div>
+                            @error('availability_status')
+                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="mt-4">
@@ -214,6 +244,9 @@
                             <textarea id="description" name="description" rows="3" maxlength="300"
                                 placeholder="Add any note or description about this unit..."
                                 class="w-full rounded-xl border border-[#64748B]/30 px-3.5 py-2.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition resize-none">{{ old('description', $unit->description) }}</textarea>
+                            @error('description')
+                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 

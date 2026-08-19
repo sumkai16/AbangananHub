@@ -246,7 +246,7 @@
                     <template x-teleport="body">
                         <div x-show="modal" x-cloak>
                         <template x-if="modal">
-                        <div class="fixed inset-0 z-30 flex items-center justify-center p-4">
+                        <div class="fixed inset-0 z-[200] flex items-center justify-center p-4">
                             <div class="absolute inset-0 bg-black/40 backdrop-blur-sm motion-reduce:transition-none" x-on:click="closeModal()"
                                 x-show="show"
                                 x-transition:enter="transition-opacity ease-out duration-250"
@@ -363,7 +363,7 @@
                 {{-- Vacancy Watch — replaced the 30-day trend chart. A landlord
                      can't act on what occupancy was three weeks ago; they can act
                      on which unit has sat empty longest and what it's costing. --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                <x-card flush class="p-5">
                     <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Vacancy Watch</h2>
 
                     @if($vacancy['count'] === 0)
@@ -423,11 +423,11 @@
                             Counted from when the unit was last vacated, or from when it was listed if it has never been let.
                         </p>
                     @endif
-                </div>
+                </x-card>
 
                 {{-- Recent Activity — a timeline: the connecting rule ties the
                      status dots into one sequence rather than four loose rows. --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                <x-card flush class="p-5">
                     <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Recent Activity</h2>
                     @if($recentActivities->isEmpty())
                         <p class="text-[12px] text-[#64748B] py-4 text-center">No occupancy changes recorded yet.</p>
@@ -461,7 +461,7 @@
                             </div>
                         </div>
                     @endif
-                </div>
+                </x-card>
             </div>
         </div>
 

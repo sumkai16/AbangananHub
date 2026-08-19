@@ -60,7 +60,7 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                    <div class="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 sm:p-8 space-y-6">
+                    <x-card flush class="lg:col-span-7 p-5 sm:p-8 space-y-6">
 
                         <h3 class="text-[16px] font-bold text-[#156F8C] border-b border-[#E2E8F0] pb-4">Property details</h3>
 
@@ -71,6 +71,7 @@
                                 maxlength="150"
                                 class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] font-medium text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                                 required>
+                            @error('title')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -81,6 +82,7 @@
                                 <x-styled-select name="property_type" :options="['Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House']"
                                     :selected="old('property_type', $property->property_type)" required
                                     class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] font-medium text-[#156F8C]" />
+                                @error('property_type')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label for="rental_fee"
@@ -94,6 +96,7 @@
                                         class="w-full h-12 pl-8 pr-4 rounded-2xl border border-[#E2E8F0] text-[14px] font-bold text-[#156F8C] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                                         required>
                                 </div>
+                                @error('rental_fee')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                             </div>
                         </div>
 
@@ -187,13 +190,14 @@
                             <textarea name="description" rows="6" minlength="20" maxlength="3000"
                                 class="w-full p-4 rounded-2xl border border-[#E2E8F0] text-[14px] text-[#156F8C] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all"
                                 required>{{ old('description', $property->description) }}</textarea>
+                            @error('description')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                         </div>
-                    </div>
+                    </x-card>
 
                     <div class="lg:col-span-5">
                         <div class="sticky top-8 space-y-6">
 
-                            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
+                            <x-card flush class="p-6">
                                 <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
                                     <h3 class="text-[14px] font-bold text-[#156F8C]">Current photos</h3>
                                     <span
@@ -235,9 +239,9 @@
                                         </div>
                                     @endforelse
                                 </div>
-                            </div>
+                            </x-card>
 
-                            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6 space-y-4">
+                            <x-card flush class="p-6 space-y-4">
                                 <h3 class="text-[14px] font-bold text-[#156F8C] border-b border-[#E2E8F0] pb-3">Add more
                                     photos</h3>
 
@@ -266,7 +270,7 @@
 
                                 <div id="live-preview-grid"
                                     class="grid grid-cols-4 gap-2 hidden pt-3 border-t border-[#E2E8F0]"></div>
-                            </div>
+                            </x-card>
 
                             <div class="rounded-3xl bg-[#EEF8F8]/50 border border-[#2AA7A1]/20 p-5">
                                 <p class="text-sm font-bold text-[#156F8C]">Heads up</p>

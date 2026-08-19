@@ -30,8 +30,8 @@
         </div>
 
         {{-- Filter toolbar --}}
-        <form method="GET" action="{{ route('landlord.properties.index') }}"
-            class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-8">
+        <x-card flush class="mb-8">
+        <form method="GET" action="{{ route('landlord.properties.index') }}" class="p-4">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
                 <div class="relative flex-1 min-w-[200px]">
@@ -106,6 +106,7 @@
                 </div>
             @endif
         </form>
+        </x-card>
 
         {{-- Empty state --}}
         @if($properties->isEmpty())
@@ -278,8 +279,7 @@
             </div>
 
             {{-- Table view --}}
-            <div x-show="view === 'table'" x-cloak
-                class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush x-show="view === 'table'" x-cloak>
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -384,7 +384,7 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </x-card>
 
             {{-- Pagination --}}
             <div class="mt-10">

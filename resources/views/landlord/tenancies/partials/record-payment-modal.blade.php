@@ -35,8 +35,14 @@
     Two flags, not one: `show` drives visibility so the leave transition
     actually plays (x-if alone doesn't animate) — RULES.md → Modals & Overlays.
 --}}
+@php
+    $recordPaymentFields = ['payment_type', 'amount', 'billing_period', 'payment_method', 'paid_at', 'reference_no', 'payment_notes'];
+@endphp
+{{-- A failed submit redirects back with errors, but `show` is client-only Alpine
+     state defaulting to false — without this, the modal would re-render closed
+     and the error would be completely invisible, not just non-inline. --}}
 <div x-data="{
-        show: false,
+        show: {{ $errors->hasAny($recordPaymentFields) ? 'true' : 'false' }},
         type: 'Monthly',
         amount: @js($summary['monthlyRent'] > 0 ? number_format($summary['monthlyRent'], 2, '.', '') : ''),
         period: @js($defaultPeriod ? $defaultPeriod['period']->toDateString() : ''),
@@ -94,6 +100,9 @@
                             <x-styled-select name="payment_type" x-model="type"
                                 :options="$paymentTypeOptions" selected="Monthly"
                                 class="{{ $modalInput }} bg-white" />
+                            @error('payment_type')
+                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -102,6 +111,9 @@
                             </label>
                             <input type="number" id="amount" name="amount" x-model="amount" min="1" max="1000000"
                                 step="0.01" required placeholder="0.00" class="{{ $modalInput }}">
+                            @error('amount')
+                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
@@ -114,6 +126,9 @@
                         <x-styled-select name="billing_period" x-model="period"
                             :options="$billingPeriodOptions" :selected="$defaultPeriod ? $defaultPeriod['period']->toDateString() : ''"
                             class="{{ $modalInput }} bg-white" panel-class="max-w-[360px]" />
+                        @error('billing_period')
+                            <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="grid sm:grid-cols-2 gap-4 mb-4">
@@ -124,6 +139,9 @@
                             <x-styled-select name="payment_method"
                                 :options="$paymentMethodOptions" selected="Cash"
                                 class="{{ $modalInput }} bg-white" />
+                            @error('payment_method')
+                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
                             <label for="paid_at" class="{{ $modalLabel }}">
@@ -131,6 +149,9 @@
                             </label>
                             <input type="date" id="paid_at" name="paid_at" value="{{ now()->toDateString() }}"
                                 max="{{ now()->toDateString() }}" required class="{{ $modalInput }} cursor-pointer">
+                            @error('paid_at')
+                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
@@ -140,6 +161,9 @@
                         </label>
                         <input type="text" id="modal_reference_no" name="reference_no" maxlength="255"
                             placeholder="OR number, GCash reference…" class="{{ $modalInput }}">
+                        @error('reference_no')
+                            <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="mb-5">
@@ -148,7 +172,10 @@
                         </label>
                         <textarea id="payment_notes" name="payment_notes" rows="2" maxlength="1000"
                             placeholder="Anything worth noting about this payment…"
-                            class="w-full rounded-xl border border-[#64748B]/30 px-3.5 py-2.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition resize-y"></textarea>
+                            class="w-full rounded-xl border border-[#64748B]/30 px-3.5 py-2.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition resize-y">{{ old('payment_notes') }}</textarea>
+                        @error('payment_notes')
+                            <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="flex items-start gap-2.5 rounded-xl bg-[#F7FCFC] border border-[#E2E8F0] px-3.5 py-3 mb-5">

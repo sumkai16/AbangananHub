@@ -112,7 +112,7 @@
                 @foreach($reservations as $reservation)
                     @php
                         $initials = strtoupper(substr($reservation->tenant->first_name ?? '', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1));
-                        $thumb = $reservation->property->media->first() ?? null;
+                        $thumb = $reservation->property->media->firstWhere('media_type', 'Image');
 
                         // Rent standing → whether a reminder is meaningful.
                         $summary = $ledger[$reservation->reservation_id] ?? null;

@@ -109,7 +109,8 @@
         </div>
 
         {{-- Filters --}}
-        <form method="GET" class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
+        <x-card flush class="mb-6">
+        <form method="GET" class="p-4">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
@@ -184,6 +185,7 @@
                 </div>
             @endif
         </form>
+        </x-card>
 
         {{-- Empty state --}}
         @if($units->isEmpty())
@@ -353,8 +355,7 @@
             </div>
 
             {{-- Table view --}}
-            <div x-show="view === 'table'" x-cloak
-                class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush x-show="view === 'table'" x-cloak>
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -489,7 +490,7 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </x-card>
 
             <div class="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <p class="text-[12.5px] text-[#64748B]">
@@ -505,7 +506,7 @@
         <template x-teleport="body">
             <div x-show="modal" x-cloak>
             <template x-if="modal">
-            <div class="fixed inset-0 z-30 flex items-center justify-center p-4">
+            <div class="fixed inset-0 z-[200] flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-black/40 backdrop-blur-sm motion-reduce:transition-none" x-on:click="closeModal()"
                     x-show="show"
                     x-transition:enter="transition-opacity ease-out duration-250"

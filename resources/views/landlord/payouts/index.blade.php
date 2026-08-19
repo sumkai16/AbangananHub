@@ -16,13 +16,13 @@
         </div>
 
         @unless ($hasPayoutDestination)
-            <div class="mb-6 flex items-start gap-3 rounded-2xl border border-[#F5D47A] bg-gradient-to-r from-[#FFF8E7] via-[#FFF6D7] to-[#FDF7E8] p-4 shadow-[0_10px_25px_rgba(217,119,6,0.08)]">
-                <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FDE68A] text-[#B45309] shadow-inner shadow-[#FBBF24]/40">
+            <div class="mb-6 flex items-start gap-3 rounded-2xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4">
+                <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FBBF24]/[0.10] text-[#B45309]">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.01M11.48 3.5l8.808 15.3A1.5 1.5 0 0 1 18.908 21H5.092a1.5 1.5 0 0 1-1.388-2.2L12.52 3.5a1.5 1.5 0 0 1 2.96 0Z" />
                     </svg>
                 </div>
-                <div class="text-[13px] leading-6 text-[#7A4F08]">
+                <div class="text-[13px] leading-6 text-[#B45309]">
                     No GCash number on file — AbangananHub can't send you a payout until you add one in
                     <a href="{{ route('landlord.profile.edit') }}" class="font-semibold underline decoration-2 underline-offset-2">Edit profile</a>.
                 </div>
@@ -51,7 +51,7 @@
         </div>
 
         {{-- Pending --}}
-        <div class="mb-6 overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+        <x-card flush class="mb-6">
             <div class="flex items-center justify-between border-b border-[#E2E8F0] bg-gradient-to-r from-[#F8FBFB] to-[#F3F7F8] px-5 py-4 sm:px-6">
                 <div class="flex items-center gap-2.5">
                     <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[#F59E0B] shadow-[0_0_0_4px_rgba(245,158,11,0.14)]"></span>
@@ -89,13 +89,13 @@
                     </table>
                 </div>
             @endif
-        </div>
+        </x-card>
 
         {{-- Paid out --}}
-        <div class="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+        <x-card flush>
             <div class="flex items-center justify-between border-b border-[#E2E8F0] bg-gradient-to-r from-[#F8FBFB] to-[#F3F7F8] px-5 py-4 sm:px-6">
                 <div class="flex items-center gap-2.5">
-                    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[#10B981] shadow-[0_0_0_4px_rgba(16,185,129,0.14)]"></span>
+                    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[#22C55E] shadow-[0_0_0_4px_rgba(34,197,94,0.14)]"></span>
                     <p class="text-[13px] font-semibold text-[#1F2937]">Payout history</p>
                 </div>
             </div>
@@ -133,7 +133,7 @@
                     </div>
                 @endif
             @endif
-        </div>
+        </x-card>
 
     </div>
 @endsection

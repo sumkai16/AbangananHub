@@ -46,7 +46,7 @@
 
         {{-- Business info card --}}
         @if($business)
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-5">
+            <x-card flush class="p-5 mb-5">
                 <div class="flex items-center gap-3 mb-3">
                     @if($business->logo_url)
                         <img src="{{ $business->logo_url }}" alt="{{ $business->business_name }}" class="w-11 h-11 rounded-xl object-cover">
@@ -75,12 +75,12 @@
                         {{ $business->contact_number }}
                     </div>
                 @endif
-            </div>
+            </x-card>
         @endif
 
         {{-- Stats row --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
+            <x-card flush class="p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Properties</span>
                     <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -90,8 +90,8 @@
                     </div>
                 </div>
                 <span class="text-xl font-extrabold text-[#1F2937]">{{ $properties->count() }}</span>
-            </div>
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
+            </x-card>
+            <x-card flush class="p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Total Units</span>
                     <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
@@ -101,8 +101,8 @@
                     </div>
                 </div>
                 <span class="text-xl font-extrabold text-[#1F2937]">{{ $totalUnits }}</span>
-            </div>
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
+            </x-card>
+            <x-card flush class="p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Occupied</span>
                     <div class="w-7 h-7 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center shrink-0">
@@ -112,8 +112,8 @@
                     </div>
                 </div>
                 <span class="text-xl font-extrabold text-[#DC2626]">{{ $occupiedUnits }}</span>
-            </div>
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
+            </x-card>
+            <x-card flush class="p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rating as landlord</span>
                     <div class="w-7 h-7 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
@@ -129,7 +129,7 @@
                     <span class="text-xl font-extrabold text-[#94A3B8]">—</span>
                     <span class="text-[12px] text-[#64748B] font-normal ml-1">No reviews yet</span>
                 @endif
-            </div>
+            </x-card>
         </div>
 
         {{-- Properties + Reviews side by side --}}
@@ -181,19 +181,19 @@
                         </div>
                     @endif
                 @else
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] py-10 text-center">
+                    <x-card flush class="py-10 text-center">
                         <div class="w-12 h-12 rounded-xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-3">
                             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
                             </svg>
                         </div>
                         <p class="text-[13px] text-[#64748B]">No approved properties yet</p>
-                    </div>
+                    </x-card>
                 @endif
             </div>
 
             {{-- Reviews received --}}
-            <div class="bg-white rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 self-start">
+            <x-card flush class="p-5 self-start">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-[15px] font-bold text-[#1F2937]">Reviews</h2>
                     @if($averageRating !== null)
@@ -286,7 +286,7 @@
                         </svg>
                     </a>
                 @endif
-            </div>
+            </x-card>
         </div>
 
         <div class="mt-6 rounded-[28px] border border-[#E2E8F0] bg-gradient-to-br from-[#F8FBFC] via-white to-[#EEF8F8] p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)]">

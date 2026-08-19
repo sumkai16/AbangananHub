@@ -46,8 +46,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
             <div class="min-w-0">
                 {{-- Filter bar --}}
-                <form method="GET" action="{{ route('landlord.reviews.index') }}"
-                    class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
+                <x-card flush class="mb-6">
+                <form method="GET" action="{{ route('landlord.reviews.index') }}" class="p-4">
                     <div class="flex flex-wrap items-center gap-2.5">
                         @php
                             $reviewsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
@@ -85,10 +85,11 @@
                         @endif
                     </div>
                 </form>
+                </x-card>
 
                 {{-- Review cards --}}
                 @if($reviews->isEmpty())
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <x-card flush class="flex flex-col items-center justify-center py-16 px-6 text-center">
                         <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
                             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -101,11 +102,14 @@
                             class="mt-5 inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#2AA7A1] text-white text-[13px] font-semibold hover:brightness-95 transition-all duration-200">
                             View your properties
                         </a>
-                    </div>
+                    </x-card>
                 @else
-                    <div class="space-y-4" x-data="{ replyOpenId: null }">
+                    {{-- `replyOpenId` is client-only Alpine state — without seeding it from
+                         `old('review_id')`, a failed reply submit would redirect back with
+                         the panel closed and the validation error completely invisible. --}}
+                    <div class="space-y-4" x-data="{ replyOpenId: {{ old('review_id') ? (int) old('review_id') : 'null' }} }">
                         @foreach($reviews as $review)
-                            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                            <x-card flush class="p-5">
                                 {{-- Top row --}}
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                     <div class="flex items-center gap-3">
@@ -173,9 +177,15 @@
                                         <form method="POST" action="{{ route('landlord.reviews.reply', $review) }}" class="space-y-2.5">
                                             @csrf
                                             @method('PATCH')
+                                            <input type="hidden" name="review_id" value="{{ $review->review_id }}">
                                             <textarea name="landlord_reply" rows="2" maxlength="1000" required
                                                 placeholder="Write a public reply to this review..."
-                                                class="w-full rounded-xl border border-[#64748B]/25 px-3.5 py-2.5 text-[13px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition"></textarea>
+                                                class="w-full rounded-xl border border-[#64748B]/25 px-3.5 py-2.5 text-[13px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">{{ old('review_id') == $review->review_id ? old('landlord_reply') : '' }}</textarea>
+                                            @if(old('review_id') == $review->review_id)
+                                                @error('landlord_reply')
+                                                    <p class="text-[11.5px] text-[#EF4444]">{{ $message }}</p>
+                                                @enderror
+                                            @endif
                                             <button type="submit"
                                                 class="h-9 px-4 rounded-full bg-[#2AA7A1] text-white text-[12.5px] font-semibold hover:brightness-95 transition-all duration-200">
                                                 Submit Reply
@@ -191,7 +201,7 @@
                                         <p class="text-[12.5px] text-[#64748B] mt-0.5 leading-relaxed">{{ $review->landlord_reply }}</p>
                                     </div>
                                 @endif
-                            </div>
+                            </x-card>
                         @endforeach
                     </div>
 
@@ -204,7 +214,7 @@
 
             {{-- Sidebar: reputation tips --}}
             <aside class="flex flex-col gap-4 lg:sticky lg:top-24">
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                <x-card flush class="p-5">
                     <h3 class="text-[13px] font-bold text-[#1F2937] mb-3.5">Build your reputation</h3>
                     <ul class="flex flex-col gap-3">
                         <li class="flex items-start gap-2.5">
@@ -226,7 +236,7 @@
                             <span class="text-[12.5px] text-[#64748B] leading-relaxed">A strong rating increases visibility in property search</span>
                         </li>
                     </ul>
-                </div>
+                </x-card>
                 <div class="rounded-2xl bg-[#1F2937] p-5">
                     <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center mb-3">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>

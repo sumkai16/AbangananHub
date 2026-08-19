@@ -82,7 +82,7 @@
                 <div class="lg:col-span-7 space-y-6">
 
                     {{-- Property Information (read-only) --}}
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
+                    <x-card flush class="p-6">
                         <div class="flex items-center gap-2.5 mb-5">
                             <div class="w-8 h-8 rounded-lg bg-[#156F8C] flex items-center justify-center shrink-0">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -104,10 +104,10 @@
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 bg-[#EEF8F8] px-3.5 text-[13.5px] text-[#64748B] cursor-not-allowed">
                             </div>
                         </div>
-                    </div>
+                    </x-card>
 
                     {{-- Unit Details --}}
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
+                    <x-card flush class="p-6">
                         <div class="flex items-center gap-2.5 mb-5">
                             <div class="w-8 h-8 rounded-lg bg-[#1F2937] flex items-center justify-center shrink-0">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -157,7 +157,7 @@
                         <div class="grid sm:grid-cols-3 gap-4 mb-4">
                             <div>
                                 <label for="bedrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bedrooms</label>
-                                <input type="number" id="bedrooms" name="bedrooms" value="{{ old('bedrooms', $unit->bedrooms ?? '') }}" min="0" max="20"
+                                <input type="number" id="bedrooms" name="bedrooms" value="{{ old('bedrooms') }}" min="0" max="20"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('bedrooms')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
@@ -165,7 +165,7 @@
                             </div>
                             <div>
                                 <label for="bathrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bathrooms</label>
-                                <input type="number" id="bathrooms" name="bathrooms" value="{{ old('bathrooms', $unit->bathrooms ?? '') }}" min="0" max="20"
+                                <input type="number" id="bathrooms" name="bathrooms" value="{{ old('bathrooms') }}" min="0" max="20"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('bathrooms')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
@@ -173,7 +173,7 @@
                             </div>
                             <div>
                                 <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Furnished?</label>
-                                @php $furnishedOld = old('is_furnished', isset($unit) ? ($unit->is_furnished === null ? null : (int) $unit->is_furnished) : null); @endphp
+                                @php $furnishedOld = old('is_furnished'); @endphp
                                 <div class="flex items-center gap-4 h-11">
                                     <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
                                         <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
@@ -278,11 +278,10 @@
                                 <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                    </div>
+                    </x-card>
 
                     {{-- Unit Photos --}}
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6"
-                        x-data="{ tab: 'live' }">
+                    <x-card flush class="p-6" x-data="{ tab: 'live' }">
                         <div class="flex items-center gap-2.5 mb-3">
                             <div class="w-8 h-8 rounded-lg bg-[#156F8C] flex items-center justify-center shrink-0">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -389,7 +388,7 @@
 
                         {{-- Unified gallery (live + uploaded) --}}
                         <div id="photo-gallery" class="hidden grid-cols-1 sm:grid-cols-2 gap-3 mt-4"></div>
-                    </div>
+                    </x-card>
 
                     {{-- Actions --}}
                     <div class="flex items-center gap-3">
@@ -411,7 +410,7 @@
                 {{-- ── Right rail: live preview + amenities ───────────────── --}}
                 <div class="lg:col-span-5">
                     <div class="space-y-6">
-                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+                        <x-card flush>
                             <div class="px-5 pt-5 pb-3 flex items-center gap-2 border-b border-[#E2E8F0]/70">
                                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
@@ -482,14 +481,14 @@
                                 <p class="text-[12px] text-[#64748B] leading-relaxed line-clamp-3 pt-1"
                                     x-show="description" x-cloak x-text="description"></p>
                             </div>
-                        </div>
+                        </x-card>
 
                         <p class="text-[11px] text-[#64748B] text-center px-4 leading-relaxed">
                             This is a preview of how the unit's key details will read to tenants once approved.
                         </p>
 
                         {{-- Unit Amenities --}}
-                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
+                        <x-card flush class="p-6">
                             <div class="flex items-center gap-2.5 mb-5">
                                 <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
@@ -529,7 +528,7 @@
                             @error('amenities.*')
                                 <p class="text-[11.5px] text-[#EF4444] mt-2">{{ $message }}</p>
                             @enderror
-                        </div>
+                        </x-card>
                     </div>
                 </div>
 

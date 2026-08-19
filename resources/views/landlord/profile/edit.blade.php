@@ -52,6 +52,9 @@
                             <input type="file" name="profile_picture" accept="image/*" class="hidden">
                         </label>
                         <p class="text-[11px] text-[#64748B] mt-2">JPG, PNG. Max 2MB. Will be cropped to square.</p>
+                        @error('profile_picture')
+                            <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -65,11 +68,17 @@
                         <label for="first_name" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">First name</label>
                         <input type="text" id="first_name" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                        @error('first_name')
+                            <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label for="last_name" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Last name</label>
                         <input type="text" id="last_name" name="last_name" value="{{ old('last_name', $user->last_name) }}" required
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all">
+                        @error('last_name')
+                            <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -78,6 +87,9 @@
                     <input type="text" id="contact_number" name="contact_number" value="{{ old('contact_number', $user->contact_number) }}"
                         class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                         placeholder="09XX XXX XXXX">
+                    @error('contact_number')
+                        <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="mb-4">
@@ -95,6 +107,9 @@
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all resize-none"
                             placeholder="Tell tenants a bit about yourself...">{{ old('bio', $user->bio) }}</textarea>
                         <p class="text-[11px] text-[#64748B] mt-1 text-right"><span x-text="count">0</span> / 1,000</p>
+                        @error('bio')
+                            <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -110,12 +125,18 @@
                         <input type="text" id="gcash_number" name="gcash_number" value="{{ old('gcash_number', $user->gcash_number) }}"
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                             placeholder="09XX XXX XXXX">
+                        @error('gcash_number')
+                            <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label for="gcash_account_name" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">GCash account name</label>
                         <input type="text" id="gcash_account_name" name="gcash_account_name" value="{{ old('gcash_account_name', $user->gcash_account_name) }}"
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                             placeholder="Name on the GCash account">
+                        @error('gcash_account_name')
+                            <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -158,6 +179,9 @@
                                 x-on:change="if ($event.target.files[0]) { preview = URL.createObjectURL($event.target.files[0]) }">
                         </label>
                         <p class="text-[11px] text-[#64748B] mt-1.5">JPG, PNG, or WebP. Max 2MB.</p>
+                        @error('logo')
+                            <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
                 <div class="mb-4">
@@ -166,6 +190,9 @@
                         value="{{ old('business_name', $business->business_name ?? '') }}"
                         class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                         placeholder="e.g. Santos Rentals">
+                    @error('business_name')
+                        <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="mb-4">
@@ -173,6 +200,9 @@
                     <textarea name="business_description" rows="2" maxlength="1000"
                         class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all resize-none"
                         placeholder="Briefly describe your rental business...">{{ old('business_description', $business->description ?? '') }}</textarea>
+                    @error('business_description')
+                        <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -182,6 +212,9 @@
                             value="{{ old('business_contact', $business->contact_number ?? '') }}"
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                             placeholder="09XX XXX XXXX">
+                        @error('business_contact')
+                            <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label for="business_address" class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Business address</label>
@@ -189,6 +222,9 @@
                             value="{{ old('business_address', $business->business_address ?? '') }}"
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all"
                             placeholder="Cebu City, Cebu">
+                        @error('business_address')
+                            <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
             </div>

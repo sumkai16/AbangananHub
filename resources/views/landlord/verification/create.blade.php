@@ -1043,7 +1043,7 @@
                     x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
                     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0" @click="closePreview()" @keydown.escape.window="closePreview()"
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 cursor-pointer">
+                    class="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4 cursor-pointer">
                     <button type="button" @click="closePreview()"
                         class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
                         <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
