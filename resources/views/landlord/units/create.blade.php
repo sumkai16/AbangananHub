@@ -62,6 +62,13 @@
                 floor: @js(old('floor', '')),
                 rentalFee: @js(old('rental_fee', '')),
                 securityDeposit: @js(old('security_deposit', '')),
+                // A monthly rental always carries a deposit now (required
+                // below). Mirroring the rent into it as it's typed means the
+                // landlord confirms a number instead of inventing one from a
+                // blank field — one month's rent is the standard arrangement
+                // in the coverage area. Stops mirroring the moment they edit
+                // the deposit themselves.
+                securityDepositTouched: @js(old('security_deposit') !== null),
                 capacity: @js(old('occupancy_limit', '')),
                 status: @js(old('availability_status', 'Available')),
                 description: @js(old('description', '')),
@@ -198,6 +205,7 @@
                                 </label>
                                 <input type="number" id="rental_fee" name="rental_fee" x-model="rentalFee" required min="500"
                                     max="999999.99" step="0.01" placeholder="e.g. 3500"
+                                    x-on:input="if (!securityDepositTouched) securityDeposit = rentalFee"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('rental_fee')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
@@ -205,9 +213,12 @@
                             </div>
 
                             <div>
-                                <label for="security_deposit" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Security Deposit (₱)</label>
-                                <input type="number" id="security_deposit" name="security_deposit" x-model="securityDeposit" min="0"
+                                <label for="security_deposit" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
+                                    Security Deposit (₱) <span class="text-[#EF4444]">*</span>
+                                </label>
+                                <input type="number" id="security_deposit" name="security_deposit" x-model="securityDeposit" required min="0"
                                     max="999999.99" step="0.01" placeholder="e.g. 3500"
+                                    x-on:input="securityDepositTouched = true"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('security_deposit')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>

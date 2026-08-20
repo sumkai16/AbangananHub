@@ -15,7 +15,9 @@
 
     <div class="flex items-start justify-between gap-6 flex-wrap">
         <p class="max-w-sm text-sm text-[#64748B]">
-            Once your account is deleted, all of your data will be permanently removed. This action cannot be undone.
+            Deleting your account permanently removes your reservations, payment and rent history, conversations,
+            and reviews. This cannot be undone. If you have an occupied tenancy, listed properties, or written
+            reviews, you'll need to resolve those first.
         </p>
         <button type="button"
             class="inline-flex shrink-0 h-9 items-center rounded-lg border border-[#EF4444]/25 bg-white px-4 text-[13px] font-semibold text-[#DC2626] transition hover:bg-[#EF4444]/[0.07] active:scale-[0.98]"
@@ -30,7 +32,10 @@
             @method('delete')
 
             <h2 class="text-base font-semibold text-[#1F2937]">Delete your account?</h2>
-            <p class="mt-1.5 text-sm text-[#64748B]">Enter your password to confirm. This cannot be undone.</p>
+            <p class="mt-1.5 text-sm text-[#64748B]">
+                Enter your password to confirm. This cannot be undone. If you have an active tenancy, listed
+                property, or written reviews on record, deletion will be blocked and we'll tell you why.
+            </p>
 
             <div class="mt-5">
                 <label for="password"

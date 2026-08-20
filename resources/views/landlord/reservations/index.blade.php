@@ -389,7 +389,7 @@
                                                         Awaiting tenant confirmation.
                                                     </p>
                                                 @endif
-                                            @elseif($reservation->rental_status === 'Occupied')
+                                            @elseif(in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
                                                 @if($reservation->tenantRating)
                                                     <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
                                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -563,7 +563,7 @@
                                             Awaiting tenant confirmation.
                                         </p>
                                     @endif
-                                @elseif($reservation->rental_status === 'Occupied')
+                                @elseif(in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
                                     @if($reservation->tenantRating)
                                         <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
                                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

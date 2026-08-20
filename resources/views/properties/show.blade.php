@@ -72,7 +72,6 @@
     @endphp
 
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-16 lg:pb-8 min-h-[calc(100vh-64px)]" x-data="{
-                                                    mode: 'inquiry',
                                                     inquireOpen: false,
 
                                                     reportOpen: false,
@@ -150,23 +149,19 @@
                                                     selectedUnit: @js($defaultUnitId),
                                                     msg: @js(old('message', '')),
 
+                                                    // Contacting a landlord is one action now, not two — see
+                                                    // DESIGN.md for why the old Inquiry/Reserve toggle was
+                                                    // removed. A move-in date and duration are optional either
+                                                    // way; duration_months is posted alongside the date and the
+                                                    // server derives target_move_out_date from the pair
+                                                    // (StoreReservationRequest::prepareForValidation).
                                                     moveIn: @js(old('target_move_in_date', '')),
-                                                    moveOut: @js(old('target_move_out_date', '')),
+                                                    durationMonths: @js(old('duration_months', '')),
                                                     minMoveIn: @js(now()->toDateString()),
                                                     maxMoveIn: @js(now()->addYear()->toDateString()),
 
-                                                    // Move-out can never precede move-in. Bumping move-in past an
-                                                    // already-picked move-out clears it rather than leaving an
-                                                    // invalid pair sitting in the form.
-                                                    onMoveInChange() {
-                                                        if (this.moveOut && this.moveOut <= this.moveIn) this.moveOut = '';
-                                                    },
-
-                                                    // Inquiry needs only a unit; a date is meaningless until
-                                                    // the tenant is actually reserving.
                                                     get canSubmit() {
-                                                        if (!this.selected) return false;
-                                                        return this.mode === 'reserve' ? !!this.moveIn : true;
+                                                        return !!this.selected;
                                                     },
 
                                                     descExpanded: false,
@@ -301,7 +296,7 @@
                     <div>
                         <h2 class="text-base font-bold text-[#1F2937] mb-1">Available Units ({{ $availableUnits->count() }})
                         </h2>
-                        <p class="text-sm text-[#64748B] mb-4">Choose a unit to inquire or reserve</p>
+                        <p class="text-sm text-[#64748B] mb-4">Choose a unit to contact the landlord about</p>
 
                         <div class="space-y-3">
                             @foreach($approvedUnits as $unit)
@@ -484,7 +479,7 @@
                     @if(!auth()->check())
                         <button type="button" onclick="openAuthModal('login')"
                             class="flex-1 py-3.5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-[15px] font-bold shadow-sm transition-all">
-                            Log in to inquire
+                            Log in to contact landlord
                         </button>
                     @elseif($isOwner)
                         <div class="flex-1 py-3.5 text-center rounded-xl bg-[#E2E8F0] text-[#64748B] text-[15px] font-bold cursor-not-allowed">
@@ -493,7 +488,7 @@
                     @else
                         <button type="button" x-on:click="inquireOpen = true"
                             class="flex-1 py-3.5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-[15px] font-bold shadow-sm transition-all cursor-pointer"
-                            x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Send Inquiry'"
+                            x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Contact Landlord'"
                             :disabled="selected && selected.hasActive"
                             :class="selected && selected.hasActive ? 'opacity-60 cursor-not-allowed' : ''">
                         </button>
@@ -1049,7 +1044,7 @@
 
                                 <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-start gap-3">
                                     <div class="flex-1 min-w-0">
-                                        <h2 id="inquire-modal-title" class="text-[16px] font-bold text-[#1F2937]">Inquire / Reserve</h2>
+                                        <h2 id="inquire-modal-title" class="text-[16px] font-bold text-[#1F2937]">Contact Landlord</h2>
                                         <template x-if="selected">
                                             <p class="mt-0.5 text-[12.5px] text-[#64748B] truncate">
                                                 <span x-text="selected.label"></span> &middot;
@@ -1068,40 +1063,24 @@
                                 </div>
 
                                 <div class="px-6 py-5">
-    {{-- Inquiry / Reserve mode toggle --}}
-                        <div class="grid grid-cols-2 gap-2 mb-5">
-                            <button type="button" x-on:click="mode = 'inquiry'"
-                                :class="mode === 'inquiry' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B] hover:text-[#1F2937]'"
-                                class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
-                                Inquiry
-                            </button>
-                            <button type="button" x-on:click="mode = 'reserve'"
-                                :class="mode === 'reserve' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B] hover:text-[#1F2937]'"
-                                class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
-                                Reserve
-                            </button>
-                        </div>
-
     <form action="{{ route('reservations.store') }}" method="POST" class="space-y-4">
                                 @csrf
                                 <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
-                                {{-- The toggle used to be presentational only, so the
-                                     server couldn't tell the two apart and demanded a
-                                     move-in date either way. Posting it is what lets
-                                     an inquiry be a question rather than a booking. --}}
-                                <input type="hidden" name="mode" :value="mode">
 
-                                {{-- Reserve only: a tenant asking a question hasn't
-                                     decided when they'd move in, and guessing here
-                                     used to set the escrow escalation clock. --}}
-                                <div class="grid grid-cols-2 gap-3 items-start" x-show="mode === 'reserve'" x-cloak>
+                                {{-- Both optional — a tenant still deciding hasn't
+                                     necessarily settled on a move-in date. Naming one
+                                     (plus a duration) signals firmer intent to the
+                                     landlord without forcing a two-mode form to get
+                                     there; the server derives target_move_out_date
+                                     from the pair (StoreReservationRequest). --}}
+                                <div class="grid grid-cols-2 gap-3 items-start">
                                     <div>
                                         <label for="target_move_in_date"
                                             class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Move
-                                            In</label>
+                                            In <span class="normal-case tracking-normal font-semibold">· optional</span></label>
                                         <x-date-picker name="target_move_in_date" id="target_move_in_date"
                                             placeholder="Move-in date"
-                                            x-model="moveIn" x-on:change="onMoveInChange()"
+                                            x-model="moveIn"
                                             min-expr="minMoveIn" max-expr="maxMoveIn" />
                                         @error('target_move_in_date')
                                             <p id="target_move_in_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
@@ -1109,17 +1088,40 @@
                                     </div>
 
                                     <div>
-                                        <label for="target_move_out_date"
-                                            class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Move
-                                            Out <span class="normal-case tracking-normal font-semibold">· optional</span></label>
-                                        <x-date-picker name="target_move_out_date" id="target_move_out_date"
-                                            placeholder="Move-out date"
-                                            x-model="moveOut" min-expr="moveIn || minMoveIn" disabled-expr="!moveIn" />
-                                        @error('target_move_out_date')
-                                            <p id="target_move_out_date_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                        <label for="duration_months"
+                                            class="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Stay
+                                            length</label>
+                                        <x-styled-select name="duration_months"
+                                            :options="['' => 'Open-ended', '1' => '1 month', '3' => '3 months', '6' => '6 months', '12' => '12 months']"
+                                            placeholder="Open-ended"
+                                            x-model="durationMonths"
+                                            class="h-11 w-full rounded-xl border border-[#E2E8F0] px-3.5 text-[13.5px] font-medium text-[#1F2937] bg-white" />
+                                        @error('duration_months')
+                                            <p class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
+
+                                {{-- The deposit is required on every unit now (see
+                                     PropertyUnitController) — showing the total here
+                                     means the tenant sees the full move-in cost before
+                                     contacting anyone, not after. --}}
+                                <template x-if="selected">
+                                    <div class="rounded-xl bg-[#F7FCFC] border border-[#E2E8F0] px-3.5 py-2.5 text-[12.5px]">
+                                        <div class="flex items-center justify-between text-[#64748B]">
+                                            <span>Monthly rent</span>
+                                            <span class="font-semibold text-[#1F2937]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-[#64748B] mt-1">
+                                            <span>Security deposit</span>
+                                            <span class="font-semibold text-[#1F2937]" x-text="'₱' + Number(selected?.depositRaw ?? 0).toLocaleString()"></span>
+                                        </div>
+                                        <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-[#E2E8F0]">
+                                            <span class="font-bold text-[#1F2937]">Due at move-in</span>
+                                            <span class="font-bold text-[#156F8C]" x-text="'₱' + Number((selected?.rentRaw ?? 0) + (selected?.depositRaw ?? 0)).toLocaleString()"></span>
+                                        </div>
+                                    </div>
+                                </template>
 
                                 <div
                                     class="rounded-xl bg-white border border-[#E2E8F0] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#2AA7A1]/60 focus-within:ring-4 focus-within:ring-[#2AA7A1]/10">
@@ -1143,7 +1145,7 @@
                                 <template x-if="!selected || !selected.hasActive">
                                     <button type="submit" :disabled="!canSubmit"
                                         class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
-                                        x-text="!selected ? 'Select a unit' : (mode === 'reserve' ? (!moveIn ? 'Choose a move-in date' : 'Send Reservation Request') : 'Send Inquiry to Landlord')">
+                                        x-text="!selected ? 'Select a unit' : 'Contact Landlord'">
                                     </button>
                                 </template>
                             </form>
@@ -1174,12 +1176,12 @@
                     @auth
                         <button type="button" x-on:click="openMobile()"
                             class="h-11 px-6 rounded-xl bg-[#FF8A65] text-white text-sm font-bold hover:brightness-95 shadow-sm cursor-pointer transition-all duration-200 shrink-0">
-                            Inquire
+                            Contact
                         </button>
                     @else
                         <button type="button" onclick="openAuthModal('login')"
                             class="h-11 px-6 rounded-xl bg-[#FF8A65] text-white text-sm font-bold hover:brightness-95 shadow-sm cursor-pointer transition-all duration-200 shrink-0">
-                            Log in to inquire
+                            Log in to contact
                         </button>
                     @endauth
                 </div>
@@ -1284,47 +1286,56 @@
                                         </div>
                                     </template>
 
-                                    {{-- Same two modes as the desktop sidebar. The sheet
-                                         previously offered only "Send Inquiry" yet still
-                                         demanded a move-in date, so a tenant on a phone had
-                                         no way to just ask a question. --}}
-                                    <div class="grid grid-cols-2 gap-2 mb-4">
-                                        <button type="button" x-on:click="mode = 'inquiry'"
-                                            :class="mode === 'inquiry' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B]'"
-                                            class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
-                                            Inquiry
-                                        </button>
-                                        <button type="button" x-on:click="mode = 'reserve'"
-                                            :class="mode === 'reserve' ? 'border-[#2AA7A1] text-[#156F8C] bg-[#EEF8F8]/60' : 'border-[#E2E8F0] text-[#64748B]'"
-                                            class="h-10 rounded-xl border text-sm font-bold bg-white cursor-pointer transition-all duration-200">
-                                            Reserve
-                                        </button>
-                                    </div>
-
+                                    {{-- Both fields optional — see the desktop sidebar
+                                         form for why the old Inquiry/Reserve toggle was
+                                         removed (DESIGN.md). --}}
                                     <form action="{{ route('reservations.store') }}" method="POST" class="space-y-3.5">
                                         @csrf
                                         <input type="hidden" name="unit_id" :value="selected ? selected.id : ''">
-                                        <input type="hidden" name="mode" :value="mode">
 
-                                        <div x-show="mode === 'reserve'" x-cloak>
-                                            <label for="m_move_in" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move In</label>
-                                            <x-date-picker name="target_move_in_date" id="m_move_in"
-                                                placeholder="Move-in date"
-                                                x-model="moveIn" x-on:change="onMoveInChange()"
-                                                min-expr="minMoveIn" max-expr="maxMoveIn" />
-                                            @error('target_move_in_date')
-                                                <p id="m_move_in_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
-                                            @enderror
+                                        <div class="grid grid-cols-2 gap-2.5">
+                                            <div>
+                                                <label for="m_move_in" class="block text-[11px] font-bold text-[#64748B] mb-1">Move in <span class="font-semibold">(Optional)</span></label>
+                                                <x-date-picker name="target_move_in_date" id="m_move_in"
+                                                    placeholder="Move-in date"
+                                                    x-model="moveIn"
+                                                    min-expr="minMoveIn" max-expr="maxMoveIn" />
+                                                @error('target_move_in_date')
+                                                    <p id="m_move_in_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                            <div>
+                                                <label for="m_duration_months" class="block text-[11px] font-bold text-[#64748B] mb-1">Stay length</label>
+                                                <x-styled-select name="duration_months"
+                                                    :options="['' => 'Open-ended', '1' => '1 month', '3' => '3 months', '6' => '6 months', '12' => '12 months']"
+                                                    placeholder="Open-ended"
+                                                    x-model="durationMonths"
+                                                    class="h-11 w-full rounded-xl border border-[#E2E8F0] px-3.5 text-[13.5px] font-medium text-[#1F2937] bg-white" />
+                                                @error('duration_months')
+                                                    <p class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
+                                                @enderror
+                                            </div>
                                         </div>
-                                        <div x-show="mode === 'reserve'" x-cloak>
-                                            <label for="m_move_out" class="block text-[11px] font-bold text-[#64748B] mb-1">Target Move Out <span class="font-semibold">(Optional)</span></label>
-                                            <x-date-picker name="target_move_out_date" id="m_move_out"
-                                                placeholder="Move-out date"
-                                                x-model="moveOut" min-expr="moveIn || minMoveIn" disabled-expr="!moveIn" />
-                                            @error('target_move_out_date')
-                                                <p id="m_move_out_error" class="mt-1 text-[11px] font-semibold text-[#EF4444]">{{ $message }}</p>
-                                            @enderror
-                                        </div>
+
+                                        {{-- Deposit is required on every unit now — the
+                                             tenant sees total move-in cost up front. --}}
+                                        <template x-if="selected">
+                                            <div class="rounded-xl bg-[#F7FCFC] border border-[#E2E8F0] px-3.5 py-2.5 text-[12.5px]">
+                                                <div class="flex items-center justify-between text-[#64748B]">
+                                                    <span>Monthly rent</span>
+                                                    <span class="font-semibold text-[#1F2937]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
+                                                </div>
+                                                <div class="flex items-center justify-between text-[#64748B] mt-1">
+                                                    <span>Security deposit</span>
+                                                    <span class="font-semibold text-[#1F2937]" x-text="'₱' + Number(selected?.depositRaw ?? 0).toLocaleString()"></span>
+                                                </div>
+                                                <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-[#E2E8F0]">
+                                                    <span class="font-bold text-[#1F2937]">Due at move-in</span>
+                                                    <span class="font-bold text-[#156F8C]" x-text="'₱' + Number((selected?.rentRaw ?? 0) + (selected?.depositRaw ?? 0)).toLocaleString()"></span>
+                                                </div>
+                                            </div>
+                                        </template>
+
                                         <div>
                                             <label for="m_message" class="block text-[11px] font-bold text-[#64748B] mb-1">Message <span class="font-semibold">(Optional)</span></label>
                                             <textarea id="m_message" name="message" rows="4" maxlength="300" x-model="msg"
@@ -1341,7 +1352,7 @@
                                         <template x-if="!selected || !selected.hasActive">
                                             <button type="submit" :disabled="!canSubmit"
                                                 class="w-full py-3 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#64748B]"
-                                                x-text="!selected ? 'Select a unit' : (mode === 'reserve' ? (!moveIn ? 'Choose a move-in date' : 'Send Reservation Request') : 'Send Inquiry')">
+                                                x-text="!selected ? 'Select a unit' : 'Contact Landlord'">
                                             </button>
                                         </template>
                                     </form>

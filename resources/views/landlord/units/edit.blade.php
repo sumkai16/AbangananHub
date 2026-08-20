@@ -196,8 +196,10 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="security_deposit" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Security Deposit (₱)</label>
-                                <input type="number" id="security_deposit" name="security_deposit" value="{{ old('security_deposit', $unit->security_deposit) }}" min="0"
+                                <label for="security_deposit" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
+                                    Security Deposit (₱) <span class="text-[#EF4444]">*</span>
+                                </label>
+                                <input type="number" id="security_deposit" name="security_deposit" value="{{ old('security_deposit', $unit->security_deposit) }}" required min="0"
                                     max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('security_deposit')

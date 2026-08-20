@@ -122,9 +122,12 @@
                                 'Pending Rental Agreement' => 'bg-[#EEF8F8] text-[#156F8C]',
                                 'Rental Agreement Signed' => 'bg-[#EEF8F8] text-[#156F8C]',
                                 'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                                'Completed' => 'bg-[#2AA7A1]/[0.08] text-[#156F8C]',
                                 'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
                                 'Cancelled' => 'bg-[#64748B]/10 text-[#64748B]',
                             ];
+                            $mCanReview = in_array($reservation->rental_status, ['Occupied', 'Completed'], true)
+                                && \App\Models\Review::canReview(auth()->id(), $reservation->property_id);
                             $mLandlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));
                             $mModalData = [
                                 'reservation_id' => $reservation->reservation_id,
@@ -204,6 +207,25 @@
                                         class="text-[12px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 rounded-lg px-3 py-2">
                                         Rent
                                     </a>
+                                    @if($mCanReview)
+                                        <a href="{{ route('properties.show', $reservation->property) }}#reviews"
+                                            class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-2">
+                                            Review
+                                        </a>
+                                    @endif
+                                    @if($reservation->conversation)
+                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                            class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-2">
+                                            Chat
+                                        </a>
+                                    @endif
+                                @elseif($reservation->rental_status === 'Completed')
+                                    @if($mCanReview)
+                                        <a href="{{ route('properties.show', $reservation->property) }}#reviews"
+                                            class="flex-1 text-center text-[12px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 rounded-lg px-3 py-2">
+                                            Leave a review
+                                        </a>
+                                    @endif
                                     @if($reservation->conversation)
                                         <a href="{{ route('conversations.show', $reservation->conversation) }}"
                                             class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-2">
@@ -238,9 +260,12 @@
                                     'Pending Rental Agreement' => 'bg-[#EEF8F8] text-[#156F8C]',
                                     'Rental Agreement Signed' => 'bg-[#EEF8F8] text-[#156F8C]',
                                     'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                                    'Completed' => 'bg-[#2AA7A1]/[0.08] text-[#156F8C]',
                                     'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
                                     'Cancelled' => 'bg-[#64748B]/10 text-[#64748B]',
                                 ];
+                                $canReview = in_array($reservation->rental_status, ['Occupied', 'Completed'], true)
+                                    && \App\Models\Review::canReview(auth()->id(), $reservation->property_id);
                                 $landlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));
                                 $journeySteps = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied'];
                                 $isTerminal = in_array($reservation->rental_status, ['Rejected', 'Cancelled']);
@@ -341,6 +366,25 @@
                                                 class="text-[12px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
                                                 Rent
                                             </a>
+                                            @if($canReview)
+                                                <a href="{{ route('properties.show', $reservation->property) }}#reviews"
+                                                    class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
+                                                    Review
+                                                </a>
+                                            @endif
+                                            @if($reservation->conversation)
+                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                                    class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
+                                                    Chat
+                                                </a>
+                                            @endif
+                                        @elseif($reservation->rental_status === 'Completed')
+                                            @if($canReview)
+                                                <a href="{{ route('properties.show', $reservation->property) }}#reviews"
+                                                    class="text-[12px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
+                                                    Leave a review
+                                                </a>
+                                            @endif
                                             @if($reservation->conversation)
                                                 <a href="{{ route('conversations.show', $reservation->conversation) }}"
                                                     class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
