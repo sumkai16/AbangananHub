@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ $title ?? 'AbangananHub' }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,600;1,8..60,700&display=swap" rel="stylesheet">
@@ -34,14 +35,8 @@
             {{-- Logo --}}
             <a href="{{ route('properties.index') }}"
                 class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group">
-                <div
-                    class="w-8 h-8 sm:w-10 sm:h-10 rounded-[10px] sm:rounded-[12px] bg-[#2AA7A1] flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"
-                        class="sm:w-[22px] sm:h-[22px]">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 12l2-2m0 0l7-7 7-7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                </div>
+                <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub"
+                    class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#156F8C] tracking-tight">
                     Abanganan<span class="text-[#156F8C]">Hub</span>
                 </span>
@@ -509,12 +504,7 @@
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-                <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                </div>
+                <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
                 <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#69D2C6]">Hub</span></span>
             </a>
 
