@@ -156,7 +156,7 @@ property approval itself; the admin uses judgment, with the "request a document"
 | is_furnished | BOOLEAN | NULLABLE | Added Aug 2026. `PropertyUnit` casts it `boolean`; NULL means "not answered" (pre-existing unit), not "unfurnished" — don't treat a null the same as `false` in any consumer |
 | description | TEXT | NULLABLE | |
 | rental_fee | DECIMAL(10,2) | NOT NULL | |
-| security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026 |
+| security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026. Required at the **application layer** since Aug 20 2026 — every monthly rental carries a deposit, enforced in `Landlord\PropertyUnitController`/`Api\Landlord\UnitWriteController` validation, not a DB constraint. `2026_08_20_000000_backfill_security_deposit_on_property_units` set every then-NULL row to one month's rent so no pre-existing listing shows blank |
 | occupancy_limit | INT | NULLABLE | |
 | availability_status | ENUM('Available','Reserved','Occupied','Maintenance') | DEFAULT 'Available' | Maintenance added for unit form |
 | vacated_at | TIMESTAMP | NULLABLE | Occupancy tracking |
@@ -225,7 +225,7 @@ Column sizes were taken from the validation the controllers were already enforci
 | reservation_date | DATE | NOT NULL | |
 | target_move_in_date | DATE | NULLABLE | Negotiated. Clock 1 derives from it — see below |
 | target_move_out_date | DATE | NULLABLE | |
-| duration_of_stay | VARCHAR | NULLABLE | |
+| duration_of_stay | VARCHAR | NULLABLE | **Dead as of Aug 20 2026.** Nothing in the live app writes to this column anymore — `Reservation::getDurationOfStayAttribute()` is an Eloquent accessor of the same name that shadows it, deriving "6 months" / "Open-ended" from `target_move_in_date`/`target_move_out_date` instead. Every read site (`ReservationResource`, tenant/landlord reservation lists, admin detail) keeps working unchanged since accessors take precedence over the raw attribute. Only dev fixtures (`ReservationSeeder`, `BuildsEscrowFixtures`) still touch the raw column, and even those now set dates rather than free text |
 | agreed_monthly_rent | DECIMAL(10,2) | NULLABLE | Rent negotiated for this tenancy; the ledger's "expected". Falls back to `unit->rental_fee` via `Reservation::monthlyRent()`. Added July 24 2026 for walk-ins whose door rent differs from the listed price |
 | rent_due_day | TINYINT UNSIGNED | NULLABLE | Day of month rent falls due (1–28). Falls back to the move-in day via `Reservation::rentDueDay()`, clamped to 28 so it exists in February |
 | occupants_count | INT | NULLABLE | |
