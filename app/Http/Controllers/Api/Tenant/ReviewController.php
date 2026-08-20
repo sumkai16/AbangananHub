@@ -30,7 +30,7 @@ class ReviewController extends Controller
 
         if (! Review::canReview($user->user_id, $property->property_id)) {
             throw ValidationException::withMessages([
-                'property_id' => ['You can only review properties where you have an active rental.'],
+                'property_id' => ['You can only review a property once you\'ve moved in.'],
             ]);
         }
 

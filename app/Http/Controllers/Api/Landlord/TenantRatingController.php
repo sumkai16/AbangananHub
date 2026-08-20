@@ -25,7 +25,7 @@ class TenantRatingController extends Controller
         return response()->json([
             'data' => [
                 'already_rated' => (bool) $rating,
-                'can_rate'      => ! $rating && $reservation->rental_status === 'Occupied',
+                'can_rate'      => ! $rating && in_array($reservation->rental_status, ['Occupied', 'Completed'], true),
                 'rating'        => $rating,
                 'tenant'        => new UserResource($reservation->tenant()->select('user_id', 'first_name', 'last_name', 'profile_picture')->first()),
             ],
@@ -40,8 +40,10 @@ class TenantRatingController extends Controller
     {
         $this->authorizeReservation($request, $reservation);
 
-        if ($reservation->rental_status !== 'Occupied') {
-            throw ValidationException::withMessages(['reservation' => ['You can only rate tenants for occupied rentals.']]);
+        // Mirrors the web controller — rating stays open after Completed, not
+        // just during Occupied.
+        if (! in_array($reservation->rental_status, ['Occupied', 'Completed'], true)) {
+            throw ValidationException::withMessages(['reservation' => ['You can only rate tenants for occupied or completed rentals.']]);
         }
 
         if ($reservation->tenantRating) {

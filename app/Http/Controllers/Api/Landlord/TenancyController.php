@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReservationResource;
+use App\Models\Notification;
 use App\Models\Reservation;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
@@ -57,13 +58,19 @@ class TenancyController extends Controller
 
         $ended = DB::transaction(function () use ($reservation, $data) {
             $locked = Reservation::whereKey($reservation->getKey())
-                ->with(['unit', 'property'])
+                ->with(['unit', 'property', 'tenant'])
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            return $locked->endTenancy(
+            $wasEnded = $locked->endTenancy(
                 isset($data['move_out_date']) ? Carbon::parse($data['move_out_date']) : null
             );
+
+            if ($wasEnded) {
+                $this->notifyTenancyEnded($locked);
+            }
+
+            return $wasEnded;
         });
 
         if (! $ended) {
@@ -71,6 +78,37 @@ class TenancyController extends Controller
         }
 
         return response()->json(['data' => new ReservationResource($reservation->fresh())]);
+    }
+
+    /**
+     * Mirrors Landlord\TenancyController::notifyTenancyEnded — see that
+     * docblock. endTenancy() itself dispatches nothing, so this is the only
+     * point either side learns the review/rating window (Review::canReview(),
+     * TenantRatingController — both now accept 'Occupied' or 'Completed')
+     * just opened.
+     */
+    private function notifyTenancyEnded(Reservation $reservation): void
+    {
+        $property = $reservation->property;
+        $tenant = $reservation->tenant;
+
+        if ($tenant && ! $tenant->is_walk_in) {
+            Notification::notify(
+                $tenant->user_id,
+                'review',
+                'How was your stay?',
+                'Your tenancy at ' . ($property->title ?? 'the property') . ' has ended. Leave a review to help other tenants.',
+                $property ? route('properties.show', $property) : null,
+            );
+        }
+
+        Notification::notify(
+            $property?->landlord_id,
+            'tenant_rating',
+            'Rate your tenant',
+            trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) . ' has moved out. Rate their tenancy.',
+            route('landlord.reservations.rateTenant', $reservation),
+        );
     }
 
     public function remind(Reservation $reservation, RentReminderNotifier $notifier): JsonResponse

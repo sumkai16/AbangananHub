@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Reservation;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
@@ -67,13 +68,19 @@ class TenancyController extends Controller
 
         $ended = DB::transaction(function () use ($reservation, $data) {
             $locked = Reservation::whereKey($reservation->getKey())
-                ->with(['unit', 'property'])
+                ->with(['unit', 'property', 'tenant'])
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            return $locked->endTenancy(
+            $wasEnded = $locked->endTenancy(
                 isset($data['move_out_date']) ? \Illuminate\Support\Carbon::parse($data['move_out_date']) : null
             );
+
+            if ($wasEnded) {
+                $this->notifyTenancyEnded($locked);
+            }
+
+            return $wasEnded;
         });
 
         if (! $ended) {
@@ -83,6 +90,41 @@ class TenancyController extends Controller
         return redirect()
             ->route('landlord.tenancies.show', $reservation)
             ->with('success', 'Tenancy ended. The unit is available again and the ledger is closed.');
+    }
+
+    /**
+     * endTenancy() itself dispatches nothing — it only flips the status and
+     * frees the unit. This is the sole place a tenancy reaches 'Completed',
+     * and until now nothing told either side the review/rating window had
+     * opened: Review::canReview() and TenantRatingController both require
+     * 'Occupied' OR 'Completed' (fixed alongside this), but neither party had
+     * any reason to go looking once the tenancy page stopped being useful.
+     *
+     * A walk-in tenant has no account to notify — same guard TenancyController
+     * ::remind() already applies for the same reason.
+     */
+    private function notifyTenancyEnded(Reservation $reservation): void
+    {
+        $property = $reservation->property;
+        $tenant = $reservation->tenant;
+
+        if ($tenant && ! $tenant->is_walk_in) {
+            Notification::notify(
+                $tenant->user_id,
+                'review',
+                'How was your stay?',
+                'Your tenancy at ' . ($property->title ?? 'the property') . ' has ended. Leave a review to help other tenants.',
+                $property ? route('properties.show', $property) : null,
+            );
+        }
+
+        Notification::notify(
+            $property?->landlord_id,
+            'tenant_rating',
+            'Rate your tenant',
+            trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) . ' has moved out. Rate their tenancy.',
+            route('landlord.reservations.rateTenant', $reservation),
+        );
     }
 
     /**

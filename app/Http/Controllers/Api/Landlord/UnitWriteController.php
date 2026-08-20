@@ -37,7 +37,8 @@ class UnitWriteController extends Controller
             'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
-            'security_deposit'    => 'nullable|numeric|min:0|max:999999.99',
+            // Every monthly rental carries a deposit — no longer optional.
+            'security_deposit'    => 'required|numeric|min:0|max:999999.99',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
@@ -127,7 +128,8 @@ class UnitWriteController extends Controller
             'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
-            'security_deposit'    => 'nullable|numeric|min:0|max:999999.99',
+            // Every monthly rental carries a deposit — no longer optional.
+            'security_deposit'    => 'required|numeric|min:0|max:999999.99',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',

@@ -9,6 +9,7 @@ use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
@@ -49,14 +50,22 @@ class ReservationController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'unit_id'              => 'required|integer|exists:property_units,unit_id',
-            'target_move_in_date'  => 'nullable|date|after_or_equal:today',
-            'target_move_out_date' => 'nullable|date|after:target_move_in_date',
-            'remarks'              => 'nullable|string|max:300',
-            'message'              => 'nullable|string|max:300',
+            'unit_id'             => 'required|integer|exists:property_units,unit_id',
+            'target_move_in_date' => 'nullable|date|after_or_equal:today',
+            // Mirrors the web StoreReservationRequest: the app is
+            // monthly-only, so duration is months, not a free move-out date —
+            // target_move_out_date is derived below, never taken from the
+            // client.
+            'duration_months'     => 'nullable|integer|in:1,3,6,12',
+            'remarks'             => 'nullable|string|max:300',
+            'message'             => 'nullable|string|max:300',
         ]);
 
         $tenantId = $request->user()->user_id;
+
+        $targetMoveOutDate = ($request->target_move_in_date && $request->duration_months)
+            ? Carbon::parse($request->target_move_in_date)->addMonthsNoOverflow((int) $request->duration_months)->toDateString()
+            : null;
 
         $unit = PropertyUnit::where('unit_id', $request->unit_id)
             ->where('availability_status', 'Available')
@@ -113,7 +122,7 @@ class ReservationController extends Controller
             'reservation_date'     => now(),
             'rental_status'        => 'Inquiry',
             'target_move_in_date'  => $request->target_move_in_date,
-            'target_move_out_date' => $request->target_move_out_date,
+            'target_move_out_date' => $targetMoveOutDate,
             'remarks'              => $request->remarks,
         ]);
 
