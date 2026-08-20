@@ -19,7 +19,16 @@ What this changes in practice:
 - Prefer patterns already proven here over inventing new ones: the sticky bottom bar + two-step
   teleported modal on `properties/show`'s mobile inquiry flow, the `mobileNavOpen` hamburger panel
   on the public header (`layouts/app.blade.php`), the collapsing sidebar + backdrop on
-  `layouts/landlord.blade.php`.
+  `layouts/landlord.blade.php`, and — new Aug 20 2026 — **table → stacked card list** below `lg`
+  for any data table on a Tenant/Landlord page (`tenant/reservations/index.blade.php`,
+  `tenant/tenancy/show.blade.php`): render the existing `<table>` wrapped `hidden lg:block`, and a
+  second `lg:hidden` block that `@foreach`s the same collection into cards carrying the same data
+  and actions. A horizontal-scroll table is an acceptable *fallback*, never the mobile-first design.
+- Any element whose visibility/position depends on Alpine state needs `x-cloak` — not just ones
+  using `x-show`. `layouts/admin.blade.php`/`landlord.blade.php`'s sidebar `<aside>` sets its mobile
+  off-screen position via a `:class` binding, which doesn't apply until Alpine finishes
+  initializing; without `x-cloak` it flashes on-screen first on every load. Found and fixed Aug 20
+  2026 — see ARCHITECTURE.md.
 - §11's "Responsive at 375/768/1024/1440px" checklist line is not just a regression check for these
   two shells — 375px is the primary target, the wider breakpoints are the enhancement, not the
   baseline.
