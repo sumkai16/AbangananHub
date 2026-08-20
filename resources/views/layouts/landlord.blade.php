@@ -61,7 +61,7 @@
         </div>
 
         {{-- ============ SIDEBAR ============ --}}
-        <aside id="landlord-sidebar"
+        <aside id="landlord-sidebar" x-cloak
             :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
             class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0F172A] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
