@@ -49,7 +49,7 @@
             $inProgressCount = $counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'];
             $rejectedCount = $counts['Rejected'] + $counts['Cancelled'];
         @endphp
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
             <x-stat-card label="Total" :value="$counts['all']" sub="All time">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
@@ -102,7 +102,7 @@
                     x-on:input.debounce.400ms="$el.form.requestSubmit()"
                     class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-2.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-2.5">
                 <div>
                     <label for="filter-property" class="sr-only">Property</label>
                     @php

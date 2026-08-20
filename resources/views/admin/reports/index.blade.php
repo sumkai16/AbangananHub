@@ -20,7 +20,7 @@
         </x-page-header>
 
         {{-- Stat summary --}}
-        <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             @php
                 $stats = [
                     'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'valueColor' => '#B45309', 'iconBg' => 'rgba(251,191,36,0.10)', 'iconColor' => '#B45309'],

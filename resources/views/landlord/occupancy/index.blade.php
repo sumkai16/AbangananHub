@@ -50,7 +50,7 @@
         </x-page-header>
 
         {{-- Stat cards --}}
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
             <x-stat-card label="Total Units" :value="$totalUnits" sub="All rental units">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
@@ -95,7 +95,7 @@
                 </x-slot:icon>
             </x-stat-card>
 
-            <x-stat-card class="col-span-2 sm:col-span-3 lg:col-span-1" label="Occupancy Rate" :value="$aggregateRate.'%'" value-color="#156F8C"
+            <x-stat-card class="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-1" label="Occupancy Rate" :value="$aggregateRate.'%'" value-color="#156F8C"
                 :percent="$aggregateRate" bar-color="#2AA7A1" :sub="$occupiedUnits.' of '.$totalUnits.' units occupied'" />
         </div>
 
