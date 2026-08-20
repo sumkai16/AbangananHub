@@ -395,7 +395,7 @@
                     const isAuthenticated = document.querySelector('meta[name="user-authenticated"]').content === '1';
 
                     if (!isAuthenticated) {
-                        window.location.href = "{{ route('login') }}";
+                        openAuthModal('login');
                         return;
                     }
 
