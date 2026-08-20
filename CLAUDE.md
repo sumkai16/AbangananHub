@@ -9,6 +9,12 @@ Project context and rules live in `context/`:
 
 Read the relevant file(s) before non-trivial work.
 
+## Device priority
+Tenant and Landlord surfaces are **mobile-first** — most real usage is a phone browser, not a
+desktop. Design and build for 375px first, then scale up. Admin stays desktop-oriented (single
+administrator, dense dashboards) — do not force it into a mobile-first pass. See `context/DESIGN.md`
+§0b for the full rationale and practical implications.
+
 ## Planning
 When finalizing a plan (plan mode), save a copy into `plans/` in this repo (descriptive kebab-case filename, e.g. `plans/google-facebook-oauth-login.md`), in addition to the default plan-mode location. Keeps design decisions and their reasoning versioned alongside the code instead of only living in a local scratch file.
 

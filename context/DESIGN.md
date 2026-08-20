@@ -3,6 +3,30 @@
 ## 0. The three defaults to actively avoid
 None of the three AI-default looks apply. AbangananHub uses a teal-forward identity with flat, structured cards — distinct from cream/serif, dark-mode acid, and broadsheet layouts. The risk to watch since the July 2026 flattening is a *fourth* default: generic admin-template Tailwind. What keeps it off that: the locked teal palette, color used only for status, and dense purpose-built data views rather than boxes of evenly-spaced widgets.
 
+## 0b. Device priority: mobile-first for Tenant + Landlord, desktop-oriented for Admin (Aug 20 2026)
+The main goal here is not the PC/desktop view — real usage skews toward a phone in hand. Tenants
+browse and reserve on the go; landlords check listings, tenants, and rent between other things
+during the day. **Design and build Tenant and Landlord surfaces mobile-first**: start every new
+page or component at 375px and scale up from there, not the reverse. **Admin is the deliberate
+exception** — a single administrator working from a desktop, so `resources/views/admin/**` stays a
+desktop-oriented dense dashboard (data tables, wide multi-column layouts, CSV exports); don't force
+admin screens through a mobile-first pass.
+
+What this changes in practice:
+- New Tenant/Landlord components get their layout, spacing, and interaction pattern validated at
+  375px **before** the desktop/`lg:` variant is added — not designed at desktop width and then
+  squeezed down afterward.
+- Prefer patterns already proven here over inventing new ones: the sticky bottom bar + two-step
+  teleported modal on `properties/show`'s mobile inquiry flow, the `mobileNavOpen` hamburger panel
+  on the public header (`layouts/app.blade.php`), the collapsing sidebar + backdrop on
+  `layouts/landlord.blade.php`.
+- §11's "Responsive at 375/768/1024/1440px" checklist line is not just a regression check for these
+  two shells — 375px is the primary target, the wider breakpoints are the enhancement, not the
+  baseline.
+- When a Tenant/Landlord page reads as "desktop app squeezed onto a phone" (see §0's warning about
+  generic admin-template drift), that's the signal to redesign the mobile layout on its own terms
+  rather than just hiding/stacking the desktop one.
+
 ## 1. Reference / Inspiration
 - Airbnb (June 2026) — card layout, image-is-the-card pattern, browse grid, clean listing detail pages
 - Analyst prototype (July 2026, `prototype/*.png`) — the current reference: flat white cards, tinted stat tiles with circular icon badges, underline tabs, dense avatar/thumbnail tables, dark sidebar shells

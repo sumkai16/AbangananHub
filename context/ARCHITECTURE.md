@@ -226,6 +226,7 @@ made the audit trail the correct first build.
 | Audit writes are explicit, inside the existing transaction | Observers can't see intent (reason, admin-override, hard deletes); in-transaction placement prevents phantom rows on rollback and double-logging on a 409 | July 26 2026 |
 | Settings override `config()` at boot rather than replacing the 13 `config('rentals.*')` call sites | KISS: the file keeps documenting the defaults, no call site changes, and an unset key still falls through | July 26 2026 |
 | Settings are a whitelist (`Setting::DEFINITIONS`), not free-form key/value | A free editor lets an admin set a negative grace period or a key nothing reads; one map drives the form, the validation and the casts | July 26 2026 |
+| Tenant + Landlord surfaces are mobile-first; Admin stays desktop-oriented | Real usage skews toward a phone in hand, not a desk — tenants browse/reserve on the go, landlords check listings/tenants/rent between other things. Admin is one person working from a desktop, so its dense dashboards/CSV exports don't get a mobile-first pass. See DESIGN.md §0b, PRD.md §2 | Aug 20 2026 |
 | Session-based auth (Breeze) over Sanctum SPA | Simpler for server-rendered Blade; Sanctum reserved for API layer | Early 2026 |
 | Reverb over Pusher | Free, self-hosted, no third-party dependency for capstone | Early 2026 |
 | Text search over Haversine radius | Cebu-scoped platform doesn't need geo-radius — address text match is sufficient | Mid 2026 |

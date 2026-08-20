@@ -4,9 +4,9 @@
 In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords rely on informal rental channels — Facebook groups, word of mouth, personal referrals — that offer no identity verification, no listing authenticity checks, and no accountability. This leads to scams, fake listings, wasted time, and zero recourse. AbangananHub replaces that with a controlled, admin-verified rental accommodation marketplace where landlords are identity-verified, listings are admin-approved, and communication happens through structured, traceable channels.
 
 ## 2. Target User
-- **Tenants:** Students, young professionals, and workers in Cebu looking for verified bedspaces, rooms, apartments, or houses for rent. They need to browse, filter, compare, and reserve accommodations with confidence that the listing and landlord are legitimate.
-- **Landlords:** Property owners in the Cebu coverage area who want to list rental units, manage reservations, and communicate with prospective tenants through a structured platform instead of scattered social media threads.
-- **Admin:** A single platform administrator who verifies landlord identities, approves property listings, handles reports/complaints, and monitors platform activity.
+- **Tenants:** Students, young professionals, and workers in Cebu looking for verified bedspaces, rooms, apartments, or houses for rent. They need to browse, filter, compare, and reserve accommodations with confidence that the listing and landlord are legitimate. **Primarily on a phone's mobile browser**, not a desktop — see `context/DESIGN.md` §0b.
+- **Landlords:** Property owners in the Cebu coverage area who want to list rental units, manage reservations, and communicate with prospective tenants through a structured platform instead of scattered social media threads. **Also primarily mobile** — checking listings/tenants/rent on the go, not sitting at a desk.
+- **Admin:** A single platform administrator who verifies landlord identities, approves property listings, handles reports/complaints, and monitors platform activity. Desktop-oriented — the one role this app is not designed mobile-first for.
 
 ## 3. MVP Scope (Defensible 13-Module Set)
 - [x] Auth (registration, login, password reset via emailed token, session-based via Laravel Breeze)

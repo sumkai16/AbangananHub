@@ -192,7 +192,7 @@ Audit immediately on paste for:
 
 **Layout**
 - [ ] No content hidden behind fixed nav
-- [ ] Responsive at 375 / 768 / 1024 / 1440px, no horizontal scroll
+- [ ] Responsive at 375 / 768 / 1024 / 1440px, no horizontal scroll — for Tenant/Landlord pages, 375px is the primary target designed first, not a squeeze-down of the desktop layout (DESIGN.md §0b). Admin stays desktop-oriented.
 - [ ] Correct page container for the context (DESIGN.md §5) — and it carries `mx-auto`
 - [ ] `[x-cloak] { display: none; }` in global CSS
 
