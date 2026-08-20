@@ -44,8 +44,9 @@
 
             {{-- Primary nav — sits beside the logo, deliberately not centred: the
                  collapsed search pill below is `absolute left-1/2`, and a centred
-                 nav would land underneath it on scroll. Hidden below `lg`, which
-                 matches what phones get today (this header has no mobile menu). --}}
+                 nav would land underneath it on scroll. Hidden below `lg`; phones
+                 get the same links via the `mobileNavOpen` hamburger panel instead
+                 (see `#mobile-nav-panel` further down). --}}
             <nav aria-label="Primary" class="hidden lg:flex items-center gap-1 ml-8 mr-auto">
                 {{-- Block form, not the inline parenthesised one: that emitted an
                      unterminated PHP open tag here and swallowed the rest of the
