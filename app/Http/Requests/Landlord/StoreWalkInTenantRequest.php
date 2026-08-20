@@ -5,6 +5,7 @@ namespace App\Http\Requests\Landlord;
 use App\Models\PropertyUnit;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 class StoreWalkInTenantRequest extends FormRequest
@@ -40,6 +41,11 @@ class StoreWalkInTenantRequest extends FormRequest
 
             'unit_id'              => ['required', 'integer', 'exists:property_units,unit_id'],
             'move_in_date'         => ['required', 'date', 'before_or_equal:' . now()->addYear()->toDateString()],
+            // 'after' alone only rejects a move-out on or before move-in — a
+            // one-day "stay" would still pass. The platform is monthly-only
+            // (see StoreReservationRequest), so a walk-in can't record a
+            // shorter tenancy than the inquiry flow allows; the minimum-gap
+            // check lives in withValidator() below since it needs move_in_date.
             'move_out_date'        => ['nullable', 'date', 'after:move_in_date'],
             'occupants_count'      => ['nullable', 'integer', 'min:1', 'max:20'],
             'agreed_monthly_rent'  => ['nullable', 'numeric', 'min:0', 'max:1000000'],
@@ -76,6 +82,24 @@ class StoreWalkInTenantRequest extends FormRequest
                 $validator->errors()->add(
                     'occupants_count',
                     "This unit allows up to {$limit} occupant" . ($limit == 1 ? '' : 's') . '.'
+                );
+            }
+        });
+
+        $validator->after(function (Validator $validator) {
+            $moveIn = $this->input('move_in_date');
+            $moveOut = $this->input('move_out_date');
+
+            if (! $moveIn || ! $moveOut) {
+                return;
+            }
+
+            $minimumMoveOut = Carbon::parse($moveIn)->addMonthNoOverflow();
+
+            if (Carbon::parse($moveOut)->lt($minimumMoveOut)) {
+                $validator->errors()->add(
+                    'move_out_date',
+                    'A tenancy runs at least one month — pick a move-out date on or after ' . $minimumMoveOut->format('M j, Y') . '.'
                 );
             }
         });

@@ -129,17 +129,26 @@ trait BuildsEscrowFixtures
             ])->conversation_id;
         }
 
+        $targetMoveInDate = $o['target_move_in_date'] ?? null;
+
         $reservation = Reservation::create([
-            'property_id'         => $property->property_id,
-            'unit_id'             => $unit->unit_id,
-            'tenant_id'           => $tenant->user_id,
-            'conversation_id'     => $conversationId,
-            'reservation_date'    => today(),
-            'target_move_in_date' => $o['target_move_in_date'] ?? null,
-            'duration_of_stay'    => '6 Months',
-            'occupants_count'     => 1,
-            'rental_status'       => $o['status'] ?? 'Rental Agreement Signed',
-            'remarks'             => '[escrow-fixture] ' . $label,
+            'property_id'          => $property->property_id,
+            'unit_id'              => $unit->unit_id,
+            'tenant_id'            => $tenant->user_id,
+            'conversation_id'      => $conversationId,
+            'reservation_date'     => today(),
+            'target_move_in_date'  => $targetMoveInDate,
+            // duration_of_stay is now derived from move-in/move-out (see
+            // Reservation::getDurationOfStayAttribute()) rather than a
+            // free-text column — set a move-out date instead of the dead
+            // string. No move-in date means an open-ended fixture, matching
+            // the accessor's "Open-ended" fallback.
+            'target_move_out_date' => $targetMoveInDate
+                ? \Illuminate\Support\Carbon::parse($targetMoveInDate)->addMonthsNoOverflow(6)
+                : null,
+            'occupants_count'      => 1,
+            'rental_status'        => $o['status'] ?? 'Rental Agreement Signed',
+            'remarks'              => '[escrow-fixture] ' . $label,
         ]);
 
         // Written after create() so the observer's created hook — which fires a

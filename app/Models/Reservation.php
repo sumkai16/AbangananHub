@@ -575,6 +575,33 @@ public ?Payment $releasedPayment = null;
     }
 
     /**
+     * Derives the duration label from the move-in/move-out pair instead of
+     * the underlying duration_of_stay column.
+     *
+     * duration_of_stay is a legacy free-text column nothing in the live app
+     * writes anymore — only ReservationSeeder and BuildsEscrowFixtures still
+     * populate it, for dev fixtures. An accessor of the same name takes
+     * precedence over the raw attribute, so every existing read site (tenant
+     * and landlord reservation lists, admin detail, ReservationResource)
+     * keeps working unchanged, now driven by real dates instead of free text.
+     */
+    public function getDurationOfStayAttribute(): ?string
+    {
+        if (! $this->target_move_in_date) {
+            return null;
+        }
+
+        if (! $this->target_move_out_date) {
+            return 'Open-ended';
+        }
+
+        // Carbon 3's diffInMonths() returns a float — round it (RULES.md).
+        $months = (int) round($this->target_move_in_date->diffInMonths($this->target_move_out_date));
+
+        return $months === 1 ? '1 month' : "{$months} months";
+    }
+
+    /**
      * Close out an occupied tenancy and hand the unit back.
      *
      * Deliberately a separate status from Cancelled: a completed tenancy is a

@@ -47,18 +47,26 @@ class Review extends Model
 
     // ─── Helpers ─────────────────────────────────────────────
 
+    /**
+     * A tenant earns the right to review the moment they move in, and — this
+     * used to be the bug — keeps it after the stay ends. The original check
+     * required rental_status === 'Occupied' exactly, so the instant
+     * Reservation::endTenancy() flipped a tenancy to 'Completed' the review
+     * window silently closed for that reservation. A review about a stay
+     * should be writable once the stay is over, not only while it's ongoing.
+     */
     public static function canReview(int $tenantId, int $propertyId): bool
     {
-        $hasOccupiedReservation = Reservation::where('tenant_id', $tenantId)
+        $hasLivedThere = Reservation::where('tenant_id', $tenantId)
             ->where('property_id', $propertyId)
-            ->where('rental_status', 'Occupied')
+            ->whereIn('rental_status', ['Occupied', 'Completed'])
             ->exists();
 
         $alreadyReviewed = static::where('tenant_id', $tenantId)
             ->where('property_id', $propertyId)
             ->exists();
 
-        return $hasOccupiedReservation && !$alreadyReviewed;
+        return $hasLivedThere && !$alreadyReviewed;
     }
 
     public static function averageRatingFor(int $propertyId): float

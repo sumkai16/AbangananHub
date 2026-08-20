@@ -21,12 +21,16 @@ class ReservationSeeder extends Seeder
 
         foreach ($units as $unit) {
             Reservation::create([
-                'tenant_id'          => $tenant->user_id,
-                'property_id'        => $unit->property_id,
-                'unit_id'            => $unit->unit_id,
-                'rental_status'      => 'Inquiry',
-                'duration_of_stay' => '6 Months',
-                'occupants_count'    => 1,
+                'tenant_id'            => $tenant->user_id,
+                'property_id'          => $unit->property_id,
+                'unit_id'              => $unit->unit_id,
+                'rental_status'        => 'Inquiry',
+                // duration_of_stay is now derived from these two dates (see
+                // Reservation::getDurationOfStayAttribute()) — set the dates,
+                // not the dead free-text column.
+                'target_move_in_date'  => now()->addWeek(),
+                'target_move_out_date' => now()->addWeek()->addMonths(6),
+                'occupants_count'      => 1,
             ]);
         }
     }
