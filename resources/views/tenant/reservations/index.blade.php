@@ -111,7 +111,112 @@
                     @endif
                 </div>
             @else
-                <div class="overflow-x-auto scrollbar-thin-light">
+                {{-- Mobile card list — same data/actions as the table below, stacked for a phone screen --}}
+                <div class="lg:hidden divide-y divide-[#64748B]/10">
+                    @foreach($reservations as $reservation)
+                        @continue(!$reservation->property)
+                        @php
+                            $mStatusStyles = [
+                                'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                'Under Negotiation' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                'Pending Rental Agreement' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                'Rental Agreement Signed' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                                'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
+                                'Cancelled' => 'bg-[#64748B]/10 text-[#64748B]',
+                            ];
+                            $mLandlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));
+                            $mModalData = [
+                                'reservation_id' => $reservation->reservation_id,
+                                'reservation_date' => $reservation->reservation_date?->format('M d, Y'),
+                                'duration_of_stay' => $reservation->duration_of_stay,
+                                'occupants_count' => $reservation->occupants_count,
+                                'remarks' => $reservation->remarks,
+                                'rental_status' => $reservation->rental_status,
+                                'landlord_name' => $mLandlordName !== '' ? $mLandlordName : 'Unknown',
+                                'landlord_contact' => $reservation->property->landlord->contact_number ?? '—',
+                                'property_title' => $reservation->property->title,
+                                'unit_label' => $reservation->unit->unit_label ?? 'No unit',
+                                'property_photo' => $reservation->property->media->first()?->media_url,
+                                'is_terminal' => in_array($reservation->rental_status, ['Rejected', 'Cancelled']),
+                                'step_index' => in_array($reservation->rental_status, ['Rejected', 'Cancelled']) ? -1 : array_search($reservation->rental_status, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied']),
+                            ];
+                        @endphp
+                        <div class="p-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-12 h-12 rounded-lg bg-[#EEF8F8] overflow-hidden shrink-0">
+                                    @if($photo = $reservation->property->media->first())
+                                        <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium text-[#1F2937] truncate">{{ $reservation->property->title }}</p>
+                                    <p class="text-[12px] text-[#64748B] truncate">{{ $reservation->unit->unit_label ?? 'No unit' }}</p>
+                                    <span class="inline-flex mt-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold {{ $mStatusStyles[$reservation->rental_status] ?? '' }}">
+                                        {{ $reservation->rental_status }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-3 text-[12px] text-[#64748B]">
+                                <span>Move-in: {{ $reservation->reservation_date?->format('M d, Y') ?? '—' }}</span>
+                                <span>{{ $reservation->duration_of_stay ?? '—' }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-3">
+                                <button @click="openModal({{ Js::from($mModalData) }})"
+                                    class="flex-1 text-center text-[12px] font-semibold text-[#156F8C] border border-[#156F8C]/25 rounded-lg px-3 py-2">
+                                    View Details
+                                </button>
+                                @if(in_array($reservation->rental_status, ['Inquiry', 'Under Negotiation']))
+                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST">
+                                        @csrf @method('PATCH')
+                                        <button type="submit"
+                                            class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-2">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                    @if($reservation->conversation)
+                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                            class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-2">
+                                            Chat
+                                        </a>
+                                    @endif
+                                @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
+                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
+                                        data-confirm="Cancel this reservation?"
+                                        data-confirm-type="warning"
+                                        data-confirm-message="This action cannot be undone."
+                                        data-confirm-button="Cancel reservation"
+                                        data-confirm-cancel="Keep it">
+                                        @csrf @method('PATCH')
+                                        <button type="submit"
+                                            class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-2">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                    @if($reservation->conversation)
+                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                            class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-2">
+                                            Chat
+                                        </a>
+                                    @endif
+                                @elseif($reservation->rental_status === 'Occupied')
+                                    <a href="{{ route('tenancy.show', $reservation) }}"
+                                        class="text-[12px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 rounded-lg px-3 py-2">
+                                        Rent
+                                    </a>
+                                    @if($reservation->conversation)
+                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                            class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-2">
+                                            Chat
+                                        </a>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="hidden lg:block overflow-x-auto scrollbar-thin-light">
                 <table class="w-full min-w-[820px] text-left">
                     <thead>
                         <tr class="bg-[#F7FCFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">

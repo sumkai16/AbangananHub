@@ -211,7 +211,7 @@
                             </div>
 
                             {{-- Unit stats --}}
-                            <div class="grid grid-cols-4 divide-x divide-[#64748B]/10 rounded-xl bg-[#EEF8F8]/60 py-2.5">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-[#64748B]/10 rounded-xl bg-[#EEF8F8]/60 py-2.5">
                                 <div class="flex flex-col items-center gap-0.5">
                                     <span class="text-[14px] font-bold text-[#1F2937]">{{ $property->units_count }}</span>
                                     <span class="text-[10px] text-[#64748B] font-medium">Total</span>

@@ -206,7 +206,7 @@
                                     </span>
                                 </div>
 
-                                <div class="grid grid-cols-3 gap-3">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     @forelse($property->media as $img)
                                         @php $url = $img->media_url; @endphp
                                         <div
@@ -269,7 +269,7 @@
                                 @error('photos')<p class="text-xs text-[#DC2626]">{{ $message }}</p>@enderror
 
                                 <div id="live-preview-grid"
-                                    class="grid grid-cols-4 gap-2 hidden pt-3 border-t border-[#E2E8F0]"></div>
+                                    class="grid grid-cols-3 sm:grid-cols-4 gap-2 hidden pt-3 border-t border-[#E2E8F0]"></div>
                             </x-card>
 
                             <div class="rounded-3xl bg-[#EEF8F8]/50 border border-[#2AA7A1]/20 p-5">

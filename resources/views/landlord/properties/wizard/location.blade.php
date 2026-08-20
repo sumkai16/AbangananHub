@@ -104,7 +104,7 @@
                         <label class="block text-[13px] font-semibold text-[#1F2937] mt-6 mb-3">Photos</label>
 
                         @if($property && $property->media->isNotEmpty())
-                            <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-3">
+                            <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
                                 @foreach($property->media as $media)
                                     <div class="aspect-square rounded-lg overflow-hidden bg-[#EEF8F8] border border-[#E2E8F0]">
                                         <img src="{{ $media->media_url }}" alt="" class="w-full h-full object-cover">
@@ -129,7 +129,7 @@
                         @error('photos')<p class="text-xs text-[#EF4444] mt-2">{{ $message }}</p>@enderror
                         @error('photos.*')<p class="text-xs text-[#EF4444] mt-2">{{ $message }}</p>@enderror
 
-                        <div id="live-preview-grid" class="grid grid-cols-4 sm:grid-cols-6 gap-2 hidden pt-3"></div>
+                        <div id="live-preview-grid" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 hidden pt-3"></div>
                     </div>
 
                     <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">

@@ -151,7 +151,7 @@
 
                         {{-- Photo thumbnails with inline preview --}}
                         <p class="text-xs font-semibold text-[#64748B] mb-2">Submitted photos</p>
-                        <div class="grid grid-cols-3 gap-3">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {{-- Front --}}
                             <div>
                                 <div class="rounded-lg border border-[#E2E8F0] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#2AA7A1] transition-colors"

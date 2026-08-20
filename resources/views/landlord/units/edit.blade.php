@@ -218,7 +218,7 @@
                                 ];
                                 $inactiveClass = 'border-[#64748B]/25 bg-white hover:border-[#64748B]/40';
                             @endphp
-                            <div class="grid grid-cols-3 gap-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                 @foreach($statusOptions as $value => $opt)
                                     <label class="relative cursor-pointer rounded-xl border px-3 py-3 transition-colors duration-150"
                                         :class="status === '{{ $value }}' ? '{{ $opt['active'] }}' : '{{ $inactiveClass }}'">
@@ -277,7 +277,7 @@
                         </div>
 
                         @if($existingPhotos->isNotEmpty())
-                            <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-3">
+                            <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
                                 @foreach($existingPhotos as $photo)
                                     <div class="relative aspect-square rounded-lg overflow-hidden bg-[#F7FCFC] ring-1 ring-[#64748B]/15">
                                         <img src="{{ $photo->media_url }}" alt="{{ $photo->caption ?? 'Unit photo' }}" class="w-full h-full object-cover">

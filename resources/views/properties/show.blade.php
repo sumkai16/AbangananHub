@@ -268,7 +268,7 @@
 
                         {{-- Thumbnail strip --}}
                         @if($property->media->count() > 1)
-                            <div class="grid grid-cols-5 gap-2 mt-2">
+                            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-2">
                                 @foreach($property->media->take(5) as $i => $mediaItem)
                                     <button type="button" id="thumb-{{ $i }}" onclick="setHero({{ $i }})"
                                         class="relative aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all {{ $i === 0 ? 'border-[#2AA7A1]' : 'border-transparent opacity-60' }}">

@@ -155,7 +155,33 @@
                             </p>
                         </div>
                     @else
-                        <div class="overflow-x-auto">
+                        {{-- Mobile card list — same data as the table below, stacked for a phone screen --}}
+                        <div class="lg:hidden divide-y divide-[#E2E8F0]">
+                            @foreach($periods as $period)
+                                @php $mStyle = $periodStyles[$period['status']] ?? $periodStyles['due']; @endphp
+                                <div class="px-5 py-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <p class="text-[13.5px] font-semibold text-[#1F2937]">{{ $period['label'] }}</p>
+                                        <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold shrink-0 {{ $mStyle['pill'] }}">
+                                            {{ $mStyle['label'] }}
+                                        </span>
+                                    </div>
+                                    @if($period['payments']->isNotEmpty())
+                                        <p class="text-[11px] text-[#64748B] mt-0.5">
+                                            {{ $period['payments']->pluck('payment_method')->unique()->join(', ') }}
+                                        </p>
+                                    @endif
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2.5 text-[12.5px]">
+                                        <p class="text-[#64748B]">Due on <span class="text-[#1F2937] font-medium">{{ $period['due_on']->format('M d, Y') }}</span></p>
+                                        <p class="text-[#64748B] text-right">Expected <span class="text-[#1F2937] font-medium">₱{{ number_format($period['expected'], 2) }}</span></p>
+                                        <p class="text-[#64748B]">Paid <span class="text-[#1F2937] font-medium">₱{{ number_format($period['paid'], 2) }}</span></p>
+                                        <p class="text-[#64748B] text-right">Balance <span class="font-medium {{ $period['balance'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]' }}">₱{{ number_format(max(0, $period['balance']), 2) }}</span></p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="hidden lg:block overflow-x-auto">
                             <table class="w-full min-w-[640px]">
                                 <thead class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
                                     <tr>
@@ -211,7 +237,33 @@
                             <h2 class="text-[15px] font-bold text-[#1F2937]">Deposits &amp; other payments</h2>
                             <p class="text-[12px] text-[#64748B] mt-0.5">Money outside the monthly rent cycle.</p>
                         </div>
-                        <div class="overflow-x-auto">
+                        {{-- Mobile card list — same data as the table below, stacked for a phone screen --}}
+                        <div class="lg:hidden divide-y divide-[#E2E8F0]">
+                            @foreach($otherCharges as $charge)
+                                <div class="px-5 py-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <p class="text-[13px] font-semibold text-[#1F2937]">{{ $charge->payment_type }}</p>
+                                        <p class="text-[13px] font-semibold text-[#1F2937]">₱{{ number_format((float) $charge->amount, 2) }}</p>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 mt-1 text-[12px] text-[#64748B]">
+                                        <span>{{ optional($charge->paid_at)->format('M d, Y') ?? '—' }} · {{ $charge->payment_method }}</span>
+                                    </div>
+                                    <div class="mt-2">
+                                        @if($charge->isManuallyRecorded())
+                                            <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#E2E8F0] bg-[#F7FCFC] text-[#64748B] text-[11px] font-bold">
+                                                Recorded by landlord
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#2AA7A1]/25 bg-[#EEF8F8] text-[#156F8C] text-[11px] font-bold">
+                                                Paid online
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="hidden lg:block overflow-x-auto">
                             <table class="w-full min-w-[600px]">
                                 <thead class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
                                     <tr>
