@@ -183,7 +183,7 @@
         @php
             $derived = [];
             foreach ($properties as $property) {
-                $thumb = $property->media->first();
+                $thumb = $property->media->firstWhere('media_type', 'Image');
                 $derived[$property->property_id] = compact('thumb');
             }
         @endphp
@@ -257,7 +257,7 @@
         </div>
 
         {{-- Table view --}}
-        <div x-show="view === 'table'" x-cloak class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+        <x-card flush x-show="view === 'table'" x-cloak>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[980px] text-left">
                     <thead>
@@ -331,7 +331,7 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </x-card>
 
         {{-- Pagination --}}
         <div class="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

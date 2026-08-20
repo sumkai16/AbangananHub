@@ -98,7 +98,7 @@
     @else
         <div class="space-y-3">
             @foreach($reviews as $review)
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 {{ $review->is_hidden ? 'opacity-60' : '' }}"
+                <x-card class="flex flex-col sm:flex-row gap-4 sm:gap-5 {{ $review->is_hidden ? 'opacity-60' : '' }}"
                     x-data="{ confirmOpen: false }">
 
                     {{-- Rating block --}}
@@ -176,7 +176,8 @@
                     </div>
 
                     {{-- Toggle confirm modal --}}
-                    <div x-show="confirmOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <template x-teleport="body">
+                    <div x-show="confirmOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
                         <div class="absolute inset-0 bg-black/40" @click="confirmOpen = false"></div>
                         <div class="relative bg-white rounded-3xl shadow-xl max-w-sm w-full p-7 z-10">
                             <div class="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4
@@ -222,8 +223,9 @@
                             </div>
                         </div>
                     </div>
+                    </template>
 
-                </div>
+                </x-card>
             @endforeach
         </div>
 

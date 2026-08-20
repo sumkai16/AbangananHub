@@ -78,7 +78,7 @@
             <p class="text-[13px] text-[#64748B] mt-1">No payments match this tab right now.</p>
         </div>
     @else
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+        <x-card flush>
             <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
                 <p class="text-[13px] font-semibold text-[#1F2937]">
                     {{ $payments->total() }} {{ Str::plural('payment', $payments->total()) }}
@@ -196,7 +196,7 @@
                     {{ $payments->links() }}
                 </div>
             @endif
-        </div>
+        </x-card>
     @endif
 
 </div>

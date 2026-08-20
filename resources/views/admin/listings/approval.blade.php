@@ -70,10 +70,10 @@
             </p>
         </div>
     @else
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden divide-y divide-[#E2E8F0]">
+        <x-card flush class="divide-y divide-[#E2E8F0]">
             @foreach($pendingListings as $property)
                 @php
-                    $thumb = optional($property->media->first())->media_url;
+                    $thumb = optional($property->media->firstWhere('media_type', 'Image'))->media_url;
 
                     $locationLine = collect([$property->barangay, $property->city_municipality])
                         ->filter()
@@ -190,7 +190,7 @@
                     </div>
                 </div>
             @endforeach
-        </div>
+        </x-card>
         @if ($pendingListings->hasPages())
             <div class="mt-4 bg-white border border-[#E2E8F0] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
                 {{ $pendingListings->links() }}

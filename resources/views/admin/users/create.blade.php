@@ -13,7 +13,7 @@
         Back to users
     </a>
 
-    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+    <x-card flush>
         <div class="px-7 py-5 border-b border-[#E2E8F0]">
             <h1 class="text-[18px] font-extrabold text-[#1F2937] tracking-tight">Create User</h1>
             <p class="text-[13px] text-[#94A3B8] mt-0.5">Add a new account to the system.</p>
@@ -115,7 +115,7 @@
                 </button>
             </div>
         </form>
-    </div>
+    </x-card>
 
 </div>
 @endsection

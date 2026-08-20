@@ -67,7 +67,7 @@
                     <p class="text-[13px] text-[#94A3B8] mt-1">Try adjusting your search or filter.</p>
                 </div>
             @else
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+                <x-card flush>
                     <div class="overflow-x-auto scrollbar-thin-light">
                         <table class="min-w-full">
                             <thead>
@@ -169,7 +169,7 @@
                             {{ $users->links() }}
                         </div>
                     @endif
-                </div>
+                </x-card>
             @endif
         </div>
 

@@ -36,7 +36,7 @@
 
         {{-- Left: message thread --}}
         <div class="lg:col-span-2">
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
                     <h2 class="text-[13.5px] font-bold text-[#1F2937]">Messages</h2>
                     <span class="text-[12px] text-[#94A3B8]">{{ $conversation->messages->count() }} message{{ $conversation->messages->count() !== 1 ? 's' : '' }}</span>
@@ -101,7 +101,7 @@
                         Admin view only — you cannot send messages in this conversation.
                     </p>
                 </div>
-            </div>
+            </x-card>
         </div>
 
         {{-- Right: participants + property --}}
@@ -119,7 +119,7 @@
                         ? ($reservation->move_in_deadline_at ?? $reservation->computeTurnoverDeadline())
                         : $reservation->move_in_deadline_at;
                 @endphp
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
+                <x-card flush class="p-4">
                     <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Move-in &amp; escrow</p>
 
                     @if ($reservation->move_in_disputed_at)
@@ -180,11 +180,11 @@
                             </div>
                         @endif
                     </dl>
-                </div>
+                </x-card>
             @endif
 
             {{-- Tenant card --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
+            <x-card flush class="p-4">
                 <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Tenant</p>
                 @if($conversation->tenant)
                     <div class="flex items-center gap-2.5 mb-3">
@@ -205,10 +205,10 @@
                 @else
                     <p class="text-[13px] text-[#94A3B8] italic">No tenant linked.</p>
                 @endif
-            </div>
+            </x-card>
 
             {{-- Landlord card --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
+            <x-card flush class="p-4">
                 <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Landlord</p>
                 @if($conversation->landlord)
                     <div class="flex items-center gap-2.5 mb-3">
@@ -229,18 +229,18 @@
                 @else
                     <p class="text-[13px] text-[#94A3B8] italic">No landlord linked.</p>
                 @endif
-            </div>
+            </x-card>
 
             {{-- Property card --}}
             @if($conversation->property)
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4">
+                <x-card flush class="p-4">
                     <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Property</p>
                     <p class="text-[13.5px] font-bold text-[#1F2937] mb-0.5">{{ $conversation->property->title }}</p>
                     <p class="text-[12px] text-[#94A3B8] mb-1">{{ $conversation->property->address ?? '' }}</p>
                     @if($conversation->unit)
                         <p class="text-[12px] font-semibold text-[#156F8C]">Unit {{ $conversation->unit->unit_number }}</p>
                     @endif
-                </div>
+                </x-card>
             @endif
 
             {{-- Meta --}}

@@ -15,8 +15,8 @@
         </a>
 
         {{-- Applicant header --}}
-        <div
-            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+        <x-card flush
+            class="px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                     <span class="text-[#156F8C] text-[14px] font-extrabold">
@@ -38,7 +38,7 @@
                 </div>
                 <x-verification-status-badge :status="$verification->verification_status" />
             </div>
-        </div>
+        </x-card>
 
         {{-- Status banners --}}
         @if ($verification->verification_status === 'Rejected' && $verification->admin_notes)
@@ -79,7 +79,7 @@
             <div class="lg:col-span-3 space-y-4">
 
                 {{-- Government ID --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                <x-card>
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -121,10 +121,10 @@
                             </div>
                         @endif
                     </div>
-                </div>
+                </x-card>
 
                 {{-- Selfie --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                <x-card>
                     <div class="flex items-center gap-2 mb-4">
                         <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -170,7 +170,7 @@
                                 class="w-full h-full object-cover">
                         </div>
                     </div>
-                </div>
+                </x-card>
             </div>
 
             {{-- Right column (2/5) --}}
@@ -178,7 +178,7 @@
 
                 {{-- Admin action (TOP — most important) --}}
                 @if ($verification->verification_status === 'Pending')
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5" x-data="{ showReject: false }">
+                    <x-card x-data="{ showReject: false }">
                         <div class="flex items-center gap-2 mb-4">
                             <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -245,11 +245,11 @@
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    </x-card>
                 @endif
 
                 {{-- OCR results --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                <x-card>
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -309,10 +309,10 @@
                     @else
                         <p class="text-[12px] text-[#94A3B8]">OCR data not available — review ID photos manually.</p>
                     @endif
-                </div>
+                </x-card>
 
                 {{-- ID details --}}
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                <x-card>
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -340,11 +340,11 @@
                             </div>
                         @endif
                     </div>
-                </div>
+                </x-card>
 
                 {{-- Business details --}}
                 @if ($verification->business_name)
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                    <x-card>
                         <div class="flex items-center gap-2 mb-3">
                             <svg class="w-4 h-4 text-[#94A3B8]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -378,7 +378,7 @@
                                 </div>
                             @endif
                         </div>
-                    </div>
+                    </x-card>
                 @endif
             </div>
         </div>
@@ -388,7 +388,7 @@
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0" @click="previewImage = null" @keydown.escape.window="previewImage = null"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 cursor-pointer"
+            class="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4 cursor-pointer"
             style="display: none;">
             <button type="button" @click="previewImage = null"
                 class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">

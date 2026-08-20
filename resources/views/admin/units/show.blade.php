@@ -150,6 +150,9 @@
                             <textarea name="rejection_reason" rows="3" maxlength="500"
                                 placeholder="Reason for rejection (shown to landlord)"
                                 class="w-full rounded-xl border border-[#E2E8F0] px-3.5 py-2.5 text-[13px] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#EF4444]/25 transition"></textarea>
+                            @error('rejection_reason')
+                                <p class="text-xs text-[#DC2626]">{{ $message }}</p>
+                            @enderror
                             <button type="submit"
                                 class="w-full h-11 rounded-xl border border-[#EF4444]/25 text-[#DC2626] text-[13.5px] font-semibold hover:bg-[#EF4444]/[0.07] transition-all">
                                 Reject Unit

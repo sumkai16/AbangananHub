@@ -76,7 +76,7 @@
             <p class="text-[13px] text-[#64748B] mt-1">{{ $search ? 'Try adjusting your search.' : 'None yet.' }}</p>
         </div>
     @else
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden divide-y divide-[#E2E8F0]">
+        <x-card flush class="divide-y divide-[#E2E8F0]">
             @foreach($conversations as $conv)
                 <a href="{{ route('admin.conversations.show', $conv) }}"
                     class="flex flex-wrap sm:flex-nowrap items-center gap-4 px-6 py-4 hover:bg-[#F7FCFC]/70 transition-all duration-200 group">
@@ -123,7 +123,7 @@
                     </svg>
                 </a>
             @endforeach
-        </div>
+        </x-card>
         @if($conversations->hasPages())
             <div class="mt-4 bg-white border border-[#E2E8F0] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">{{ $conversations->links() }}</div>
         @endif

@@ -15,7 +15,7 @@
     </a>
 
     {{-- Header --}}
-    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+    <x-card flush class="px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
             <h1 class="text-[16px] font-bold text-[#1F2937] leading-tight">{{ $document->document_type }}</h1>
             <p class="text-[12px] text-[#94A3B8] mt-0.5">
@@ -26,10 +26,10 @@
             </p>
         </div>
         <x-document-status-badge :document="$document" />
-    </div>
+    </x-card>
 
     {{-- Meta --}}
-    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-4">
+    <x-card class="mb-4">
         <dl class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div>
                 <dt class="text-[11px] text-[#94A3B8] font-semibold uppercase tracking-wide">Document no.</dt>
@@ -57,7 +57,7 @@
                 </div>
             @endif
         </dl>
-    </div>
+    </x-card>
 
     {{-- Rejection reason --}}
     @if($document->status === 'Rejected' && $document->rejection_reason)
@@ -73,7 +73,7 @@
     @endif
 
     {{-- Preview --}}
-    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-4">
+    <x-card class="mb-4">
         <h2 class="text-[13px] font-bold uppercase tracking-widest text-[#94A3B8] mb-3">Document</h2>
         @if($document->file_path)
             @php $isPdf = str_ends_with(strtolower($document->file_name ?? ''), '.pdf'); @endphp
@@ -89,11 +89,11 @@
         @else
             <p class="text-[13.5px] text-[#94A3B8] italic">Awaiting the landlord's upload — nothing to review yet.</p>
         @endif
-    </div>
+    </x-card>
 
     {{-- Admin action --}}
     @if($document->file_path && $document->status === 'Pending')
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+        <x-card>
             <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Admin action</h2>
 
             <div class="flex gap-2 mb-3">
@@ -146,7 +146,7 @@
                     </div>
                 </form>
             </div>
-        </div>
+        </x-card>
     @endif
 
 </div>

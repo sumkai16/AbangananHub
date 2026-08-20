@@ -126,10 +126,10 @@
         @endforeach
         <a href="{{ route('admin.reservations.index', array_filter(['filter' => 'disputed', 'status' => $status, 'search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ $disputedActive ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-gray-600 hover:text-[#1F2937]' }}">
+                {{ $disputedActive ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
             Needs review
             @if ($disputedCount > 0)
-                <span class="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-800">{{ $disputedCount }}</span>
+                <span class="ml-1 rounded-full bg-[#EF4444]/[0.10] px-2 py-0.5 text-xs text-[#DC2626]">{{ $disputedCount }}</span>
             @endif
         </a>
     </div>
@@ -146,7 +146,7 @@
             <p class="text-[13px] text-[#94A3B8] mt-1">{{ $search ? 'Try adjusting your search.' : 'None with this status yet.' }}</p>
         </div>
     @else
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+        <x-card flush>
             <div class="overflow-x-auto scrollbar-thin-light">
                 <table class="min-w-full">
                     <thead>
@@ -161,7 +161,7 @@
                     </thead>
                     <tbody class="divide-y divide-[#E2E8F0]">
                         @foreach($reservations as $res)
-                            @php $photo = $res->property?->media->first(); @endphp
+                            @php $photo = $res->property?->media->firstWhere('media_type', 'Image'); @endphp
                             <tr class="hover:bg-[#F7FCFC] transition-colors">
 
                                 {{-- Tenant --}}
@@ -216,9 +216,9 @@
                                         {{ $res->rental_status }}
                                     </span>
                                     @if ($res->move_in_disputed_at)
-                                        <p class="mt-1 text-xs text-red-700">
+                                        <p class="mt-1 text-xs text-[#DC2626]">
                                             Needs review — {{ $res->move_in_dispute_reason }}
-                                            <span class="text-gray-500">({{ $res->move_in_disputed_at->diffForHumans() }})</span>
+                                            <span class="text-[#94A3B8]">({{ $res->move_in_disputed_at->diffForHumans() }})</span>
                                         </p>
                                     @endif
                                 </td>
@@ -243,7 +243,7 @@
                     {{ $reservations->links() }}
                 </div>
             @endif
-        </div>
+        </x-card>
     @endif
 
 </div>

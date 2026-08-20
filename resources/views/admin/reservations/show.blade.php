@@ -79,7 +79,7 @@
     </div>
 
     {{-- Hero card --}}
-    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden mb-6">
+    <x-card flush class="mb-6">
         <div class="px-4 sm:px-7 py-6 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center gap-5">
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2.5 mb-1">
@@ -140,7 +140,7 @@
                 </div>
             </div>
         @endif
-    </div>
+    </x-card>
 
     {{-- Two-col layout --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -149,7 +149,7 @@
         <div class="lg:col-span-2 space-y-6">
 
             {{-- Reservation details --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
                     <div class="w-8 h-8 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -172,14 +172,14 @@
                         </div>
                     @endforeach
                 </div>
-            </div>
+            </x-card>
 
             {{-- Tenant's remarks --}}
             @if($reservation->remarks)
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
+                <x-card flush class="p-6">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2">Tenant's Remarks</p>
                     <p class="text-[13.5px] text-[#1F2937] leading-relaxed">{{ $reservation->remarks }}</p>
-                </div>
+                </x-card>
             @endif
 
             {{-- Agreement info --}}
@@ -215,7 +215,7 @@
 
             {{-- Payments --}}
             @if($reservation->payments->count())
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+                <x-card flush>
                     <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
                         <div class="w-8 h-8 rounded-xl bg-[#22C55E]/[0.07] border border-[#22C55E]/20 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 text-[#15803D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -243,7 +243,7 @@
                             </div>
                         @endforeach
                     </div>
-                </div>
+                </x-card>
             @endif
 
         </div>
@@ -252,7 +252,7 @@
         <div class="space-y-5">
 
             {{-- Tenant --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <div class="px-5 py-4 border-b border-[#E2E8F0]">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8]">Tenant</p>
                 </div>
@@ -282,17 +282,17 @@
                         </a>
                     @endif
                 </div>
-            </div>
+            </x-card>
 
             {{-- Property --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <div class="px-5 py-4 border-b border-[#E2E8F0]">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8]">Property</p>
                 </div>
                 <div class="p-5">
                     @php
                         $property = $reservation->property;
-                        $photo    = $property?->media->first();
+                        $photo    = $property?->media->firstWhere('media_type', 'Image');
                     @endphp
                     @if($photo)
                         <img src="{{ $photo->media_url }}" alt="" class="w-full h-32 object-cover rounded-2xl mb-3">
@@ -316,10 +316,10 @@
                         </div>
                     @endif
                 </div>
-            </div>
+            </x-card>
 
             {{-- Landlord --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <div class="px-5 py-4 border-b border-[#E2E8F0]">
                     <p class="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8]">Landlord</p>
                 </div>
@@ -343,13 +343,14 @@
                         </a>
                     @endif
                 </div>
-            </div>
+            </x-card>
 
         </div>
     </div>
 
     {{-- Force Cancel Modal --}}
-    <div x-show="cancelOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <template x-teleport="body">
+    <div x-show="cancelOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/40" @click="cancelOpen = false"></div>
         <div class="relative bg-white rounded-3xl shadow-xl max-w-md w-full p-7 z-10">
             <div class="w-12 h-12 rounded-2xl bg-[#FBBF24]/[0.10] border border-[#FBBF24]/25 flex items-center justify-center mx-auto mb-4">
@@ -381,9 +382,11 @@
             </form>
         </div>
     </div>
+    </template>
 
     {{-- Force Reject Modal --}}
-    <div x-show="rejectOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <template x-teleport="body">
+    <div x-show="rejectOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/40" @click="rejectOpen = false"></div>
         <div class="relative bg-white rounded-3xl shadow-xl max-w-md w-full p-7 z-10">
             <div class="w-12 h-12 rounded-2xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 flex items-center justify-center mx-auto mb-4">
@@ -415,6 +418,7 @@
             </form>
         </div>
     </div>
+    </template>
 
 </div>
 @endsection

@@ -17,8 +17,8 @@
 
 
         {{-- Header --}}
-        <div
-            class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+        <x-card flush
+            class="px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h1 class="text-[16px] font-bold text-[#1F2937] leading-tight">Report #{{ $report->report_id }}</h1>
                 <p class="text-[12px] text-[#94A3B8] mt-0.5">Submitted {{ $report->created_at->format('M d, Y \a\t g:i A') }}
@@ -31,20 +31,20 @@
                     class="w-1.5 h-1.5 rounded-full {{ $report->isPending() ? 'bg-[#FBBF24]' : 'bg-[#22C55E]' }}"></span>
                 {{ $report->report_status }}
             </span>
-        </div>
+        </x-card>
 
         <div class="grid lg:grid-cols-2 gap-4 mb-4">
             {{-- Reporter --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+            <x-card>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Reported By</p>
                 <p class="text-[14px] font-semibold text-[#1F2937]">
                     {{ $report->reporter ? $report->reporter->first_name . ' ' . $report->reporter->last_name : '—' }}
                 </p>
                 <p class="text-[12.5px] text-[#94A3B8] mt-0.5">{{ $report->reporter->email ?? '' }}</p>
-            </div>
+            </x-card>
 
             {{-- Target --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+            <x-card>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Target</p>
                 @if($report->property)
                     <p class="text-[14px] font-semibold text-[#1F2937]">{{ $report->property->title }}</p>
@@ -57,18 +57,18 @@
                 @else
                     <p class="text-[13px] text-[#94A3B8]">No target recorded.</p>
                 @endif
-            </div>
+            </x-card>
         </div>
 
         {{-- Reason --}}
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-4">
+        <x-card class="mb-4">
             <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Reason</p>
             <p class="text-[13.5px] text-[#1F2937] leading-relaxed whitespace-pre-line">{{ $report->report_reason }}</p>
-        </div>
+        </x-card>
 
         {{-- Actions --}}
         @if($report->isPending())
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+            <x-card>
                 <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Resolve this report</h2>
                 <form method="POST" action="{{ route('admin.reports.resolve', $report) }}"
                     data-confirm="Resolve this report with the selected action?" class="space-y-4">
@@ -81,6 +81,9 @@
                         <textarea name="admin_notes" rows="3" maxlength="1000" required
                             placeholder="Describe what you found after reviewing this report"
                             class="w-full rounded-xl border border-[#E2E8F0] px-3.5 py-2.5 text-[13px] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition"></textarea>
+                        @error('admin_notes')
+                            <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
@@ -97,6 +100,9 @@
                         @endphp
                         <x-styled-select name="action_taken" :options="$actionTakenOptions" selected="none" required
                             class="h-11 w-full rounded-xl border border-[#E2E8F0] px-3.5 text-[13px] text-[#1F2937]" />
+                        @error('action_taken')
+                            <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <button type="submit"
@@ -108,9 +114,9 @@
                         Resolve report
                     </button>
                 </form>
-            </div>
+            </x-card>
         @else
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+            <x-card>
                 <h2 class="text-[14px] font-bold text-[#1F2937] mb-3">Resolution</h2>
                 <div class="space-y-3">
                     <div>
@@ -131,7 +137,7 @@
                         </p>
                     </div>
                 </div>
-            </div>
+            </x-card>
         @endif
 
     </div>

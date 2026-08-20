@@ -84,7 +84,7 @@
                 <p class="text-[13px] text-[#64748B] mt-1">No units match this tab right now.</p>
             </div>
         @else
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden divide-y divide-[#E2E8F0]">
+            <x-card flush class="divide-y divide-[#E2E8F0]">
                 @foreach ($units as $unit)
                     @php
                         $thumb = $unit->media->firstWhere('media_type', 'Image');
@@ -127,7 +127,7 @@
                         </svg>
                     </a>
                 @endforeach
-            </div>
+            </x-card>
             @if ($units->hasPages())
                 <div class="mt-4 bg-white border border-[#E2E8F0] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
                     {{ $units->links() }}

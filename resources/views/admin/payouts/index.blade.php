@@ -22,7 +22,7 @@
         <div class="space-y-4 mb-8">
             @foreach ($pending as $row)
                 @php $landlord = $row['landlord']; @endphp
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+                <x-card flush>
                     <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between flex-wrap gap-3">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-full bg-[#156F8C] flex items-center justify-center shrink-0">
@@ -79,13 +79,13 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </x-card>
             @endforeach
         </div>
     @endif
 
     {{-- Recently paid out --}}
-    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+    <x-card flush>
         <div class="px-6 py-4 border-b border-[#E2E8F0]">
             <p class="text-[13px] font-semibold text-[#1F2937]">Recently paid out</p>
         </div>
@@ -118,38 +118,40 @@
                 </table>
             </div>
         @endif
-    </div>
+    </x-card>
 
     {{-- Mark-paid-out modal --}}
-    <div x-data="{ open: false, userId: null, name: '', amount: '' }"
-        x-on:open-payout-modal.window="open = true; userId = $event.detail.userId; name = $event.detail.name; amount = $event.detail.amount"
-        x-show="open" x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-        <div x-show="open" x-on:click.outside="open = false" class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-            <h3 class="text-[15px] font-bold text-[#1F2937] mb-1">Mark payout sent</h3>
-            <p class="text-[13px] text-[#64748B] mb-4">
-                Confirm you have sent <span x-text="'₱' + amount"></span> via GCash to
-                <span x-text="name" class="font-semibold"></span>, then record the reference below.
-            </p>
-            <form method="POST" x-bind:action="'/admin/payouts/' + userId + '/mark-paid-out'">
-                @csrf
-                <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">GCash transaction reference</label>
-                <input type="text" name="payout_reference" required
-                    class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all mb-4"
-                    placeholder="e.g. 0123456789012">
-                <div class="flex items-center justify-end gap-3">
-                    <button type="button" x-on:click="open = false"
-                        class="px-4 py-2 border border-[#E2E8F0] rounded-lg text-[13px] font-semibold text-[#1F2937] bg-white hover:brightness-95 transition-all">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                        class="px-4 py-2 bg-[#FF8A65] text-white rounded-lg text-[13px] font-semibold hover:brightness-95 transition-all shadow-sm">
-                        Confirm payout
-                    </button>
-                </div>
-            </form>
+    <template x-teleport="body">
+        <div x-data="{ open: false, userId: null, name: '', amount: '' }"
+            x-on:open-payout-modal.window="open = true; userId = $event.detail.userId; name = $event.detail.name; amount = $event.detail.amount"
+            x-show="open" x-cloak
+            class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-4">
+            <div x-show="open" x-on:click.outside="open = false" class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+                <h3 class="text-[15px] font-bold text-[#1F2937] mb-1">Mark payout sent</h3>
+                <p class="text-[13px] text-[#64748B] mb-4">
+                    Confirm you have sent <span x-text="'₱' + amount"></span> via GCash to
+                    <span x-text="name" class="font-semibold"></span>, then record the reference below.
+                </p>
+                <form method="POST" x-bind:action="'/admin/payouts/' + userId + '/mark-paid-out'">
+                    @csrf
+                    <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">GCash transaction reference</label>
+                    <input type="text" name="payout_reference" required
+                        class="w-full px-3.5 py-2.5 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#1F2937] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all mb-4"
+                        placeholder="e.g. 0123456789012">
+                    <div class="flex items-center justify-end gap-3">
+                        <button type="button" x-on:click="open = false"
+                            class="px-4 py-2 border border-[#E2E8F0] rounded-lg text-[13px] font-semibold text-[#1F2937] bg-white hover:brightness-95 transition-all">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-[#FF8A65] text-white rounded-lg text-[13px] font-semibold hover:brightness-95 transition-all shadow-sm">
+                            Confirm payout
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+    </template>
 
 </div>
 @endsection

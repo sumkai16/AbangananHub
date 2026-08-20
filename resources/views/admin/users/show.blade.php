@@ -67,7 +67,8 @@
                 </button>
 
                 {{-- Delete confirmation modal --}}
-                <div x-show="deleteOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <template x-teleport="body">
+                <div x-show="deleteOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
                     <div class="absolute inset-0 bg-black/40" @click="deleteOpen = false"></div>
                     <div class="relative bg-white rounded-3xl shadow-xl max-w-sm w-full p-7 z-10">
                         <div class="w-12 h-12 rounded-2xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 flex items-center justify-center mx-auto mb-4">
@@ -94,12 +95,13 @@
                         </div>
                     </div>
                 </div>
+                </template>
             @endif
         </div>
     </div>
 
     {{-- Profile hero card --}}
-    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden mb-6">
+    <x-card flush class="mb-6">
         <div class="px-7 py-6 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center gap-5">
 
             {{-- Avatar --}}
@@ -175,7 +177,7 @@
                 </p>
             </div>
         </div>
-    </div>
+    </x-card>
 
     {{-- Two-col layout --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -184,7 +186,7 @@
         <div class="lg:col-span-2 space-y-6">
 
             {{-- Personal Information --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
                     <div class="w-8 h-8 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -228,11 +230,11 @@
                     @endforeach
 
                 </div>
-            </div>
+            </x-card>
 
             {{-- Landlord Verification (if applicable) --}}
             @if ($user->hasRole('Landlord') || $user->verificationApplication)
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+                <x-card flush>
                     <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
                         <div class="w-8 h-8 rounded-xl bg-[#FBBF24]/[0.10] border border-[#FBBF24]/25 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 text-[#B45309]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -290,7 +292,7 @@
                             <p class="text-[13.5px] text-[#94A3B8]">No verification application on file.</p>
                         </div>
                     @endif
-                </div>
+                </x-card>
             @endif
 
         </div>
@@ -299,13 +301,13 @@
         <div class="space-y-5">
 
             {{-- User ID --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+            <x-card>
                 <p class="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2">User ID</p>
                 <p class="text-[20px] font-extrabold text-[#156F8C] font-mono">#{{ $user->user_id }}</p>
-            </div>
+            </x-card>
 
             {{-- Activity --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center gap-3">
                     <div class="w-7 h-7 rounded-xl bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
                         <svg class="w-3.5 h-3.5 text-[#156F8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -357,7 +359,7 @@
                     </div>
 
                 </div>
-            </div>
+            </x-card>
 
         </div>
     </div>

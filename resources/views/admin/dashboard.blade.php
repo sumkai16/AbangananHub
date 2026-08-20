@@ -122,7 +122,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             {{-- Pending Verifications --}}
-            <div class="lg:col-span-8 bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden"
+            <x-card flush class="lg:col-span-8"
                 x-data="{ tab: 'landlords' }">
 
                 <div class="px-4 sm:px-6 py-4 border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3">
@@ -343,10 +343,10 @@
                     @endif
                 </div>
 
-            </div>
+            </x-card>
 
             {{-- Recent Reservations --}}
-            <div class="lg:col-span-4 bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush class="lg:col-span-4">
                 <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
                     <h2 class="text-[15px] font-bold text-[#1F2937]">Recent Reservations</h2>
                     <span class="text-[12px] text-[#94A3B8]">Latest</span>
@@ -382,7 +382,7 @@
                         <div class="py-10 text-center text-[13px] text-[#94A3B8]">No recent reservations.</div>
                     @endforelse
                 </div>
-            </div>
+            </x-card>
 
         </div>
 

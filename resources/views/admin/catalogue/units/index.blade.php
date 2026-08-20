@@ -197,7 +197,7 @@
         @php
             $derived = [];
             foreach ($units as $unit) {
-                $thumb = $unit->media->first();
+                $thumb = $unit->media->firstWhere('media_type', 'Image');
                 $tenantName = $unit->activeReservation?->tenant
                     ? trim($unit->activeReservation->tenant->first_name . ' ' . $unit->activeReservation->tenant->last_name)
                     : null;
@@ -262,7 +262,7 @@
         </div>
 
         {{-- Table view --}}
-        <div x-show="view === 'table'" x-cloak class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+        <x-card flush x-show="view === 'table'" x-cloak>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[980px] text-left">
                     <thead>
@@ -337,7 +337,7 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </x-card>
 
         {{-- Pagination --}}
         <div class="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

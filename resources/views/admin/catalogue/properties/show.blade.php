@@ -100,7 +100,7 @@
             </div>
 
             {{-- Units --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <h2 class="text-[13px] font-bold uppercase tracking-widest text-[#94A3B8] px-5 pt-5 pb-3">Units</h2>
                 @if($property->units->isEmpty())
                     <p class="px-5 pb-5 text-[13.5px] text-[#94A3B8]">No units have been added to this property yet.</p>
@@ -135,13 +135,13 @@
                         </table>
                     </div>
                 @endif
-            </div>
+            </x-card>
 
             {{-- Verification Documents — full review lives in Verification & Approvals →
                  Property Documents, so it's reachable without drilling into a specific
                  property first. This card is a scoped summary + the request action, which
                  does need this property's context. --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <div class="flex items-center justify-between px-5 pt-5 pb-3">
                     <h2 class="text-[13px] font-bold uppercase tracking-widest text-[#94A3B8]">Verification Documents</h2>
                     <a href="{{ route('admin.documents.index', ['status' => 'All']) }}"
@@ -183,10 +183,10 @@
                         </button>
                     </form>
                 </div>
-            </div>
+            </x-card>
 
             {{-- Reservations --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] overflow-hidden">
+            <x-card flush>
                 <h2 class="text-[13px] font-bold uppercase tracking-widest text-[#94A3B8] px-5 pt-5 pb-3">Reservation History</h2>
                 @if($property->reservations->isEmpty())
                     <p class="px-5 pb-5 text-[13.5px] text-[#94A3B8]">No reservations on this property yet.</p>
@@ -206,7 +206,7 @@
                         @endforeach
                     </div>
                 @endif
-            </div>
+            </x-card>
         </div>
 
         {{-- Side column --}}
