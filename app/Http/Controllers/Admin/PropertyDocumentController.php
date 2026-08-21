@@ -10,6 +10,8 @@ use App\Models\Property;
 use App\Models\PropertyDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class PropertyDocumentController extends Controller
@@ -54,6 +56,30 @@ class PropertyDocumentController extends Controller
         $document->load(['property.landlord', 'verifier', 'requester']);
 
         return view('admin.documents.show', compact('document'));
+    }
+
+    /**
+     * Landlord's own preview/download live under 'landlord' middleware, which
+     * blocks Admin before the (already Admin-aware) PropertyDocumentPolicy
+     * gets a chance to run — hence a dedicated admin-side pair.
+     */
+    public function preview(PropertyDocument $document)
+    {
+        Gate::authorize('view', $document);
+        abort_unless($document->file_path, 404);
+
+        return response()->file(
+            Storage::disk('local')->path($document->file_path),
+            ['Content-Type' => Storage::disk('local')->mimeType($document->file_path)]
+        );
+    }
+
+    public function download(PropertyDocument $document)
+    {
+        Gate::authorize('view', $document);
+        abort_unless($document->file_path, 404);
+
+        return Storage::disk('local')->download($document->file_path, $document->file_name);
     }
 
     public function verify(Property $property, PropertyDocument $document)

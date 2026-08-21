@@ -16,7 +16,10 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
-        $properties = Property::with(['media', 'landlord', 'amenities', 'units'])
+        $properties = Property::with([
+                'media', 'landlord', 'amenities', 'units',
+                'documents:document_id,property_id,document_type,status,expiry_date',
+            ])
             ->browsable()
             ->browseFilters([
                 'location'  => $request->query('location'),
@@ -81,7 +84,7 @@ class PropertyController extends Controller
         // documents: status/expiry only for the badge — file_path never reaches a renter's browser.
         $property->load([
             'media', 'amenities', 'landlord.rentalBusiness', 'units.amenities', 'units.media',
-            'documents:document_id,property_id,status,expiry_date',
+            'documents:document_id,property_id,document_type,status,expiry_date',
         ]);
 
         $reviews = $property->reviews()

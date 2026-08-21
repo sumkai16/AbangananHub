@@ -240,6 +240,15 @@
                                     @mouseleave="$refs.nav.classList.add('opacity-0')"
                                     class="relative w-full aspect-square rounded-3xl overflow-hidden bg-[#EEF8F8] shadow-sm group-hover:shadow-lg transition-all duration-500">
 
+                                    @if($property->hasVerifiedDocuments())
+                                        <span class="absolute top-3 left-3 z-10 inline-flex items-center gap-1 bg-[#156F8C] text-white text-[10.5px] font-bold px-2 py-1 rounded-full shadow-sm">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Verified
+                                        </span>
+                                    @endif
+
                                     @if($property->media->count() > 0)
                                         <div class="flex transition-transform duration-500 ease-out h-full"
                                             :style="`transform: translateX(-${activeSlide * 100}%)`">

@@ -29,7 +29,7 @@
             $claimedTypes = $documents->pluck('document_type')->unique();
             $availableTypes = collect(\App\Models\PropertyDocument::TYPES)->diff($claimedTypes);
         @endphp
-        @if($availableTypes->isNotEmpty())
+        @if($availableTypes->isNotEmpty() && $documents->isNotEmpty())
             <button type="button" @click="uploadOpen = true"
                     class="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-[#1F2937] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 shrink-0">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">

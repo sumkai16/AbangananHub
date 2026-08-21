@@ -78,11 +78,11 @@
         @if($document->file_path)
             @php $isPdf = str_ends_with(strtolower($document->file_name ?? ''), '.pdf'); @endphp
             <x-document-preview
-                :preview-url="route('landlord.properties.documents.preview', [$document->property, $document])"
+                :preview-url="route('admin.documents.preview', $document)"
                 :is-pdf="$isPdf"
                 :alt="$document->document_type"
                 height="h-[28rem]" />
-            <a href="{{ route('landlord.properties.documents.download', [$document->property, $document]) }}"
+            <a href="{{ route('admin.documents.download', $document) }}"
                class="inline-flex items-center gap-1.5 mt-3 h-8 px-3 rounded-full border border-[#64748B]/30 text-[#1F2937] text-xs font-medium hover:bg-[#EEF8F8] transition-colors duration-200">
                 Download
             </a>

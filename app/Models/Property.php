@@ -134,12 +134,41 @@ class Property extends Model
 
     /**
      * The public "Verified Property" badge's single source of truth — a
-     * property is only badge-worthy once a document actually backs it, not
-     * merely because the listing itself was approved.
+     * property is only badge-worthy once its ownership document (Proof of
+     * Ownership, or Authorization/SPA for a non-owner landlord) is currently
+     * verified, not merely because the listing itself was approved, nor
+     * because some other unrelated document type (a permit, a tax
+     * declaration) happens to be on file. See PropertyDocument::OWNERSHIP_TYPES.
+     *
+     * Checks the already-loaded `documents` relation when available (index
+     * page, one query for N cards via with('documents')) instead of issuing
+     * a fresh query per property.
      */
     public function hasVerifiedDocuments(): bool
     {
-        return $this->documents()->currentlyValid()->exists();
+        if ($this->relationLoaded('documents')) {
+            return $this->documents->contains(
+                fn ($document) => $document->status === 'Verified'
+                    && (! $document->expiry_date || ! $document->expiry_date->isPast())
+                    && in_array($document->document_type, PropertyDocument::OWNERSHIP_TYPES, true)
+            );
+        }
+
+        return $this->documents()
+            ->currentlyValid()
+            ->whereIn('document_type', PropertyDocument::OWNERSHIP_TYPES)
+            ->exists();
+    }
+
+    /**
+     * Query-side twin of hasVerifiedDocuments(), for filtering a set of
+     * properties (the browse page's "Verified" tab) rather than checking one.
+     */
+    public function scopeVerified($query)
+    {
+        return $query->whereHas('documents', function ($q) {
+            $q->currentlyValid()->whereIn('document_type', PropertyDocument::OWNERSHIP_TYPES);
+        });
     }
 
     /**
@@ -245,7 +274,7 @@ class Property extends Model
         }
 
         if (!empty($filters['verified'])) {
-            $query->whereHas('landlord.rentalBusiness');
+            $query->verified();
         }
 
         match ($filters['sort'] ?? null) {

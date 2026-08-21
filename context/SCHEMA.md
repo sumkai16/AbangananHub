@@ -82,6 +82,8 @@ blank. Same shape as the `property_units` bug above: validation promised
 optional, the schema never agreed. Found via the mobile API's landlord
 profile probe, but it was reachable from the web form the whole time.
 
+**Backfilled Aug 21 2026** (`2026_08_21_000000_backfill_rental_business_for_approved_landlords`) — `Admin\VerificationController::approve()` has always created this row alongside the role grant, but at least one Approved landlord in this dataset predated that pairing and had no row at all. Every "Verified Host" check reads `landlord.rentalBusiness` existence, so that landlord's properties were invisible to all of them. See ARCHITECTURE.md.
+
 ### properties
 **Verified against `2026_..._create_properties_table.php` July 26 2026 — the row below was wrong for
 an unknown period: `business_id` does not exist (no property↔business FK; a business only links via
@@ -115,13 +117,17 @@ upload path (after `landlord_verifications`) to use the **private** disk (`stora
 rather than Cloudinary: these are sensitive legal documents that must never get a public Cloudinary
 URL, so they're served only through policy-gated controller routes
 (`Landlord\PropertyDocumentController::preview/download`, `PropertyDocumentPolicy@view`), mirroring
-`landlord_verifications`/`VerificationController` exactly.
+`landlord_verifications`/`VerificationController` exactly. **`Admin\PropertyDocumentController` gained
+its own `preview`/`download` pair Aug 21 2026** — the landlord routes sit under `EnsureLandlord`
+middleware, which 403s an Admin before the (Admin-aware) policy ever runs; reusing them from an admin
+view rendered a dead `<img>`. Route path prefix and Gate/Policy allow-list are two independent checks —
+don't assume a route is safely linkable from another role just because the policy underneath it is.
 
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | document_id | BIGINT UNSIGNED | PK | `$primaryKey = 'document_id'` |
 | property_id | FK → properties.property_id | NOT NULL, cascade | |
-| document_type | VARCHAR(100) | NOT NULL | Validated against `PropertyDocument::TYPES` |
+| document_type | VARCHAR(100) | NOT NULL | Validated against `PropertyDocument::TYPES`. Only `PropertyDocument::OWNERSHIP_TYPES` ('Proof of Ownership', 'Authorization / Special Power of Attorney') count toward `Property::hasVerifiedDocuments()`/`scopeVerified()` — the other 5 types (permits, tax dec, etc.) don't prove ownership and don't earn the "Verified Property" badge alone (Aug 21 2026) |
 | file_path | VARCHAR(255) | NULLABLE | **NULL = admin-requested, not yet uploaded** — a "requested" document is a row with no file, not a fifth status |
 | file_name | VARCHAR(255) | NULLABLE | Landlord's original filename |
 | document_number | VARCHAR(100) | NULLABLE | TCT no., tax dec no., permit no. |

@@ -243,6 +243,8 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         // Property verification documents — cross-property queue, mirrors Landlord Verifications.
         Route::get('/documents', [AdminPropertyDocumentController::class, 'index'])->name('documents.index');
         Route::get('/documents/{document}', [AdminPropertyDocumentController::class, 'show'])->name('documents.show');
+        Route::get('/documents/{document}/preview', [AdminPropertyDocumentController::class, 'preview'])->name('documents.preview');
+        Route::get('/documents/{document}/download', [AdminPropertyDocumentController::class, 'download'])->name('documents.download');
 
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');

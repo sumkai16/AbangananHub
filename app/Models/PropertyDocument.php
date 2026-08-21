@@ -18,6 +18,17 @@ class PropertyDocument extends Model
         'Other',
     ];
 
+    /**
+     * The only types that actually prove a landlord has the right to rent out
+     * the unit — a verified Fire Safety Certificate or Tax Declaration alone
+     * says nothing about ownership. This is the bar for the public "Verified
+     * Property" badge (see Property::hasVerifiedDocuments()/scopeVerified()).
+     */
+    public const OWNERSHIP_TYPES = [
+        'Proof of Ownership',
+        'Authorization / Special Power of Attorney',
+    ];
+
     protected $fillable = [
         'property_id',
         'document_type',
