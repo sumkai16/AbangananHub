@@ -25,9 +25,21 @@
     // in four places further down.
     $waitingOnMe = ($isLandlord && in_array($rentalStatus, ['Inquiry', 'Under Negotiation']))
         || ($isTenant && in_array($rentalStatus, ['Pending Rental Agreement', 'Rental Agreement Signed']));
+
+    // Same stage-label mapping the conversation list sidebar already uses —
+    // drives the sticky strip's stage pill.
+    $stageLabel = match ($rentalStatus) {
+        'Inquiry' => 'Inquiry',
+        'Under Negotiation' => 'Negotiation',
+        'Pending Rental Agreement' => 'Agreement',
+        'Rental Agreement Signed' => $hasSettledPayment ? 'Paid' : 'Signed',
+        'Occupied' => 'Occupied',
+        default => $rentalStatus,
+    };
 @endphp
 
-<div class="flex flex-col h-full" id="chat-panel-root" data-conversation-id="{{ $conversation->conversation_id }}" x-data="{ detailsOpen: false }">
+<div class="flex flex-col h-full" id="chat-panel-root" data-conversation-id="{{ $conversation->conversation_id }}"
+    x-data="{ detailsOpen: false }">
 
     {{-- Chat header --}}
     <div class="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between gap-3 flex-shrink-0">
@@ -95,6 +107,50 @@
                 </p>
             </div>
         @else
+            @php
+                $stripUnit = $conversation->unit;
+                $stripRent = $stripUnit?->rental_fee ?? $conversation->property->rental_fee;
+                $stripDeposit = $stripUnit?->security_deposit ?? 0;
+                $stripDue = $stripRent + $stripDeposit;
+                $stripThumb = $conversation->property->media->firstWhere('media_type', 'Image');
+            @endphp
+            {{-- Sticky terms strip: property + rent/deposit/due breakdown +
+                 stage pill, always visible so neither party has to open
+                 Details to see what's being negotiated. --}}
+            <div class="px-5 py-3 border-b border-[#E2E8F0] bg-[#F7FCFC] flex-shrink-0 flex items-center gap-4 flex-wrap">
+                <div class="flex items-center gap-3 min-w-0">
+                    @if($stripThumb)
+                        <img src="{{ $stripThumb->media_url }}" alt="" class="w-11 h-9 rounded-lg object-cover flex-shrink-0">
+                    @else
+                        <div class="w-11 h-9 rounded-lg bg-white border border-[#E2E8F0] flex items-center justify-center flex-shrink-0">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5l8.5-6.75 8.5 6.75M4.5 9v12m15-12v12M9 21v-6a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0115 15v6"/></svg>
+                        </div>
+                    @endif
+                    <div class="min-w-0">
+                        <p class="text-[12px] font-bold text-[#1F2937] truncate">{{ $conversation->property->title }}</p>
+                        @if($stripUnit)
+                            <p class="text-[11px] text-[#64748B] truncate">{{ $stripUnit->unit_label }}</p>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-5 ml-auto">
+                    <div>
+                        <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Monthly rent</p>
+                        <p class="text-[12.5px] font-bold text-[#1F2937]">&#8369;{{ number_format($stripRent) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Security deposit</p>
+                        <p class="text-[12.5px] font-bold text-[#1F2937]">&#8369;{{ number_format($stripDeposit) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Due at move-in</p>
+                        <p class="text-[12.5px] font-bold text-[#156F8C]">&#8369;{{ number_format($stripDue) }}</p>
+                    </div>
+                    <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#EEF8F8] text-[#156F8C] border border-[#2AA7A1]/20 whitespace-nowrap">{{ $stageLabel }}</span>
+                </div>
+            </div>
+
             <div class="px-5 pt-3.5 pb-3 border-b border-[#E2E8F0] bg-[#F7FCFC] flex-shrink-0">
                 @include('conversations.partials._stage-stepper', ['reservation' => $reservation])
             </div>
@@ -116,7 +172,7 @@
                     <div class="flex items-center gap-2">
                         <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST" class="flex-1">
                             @csrf @method('PATCH')
-                            <button type="submit" class="w-full bg-[#1F2937] hover:brightness-95 text-white text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
+                            <button type="submit" class="w-full bg-[#FF8A65] hover:brightness-95 text-white text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                                 Accept &amp; negotiate
                             </button>
@@ -320,33 +376,8 @@
         class="border-b border-[#E2E8F0] bg-[#F7FCFC] overflow-hidden flex-shrink-0 motion-reduce:transform-none">
 
         <div class="px-5 py-4">
-            <a href="{{ route('properties.show', $conversation->property) }}" target="_blank"
-                class="flex items-center gap-3 p-3 bg-white rounded-2xl border border-[#E2E8F0] hover:brightness-95 transition-all duration-200">
-                @php $detailThumb = $conversation->property->media->firstWhere('media_type', 'Image'); @endphp
-                @if($detailThumb)
-                    <img src="{{ $detailThumb->media_url }}" alt="" class="w-14 h-10 rounded-lg object-cover flex-shrink-0">
-                @else
-                    <div class="w-14 h-10 rounded-lg bg-[#EEF8F8] flex items-center justify-center flex-shrink-0">
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5l8.5-6.75 8.5 6.75M4.5 9v12m15-12v12M9 21v-6a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0115 15v6"/></svg>
-                    </div>
-                @endif
-                <div class="min-w-0 flex-1">
-                    <p class="text-[12px] font-bold text-[#1F2937] truncate">{{ $conversation->property->title }}</p>
-                    <p class="text-[11px] text-[#64748B] mt-0.5">
-                        @if($conversation->unit)
-                            {{ $conversation->unit->unit_label }} &middot; &#8369;{{ number_format($conversation->unit?->rental_fee ?? $conversation->property->rental_fee) }}/mo
-                        @else
-                            &#8369;{{ number_format($conversation->property->rental_fee) }}/mo
-                        @endif
-                    </p>
-                </div>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="2" class="flex-shrink-0">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-            </a>
-
             @if($reservation && ($reservation->target_move_in_date || $reservation->target_move_out_date))
-                <div class="flex flex-wrap items-center gap-4 mt-3 px-1">
+                <div class="flex flex-wrap items-center gap-4 px-1">
                     @if($reservation->target_move_in_date)
                         <div class="flex items-center gap-1.5 text-[11px] text-[#64748B]">
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -377,7 +408,81 @@
         data-other-avatar="{{ $otherParty->profile_picture }}"
         data-other-initial="{{ strtoupper(substr($otherParty->first_name, 0, 1)) }}">
         @foreach ($msgs as $i => $message)
-            @if($message->is_system)
+            @if($message->is_inquiry_summary)
+                @php
+                    $summaryUnit = $conversation->unit;
+                    $summaryRent = $summaryUnit?->rental_fee ?? $conversation->property->rental_fee;
+                    $summaryDeposit = $summaryUnit?->security_deposit ?? 0;
+                    $summaryDue = $summaryRent + $summaryDeposit;
+                    $summaryThumb = $conversation->property->media->firstWhere('media_type', 'Image');
+                @endphp
+                <div class="flex items-end gap-2 self-start max-w-[85%] mb-1.5"
+                    data-msg-sender="{{ $message->sender_id }}">
+                    @if($message->sender?->profile_picture)
+                        <img src="{{ $message->sender->profile_picture }}"
+                            alt="{{ $message->sender->first_name }} {{ $message->sender->last_name }}"
+                            class="w-7 h-7 rounded-full object-cover shrink-0 mb-0.5">
+                    @else
+                        <div class="w-7 h-7 rounded-full bg-[#2AA7A1] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mb-0.5"
+                            aria-hidden="true">
+                            {{ strtoupper(substr($message->sender->first_name, 0, 1)) }}
+                        </div>
+                    @endif
+
+                    <div class="min-w-0 w-full max-w-[300px] bg-white border border-[#E2E8F0] rounded-2xl shadow-sm overflow-hidden">
+                        <div class="flex items-center gap-3 p-3 border-b border-[#E2E8F0]">
+                            @if($summaryThumb)
+                                <img src="{{ $summaryThumb->media_url }}" alt="" class="w-12 h-9 rounded-lg object-cover flex-shrink-0">
+                            @else
+                                <div class="w-12 h-9 rounded-lg bg-[#EEF8F8] flex items-center justify-center flex-shrink-0">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5l8.5-6.75 8.5 6.75M4.5 9v12m15-12v12M9 21v-6a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0115 15v6"/></svg>
+                                </div>
+                            @endif
+                            <div class="min-w-0">
+                                <p class="text-[12px] font-bold text-[#1F2937] truncate">{{ $conversation->property->title }}</p>
+                                <p class="text-[11px] text-[#64748B] truncate">
+                                    Inquiry sent
+                                    @if($summaryUnit) &middot; {{ $summaryUnit->unit_label }} @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 space-y-2 text-[12px]">
+                            @if($reservation?->target_move_in_date || $reservation?->target_move_out_date)
+                                <div class="flex items-center justify-between text-[#64748B]">
+                                    <span>Move-in</span>
+                                    <span class="font-semibold text-[#1F2937]">{{ $reservation->target_move_in_date?->format('M j, Y') ?? '—' }}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-[#64748B]">
+                                    <span>Move-out</span>
+                                    <span class="font-semibold text-[#1F2937]">{{ $reservation->target_move_out_date?->format('M j, Y') ?? 'Open-ended' }}</span>
+                                </div>
+                            @endif
+
+                            <div class="pt-2 border-t border-[#E2E8F0] space-y-1">
+                                <div class="flex items-center justify-between text-[#64748B]">
+                                    <span>Monthly rent</span>
+                                    <span class="font-semibold text-[#1F2937]">&#8369;{{ number_format($summaryRent) }}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-[#64748B]">
+                                    <span>Security deposit</span>
+                                    <span class="font-semibold text-[#1F2937]">&#8369;{{ number_format($summaryDeposit) }}</span>
+                                </div>
+                                <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0]">
+                                    <span class="font-bold text-[#1F2937]">Due at move-in</span>
+                                    <span class="font-bold text-[#156F8C]">&#8369;{{ number_format($summaryDue) }}</span>
+                                </div>
+                            </div>
+
+                            @if(trim($message->message ?? '') !== '')
+                                <div class="pt-2 border-t border-[#E2E8F0]">
+                                    <p class="text-[11px] text-[#64748B] italic whitespace-pre-wrap">&quot;{{ $message->message }}&quot;</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @elseif($message->is_system)
                 <div class="self-stretch flex items-center gap-3 my-2 px-2">
                     <div class="flex-1 h-px bg-[#E2E8F0]"></div>
                     <p class="text-[11px] text-[#64748B] text-center max-w-[70%] leading-relaxed">{{ $message->message }}</p>
@@ -389,10 +494,11 @@
                     $next = $msgs[$i + 1] ?? null;
                     // Messenger convention: the avatar sits on the LAST message
                     // of a consecutive run, not every one. A run ends at the
-                    // thread end, at a system divider, or at a sender change.
-                    $endsRun = !$next || $next->is_system || $next->sender_id !== $message->sender_id;
+                    // thread end, at a system divider, an inquiry summary card,
+                    // or a sender change.
+                    $endsRun = !$next || $next->is_system || $next->is_inquiry_summary || $next->sender_id !== $message->sender_id;
                     $prev = $msgs[$i - 1] ?? null;
-                    $startsRun = !$prev || $prev->is_system || $prev->sender_id !== $message->sender_id;
+                    $startsRun = !$prev || $prev->is_system || $prev->is_inquiry_summary || $prev->sender_id !== $message->sender_id;
                 @endphp
 
                 @if($isSelf)
@@ -469,7 +575,7 @@
                     class="flex-1 bg-[#F7FCFC] border border-[#E2E8F0] focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#1F2937] transition-all duration-200 outline-none placeholder-[#64748B]"
                     placeholder="Message {{ $otherParty->first_name }}...">
                 <button type="submit"
-                    class="bg-[#1F2937] hover:brightness-95 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl shadow-sm cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5">
+                    class="bg-[#FF8A65] hover:brightness-95 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl shadow-sm cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5">
                     <svg class="w-4 h-4 rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                     </svg>

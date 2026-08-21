@@ -95,7 +95,7 @@
                 <dl class="mt-5 divide-y divide-[#E2E8F0] border-t border-[#E2E8F0]">
                     <div class="flex items-baseline justify-between gap-4 py-2.5">
                         <dt class="text-[13px] text-[#64748B]">Rental Fee</dt>
-                        <dd class="text-[13px] font-bold text-[#1F2937] text-right">&#8369;{{ number_format($reservation->unit->rental_fee, 2) }} / month</dd>
+                        <dd class="text-[13px] font-bold text-[#1F2937] text-right">&#8369;{{ number_format($reservation->monthlyRent(), 2) }} / month</dd>
                     </div>
                     @if($reservation->unit->security_deposit)
                         <div class="flex items-baseline justify-between gap-4 py-2.5">
@@ -117,6 +117,12 @@
                         <div class="flex items-baseline justify-between gap-4 py-2.5">
                             <dt class="text-[13px] text-[#64748B]">Target Move-Out</dt>
                             <dd class="text-[13px] font-bold text-[#1F2937] text-right">{{ $reservation->target_move_out_date->format('F j, Y') }}</dd>
+                        </div>
+                    @endif
+                    @if($reservation->duration_of_stay)
+                        <div class="flex items-baseline justify-between gap-4 py-2.5">
+                            <dt class="text-[13px] text-[#64748B]">Lease Term</dt>
+                            <dd class="text-[13px] font-bold text-[#1F2937] text-right">{{ $reservation->duration_of_stay }}</dd>
                         </div>
                     @endif
                     @if($reservation->occupants_count)
@@ -187,7 +193,7 @@
             <div class="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-4">
                 <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">At a glance</p>
                 <p class="mt-2 text-2xl font-bold tracking-tight text-[#1F2937]">
-                    &#8369;{{ number_format($reservation->unit->rental_fee, 2) }}
+                    &#8369;{{ number_format($reservation->monthlyRent(), 2) }}
                     <span class="text-sm font-medium text-[#64748B]">/ month</span>
                 </p>
                 <dl class="mt-4 space-y-2 text-[13px]">
@@ -199,6 +205,12 @@
                         <div class="flex items-baseline justify-between gap-3">
                             <dt class="text-[#64748B]">Target move-in</dt>
                             <dd class="font-medium text-[#1F2937]">{{ $reservation->target_move_in_date->format('M j, Y') }}</dd>
+                        </div>
+                    @endif
+                    @if($reservation->duration_of_stay)
+                        <div class="flex items-baseline justify-between gap-3">
+                            <dt class="text-[#64748B]">Lease term</dt>
+                            <dd class="font-medium text-[#1F2937]">{{ $reservation->duration_of_stay }}</dd>
                         </div>
                     @endif
                     @if($reservation->unit->security_deposit)

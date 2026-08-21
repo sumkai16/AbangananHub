@@ -13,6 +13,7 @@ class MessageResource extends ApiResource
             'message'         => $this->attr('message'),
             'is_read'         => $this->attr('is_read'),
             'is_system'       => $this->attr('is_system'),
+            'is_inquiry_summary' => $this->attr('is_inquiry_summary'),
             'sent_at'         => $this->attr('sent_at'),
 
             'sender'          => new UserResource($this->whenLoaded('sender')),

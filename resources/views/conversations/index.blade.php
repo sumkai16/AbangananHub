@@ -3,21 +3,23 @@
 @section('content')
     <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
+        <div class="flex flex-col overflow-hidden rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06)]"
+            style="height: calc(100vh - 110px); min-height: 560px;">
+
         {{-- Header --}}
-        <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-[#E2E8F0] bg-gradient-to-r from-white via-[#F7FCFC] to-[#F4F9FB] p-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)]">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] p-4 flex-shrink-0">
             <div class="flex items-center gap-3.5">
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1F2937] to-[#0F172A] shadow-[0_10px_20px_rgba(15,23,42,0.18)]">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#1F2937]">
                     <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-[#1F2937]">
-                        {{ $isLandlord ? 'Inquiries / Messages' : 'Messages' }}
+                        {{ $isLandlord ? 'Inquiries' : 'Messages' }}
                     </h1>
                     <p class="mt-0.5 text-[13px] text-[#64748B]">
-                        {{ $isLandlord ? 'View and respond to inquiries from tenants.' : 'Manage your active inquiries and conversation threads.' }}
+                        {{ $isLandlord ? 'Respond to tenant inquiries across your properties.' : 'Manage your active inquiries and conversation threads.' }}
                     </p>
                 </div>
             </div>
@@ -55,8 +57,7 @@
         </div>
 
         {{-- Split panel --}}
-        <div class="flex overflow-hidden rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06)]"
-            style="height: calc(100vh - 170px); min-height: 500px;">
+        <div class="flex flex-1 overflow-hidden">
 
             {{-- LEFT: Conversation list --}}
             <div class="w-full lg:w-[340px] flex-shrink-0 lg:border-r border-[#64748B]/10 flex-col"
@@ -128,6 +129,13 @@
                             $rowPaid = $rowStatus === 'Rental Agreement Signed'
                                 && $rowReservation?->payments->whereIn('status', ['Held', 'Released'])->isNotEmpty();
                             $rowLabel = $rowPaid ? 'Paid' : ($rowLabels[$rowStatus] ?? $rowStatus);
+
+                            $previewText = 'No messages yet';
+                            if ($conversation->latestMessage) {
+                                $previewText = $conversation->latestMessage->is_inquiry_summary && trim($conversation->latestMessage->message ?? '') === ''
+                                    ? 'Sent an inquiry'
+                                    : $conversation->latestMessage->message;
+                            }
                         @endphp
 
                         <button type="button" @click="loadConversation({{ $conversation->conversation_id }})"
@@ -151,7 +159,7 @@
                                 </div>
                                 <p data-preview
                                     class="mt-0.5 truncate text-[12px] {{ $hasUnread ? 'font-semibold text-[#1F2937]' : 'text-[#64748B]' }}">
-                                    {{ $conversation->latestMessage->message ?? 'No messages yet' }}
+                                    {{ $previewText }}
                                 </p>
                                 <p class="mt-1 flex items-center gap-1 truncate text-[11px] text-[#64748B]">
                                     <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -245,6 +253,7 @@
             </div>
 
         </div>
+        </div>
     </div>
 
     @push('scripts')
@@ -317,6 +326,16 @@
                         if (this.activeId === id) return;
                         this.activeId = id;
                         window.activeConversationId = id;
+
+                        // Keep the address bar in sync with what's actually open.
+                        // Without this, clicking through the list never touches
+                        // the URL, so a later full-page action (a form POST that
+                        // redirects back(), or resolveConversation()'s reload)
+                        // lands on a bare /conversations with no ?active= and the
+                        // panel comes back empty even though nothing failed.
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('active', id);
+                        window.history.replaceState({}, '', url);
 
                         // Clean up previous Echo listener
                         if (this.echoListener) {

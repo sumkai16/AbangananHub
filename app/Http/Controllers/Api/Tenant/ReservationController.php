@@ -126,14 +126,16 @@ class ReservationController extends Controller
             'remarks'              => $request->remarks,
         ]);
 
-        // Optional first message (accept either key for client convenience)
+        // First message is always the inquiry summary card — it carries the
+        // move-in/rent details the tenant just reviewed, so it's worth
+        // showing even when they left the note blank. Accepts either key
+        // for client convenience.
         $firstMessage = $request->input('message', $request->input('remarks'));
-        if ($request->filled('message')) {
-            $conversation->messages()->create([
-                'sender_id' => $tenantId,
-                'message'   => $firstMessage,
-            ]);
-        }
+        $conversation->messages()->create([
+            'sender_id'           => $tenantId,
+            'message'             => $firstMessage ?? '',
+            'is_inquiry_summary'  => true,
+        ]);
 
         return response()->json([
             'data' => new ReservationResource($reservation->load(['property.media', 'unit', 'conversation'])),

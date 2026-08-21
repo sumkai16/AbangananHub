@@ -266,17 +266,22 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | tenant_id | FK → users.user_id | NOT NULL | |
 | landlord_id | FK → users.user_id | NOT NULL | |
 | property_id | FK → properties.property_id | NOT NULL | |
+| unit_id | FK → property_units.unit_id | NULLABLE, `nullOnDelete` | Updated in place if the tenant inquires on a different unit within the same live thread |
+| status | STRING | default `'Open'` | `Open` \| `Resolved` \| `Cancelled` |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 
 ### messages
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
-| message_id | BIGINT UNSIGNED | PK | `$primaryKey = 'message_id'` |
+| message_id | BIGINT UNSIGNED | PK | `$primaryKey = 'message_id'`, `$timestamps = false` |
 | conversation_id | FK → conversations.conversation_id | NOT NULL | |
-| sender_id | FK → users.user_id | NOT NULL | |
+| sender_id | FK → users.user_id | NULLABLE | Null only for `is_system` narration rows (`Reservation::postSystemMessage()`) |
 | message | TEXT | NOT NULL | |
-| sent_at | TIMESTAMP | | |
+| is_system | BOOLEAN | default `false` | Status-narration bubble (centered divider), no sender shown |
+| is_inquiry_summary | BOOLEAN | default `false` | Aug 2026 — the first message on a reservation's conversation; renders as the property/rent/dates card in the thread instead of a plain bubble. Always created (not conditional on the tenant typing a note) by both the web and API `Tenant\ReservationController::store()` |
+| is_read | BOOLEAN | default `false` | |
+| sent_at | TIMESTAMP | `useCurrent()` | Set in `Message::booted()`, not by the DB default, so it can be backdated by fixtures |
 
 ### favorites
 | Column | Type | Constraints | Notes |

@@ -1,5 +1,5 @@
 {{--
-    The six-node rental progress stepper.
+    The slim rental progress bar.
 
     Extracted so the participants' thread and the admin's read-only view render
     the same thing from the same rules. "Paid" is derived — the reservation
@@ -26,39 +26,17 @@
         'Occupied' => 5,
         default => false,
     };
+
+    $fillPercent = $currentStageIndex !== false
+        ? (($currentStageIndex + 1) / count($stageLabels)) * 100
+        : 0;
 @endphp
 
-<ol class="flex items-start" aria-label="Rental progress">
-    @foreach ($stageLabels as $i => $stage)
-        @php
-            $isDone = $currentStageIndex !== false && $i < $currentStageIndex;
-            $isCurrent = $currentStageIndex !== false && $i === $currentStageIndex;
-            $isLast = $i === count($stageLabels) - 1;
-        @endphp
-        <li class="flex items-start {{ !$isLast ? 'flex-1' : '' }} min-w-0" @if ($isCurrent) aria-current="step" @endif>
-            <div class="flex flex-col items-center gap-1.5 {{ !$isLast ? 'w-[22px]' : '' }} flex-shrink-0">
-                @if ($isDone)
-                    <div class="w-[18px] h-[18px] rounded-full bg-[#2AA7A1] flex items-center justify-center">
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"
-                            aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                @elseif ($isCurrent)
-                    <div class="w-[18px] h-[18px] rounded-full bg-[#2AA7A1] flex items-center justify-center ring-4 ring-[#2AA7A1]/15">
-                        <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
-                    </div>
-                @else
-                    <div class="w-[18px] h-[18px] rounded-full border-2 border-[#E2E8F0] bg-white"></div>
-                @endif
-            </div>
-
-            @if (!$isLast)
-                <div class="flex-1 h-0.5 rounded-full mt-[8px] mx-1 {{ $isDone ? 'bg-[#2AA7A1]' : 'bg-[#E2E8F0]' }}"></div>
-            @endif
-        </li>
-    @endforeach
-</ol>
+<div class="h-1.5 rounded-full bg-[#E2E8F0]" role="progressbar"
+    aria-label="Rental progress" aria-valuenow="{{ $currentStageIndex !== false ? $currentStageIndex + 1 : 0 }}"
+    aria-valuemin="0" aria-valuemax="{{ count($stageLabels) }}">
+    <div class="h-full rounded-full bg-[#2AA7A1] transition-all duration-300" style="width: {{ $fillPercent }}%"></div>
+</div>
 
 <div class="flex items-start mt-1.5">
     @foreach ($stageLabels as $i => $label)
@@ -67,7 +45,7 @@
             $isCurrent = $currentStageIndex !== false && $i === $currentStageIndex;
             $isLast = $i === count($stageLabels) - 1;
         @endphp
-        <p class="{{ !$isLast ? 'flex-1' : '' }} text-[9.5px] leading-tight tracking-wide {{ $isLast ? 'text-right' : '' }} {{ $isCurrent ? 'font-bold text-[#156F8C]' : ($isDone ? 'font-semibold text-[#1F2937]' : 'text-[#64748B]') }}">
+        <p class="{{ !$isLast ? 'flex-1' : '' }} text-[9.5px] font-bold uppercase leading-tight tracking-wider {{ $isLast ? 'text-right' : '' }} {{ $isCurrent ? 'text-[#156F8C]' : ($isDone ? 'text-[#1F2937]' : 'text-[#94A3B8]') }}">
             {{ $label }}
         </p>
     @endforeach

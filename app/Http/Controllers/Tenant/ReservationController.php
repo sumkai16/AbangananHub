@@ -107,13 +107,14 @@ public function store(StoreReservationRequest $request)
             'target_move_out_date' => $request->target_move_out_date,
         ]);
 
-        // Send optional first message
-        if ($request->filled('message')) {
-            $conversation->messages()->create([
-                'sender_id' => Auth::id(),
-                'message'   => $request->message,
-            ]);
-        }
+        // First message is always the inquiry summary card — it carries the
+        // move-in/rent details the tenant just reviewed in the modal, so it's
+        // worth showing even when they left the note blank.
+        $conversation->messages()->create([
+            'sender_id'           => Auth::id(),
+            'message'             => $request->message ?? '',
+            'is_inquiry_summary'  => true,
+        ]);
 
         return redirect()->route('conversations.show', $conversation)
             ->with('success', 'Inquiry started — discuss the details with your landlord.');
