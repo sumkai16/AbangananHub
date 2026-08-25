@@ -30,7 +30,7 @@
             @method('PUT')
 
             {{-- Name row --}}
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label for="first_name" class="block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1.5">First Name <span class="text-[#DC2626]">*</span></label>
                     <input type="text" id="first_name" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
@@ -64,7 +64,7 @@
             {{-- Password (optional on edit) --}}
             <div class="rounded-2xl border border-[#E2E8F0] bg-[#F7FCFC] p-4 space-y-3">
                 <p class="text-[11px] font-bold uppercase tracking-widest text-[#94A3B8]">Change Password <span class="font-normal normal-case text-[#94A3B8]">(leave blank to keep current)</span></p>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <input type="password" name="password" placeholder="New password" aria-label="New password"
                             class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('password') ? 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]' : 'border-[#E2E8F0] bg-white' }} focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">

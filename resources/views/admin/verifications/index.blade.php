@@ -85,12 +85,16 @@
     @else
         <x-card flush class="divide-y divide-[#E2E8F0]">
             @foreach ($verifications as $verification)
+                @php
+                    $initials = strtoupper(substr($verification->user->first_name ?? '?', 0, 1)) . strtoupper(substr($verification->user->last_name ?? '', 0, 1));
+                    $submittedDate = \Carbon\Carbon::parse($verification->submitted_at)->format('M d, Y');
+                @endphp
+
+                {{-- Desktop / tablet: single-row layout. --}}
                 <a href="{{ route('admin.verifications.show', $verification) }}"
-                    class="flex flex-wrap sm:flex-nowrap items-center gap-4 px-6 py-4 hover:bg-[#F7FCFC]/70 transition-all duration-200 group">
+                    class="hidden sm:flex items-center gap-4 px-6 py-4 hover:bg-[#F7FCFC]/70 transition-all duration-200 group">
                     <div class="w-11 h-11 rounded-full bg-[#156F8C] flex items-center justify-center shrink-0">
-                        <span class="text-white text-[13px] font-bold">
-                            {{ strtoupper(substr($verification->user->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($verification->user->last_name ?? '', 0, 1)) }}
-                        </span>
+                        <span class="text-white text-[13px] font-bold">{{ $initials }}</span>
                     </div>
 
                     <div class="min-w-0 flex-1 basis-56">
@@ -111,14 +115,42 @@
 
                     <div class="shrink-0 text-right w-24">
                         <p class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Submitted</p>
-                        <p class="text-[13px] text-[#64748B]">
-                            {{ \Carbon\Carbon::parse($verification->submitted_at)->format('M d, Y') }}
-                        </p>
+                        <p class="text-[13px] text-[#64748B]">{{ $submittedDate }}</p>
                     </div>
 
                     <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#2AA7A1] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
+                </a>
+
+                {{-- Mobile: dedicated stacked card — the desktop row's flex-wrap
+                     fallback split labels from their values across lines with no
+                     visual grouping, so this is a purpose-built layout instead. --}}
+                <a href="{{ route('admin.verifications.show', $verification) }}"
+                    class="sm:hidden flex flex-col gap-3 px-4 py-4 hover:bg-[#F7FCFC]/70 transition-all duration-200 active:bg-[#F7FCFC]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-[#156F8C] flex items-center justify-center shrink-0">
+                            <span class="text-white text-[12.5px] font-bold">{{ $initials }}</span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[13.5px] font-semibold text-[#1F2937] truncate">
+                                {{ $verification->user->first_name }} {{ $verification->user->last_name }}
+                            </p>
+                            <p class="text-[12px] text-[#64748B] truncate">{{ $verification->user->email }}</p>
+                        </div>
+                        <x-verification-status-badge :status="$verification->verification_status" />
+                    </div>
+
+                    <div class="flex items-end justify-between gap-3 pl-[52px]">
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Business</p>
+                            <p class="text-[12.5px] text-[#1F2937] font-medium truncate">{{ $verification->business_name ?? '—' }}</p>
+                        </div>
+                        <div class="shrink-0 text-right">
+                            <p class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Submitted</p>
+                            <p class="text-[12.5px] text-[#64748B]">{{ $submittedDate }}</p>
+                        </div>
+                    </div>
                 </a>
             @endforeach
         </x-card>

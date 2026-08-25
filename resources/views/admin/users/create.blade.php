@@ -23,7 +23,7 @@
             @csrf
 
             {{-- Name row --}}
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label for="first_name" class="block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1.5">First Name <span class="text-[#DC2626]">*</span></label>
                     <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required
@@ -55,7 +55,7 @@
             </div>
 
             {{-- Password --}}
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label for="password" class="block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1.5">Password <span class="text-[#DC2626]">*</span></label>
                     <input type="password" id="password" name="password" required
