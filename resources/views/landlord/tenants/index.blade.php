@@ -3,7 +3,11 @@
 @section('page-title', 'My Tenants')
 
 @section('content')
-    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10"
+        x-data="{
+            view: localStorage.getItem('tenantsView') || 'grid',
+            setView(v) { this.view = v; localStorage.setItem('tenantsView', v); }
+        }">
 
         {{-- Header --}}
         <x-page-header title="My Tenants" subtitle="Tenants currently occupying units across your properties.">
@@ -91,6 +95,26 @@
                             Clear
                         </a>
                     @endif
+
+                    {{-- View toggle --}}
+                    <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] ml-auto">
+                        <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
+                            :class="view === 'grid' ? 'bg-white text-[#156F8C] shadow-sm' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
+                            </svg>
+                        </button>
+                        <button type="button" x-on:click="setView('table')" aria-label="Table view"
+                            :class="view === 'table' ? 'bg-white text-[#156F8C] shadow-sm' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -108,7 +132,7 @@
                 <p class="text-[13px] text-[#64748B] mt-1">Tenants will appear here once units are occupied.</p>
             </div>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div x-show="view === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 @foreach($reservations as $reservation)
                     @php
                         $initials = strtoupper(substr($reservation->tenant->first_name ?? '', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1));
@@ -231,6 +255,143 @@
                     </div>
                 @endforeach
             </div>
+
+            {{-- Table view --}}
+            <x-card flush x-show="view === 'table'" x-cloak>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[820px] text-left">
+                        <thead>
+                            <tr class="border-b border-[#E2E8F0]">
+                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Tenant</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Property / Unit</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Move-in</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Contact</th>
+                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#E2E8F0]">
+                            @foreach($reservations as $reservation)
+                                @php
+                                    $initials = strtoupper(substr($reservation->tenant->first_name ?? '', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1));
+                                    $thumb = $reservation->property->media->firstWhere('media_type', 'Image');
+
+                                    $summary = $ledger[$reservation->reservation_id] ?? null;
+                                    $outstanding = $summary['outstanding'] ?? 0;
+                                    $overdueCount = $summary['overdueCount'] ?? 0;
+                                    $tenantIsWalkIn = (bool) $reservation->tenant->is_walk_in;
+                                    $tenantActive = $reservation->tenant->account_status === 'active';
+                                    $canRemind = ! $tenantIsWalkIn && $tenantActive && $outstanding > 0;
+                                    $remindReason = $tenantIsWalkIn
+                                        ? 'Walk-in tenants have no account to notify'
+                                        : (! $tenantActive
+                                            ? 'This tenant’s account is inactive'
+                                            : ($outstanding <= 0 ? 'No outstanding rent to remind about' : ''));
+                                @endphp
+                                <tr class="hover:bg-[#F7FCFC]/70 transition-colors duration-200">
+                                    {{-- Tenant --}}
+                                    <td class="px-5 py-3.5">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-[#EEF8F8] flex items-center justify-center text-[13px] font-bold text-[#156F8C] shrink-0">
+                                                {{ $initials ?: '?' }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <p class="text-[13px] font-bold text-[#1F2937] truncate max-w-[160px]">
+                                                        {{ $reservation->tenant->first_name }} {{ $reservation->tenant->last_name }}
+                                                    </p>
+                                                    @if($tenantIsWalkIn)
+                                                        <span class="inline-flex items-center h-4 px-1.5 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[9.5px] font-bold shrink-0"
+                                                            title="Added by you — identity not verified by AbangananHub">
+                                                            Walk-in
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <p class="text-[11.5px] text-[#64748B] truncate max-w-[190px]">{{ $reservation->tenant->email ?: 'No email' }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- Property / Unit --}}
+                                    <td class="px-4 py-3.5">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-9 h-9 rounded-lg bg-white overflow-hidden shrink-0 ring-1 ring-[#64748B]/10">
+                                                @if($thumb)
+                                                    <img src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
+                                                @else
+                                                    <div class="w-full h-full flex items-center justify-center">
+                                                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="1.5">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                                        </svg>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p class="text-[12.5px] font-semibold text-[#1F2937] truncate max-w-[160px]">{{ $reservation->property->title }}</p>
+                                                <p class="text-[11px] text-[#64748B] truncate max-w-[160px]">{{ $reservation->unit->unit_label ?? $reservation->unit->unit_name ?? 'No unit' }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- Move-in --}}
+                                    <td class="px-4 py-3.5 text-[13px] text-[#64748B] whitespace-nowrap">
+                                        {{ $reservation->target_move_in_date ? \Illuminate\Support\Carbon::parse($reservation->target_move_in_date)->format('M d, Y') : 'N/A' }}
+                                    </td>
+
+                                    {{-- Contact --}}
+                                    <td class="px-4 py-3.5 text-[13px] text-[#64748B] whitespace-nowrap">
+                                        {{ $reservation->tenant->contact_number ?? 'N/A' }}
+                                    </td>
+
+                                    {{-- Actions --}}
+                                    <td class="px-5 py-3.5">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="{{ route('landlord.tenancies.show', $reservation) }}"
+                                                class="h-9 px-3.5 flex items-center justify-center rounded-full bg-[#2AA7A1] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer whitespace-nowrap">
+                                                Manage
+                                            </a>
+
+                                            @if($canRemind)
+                                                <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
+                                                    data-confirm="Send {{ $reservation->tenant->first_name }} a rent reminder?"
+                                                    data-confirm-message="They’ll get an in-app notification about their {{ $overdueCount > 0 ? 'overdue' : 'upcoming' }} rent."
+                                                    data-confirm-button="Send reminder">
+                                                    @csrf
+                                                    <button type="submit" title="Send rent reminder"
+                                                        class="h-9 w-9 flex items-center justify-center rounded-full border transition-colors duration-200 cursor-pointer {{ $overdueCount > 0 ? 'border-[#EF4444]/40 text-[#DC2626] hover:bg-[#EF4444]/[0.06]' : 'border-[#64748B]/30 text-[#1F2937] hover:bg-[#EEF8F8]' }}">
+                                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <button type="button" disabled title="{{ $remindReason }}"
+                                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#E2E8F0] text-[#CBD5E1] cursor-not-allowed">
+                                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+
+                                            @if($reservation->conversation)
+                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200" title="Open conversation">
+                                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                                                    </svg>
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </x-card>
 
             {{-- Pagination --}}
             <div class="mt-8">
