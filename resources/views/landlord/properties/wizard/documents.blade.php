@@ -41,7 +41,7 @@
                 <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">Only admins see these — never shown to renters.</p>
 
                 @php
-                    $requiredTypes = ['Proof of Ownership', 'Tax Declaration'];
+                    $requiredTypes = ['Proof of Ownership', 'Tax Declaration', 'Business Permit'];
                     $optionalTypes = array_values(array_diff(\App\Models\PropertyDocument::TYPES, $requiredTypes));
                     $byType = $documents->keyBy('document_type');
                     $uploadedOptional = collect($optionalTypes)->filter(fn ($t) => $byType->get($t) && ! $byType->get($t)->isRequested());

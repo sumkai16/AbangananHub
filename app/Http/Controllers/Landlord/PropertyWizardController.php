@@ -24,7 +24,7 @@ use Illuminate\Validation\ValidationException;
  */
 class PropertyWizardController extends Controller
 {
-    private const REQUIRED_DOCUMENT_TYPES = ['Proof of Ownership', 'Tax Declaration'];
+    private const REQUIRED_DOCUMENT_TYPES = ['Proof of Ownership', 'Tax Declaration', 'Business Permit'];
 
     private function authorizeProperty(Property $property): void
     {

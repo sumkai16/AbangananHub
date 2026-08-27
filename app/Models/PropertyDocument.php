@@ -12,7 +12,7 @@ class PropertyDocument extends Model
         'Proof of Ownership',
         'Tax Declaration',
         "Authorization / Special Power of Attorney",
-        "Business or Mayor's Permit",
+        'Business Permit',
         'Occupancy Permit',
         'Fire Safety Certificate',
         'Other',
