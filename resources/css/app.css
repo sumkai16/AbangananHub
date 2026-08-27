@@ -53,7 +53,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
    but tuned for light backgrounds instead of dark sidebars. */
 .scrollbar-thin-light {
     scrollbar-width: thin;
-    scrollbar-color: #E2E8F0 transparent;
+    scrollbar-color: rgba(42, 167, 161, 0.30) transparent;
 }
 
 .scrollbar-thin-light::-webkit-scrollbar {
@@ -65,12 +65,12 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-thumb {
-    background-color: #E2E8F0;
+    background-color: rgba(42, 167, 161, 0.30);
     border-radius: 9999px;
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-thumb:hover {
-    background-color: #64748B;
+    background-color: #2AA7A1;
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-button {

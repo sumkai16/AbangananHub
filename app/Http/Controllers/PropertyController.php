@@ -6,7 +6,6 @@ use App\Http\Requests\Landlord\UpdatePropertyRequest;
 use App\Models\Amenity;
 use App\Models\Favorite;
 use App\Models\Property;
-use App\Models\PropertyUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -55,24 +54,7 @@ class PropertyController extends Controller
             ];
         })->values();
 
-        // The hero's trust strip states live totals, not the whole-platform
-        // pitch — quoting an aspirational "2,400+ listings" on a page showing
-        // 13 is the one claim a tenant can check instantly. Only computed when
-        // the full hero renders (clean page 1); the compact band shows none.
-        $heroStats = null;
-        if (! $request->hasAny(['location', 'type', 'price_max', 'verified', 'sort']) && $request->integer('page', 1) <= 1) {
-            $availableUnits = fn($q) => $q->where('availability_status', 'Available')
-                ->where('verification_status', 'Approved');
-
-            $heroStats = [
-                'listings' => Property::where('verification_status', 'Approved')
-                    ->whereHas('units', $availableUnits)->count(),
-                'units'    => PropertyUnit::where('availability_status', 'Available')
-                    ->where('verification_status', 'Approved')->count(),
-            ];
-        }
-
-        return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties', 'heroStats'));
+        return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties'));
     }
 
     public function show(Property $property)
