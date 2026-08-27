@@ -36,6 +36,7 @@ class UnitWriteController extends Controller
             'unit_label'          => 'required|string|max:100',
             'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
+            'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
@@ -75,6 +76,7 @@ class UnitWriteController extends Controller
                 'unit_label'          => $validated['unit_label'],
                 'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
+                'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],
@@ -127,6 +129,7 @@ class UnitWriteController extends Controller
             'unit_label'          => 'required|string|max:100',
             'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
+            'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
@@ -157,6 +160,7 @@ class UnitWriteController extends Controller
                 'unit_label'          => $validated['unit_label'],
                 'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
+                'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],

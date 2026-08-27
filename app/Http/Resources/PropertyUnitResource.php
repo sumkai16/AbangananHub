@@ -15,6 +15,7 @@ class PropertyUnitResource extends ApiResource
             // — attr() correctly returns MISSING for them until that lands.
             'unit_type'            => $this->attr('unit_type'),
             'floor'                => $this->attr('floor'),
+            'floor_area_sqm'       => $this->attr('floor_area_sqm'),
             'description'          => $this->attr('description'),
             'rental_fee'           => $this->attr('rental_fee'),
             'security_deposit'     => $this->attr('security_deposit'),

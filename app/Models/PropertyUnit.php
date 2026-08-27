@@ -15,6 +15,7 @@ class PropertyUnit extends Model
     'floor',
     'bedrooms',
     'bathrooms',
+    'floor_area_sqm',
     'is_furnished',
     'description',
     'rental_fee',
@@ -29,10 +30,25 @@ class PropertyUnit extends Model
     protected function casts(): array
     {
         return [
-            'rental_fee'   => 'decimal:2',
-            'is_furnished' => 'boolean',
-            'vacated_at'   => 'datetime',
+            'rental_fee'     => 'decimal:2',
+            'floor_area_sqm' => 'decimal:2',
+            'is_furnished'   => 'boolean',
+            'vacated_at'     => 'datetime',
         ];
+    }
+
+    /**
+     * The decimal:2 cast renders 24 as "24.00", which reads wrong beside a
+     * unit label — every display site wants "24 sqm" / "24.5 sqm", so the
+     * formatting lives here rather than in each of the six views. "sqm" over
+     * the m² symbol to match how PH real estate listings actually write it
+     * (Lamudi, Dot Property, local FB groups) — not the m² glyph.
+     */
+    public function getFloorAreaLabelAttribute(): ?string
+    {
+        return $this->floor_area_sqm === null
+            ? null
+            : rtrim(rtrim(number_format((float) $this->floor_area_sqm, 2), '0'), '.') . ' sqm';
     }
 
     public function property()

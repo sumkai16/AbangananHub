@@ -44,6 +44,7 @@ class PropertyUnitController extends Controller
             'floor'               => 'nullable|string|max:50',
             'bedrooms'            => 'nullable|integer|min:0|max:20',
             'bathrooms'           => 'nullable|integer|min:0|max:20',
+            'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
             'is_furnished'        => 'nullable|boolean',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
@@ -86,6 +87,7 @@ class PropertyUnitController extends Controller
                 'floor'               => $validated['floor'] ?? null,
                 'bedrooms'            => $validated['bedrooms'] ?? null,
                 'bathrooms'           => $validated['bathrooms'] ?? null,
+                'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'is_furnished'        => $request->has('is_furnished') ? $validated['is_furnished'] : null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
@@ -161,6 +163,7 @@ class PropertyUnitController extends Controller
             'floor'               => 'nullable|string|max:50',
             'bedrooms'            => 'nullable|integer|min:0|max:20',
             'bathrooms'           => 'nullable|integer|min:0|max:20',
+            'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
             'is_furnished'        => 'nullable|boolean',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
@@ -194,6 +197,7 @@ class PropertyUnitController extends Controller
                 'floor'               => $validated['floor'] ?? null,
                 'bedrooms'            => $validated['bedrooms'] ?? null,
                 'bathrooms'           => $validated['bathrooms'] ?? null,
+                'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'is_furnished'        => $request->has('is_furnished') ? $validated['is_furnished'] : null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,

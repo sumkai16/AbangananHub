@@ -241,6 +241,7 @@
                         'rent'         => (float) $unit->rental_fee,
                         'deposit'      => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
                         'capacity'     => $unit->occupancy_limit,
+                        'floorArea'    => $unit->floor_area_label,
                         'type'         => $unit->unit_type,
                         'floor'        => $unit->floor,
                         'tenant'       => $tenantName,
@@ -580,6 +581,10 @@
                             <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2">
                                 <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Deposit</p>
                                 <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="peso(modal.deposit) || '—'"></p>
+                            </div>
+                            <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2" x-show="modal.floorArea">
+                                <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Floor area</p>
+                                <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="modal.floorArea"></p>
                             </div>
                         </div>
 

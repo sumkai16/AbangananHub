@@ -159,6 +159,7 @@ property approval itself; the admin uses judgment, with the "request a document"
 | floor | VARCHAR(50) | NULLABLE | Added July 27 2026 |
 | bedrooms | TINYINT UNSIGNED | NULLABLE | Added Aug 2026 for the property wizard's unit form. Nullable because every pre-existing unit predates it |
 | bathrooms | TINYINT UNSIGNED | NULLABLE | Added Aug 2026, same migration as `bedrooms` |
+| floor_area_sqm | DECIMAL(6,2) | NULLABLE | Added Aug 28 2026. Optional, like `bedrooms`/`bathrooms` — NULL means the landlord never recorded it, and no backfill invents one. Validated `nullable\|numeric\|min:1\|max:9999.99` in both `Landlord\PropertyUnitController` and its API twin. **Never render the raw column** — the `decimal:2` cast makes `24` into `"24.00"`; every display site uses the `PropertyUnit::floor_area_label` accessor, which formats it as `24 sqm` / `24.5 sqm` and returns null when unset. "sqm" over the m² symbol to match how PH real estate listings write it |
 | is_furnished | BOOLEAN | NULLABLE | Added Aug 2026. `PropertyUnit` casts it `boolean`; NULL means "not answered" (pre-existing unit), not "unfurnished" — don't treat a null the same as `false` in any consumer |
 | description | TEXT | NULLABLE | |
 | rental_fee | DECIMAL(10,2) | NOT NULL | |
@@ -548,6 +549,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_publication_status_to_properties_table | `publication_status` ENUM('Draft','Published','Unpublished','Suspended') DEFAULT 'Published'. Every existing row backfills to `Published` — publication was never a concept before this column | Split "is this legitimate" from "should it be live right now", closing a real hole: the admin report flow's "delist property" action reused `verification_status = 'Rejected'`, which the next landlord edit + admin re-approval cycle silently undid | Aug 2026 |
 | create_property_documents_table | Proof of ownership / tax declaration / permits per property, private-disk file storage, admin verify/reject/request workflow | Admins were approving listings on the landlord's word alone — nothing proved the right to rent out *this* property. Second upload path (after `landlord_verifications`) off the public Cloudinary flow | Aug 2026 |
 | add_room_details_to_property_units | `bedrooms`, `bathrooms` (TINYINT UNSIGNED, nullable), `is_furnished` (BOOLEAN, nullable) | The property creation wizard's unit step asks for these; nothing on `property_units` captured them before | Aug 2026 |
+| add_floor_area_to_property_units_table | `floor_area_sqm` DECIMAL(6,2) nullable | Tenants compare unit size when choosing between similarly-priced rooms, and nothing captured it. `properties/show` had already been rendering `$unit->size` in four places against a column that never existed — this gives those dead slots real data. See ARCHITECTURE.md | Aug 28 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.

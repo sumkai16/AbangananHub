@@ -67,6 +67,7 @@
             x-data="{
                 unitLabel: @js(old('unit_label', $unit->unit_label)),
                 capacity: @js(old('occupancy_limit', $unit->occupancy_limit)),
+                floorArea: @js(old('floor_area_sqm', $unit->floor_area_sqm)),
                 rentalFee: @js(old('rental_fee', $unit->rental_fee)),
                 status: @js(old('availability_status', $unit->availability_status)),
                 amenities: @js($preselectedAmenities),
@@ -151,7 +152,8 @@
                             <div>
                                 <label for="bedrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bedrooms</label>
                                 <input type="number" id="bedrooms" name="bedrooms" value="{{ old('bedrooms', $unit->bedrooms) }}" min="0" max="20"
-                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                    placeholder="e.g. 2"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('bedrooms')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -159,28 +161,38 @@
                             <div>
                                 <label for="bathrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bathrooms</label>
                                 <input type="number" id="bathrooms" name="bathrooms" value="{{ old('bathrooms', $unit->bathrooms) }}" min="0" max="20"
-                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                    placeholder="e.g. 1"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('bathrooms')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Furnished?</label>
-                                @php $furnishedOld = old('is_furnished', $unit->is_furnished === null ? null : (int) $unit->is_furnished); @endphp
-                                <div class="flex items-center gap-4 h-11">
-                                    <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
-                                        <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
-                                        Yes
-                                    </label>
-                                    <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
-                                        <input type="radio" name="is_furnished" value="0" @checked((string) $furnishedOld === '0') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
-                                        No
-                                    </label>
-                                </div>
-                                @error('is_furnished')
+                                <label for="floor_area_sqm" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Floor area (sqm)</label>
+                                <input type="number" id="floor_area_sqm" name="floor_area_sqm" x-model="floorArea" min="1" max="9999.99" step="0.01" placeholder="e.g. 24"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                @error('floor_area_sqm')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Furnished?</label>
+                            @php $furnishedOld = old('is_furnished', $unit->is_furnished === null ? null : (int) $unit->is_furnished); @endphp
+                            <div class="flex items-center gap-4 h-11">
+                                <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
+                                    <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                    Yes
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
+                                    <input type="radio" name="is_furnished" value="0" @checked((string) $furnishedOld === '0') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                    No
+                                </label>
+                            </div>
+                            @error('is_furnished')
+                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="grid sm:grid-cols-2 gap-4 mb-4">
@@ -372,6 +384,11 @@
                                     <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Capacity</p>
                                     <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5"
                                         x-text="capacity ? capacity + (capacity == 1 ? ' person' : ' persons') : '—'"></p>
+                                </div>
+
+                                <div x-show="floorArea" x-cloak class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2">
+                                    <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Floor area</p>
+                                    <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="floorArea ? floorArea + ' sqm' : '—'"></p>
                                 </div>
 
                                 {{-- Amenities --}}

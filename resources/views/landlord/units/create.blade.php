@@ -70,6 +70,7 @@
                 // the deposit themselves.
                 securityDepositTouched: @js(old('security_deposit') !== null),
                 capacity: @js(old('occupancy_limit', '')),
+                floorArea: @js(old('floor_area_sqm', '')),
                 status: @js(old('availability_status', 'Available')),
                 description: @js(old('description', '')),
                 amenities: @js($preselectedAmenities),
@@ -165,6 +166,7 @@
                             <div>
                                 <label for="bedrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bedrooms</label>
                                 <input type="number" id="bedrooms" name="bedrooms" value="{{ old('bedrooms') }}" min="0" max="20"
+                                    placeholder="e.g. 2"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('bedrooms')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
@@ -173,28 +175,38 @@
                             <div>
                                 <label for="bathrooms" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bathrooms</label>
                                 <input type="number" id="bathrooms" name="bathrooms" value="{{ old('bathrooms') }}" min="0" max="20"
+                                    placeholder="e.g. 1"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('bathrooms')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Furnished?</label>
-                                @php $furnishedOld = old('is_furnished'); @endphp
-                                <div class="flex items-center gap-4 h-11">
-                                    <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
-                                        <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
-                                        Yes
-                                    </label>
-                                    <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
-                                        <input type="radio" name="is_furnished" value="0" @checked((string) $furnishedOld === '0') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
-                                        No
-                                    </label>
-                                </div>
-                                @error('is_furnished')
+                                <label for="floor_area_sqm" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Floor area (sqm)</label>
+                                <input type="number" id="floor_area_sqm" name="floor_area_sqm" x-model="floorArea" min="1" max="9999.99" step="0.01" placeholder="e.g. 24"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
+                                @error('floor_area_sqm')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Furnished?</label>
+                            @php $furnishedOld = old('is_furnished'); @endphp
+                            <div class="flex items-center gap-4 h-11">
+                                <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
+                                    <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                    Yes
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
+                                    <input type="radio" name="is_furnished" value="0" @checked((string) $furnishedOld === '0') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                    No
+                                </label>
+                            </div>
+                            @error('is_furnished')
+                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         {{-- Row 2 --}}
@@ -474,6 +486,10 @@
                                     <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2">
                                         <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Deposit</p>
                                         <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="peso(securityDeposit) || '—'"></p>
+                                    </div>
+                                    <div x-show="floorArea" x-cloak class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2">
+                                        <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Floor area</p>
+                                        <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="floorArea ? floorArea + ' sqm' : '—'"></p>
                                     </div>
                                 </div>
 

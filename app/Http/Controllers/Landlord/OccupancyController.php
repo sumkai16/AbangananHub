@@ -78,6 +78,7 @@ class OccupancyController extends Controller
                     'rent'      => (float) $unit->rental_fee,
                     'deposit'   => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
                     'capacity'  => $unit->occupancy_limit,
+                    'floorArea' => $unit->floor_area_label,
                     'photo'     => optional($unit->media->firstWhere('media_type', 'Image'))->media_url,
                     'amenities' => $unit->amenities->pluck('amenity_name')->values(),
                     'edit_url'  => route('landlord.properties.units.edit', [$property->property_id, $unit->unit_id]),

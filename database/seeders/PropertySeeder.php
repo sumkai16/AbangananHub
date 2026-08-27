@@ -818,7 +818,16 @@ class PropertySeeder extends Seeder
 
             // Create units with their own interior photos + amenities
             foreach ($unitItems as $unitData) {
-                $unit = $property->units()->create(array_merge($unitData, [
+                // Roughly 9 sqm a head, jittered. Every 5th unit is left null on
+                // purpose so the "landlord never filled this in" path stays
+                // visible in dev data instead of only existing in theory.
+                $floorArea = $unitsCreated % 5 === 4
+                    ? null
+                    : round(($unitData['occupancy_limit'] ?? 2) * 9 + rand(-3, 8), 2);
+
+                $unit = $property->units()->create(array_merge([
+                    'floor_area_sqm' => $floorArea,
+                ], $unitData, [
                     'verification_status' => $unitData['verification_status'] ?? 'Approved',
                 ]));
                 $unitsCreated++;

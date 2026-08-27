@@ -80,7 +80,7 @@ class UnitIndexController extends Controller
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, [
-                'Property', 'Unit', 'Type', 'Floor', 'Monthly Rent',
+                'Property', 'Unit', 'Type', 'Floor', 'Floor Area (sqm)', 'Monthly Rent',
                 'Security Deposit', 'Capacity', 'Status', 'Tenant', 'Last Updated',
             ]);
 
@@ -94,6 +94,7 @@ class UnitIndexController extends Controller
                         $unit->unit_label,
                         $unit->unit_type ?? '',
                         $unit->floor ?? '',
+                        $unit->floor_area_sqm ?? '',
                         $unit->rental_fee,
                         $unit->security_deposit ?? '',
                         $unit->occupancy_limit ?? '',

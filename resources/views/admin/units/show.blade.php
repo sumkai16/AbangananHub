@@ -69,6 +69,10 @@
                             </p>
                         </div>
                         <div>
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Floor Area</p>
+                            <p class="text-[14px] font-semibold text-[#1F2937]">{{ $unit->floor_area_label ?? '—' }}</p>
+                        </div>
+                        <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Availability</p>
                             <p class="text-[14px] font-semibold text-[#1F2937]">{{ $unit->availability_status }}</p>
                         </div>

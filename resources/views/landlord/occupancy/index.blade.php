@@ -320,6 +320,10 @@
                                             <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5"
                                                 x-text="modal.capacity ? modal.capacity + (modal.capacity == 1 ? ' person' : ' persons') : '—'"></p>
                                         </div>
+                                        <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2" x-show="modal.floorArea">
+                                            <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Floor area</p>
+                                            <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="modal.floorArea"></p>
+                                        </div>
                                         <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2">
                                             <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Deposit</p>
                                             <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="peso(modal.deposit) || '—'"></p>

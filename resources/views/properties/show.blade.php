@@ -62,7 +62,7 @@
                 'rentRaw' => (float) $unit->rental_fee,
                 'depositRaw' => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
                 'deposit' => $unit->security_deposit !== null ? number_format($unit->security_deposit) : null,
-                'size' => $unit->size ?? null,
+                'floorArea' => $unit->floor_area_label,
                 'available' => $unit->availability_status === 'Available',
                 'hasActive' => $hasActiveReservation,
             ];
@@ -351,8 +351,8 @@
                                                 {{ $property->property_type }}
                                                 &middot; {{ $unit->occupancy_limit }}
                                                 {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
-                                                @if(!empty($unit->size))
-                                                    &middot; {{ $unit->size }}
+                                                @if($unit->floor_area_label)
+                                                    &middot; {{ $unit->floor_area_label }}
                                                 @endif
                                             </span>
                                         </span>
@@ -1244,7 +1244,7 @@
                                                 <span class="flex-1 min-w-0">
                                                     <span class="block text-[13px] font-bold text-[#1F2937] truncate" x-text="u.label"></span>
                                                     <span class="block text-[11px] text-[#64748B]"
-                                                        x-text="[u.type, u.occupancy ? u.occupancy + (u.occupancy > 1 ? ' Persons' : ' Person') : null, u.size].filter(Boolean).join(' · ')"></span>
+                                                        x-text="[u.type, u.occupancy ? u.occupancy + (u.occupancy > 1 ? ' Persons' : ' Person') : null, u.floorArea].filter(Boolean).join(' · ')"></span>
                                                 </span>
                                                 <span class="text-right shrink-0">
                                                     <span class="block text-[13px] font-black text-[#1F2937]">₱<span x-text="u.price"></span></span>
@@ -1491,14 +1491,14 @@
                                         <span x-text="slideoutUnit.occupancy > 1 ? 'People' : 'Person'"></span>
                                     </span>
                                 </div>
-                                <template x-if="slideoutUnit.size">
+                                <template x-if="slideoutUnit.floorArea">
                                     <div class="flex items-center gap-2 bg-[#EEF8F8] px-3 py-2 rounded-xl">
                                         <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
                                         </svg>
-                                        <span class="text-sm font-bold text-[#1F2937]" x-text="slideoutUnit.size"></span>
+                                        <span class="text-sm font-bold text-[#1F2937]" x-text="slideoutUnit.floorArea"></span>
                                     </div>
                                 </template>
                             </div>
