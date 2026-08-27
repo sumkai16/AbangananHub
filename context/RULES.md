@@ -143,6 +143,38 @@ The move-in escrow is the only place in the app where money moves with no human 
 - Verify tinker results before proceeding with controller logic
 - PowerShell: compound tinker `--execute` with `$` variables unreliable — use interactive tinker or pipe workaround
 
+## Secrets & Deployment (established Aug 22 2026)
+Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize beyond one deploy:
+
+- **Never put a real credential in a tracked file.** `.env` is gitignored and has never been
+  committed (verified). Everything else — `plans/`, `context/`, `docs/`, `README.md` — **is**
+  tracked, so a credential pasted into any of them is permanent once pushed. This rule exists
+  because it was broken immediately: the first draft of the deploy runbook copied the working
+  `.env` as a "template", carrying the live `REVERB_APP_SECRET` and Cloudinary cloud name into
+  `plans/`. Caught before commit. **Write env templates with blank values, always** — copying a
+  working config is exactly how secrets escape.
+- **Production secrets reach the server by `scp` or SSH paste, never through the repo.**
+- **`VITE_*` values are compiled into the JS bundle at `npm run build`, as literals.** Changing one
+  needs a **rebuild** — `config:clear` does nothing, and the local bundle demonstrably carries
+  `wsHost:"127.0.0.1"` baked in. The three Reverb host variables have three different consumers and
+  must be set independently in production (`REVERB_SERVER_*` = daemon bind, `REVERB_*` = PHP app →
+  daemon, `VITE_REVERB_*` = browser → Nginx). Local `.env` interpolates them together, which is
+  right for Windows dev and wrong on a server; the failure is silent, client-side, and leaves
+  nothing in `laravel.log`.
+- **`config:cache` / `route:cache` are production-only.** Correct on the server, banned in dev (see
+  Laravel Conventions above) — don't let the deploy script's habits leak back into local work, or
+  vice versa.
+- **Deploy commands run on the VPS, not the dev machine.** Anything in the runbook touching `apt`,
+  `ufw`, `supervisorctl`, `certbot`, `crontab`, `chown www-data`, or `/var/www/` belongs to the
+  server. Check the shell prompt before pasting: `PS C:\…>` is the dev box, `root@srv…#` is the VPS.
+- **HTTPS is functionally required, not just good practice.** `getUserMedia` only runs in a secure
+  context, so landlord ID verification and the ≥3 live unit captures are dead over plain HTTP — and
+  Let's Encrypt will not issue a certificate for a bare IP. No domain → no cert → two headline
+  modules don't work.
+- **A route prefixed by one role's middleware isn't safe to link from another role's view** — the
+  same lesson the admin document-preview routes already encode. Re-check this when wiring anything
+  new across roles in production.
+
 ## Git Discipline
 - Commit message format: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)
 - Separate commits per concern: backend fixes, feature additions, UI changes committed separately

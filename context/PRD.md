@@ -75,3 +75,30 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - No budget for paid APIs in production (sandbox/free tiers only)
 - PayMongo sandbox only — no live transactions
 - Windows local dev environment (PowerShell quirks with artisan commands)
+- **A registered domain and real SSL certificate are hard functional requirements, not polish.**
+  `getUserMedia` only runs in a secure context, so landlord ID verification and the ≥3 live unit
+  captures do not work over plain HTTP, and Let's Encrypt will not issue for a bare IP. Deploying to
+  an IP address alone would take two demoable modules offline. Domain: `abangananhub.com`.
+- **Recurring infrastructure cost** — a VPS (~12-month term) plus domain registration. The "no
+  budget for paid APIs" constraint above covers third-party services; hosting is the one unavoidable
+  spend, and it is what makes the app reachable by the panel at all.
+
+## 8. Pre-Defense Readiness
+Tracked separately from module scope because these are **not code** — they are account access,
+third-party console settings, and product decisions that cannot be scripted or delegated. Several
+fail *at the provider*, meaning the app looks healthy and the feature is dead. Owner: Axcee.
+
+| Item | Status | Note |
+|---|---|---|
+| VPS provisioned + domain DNS pointed | Not started | Blocks everything below. See `plans/hostinger-vps-deployment.md` |
+| Production `.env` copied to server | Not started | Only Axcee holds the credentials |
+| Google + Facebook OAuth callback URLs registered | Not started | Changing `APP_URL` updates the app's side only, never the provider's allow-list |
+| OAuth apps published, **or** panel added as test users | **Decision open** | Both still in Testing/Development mode. Publishing needs provider review time; adding test users avoids that risk. Either is defensible — arriving at the defense without having chosen is not |
+| PayMongo webhook repointed + one live sandbox payment run | Not started | **Highest-risk item.** PayMongo cannot reach `localhost`, so this webhook has *never fired* in development — the poll-fallback in `ReconcilesPaymongoCheckout` has carried the entire payment path. It goes live untested |
+| Mail: keep Mailtrap sandbox, **or** wire a real sender | **Decision open** | Mailtrap captures mail and never delivers. Fine if the demo shows its console; not fine if a panel member must receive a reset link |
+| Test review comment removed | Not started | SCHEMA.md flags one reading "hahaha suled" in `reviews` |
+| Off-server backups (`mysqldump` + `storage/app/private`) | Not started | That directory holds the **only** copy of every government ID and property document — Cloudinary is not a fallback for it |
+
+**Schedule risk:** several steps have provider-controlled waits that cannot be compressed — DNS
+propagation (hours to a day), SSL issuance (needs DNS live first), and OAuth review if that route is
+taken. A first deploy also reliably surfaces something. Deploy with weeks of slack, not days.
