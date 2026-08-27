@@ -480,7 +480,26 @@
                     </svg>
                 </button>
 
-                <div class="relative" x-data="notificationDropdown()" @click.away="close()"
+                <div class="flex items-center gap-2">
+                    {{-- Messages — mobile equivalent of the floating chat bubble,
+                         which is desktop-only (see partials.message-notifications).
+                         Dispatches the same event that bubble's panel listens for. --}}
+                    @auth
+                        @php
+                            $mobileUnreadMsgCount = \App\Models\Message::whereHas('conversation', function ($q) {
+                                $q->where('tenant_id', auth()->id())->orWhere('landlord_id', auth()->id());
+                            })->where('sender_id', '!=', auth()->id())->where('is_read', false)->count();
+                        @endphp
+                        <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
+                            class="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937] text-[12.5px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
+                            Messages
+                            @if($mobileUnreadMsgCount > 0)
+                                <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
+                            @endif
+                        </button>
+                    @endauth
+
+                    <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                     @keydown.escape.window="close()">
                     <button type="button" @click="toggle()"
                         class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]/70 hover:bg-[#E2E8F0] transition-colors duration-200">
@@ -505,6 +524,7 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>

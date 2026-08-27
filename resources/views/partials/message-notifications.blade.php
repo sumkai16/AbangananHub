@@ -11,7 +11,7 @@
     ->count();
 @endphp
 
-<div x-data="messageNotifications()" x-cloak>
+<div x-data="messageNotifications()" x-cloak x-on:open-messages-panel.window="openBubblePanel()">
 
     {{-- Toast container --}}
     <div style="position: fixed; bottom: 80px; right: 20px; z-index: 9998; display: flex; flex-direction: column-reverse; gap: 8px; pointer-events: none;">
@@ -71,9 +71,11 @@
         </div>
     </div>
 
-    {{-- Floating bubble (hidden when panel is open) --}}
+    {{-- Floating bubble (hidden when panel is open). Desktop only — mobile
+         opens the same panel via a "Messages" pill in the top bar instead
+         (see the `open-messages-panel` window event above). --}}
     <button x-show="!panelOpen" @click="openBubblePanel()"
-        class="fixed bottom-5 right-5 z-[9997] w-[52px] h-[52px] rounded-full bg-[#2AA7A1] flex items-center justify-center shadow-[0_4px_16px_rgba(97,178,240,0.35)] hover:brightness-95 transition-all duration-200 focus:outline-none"
+        class="hidden lg:flex fixed bottom-5 right-5 z-[9997] w-[52px] h-[52px] rounded-full bg-[#2AA7A1] items-center justify-center shadow-[0_4px_16px_rgba(97,178,240,0.35)] hover:brightness-95 transition-all duration-200 focus:outline-none"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 scale-75"
         x-transition:enter-end="opacity-100 scale-100">

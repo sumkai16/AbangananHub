@@ -141,6 +141,24 @@
                     </svg>
                 </button>
 
+                {{-- Messages — mobile equivalent of the floating chat bubble,
+                     which is desktop-only (see partials.message-notifications).
+                     Dispatches the same event that bubble's panel listens for. --}}
+                @auth
+                    @php
+                        $mobileUnreadMsgCount = \App\Models\Message::whereHas('conversation', function ($q) {
+                            $q->where('tenant_id', auth()->id())->orWhere('landlord_id', auth()->id());
+                        })->where('sender_id', '!=', auth()->id())->where('is_read', false)->count();
+                    @endphp
+                    <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
+                        class="lg:hidden relative flex items-center gap-1.5 h-10 px-3 rounded-full border border-[#E2E8F0] text-[#1F2937] text-[12.5px] font-semibold hover:bg-[#F7FCFC] transition-colors cursor-pointer">
+                        Messages
+                        @if($mobileUnreadMsgCount > 0)
+                            <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
+                        @endif
+                    </button>
+                @endauth
+
                 @auth
 
                     {{-- Become a Landlord / My Listings / Admin Actions --}}
