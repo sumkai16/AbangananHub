@@ -84,7 +84,10 @@ class PropertyWizardController extends Controller
             'number_of_units' => session($this->targetUnitsSessionKey($property)),
         ];
 
-        return view('landlord.properties.wizard.info', compact('property', 'formValues'));
+        $property->load(['amenities', 'documents', 'units.media']);
+        $checklist = $this->buildChecklist($property);
+
+        return view('landlord.properties.wizard.info', compact('property', 'formValues', 'checklist'));
     }
 
     public function updateInfo(Request $request, Property $property)
@@ -195,9 +198,10 @@ class PropertyWizardController extends Controller
         $this->authorizeProperty($property);
         $this->guardIsDraft($property);
 
-        $property->load('media');
+        $property->load(['media', 'amenities', 'documents', 'units.media']);
+        $checklist = $this->buildChecklist($property);
 
-        return view('landlord.properties.wizard.location', compact('property'));
+        return view('landlord.properties.wizard.location', compact('property', 'checklist'));
     }
 
     public function updateLocation(Request $request, Property $property)
@@ -246,10 +250,11 @@ class PropertyWizardController extends Controller
         $this->authorizeProperty($property);
         $this->guardIsDraft($property);
 
-        $property->load('amenities');
+        $property->load(['amenities', 'documents', 'units.media']);
         $amenities = Amenity::forProperty()->orderBy('category')->orderBy('amenity_name')->get();
+        $checklist = $this->buildChecklist($property);
 
-        return view('landlord.properties.wizard.amenities', compact('property', 'amenities'));
+        return view('landlord.properties.wizard.amenities', compact('property', 'amenities', 'checklist'));
     }
 
     public function storeAmenities(Request $request, Property $property)
@@ -280,7 +285,10 @@ class PropertyWizardController extends Controller
 
         $documents = $property->documents()->latest()->get();
 
-        return view('landlord.properties.wizard.documents', compact('property', 'documents'));
+        $property->load(['amenities', 'documents', 'units.media']);
+        $checklist = $this->buildChecklist($property);
+
+        return view('landlord.properties.wizard.documents', compact('property', 'documents', 'checklist'));
     }
 
     // ─── Step 5: Units ────────────────────────────────────────
@@ -294,10 +302,22 @@ class PropertyWizardController extends Controller
         $this->authorizeProperty($property);
         $this->guardIsDraft($property);
 
-        $property->load(['units' => fn ($q) => $q->orderBy('unit_label'), 'units.media']);
+        $property->load(['units' => fn ($q) => $q->orderBy('unit_label'), 'units.media', 'amenities', 'documents']);
+        $checklist = $this->buildChecklist($property);
+
+        // Documents' "Save & Continue" is plain navigation, not a form
+        // submit — nothing upstream stops a landlord reaching this step
+        // (or its URL directly) with a required document still missing.
+        // Amenities isn't guarded the same way; it's genuinely optional
+        // (see its own "Optional, but tenants filter on these" copy).
+        if (! $checklist['documents']['complete']) {
+            return redirect()->route('properties.wizard.documents', $property)
+                ->with('warning', 'Please add the required documents before continuing to Units.');
+        }
+
         $targetUnits = session($this->targetUnitsSessionKey($property));
 
-        return view('landlord.properties.wizard.units', compact('property', 'targetUnits'));
+        return view('landlord.properties.wizard.units', compact('property', 'targetUnits', 'checklist'));
     }
 
     // ─── Step 6: Review & Submit ──────────────────────────────
@@ -353,6 +373,16 @@ class PropertyWizardController extends Controller
         $property->load(['media', 'amenities', 'documents', 'units.media', 'units.amenities']);
 
         $checklist = $this->buildChecklist($property);
+
+        // Same reasoning as the guard in units(): "Continue to Review" is a
+        // plain link with nothing stopping a landlord from reaching this
+        // page (or its URL) with zero units, even though the Units step's
+        // own copy says at least one is required.
+        if (! $checklist['units']['complete']) {
+            return redirect()->route('properties.wizard.units', $property)
+                ->with('warning', 'Add at least one unit before continuing to review.');
+        }
+
         $canSubmit = collect($checklist)->every(fn ($item) => $item['complete']);
         $targetUnits = session($this->targetUnitsSessionKey($property));
 

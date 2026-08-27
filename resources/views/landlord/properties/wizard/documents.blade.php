@@ -25,15 +25,10 @@
             </div>
         @endif
 
-        @if(session('success'))
-            <div class="max-w-2xl mb-6 px-4 py-3 rounded-xl bg-[#22C55E]/[0.08] border border-[#22C55E]/25 text-[#15803D] text-sm font-medium">
-                {{ session('success') }}
-            </div>
-        @endif
 
         <div class="grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-11">
 
-            <x-property-wizard-stepper current="documents" :property="$property" />
+            <x-property-wizard-stepper current="documents" :property="$property" :checklist="$checklist ?? null" />
 
             <div class="min-w-0">
                 <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 4 of 6</p>
@@ -100,15 +95,27 @@
                     @endif
                 </div>
 
-                <div class="mt-7 pt-5 border-t border-[#E2E8F0] max-w-2xl flex items-center gap-3">
-                    <a href="{{ route('properties.wizard.amenities', $property) }}"
-                        class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
-                        Back
-                    </a>
-                    <a href="{{ route('properties.wizard.units', $property) }}"
-                        class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
-                        Save & Continue
-                    </a>
+                <div class="mt-7 pt-5 border-t border-[#E2E8F0] max-w-2xl">
+                    @unless($checklist['documents']['complete'])
+                        <p class="mb-3 text-[12.5px] text-[#64748B]">Upload all required documents above to continue.</p>
+                    @endunless
+                    <div class="flex items-center gap-3">
+                        <a href="{{ route('properties.wizard.amenities', $property) }}"
+                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                            Back
+                        </a>
+                        @if($checklist['documents']['complete'])
+                            <a href="{{ route('properties.wizard.units', $property) }}"
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                                Save & Continue
+                            </a>
+                        @else
+                            <button type="button" disabled title="Upload all required documents to continue"
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] opacity-40 cursor-not-allowed">
+                                Save & Continue
+                            </button>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

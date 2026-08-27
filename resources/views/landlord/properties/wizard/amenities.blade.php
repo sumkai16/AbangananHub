@@ -27,7 +27,7 @@
 
         <div class="grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-11">
 
-            <x-property-wizard-stepper current="amenities" :property="$property" />
+            <x-property-wizard-stepper current="amenities" :property="$property" :checklist="$checklist ?? null" />
 
             <div class="min-w-0">
                 <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 3 of 6</p>
