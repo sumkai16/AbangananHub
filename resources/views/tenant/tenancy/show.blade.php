@@ -38,12 +38,6 @@
             <span class="text-[#1F2937] font-medium">{{ $unit->unit_label ?? 'Rent' }}</span>
         </div>
 
-        @if(session('success'))
-            <div class="mb-5 bg-[#22C55E]/[0.07] border border-[#22C55E]/25 text-[#15803D] rounded-xl px-4 py-3 text-[13px] font-medium">
-                {{ session('success') }}
-            </div>
-        @endif
-
         @if($errors->any())
             <div class="mb-5 bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ $errors->first() }}
