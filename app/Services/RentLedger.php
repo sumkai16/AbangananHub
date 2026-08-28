@@ -83,6 +83,7 @@ class RentLedger
         $expected = $this->reservation->monthlyRent();
         $dueDay = $this->reservation->rentDueDay();
         $grace = (int) config('rentals.rent_overdue_grace_days');
+        $thisMonth = now()->startOfMonth();
         $periods = collect();
 
         while ($cursor->lessThanOrEqualTo($last)) {
@@ -99,6 +100,10 @@ class RentLedger
                 'paid'     => $paid,
                 'balance'  => round($expected - $paid, 2),
                 'status'   => $this->periodStatus($expected, $paid, $dueOn, $grace),
+                // A month that hasn't arrived yet, reached only because rent was
+                // paid into it. Nothing may treat it as money owed — see
+                // summary() and unsettledPeriods().
+                'is_future' => $cursor->greaterThan($thisMonth),
                 'payments' => $paidPayments,
             ]);
 
@@ -132,7 +137,18 @@ class RentLedger
     public function summary(): array
     {
         $periods = $this->periods();
-        $overdue = $periods->where('status', 'overdue');
+
+        // Everything a landlord could be chasing. A month that hasn't arrived
+        // yet is in the ledger only because it was paid into, so counting its
+        // balance would report a prepaying tenant as being in arrears — in
+        // August, for November. `collected` deliberately still counts every
+        // period, prepaid ones included: that money genuinely has been received.
+        $billed = $periods->reject(fn ($p) => $p['is_future']);
+        $overdue = $billed->where('status', 'overdue');
+        // Only *fully* covered future months count as paid in advance. A month
+        // carrying the remainder of an overpayment is part-covered, and saying
+        // a tenant is paid through it would overstate what they have settled.
+        $prepaid = $periods->filter(fn ($p) => $p['is_future'] && $p['status'] === 'paid');
 
         $monthlyCollected = (float) $periods->sum('paid');
         $otherCollected = (float) $this->otherCharges()->sum(fn (Payment $p) => (float) $p->amount);
@@ -144,22 +160,32 @@ class RentLedger
             'collected'        => round($monthlyCollected + $otherCollected, 2),
             'monthlyCollected' => round($monthlyCollected, 2),
             'otherCollected'   => round($otherCollected, 2),
-            'outstanding'      => round((float) $periods->sum(fn ($p) => max(0, $p['balance'])), 2),
+            'outstanding'      => round((float) $billed->sum(fn ($p) => max(0, $p['balance'])), 2),
             'overdueCount'     => $overdue->count(),
             'overdueAmount'    => round((float) $overdue->sum(fn ($p) => max(0, $p['balance'])), 2),
-            'nextDue'          => $periods->firstWhere(fn ($p) => in_array($p['status'], ['due', 'partial'], true)),
+            'nextDue'          => $billed->firstWhere(fn ($p) => in_array($p['status'], ['due', 'partial'], true)),
             'oldestOverdue'    => $overdue->first(),
+            // Months already covered before they arrived, for the "paid in
+            // advance through …" line on the tenancy pages.
+            'prepaidCount'     => $prepaid->count(),
+            'prepaidThrough'   => $prepaid->last()['period'] ?? null,
         ];
     }
 
     /**
      * Billing months this tenancy has left to settle, for the "record a
      * payment" form. Unpaid first so the obvious choice is the top one.
+     *
+     * Future months are excluded even when only partly covered: this feeds the
+     * tenant's online payment (Tenant\PaymentController takes ->first()), and
+     * "what do I owe" must not start with a month nobody has reached yet. A
+     * landlord who genuinely wants to record next month's rent early can still
+     * pick any month in the record-payment modal's date field.
      */
     public function unsettledPeriods(): Collection
     {
         return $this->periods()
-            ->filter(fn ($p) => $p['status'] !== 'paid')
+            ->filter(fn ($p) => $p['status'] !== 'paid' && ! $p['is_future'])
             ->values();
     }
 
@@ -180,9 +206,34 @@ class RentLedger
 
         // A tenancy that starts next month still owes its first month, so the
         // window can never close before it opens.
-        return $last->lessThan($start->copy()->startOfMonth())
-            ? $start->copy()->startOfMonth()
+        if ($last->lessThan($start->copy()->startOfMonth())) {
+            $last = $start->copy()->startOfMonth();
+        }
+
+        // Rent already paid into future months has to be visible, or a tenant
+        // who prepaid six months sees nothing for it and a landlord cannot tell
+        // a prepaid tenancy from an unpaid one. The window only ever reaches
+        // forward over months that actually carry a payment — speculative
+        // future debt stays out, which is what keeps `outstanding` honest.
+        $prepaidThrough = $this->latestSettledMonthlyPeriod();
+
+        return $prepaidThrough && $prepaidThrough->greaterThan($last)
+            ? $prepaidThrough
             : $last;
+    }
+
+    /**
+     * The furthest-out month any settled monthly payment is dated into, or null.
+     */
+    private function latestSettledMonthlyPeriod(): ?Carbon
+    {
+        return $this->payments
+            ->filter(fn (Payment $p) => $p->payment_type === 'Monthly'
+                && $p->billing_period
+                && in_array($p->status, self::SETTLED_STATUSES, true))
+            ->map(fn (Payment $p) => $p->billing_period->copy()->startOfMonth())
+            ->sort()
+            ->last();
     }
 
     /**

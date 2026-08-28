@@ -104,6 +104,38 @@ class WalkInScenarios extends Command
             'status' => 'Rental Agreement Signed', 'unit_status' => 'Reserved',
         ]), 'Try adding a walk-in on THIS unit — it must be absent from the picker (409 if forced).'];
 
+        // 7 — overpaid at move-in: two whole months of rent paid in advance.
+        // Reachable in the app only by typing ₱14,000 into the walk-in form, so
+        // it is built here to check the ledger side on its own.
+        $rows[] = ['Walk-in, 2 months advance', $this->scenario($landlord, [
+            'first' => 'Ellen', 'last' => 'Tan', 'email' => null, 'contact' => '09170000007',
+            'rent' => 3500, 'due_day' => 1, 'move_in' => now()->startOfMonth(),
+            'deposit' => 3500,
+            'monthly' => [0],
+            'advance' => [1, 2], // next two months paid before they arrive
+        ]), 'Next 2 months show teal "Paid · Advance". Header: paid in advance through. /landlord/payments must read ₱0 outstanding, ₱0 overdue.'];
+
+        // 8 — overpayment that is not a whole multiple of the rent. The month
+        // carrying the remainder is future and PARTLY covered; it must not be
+        // counted as money owed anywhere.
+        $rows[] = ['Walk-in, advance + remainder', $this->scenario($landlord, [
+            'first' => 'Rico', 'last' => 'Bautista', 'email' => null, 'contact' => '09170000008',
+            'rent' => 2000, 'due_day' => 1, 'move_in' => now()->startOfMonth(),
+            'deposit' => 2000,
+            'monthly' => [0],
+            'advance' => [1],
+            'advance_partial' => [2 => 1000], // half a month, two months out
+        ]), 'THE REGRESSION CHECK: a partly-covered future month. /landlord/payments must still read ₱0 outstanding and standing "Settled" — not ₱1,000 owed.'];
+
+        // 9 — landlord collected less than rent + deposit. Allowed on purpose:
+        // a walk-in records what happened offline.
+        $rows[] = ['Walk-in, short move-in payment', $this->scenario($landlord, [
+            'first' => 'Dina', 'last' => 'Cruz', 'email' => null, 'contact' => '09170000009',
+            'rent' => 5000, 'due_day' => 1, 'move_in' => now()->startOfMonth(),
+            'deposit' => 5000,
+            'partial' => [0 => 2000], // deposit full, first month only part-paid
+        ]), 'Deposit ₱5,000 settled, move-in month Partial with ₱3,000 balance. Appears on /landlord/payments as owing.'];
+
         $this->newLine();
         $this->line('  <fg=cyan;options=bold>Walk-in scenarios created</>');
         $this->newLine();
@@ -194,6 +226,10 @@ class WalkInScenarios extends Command
             'unit_label'          => 'Unit '.strtoupper(substr(md5($o['first'].$o['last']), 0, 4)),
             'description'         => 'Fixture unit.',
             'rental_fee'          => $o['rent'],
+            // Required on every unit at the application layer since Aug 2026,
+            // and the walk-in form's "required move-in payment" reads it — a
+            // fixture unit without one would show a deposit of ₱0.
+            'security_deposit'    => $o['deposit'] ?? $o['rent'],
             'occupancy_limit'     => 2,
             'availability_status' => $o['unit_status'] ?? 'Occupied',
             'verification_status' => 'Approved',
@@ -225,6 +261,20 @@ class WalkInScenarios extends Command
         foreach ($o['partial'] ?? [] as $monthsAgo => $amount) {
             $period = now()->subMonths($monthsAgo)->startOfMonth();
             $this->recordPayment($reservation, $landlord, 'Monthly', $amount, $period, $period);
+        }
+
+        // Rent paid into months that have not arrived yet — the shape a walk-in
+        // overpayment produces. Advance rent is not a payment type: it is a
+        // 'Monthly' row dated forward, which is why paid_at is the move-in date
+        // (when the money actually changed hands) and not the period.
+        foreach ($o['advance'] ?? [] as $monthsAhead) {
+            $period = now()->addMonths($monthsAhead)->startOfMonth();
+            $this->recordPayment($reservation, $landlord, 'Monthly', $o['rent'], $period, $o['move_in']);
+        }
+
+        foreach ($o['advance_partial'] ?? [] as $monthsAhead => $amount) {
+            $period = now()->addMonths($monthsAhead)->startOfMonth();
+            $this->recordPayment($reservation, $landlord, 'Monthly', $amount, $period, $o['move_in']);
         }
 
         return $reservation->fresh(['payments', 'unit']);

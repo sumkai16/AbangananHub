@@ -10,7 +10,23 @@
             'partial' => ['pill' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35', 'label' => 'Partial'],
             'overdue' => ['pill' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25', 'label' => 'Overdue'],
             'due'     => ['pill' => 'bg-[#F7FCFC] text-[#64748B] border-[#E2E8F0]', 'label' => 'Due'],
+            // A month settled before it arrived, from rent paid in advance.
+            'advance' => ['pill' => 'bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25', 'label' => 'Paid · Advance'],
+            // Part-covered by an overpayment. Deliberately NOT the amber
+            // Partial pill — a tenant is not behind on a month that has not
+            // arrived, and amber would read as a demand.
+            'advance_part' => ['pill' => 'bg-[#F7FCFC] text-[#156F8C] border-[#2AA7A1]/20', 'label' => 'Advance · part'],
         ];
+
+        // A future period only exists in the ledger because it was paid into,
+        // so it never carries an arrears colour.
+        $periodStyleFor = function (array $period) use ($periodStyles) {
+            if ($period['is_future']) {
+                return $period['status'] === 'paid' ? $periodStyles['advance'] : $periodStyles['advance_part'];
+            }
+
+            return $periodStyles[$period['status']] ?? $periodStyles['due'];
+        };
 
         $statusPill = match ($reservation->rental_status) {
             'Occupied'  => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
@@ -155,6 +171,11 @@
                             <p class="text-[12px] text-[#64748B] mt-0.5">
                                 ₱{{ number_format($summary['monthlyRent'], 2) }} per month, due on day {{ $summary['dueDay'] }}.
                             </p>
+                            @if($summary['prepaidThrough'])
+                                <p class="text-[12px] font-medium text-[#156F8C] mt-1">
+                                    You are paid up through {{ $summary['prepaidThrough']->format('M Y') }}.
+                                </p>
+                            @endif
                         </div>
                     </div>
 
@@ -169,7 +190,7 @@
                         {{-- Mobile card list — same data as the table below, stacked for a phone screen --}}
                         <div class="lg:hidden divide-y divide-[#E2E8F0]">
                             @foreach($periods as $period)
-                                @php $mStyle = $periodStyles[$period['status']] ?? $periodStyles['due']; @endphp
+                                @php $mStyle = $periodStyleFor($period); @endphp
                                 <div class="px-5 py-4">
                                     <div class="flex items-center justify-between gap-3">
                                         <p class="text-[13.5px] font-semibold text-[#1F2937]">{{ $period['label'] }}</p>
@@ -186,7 +207,8 @@
                                         <p class="text-[#64748B]">Due on <span class="text-[#1F2937] font-medium">{{ $period['due_on']->format('M d, Y') }}</span></p>
                                         <p class="text-[#64748B] text-right">Expected <span class="text-[#1F2937] font-medium">₱{{ number_format($period['expected'], 2) }}</span></p>
                                         <p class="text-[#64748B]">Paid <span class="text-[#1F2937] font-medium">₱{{ number_format($period['paid'], 2) }}</span></p>
-                                        <p class="text-[#64748B] text-right">Balance <span class="font-medium {{ $period['balance'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]' }}">₱{{ number_format(max(0, $period['balance']), 2) }}</span></p>
+                                        {{-- Neutral for a month that hasn't arrived: not owed yet. --}}
+                                        <p class="text-[#64748B] text-right">Balance <span class="font-medium {{ $period['balance'] > 0 && ! $period['is_future'] ? 'text-[#DC2626]' : 'text-[#1F2937]' }}">₱{{ number_format(max(0, $period['balance']), 2) }}</span></p>
                                     </div>
                                 </div>
                             @endforeach
@@ -206,7 +228,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-[#E2E8F0]">
                                     @foreach($periods as $period)
-                                        @php $style = $periodStyles[$period['status']] ?? $periodStyles['due']; @endphp
+                                        @php $style = $periodStyleFor($period); @endphp
                                         <tr class="hover:bg-[#F7FCFC] transition-colors duration-150">
                                             <td class="px-5 sm:px-6 py-3.5">
                                                 <p class="text-[13.5px] font-semibold text-[#1F2937]">{{ $period['label'] }}</p>
@@ -225,7 +247,7 @@
                                             <td class="px-4 py-3.5 text-[13px] font-semibold text-[#1F2937] text-right whitespace-nowrap">
                                                 ₱{{ number_format($period['paid'], 2) }}
                                             </td>
-                                            <td class="px-4 py-3.5 text-[13px] text-right whitespace-nowrap {{ $period['balance'] > 0 ? 'font-semibold text-[#DC2626]' : 'text-[#64748B]' }}">
+                                            <td class="px-4 py-3.5 text-[13px] text-right whitespace-nowrap {{ $period['balance'] > 0 && ! $period['is_future'] ? 'font-semibold text-[#DC2626]' : 'text-[#64748B]' }}">
                                                 ₱{{ number_format(max(0, $period['balance']), 2) }}
                                             </td>
                                             <td class="px-5 sm:px-6 py-3.5">

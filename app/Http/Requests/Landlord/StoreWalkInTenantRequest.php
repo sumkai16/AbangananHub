@@ -52,12 +52,23 @@ class StoreWalkInTenantRequest extends FormRequest
             'rent_due_day'         => ['nullable', 'integer', 'min:1', 'max:28'],
             'notes'                => ['nullable', 'string', 'max:1000'],
 
-            // Optional move-in money (deposit, advance) collected at the door.
+            // Optional move-in money collected at the door. There is no
+            // "what was it for" field: MoveInPaymentBreakdown allocates the
+            // amount across deposit, first-month rent and advance rent, so
+            // asking the landlord to also label the lump would be the same
+            // question twice with two answers free to disagree.
             'initial_amount'       => ['nullable', 'numeric', 'min:1', 'max:1000000'],
-            'initial_type'         => ['required_with:initial_amount', 'nullable', Rule::in(['Initial', 'Deposit'])],
             'payment_method'       => ['required_with:initial_amount', 'nullable', Rule::in(['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'])],
             'payment_date'         => ['nullable', 'date', 'before_or_equal:today'],
-            'reference_no'         => ['nullable', 'string', 'max:255'],
+            // Cash has no reference to give; every other method produces one,
+            // and it is the only evidence the payment happened, so it is
+            // required there. prepareForValidation() nulls it for Cash so a
+            // stale value from a method switch can't be stored.
+            'reference_no'         => [
+                Rule::requiredIf(fn () => $this->filled('initial_amount')
+                    && $this->input('payment_method') !== 'Cash'),
+                'nullable', 'string', 'max:255',
+            ],
         ];
     }
 
@@ -116,9 +127,9 @@ class StoreWalkInTenantRequest extends FormRequest
             'move_in_date.required'           => 'Enter the date the tenant moved in.',
             'move_out_date.after'             => 'The move-out date must be after the move-in date.',
             'rent_due_day.max'                => 'Pick a due day between 1 and 28 so it exists in every month.',
-            'initial_type.required_with'      => 'Choose what the initial payment was for.',
             'payment_method.required_with'    => 'Choose how the initial payment was made.',
             'payment_date.before_or_equal'    => 'A payment cannot be recorded for a future date.',
+            'reference_no.required'           => 'Enter the reference number for this payment, or switch the method to Cash.',
         ];
     }
 
@@ -133,6 +144,13 @@ class StoreWalkInTenantRequest extends FormRequest
             if ($this->input($field) === '') {
                 $this->merge([$field => null]);
             }
+        }
+
+        // The reference field is hidden for Cash rather than removed, so a
+        // landlord who typed a GCash reference and then switched to Cash would
+        // otherwise store a reference for a payment that cannot have one.
+        if ($this->input('payment_method') === 'Cash') {
+            $this->merge(['reference_no' => null]);
         }
     }
 }

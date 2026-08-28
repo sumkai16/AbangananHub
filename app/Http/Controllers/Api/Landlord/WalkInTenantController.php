@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Api\Landlord;
 
+use App\Http\Controllers\Concerns\RecordsMoveInPayments;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\StoreWalkInTenantRequest;
 use App\Http\Resources\ReservationResource;
-use App\Models\Payment;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\User;
@@ -22,6 +22,8 @@ use Illuminate\Support\Str;
  */
 class WalkInTenantController extends Controller
 {
+    use RecordsMoveInPayments;
+
     public function store(StoreWalkInTenantRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -73,7 +75,7 @@ class WalkInTenantController extends Controller
             $unit->update(['availability_status' => 'Occupied']);
 
             if (! empty($data['initial_amount'])) {
-                $this->recordInitialPayment($reservation, $data, $landlordId);
+                $this->recordMoveInPayments($reservation, $unit, $data, $landlordId);
             }
 
             return $reservation;
@@ -107,19 +109,5 @@ class WalkInTenantController extends Controller
         $tenant->assignRole('Tenant');
 
         return $tenant;
-    }
-
-    private function recordInitialPayment(Reservation $reservation, array $data, int $landlordId): void
-    {
-        Payment::create([
-            'reservation_id' => $reservation->reservation_id,
-            'payment_type'   => $data['initial_type'] ?? 'Initial',
-            'amount'         => $data['initial_amount'],
-            'payment_method' => $data['payment_method'],
-            'status'         => 'Paid',
-            'paid_at'        => $data['payment_date'] ?? now(),
-            'reference_no'   => $data['reference_no'] ?? null,
-            'recorded_by'    => $landlordId,
-        ]);
     }
 }

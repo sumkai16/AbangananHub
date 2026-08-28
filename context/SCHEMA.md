@@ -366,6 +366,30 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 
 Index `payments_reservation_period_index` on `(reservation_id, billing_period)` — the rent ledger's per-period lookup. Index on `payout_status` for the admin payouts queue.
 
+**Advance rent has no column and no enum member of its own (Aug 29 2026).** Rent paid ahead is
+stored as ordinary `Monthly` rows whose `billing_period` is a *future* month — the same shape
+`RentLedger` already reads, so a prepaid month settles through the identical code path as any other.
+A single `Advance`-typed row was considered and rejected: with no `billing_period` it would fall into
+`RentLedger::otherCharges()` and settle nothing, which is exactly the bug that made a walk-in
+tenant's move-in month read Overdue the day after they paid for it. **Do not add an `Advance` member
+to `payment_type`.**
+
+Consequently `RentLedger`'s period window reaches forward past the current month, but **only over
+months that already carry a payment**, and every period carries `is_future`. `summary()` excludes
+future periods from `outstanding`, `overdueCount`, `overdueAmount` and `nextDue`, and
+`unsettledPeriods()` drops them too — otherwise an overpayment that isn't a whole multiple of the
+rent would report the tenant as in arrears on a month nobody has reached yet. Anything new reading a
+period must decide what `is_future` means for it rather than treating every row as money owed.
+
+**Walk-in move-in money is written as several rows, not one (Aug 29 2026).** `Landlord\WalkInTenantController`
+and its API twin share `Concerns\RecordsMoveInPayments`, which runs `App\Support\MoveInPaymentBreakdown`
+over the single amount the landlord typed: deposit first, then rent month by month from the move-in
+month forward. All rows carry the same `payment_method`, `paid_at`, `reference_no` and `recorded_by` —
+they are one collection event split by purpose, and must never render as though the tenant paid
+several separate times. Rows written before this change are single `Initial` rows and were
+deliberately **not** backfilled: nothing in them records how much was rent versus deposit, so any
+split would be invented data on a money table.
+
 **The rent ledger has no schedule table.** A billing period is derived: a month between move-in and move-out, settled by a `Monthly` payment whose `billing_period` falls in it (`App\Services\RentLedger`). Editing rent, due day or move-out date can't leave stale rows because there are none — `payments` is the only stored fact. Serves walk-in and platform tenancies identically; the escrow only ever covered the initial payment.
 
 `released_by` is null for **both** a tenant confirmation and a timer expiry, so it cannot distinguish them on its own — `release_reason` is what carries that, and it is the field a disputed payout is argued from months later. Its three values are written by exactly three paths: `Reservation::confirmMoveIn()`, `ProcessMoveInDeadlines::releaseExpiredConfirmations()`, and `Admin\PaymentController::release()`.

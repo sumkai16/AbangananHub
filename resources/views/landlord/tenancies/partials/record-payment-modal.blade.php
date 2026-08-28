@@ -2,7 +2,14 @@
     // Unsettled months first so the obvious choice is the top one; every month
     // stays selectable because a landlord may be recording a late top-up.
     $periodOptions = $periods->reverse()->values();
-    $defaultPeriod = ($summary['oldestOverdue'] ?? $summary['nextDue'] ?? $periods->last());
+    // Fall back to the last month that has actually arrived, never $periods->last():
+    // once a tenancy is prepaid the ledger runs into future months, and defaulting
+    // to the furthest of those would pre-select a month already settled and invite
+    // a duplicate payment against it.
+    $defaultPeriod = $summary['oldestOverdue']
+        ?? $summary['nextDue']
+        ?? $periods->reject(fn ($p) => $p['is_future'])->last()
+        ?? $periods->last();
 
     $modalInput = 'h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition';
     $modalLabel = 'block text-[12px] font-semibold text-[#1F2937] mb-1.5';
@@ -16,12 +23,18 @@
     ];
 
     $billingPeriodOptions = $periodOptions->mapWithKeys(function ($option) {
-        $suffix = match ($option['status']) {
-            'overdue' => ' — overdue, ₱' . number_format(max(0, $option['balance']), 2) . ' left',
-            'partial' => ' — ₱' . number_format(max(0, $option['balance']), 2) . ' left',
-            'paid' => ' — already settled',
-            default => ' — ₱' . number_format(max(0, $option['balance']), 2) . ' due',
-        };
+        // A future month is in this list only because rent was paid into it, so
+        // its balance is not a debt and must not be worded like one.
+        $suffix = $option['is_future']
+            ? ($option['status'] === 'paid'
+                ? ' — paid in advance'
+                : ' — ₱' . number_format(max(0, $option['balance']), 2) . ' of this month still open')
+            : match ($option['status']) {
+                'overdue' => ' — overdue, ₱' . number_format(max(0, $option['balance']), 2) . ' left',
+                'partial' => ' — ₱' . number_format(max(0, $option['balance']), 2) . ' left',
+                'paid' => ' — already settled',
+                default => ' — ₱' . number_format(max(0, $option['balance']), 2) . ' due',
+            };
         return [$option['period']->toDateString() => $option['label'] . $suffix];
     })->all();
 

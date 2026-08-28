@@ -17,6 +17,10 @@
                 'id'    => $unit->unit_id,
                 'label' => $unit->unit_label,
                 'rent'  => (float) $unit->rental_fee,
+                // Drives the required-move-in figure client-side. Required at
+                // the application layer on every unit since Aug 2026 and
+                // backfilled, so the ?? 0 is a guard, not a supported state.
+                'deposit' => (float) ($unit->security_deposit ?? 0),
                 'cap'   => $unit->occupancy_limit,
                 'photo' => optional($unit->media->firstWhere('media_type', 'Image'))->media_url
                     ?? optional($property->media->firstWhere('media_type', 'Image'))->media_url,
@@ -39,11 +43,6 @@
         ])->all();
 
         $dueDayOptions = collect(range(1, 28))->mapWithKeys(fn ($d) => [(string) $d => (string) $d])->all();
-
-        $initialTypeOptions = [
-            'Initial' => 'Initial payment (deposit + advance)',
-            'Deposit' => 'Security deposit only',
-        ];
 
         $paymentMethodOptions = array_combine(
             ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'],
@@ -112,7 +111,7 @@
         @else
             <form method="POST" action="{{ route('landlord.tenants.walkIn.store') }}"
                 data-confirm="Add walk-in tenant?"
-                data-confirm-message="The unit will be marked Occupied straight away and will stop appearing to tenants browsing the site."
+                :data-confirm-message="confirmMessage"
                 data-confirm-button="Add tenant"
                 x-data="{
                     mode: @js(old('existing_tenant_id') ? 'existing' : 'new'),
@@ -126,6 +125,7 @@
                     dueDay: @js(old('rent_due_day', '')),
                     hasPayment: @js((bool) old('initial_amount')),
                     initialAmount: @js(old('initial_amount', '')),
+                    paymentMethod: @js(old('payment_method', 'Cash')),
                     galleryProperties: @js($galleryProperties),
                     existingTenants: @js($existingOptions),
                     // Arriving scoped to one property (from that property's
@@ -193,6 +193,86 @@
                     },
                     peso(value) {
                         return '₱' + (value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    },
+
+                    /*
+                     | Move-in money, allocated.
+                     |
+                     | This mirrors App\Support\MoveInPaymentBreakdown so the
+                     | landlord sees the split before committing to it. The
+                     | server allocates again from the posted amount and its own
+                     | figures — this is display, never the source of truth, and
+                     | nothing here is posted as a computed field.
+                     */
+                    round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; },
+                    get depositDue() { return this.unit ? this.unit.deposit : 0; },
+                    get requiredMoveIn() { return this.round2(this.effectiveRent + this.depositDue); },
+                    get received() {
+                        const v = parseFloat(this.initialAmount);
+                        return isNaN(v) || v < 0 ? 0 : v;
+                    },
+                    get shortfall() { return this.round2(Math.max(0, this.requiredMoveIn - this.received)); },
+                    get isShort() { return this.received > 0 && this.shortfall > 0; },
+                    /* Deposit first, then rent month by month — same order and
+                       reasoning as the PHP class. */
+                    get allocation() {
+                        let left = this.received;
+                        const deposit = Math.min(left, this.depositDue);
+                        left = this.round2(left - deposit);
+
+                        const rentPerMonth = this.effectiveRent;
+                        const slices = [];
+
+                        if (left > 0 && rentPerMonth <= 0) {
+                            slices.push(left);
+                            left = 0;
+                        } else {
+                            while (left > 0 && slices.length < 60) {
+                                const slice = this.round2(Math.min(left, rentPerMonth));
+                                slices.push(slice);
+                                left = this.round2(left - slice);
+                            }
+                        }
+
+                        return {
+                            deposit,
+                            rent: slices[0] ?? 0,
+                            advance: this.round2(slices.slice(1).reduce((a, b) => a + b, 0)),
+                            advanceMonths: slices.slice(1).map((amount, i) => ({
+                                label: this.monthLabel(i + 1),
+                                amount,
+                            })),
+                        };
+                    },
+                    /* Offset months from the move-in month. Built from the date
+                       parts rather than new Date(iso), which is parsed as UTC
+                       and lands on the previous month for anyone west of
+                       Greenwich (DESIGN.md 6h). */
+                    monthLabel(offset) {
+                        if (!this.moveIn) return '';
+                        const [y, m] = this.moveIn.split('-').map(Number);
+                        const d = new Date(y, (m - 1) + offset, 1);
+                        return d.toLocaleDateString('en-PH', { month: 'short', year: 'numeric' });
+                    },
+                    get advanceMonthsLabel() {
+                        const months = this.allocation.advanceMonths;
+                        if (months.length === 0) return '';
+                        if (months.length <= 3) return months.map(m => m.label.split(' ')[0]).join(', ');
+                        return months.length + ' months';
+                    },
+                    get needsReference() { return this.paymentMethod !== 'Cash'; },
+                    /* Appended to the confirm dialog so the shortfall is stated
+                       on the last screen before the write, not only mid-form.
+                       modal-confirm.js reads dataset at submit time, so this
+                       binding is live. */
+                    get confirmMessage() {
+                        const base = 'The unit will be marked Occupied straight away and will stop appearing to tenants browsing the site.';
+                        if (this.hasPayment && this.isShort) {
+                            return base + ' The ' + this.peso(this.received) + ' recorded is '
+                                + this.peso(this.shortfall) + ' short of the ' + this.peso(this.requiredMoveIn)
+                                + ' move-in total, so the move-in month will show a remaining balance.';
+                        }
+                        return base;
                     },
                     get summaryName() {
                         if (this.mode === 'existing') return this.tenantName || 'Not selected';
@@ -497,7 +577,7 @@
                                     </div>
                                     <div>
                                         <h2 class="text-[15px] font-bold text-[#1F2937]">Initial payment</h2>
-                                        <p class="text-[12px] text-[#64748B]">Deposit or advance collected at move-in.</p>
+                                        <p class="text-[12px] text-[#64748B]">Rent, deposit and any advance collected at move-in.</p>
                                     </div>
                                 </div>
                                 <label for="has_payment" class="flex items-center gap-2 cursor-pointer shrink-0 pt-1">
@@ -508,27 +588,99 @@
                             </div>
 
                             <div x-show="hasPayment" x-cloak class="mt-5">
+
+                                {{-- What the tenant owes to move in. Shown before the
+                                     amount field so the landlord is entering a number
+                                     against a stated target rather than guessing. --}}
+                                <div x-show="unit" x-cloak
+                                    class="mb-4 rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-4 py-3.5">
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2.5">
+                                        Required move-in payment
+                                    </p>
+                                    <div class="space-y-1.5 text-[13px]">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-[#64748B]">Monthly rent</span>
+                                            <span class="text-[#1F2937] tabular-nums" x-text="peso(effectiveRent)"></span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-[#64748B]">Security deposit</span>
+                                            <span class="text-[#1F2937] tabular-nums" x-text="peso(depositDue)"></span>
+                                        </div>
+                                        <div class="h-px bg-[#E2E8F0] my-2"></div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="font-semibold text-[#1F2937]">Total due at move-in</span>
+                                            <span class="font-bold text-[#156F8C] tabular-nums text-[14px]"
+                                                x-text="peso(requiredMoveIn)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="grid sm:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <label for="initial_amount" class="{{ $labelClass }}">
-                                            Amount (₱) <span class="text-[#EF4444]">*</span>
+                                            Amount received (₱) <span class="text-[#EF4444]">*</span>
                                         </label>
                                         <input type="number" id="initial_amount" name="initial_amount" x-model="initialAmount"
-                                            min="1" max="1000000" step="0.01" placeholder="e.g. 9000" class="{{ $inputClass }}">
+                                            min="1" max="1000000" step="0.01" :placeholder="unit ? requiredMoveIn : 'e.g. 9000'"
+                                            class="{{ $inputClass }}">
+                                        <p class="text-[11.5px] text-[#64748B] mt-1.5">
+                                            Anything above the total due is recorded as advance rent.
+                                        </p>
                                         @error('initial_amount')
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <div>
-                                        <label for="initial_type" class="{{ $labelClass }}">
-                                            What it was for <span class="text-[#EF4444]">*</span>
-                                        </label>
-                                        <x-styled-select name="initial_type" :options="$initialTypeOptions"
-                                            :selected="old('initial_type', 'Initial')" class="{{ $inputClass }} bg-white" />
-                                        @error('initial_type')
-                                            <p class="{{ $errorClass }}">{{ $message }}</p>
-                                        @enderror
+
+                                    {{-- Live allocation of whatever was typed. Mirrors
+                                         MoveInPaymentBreakdown; the server allocates
+                                         again from its own figures on submit. --}}
+                                    <div x-show="received > 0" x-cloak
+                                        class="rounded-xl border border-[#2AA7A1]/25 bg-[#EEF8F8]/50 px-4 py-3.5">
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-[#156F8C] mb-2.5">
+                                            Recorded as
+                                        </p>
+                                        <div class="space-y-1.5 text-[13px]">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <span class="text-[#64748B]">
+                                                    Rent — <span x-text="monthLabel(0)"></span>
+                                                </span>
+                                                <span class="text-[#1F2937] tabular-nums" x-text="peso(allocation.rent)"></span>
+                                            </div>
+                                            <div class="flex items-center justify-between gap-3">
+                                                <span class="text-[#64748B]">Security deposit</span>
+                                                <span class="text-[#1F2937] tabular-nums" x-text="peso(allocation.deposit)"></span>
+                                            </div>
+                                            <div class="flex items-center justify-between gap-3" x-show="allocation.advance > 0">
+                                                <span class="text-[#64748B]">
+                                                    Advance rent <span class="text-[#94A3B8]" x-text="'(' + advanceMonthsLabel + ')'"></span>
+                                                </span>
+                                                <span class="text-[#1F2937] tabular-nums" x-text="peso(allocation.advance)"></span>
+                                            </div>
+                                            <div class="h-px bg-[#2AA7A1]/20 my-2"></div>
+                                            <div class="flex items-center justify-between gap-3">
+                                                <span class="font-semibold text-[#1F2937]">Total received</span>
+                                                <span class="font-bold text-[#1F2937] tabular-nums" x-text="peso(received)"></span>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+
+                                {{-- Short payments are warned about, never blocked: a
+                                     walk-in records what already happened offline, and
+                                     a landlord who cannot enter the truth enters a
+                                     convenient fiction instead. --}}
+                                <div x-show="isShort" x-cloak
+                                    class="mb-4 flex items-start gap-2.5 rounded-xl bg-[#FBBF24]/[0.08] border border-[#FBBF24]/25 px-3.5 py-3">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2"
+                                        class="shrink-0 mt-0.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                    </svg>
+                                    <p class="text-[12px] text-[#B45309] leading-relaxed">
+                                        Short by <strong x-text="peso(shortfall)"></strong> of the
+                                        <span x-text="peso(requiredMoveIn)"></span> move-in total. You can still record this —
+                                        <span x-text="monthLabel(0)"></span> will show the remaining balance until it is settled.
+                                    </p>
                                 </div>
 
                                 <div class="grid sm:grid-cols-3 gap-4">
@@ -536,7 +688,8 @@
                                         <label for="payment_method" class="{{ $labelClass }}">
                                             Method <span class="text-[#EF4444]">*</span>
                                         </label>
-                                        <x-styled-select name="payment_method" :options="$paymentMethodOptions"
+                                        <x-styled-select name="payment_method" x-model="paymentMethod"
+                                            :options="$paymentMethodOptions"
                                             :selected="old('payment_method', 'Cash')" class="{{ $inputClass }} bg-white" />
                                         @error('payment_method')
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
@@ -551,10 +704,16 @@
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <div>
-                                        <label for="reference_no" class="{{ $labelClass }}">Reference no.</label>
+                                    {{-- Cash has no reference to give. Hidden rather than
+                                         disabled, and the request nulls it server-side so
+                                         a value typed before switching to Cash can't be
+                                         stored against a payment that cannot have one. --}}
+                                    <div x-show="needsReference" x-cloak>
+                                        <label for="reference_no" class="{{ $labelClass }}">
+                                            Reference no. <span class="text-[#EF4444]">*</span>
+                                        </label>
                                         <input type="text" id="reference_no" name="reference_no" value="{{ old('reference_no') }}"
-                                            maxlength="255" placeholder="OR / GCash ref" class="{{ $inputClass }}">
+                                            maxlength="255" :placeholder="paymentMethod + ' ref no.'" class="{{ $inputClass }}">
                                         @error('reference_no')
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
                                         @enderror
@@ -563,7 +722,7 @@
 
                                 <p class="text-[11.5px] text-[#64748B] mt-4 leading-relaxed">
                                     Recorded as money you have already received — it is not held in escrow and nothing is released to
-                                    you by AbangananHub. Monthly rent is recorded later from the tenancy page.
+                                    you by AbangananHub. Later months' rent is recorded from the tenancy page.
                                 </p>
                             </div>
                         </x-card>
@@ -604,11 +763,31 @@
                                     <span class="font-semibold text-[#1F2937] text-right"
                                         x-text="'Day ' + effectiveDueDay + ' of each month'"></span>
                                 </div>
-                                <template x-if="hasPayment && parseFloat(initialAmount) > 0">
-                                    <div class="flex items-start justify-between gap-3">
-                                        <span class="text-[#64748B]">Collected now</span>
-                                        <span class="font-semibold text-[#1F2937] text-right"
-                                            x-text="peso(parseFloat(initialAmount))"></span>
+                                <template x-if="hasPayment && received > 0">
+                                    <div class="space-y-3.5">
+                                        <div class="h-px bg-[#E2E8F0]"></div>
+                                        <div class="flex items-start justify-between gap-3">
+                                            <span class="text-[#64748B]">Collected now</span>
+                                            <span class="font-semibold text-[#1F2937] text-right" x-text="peso(received)"></span>
+                                        </div>
+                                        <div class="pl-3 space-y-1.5 text-[12px] border-l-2 border-[#E2E8F0]">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <span class="text-[#94A3B8]">Rent — <span x-text="monthLabel(0)"></span></span>
+                                                <span class="text-[#64748B] tabular-nums" x-text="peso(allocation.rent)"></span>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-3">
+                                                <span class="text-[#94A3B8]">Security deposit</span>
+                                                <span class="text-[#64748B] tabular-nums" x-text="peso(allocation.deposit)"></span>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-3" x-show="allocation.advance > 0">
+                                                <span class="text-[#94A3B8]">Advance rent</span>
+                                                <span class="text-[#64748B] tabular-nums" x-text="peso(allocation.advance)"></span>
+                                            </div>
+                                        </div>
+                                        <p x-show="isShort" x-cloak class="text-[11.5px] text-[#B45309] leading-relaxed">
+                                            Short by <strong x-text="peso(shortfall)"></strong> — recorded anyway, with the balance
+                                            carried on <span x-text="monthLabel(0)"></span>.
+                                        </p>
                                     </div>
                                 </template>
                             </div>
