@@ -25,3 +25,9 @@ from plan to implementation.
 
 ## Git commits
 Author commits as the user only. Do not add a `Co-Authored-By: Claude` (or any AI) trailer.
+
+## Recommendations
+Optimize for the best actual outcome, not the least implementation effort. If the better option
+costs a bit more setup — a free API key signup, a little extra config — recommend that option and
+explain the tradeoff; don't quietly steer toward the easier-but-worse option just to avoid asking
+for that effort. Let Axcee weigh effort against result himself.

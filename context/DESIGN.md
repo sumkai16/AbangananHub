@@ -346,6 +346,31 @@ The occupancy page's right rail held a **donut** with a centre percentage and a 
 
 **Same trigger-then-reveal reasoning reapplied to the property wizard's Documents step** (Aug 2026, `landlord/properties/wizard/documents.blade.php`): first pass rendered all 7 `PropertyDocument::TYPES` as identical always-open upload boxes, so the 2 that are actually required (Proof of Ownership, Tax Declaration) carried no more visual weight than the 5 a landlord will usually never touch. Split instead: required types stay permanently visible with their own compact dropzone (see §7's single-click upload entry); the 5 optional types collapse behind one "Add another document" trigger that reveals an inline type-picker + upload form — a lighter, non-slide-over version of this section's panel since it already lives inside a wizard step's own content column, not a full management page.
 
+## 6n. Status colour is a claim about obligation, not about arithmetic (rent ledger, Aug 29 2026)
+
+The rent ledger's period pills (`landlord/tenancies/show`, `tenant/tenancy/show`) key off
+`RentLedger`'s per-period `status`, and every pill was chosen for a month that had already arrived:
+amber `Partial`, red `Overdue`, a red balance figure. Once advance rent landed, the ledger's window
+began reaching into **future** months — and every one of those signals inverted its meaning. A month
+someone paid for *early* rendered amber with a red balance, which reads as "this tenant is behind"
+about a month nobody has reached.
+
+- **Branch on `is_future` before choosing a colour or a verb.** Three separate surfaces got this
+  wrong in one pass — the pill, the balance figure's red, and the record-payment modal's
+  "₱1,000 left" — because each independently assumed a non-zero balance meant a debt.
+- Future periods use the teal family, never the amber/red tiers: fully covered is
+  `Paid · Advance` (`bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25`), part-covered is
+  `Advance · part` on the quieter `bg-[#F7FCFC]` ground. Both read as credit, which is what they are.
+- The same rule governs wording, not just colour: "₱1,000 left" became "₱1,000 of this month still
+  open", because the first phrasing is a demand and the second is a statement of fact.
+- **A default that lands on a future row is its own bug.** The record-payment modal fell back to
+  `$periods->last()`, which on a prepaid tenancy is the furthest *future* month — pre-selecting a
+  month already settled and inviting a duplicate payment against it. Any "most relevant row"
+  fallback on a ledger needs to exclude what hasn't happened yet.
+
+Generalises past rent: whenever a list gains rows that sit ahead of "now", re-check every colour,
+badge, default and sentence that was written when every row was in the past.
+
 ## 7. Components
 - Border radius default: `rounded-2xl` (standard), `rounded-3xl` (hero sections only)
 - Shadow style: `shadow-[0_1px_3px_rgba(15,23,42,0.06)]` on cards — a hairline lift, not a drop shadow. `shadow-lg` is reserved for floating UI (dropdowns, modals, tooltips) that must read as detached from the page. Property cards use the image-is-the-card pattern (no shadow wrapper).
