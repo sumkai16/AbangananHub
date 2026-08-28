@@ -59,7 +59,10 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
   - face-api.js / TensorFlow.js (liveness detection in verification wizard)
   - Laravel Reverb (WebSockets for real-time chat)
   - Mailtrap (development email sandbox — password reset and landlord verification emails)
-  - Leaflet.js + OpenStreetMap + OSRM + Overpass + Nominatim (maps)
+  - Leaflet.js + OpenStreetMap + OSRM + Overpass + Nominatim (maps). Default basemap tiles are
+    CartoDB Voyager, which requires a free `CARTO_API_KEY` as of Aug 2026 (see
+    `context/ARCHITECTURE.md`'s decision log) — without it every map shows an "API key required"
+    watermark instead of tiles.
 
 ## 6. Success Metrics
 - Metric: All 13+ modules functional and demonstrable in panel defense
