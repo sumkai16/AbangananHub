@@ -996,6 +996,20 @@
             let ticking = false;
 
             function applyScrollState() {
+                // The compact pill's layout (logo + pill + auth buttons all in one
+                // row) was never designed for mobile widths — squeezing it in there
+                // is what reads as messy. Below `lg` the full search bar just stays
+                // put; only desktop gets the Airbnb-style collapse-on-scroll.
+                if (window.innerWidth < 1024) {
+                    expanded.style.maxHeight = '';
+                    expanded.style.opacity = '';
+                    expanded.style.pointerEvents = '';
+                    collapsed.classList.add('hidden');
+                    header.classList.remove('is-scrolled');
+                    ticking = false;
+                    return;
+                }
+
                 const scrolled = window.scrollY > SCROLL_THRESHOLD;
 
                 if (scrolled) {
@@ -1044,6 +1058,10 @@
                     ticking = true;
                 }
             }, { passive: true });
+
+            // Rotating a phone or resizing across the `lg` breakpoint should
+            // re-evaluate immediately, not wait for the next scroll event.
+            window.addEventListener('resize', applyScrollState);
 
             // Run once on load in case page is restored mid-scroll
             applyScrollState();

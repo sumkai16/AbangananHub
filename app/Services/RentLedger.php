@@ -189,6 +189,80 @@ class RentLedger
             ->values();
     }
 
+    /**
+     * The period matching the current calendar month, or null if this
+     * tenancy's billing window doesn't reach it — a tenancy that hasn't
+     * started yet, or a Completed one that already ended in an earlier
+     * month, has nothing to say about "this month".
+     */
+    public function currentPeriod(): ?array
+    {
+        $thisMonth = now()->startOfMonth();
+
+        return $this->periods()->first(fn ($p) => $p['period']->isSameMonth($thisMonth));
+    }
+
+    /**
+     * The next date this tenancy owes something, whether or not that period
+     * already exists in periods(). A tenant paid through January has no
+     * unpaid period in the ledger yet — nothing has generated one — so this
+     * derives February's due date using the same due-day rule the ledger
+     * itself uses, rather than leaving a paid-ahead tenant looking like
+     * nothing is ever due again.
+     */
+    public function nextDueDate(): ?Carbon
+    {
+        $summary = $this->summary();
+
+        if ($summary['oldestOverdue']) {
+            return $summary['oldestOverdue']['due_on'];
+        }
+
+        if ($summary['nextDue']) {
+            return $summary['nextDue']['due_on'];
+        }
+
+        if ($summary['prepaidThrough']) {
+            return $summary['prepaidThrough']->copy()->addMonthNoOverflow()->day($this->reservation->rentDueDay());
+        }
+
+        return null;
+    }
+
+    /**
+     * One label for the whole tenancy — Overdue, Partial, Upcoming, Paid
+     * Ahead or Paid — for the portfolio table and anywhere else a single
+     * word needs to describe where a tenancy stands. An overdue month
+     * anywhere in its history outranks everything else, matching the order
+     * a landlord actually wants to work through the list in.
+     */
+    public function statusLabel(): string
+    {
+        $summary = $this->summary();
+        $current = $this->currentPeriod();
+
+        if ($summary['overdueCount'] > 0) {
+            return 'Overdue';
+        }
+
+        if ($current) {
+            return match ($current['status']) {
+                'partial' => 'Partial',
+                'due'     => 'Upcoming',
+                default   => $summary['prepaidCount'] > 0 ? 'Paid Ahead' : 'Paid',
+            };
+        }
+
+        // No current-month period in the ledger: the tenancy hasn't started
+        // billing yet, or it already ended (Completed) before this month —
+        // anything it left unpaid was already caught by overdueCount above.
+        if ($summary['prepaidCount'] > 0) {
+            return 'Paid Ahead';
+        }
+
+        return $summary['periodCount'] > 0 ? 'Paid' : 'Upcoming';
+    }
+
     // ─── Internals ───────────────────────────────────────────
 
     /**

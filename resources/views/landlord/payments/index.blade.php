@@ -4,24 +4,29 @@
 
 @section('content')
     @php
-        $standingStyles = [
-            'overdue' => ['pill' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25', 'label' => 'Behind'],
-            'due' => ['pill' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35', 'label' => 'Due'],
-            'settled' => ['pill' => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25', 'label' => 'Up to date'],
+        $statusStyles = [
+            'Overdue'    => ['pill' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25', 'label' => 'Overdue'],
+            'Partial'    => ['pill' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35', 'label' => 'Partial'],
+            'Upcoming'   => ['pill' => 'bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25', 'label' => 'Upcoming'],
+            'Paid'       => ['pill' => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25', 'label' => 'Paid'],
+            'Paid Ahead' => ['pill' => 'bg-[#8B5CF6]/[0.10] text-[#6D28D9] border-[#8B5CF6]/30', 'label' => 'Paid Ahead'],
         ];
 
         $filters = [
-            'all' => 'All tenancies',
-            'overdue' => 'Behind on rent',
-            'due' => 'Due this month',
-            'settled' => 'Up to date',
+            'all' => 'All Payment Status',
+            'overdue' => 'Overdue',
+            'partial' => 'Partial',
+            'upcoming' => 'Upcoming',
+            'paid' => 'Paid',
+            'paid_ahead' => 'Paid Ahead',
+            'due_this_month' => 'Due This Month',
         ];
     @endphp
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
-        <x-page-header title="Rent & Payments" subtitle="Rent collection across every occupied unit, worst standing first.">
+        <x-page-header title="Rent & Payments" subtitle="Rent collection across all occupied units, with the most urgent payments shown first.">
             <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -42,8 +47,17 @@
 
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            <x-stat-card label="Collected" :value="'₱' . number_format($totals['collected'], 2)" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
-                sub="All time, this portfolio">
+            <x-stat-card label="Due This Month" :value="'₱' . number_format($totals['dueThisMonth'], 2)" value-color="#1F2937" icon-bg="#EEF8F8"
+                :sub="$totals['paymentsDueThisMonth'] . ' ' . \Illuminate\Support\Str::plural('payment', $totals['paymentsDueThisMonth']) . ' due'">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="Collected This Month" :value="'₱' . number_format($totals['collectedThisMonth'], 2)" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
+                :sub="$totals['collectedThisMonthPct'] === null ? 'No dues this month' : $totals['collectedThisMonthPct'] . '% collected'">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
@@ -52,7 +66,7 @@
             </x-stat-card>
 
             <x-stat-card label="Outstanding" :value="'₱' . number_format($totals['outstanding'], 2)" value-color="#1F2937" icon-bg="#EEF8F8"
-                sub="Unpaid rent to date">
+                :sub="$totals['outstandingCount'] . ' unpaid/partial'">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -64,21 +78,10 @@
             <x-stat-card label="Overdue" :value="'₱' . number_format($totals['overdue'], 2)"
                 :value-color="$totals['overdue'] > 0 ? '#DC2626' : '#1F2937'"
                 :icon-bg="$totals['overdue'] > 0 ? 'rgba(239,68,68,0.07)' : '#EEF8F8'"
-                sub="Past its due date">
+                :sub="$totals['overdueTenancies'] . ' ' . \Illuminate\Support\Str::plural('tenancy', $totals['overdueTenancies']) . ' overdue'">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $totals['overdue'] > 0 ? '#DC2626' : '#B45309' }}" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Behind" :value="$totals['behind']"
-                :value-color="$totals['behind'] > 0 ? '#DC2626' : '#1F2937'"
-                :icon-bg="$totals['behind'] > 0 ? 'rgba(239,68,68,0.07)' : '#EEF8F8'"
-                sub="Tenancies needing a nudge">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $totals['behind'] > 0 ? '#DC2626' : '#1F2937' }}" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                     </svg>
                 </x-slot:icon>
             </x-stat-card>
@@ -112,7 +115,7 @@
                     </div>
 
                     <div>
-                        <label for="filter-status" class="sr-only">Filter by standing</label>
+                        <label for="filter-status" class="sr-only">Filter by payment status</label>
                         <x-styled-select name="status" id="filter-status" :options="$filters" :selected="$statusFilter"
                             class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
                     </div>
@@ -173,16 +176,19 @@
                                     Unit</th>
                                 <th scope="col"
                                     class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
-                                    Rent</th>
+                                    Monthly Rent</th>
+                                <th scope="col"
+                                    class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide whitespace-nowrap">
+                                    Due Date</th>
                                 <th scope="col"
                                     class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
-                                    Collected</th>
+                                    Paid</th>
                                 <th scope="col"
                                     class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
-                                    Outstanding</th>
+                                    Balance</th>
                                 <th scope="col"
                                     class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
-                                    Standing</th>
+                                    Status</th>
                                 <th scope="col"
                                     class="px-5 sm:px-6 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
                                     <span class="sr-only">Actions</span>
@@ -195,7 +201,7 @@
                                     $reservation = $row['reservation'];
                                     $summary = $row['summary'];
                                     $tenant = $reservation->tenant;
-                                    $style = $standingStyles[$row['standing']];
+                                    $style = $statusStyles[$row['status']];
                                     $initials = strtoupper(substr($tenant->first_name ?? '', 0, 1) . substr($tenant->last_name ?? '', 0, 1));
                                 @endphp
                                 <tr class="hover:bg-[#F7FCFC] transition-colors duration-150">
@@ -238,12 +244,15 @@
                                     <td class="px-4 py-4 text-[13px] text-[#64748B] text-right whitespace-nowrap">
                                         ₱{{ number_format($summary['monthlyRent'], 2) }}
                                     </td>
+                                    <td class="px-4 py-4 text-[13px] text-[#64748B] whitespace-nowrap">
+                                        {{ $row['dueDate']?->format('M j, Y') ?? '—' }}
+                                    </td>
                                     <td class="px-4 py-4 text-[13px] font-semibold text-[#15803D] text-right whitespace-nowrap">
-                                        ₱{{ number_format($summary['collected'], 2) }}
+                                        ₱{{ number_format($row['paid'], 2) }}
                                     </td>
                                     <td
-                                        class="px-4 py-4 text-[13px] text-right whitespace-nowrap {{ $summary['outstanding'] > 0 ? 'font-semibold text-[#DC2626]' : 'text-[#64748B]' }}">
-                                        ₱{{ number_format($summary['outstanding'], 2) }}
+                                        class="px-4 py-4 text-[13px] text-right whitespace-nowrap {{ $row['balance'] > 0 ? 'font-semibold text-[#DC2626]' : 'text-[#64748B]' }}">
+                                        ₱{{ number_format(max(0, $row['balance']), 2) }}
                                     </td>
                                     <td class="px-4 py-4">
                                         <span
@@ -254,6 +263,10 @@
                                             <p class="text-[11px] text-[#DC2626] mt-1">
                                                 {{ $summary['overdueCount'] }}
                                                 {{ \Illuminate\Support\Str::plural('month', $summary['overdueCount']) }} behind
+                                            </p>
+                                        @elseif($row['status'] === 'Paid Ahead' && $summary['prepaidThrough'])
+                                            <p class="text-[11px] text-[#6D28D9] mt-1">
+                                                Paid through {{ $summary['prepaidThrough']->format('M Y') }}
                                             </p>
                                         @endif
                                     </td>

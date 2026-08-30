@@ -38,13 +38,28 @@ class TenancyController extends Controller
 
         $ledger = RentLedger::for($reservation);
 
+        // Every payment this tenancy has, not just the non-monthly ones —
+        // "what was actually paid, when" is a different question from the
+        // billing schedule above it, and a landlord asking "did I already
+        // record that GCash payment" needs the whole history, not half of it.
+        $transactions = $reservation->payments
+            ->sortByDesc(fn ($payment) => $payment->paid_at ?? $payment->created_at)
+            ->map(fn ($payment) => [
+                'payment'    => $payment,
+                'applied_to' => $payment->payment_type === 'Monthly' && $payment->billing_period
+                    ? $payment->billing_period->format('F Y') . ' Rent'
+                    : $payment->payment_type,
+            ])
+            ->values();
+
         return view('landlord.tenancies.show', [
             'reservation'      => $reservation,
             'ledger'           => $ledger,
             'periods'          => $ledger->periods(),
-            'otherCharges'     => $ledger->otherCharges(),
             'summary'          => $ledger->summary(),
             'unsettledPeriods' => $ledger->unsettledPeriods(),
+            'transactions'     => $transactions,
+            'nextDueDate'      => $ledger->nextDueDate(),
         ]);
     }
 

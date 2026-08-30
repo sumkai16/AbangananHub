@@ -313,7 +313,7 @@
                             </div>
                             <div>
                                 <h2 class="text-[13px] font-bold text-[#1F2937]">Unit Photos <span class="text-[#EF4444]">*</span></h2>
-                                <p class="text-[11px] text-[#64748B] mt-0.5">Capture at least 3 live photos at the unit. Uploads are optional extras.</p>
+                                <p class="text-[11px] text-[#64748B] mt-0.5">Add at least 3 photos of the unit — live captures or uploads, either counts.</p>
                             </div>
                         </div>
 
@@ -322,7 +322,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                             </svg>
                             <p class="text-[12px] text-[#1F2937]/70 leading-relaxed">
-                                Live photos prove the unit is real and current. A minimum of <strong>3 live captures</strong> is required — uploaded photos count as extras. Up to 10 photos total. You can add an optional caption to each.
+                                A minimum of <strong>3 photos</strong> is required — live captures and uploads both count toward it. Up to 10 photos total. You can add an optional caption to each.
                             </p>
                         </div>
 
@@ -385,17 +385,16 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
                                 </svg>
                                 <p class="text-[13px] font-semibold text-[#1F2937]">Click to select photos</p>
-                                <p class="text-[11.5px] text-[#64748B] mt-0.5">JPEG, PNG or WEBP — extras beyond your 3 live photos</p>
+                                <p class="text-[11.5px] text-[#64748B] mt-0.5">JPEG, PNG or WEBP — counts toward your 3-photo minimum</p>
                                 <input type="file" id="upload-input" multiple accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Select additional unit photos">
                             </div>
                         </div>
 
-                        {{-- Live counter --}}
+                        {{-- Photo counter --}}
                         <div class="mt-4 flex items-center gap-2 text-[12px]">
                             <span id="live-count-badge" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold bg-[#FBBF24]/[0.10] text-[#B45309] border border-[#FBBF24]/35">
-                                <span id="live-count">0</span> / 3 live photos
+                                <span id="live-count">0</span> / 3 photos
                             </span>
-                            <span id="total-count" class="text-[#64748B]">0 total</span>
                         </div>
 
                         {{-- Hidden aggregated file input for submission --}}
@@ -567,13 +566,12 @@
     <script>
         (function () {
             const MAX_PHOTOS = 10;
-            const MIN_LIVE = 3;
+            const MIN_PHOTOS = 3;
 
             const photoInput = document.getElementById('photo-input');
             const gallery = document.getElementById('photo-gallery');
             const limitMsg = document.getElementById('photo-limit-msg');
             const liveCountEl = document.getElementById('live-count');
-            const totalCountEl = document.getElementById('total-count');
             const liveBadge = document.getElementById('live-count-badge');
 
             // Upload
@@ -662,10 +660,11 @@
             }
 
             function updateCounters() {
-                const live = photos.filter(p => p.source === 'camera').length;
-                liveCountEl.textContent = live;
-                totalCountEl.textContent = photos.length + ' total';
-                const ok = live >= MIN_LIVE;
+                // Uploads count toward the same minimum as live captures — a
+                // landlord without camera access shouldn't be blocked from
+                // saving a unit just for lacking one.
+                liveCountEl.textContent = photos.length;
+                const ok = photos.length >= MIN_PHOTOS;
                 liveBadge.className = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold border '
                     + (ok ? 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25' : 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35');
             }

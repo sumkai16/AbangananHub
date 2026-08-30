@@ -109,8 +109,8 @@
         </div>
 
         {{-- Filters --}}
-        <x-card flush class="mb-6">
-        <form method="GET" class="p-4">
+        <x-card class="mb-6">
+        <form method="GET">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"

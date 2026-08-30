@@ -64,13 +64,6 @@ class UnitWriteController extends Controller
             ]);
         }
 
-        $liveCount = collect($sources)->filter(fn ($s) => $s === 'camera')->count();
-        if ($liveCount < 3) {
-            throw ValidationException::withMessages([
-                'photos' => ['At least 3 live (camera-captured) photos are required. Uploaded photos count as extras.'],
-            ]);
-        }
-
         $unit = DB::transaction(function () use ($validated, $property, $photos, $sources, $captions, $request) {
             $unit = $property->units()->create([
                 'unit_label'          => $validated['unit_label'],

@@ -46,8 +46,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
             <div class="min-w-0">
                 {{-- Filter bar --}}
-                <x-card flush class="mb-6">
-                <form method="GET" action="{{ route('landlord.reviews.index') }}" class="p-4">
+                <x-card class="mb-6">
+                <form method="GET" action="{{ route('landlord.reviews.index') }}">
                     <div class="flex flex-wrap items-center gap-2.5">
                         @php
                             $reviewsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();

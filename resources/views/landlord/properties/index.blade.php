@@ -30,8 +30,8 @@
         </div>
 
         {{-- Filter toolbar --}}
-        <x-card flush class="mb-8">
-        <form method="GET" action="{{ route('landlord.properties.index') }}" class="p-4">
+        <x-card class="mb-8">
+        <form method="GET" action="{{ route('landlord.properties.index') }}">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
                 <div class="relative flex-1 min-w-[200px]">
