@@ -31,3 +31,11 @@ Optimize for the best actual outcome, not the least implementation effort. If th
 costs a bit more setup — a free API key signup, a little extra config — recommend that option and
 explain the tradeoff; don't quietly steer toward the easier-but-worse option just to avoid asking
 for that effort. Let Axcee weigh effort against result himself.
+
+## Explaining things
+Write for a reader who is skimming, not studying. Plain words over jargon, short sentences, and
+the answer first — then the reasoning if it is still needed. Prefer a table or a numbered list
+over a paragraph whenever the content is a set of items. Name the concrete file, column or number
+instead of describing it abstractly. If a term is unavoidable (escrow, allocation, derived
+period), define it once in a half-sentence the first time it appears. Never pad with restatement,
+hedging, or a recap of what was just said.
