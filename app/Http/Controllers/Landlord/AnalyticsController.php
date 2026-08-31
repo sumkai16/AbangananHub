@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\OccupancyActivity;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\PropertyUnit;
@@ -130,6 +131,52 @@ class AnalyticsController extends Controller
             ['label' => 'Rejected',    'count' => (int) ($statusCounts['Rejected'] ?? 0),  'color' => '#EF4444'],
         ];
 
+        // ── Vacancy Watch (point-in-time, not range-filtered) ──
+        // Moved here when landlord/occupancy was deleted: it duplicated this
+        // page's occupancy numbers, but nothing here answered "which empty
+        // units are costing me money, and how much". No extra query — $units
+        // is already loaded in full above.
+        $vacantUnits = $units->where('availability_status', 'Available')->values();
+
+        // A unit that has never been let has no vacated_at, so it has been empty
+        // since it was created — a longer, more urgent vacancy than a recently
+        // ended tenancy, not an absent one.
+        $vacancy = [
+            'count'     => $vacantUnits->count(),
+            'idle_rent' => (float) $vacantUnits->sum('rental_fee'),
+            'units'     => $vacantUnits
+                ->map(function (PropertyUnit $unit) use ($properties) {
+                    $since = $unit->vacated_at ?? $unit->created_at;
+
+                    return [
+                        'label'     => $unit->unit_label,
+                        'property'  => $properties->firstWhere('property_id', $unit->property_id)?->title,
+                        'days'      => $since ? (int) $since->startOfDay()->diffInDays(now()->startOfDay()) : null,
+                        'rent'      => (float) $unit->rental_fee,
+                        'never_let' => $unit->vacated_at === null,
+                        'edit_url'  => route('landlord.properties.units.edit', [$unit->property_id, $unit->unit_id]),
+                    ];
+                })
+                ->sortByDesc('days')
+                ->take(5)
+                ->values(),
+        ];
+
+        // ── Recent Activity (point-in-time) ──────────────────
+        // The only web reader of occupancy_activities. Without it that table
+        // would be write-only, which is a state this codebase already carries
+        // once (occupancy_snapshots) and should not carry twice by accident.
+        $recentActivities = OccupancyActivity::with([
+            'unit:unit_id,unit_label',
+            'property:property_id,title',
+            'actor:user_id,first_name,last_name',
+            'tenant:user_id,first_name,last_name',
+        ])
+            ->where('landlord_id', $landlordId)
+            ->latest('activity_id')
+            ->limit(8)
+            ->get();
+
         return view('landlord.analytics.index', [
             'from'                 => $from,
             'to'                   => $to,
@@ -141,6 +188,8 @@ class AnalyticsController extends Controller
             'topSlices'            => $topSlices,
             'othersTotal'          => $othersTotal,
             'reservationBreakdown' => $reservationBreakdown,
+            'vacancy'              => $vacancy,
+            'recentActivities'     => $recentActivities,
         ]);
     }
 

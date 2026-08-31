@@ -557,7 +557,7 @@
                         <ul class="space-y-3 text-[13.5px]">
                             <li><a href="{{ route('landlord.verification.create') }}" class="text-white/60 hover:text-white transition-colors">Become a Landlord</a></li>
                             <li><a href="{{ route('landlord.dashboard') }}" class="text-white/60 hover:text-white transition-colors">Landlord Dashboard</a></li>
-                            <li><a href="{{ route('landlord.occupancy.index') }}" class="text-white/60 hover:text-white transition-colors">Occupancy Monitoring</a></li>
+                            <li><a href="{{ route('landlord.analytics.index') }}" class="text-white/60 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
                         </ul>
                     </div>
                 @endauth

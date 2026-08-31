@@ -13,7 +13,9 @@ Artisan::command('inspire', function () {
 // snapshot so units it marks Occupied are counted the same night.
 Schedule::command('reservations:process-move-in-deadlines')->dailyAt('23:00');
 
-// Daily occupancy snapshot — feeds the occupancy trend chart.
+// Daily occupancy snapshot. Deliberately has no reader: the trend chart it fed
+// was removed in July 2026, but occupancy history cannot be reconstructed after
+// the fact, so the write continues to keep that option open (see ARCHITECTURE.md).
 // Runs via cron/Supervisor on the VPS; locally use `php artisan schedule:work`.
 Schedule::command('occupancy:snapshot')->dailyAt('23:55');
 

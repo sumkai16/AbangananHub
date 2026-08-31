@@ -57,12 +57,21 @@ class UnitIndexController extends Controller
             ->orderBy('title')
             ->get(['property_id', 'title']);
 
+        // One grouped aggregate instead of a COUNT per status: the whereHas
+        // subquery is the expensive part, and this pays for it once.
+        $counts = PropertyUnit::whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
+            ->selectRaw('availability_status, count(*) as aggregate')
+            ->groupBy('availability_status')
+            ->pluck('aggregate', 'availability_status');
+
         $stats = [
-            'total'     => PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))->count(),
-            'available' => PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))->where('availability_status', 'Available')->count(),
-            'occupied'  => PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))->where('availability_status', 'Occupied')->count(),
-            'reserved'  => PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))->where('availability_status', 'Reserved')->count(),
+            'total'       => (int) $counts->sum(),
+            'available'   => (int) $counts->get('Available', 0),
+            'occupied'    => (int) $counts->get('Occupied', 0),
+            'reserved'    => (int) $counts->get('Reserved', 0),
+            'maintenance' => (int) $counts->get('Maintenance', 0),
         ];
+
         return view('landlord.units.all', compact('units', 'properties', 'stats'));
     }
 
