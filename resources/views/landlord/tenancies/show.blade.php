@@ -250,25 +250,32 @@
                      RentPaymentAllocator appears here as the several
                      transactions it was, each with its own reference. --}}
                 @if($monthlyTransactions->isNotEmpty())
-                    <x-card flush>
+                    {{-- Capped to the 6 most recent so a long-running tenancy doesn't
+                         push everything below it off-screen — same "View all (N)"
+                         expand pattern as the unit picker on properties/show. --}}
+                    <x-card flush x-data="{ moreRows: false }">
                         <div class="px-5 sm:px-6 py-4 border-b border-[#E2E8F0]">
                             <h2 class="text-[15px] font-bold text-[#1F2937]">Rent payments</h2>
                             <p class="text-[12px] text-[#64748B] mt-0.5">Every rent transaction received, most recent first.</p>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full min-w-[640px]">
+                            <table class="w-full min-w-[760px]">
                                 <thead class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
                                     <tr>
                                         <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Date</th>
                                         <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reference</th>
                                         <th scope="col" class="px-4 py-3 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Amount</th>
                                         <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Method</th>
-                                        <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Applied to</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Applied to</th>
+                                        <th scope="col" class="px-5 sm:px-6 py-3 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                                            <span class="sr-only">Actions</span>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#E2E8F0]">
                                     @foreach($monthlyTransactions as $txn)
-                                        <tr class="hover:bg-[#F7FCFC] transition-colors duration-150">
+                                        <tr class="hover:bg-[#F7FCFC] transition-colors duration-150"
+                                            @if($loop->index >= 6) x-show="moreRows" x-cloak @endif>
                                             <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#1F2937] whitespace-nowrap">
                                                 {{ optional($txn->paid_at)->format('M d, Y') ?? '—' }}
                                             </td>
@@ -277,38 +284,64 @@
                                                 ₱{{ number_format((float) $txn->amount, 2) }}
                                             </td>
                                             <td class="px-4 py-3.5 text-[13px] text-[#64748B]">{{ $txn->payment_method }}</td>
-                                            <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#1F2937] whitespace-nowrap">
+                                            <td class="px-4 py-3.5 text-[13px] text-[#1F2937] whitespace-nowrap">
                                                 {{ optional($txn->billing_period)->format('M Y') ?? '—' }} Rent
+                                            </td>
+                                            <td class="px-5 sm:px-6 py-3.5 text-right whitespace-nowrap">
+                                                @if($txn->canBeVoided())
+                                                    <button type="button"
+                                                        @click="$dispatch('open-void-payment', {
+                                                            id: {{ $txn->payment_id }},
+                                                            action: @js(route('landlord.payments.void', $txn)),
+                                                            amount: {{ (float) $txn->amount }},
+                                                            label: @js((optional($txn->billing_period)->format('M Y') ?? '') . ' rent, recorded ' . (optional($txn->paid_at)->format('M d, Y') ?? ''))
+                                                        })"
+                                                        class="text-[12.5px] font-semibold text-[#64748B] hover:text-[#DC2626] transition-colors duration-200 cursor-pointer">
+                                                        Void
+                                                    </button>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
+                        @if($monthlyTransactions->count() > 6)
+                            <div class="px-5 sm:px-6 py-3 border-t border-[#E2E8F0]">
+                                <button type="button" x-show="!moreRows" x-on:click="moreRows = true"
+                                    class="text-[12.5px] font-semibold text-[#156F8C] hover:underline cursor-pointer">
+                                    Show all {{ $monthlyTransactions->count() }} transactions
+                                </button>
+                            </div>
+                        @endif
                     </x-card>
                 @endif
 
                 {{-- Other charges --}}
                 @if($otherCharges->isNotEmpty())
-                    <x-card flush>
+                    <x-card flush x-data="{ moreRows: false }">
                         <div class="px-5 sm:px-6 py-4 border-b border-[#E2E8F0]">
                             <h2 class="text-[15px] font-bold text-[#1F2937]">Deposits &amp; other payments</h2>
                             <p class="text-[12px] text-[#64748B] mt-0.5">Money outside the monthly rent cycle.</p>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full min-w-[600px]">
+                            <table class="w-full min-w-[720px]">
                                 <thead class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
                                     <tr>
                                         <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Date</th>
                                         <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Type</th>
                                         <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Method</th>
                                         <th scope="col" class="px-4 py-3 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Amount</th>
-                                        <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Source</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Source</th>
+                                        <th scope="col" class="px-5 sm:px-6 py-3 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                                            <span class="sr-only">Actions</span>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#E2E8F0]">
                                     @foreach($otherCharges as $charge)
-                                        <tr class="hover:bg-[#F7FCFC] transition-colors duration-150">
+                                        <tr class="hover:bg-[#F7FCFC] transition-colors duration-150"
+                                            @if($loop->index >= 6) x-show="moreRows" x-cloak @endif>
                                             <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#1F2937] whitespace-nowrap">
                                                 {{ optional($charge->paid_at)->format('M d, Y') ?? '—' }}
                                             </td>
@@ -317,7 +350,7 @@
                                             <td class="px-4 py-3.5 text-[13px] font-semibold text-[#1F2937] text-right whitespace-nowrap">
                                                 ₱{{ number_format((float) $charge->amount, 2) }}
                                             </td>
-                                            <td class="px-5 sm:px-6 py-3.5">
+                                            <td class="px-4 py-3.5">
                                                 @if($charge->isManuallyRecorded())
                                                     <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#E2E8F0] bg-[#F7FCFC] text-[#64748B] text-[11px] font-bold">
                                                         Recorded by you
@@ -328,11 +361,104 @@
                                                     </span>
                                                 @endif
                                             </td>
+                                            <td class="px-5 sm:px-6 py-3.5 text-right whitespace-nowrap">
+                                                @if($charge->canBeVoided())
+                                                    <button type="button"
+                                                        @click="$dispatch('open-void-payment', {
+                                                            id: {{ $charge->payment_id }},
+                                                            action: @js(route('landlord.payments.void', $charge)),
+                                                            amount: {{ (float) $charge->amount }},
+                                                            label: @js($charge->payment_type . ', recorded ' . (optional($charge->paid_at)->format('M d, Y') ?? ''))
+                                                        })"
+                                                        class="text-[12.5px] font-semibold text-[#64748B] hover:text-[#DC2626] transition-colors duration-200 cursor-pointer">
+                                                        Void
+                                                    </button>
+                                                @endif
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
+                        @if($otherCharges->count() > 6)
+                            <div class="px-5 sm:px-6 py-3 border-t border-[#E2E8F0]">
+                                <button type="button" x-show="!moreRows" x-on:click="moreRows = true"
+                                    class="text-[12.5px] font-semibold text-[#156F8C] hover:underline cursor-pointer">
+                                    Show all {{ $otherCharges->count() }} transactions
+                                </button>
+                            </div>
+                        @endif
+                    </x-card>
+                @endif
+
+                {{-- Voided entries — kept on the page deliberately: a voided
+                     entry is removed from the arithmetic, never from the record. --}}
+                @if($voidedTransactions->isNotEmpty())
+                    <x-card flush x-data="{ moreRows: false }">
+                        <div class="px-5 sm:px-6 py-4 border-b border-[#E2E8F0]">
+                            <h2 class="text-[15px] font-bold text-[#1F2937]">Voided entries</h2>
+                            <p class="text-[12px] text-[#64748B] mt-0.5">Corrections made to this ledger. These do not count toward anything.</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[720px]">
+                                <thead class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
+                                    <tr>
+                                        <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Date</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reference</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Amount</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Applied to</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reason</th>
+                                        <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Voided</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#E2E8F0]">
+                                    @foreach($voidedTransactions as $voided)
+                                        <tr @if($loop->index >= 6) x-show="moreRows" x-cloak @endif>
+                                            <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#64748B] whitespace-nowrap">
+                                                {{ optional($voided->paid_at)->format('M d, Y') ?? '—' }}
+                                            </td>
+                                            <td class="px-4 py-3.5 text-[13px] text-[#94A3B8]">{{ $voided->reference_no ?: '—' }}</td>
+                                            <td class="px-4 py-3.5 text-[13px] font-semibold text-[#94A3B8] text-right whitespace-nowrap line-through">
+                                                ₱{{ number_format((float) $voided->amount, 2) }}
+                                            </td>
+                                            <td class="px-4 py-3.5 text-[13px] text-[#64748B] whitespace-nowrap">
+                                                {{ $voided->payment_type === 'Monthly' ? (optional($voided->billing_period)->format('M Y') . ' Rent') : $voided->payment_type }}
+                                            </td>
+                                            <td class="px-4 py-3.5">
+                                                <p class="text-[13px] text-[#1F2937]">{{ $voided->voidReasonLabel() }}</p>
+                                                @if($voided->void_note)
+                                                    <p class="text-[11px] text-[#94A3B8] mt-0.5">{{ $voided->void_note }}</p>
+                                                @endif
+                                                @if($voided->replacements->isNotEmpty())
+                                                    <span class="inline-flex items-center h-5 px-2 mt-1 rounded-full border border-[#2AA7A1]/25 bg-[#EEF8F8] text-[#156F8C] text-[10px] font-bold">
+                                                        Corrected
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="px-5 sm:px-6 py-3.5">
+                                                <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#E2E8F0] bg-[#F7FCFC] text-[#64748B] text-[11px] font-bold">
+                                                    Voided
+                                                </span>
+                                                <p class="text-[11px] text-[#94A3B8] mt-1 whitespace-nowrap">
+                                                    {{ optional($voided->voided_at)->format('M d, Y') }}
+                                                    @if($voided->voider)
+                                                        by {{ $voided->voider->first_name }}
+                                                    @endif
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        @if($voidedTransactions->count() > 6)
+                            <div class="px-5 sm:px-6 py-3 border-t border-[#E2E8F0]">
+                                <button type="button" x-show="!moreRows" x-on:click="moreRows = true"
+                                    class="text-[12.5px] font-semibold text-[#156F8C] hover:underline cursor-pointer">
+                                    Show all {{ $voidedTransactions->count() }} voided entries
+                                </button>
+                            </div>
+                        @endif
                     </x-card>
                 @endif
             </div>
@@ -460,6 +586,11 @@
     @if($isActive)
         @include('landlord.tenancies.partials.record-payment-modal')
     @endif
+
+    {{-- Void payment modal — unlike the record-payment modal above, this is
+         NOT gated on $isActive: voiding a wrong entry on an ended tenancy is
+         still fixing a wrong financial record (ReservationPolicy::voidPayment). --}}
+    @include('landlord.tenancies.partials.void-payment-modal')
 
     <script src="{{ asset('js/date-picker.js') }}"></script>
 

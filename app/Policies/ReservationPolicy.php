@@ -97,14 +97,26 @@ class ReservationPolicy
     }
 
     /**
-     * Recording a payment writes a money row that nothing in the app can
-     * reverse, so it is owner-only and refuses once the tenancy is over —
-     * a closed ledger should not gain new entries.
+     * Recording a payment writes a money row that only a void can undo,
+     * never a delete, so it is owner-only and refuses once the tenancy is
+     * over — a closed ledger should not gain new entries.
      */
     public function recordPayment(User $user, Reservation $reservation): bool
     {
         return $this->viewTenancy($user, $reservation)
             && $reservation->rental_status === 'Occupied';
+    }
+
+    /**
+     * Voiding removes a wrong entry rather than adding a new one, so —
+     * unlike recordPayment — it is deliberately NOT restricted to
+     * 'Occupied'. A wrong figure in a closed ledger is still a wrong
+     * financial record, and the landlord who owns the property is the only
+     * person who can say so.
+     */
+    public function voidPayment(User $user, Reservation $reservation): bool
+    {
+        return $this->viewTenancy($user, $reservation);
     }
 
     /**

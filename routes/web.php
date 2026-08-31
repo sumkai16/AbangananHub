@@ -202,6 +202,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/payments/export', [App\Http\Controllers\Landlord\PaymentController::class, 'export'])->name('payments.export');
         Route::post('/tenancies/{reservation}/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/{payment}/receipt', [App\Http\Controllers\Landlord\PaymentController::class, 'receipt'])->name('payments.receipt');
+        // Strikes a recorded payment from the ledger without deleting it — POST,
+        // not DELETE, since nothing is removed. See context/RULES.md → Money-Moving Code.
+        Route::post('/payments/{payment}/void', [App\Http\Controllers\Landlord\PaymentController::class, 'void'])->name('payments.void');
 
         // A landlord's own view of what AbangananHub owes them and has paid
         // out. See docs/specs/2026-07-26-landlord-payout-design.md.

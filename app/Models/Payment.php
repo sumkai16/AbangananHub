@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends Model
 {
@@ -30,6 +31,11 @@ class Payment extends Model
     'recorded_by',
     'reference_no',
     'payment_notes',
+    'voided_at',
+    'voided_by',
+    'void_reason',
+    'void_note',
+    'replaces_payment_id',
 ];
 
     protected $casts = [
@@ -38,6 +44,17 @@ class Payment extends Model
         'amount' => 'decimal:2',
         'released_at' => 'datetime',
         'paid_out_at' => 'datetime',
+        'voided_at' => 'datetime',
+    ];
+
+    /** Named causes a recorded payment can be voided for. Keys are the enum members. */
+    public const VOID_REASONS = [
+        'wrong_amount'  => 'Wrong amount entered',
+        'wrong_month'   => 'Wrong billing month',
+        'wrong_tenancy' => 'Recorded against the wrong tenant',
+        'duplicate'     => 'Duplicate entry',
+        'not_received'  => 'Payment did not clear',
+        'other'         => 'Other',
     ];
 
     public function reservation(): BelongsTo
@@ -113,5 +130,47 @@ public function isReleased(): bool
     public function isPaidOut(): bool
     {
         return $this->payout_status === 'Paid Out';
+    }
+
+    public function isVoided(): bool
+    {
+        return $this->status === 'Voided';
+    }
+
+    /**
+     * Only a landlord's own assertion can be voided, and only while the
+     * platform still owes nothing against it. A PayMongo-settled payment is
+     * evidence, not an assertion — it goes through a refund, which this app
+     * does not have.
+     *
+     * This is for the view only. It is not the control — the controller
+     * re-asserts all three conditions under a lock before writing anything.
+     */
+    public function canBeVoided(): bool
+    {
+        return $this->isManuallyRecorded()
+            && $this->status === 'Paid'
+            && $this->payout_status === null;
+    }
+
+    public function voidReasonLabel(): ?string
+    {
+        return $this->void_reason ? (self::VOID_REASONS[$this->void_reason] ?? $this->void_reason) : null;
+    }
+
+    public function voider(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by', 'user_id');
+    }
+
+    /** The voided row this payment was entered to replace, if it was a correction. */
+    public function replaces(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class, 'replaces_payment_id', 'payment_id');
+    }
+
+    public function replacements(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'replaces_payment_id', 'payment_id');
     }
 }

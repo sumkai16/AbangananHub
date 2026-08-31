@@ -36,7 +36,11 @@ class RentLedger
      * 'Paid' is a landlord-recorded offline payment, 'Held' is in escrow and
      * 'Released' has been paid out. 'Pending' is an unfinished checkout session
      * that may never complete and is deliberately not counted — the same rule
-     * Landlord\AnalyticsController applies to revenue.
+     * Landlord\AnalyticsController applies to revenue. 'Voided' is likewise
+     * absent, and deliberately so: it is a payment struck from the ledger
+     * after being entered wrongly (see voidedTransactions()), and every
+     * reader in this class trusts this one whitelist rather than each adding
+     * its own "and not voided" guard.
      */
     private const SETTLED_STATUSES = ['Paid', 'Held', 'Released'];
 
@@ -240,6 +244,21 @@ class RentLedger
             // next to a single month's rent.
             'unpaidMonthCount' => $billed->filter(fn ($p) => $p['balance'] > 0)->count(),
         ];
+    }
+
+    /**
+     * Payments struck from the ledger after being entered wrongly. They
+     * settle nothing — every other reader here whitelists SETTLED_STATUSES,
+     * so a void needs no guard added anywhere — but the rows are preserved
+     * and shown, because a financial record that quietly loses a transaction
+     * is exactly what "do not delete financial records" is about.
+     */
+    public function voidedTransactions(): Collection
+    {
+        return $this->payments
+            ->filter(fn (Payment $p) => $p->status === 'Voided')
+            ->sortByDesc(fn (Payment $p) => $p->voided_at ?? $p->paid_at ?? $p->created_at)
+            ->values();
     }
 
     /**

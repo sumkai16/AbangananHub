@@ -33,6 +33,8 @@ class TenancyController extends Controller
             'property',
             'unit.media',
             'payments.recorder',
+            'payments.voider',
+            'payments.replacements',
             'conversation',
         ]);
 
@@ -46,6 +48,7 @@ class TenancyController extends Controller
             'summary'             => $ledger->summary(),
             'unsettledPeriods'    => $ledger->unsettledPeriods(),
             'monthlyTransactions' => $ledger->monthlyTransactions(),
+            'voidedTransactions'  => $ledger->voidedTransactions(),
         ]);
     }
 

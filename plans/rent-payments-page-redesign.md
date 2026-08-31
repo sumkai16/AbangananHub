@@ -313,22 +313,24 @@ different questions ("what is owed" vs "what was paid").
 
 ---
 
-## 9. Void / reverse a payment (§18)
+## 9. Void / reverse a payment (§18) — done, see `plans/void-correct-payments.md`
 
-Nothing can be deleted today, so the risk the analyst is worried about does not exist. What is
-missing is a way to **correct** a mistyped payment.
+Nothing can be deleted today, so the risk the analyst is worried about does not exist. What was
+missing was a way to **correct** a mistyped payment.
 
-Proposal, smallest thing that satisfies the spec:
+Shipped Aug 31 2026, per the full plan in `plans/void-correct-payments.md`:
 
-- Add `Voided` to the `payments.status` enum, plus `voided_at`, `voided_by`, `void_reason`.
+- Added `Voided` to the `payments.status` enum, plus `voided_at`, `voided_by`, `void_reason`,
+  `void_note`, `replaces_payment_id`.
 - `RentLedger::SETTLED_STATUSES` excludes it automatically, so a voided payment stops settling its
-  period with no further change.
-- The row stays visible in the transaction list, struck through, with its reason — the audit trail
-  the spec asks for.
+  period with no further change to that class.
+- The row stays visible on the tenancy ledger under "Voided entries," struck through with its
+  reason — the audit trail the spec asks for. A "void and correct" flow lets the landlord
+  immediately re-record the right entry, linked back to the one it replaces.
 - Landlord-recorded payments only. A PayMongo-settled payment must go through refund, not a
-  landlord's assertion that it did not happen.
-
-This is the one item here that **does** need a migration.
+  landlord's assertion that it did not happen — enforced via `Payment::canBeVoided()`.
+- Admin gets a `Voided` tab on `admin/payments` and every void writes a `payment.void` audit-log
+  row — the first landlord-side actor in that trail.
 
 ---
 

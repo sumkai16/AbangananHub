@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
+use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Reservation;
@@ -159,6 +161,9 @@ class PaymentController extends Controller
             'paid_at'        => ['required', 'date', 'before_or_equal:today'],
             'reference_no'   => ['nullable', 'string', 'max:255'],
             'payment_notes'  => ['nullable', 'string', 'max:1000'],
+            // Set only by the "void and record a correction" flow — every
+            // other submit leaves this out.
+            'replaces_payment_id' => ['nullable', 'integer'],
         ], [
             'billing_period.required_if' => 'Choose which month this rent payment covers.',
             'paid_at.before_or_equal'    => 'A payment cannot be recorded for a future date.',
@@ -176,14 +181,26 @@ class PaymentController extends Controller
                 'This tenancy is no longer active, so payments cannot be added to it.'
             );
 
+            // Scoped to this reservation and to an actually-voided row:
+            // without the scope this is an IDOR that lets one landlord point
+            // a payment at another landlord's row. `exists:` alone would not
+            // catch that.
+            $replaces = ! empty($data['replaces_payment_id'])
+                ? Payment::where('payment_id', $data['replaces_payment_id'])
+                    ->where('reservation_id', $locked->reservation_id)
+                    ->where('status', 'Voided')
+                    ->value('payment_id')
+                : null;
+
             $shared = [
-                'reservation_id' => $locked->reservation_id,
-                'payment_method' => $data['payment_method'],
-                'status'         => 'Paid',
-                'paid_at'        => $data['paid_at'],
-                'reference_no'   => $data['reference_no'] ?? null,
-                'payment_notes'  => $data['payment_notes'] ?? null,
-                'recorded_by'    => Auth::id(),
+                'reservation_id'       => $locked->reservation_id,
+                'payment_method'       => $data['payment_method'],
+                'status'               => 'Paid',
+                'paid_at'              => $data['paid_at'],
+                'reference_no'         => $data['reference_no'] ?? null,
+                'payment_notes'        => $data['payment_notes'] ?? null,
+                'recorded_by'          => Auth::id(),
+                'replaces_payment_id'  => $replaces,
             ];
 
             if ($data['payment_type'] !== 'Monthly') {
@@ -234,6 +251,117 @@ class PaymentController extends Controller
     }
 
     /**
+     * Strike a recorded payment from the ledger without deleting it.
+     *
+     * Nothing is erased: the row keeps its amount, month, date and reference
+     * and gains who voided it, when, and why. 'Voided' is outside
+     * RentLedger::SETTLED_STATUSES and AnalyticsController::EARNED_STATUSES,
+     * so the month it settled reopens and the money stops counting as
+     * revenue with no further change to either.
+     *
+     * Landlord-recorded rows only. A PayMongo-settled payment is evidence,
+     * not an assertion — a landlord cannot declare that it did not happen.
+     */
+    public function void(Request $request, Payment $payment)
+    {
+        $payment->loadMissing(['reservation.property', 'reservation.tenant']);
+        $reservation = $payment->reservation;
+
+        abort_unless($reservation !== null, 404);
+        Gate::authorize('voidPayment', $reservation);
+
+        $data = $request->validate([
+            'void_reason' => ['required', Rule::in(array_keys(Payment::VOID_REASONS))],
+            'void_note'   => ['required_if:void_reason,other', 'nullable', 'string', 'max:255'],
+            'correct'     => ['nullable', 'boolean'],
+        ], [
+            'void_note.required_if' => 'Say what went wrong with this payment.',
+        ]);
+
+        $voided = DB::transaction(function () use ($payment, $data) {
+            // Money row: lock and re-assert every precondition inside the
+            // transaction, per RULES.md → Concurrency. A double-submit hits
+            // the status check on the second pass and 409s without logging
+            // twice.
+            $locked = Payment::whereKey($payment->getKey())->lockForUpdate()->firstOrFail();
+
+            abort_unless($locked->isManuallyRecorded(), 403, 'Only a payment you recorded yourself can be voided.');
+            abort_unless($locked->status === 'Paid', 409, 'This payment has already been voided, or was settled through the platform.');
+            // Unreachable today — landlord-recorded rows never carry a payout
+            // status — and here so that stays true if a future path changes it.
+            abort_if($locked->payout_status !== null, 409, 'This payment has already been paid out and can no longer be voided.');
+
+            $locked->update([
+                'status'      => 'Voided',
+                'voided_at'   => now(),
+                'voided_by'   => Auth::id(),
+                'void_reason' => $data['void_reason'],
+                'void_note'   => $data['void_note'] ?? null,
+            ]);
+
+            AuditLog::record(
+                'payment.void',
+                '₱' . number_format((float) $locked->amount, 2) . ' payment voided on '
+                    . ($locked->reservation->property->title ?? 'a tenancy'),
+                $locked,
+                Payment::VOID_REASONS[$data['void_reason']]
+                    . (! empty($data['void_note']) ? ' — ' . $data['void_note'] : ''),
+                [
+                    'reservation_id' => $locked->reservation_id,
+                    'amount'         => (float) $locked->amount,
+                    'payment_type'   => $locked->payment_type,
+                    'billing_period' => $locked->billing_period?->toDateString(),
+                    'paid_at'        => $locked->paid_at?->toDateString(),
+                ],
+            );
+
+            return $locked;
+        });
+
+        $this->notifyTenantOfVoid($voided, $reservation);
+
+        $redirect = back()->with('success', 'Payment voided. The original entry stays on record.');
+
+        // Hands the record-payment modal everything it needs to reopen
+        // prefilled with the corrected figures, and to link the replacement
+        // back to this row.
+        if ($request->boolean('correct')) {
+            $redirect->with('correct_payment', [
+                'payment_id'     => $voided->payment_id,
+                'payment_type'   => $voided->payment_type,
+                'amount'         => (float) $voided->amount,
+                'billing_period' => $voided->billing_period?->toDateString(),
+            ]);
+        }
+
+        return $redirect;
+    }
+
+    /**
+     * A void raises what the tenant appears to owe, on a page they can open.
+     * A walk-in has no account to tell — the landlord's own record is the
+     * only channel there, same limitation ProcessRentReminders already lives
+     * with.
+     */
+    private function notifyTenantOfVoid(Payment $payment, Reservation $reservation): void
+    {
+        $tenant = $reservation->tenant;
+
+        if (! $tenant || $tenant->is_walk_in) {
+            return;
+        }
+
+        Notification::notify(
+            $tenant->user_id,
+            'payment',
+            'A recorded payment was corrected',
+            'Your landlord voided a ₱' . number_format((float) $payment->amount, 2)
+                . ' entry on your rent ledger (' . strtolower($payment->voidReasonLabel()) . '). Check your balance.',
+            route('tenancy.show', $reservation),
+        );
+    }
+
+    /**
      * A printable acknowledgement for a payment this landlord recorded.
      *
      * Scoped to recorded payments on purpose — a PayMongo-settled payment has
@@ -249,6 +377,9 @@ class PaymentController extends Controller
         abort_unless($reservation !== null, 404);
         Gate::authorize('viewTenancy', $reservation);
         abort_unless($payment->isManuallyRecorded(), 404);
+        // A voided payment settled nothing — printing a branded receipt for
+        // it would misstate the ledger it no longer counts toward.
+        abort_if($payment->isVoided(), 404);
 
         return view('landlord.payments.receipt', [
             'payment'     => $payment,

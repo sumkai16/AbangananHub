@@ -57,7 +57,7 @@
 
     {{-- Tabs --}}
     <div class="flex items-center gap-0.5 border-b border-[#E2E8F0] mb-6 overflow-x-auto">
-        @foreach (['All', 'Held', 'Released', 'Paid', 'Pending'] as $tab)
+        @foreach (['All', 'Held', 'Released', 'Paid', 'Voided', 'Pending'] as $tab)
             <a href="{{ route('admin.payments.index', ['status' => $tab]) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
                     {{ $status === $tab ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
@@ -148,6 +148,12 @@
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#2AA7A1]"></span>
                                             Recorded
                                         </span>
+                                    @elseif ($payment->status === 'Voided')
+                                        {{-- Neutral, not red — this is a resolved correction, not an alert. --}}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2E8F0] text-[11.5px] font-bold text-[#64748B]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#94A3B8]"></span>
+                                            Voided
+                                        </span>
                                     @elseif ($payment->status === 'Pending')
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2E8F0] text-[11.5px] font-bold text-[#64748B]">
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#94A3B8]"></span>
@@ -176,6 +182,10 @@
                                     @elseif ($payment->status === 'Released')
                                         <span class="text-[12px] text-[#64748B]">
                                             Released {{ $payment->released_at?->format('M d, Y') }}
+                                        </span>
+                                    @elseif ($payment->status === 'Voided')
+                                        <span class="text-[12px] text-[#64748B]">
+                                            {{ $payment->voidReasonLabel() }} · {{ $payment->voided_at?->format('M d, Y') }}
                                         </span>
                                     @elseif ($payment->isManuallyRecorded())
                                         {{-- Landlord-asserted, never escrowed — deliberately no
