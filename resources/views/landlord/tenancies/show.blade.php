@@ -41,6 +41,19 @@
             default     => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35',
         };
 
+        // Payment status — same five values and same colours as
+        // landlord/payments/index.blade.php's $paymentStyles, so a tenancy
+        // reads identically whether the landlord arrived from the portfolio
+        // table or opened this ledger directly.
+        $paymentStatusStyles = [
+            'overdue'    => ['dot' => 'bg-[#DC2626]', 'text' => 'text-[#DC2626]', 'label' => 'Overdue'],
+            'partial'    => ['dot' => 'bg-[#B45309]', 'text' => 'text-[#B45309]', 'label' => 'Partial'],
+            'upcoming'   => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#64748B]', 'label' => 'Upcoming'],
+            'paid'       => ['dot' => 'bg-[#15803D]', 'text' => 'text-[#15803D]', 'label' => 'Paid'],
+            'paid_ahead' => ['dot' => 'bg-[#156F8C]', 'text' => 'text-[#156F8C]', 'label' => 'Paid Ahead'],
+        ];
+        $paymentStatusStyle = $paymentStatusStyles[$summary['paymentStatus']] ?? $paymentStatusStyles['upcoming'];
+
         $inputClass = 'h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition';
         $labelClass = 'block text-[12px] font-semibold text-[#1F2937] mb-1.5';
 
@@ -141,7 +154,7 @@
                     @php
                         $tiles = [
                             ['label' => 'Collected',   'value' => $summary['collected'],     'tone' => 'text-[#15803D]', 'sub' => 'Rent + deposits recorded'],
-                            ['label' => 'Outstanding', 'value' => $summary['outstanding'],   'tone' => 'text-[#1F2937]', 'sub' => 'Unpaid rent to date'],
+                            ['label' => 'Total Unpaid', 'value' => $summary['outstanding'],   'tone' => 'text-[#1F2937]', 'sub' => 'Unpaid rent to date'],
                             ['label' => 'Overdue',     'value' => $summary['overdueAmount'], 'tone' => $summary['overdueCount'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]', 'sub' => $summary['overdueCount'] . ' ' . \Illuminate\Support\Str::plural('month', $summary['overdueCount']) . ' behind'],
                         ];
                     @endphp
@@ -231,6 +244,50 @@
                     @endif
                 </x-card>
 
+                {{-- Rent payment transactions — distinct from the ledger above:
+                     that table is what is owed, this one is what was actually
+                     paid. A payment split across months by
+                     RentPaymentAllocator appears here as the several
+                     transactions it was, each with its own reference. --}}
+                @if($monthlyTransactions->isNotEmpty())
+                    <x-card flush>
+                        <div class="px-5 sm:px-6 py-4 border-b border-[#E2E8F0]">
+                            <h2 class="text-[15px] font-bold text-[#1F2937]">Rent payments</h2>
+                            <p class="text-[12px] text-[#64748B] mt-0.5">Every rent transaction received, most recent first.</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[640px]">
+                                <thead class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
+                                    <tr>
+                                        <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Date</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reference</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Amount</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Method</th>
+                                        <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Applied to</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#E2E8F0]">
+                                    @foreach($monthlyTransactions as $txn)
+                                        <tr class="hover:bg-[#F7FCFC] transition-colors duration-150">
+                                            <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#1F2937] whitespace-nowrap">
+                                                {{ optional($txn->paid_at)->format('M d, Y') ?? '—' }}
+                                            </td>
+                                            <td class="px-4 py-3.5 text-[13px] text-[#64748B]">{{ $txn->reference_no ?: '—' }}</td>
+                                            <td class="px-4 py-3.5 text-[13px] font-semibold text-[#1F2937] text-right whitespace-nowrap">
+                                                ₱{{ number_format((float) $txn->amount, 2) }}
+                                            </td>
+                                            <td class="px-4 py-3.5 text-[13px] text-[#64748B]">{{ $txn->payment_method }}</td>
+                                            <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#1F2937] whitespace-nowrap">
+                                                {{ optional($txn->billing_period)->format('M Y') ?? '—' }} Rent
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </x-card>
+                @endif
+
                 {{-- Other charges --}}
                 @if($otherCharges->isNotEmpty())
                     <x-card flush>
@@ -310,6 +367,25 @@
                         <div class="flex items-center justify-between gap-3">
                             <dt class="text-[#64748B]">Monthly rent</dt>
                             <dd class="font-bold text-[#2AA7A1]">₱{{ number_format($summary['monthlyRent'], 2) }}</dd>
+                        </div>
+                        @if($isActive)
+                            <div class="flex items-center justify-between gap-3">
+                                <dt class="text-[#64748B]">Payment status</dt>
+                                <dd class="inline-flex items-center gap-1.5 font-semibold {{ $paymentStatusStyle['text'] }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $paymentStatusStyle['dot'] }}"></span>
+                                    {{ $paymentStatusStyle['label'] }}
+                                </dd>
+                            </div>
+                            <div class="flex items-center justify-between gap-3">
+                                <dt class="text-[#64748B]">Next due</dt>
+                                <dd class="font-semibold text-[#1F2937]">
+                                    {{ $summary['nextDueDate']?->format('M d, Y') ?? '—' }}
+                                </dd>
+                            </div>
+                        @endif
+                        <div class="flex items-center justify-between gap-3">
+                            <dt class="text-[#64748B]">Due day</dt>
+                            <dd class="font-semibold text-[#1F2937]">Day {{ $summary['dueDay'] }} of the month</dd>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <dt class="text-[#64748B]">Moved in</dt>

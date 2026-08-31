@@ -39,12 +39,13 @@ class TenancyController extends Controller
         $ledger = RentLedger::for($reservation);
 
         return view('landlord.tenancies.show', [
-            'reservation'      => $reservation,
-            'ledger'           => $ledger,
-            'periods'          => $ledger->periods(),
-            'otherCharges'     => $ledger->otherCharges(),
-            'summary'          => $ledger->summary(),
-            'unsettledPeriods' => $ledger->unsettledPeriods(),
+            'reservation'         => $reservation,
+            'ledger'              => $ledger,
+            'periods'             => $ledger->periods(),
+            'otherCharges'        => $ledger->otherCharges(),
+            'summary'             => $ledger->summary(),
+            'unsettledPeriods'    => $ledger->unsettledPeriods(),
+            'monthlyTransactions' => $ledger->monthlyTransactions(),
         ]);
     }
 

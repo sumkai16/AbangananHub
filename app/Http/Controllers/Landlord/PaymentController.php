@@ -7,11 +7,13 @@ use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use App\Support\RentPaymentAllocator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -31,11 +33,23 @@ class PaymentController extends Controller
     private const TYPES = ['Monthly', 'Deposit', 'Initial', 'Utility', 'Other'];
 
     /**
+     * Row sort order, most urgent first. Kept as one map so the controller's
+     * sort and the filter dropdown's options can't drift from each other.
+     */
+    private const STATUS_ORDER = [
+        'overdue'    => 0,
+        'partial'    => 1,
+        'upcoming'   => 2,
+        'paid'       => 3,
+        'paid_ahead' => 4,
+    ];
+
+    /**
      * Collections overview: every tenancy with rent running, worst first.
      *
-     * Sorted by what is owed rather than by date — the page exists to answer
-     * "who do I need to chase", and a tenancy that is three months behind
-     * matters more than one that started yesterday.
+     * Sorted by payment status rather than by amount — the page exists to
+     * answer "who do I need to chase", and a tenant who is a little overdue
+     * still outranks one who is comfortably paid ahead, regardless of size.
      */
     public function index(Request $request)
     {
@@ -75,21 +89,44 @@ class PaymentController extends Controller
                 $summary = RentLedger::for($reservation)->summary();
 
                 return [
-                    'reservation' => $reservation,
-                    'summary'     => $summary,
-                    'standing'    => $this->standingFor($summary),
+                    'reservation'   => $reservation,
+                    'summary'       => $summary,
+                    'paymentStatus' => $summary['paymentStatus'],
                 ];
             })
-            ->when($statusFilter !== 'all', fn ($rows) => $rows->where('standing', $statusFilter))
-            ->sortByDesc(fn ($row) => $row['summary']['overdueAmount'])
+            ->when(
+                $statusFilter === 'due_this_month',
+                fn ($rows) => $rows->filter(fn ($row) => $row['summary']['dueThisMonth'] > 0),
+                fn ($rows) => $statusFilter !== 'all' ? $rows->where('paymentStatus', $statusFilter) : $rows
+            )
+            ->sortBy(function ($row) {
+                $tier = self::STATUS_ORDER[$row['paymentStatus']] ?? 99;
+                $dueOn = $row['summary']['oldestUnpaid']['due_on'] ?? null;
+
+                // A composite [tier, timestamp] pair — Collection::sortBy
+                // compares same-shaped arrays element by element, so this
+                // sorts by urgency tier first and, within a tier, oldest due
+                // date first, in one pass.
+                return [$tier, $dueOn?->timestamp ?? PHP_INT_MAX];
+            })
             ->values();
 
         $totals = [
-            'collected'   => round($rows->sum(fn ($r) => $r['summary']['collected']), 2),
-            'outstanding' => round($rows->sum(fn ($r) => $r['summary']['outstanding']), 2),
-            'overdue'     => round($rows->sum(fn ($r) => $r['summary']['overdueAmount']), 2),
-            'behind'      => $rows->where('standing', 'overdue')->count(),
+            'dueThisMonth'       => round($rows->sum(fn ($r) => $r['summary']['dueThisMonth']), 2),
+            'collectedThisMonth' => round($rows->sum(fn ($r) => $r['summary']['collectedThisMonth']), 2),
+            'outstanding'        => round($rows->sum(fn ($r) => $r['summary']['outstanding']), 2),
+            'overdue'            => round($rows->sum(fn ($r) => $r['summary']['overdueAmount']), 2),
+            'duePaymentCount'    => $rows->filter(fn ($r) => $r['summary']['dueThisMonth'] > 0)->count(),
+            'unpaidCount'        => $rows->filter(fn ($r) => $r['summary']['outstanding'] > 0)->count(),
+            'overdueCount'       => $rows->where('paymentStatus', 'overdue')->count(),
         ];
+
+        // Null, not 0, when nothing is billed this month — a landlord with an
+        // empty month should read "No dues this month", not a permanently
+        // stuck 0%.
+        $totals['collectedPercent'] = $totals['dueThisMonth'] > 0
+            ? (int) round($totals['collectedThisMonth'] / $totals['dueThisMonth'] * 100)
+            : null;
 
         return view('landlord.payments.index', [
             'rows'         => $rows,
@@ -101,8 +138,11 @@ class PaymentController extends Controller
     }
 
     /**
-     * Record money the landlord collected. Writes a Payment row and nothing
-     * else — no status flips, no escrow, no unit changes.
+     * Record money the landlord collected. For a Monthly payment that covers
+     * more than the selected month, splits it across as many billing months
+     * as it actually reaches — RentPaymentAllocator — rather than writing one
+     * row that overpays the selected month and leaves later months unpaid.
+     * Every other payment type is still a single row, exactly as posted.
      */
     public function store(Request $request, Reservation $reservation)
     {
@@ -124,7 +164,7 @@ class PaymentController extends Controller
             'paid_at.before_or_equal'    => 'A payment cannot be recorded for a future date.',
         ]);
 
-        DB::transaction(function () use ($data, $reservation) {
+        $monthsCovered = DB::transaction(function () use ($data, $reservation) {
             // Re-read under a lock and re-assert the precondition the Gate
             // checked: this writes a money row, and the tenancy could have been
             // ended by another tab between the authorize() and here.
@@ -136,23 +176,61 @@ class PaymentController extends Controller
                 'This tenancy is no longer active, so payments cannot be added to it.'
             );
 
-            Payment::create([
+            $shared = [
                 'reservation_id' => $locked->reservation_id,
-                'payment_type'   => $data['payment_type'],
-                'billing_period' => $data['payment_type'] === 'Monthly'
-                    ? Carbon::parse($data['billing_period'])->startOfMonth()
-                    : null,
-                'amount'         => $data['amount'],
                 'payment_method' => $data['payment_method'],
                 'status'         => 'Paid',
                 'paid_at'        => $data['paid_at'],
                 'reference_no'   => $data['reference_no'] ?? null,
                 'payment_notes'  => $data['payment_notes'] ?? null,
                 'recorded_by'    => Auth::id(),
-            ]);
+            ];
+
+            if ($data['payment_type'] !== 'Monthly') {
+                Payment::create($shared + [
+                    'payment_type'   => $data['payment_type'],
+                    'billing_period' => null,
+                    'amount'         => $data['amount'],
+                ]);
+
+                return 1;
+            }
+
+            $ledger = RentLedger::for($locked);
+            $rows = RentPaymentAllocator::allocate(
+                $ledger->unsettledPeriods(),
+                Carbon::parse($data['billing_period'])->startOfMonth(),
+                $locked->monthlyRent(),
+                (float) $data['amount']
+            );
+
+            // The allocator can return nothing only when the chosen month and
+            // every month after it happened to already be settled — record
+            // the amount against the chosen month regardless, so a
+            // landlord's entry is never silently dropped.
+            if ($rows === []) {
+                $rows = [[
+                    'billing_period' => Carbon::parse($data['billing_period'])->startOfMonth(),
+                    'amount'         => (float) $data['amount'],
+                ]];
+            }
+
+            foreach ($rows as $row) {
+                Payment::create($shared + [
+                    'payment_type'   => 'Monthly',
+                    'billing_period' => $row['billing_period'],
+                    'amount'         => $row['amount'],
+                ]);
+            }
+
+            return count($rows);
         });
 
-        return back()->with('success', 'Payment recorded.');
+        $message = $monthsCovered > 1
+            ? "Payment recorded across {$monthsCovered} billing months."
+            : 'Payment recorded.';
+
+        return back()->with('success', $message);
     }
 
     /**
@@ -197,23 +275,29 @@ class PaymentController extends Controller
         return response()->streamDownload(function () use ($reservations) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, [
-                'Tenant', 'Type', 'Property', 'Unit', 'Status', 'Monthly Rent',
-                'Months Billed', 'Collected', 'Outstanding', 'Overdue Months', 'Overdue Amount',
+                'Tenant', 'Type', 'Property', 'Unit', 'Status', 'Monthly Rent', 'Due Date',
+                'Months Billed', 'Paid', 'Total Unpaid', 'Overdue Months', 'Overdue Amount',
             ]);
 
             foreach ($reservations as $reservation) {
                 $summary = RentLedger::for($reservation)->summary();
                 $tenant = $reservation->tenant;
+                // Same row the table shows: the oldest unpaid month, or this
+                // month's own settled row for a Paid/Paid Ahead tenancy — null
+                // only for a tenancy nothing has been billed for yet.
+                $row = $summary['oldestUnpaid'];
+                $dueOn = $row['due_on'] ?? null;
 
                 fputcsv($handle, [
                     $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
                     $tenant?->is_walk_in ? 'Walk-in' : 'Platform',
                     $reservation->property->title ?? '',
                     $reservation->unit->unit_label ?? '',
-                    $reservation->rental_status,
+                    Str::headline($summary['paymentStatus']),
                     number_format($summary['monthlyRent'], 2, '.', ''),
+                    $dueOn?->format('Y-m-d') ?? '',
                     $summary['periodCount'],
-                    number_format($summary['collected'], 2, '.', ''),
+                    number_format($row['paid'] ?? 0, 2, '.', ''),
                     number_format($summary['outstanding'], 2, '.', ''),
                     $summary['overdueCount'],
                     number_format($summary['overdueAmount'], 2, '.', ''),
@@ -222,17 +306,5 @@ class PaymentController extends Controller
 
             fclose($handle);
         }, $filename, ['Content-Type' => 'text/csv']);
-    }
-
-    /**
-     * One word for how a tenancy is doing, used by the filter and the row pill.
-     */
-    private function standingFor(array $summary): string
-    {
-        if ($summary['overdueCount'] > 0) {
-            return 'overdue';
-        }
-
-        return $summary['outstanding'] > 0 ? 'due' : 'settled';
     }
 }

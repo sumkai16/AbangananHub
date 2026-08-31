@@ -136,6 +136,15 @@ class WalkInScenarios extends Command
             'partial' => [0 => 2000], // deposit full, first month only part-paid
         ]), 'Deposit ₱5,000 settled, move-in month Partial with ₱3,000 balance. Appears on /landlord/payments as owing.'];
 
+        // 10 — moves in a few days from now: nothing billed yet. Exercises the
+        // fifth payments-table status, "Upcoming", which none of the scenarios
+        // above reach — everything above has already hit its first due date.
+        $rows[] = ['Walk-in, moves in next week', $this->scenario($landlord, [
+            'first' => 'Iris', 'last' => 'Vega', 'email' => null, 'contact' => '09170000010',
+            'rent' => 4000, 'due_day' => 5, 'move_in' => now()->addDays(4),
+            'unit_status' => 'Occupied',
+        ]), 'Reads "Upcoming" on /landlord/payments — Due This Month ₱0 for this row, nothing to collect yet.'];
+
         $this->newLine();
         $this->line('  <fg=cyan;options=bold>Walk-in scenarios created</>');
         $this->newLine();

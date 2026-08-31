@@ -128,11 +128,34 @@ class RentLedger
     }
 
     /**
+     * Every settled monthly-rent payment, one row per transaction, newest
+     * first — "what was actually paid" alongside `periods()`'s "what is
+     * owed". Deliberately not rolled up per month: RentPaymentAllocator can
+     * split one payment across several months, and each of those still
+     * needs its own date, reference number and method on this list.
+     */
+    public function monthlyTransactions(): Collection
+    {
+        return $this->payments
+            ->filter(fn (Payment $p) => $p->payment_type === 'Monthly'
+                && in_array($p->status, self::SETTLED_STATUSES, true))
+            ->sortByDesc(fn (Payment $p) => $p->paid_at ?? $p->created_at)
+            ->values();
+    }
+
+    /**
      * Headline numbers for the tenancy.
      *
      * `collected` counts everything settled including deposits, because that is
      * the question a landlord is asking ("what has this tenant given me?").
      * `outstanding` counts only unpaid monthly rent — a deposit is not a debt.
+     *
+     * Two questions live side by side here on purpose and must not be
+     * conflated: "how much, in total, is unpaid" (`outstanding`,
+     * `overdueAmount` — every unread month) versus "how is this month going"
+     * (`dueThisMonth`, `collectedThisMonth` — this month only). Landlord\
+     * PaymentController's portfolio cards need both, at the same time, for
+     * every row.
      */
     public function summary(): array
     {
@@ -153,6 +176,16 @@ class RentLedger
         $monthlyCollected = (float) $periods->sum('paid');
         $otherCollected = (float) $this->otherCharges()->sum(fn (Payment $p) => (float) $p->amount);
 
+        // The current calendar month's own row, if this tenancy is billed at
+        // all this month — absent for a tenancy that starts later or already
+        // ended before this month arrived.
+        $currentPeriod = $periods->first(
+            fn ($p) => ! $p['is_future'] && $p['period']->isSameMonth(now())
+        );
+
+        $nextDue = $billed->firstWhere(fn ($p) => in_array($p['status'], ['due', 'partial'], true));
+        $prepaidThrough = $prepaid->last()['period'] ?? null;
+
         return [
             'monthlyRent'      => $this->reservation->monthlyRent(),
             'dueDay'           => $this->reservation->rentDueDay(),
@@ -163,12 +196,49 @@ class RentLedger
             'outstanding'      => round((float) $billed->sum(fn ($p) => max(0, $p['balance'])), 2),
             'overdueCount'     => $overdue->count(),
             'overdueAmount'    => round((float) $overdue->sum(fn ($p) => max(0, $p['balance'])), 2),
-            'nextDue'          => $billed->firstWhere(fn ($p) => in_array($p['status'], ['due', 'partial'], true)),
+            'nextDue'          => $nextDue,
             'oldestOverdue'    => $overdue->first(),
             // Months already covered before they arrived, for the "paid in
             // advance through …" line on the tenancy pages.
             'prepaidCount'     => $prepaid->count(),
-            'prepaidThrough'   => $prepaid->last()['period'] ?? null,
+            'prepaidThrough'   => $prepaidThrough,
+
+            // This month only — the figures behind the "Due This Month" and
+            // "Collected This Month" cards. Zero, not null, when the tenancy
+            // isn't billed this month, so a portfolio sum never has to guard
+            // against a hole in the middle of the addition.
+            'dueThisMonth'       => round($currentPeriod['expected'] ?? 0.0, 2),
+            'collectedThisMonth' => round($currentPeriod['paid'] ?? 0.0, 2),
+
+            // One word for the whole tenancy — the row-level status the
+            // payments table sorts and filters by. Order matters: a tenant
+            // who prepaid December while still owing August is `overdue`, not
+            // `paid_ahead` — being ahead on one month doesn't excuse being
+            // behind on another.
+            'paymentStatus' => $this->paymentStatus($billed, $overdue, $prepaid),
+
+            // The date this tenancy next needs a payment. Overdue outranks
+            // everything — an overdue tenant's "next due" is the oldest month
+            // they still owe, not a projection past it — followed by the next
+            // unpaid-but-not-yet-late month. Only once every billed month is
+            // actually settled does this project forward: past the last
+            // prepaid month for a Paid Ahead tenant, or past the last billed
+            // month for a Paid one, so "fully paid" never reads as "nothing
+            // due next" for a tenancy that is still running.
+            'nextDueDate' => $this->nextDueDate($overdue, $nextDue, $prepaidThrough, $billed),
+
+            // The one period whose Due Date / Paid / Balance the payments
+            // table shows for this row: the oldest overdue month if any,
+            // otherwise the next unpaid month, otherwise whatever this month's
+            // row is (covers Paid and Paid Ahead), otherwise the most recent
+            // billed month (an ended tenancy with nothing left to bill).
+            'oldestUnpaid' => $overdue->first() ?? $nextDue ?? $currentPeriod ?? $billed->last(),
+
+            // How many billed months still carry a balance, so the table can
+            // show "3 months" under a Balance figure that spans more than one
+            // — without it, a multi-month balance looks like a miscalculation
+            // next to a single month's rent.
+            'unpaidMonthCount' => $billed->filter(fn ($p) => $p['balance'] > 0)->count(),
         ];
     }
 
@@ -190,6 +260,52 @@ class RentLedger
     }
 
     // ─── Internals ───────────────────────────────────────────
+
+    /**
+     * One word for the tenancy as a whole, first match wins:
+     *
+     *   overdue    — any billed month is overdue
+     *   partial    — any billed month is partly paid
+     *   paid_ahead — nothing overdue or partial, and at least one future
+     *                month is fully covered
+     *   paid       — every billed month is settled, nothing prepaid
+     *   upcoming   — nothing billed yet (tenancy hasn't started billing) or
+     *                the current month is unpaid but not yet due
+     *
+     * `$billed->every()` on an empty collection is vacuously true, which
+     * would misreport a tenancy with no billed months yet as `paid` — the
+     * explicit `isNotEmpty()` guard below exists for that case alone.
+     */
+    private function paymentStatus(Collection $billed, Collection $overdue, Collection $prepaid): string
+    {
+        return match (true) {
+            $overdue->isNotEmpty() => 'overdue',
+            $billed->contains(fn ($p) => $p['status'] === 'partial') => 'partial',
+            $prepaid->isNotEmpty() => 'paid_ahead',
+            $billed->isNotEmpty() && $billed->every(fn ($p) => $p['status'] === 'paid') => 'paid',
+            default => 'upcoming',
+        };
+    }
+
+    /**
+     * See the `nextDueDate` key's comment in summary() for the priority this
+     * follows. The last two branches are speculative — projecting past a
+     * month nobody has been billed for — so they are the only ones gated on
+     * the tenancy still being `Occupied`: an ended tenancy has no next month
+     * coming.
+     */
+    private function nextDueDate(Collection $overdue, ?array $nextDue, ?Carbon $prepaidThrough, Collection $billed): ?Carbon
+    {
+        $isOccupied = $this->reservation->rental_status === 'Occupied';
+
+        return match (true) {
+            $overdue->isNotEmpty() => $overdue->first()['due_on'],
+            $nextDue !== null => $nextDue['due_on'],
+            $prepaidThrough && $isOccupied => $prepaidThrough->copy()->addMonthNoOverflow()->day($this->reservation->rentDueDay()),
+            $billed->isNotEmpty() && $isOccupied => $billed->last()['period']->copy()->addMonthNoOverflow()->day($this->reservation->rentDueDay()),
+            default => null,
+        };
+    }
 
     /**
      * The last month worth billing: move-out where the tenancy has ended,
