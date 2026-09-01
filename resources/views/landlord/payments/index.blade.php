@@ -4,23 +4,6 @@
 
 @section('content')
     @php
-<<<<<<< HEAD
-        $statusStyles = [
-            'Overdue'    => ['pill' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25', 'label' => 'Overdue'],
-            'Partial'    => ['pill' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35', 'label' => 'Partial'],
-            'Upcoming'   => ['pill' => 'bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25', 'label' => 'Upcoming'],
-            'Paid'       => ['pill' => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25', 'label' => 'Paid'],
-            'Paid Ahead' => ['pill' => 'bg-[#8B5CF6]/[0.10] text-[#6D28D9] border-[#8B5CF6]/30', 'label' => 'Paid Ahead'],
-        ];
-
-        $filters = [
-            'all' => 'All Payment Status',
-            'overdue' => 'Overdue',
-            'partial' => 'Partial',
-            'upcoming' => 'Upcoming',
-            'paid' => 'Paid',
-            'paid_ahead' => 'Paid Ahead',
-=======
         // One map so the dot colour, the pill and the sort/filter values can
         // never drift apart. `paid_ahead` deliberately stays in the teal
         // family — DESIGN.md §6n: a future month covered in advance is
@@ -40,7 +23,6 @@
             'upcoming'       => 'Upcoming',
             'paid'           => 'Paid',
             'paid_ahead'     => 'Paid Ahead',
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
             'due_this_month' => 'Due This Month',
         ];
 
@@ -91,32 +73,9 @@
 
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-<<<<<<< HEAD
-            <x-stat-card label="Due This Month" :value="'₱' . number_format($totals['dueThisMonth'], 2)" value-color="#1F2937" icon-bg="#EEF8F8"
-                :sub="$totals['paymentsDueThisMonth'] . ' ' . \Illuminate\Support\Str::plural('payment', $totals['paymentsDueThisMonth']) . ' due'">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Collected This Month" :value="'₱' . number_format($totals['collectedThisMonth'], 2)" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
-                :sub="$totals['collectedThisMonthPct'] === null ? 'No dues this month' : $totals['collectedThisMonthPct'] . '% collected'">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Outstanding" :value="'₱' . number_format($totals['outstanding'], 2)" value-color="#1F2937" icon-bg="#EEF8F8"
-                :sub="$totals['outstandingCount'] . ' unpaid/partial'">
-=======
             <x-stat-card label="Due This Month" :value="'₱' . number_format($totals['dueThisMonth'], 2)"
                 value-color="#1F2937" icon-bg="#EEF8F8"
                 :sub="$totals['duePaymentCount'] . ' ' . \Illuminate\Support\Str::plural('payment', $totals['duePaymentCount']) . ' due'">
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -125,25 +84,16 @@
                 </x-slot:icon>
             </x-stat-card>
 
-<<<<<<< HEAD
-            <x-stat-card label="Overdue" :value="'₱' . number_format($totals['overdue'], 2)"
-                :value-color="$totals['overdue'] > 0 ? '#DC2626' : '#1F2937'"
-                :icon-bg="$totals['overdue'] > 0 ? 'rgba(239,68,68,0.07)' : '#EEF8F8'"
-                :sub="$totals['overdueTenancies'] . ' ' . \Illuminate\Support\Str::plural('tenancy', $totals['overdueTenancies']) . ' overdue'">
-=======
             <x-stat-card label="Collected This Month" :value="'₱' . number_format($totals['collectedThisMonth'], 2)"
                 value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
                 :percent="$totals['collectedPercent']" bar-color="#22C55E"
                 :sub="$totals['collectedPercent'] === null ? 'No dues this month' : $totals['collectedPercent'] . '% collected'">
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                     </svg>
                 </x-slot:icon>
             </x-stat-card>
-<<<<<<< HEAD
-=======
 
             <x-stat-card label="Total Unpaid" :value="'₱' . number_format($totals['outstanding'], 2)"
                 :value-color="$totals['outstanding'] > 0 ? '#1F2937' : '#1F2937'" icon-bg="#EEF8F8"
@@ -166,7 +116,6 @@
                     </svg>
                 </x-slot:icon>
             </x-stat-card>
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
         </div>
 
         {{-- Filter bar --}}
@@ -310,19 +259,6 @@
                                 <th scope="col"
                                     class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
                                     Monthly Rent</th>
-<<<<<<< HEAD
-                                <th scope="col"
-                                    class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide whitespace-nowrap">
-                                    Due Date</th>
-                                <th scope="col"
-                                    class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
-                                    Paid</th>
-                                <th scope="col"
-                                    class="px-4 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
-                                    Balance</th>
-                                <th scope="col"
-                                    class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
-=======
                                 <th scope="col"
                                     class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
                                     Due Date</th>
@@ -334,7 +270,6 @@
                                     Balance</th>
                                 <th scope="col"
                                     class="px-4 py-3.5 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                                     Status</th>
                                 <th scope="col"
                                     class="px-5 sm:px-6 py-3.5 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
@@ -343,19 +278,8 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E8F0]">
-<<<<<<< HEAD
-                            @foreach($rows as $row)
-                                @php
-                                    $reservation = $row['reservation'];
-                                    $summary = $row['summary'];
-                                    $tenant = $reservation->tenant;
-                                    $style = $statusStyles[$row['status']];
-                                    $initials = strtoupper(substr($tenant->first_name ?? '', 0, 1) . substr($tenant->last_name ?? '', 0, 1));
-                                @endphp
-=======
                             @foreach($displayRows as $item)
                                 @php $reservation = $item['reservation']; $summary = $item['summary']; @endphp
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                                 <tr class="hover:bg-[#F7FCFC] transition-colors duration-150">
                                     <td class="px-5 sm:px-6 py-4">
                                         <div class="flex items-center gap-3">
@@ -396,17 +320,6 @@
                                     <td class="px-4 py-4 text-[13px] text-[#64748B] text-right whitespace-nowrap">
                                         ₱{{ number_format($summary['monthlyRent'], 2) }}
                                     </td>
-<<<<<<< HEAD
-                                    <td class="px-4 py-4 text-[13px] text-[#64748B] whitespace-nowrap">
-                                        {{ $row['dueDate']?->format('M j, Y') ?? '—' }}
-                                    </td>
-                                    <td class="px-4 py-4 text-[13px] font-semibold text-[#15803D] text-right whitespace-nowrap">
-                                        ₱{{ number_format($row['paid'], 2) }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-4 text-[13px] text-right whitespace-nowrap {{ $row['balance'] > 0 ? 'font-semibold text-[#DC2626]' : 'text-[#64748B]' }}">
-                                        ₱{{ number_format(max(0, $row['balance']), 2) }}
-=======
                                     <td class="px-4 py-4 text-[13px] text-[#1F2937] whitespace-nowrap">
                                         {{ $item['dueOn']?->format('M j, Y') ?? '—' }}
                                     </td>
@@ -419,26 +332,12 @@
                                         @if($item['monthsLabel'])
                                             <p class="text-[11px] font-normal text-[#94A3B8]">{{ $item['monthsLabel'] }}</p>
                                         @endif
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                                     </td>
                                     <td class="px-4 py-4">
                                         <span class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold {{ $item['style']['text'] }}">
                                             <span class="w-2 h-2 rounded-full {{ $item['style']['dot'] }}"></span>
                                             {{ $item['style']['label'] }}
                                         </span>
-<<<<<<< HEAD
-                                        @if($summary['overdueCount'] > 0)
-                                            <p class="text-[11px] text-[#DC2626] mt-1">
-                                                {{ $summary['overdueCount'] }}
-                                                {{ \Illuminate\Support\Str::plural('month', $summary['overdueCount']) }} behind
-                                            </p>
-                                        @elseif($row['status'] === 'Paid Ahead' && $summary['prepaidThrough'])
-                                            <p class="text-[11px] text-[#6D28D9] mt-1">
-                                                Paid through {{ $summary['prepaidThrough']->format('M Y') }}
-                                            </p>
-                                        @endif
-=======
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                                     </td>
                                     <td class="px-5 sm:px-6 py-4 text-right">
                                         <a href="{{ route('landlord.tenancies.show', $reservation) }}"

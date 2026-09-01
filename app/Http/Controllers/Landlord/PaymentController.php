@@ -86,51 +86,19 @@ class PaymentController extends Controller
         // status filter both have to happen after the ledger runs. A landlord
         // portfolio is tens of tenancies, not thousands — the alternative is
         // materialising the schedule into a table that can go stale.
-        //
-        // Status priority mirrors RentLedger::statusLabel(): an overdue month
-        // anywhere outranks everything else, then partial, then upcoming,
-        // then paid, then paid ahead — the order a landlord actually wants to
-        // work through the list in (spec: worst standing first).
-        $statusRank = ['Overdue' => 0, 'Partial' => 1, 'Upcoming' => 2, 'Paid' => 3, 'Paid Ahead' => 4];
-
         $rows = $query->get()
             ->map(function (Reservation $reservation) {
                 $ledger = RentLedger::for($reservation);
                 $summary = $ledger->summary();
-                $current = $ledger->currentPeriod();
-                // The period this row's Due Date/Paid/Balance columns read
-                // from: this month's obligation, or — for an ended tenancy
-                // with nothing billed this month — whatever was left overdue.
-                $reference = $current ?? $summary['oldestOverdue'];
 
                 return [
                     'reservation'   => $reservation,
                     'summary'       => $summary,
-<<<<<<< HEAD
-                    'status'        => $ledger->statusLabel(),
-                    'dueDate'       => $ledger->nextDueDate(),
-                    'paid'          => $reference['paid'] ?? 0.0,
-                    'balance'       => $reference['balance'] ?? 0.0,
-                    'currentPeriod' => $current,
-=======
                     'paymentStatus' => $summary['paymentStatus'],
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                 ];
             })
             ->when(
                 $statusFilter === 'due_this_month',
-<<<<<<< HEAD
-                fn ($rows) => $rows->filter(fn ($row) => ($row['currentPeriod']['balance'] ?? 0) > 0)
-            )
-            ->when(
-                ! in_array($statusFilter, ['all', 'due_this_month'], true),
-                fn ($rows) => $rows->filter(fn ($row) => strtolower(str_replace(' ', '_', $row['status'])) === $statusFilter)
-            )
-            ->sortBy([
-                fn ($row) => $statusRank[$row['status']] ?? 99,
-                fn ($row) => $row['dueDate']?->timestamp ?? PHP_INT_MAX,
-            ])
-=======
                 fn ($rows) => $rows->filter(fn ($row) => $row['summary']['dueThisMonth'] > 0),
                 fn ($rows) => $statusFilter !== 'all' ? $rows->where('paymentStatus', $statusFilter) : $rows
             )
@@ -144,29 +112,12 @@ class PaymentController extends Controller
                 // date first, in one pass.
                 return [$tier, $dueOn?->timestamp ?? PHP_INT_MAX];
             })
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
             ->values();
 
         // Month-scoped: only this row's current-month period counts, so an
         // advance payment recorded this month into a future period does not
         // inflate what was actually collected against this month's rent.
-        $dueThisMonth = round((float) $rows->sum(fn ($r) => $r['currentPeriod']['expected'] ?? 0), 2);
-        $collectedThisMonth = round(
-            (float) $rows->sum(fn ($r) => $r['currentPeriod'] ? min($r['currentPeriod']['paid'], $r['currentPeriod']['expected']) : 0),
-            2
-        );
-
         $totals = [
-<<<<<<< HEAD
-            'dueThisMonth'          => $dueThisMonth,
-            'paymentsDueThisMonth'  => $rows->filter(fn ($r) => $r['currentPeriod'] !== null)->count(),
-            'collectedThisMonth'    => $collectedThisMonth,
-            'collectedThisMonthPct' => $dueThisMonth > 0 ? round(($collectedThisMonth / $dueThisMonth) * 100) : null,
-            'outstanding'           => round($rows->sum(fn ($r) => $r['summary']['outstanding']), 2),
-            'outstandingCount'      => $rows->filter(fn ($r) => $r['summary']['outstanding'] > 0)->count(),
-            'overdue'               => round($rows->sum(fn ($r) => $r['summary']['overdueAmount']), 2),
-            'overdueTenancies'      => $rows->where('status', 'Overdue')->count(),
-=======
             'dueThisMonth'       => round($rows->sum(fn ($r) => $r['summary']['dueThisMonth']), 2),
             'collectedThisMonth' => round($rows->sum(fn ($r) => $r['summary']['collectedThisMonth']), 2),
             'outstanding'        => round($rows->sum(fn ($r) => $r['summary']['outstanding']), 2),
@@ -174,7 +125,6 @@ class PaymentController extends Controller
             'duePaymentCount'    => $rows->filter(fn ($r) => $r['summary']['dueThisMonth'] > 0)->count(),
             'unpaidCount'        => $rows->filter(fn ($r) => $r['summary']['outstanding'] > 0)->count(),
             'overdueCount'       => $rows->where('paymentStatus', 'overdue')->count(),
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
         ];
 
         // Null, not 0, when nothing is billed this month — a landlord with an

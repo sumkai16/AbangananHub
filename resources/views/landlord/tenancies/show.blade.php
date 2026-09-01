@@ -244,11 +244,6 @@
                     @endif
                 </x-card>
 
-<<<<<<< HEAD
-                {{-- Payment transactions --}}
-                @if($transactions->isNotEmpty())
-                    <x-card flush>
-=======
                 {{-- Rent payment transactions — distinct from the ledger above:
                      that table is what is owed, this one is what was actually
                      paid. A payment split across months by
@@ -325,7 +320,6 @@
                 {{-- Other charges --}}
                 @if($otherCharges->isNotEmpty())
                     <x-card flush x-data="{ moreRows: false }">
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                         <div class="px-5 sm:px-6 py-4 border-b border-[#E2E8F0]">
                             <h2 class="text-[15px] font-bold text-[#1F2937]">Payment transactions</h2>
                             <p class="text-[12px] text-[#64748B] mt-0.5">Every payment recorded against this tenancy.</p>
@@ -337,16 +331,6 @@
                                         <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Date</th>
                                         <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Reference</th>
                                         <th scope="col" class="px-4 py-3 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Amount</th>
-<<<<<<< HEAD
-                                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Method</th>
-                                        <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Applied to</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-[#E2E8F0]">
-                                    @foreach($transactions as $transaction)
-                                        @php $payment = $transaction['payment']; @endphp
-                                        <tr class="hover:bg-[#F7FCFC] transition-colors duration-150">
-=======
                                         <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Source</th>
                                         <th scope="col" class="px-5 sm:px-6 py-3 text-right text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
                                             <span class="sr-only">Actions</span>
@@ -357,18 +341,11 @@
                                     @foreach($otherCharges as $charge)
                                         <tr class="hover:bg-[#F7FCFC] transition-colors duration-150"
                                             @if($loop->index >= 6) x-show="moreRows" x-cloak @endif>
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                                             <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#1F2937] whitespace-nowrap">
-                                                {{ optional($payment->paid_at)->format('M d, Y') ?? '—' }}
+                                                {{ optional($charge->paid_at)->format('M d, Y') ?? '—' }}
                                             </td>
-                                            <td class="px-4 py-3.5 text-[13px] text-[#64748B]">{{ $payment->reference_no ?? '—' }}</td>
+                                            <td class="px-4 py-3.5 text-[13px] text-[#64748B]">{{ $charge->reference_no ?? '—' }}</td>
                                             <td class="px-4 py-3.5 text-[13px] font-semibold text-[#1F2937] text-right whitespace-nowrap">
-<<<<<<< HEAD
-                                                ₱{{ number_format((float) $payment->amount, 2) }}
-                                            </td>
-                                            <td class="px-4 py-3.5 text-[13px] text-[#64748B]">{{ $payment->payment_method }}</td>
-                                            <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#1F2937]">{{ $transaction['applied_to'] }}</td>
-=======
                                                 ₱{{ number_format((float) $charge->amount, 2) }}
                                             </td>
                                             <td class="px-4 py-3.5">
@@ -396,7 +373,6 @@
                                                     </button>
                                                 @endif
                                             </td>
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -551,18 +527,6 @@
                             <dt class="text-[#64748B]">Occupants</dt>
                             <dd class="font-semibold text-[#1F2937]">{{ $reservation->occupants_count ?? '—' }}</dd>
                         </div>
-                        <div class="flex items-center justify-between gap-3">
-                            <dt class="text-[#64748B]">Due day</dt>
-                            <dd class="font-semibold text-[#1F2937]">Day {{ $summary['dueDay'] }} of each month</dd>
-                        </div>
-                        @if($isActive)
-                            <div class="flex items-center justify-between gap-3">
-                                <dt class="text-[#64748B]">Next due</dt>
-                                <dd class="font-semibold {{ $summary['overdueCount'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]' }}">
-                                    {{ $nextDueDate?->format('M d, Y') ?? 'Nothing due' }}
-                                </dd>
-                            </div>
-                        @endif
                     </dl>
 
                     @if($reservation->remarks)

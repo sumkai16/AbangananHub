@@ -240,18 +240,13 @@
                 {{-- ===== 1. IMAGE GALLERY — bento (1 big + up to 2 small) ===== --}}
                 @php
                     $mediaCount = $property->media->count();
-                    // A 2-photo bento reusing the >=3 shape (3-col/2-row
-                    // container stretched to a fixed aspect-[4/3], one tile
-                    // spanning both rows) forced BOTH tiles into a tall,
-                    // narrow crop — the container's landscape aspect ratio
-                    // divided into two full-height strips is portrait-shaped
-                    // per strip, so object-cover chopped every photo badly.
-                    // 2 photos gets its own flat, single-row shape instead,
-                    // each tile carrying its own aspect ratio rather than the
-                    // container dictating one.
+                    // 2 photos reuses the >=3 bento shape: the hero tile takes
+                    // the left 2/3 (col-span-2 row-span-2) and the one
+                    // remaining photo fills the whole right column
+                    // (row-span-2) as a single tall image, rather than being
+                    // split into two half-height cells it can't fill.
                     $galleryGridClass = match (true) {
-                        $mediaCount >= 3 => 'grid grid-cols-3 grid-rows-2 gap-2 aspect-[4/3]',
-                        $mediaCount === 2 => 'grid grid-cols-2 gap-2',
+                        $mediaCount >= 2 => 'grid grid-cols-3 grid-rows-2 gap-2 aspect-[4/3]',
                         default => 'grid grid-cols-1',
                     };
                 @endphp
@@ -262,9 +257,9 @@
                             {{-- Big tile: same #hero-img element, same overlays, same
                                  behaviour as before — only its container changed from
                                  a standalone box to a grid cell. Fills the container
-                                 via row-span-2 when >=3 photos; otherwise carries its
-                                 own aspect ratio since the container is a flat row. --}}
-                            <div class="relative rounded-3xl overflow-hidden bg-[#E2E8F0] border border-[#EEF8F8] shadow-sm group {{ $mediaCount >= 3 ? 'col-span-2 row-span-2' : 'aspect-[4/3]' }}">
+                                 via row-span-2 when >=2 photos; otherwise carries its
+                                 own aspect ratio since the container is a single cell. --}}
+                            <div class="relative rounded-3xl overflow-hidden bg-[#E2E8F0] border border-[#EEF8F8] shadow-sm group {{ $mediaCount >= 2 ? 'col-span-2 row-span-2' : 'aspect-[4/3]' }}">
                                 <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                     class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
                                     onclick="openLightboxAtHero()">
@@ -323,8 +318,11 @@
                                  number, not DOM position, so skipping thumb-0 here
                                  is safe. --}}
                             @if($mediaCount === 2)
+                                {{-- Only one photo left to fill the right column, so it
+                                     spans both rows as one tall image instead of being
+                                     split into two half-height cells it can't fill. --}}
                                 <button type="button" id="thumb-1" onclick="setHero(1)"
-                                    class="relative aspect-[4/3] rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
+                                    class="relative row-span-2 rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
                                     <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
                                         class="w-full h-full object-cover">
                                 </button>
@@ -554,16 +552,16 @@
                     <div class="mt-6 flex items-stretch gap-3">
                         @if(!auth()->check())
                             <button type="button" onclick="openAuthModal('login')"
-                                class="flex-1 py-3.5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-[15px] font-bold shadow-sm transition-all">
+                                class="flex-1 py-5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-base font-bold shadow-sm transition-all">
                                 Log in to contact landlord
                             </button>
                         @elseif($isOwner)
-                            <div class="flex-1 py-3.5 text-center rounded-xl bg-[#E2E8F0] text-[#64748B] text-[15px] font-bold cursor-not-allowed">
+                            <div class="flex-1 py-5 text-center rounded-xl bg-[#E2E8F0] text-[#64748B] text-base font-bold cursor-not-allowed">
                                 This is your listing
                             </div>
                         @else
                             <button type="button" x-on:click="inquireOpen = true"
-                                class="flex-1 py-3.5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-[15px] font-bold shadow-sm transition-all cursor-pointer"
+                                class="flex-1 py-5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-base font-bold shadow-sm transition-all cursor-pointer"
                                 x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Contact Landlord'"
                                 :disabled="selected && selected.hasActive"
                                 :class="selected && selected.hasActive ? 'opacity-60 cursor-not-allowed' : ''">

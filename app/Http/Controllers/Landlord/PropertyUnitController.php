@@ -73,14 +73,11 @@ class PropertyUnitController extends Controller
             ]);
         }
 
-<<<<<<< HEAD
-=======
         // Live capture is offered but no longer required — a landlord may
         // submit any mix of camera and uploaded photos, including all-upload.
         // The only remaining floor is "photos" => 'min:3' above, unrelated to
         // source. See ARCHITECTURE.md's "Unit Photos — Live Capture" section.
 
->>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
         DB::transaction(function () use ($validated, $request, $property, $photos, $sources, $captions) {
             $unit = $property->units()->create([
                 'unit_label'          => $validated['unit_label'],
