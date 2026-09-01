@@ -18,6 +18,15 @@ administrator, dense dashboards) — do not force it into a mobile-first pass. S
 ## Planning
 When finalizing a plan (plan mode), save a copy into `plans/` in this repo (descriptive kebab-case filename, e.g. `plans/google-facebook-oauth-login.md`), in addition to the default plan-mode location. Keeps design decisions and their reasoning versioned alongside the code instead of only living in a local scratch file.
 
+Once a plan is fully implemented **and Axcee has manually verified it** (ran the plan's own test
+checklist in-browser, per `test-before-commit`), delete it from `plans/` rather than leaving it
+marked done. Code landing/being committed is not enough on its own — confirm the manual pass
+actually happened before deleting; if the plan's own status line says "pending manual verification"
+or you're not sure, ask rather than assume. git history preserves the file if it's ever needed again.
+A plan that documents a decision worth keeping long-term (e.g. a runbook like
+`plans/hostinger-vps-deployment.md`, meant to be reused, not "finished") is not a candidate for this
+— only one-shot implementation plans that have fully landed and been verified.
+
 ## Models
 Plan with **Opus 5 (high effort)**; implement/code with **Sonnet 5**. Planning is where reasoning
 quality pays off; once the plan is agreed the coding is mechanical. Switch models at the handoff
