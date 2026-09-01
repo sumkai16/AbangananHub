@@ -14,12 +14,9 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Mobile equivalent of Landlord\PropertyUnitController's store/update/
- * destroy/destroyMedia. store() preserves the anti-fraud live-capture rule
- * (>=3 camera-sourced photos) unchanged — see ARCHITECTURE.md "Unit Photos —
- * Live Capture". Expo's camera can't be fed a gallery pick the way a browser
- * file input can, so mobile is if anything harder to forge than web, but the
- * server-side count check stays regardless: it is the one that's actually
- * trusted.
+ * destroy/destroyMedia. Live capture is offered but no longer required (see
+ * ARCHITECTURE.md "Unit Photos — Live Capture") — store() still requires
+ * >=3 photos total, any mix of camera/upload.
  */
 class UnitWriteController extends Controller
 {
@@ -61,13 +58,6 @@ class UnitWriteController extends Controller
         if (count($sources) !== count($photos)) {
             throw ValidationException::withMessages([
                 'photos' => ['Photo data is out of sync — please re-add your photos and try again.'],
-            ]);
-        }
-
-        $liveCount = collect($sources)->filter(fn ($s) => $s === 'camera')->count();
-        if ($liveCount < 3) {
-            throw ValidationException::withMessages([
-                'photos' => ['At least 3 live (camera-captured) photos are required. Uploaded photos count as extras.'],
             ]);
         }
 

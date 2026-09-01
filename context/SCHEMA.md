@@ -163,7 +163,7 @@ property approval itself; the admin uses judgment, with the "request a document"
 | is_furnished | BOOLEAN | NULLABLE | Added Aug 2026. `PropertyUnit` casts it `boolean`; NULL means "not answered" (pre-existing unit), not "unfurnished" — don't treat a null the same as `false` in any consumer |
 | description | TEXT | NULLABLE | |
 | rental_fee | DECIMAL(10,2) | NOT NULL | |
-| security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026. Required at the **application layer** since Aug 20 2026 — every monthly rental carries a deposit, enforced in `Landlord\PropertyUnitController`/`Api\Landlord\UnitWriteController` validation, not a DB constraint. `2026_08_20_000000_backfill_security_deposit_on_property_units` set every then-NULL row to one month's rent so no pre-existing listing shows blank |
+| security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026. Required at the **application layer** on unit *creation* since Aug 20 2026 — every new unit must state a deposit, enforced in `Landlord\PropertyUnitController::store()`/`Api\Landlord\UnitWriteController::store()`. `2026_08_20_000000_backfill_security_deposit_on_property_units` set every then-NULL row to one month's rent so no pre-existing listing shows blank. **Optional on edit since Sept 2026** (`PropertyUnitController::update()` only) — a unit that genuinely charges no deposit can clear it; a submit that omits the field entirely leaves the existing value untouched rather than nulling it (guarded with `array_key_exists`, not `??`). Every display site treats null as "no deposit" explicitly (e.g. "No security deposit required" on the property page), never as ₱0 |
 | occupancy_limit | INT | NULLABLE | |
 | availability_status | ENUM('Available','Reserved','Occupied','Maintenance') | DEFAULT 'Available' | Maintenance added for unit form |
 | vacated_at | TIMESTAMP | NULLABLE | Occupancy tracking |
@@ -195,7 +195,7 @@ Column sizes were taken from the validation the controllers were already enforci
 | unit_id | FK → property_units.unit_id | NOT NULL | onDelete cascade |
 | media_type | ENUM('Image','Video') | NOT NULL | Filter to 'Image' for image galleries — videos must not render in `<img>` |
 | media_url | VARCHAR(255) | NOT NULL | Cloudinary URL — output as-is |
-| source | ENUM('camera','upload') | DEFAULT 'upload' | 'camera' = live in-browser capture; ≥3 camera photos required on unit create |
+| source | ENUM('camera','upload') | DEFAULT 'upload' | 'camera' = live in-browser capture, purely informational (shown as a "Live" badge) — landlord's free choice since Sept 2026, no longer a required minimum. Unit still needs ≥3 photos total, any source |
 | caption | VARCHAR(150) | NULLABLE | Optional per-photo caption, shown to tenants |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |

@@ -62,6 +62,30 @@
                 ->map(fn ($id) => (string) $id)->all();
         @endphp
 
+        {{-- Per-photo delete forms — deliberately OUTSIDE the main edit form
+             below, never nested inside it. Nesting a <form> inside another is
+             invalid HTML; browsers still create it as its own DOM node, but
+             when the OUTER form submits, its "constructing the form data set"
+             step still walks in and picks up the inner form's own hidden
+             _method/_token/photos[] fields too — so a saved edit's multipart
+             body ended up carrying two _method fields (PUT, then a trailing
+             DELETE from whichever photo's delete form rendered last). PHP
+             keeps the LAST duplicate key, so every "Save Changes" was
+             secretly a DELETE to the identical unit URL (PUT and DELETE share
+             one route path) — silently deleting the unit outright, unless it
+             had an active reservation to refuse it. Reproduced and confirmed
+             live (Sept 2026) before this fix; see plans/analyst-checklist-part-b.md Part C2. --}}
+        @foreach($existingPhotos as $photo)
+            <form id="delete-photo-{{ $photo->media_id }}" method="POST"
+                  action="{{ route('landlord.properties.units.media.destroy', [$property, $unit, $photo->media_id]) }}"
+                  data-confirm="Remove this photo?"
+                  data-confirm-type="error"
+                  data-confirm-message="This photo will be permanently removed from the unit."
+                  data-confirm-button="Remove">
+                @csrf @method('DELETE')
+            </form>
+        @endforeach
+
         <form method="POST" action="{{ route('landlord.properties.units.update', [$property, $unit]) }}"
             enctype="multipart/form-data" x-on:submit="submitting = true"
             x-data="{
@@ -209,10 +233,10 @@
                             </div>
                             <div>
                                 <label for="security_deposit" class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">
-                                    Security Deposit (₱) <span class="text-[#EF4444]">*</span>
+                                    Security Deposit (₱) <span class="text-[#64748B] font-normal">(optional)</span>
                                 </label>
-                                <input type="number" id="security_deposit" name="security_deposit" value="{{ old('security_deposit', $unit->security_deposit) }}" required min="0"
-                                    max="999999.99" step="0.01" placeholder="e.g. 3500"
+                                <input type="number" id="security_deposit" name="security_deposit" value="{{ old('security_deposit', $unit->security_deposit) }}" min="0"
+                                    max="999999.99" step="0.01" placeholder="Leave blank if this unit has no deposit"
                                     class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition">
                                 @error('security_deposit')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
@@ -264,7 +288,9 @@
                         </div>
                     </div>
 
-                    {{-- Existing verification capture (read-only, captured at creation) --}}
+                    {{-- Existing photos — editable: delete down to the 3-photo
+                         floor (destroyMedia enforces it, any mix of live/upload), add more below. --}}
+                    @php $existingCameraCount = $existingPhotos->where('source', 'camera')->count(); @endphp
                     <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
                         <div class="flex items-center gap-2.5 mb-3">
                             <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0">
@@ -274,26 +300,15 @@
                                 </svg>
                             </div>
                             <div>
-                                <h2 class="text-[13px] font-bold text-[#1F2937]">Verification Capture</h2>
-                                <p class="text-[11px] text-[#64748B] mt-0.5">Captured live at creation — not editable here.</p>
+                                <h2 class="text-[13px] font-bold text-[#1F2937]">Existing Photos</h2>
+                                <p class="text-[11px] text-[#64748B] mt-0.5">A unit always needs at least 3 photos, live or uploaded — you can remove any extra, but not below that.</p>
                             </div>
-                        </div>
-                        <div class="mb-4 px-3.5 py-3 rounded-xl bg-[#EEF8F8] border border-[#2AA7A1]/20 flex items-start gap-2.5">
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="2"
-                                class="shrink-0 mt-0.5">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                            </svg>
-                            <p class="text-[12px] text-[#1F2937]/70 leading-relaxed">
-                                Photos and video are locked to the moment this unit was created, to prevent re-uploading old or
-                                unrelated media. To recapture, remove this unit and add it again.
-                            </p>
                         </div>
 
                         @if($existingPhotos->isNotEmpty())
                             <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
                                 @foreach($existingPhotos as $photo)
-                                    <div class="relative aspect-square rounded-lg overflow-hidden bg-[#F7FCFC] ring-1 ring-[#64748B]/15">
+                                    <div class="relative aspect-square rounded-lg overflow-hidden bg-[#F7FCFC] ring-1 ring-[#64748B]/15 group">
                                         <img src="{{ $photo->media_url }}" alt="{{ $photo->caption ?? 'Unit photo' }}" class="w-full h-full object-cover">
                                         @if($photo->source === 'camera')
                                             <span class="absolute top-1 left-1 rounded-full bg-[#2AA7A1] text-white px-1.5 py-0.5 text-[9px] font-semibold">Live</span>
@@ -301,10 +316,24 @@
                                         @if($photo->caption)
                                             <span class="absolute inset-x-0 bottom-0 bg-black/60 text-white text-[9.5px] px-1.5 py-1 leading-tight line-clamp-2">{{ $photo->caption }}</span>
                                         @endif
+                                        {{-- Deleting a camera photo below the floor is refused
+                                             server-side (destroyMedia); an upload can always go.
+                                             The actual <form> for this lives OUTSIDE the main
+                                             edit form below — see the comment there for why. This
+                                             button only references it by id. --}}
+                                        <button type="submit" form="delete-photo-{{ $photo->media_id }}" aria-label="Remove photo"
+                                            class="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 border border-[#E2E8F0] flex items-center justify-center text-[#EF4444] opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-150">
+                                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
                                     </div>
                                 @endforeach
                             </div>
                         @endif
+                        @error('photos')
+                            <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                        @enderror
 
                         @if($existingVideo)
                             <div class="rounded-lg overflow-hidden bg-[#F7FCFC] ring-1 ring-[#64748B]/15 max-w-xs">
@@ -312,6 +341,8 @@
                             </div>
                         @endif
                     </div>
+
+                    @include('landlord.units.partials._photo-capture', ['existingLiveCount' => $existingCameraCount])
 
                     {{-- Actions --}}
                     <div class="flex items-center gap-3">

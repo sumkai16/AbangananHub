@@ -86,7 +86,24 @@ class PropertyController extends Controller
             ->where('property_id', $property->property_id)
             ->exists();
 
-        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited'));
+        // "Nearby" is barangay/city matching, not a geo radius — this platform
+        // is Cebu-scoped and address text match is sufficient (ARCHITECTURE.md).
+        // browsable() (not just approved()) so a Draft/Unpublished/Suspended
+        // listing can never leak in through this block. units eager-loaded:
+        // getMinRentalFeeAttribute() reads it unguarded and preventLazyLoading
+        // throws in dev otherwise.
+        $nearbyProperties = Property::browsable()
+            ->where('property_id', '!=', $property->property_id)
+            ->where('city_municipality', $property->city_municipality)
+            ->with(['media', 'units'])
+            ->latest('created_at')
+            ->take(12)
+            ->get()
+            ->sortByDesc(fn ($p) => $p->barangay === $property->barangay)
+            ->take(6)
+            ->values();
+
+        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited', 'nearbyProperties'));
     }
 
     public function edit(Property $property)
@@ -200,6 +217,8 @@ class PropertyController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $wasDraft = $property->isDraft();
+
         foreach ($property->media as $media) {
             if ($media->cloudinary_public_id) {
                 cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);
@@ -208,7 +227,9 @@ class PropertyController extends Controller
         }
 
         $property->delete();
-        return redirect()->route('landlord.properties.index')->with('success', 'Property removed successfully.');
+
+        return redirect()->route('landlord.properties.index')
+            ->with('success', $wasDraft ? 'Draft deleted.' : 'Property removed successfully.');
     }
 
     public function destroyMedia(Property $property, int $media)
