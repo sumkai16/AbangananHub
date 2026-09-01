@@ -139,10 +139,12 @@
                         <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Monthly rent</p>
                         <p class="text-[12.5px] font-bold text-[#1F2937]">&#8369;{{ number_format($stripRent) }}</p>
                     </div>
-                    <div>
-                        <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Security deposit</p>
-                        <p class="text-[12.5px] font-bold text-[#1F2937]">&#8369;{{ number_format($stripDeposit) }}</p>
-                    </div>
+                    @if($stripDeposit > 0)
+                        <div>
+                            <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Security deposit</p>
+                            <p class="text-[12.5px] font-bold text-[#1F2937]">&#8369;{{ number_format($stripDeposit) }}</p>
+                        </div>
+                    @endif
                     <div>
                         <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Due at move-in</p>
                         <p class="text-[12.5px] font-bold text-[#156F8C]">&#8369;{{ number_format($stripDue) }}</p>
@@ -464,10 +466,12 @@
                                     <span>Monthly rent</span>
                                     <span class="font-semibold text-[#1F2937]">&#8369;{{ number_format($summaryRent) }}</span>
                                 </div>
-                                <div class="flex items-center justify-between text-[#64748B]">
-                                    <span>Security deposit</span>
-                                    <span class="font-semibold text-[#1F2937]">&#8369;{{ number_format($summaryDeposit) }}</span>
-                                </div>
+                                @if($summaryDeposit > 0)
+                                    <div class="flex items-center justify-between text-[#64748B]">
+                                        <span>Security deposit</span>
+                                        <span class="font-semibold text-[#1F2937]">&#8369;{{ number_format($summaryDeposit) }}</span>
+                                    </div>
+                                @endif
                                 <div class="flex items-center justify-between pt-1 border-t border-[#E2E8F0]">
                                     <span class="font-bold text-[#1F2937]">Due at move-in</span>
                                     <span class="font-bold text-[#156F8C]">&#8369;{{ number_format($summaryDue) }}</span>

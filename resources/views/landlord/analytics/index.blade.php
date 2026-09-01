@@ -25,6 +25,15 @@
             '#94A3B8' => 'bg-[#94A3B8]',
             '#EF4444' => 'bg-[#EF4444]',
         ];
+
+        // Recent Activity's dot colour and sentence verb, moved here with the
+        // panel when landlord/occupancy was deleted.
+        $statusStyles = [
+            'Available'   => ['tile' => 'border-[#22C55E]/25 bg-[#22C55E]/[0.07]', 'dot' => 'bg-[#22C55E]', 'verb' => 'was made available'],
+            'Reserved'    => ['tile' => 'border-[#FBBF24]/35 bg-[#FBBF24]/[0.10]', 'dot' => 'bg-[#FBBF24]', 'verb' => 'was reserved'],
+            'Occupied'    => ['tile' => 'border-[#EF4444]/25 bg-[#EF4444]/[0.07]', 'dot' => 'bg-[#EF4444]', 'verb' => 'was occupied'],
+            'Maintenance' => ['tile' => 'border-[#E2E8F0] bg-[#F7FCFC]',           'dot' => 'bg-[#94A3B8]', 'verb' => 'is now under maintenance'],
+        ];
     @endphp
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
@@ -177,11 +186,7 @@
 
             {{-- Occupancy by Property --}}
             <x-card>
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-[14px] font-bold text-[#1F2937]">Occupancy by Property</h2>
-                    <a href="{{ route('landlord.occupancy.index') }}"
-                        class="text-[11.5px] font-bold text-[#156F8C] hover:underline">View All</a>
-                </div>
+                <h2 class="text-[14px] font-bold text-[#1F2937] mb-3">Occupancy by Property</h2>
                 @if($perProperty->isEmpty())
                     <p class="text-[12.5px] text-[#64748B] py-6 text-center">No properties yet.</p>
                 @else
@@ -266,6 +271,123 @@
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+                @endif
+            </x-card>
+        </div>
+
+        {{-- ===== Row: Vacancy watch · Recent activity ===== =========
+             Both are point-in-time, not range-filtered — hence the "As of
+             today" chips. The range footer below must not read as covering
+             them. Occupancy Overview and Occupancy by Property above are
+             already point-in-time too, so this is the page's existing mix,
+             not a new one. --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
+            {{-- Vacancy Watch — moved here when landlord/occupancy was deleted.
+                 That page's numbers duplicated this one's; this panel did not,
+                 so it came across rather than going with the page. --}}
+            <x-card flush class="p-5">
+                <div class="flex items-center justify-between gap-2 mb-4">
+                    <h2 class="text-[14px] font-bold text-[#1F2937]">Vacancy Watch</h2>
+                    <span class="shrink-0 rounded-full border border-[#E2E8F0] bg-[#F7FCFC] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#64748B]">As of today</span>
+                </div>
+
+                @if($vacancy['count'] === 0)
+                    <div class="flex flex-col items-center justify-center py-8 text-center">
+                        <div class="w-11 h-11 rounded-xl bg-[#22C55E]/[0.10] flex items-center justify-center mb-3">
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#15803D" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                            </svg>
+                        </div>
+                        <p class="text-[13px] font-semibold text-[#1F2937]">No vacant units</p>
+                        <p class="text-[11.5px] text-[#64748B] mt-1 max-w-[230px]">Every unit is reserved, occupied, or under maintenance.</p>
+                    </div>
+                @else
+                    {{-- The headline: rent the portfolio is not earning. This is
+                         the one figure that makes an empty unit feel like a cost
+                         rather than a status. --}}
+                    <div class="rounded-xl bg-[#F7FCFC] border border-[#E2E8F0] px-4 py-3.5 mb-4">
+                        <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rent not being earned</p>
+                        <p class="text-[22px] font-extrabold text-[#B45309] mt-1 leading-none">
+                            ₱{{ number_format($vacancy['idle_rent']) }}<span class="text-[12px] font-semibold text-[#64748B]"> / month</span>
+                        </p>
+                        <p class="text-[11.5px] text-[#64748B] mt-1.5">
+                            Across {{ $vacancy['count'] }} vacant {{ Str::plural('unit', $vacancy['count']) }}
+                        </p>
+                    </div>
+
+                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wide mb-2.5">Empty longest</p>
+                    <div class="space-y-2">
+                        @foreach($vacancy['units'] as $unit)
+                            @php
+                                // Same 60-day threshold the admin unit catalogue uses for
+                                // "stale", so one number defines a long vacancy app-wide.
+                                $days = $unit['days'];
+                                $tone = match (true) {
+                                    $days >= 60 => ['bg-[#EF4444]/[0.07]', 'text-[#DC2626]'],
+                                    $days >= 30 => ['bg-[#FBBF24]/[0.12]', 'text-[#B45309]'],
+                                    default     => ['bg-[#F7FCFC]',        'text-[#64748B]'],
+                                };
+                            @endphp
+                            <a href="{{ $unit['edit_url'] }}"
+                                class="flex items-center gap-3 rounded-xl border border-[#E2E8F0] px-3 py-2.5 hover:bg-[#F7FCFC] transition-colors duration-150">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[12.5px] font-semibold text-[#1F2937] truncate">{{ $unit['label'] }}</p>
+                                    <p class="text-[11px] text-[#64748B] truncate">{{ $unit['property'] }}</p>
+                                </div>
+                                <div class="shrink-0 text-right">
+                                    <span class="inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tone[0] }} {{ $tone[1] }}">
+                                        {{ $days }}{{ $days === 1 ? ' day' : ' days' }}
+                                    </span>
+                                    <p class="text-[11px] text-[#64748B] mt-1">₱{{ number_format($unit['rent']) }}/mo</p>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+
+                    <p class="text-[11px] text-[#64748B] mt-3">
+                        Counted from when the unit was last vacated, or from when it was listed if it has never been let.
+                    </p>
+                @endif
+            </x-card>
+
+            {{-- Recent Activity — a timeline: the connecting rule ties the
+                 status dots into one sequence rather than four loose rows. --}}
+            <x-card flush class="p-5">
+                <div class="flex items-center justify-between gap-2 mb-4">
+                    <h2 class="text-[14px] font-bold text-[#1F2937]">Recent Activity</h2>
+                    <span class="shrink-0 rounded-full border border-[#E2E8F0] bg-[#F7FCFC] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#64748B]">As of today</span>
+                </div>
+                @if($recentActivities->isEmpty())
+                    <p class="text-[12px] text-[#64748B] py-4 text-center">No occupancy changes recorded yet.</p>
+                @else
+                    <div class="relative">
+                        {{-- Timeline rule, stopped short of the last dot's centre. --}}
+                        <span class="absolute left-[13px] top-3 bottom-6 w-px bg-[#E2E8F0]" aria-hidden="true"></span>
+                        <div class="space-y-3.5">
+                            @foreach($recentActivities as $activity)
+                                @php
+                                    $st = $statusStyles[$activity->to_status] ?? $statusStyles['Available'];
+                                    $person = $activity->tenant?->first_name
+                                        ? trim($activity->tenant->first_name . ' ' . $activity->tenant->last_name)
+                                        : ($activity->actor?->first_name ? trim($activity->actor->first_name . ' ' . $activity->actor->last_name) : null);
+                                @endphp
+                                <div class="relative flex items-start gap-3">
+                                    <span class="w-[27px] h-[27px] rounded-full border flex items-center justify-center shrink-0 bg-white z-10 {{ $st['tile'] }}">
+                                        <span class="w-2 h-2 rounded-full {{ $st['dot'] }}"></span>
+                                    </span>
+                                    <div class="flex-1 min-w-0 pt-0.5">
+                                        <p class="text-[12.5px] text-[#1F2937] leading-snug">
+                                            <span class="font-semibold">{{ $activity->unit?->unit_label ?? 'A unit' }}</span>
+                                            in {{ $activity->property?->title ?? 'a property' }} {{ $st['verb'] }}
+                                        </p>
+                                        <p class="text-[11px] text-[#64748B] mt-0.5">
+                                            @if($person)by {{ $person }} &middot; @endif{{ $activity->created_at->diffForHumans() }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
             </x-card>

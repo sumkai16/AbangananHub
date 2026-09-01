@@ -33,6 +33,8 @@ class TenancyController extends Controller
             'property',
             'unit.media',
             'payments.recorder',
+            'payments.voider',
+            'payments.replacements',
             'conversation',
         ]);
 
@@ -53,6 +55,7 @@ class TenancyController extends Controller
             ->values();
 
         return view('landlord.tenancies.show', [
+<<<<<<< HEAD
             'reservation'      => $reservation,
             'ledger'           => $ledger,
             'periods'          => $ledger->periods(),
@@ -60,6 +63,16 @@ class TenancyController extends Controller
             'unsettledPeriods' => $ledger->unsettledPeriods(),
             'transactions'     => $transactions,
             'nextDueDate'      => $ledger->nextDueDate(),
+=======
+            'reservation'         => $reservation,
+            'ledger'              => $ledger,
+            'periods'             => $ledger->periods(),
+            'otherCharges'        => $ledger->otherCharges(),
+            'summary'             => $ledger->summary(),
+            'unsettledPeriods'    => $ledger->unsettledPeriods(),
+            'monthlyTransactions' => $ledger->monthlyTransactions(),
+            'voidedTransactions'  => $ledger->voidedTransactions(),
+>>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
         ]);
     }
 

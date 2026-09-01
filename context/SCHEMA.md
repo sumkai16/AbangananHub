@@ -163,7 +163,7 @@ property approval itself; the admin uses judgment, with the "request a document"
 | is_furnished | BOOLEAN | NULLABLE | Added Aug 2026. `PropertyUnit` casts it `boolean`; NULL means "not answered" (pre-existing unit), not "unfurnished" — don't treat a null the same as `false` in any consumer |
 | description | TEXT | NULLABLE | |
 | rental_fee | DECIMAL(10,2) | NOT NULL | |
-| security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026. Required at the **application layer** since Aug 20 2026 — every monthly rental carries a deposit, enforced in `Landlord\PropertyUnitController`/`Api\Landlord\UnitWriteController` validation, not a DB constraint. `2026_08_20_000000_backfill_security_deposit_on_property_units` set every then-NULL row to one month's rent so no pre-existing listing shows blank |
+| security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026. Required at the **application layer** on unit *creation* since Aug 20 2026 — every new unit must state a deposit, enforced in `Landlord\PropertyUnitController::store()`/`Api\Landlord\UnitWriteController::store()`. `2026_08_20_000000_backfill_security_deposit_on_property_units` set every then-NULL row to one month's rent so no pre-existing listing shows blank. **Optional on edit since Sept 2026** (`PropertyUnitController::update()` only) — a unit that genuinely charges no deposit can clear it; a submit that omits the field entirely leaves the existing value untouched rather than nulling it (guarded with `array_key_exists`, not `??`). Every display site treats null as "no deposit" explicitly (e.g. "No security deposit required" on the property page), never as ₱0 |
 | occupancy_limit | INT | NULLABLE | |
 | availability_status | ENUM('Available','Reserved','Occupied','Maintenance') | DEFAULT 'Available' | Maintenance added for unit form |
 | vacated_at | TIMESTAMP | NULLABLE | Occupancy tracking |
@@ -195,7 +195,7 @@ Column sizes were taken from the validation the controllers were already enforci
 | unit_id | FK → property_units.unit_id | NOT NULL | onDelete cascade |
 | media_type | ENUM('Image','Video') | NOT NULL | Filter to 'Image' for image galleries — videos must not render in `<img>` |
 | media_url | VARCHAR(255) | NOT NULL | Cloudinary URL — output as-is |
-| source | ENUM('camera','upload') | DEFAULT 'upload' | 'camera' = live in-browser capture; ≥3 camera photos required on unit create |
+| source | ENUM('camera','upload') | DEFAULT 'upload' | 'camera' = live in-browser capture, purely informational (shown as a "Live" badge) — landlord's free choice since Sept 2026, no longer a required minimum. Unit still needs ≥3 photos total, any source |
 | caption | VARCHAR(150) | NULLABLE | Optional per-photo caption, shown to tenants |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
@@ -351,7 +351,7 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | paymongo_payment_intent_id | VARCHAR | NULLABLE, UNIQUE | |
 | paymongo_payment_id | VARCHAR | NULLABLE | |
 | paymongo_checkout_session_id | VARCHAR | NULLABLE, UNIQUE | |
-| status | ENUM('Pending','Paid','Held','Released','Failed','Refunded') | DEFAULT 'Pending' | `Held` = escrow. **`Paid` went live July 24 2026** — a landlord-recorded offline payment (rent ledger), money already received, never escrowed. It counts as revenue (`AnalyticsController::EARNED_STATUSES = ['Paid','Held','Released']`) and can never be released (`Admin\PaymentController::release` refuses anything not `Held`). **No code writes `Refunded`** — there is no refund action |
+| status | ENUM('Pending','Paid','Held','Released','Failed','Refunded','Voided') | DEFAULT 'Pending' | `Held` = escrow. **`Paid` went live July 24 2026** — a landlord-recorded offline payment (rent ledger), money already received, never escrowed. It counts as revenue (`AnalyticsController::EARNED_STATUSES = ['Paid','Held','Released']`) and can never be released (`Admin\PaymentController::release` refuses anything not `Held`). **No code writes `Refunded`** — there is no refund action. **`Voided`** (Aug 31 2026) is a landlord striking their own wrongly-entered row — the original stays on record with a reason, actor and timestamp, never deleted. It is deliberately absent from `RentLedger::SETTLED_STATUSES` and `AnalyticsController::EARNED_STATUSES` **by design, not by an added guard**: both were already whitelists, so the new member falls out of every settlement/revenue calculation with zero changes to either class. See `Landlord\PaymentController::void()` and `plans/void-correct-payments.md` |
 | paid_at | TIMESTAMP | NULLABLE | Clock 1 falls back to this when there is no target move-in date |
 | released_at | TIMESTAMP | NULLABLE | |
 | released_by | BIGINT UNSIGNED | NULLABLE | Admin user id, or null when the platform released it |
@@ -363,6 +363,11 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | paid_out_at | TIMESTAMP | NULLABLE | When an admin recorded the manual GCash transfer as sent |
 | paid_out_by | FK → users.user_id | NULLABLE, nullOnDelete | Admin who recorded the payout |
 | payout_reference | VARCHAR | NULLABLE | The GCash transaction reference the admin typed in after sending |
+| voided_at | TIMESTAMP | NULLABLE | Added Aug 31 2026. Null = never voided |
+| voided_by | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who struck this entry |
+| void_reason | ENUM('wrong_amount','wrong_month','wrong_tenancy','duplicate','not_received','other') | NULLABLE | Named cause, not free text — same role `release_reason` plays for releases: the field a disputed ledger is argued from later |
+| void_note | VARCHAR(255) | NULLABLE | Required only when `void_reason = 'other'` |
+| replaces_payment_id | FK → payments.payment_id | NULLABLE, nullOnDelete | Set on the **new** row a "void and correct" flow writes, pointing back at the voided one — never the reverse, since one voided row can be replaced by several rows when `RentPaymentAllocator` splits the correction across months |
 
 Index `payments_reservation_period_index` on `(reservation_id, billing_period)` — the rent ledger's per-period lookup. Index on `payout_status` for the admin payouts queue.
 
@@ -574,6 +579,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | create_property_documents_table | Proof of ownership / tax declaration / permits per property, private-disk file storage, admin verify/reject/request workflow | Admins were approving listings on the landlord's word alone — nothing proved the right to rent out *this* property. Second upload path (after `landlord_verifications`) off the public Cloudinary flow | Aug 2026 |
 | add_room_details_to_property_units | `bedrooms`, `bathrooms` (TINYINT UNSIGNED, nullable), `is_furnished` (BOOLEAN, nullable) | The property creation wizard's unit step asks for these; nothing on `property_units` captured them before | Aug 2026 |
 | add_floor_area_to_property_units_table | `floor_area_sqm` DECIMAL(6,2) nullable | Tenants compare unit size when choosing between similarly-priced rooms, and nothing captured it. `properties/show` had already been rendering `$unit->size` in four places against a column that never existed — this gives those dead slots real data. See ARCHITECTURE.md | Aug 28 2026 |
+| add_void_fields_to_payments_table | `status` enum widened with `Voided`; adds `voided_at`, `voided_by`, `void_reason`, `void_note`, `replaces_payment_id` | Landlords had no way to correct a wrongly-entered payment except a raw DB edit — no audit trail, no UI. See ARCHITECTURE.md and `plans/void-correct-payments.md` | Aug 31 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.

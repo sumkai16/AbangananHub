@@ -52,12 +52,25 @@ class StoreWalkInTenantRequest extends FormRequest
             'rent_due_day'         => ['nullable', 'integer', 'min:1', 'max:28'],
             'notes'                => ['nullable', 'string', 'max:1000'],
 
-            // Optional move-in money collected at the door. There is no
-            // "what was it for" field: MoveInPaymentBreakdown allocates the
-            // amount across deposit, first-month rent and advance rent, so
-            // asking the landlord to also label the lump would be the same
-            // question twice with two answers free to disagree.
-            'initial_amount'       => ['nullable', 'numeric', 'min:1', 'max:1000000'],
+            // Move-in money collected at the door. There is no "what was it
+            // for" field: MoveInPaymentBreakdown allocates the amount across
+            // deposit, first-month rent and advance rent, so asking the
+            // landlord to also label the lump would be the same question
+            // twice with two answers free to disagree.
+            //
+            // Required once the move-in date has already arrived (today or
+            // earlier) — a tenant who has moved in has, by definition, had a
+            // move-in money conversation with the landlord, and this app has
+            // no way to collect it later. A *future* move-in date leaves it
+            // optional: nothing has been collected yet to record. This does
+            // not reopen the separate "short payment warns, doesn't block"
+            // decision below (ARCHITECTURE.md) — any amount > 0 still
+            // satisfies this rule; only recording nothing at all is blocked.
+            'initial_amount'       => [
+                Rule::requiredIf(fn () => $this->filled('move_in_date')
+                    && Carbon::parse($this->input('move_in_date'))->lte(Carbon::today())),
+                'nullable', 'numeric', 'min:1', 'max:1000000',
+            ],
             'payment_method'       => ['required_with:initial_amount', 'nullable', Rule::in(['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'])],
             'payment_date'         => ['nullable', 'date', 'before_or_equal:today'],
             // Cash has no reference to give; every other method produces one,
@@ -127,6 +140,7 @@ class StoreWalkInTenantRequest extends FormRequest
             'move_in_date.required'           => 'Enter the date the tenant moved in.',
             'move_out_date.after'             => 'The move-out date must be after the move-in date.',
             'rent_due_day.max'                => 'Pick a due day between 1 and 28 so it exists in every month.',
+            'initial_amount.required'         => 'Record the payment collected at move-in — a tenant moving in today or earlier must have a payment on file.',
             'payment_method.required_with'    => 'Choose how the initial payment was made.',
             'payment_date.before_or_equal'    => 'A payment cannot be recorded for a future date.',
             'reference_no.required'           => 'Enter the reference number for this payment, or switch the method to Cash.',

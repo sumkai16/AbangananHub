@@ -50,17 +50,71 @@
 --}}
 @php
     $recordPaymentFields = ['payment_type', 'amount', 'billing_period', 'payment_method', 'paid_at', 'reference_no', 'payment_notes'];
+    // Flashed by Landlord\PaymentController::void() when the landlord ticked
+    // "record a corrected payment straight after" — opens this modal
+    // pre-filled with the voided entry's own figures instead of the
+    // tenancy's usual defaults.
+    $correction = session('correct_payment');
 @endphp
 {{-- A failed submit redirects back with errors, but `show` is client-only Alpine
      state defaulting to false — without this, the modal would re-render closed
      and the error would be completely invisible, not just non-inline. --}}
 <div x-data="{
-        show: {{ $errors->hasAny($recordPaymentFields) ? 'true' : 'false' }},
-        type: 'Monthly',
-        amount: @js($summary['monthlyRent'] > 0 ? number_format($summary['monthlyRent'], 2, '.', '') : ''),
-        period: @js($defaultPeriod ? $defaultPeriod['period']->toDateString() : ''),
+        show: {{ $errors->hasAny($recordPaymentFields) || $correction ? 'true' : 'false' }},
+        type: @js($correction['payment_type'] ?? 'Monthly'),
+        amount: @js($correction ? number_format($correction['amount'], 2, '.', '') : ($summary['monthlyRent'] > 0 ? number_format($summary['monthlyRent'], 2, '.', '') : '')),
+        period: @js($correction['billing_period'] ?? ($defaultPeriod ? $defaultPeriod['period']->toDateString() : '')),
+        // Unpaid months only, oldest first — mirrors RentPaymentAllocator's
+        // own input so the preview below matches what the server will
+        // actually write. Paid and future months are never fill targets.
+        unsettledPeriods: @js($periods->reject(fn ($p) => $p['is_future'] || $p['status'] === 'paid')
+            ->map(fn ($p) => ['period' => $p['period']->toDateString(), 'balance' => round($p['balance'], 2)])
+            ->values()),
+        monthlyRent: @js($summary['monthlyRent']),
         open() { this.show = true; },
         close() { this.show = false; },
+        round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; },
+        /*
+         | Preview only — display, never the source of truth. The server
+         | (App\Support\RentPaymentAllocator) allocates again from the posted
+         | amount and its own figures once this is submitted. This mirrors
+         | that class's logic exactly so the preview never disagrees with
+         | what actually gets written.
+         */
+        get splitPreview() {
+            if (this.type !== 'Monthly' || !this.period) return [];
+            const amt = parseFloat(this.amount);
+            if (isNaN(amt) || amt <= 0) return [];
+
+            const found = this.unsettledPeriods.find(p => p.period === this.period);
+            const startBalance = this.round2(Math.max(0, found ? found.balance : this.monthlyRent));
+
+            let remaining = this.round2(amt);
+            const rows = [];
+            let [y, m] = this.period.split('-').map(Number);
+
+            for (let i = 0; i < 60 && remaining > 0; i++) {
+                const due = i === 0 ? startBalance : this.monthlyRent;
+                const slice = this.round2(Math.min(remaining, due));
+                if (slice > 0) {
+                    rows.push({ label: this.monthLabelFor(y, m), amount: slice });
+                    remaining = this.round2(remaining - slice);
+                }
+                m++;
+                if (m > 12) { m = 1; y++; }
+            }
+            if (remaining > 0 && rows.length > 0) {
+                rows[rows.length - 1].amount = this.round2(rows[rows.length - 1].amount + remaining);
+            }
+            return rows;
+        },
+        monthLabelFor(y, m) {
+            return new Date(y, m - 1, 1).toLocaleDateString('en-PH', { month: 'short', year: 'numeric' });
+        },
+        get splitsMultipleMonths() { return this.splitPreview.length > 1; },
+        peso(value) {
+            return '₱' + (value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
      }"
      x-on:open-record-payment.window="open()"
      x-on:keydown.escape.window="close()">
@@ -104,6 +158,23 @@
 
                 <form method="POST" action="{{ route('landlord.payments.store', $reservation) }}" class="px-6 pb-6">
                     @csrf
+                    {{-- Present only on the correction flow. old() keeps the link
+                         alive across a failed re-submit, when the flashed session
+                         value is already gone. --}}
+                    <input type="hidden" name="replaces_payment_id"
+                        value="{{ old('replaces_payment_id', $correction['payment_id'] ?? '') }}">
+
+                    @if($correction)
+                        <div class="flex items-start gap-2.5 rounded-xl bg-[#EEF8F8] border border-[#2AA7A1]/25 px-3.5 py-3 mb-4">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2"
+                                class="shrink-0 mt-0.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                            </svg>
+                            <p class="text-[12px] text-[#156F8C] leading-relaxed">
+                                Recording a correction for the ₱{{ number_format($correction['amount'], 2) }} entry you just voided.
+                            </p>
+                        </div>
+                    @endif
 
                     <div class="grid sm:grid-cols-2 gap-4 mb-4">
                         <div>
@@ -142,6 +213,23 @@
                         @error('billing_period')
                             <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                         @enderror
+                    </div>
+
+                    {{-- Only appears once the amount reaches past one month —
+                         an ordinary single-month payment never shows this. --}}
+                    <div x-show="type === 'Monthly' && splitsMultipleMonths" x-cloak
+                        class="mb-4 rounded-xl border border-[#2AA7A1]/25 bg-[#EEF8F8] px-3.5 py-3">
+                        <p class="text-[12px] font-semibold text-[#156F8C] mb-2">
+                            This covers <span x-text="splitPreview.length"></span> billing months:
+                        </p>
+                        <ul class="space-y-1">
+                            <template x-for="(row, idx) in splitPreview" :key="idx">
+                                <li class="flex items-center justify-between text-[12.5px] text-[#1F2937]">
+                                    <span x-text="row.label"></span>
+                                    <span class="font-semibold" x-text="peso(row.amount)"></span>
+                                </li>
+                            </template>
+                        </ul>
                     </div>
 
                     <div class="grid sm:grid-cols-2 gap-4 mb-4">
@@ -198,8 +286,8 @@
                                 d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                         </svg>
                         <p class="text-[12px] text-[#64748B] leading-relaxed">
-                            Recorded as received by you, not held in escrow by AbangananHub. Nothing in the app can reverse a
-                            recorded payment, so check the amount before saving.
+                            Recorded as received by you, not held in escrow by AbangananHub. If you enter something wrong,
+                            you can void it afterwards from this ledger — the original entry stays on record.
                         </p>
                     </div>
 

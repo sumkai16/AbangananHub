@@ -304,6 +304,7 @@
                     </x-card>
 
                     {{-- Unit Photos --}}
+<<<<<<< HEAD
                     <x-card flush class="p-6" x-data="{ tab: 'live' }">
                         <div class="flex items-center gap-2.5 mb-3">
                             <div class="w-8 h-8 rounded-lg bg-[#156F8C] flex items-center justify-center shrink-0">
@@ -411,6 +412,9 @@
                         {{-- Unified gallery (live + uploaded) --}}
                         <div id="photo-gallery" class="hidden grid-cols-1 sm:grid-cols-2 gap-3 mt-4"></div>
                     </x-card>
+=======
+                    @include('landlord.units.partials._photo-capture', ['existingLiveCount' => 0])
+>>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
 
                     {{-- Actions --}}
                     <div class="flex items-center gap-3">
@@ -563,6 +567,7 @@
 
     </div>
 
+<<<<<<< HEAD
     <script>
         (function () {
             const MAX_PHOTOS = 10;
@@ -716,4 +721,6 @@
             updateCounters();
         })();
     </script>
+=======
+>>>>>>> 57c3b1217ebdc2f2da089457b26a2b088308fc58
 @endsection

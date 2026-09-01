@@ -32,7 +32,7 @@
             </x-slot:icon>
         </x-stat-card>
 
-        <x-stat-card label="Admins Involved" :value="number_format($stats['actors'])" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="Distinct actors">
+        <x-stat-card label="Actors Involved" :value="number_format($stats['actors'])" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="Distinct actors">
             <x-slot:icon>
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z" />
@@ -107,7 +107,7 @@
             </div>
             <p class="text-sm font-semibold text-[#1F2937]">No audit entries found</p>
             <p class="text-xs text-[#64748B] mt-1">
-                {{ $search || $action || $from || $to ? 'Try adjusting your search or filters.' : 'Admin actions will be recorded here as they happen.' }}
+                {{ $search || $action || $from || $to ? 'Try adjusting your search or filters.' : 'Actions will be recorded here as they happen.' }}
             </p>
         </div>
     @else
@@ -117,7 +117,7 @@
                     <thead>
                         <tr class="border-b border-[#E2E8F0]">
                             <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">When</th>
-                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Admin</th>
+                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Actor</th>
                             <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Action</th>
                             <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Details</th>
                             <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">IP</th>

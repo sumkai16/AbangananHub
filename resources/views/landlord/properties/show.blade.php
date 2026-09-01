@@ -189,9 +189,7 @@
                 <div class="flex flex-wrap gap-2 mt-auto pt-2">
                     @foreach($property->amenities->take(5) as $amenity)
                         <span class="inline-flex items-center gap-1.5 text-xs font-medium text-[#1F2937] bg-[#EEF8F8] rounded-full px-3 py-1.5">
-                            <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-[#2AA7A1]">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
-                            </svg>
+                            <x-amenity-icon :name="$amenity->amenity_name" class="w-2.5 h-2.5 text-[#2AA7A1]" />
                             {{ $amenity->amenity_name }}
                         </span>
                     @endforeach
@@ -622,9 +620,7 @@
                     @foreach($property->amenities as $amenity)
                         <x-card flush class="flex items-center gap-3 px-4 py-3">
                             <div class="w-8 h-8 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-[#2AA7A1]">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
-                                </svg>
+                                <x-amenity-icon :name="$amenity->amenity_name" class="w-3.5 h-3.5 text-[#2AA7A1]" />
                             </div>
                             <span class="text-sm font-medium text-[#1F2937]">{{ $amenity->amenity_name }}</span>
                         </x-card>

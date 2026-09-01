@@ -167,10 +167,6 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/properties/{property}/documents/{document}/preview', [LandlordPropertyDocumentController::class, 'preview'])->name('properties.documents.preview');
         Route::get('/properties/{property}/documents/{document}/download', [LandlordPropertyDocumentController::class, 'download'])->name('properties.documents.download');
 
-        // Occupancy monitoring
-        Route::get('/occupancy', [App\Http\Controllers\Landlord\OccupancyController::class, 'index'])->name('occupancy.index');
-        Route::get('/occupancy/export', [App\Http\Controllers\Landlord\OccupancyController::class, 'export'])->name('occupancy.export');
-
 
         Route::patch('/reviews/{review}/reply', [\App\Http\Controllers\Landlord\ReviewController::class, 'reply'])->name('reviews.reply');
 
@@ -206,6 +202,9 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/payments/export', [App\Http\Controllers\Landlord\PaymentController::class, 'export'])->name('payments.export');
         Route::post('/tenancies/{reservation}/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/{payment}/receipt', [App\Http\Controllers\Landlord\PaymentController::class, 'receipt'])->name('payments.receipt');
+        // Strikes a recorded payment from the ledger without deleting it — POST,
+        // not DELETE, since nothing is removed. See context/RULES.md → Money-Moving Code.
+        Route::post('/payments/{payment}/void', [App\Http\Controllers\Landlord\PaymentController::class, 'void'])->name('payments.void');
 
         // A landlord's own view of what AbangananHub owes them and has paid
         // out. See docs/specs/2026-07-26-landlord-payout-design.md.

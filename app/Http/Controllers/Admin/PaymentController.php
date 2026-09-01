@@ -15,7 +15,10 @@ class PaymentController extends Controller
     // 'Paid' = a landlord-recorded offline payment (rent ledger). It is never
     // escrowed, so it can't be released — the list exists so an admin can still
     // audit that money, clearly separated from platform-settled funds.
-    private const STATUSES = ['All', 'Held', 'Released', 'Paid', 'Pending'];
+    // 'Voided' = a landlord struck their own recorded entry — visible here so
+    // an admin arbitrating a dispute can see a correction happened, same
+    // accountability reason the whole payments log exists.
+    private const STATUSES = ['All', 'Held', 'Released', 'Paid', 'Voided', 'Pending'];
 
     public function index(Request $request)
     {
@@ -35,6 +38,7 @@ class PaymentController extends Controller
             'Held' => Payment::where('status', 'Held')->count(),
             'Released' => Payment::where('status', 'Released')->count(),
             'Paid' => Payment::where('status', 'Paid')->count(),
+            'Voided' => Payment::where('status', 'Voided')->count(),
             'Pending' => Payment::where('status', 'Pending')->count(),
         ];
         $counts['All'] = Payment::count();

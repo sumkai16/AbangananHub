@@ -112,6 +112,35 @@ Blade tokenises a template with `token_get_all()` **before** it strips comments 
 ## `route()` on a nullable relation (found and fixed July 25 2026)
 `route('conversations.show', $reservation->conversation)` 500s with `UrlGenerationException: Missing required parameter` whenever `$reservation->conversation` is `null` — a reservation doesn't get a conversation until messaging actually starts, so this is a normal, expected state, not an edge case. Every view that links to a model's optional relation via `route()` must guard it first: `@if($reservation->conversation) <a href="{{ route('conversations.show', $reservation->conversation) }}">…</a> @endif`. This had already been done correctly in `landlord/tenancies/show.blade.php` and `landlord/tenants/index.blade.php`, but was missing in `landlord/reservations/index.blade.php` (both grid and table views) and `tenant/reservations/index.blade.php` (three status branches) — it only surfaced once a landlord with an unmessaged reservation loaded the page. **Before wiring a `route()` call to a relation, check whether that relation can be null; if it can, wrap the link, not just the icon or the label.**
 
+## Never nest a `<form>` inside another `<form>` (data-destroying bug found and fixed Sept 2026)
+A per-item delete action (photo, document, etc.) rendered as its own `<form method="POST">
+@method('DELETE')</form>` **inside** a page's main edit/update `<form>` is invalid HTML, and browsers
+don't fail loudly about it. They still create the inner `<form>` as its own DOM node — so it looks
+fine in devtools, `document.forms` lists it separately, and clicking *that* form's own button works
+correctly in isolation — but submitting the **outer** form also picks up the inner form's hidden
+fields into the outer submission's body. If the inner form spoofs a different HTTP method
+(`@method('DELETE')` while the outer is `@method('PUT')`), the submitted body ends up with **two**
+`_method` fields; PHP keeps the *last* one, so the outer save silently becomes a delete request.
+When update and destroy share one RESTful URL (any `Route::resource`), that delete lands on the
+*same* resource the edit form was supposed to save — deleting it outright.
+
+This was caught once in `landlord/properties/edit.blade.php` (photo delete inside the property edit
+form) and documented only in an inline comment there — then reintroduced independently in
+`landlord/units/edit.blade.php` when the same "delete an existing photo" feature was built for units,
+because the fix wasn't written down anywhere a second implementation would find it. It shipped,
+passed code review, and deleted a real unit before a landlord caught it by accident.
+
+**The fix, and the only correct pattern:** render the per-item delete `<form>` as a **standalone
+sibling**, not a descendant — declared anywhere outside the main form (immediately before it is
+fine), given a unique `id="delete-x-{id}"`. The visible delete button stays exactly where it
+belongs in the markup (inside the item it deletes, inside the main form) as a bare
+`<button type="submit" form="delete-x-{id}">` — the `form=""` attribute is what lets a button submit
+a form it isn't a descendant of. `data-confirm-*` attributes belong on the standalone form (that's
+what `modal-confirm.js` reads), not the button.
+
+**Before adding any "delete this row/photo/item" control to a page that already has a big
+edit/update form wrapping the page content, check this section — don't nest, use `form="id"`.**
+
 ## View Composers
 Data the **layout** needs on every page goes in a `View::composer('layouts.app', …)` in `AppServiceProvider::boot`, not a variable each controller passes. The header renders everywhere; a controller that forgot would drop the feature silently on that page only. Cache anything that hits the DB (`Cache::remember`, 10 min is fine for nav-level data) — the layout renders on *every* request, so an uncached query there is a site-wide cost. Current composer: `navAreas` for the header's Areas menu.
 

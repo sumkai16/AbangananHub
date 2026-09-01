@@ -126,6 +126,10 @@
                     hasPayment: @js((bool) old('initial_amount')),
                     initialAmount: @js(old('initial_amount', '')),
                     paymentMethod: @js(old('payment_method', 'Cash')),
+                    // Server's 'today', not the browser's — a landlord in a
+                    // different timezone must see the same boundary the
+                    // validator on submit will actually enforce.
+                    todayStr: @js(now()->toDateString()),
                     galleryProperties: @js($galleryProperties),
                     existingTenants: @js($existingOptions),
                     // Arriving scoped to one property (from that property's
@@ -147,6 +151,20 @@
                                 this.occupants = '';
                             }
                         });
+                        // Moving the date to today-or-earlier turns payment
+                        // recording from optional to required — force the
+                        // section open rather than leaving a landlord to
+                        // discover the requirement only after Submit bounces.
+                        this.$watch('moveIn', () => {
+                            if (this.paymentRequired) this.hasPayment = true;
+                        });
+                        if (this.paymentRequired) this.hasPayment = true;
+                    },
+                    // A move-in date already reached — today or earlier —
+                    // means the money conversation has already happened, so
+                    // this app has no later moment to record it in.
+                    get paymentRequired() {
+                        return !!this.moveIn && this.moveIn <= this.todayStr;
                     },
                     get occupantsOptions() {
                         const cap = this.unit ? this.unit.cap : 20;
@@ -580,14 +598,37 @@
                                         <p class="text-[12px] text-[#64748B]">Rent, deposit and any advance collected at move-in.</p>
                                     </div>
                                 </div>
-                                <label for="has_payment" class="flex items-center gap-2 cursor-pointer shrink-0 pt-1">
+                                {{-- A future move-in leaves this optional — nothing has
+                                     been collected yet to record. Once the date is today
+                                     or earlier it stops being a choice: see
+                                     StoreWalkInTenantRequest for the rule this mirrors. --}}
+                                <label for="has_payment" class="flex items-center gap-2 cursor-pointer shrink-0 pt-1"
+                                    x-show="!paymentRequired">
                                     <input type="checkbox" id="has_payment" x-model="hasPayment"
                                         class="w-4 h-4 rounded border-[#64748B]/40 text-[#2AA7A1] focus:ring-[#2AA7A1]/30 cursor-pointer">
                                     <span class="text-[12.5px] font-semibold text-[#1F2937]">Record one now</span>
                                 </label>
+                                <span x-show="paymentRequired" x-cloak
+                                    class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#EF4444]/30 bg-[#EF4444]/[0.06] text-[#DC2626] text-[11px] font-bold shrink-0">
+                                    Required
+                                </span>
                             </div>
 
-                            <div x-show="hasPayment" x-cloak class="mt-5">
+                            <div x-show="paymentRequired" x-cloak
+                                class="mt-4 flex items-start gap-2.5 rounded-xl bg-[#EF4444]/[0.05] border border-[#EF4444]/20 px-3.5 py-3">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2"
+                                    class="shrink-0 mt-0.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                </svg>
+                                <p class="text-[12px] text-[#DC2626] leading-relaxed">
+                                    This tenant's move-in date is today or earlier, so a payment must be recorded before
+                                    you can add them. If nothing has actually been collected yet, wait until it has —
+                                    or set a move-in date the tenant hasn't reached, if that's closer to what happened.
+                                </p>
+                            </div>
+
+                            <div x-show="hasPayment || paymentRequired" x-cloak class="mt-5">
 
                                 {{-- What the tenant owes to move in. Shown before the
                                      amount field so the landlord is entering a number
@@ -622,7 +663,7 @@
                                         </label>
                                         <input type="number" id="initial_amount" name="initial_amount" x-model="initialAmount"
                                             min="1" max="1000000" step="0.01" :placeholder="unit ? requiredMoveIn : 'e.g. 9000'"
-                                            class="{{ $inputClass }}">
+                                            :required="paymentRequired" class="{{ $inputClass }}">
                                         <p class="text-[11.5px] text-[#64748B] mt-1.5">
                                             Anything above the total due is recorded as advance rent.
                                         </p>

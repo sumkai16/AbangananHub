@@ -122,7 +122,7 @@
                     @php
                         $tiles = [
                             ['label' => 'Paid to date', 'value' => $summary['collected'],     'tone' => 'text-[#15803D]', 'sub' => 'Rent + deposits recorded'],
-                            ['label' => 'Outstanding',  'value' => $summary['outstanding'],   'tone' => 'text-[#1F2937]', 'sub' => 'Unpaid rent to date'],
+                            ['label' => 'Balance',  'value' => $summary['outstanding'],   'tone' => 'text-[#1F2937]', 'sub' => 'Unpaid rent to date'],
                             ['label' => 'Overdue',      'value' => $summary['overdueAmount'], 'tone' => $summary['overdueCount'] > 0 ? 'text-[#DC2626]' : 'text-[#1F2937]', 'sub' => $summary['overdueCount'] . ' ' . \Illuminate\Support\Str::plural('month', $summary['overdueCount']) . ' behind'],
                         ];
                     @endphp
