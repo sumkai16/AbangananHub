@@ -510,7 +510,8 @@
         </div>
 
         {{-- ─── Units tab ─────────────────────────────────────── --}}
-        <div x-show="tab === 'units'" x-cloak>
+        <div x-show="tab === 'units'" x-cloak
+            x-data="{ unitsView: localStorage.getItem('propertyUnitsView') || 'grid', setUnitsView(v) { this.unitsView = v; localStorage.setItem('propertyUnitsView', v); } }">
             @if($property->units->isEmpty())
                 <div class="rounded-2xl border border-dashed border-[#64748B]/30 bg-[#EEF8F8]/40 flex flex-col items-center justify-center py-14 text-center">
                     <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#64748B]/50 mb-3">
@@ -527,7 +528,26 @@
                     </a>
                 </div>
             @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="flex justify-end mb-4">
+                    <div class="flex items-center gap-0.5 p-1 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC]">
+                        <button type="button" x-on:click="setUnitsView('grid')"
+                            :class="unitsView === 'grid' ? 'bg-white shadow-sm text-[#1F2937]' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            class="w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-200 cursor-pointer" title="Grid view">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z"/>
+                            </svg>
+                        </button>
+                        <button type="button" x-on:click="setUnitsView('list')"
+                            :class="unitsView === 'list' ? 'bg-white shadow-sm text-[#1F2937]' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            class="w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-200 cursor-pointer" title="List view">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" x-show="unitsView === 'grid'">
                     @foreach($property->units as $unit)
                         @php
                             $thumb = $unit->media->first();
@@ -604,6 +624,84 @@
                             </div>
                         </div>
                     @endforeach
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-[#64748B]/15 bg-white" x-show="unitsView === 'list'" x-cloak>
+                    <table class="w-full min-w-[640px] text-left">
+                        <thead>
+                            <tr class="border-b border-[#E2E8F0]">
+                                <th class="px-4 py-3 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Unit</th>
+                                <th class="px-4 py-3 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Rent</th>
+                                <th class="px-4 py-3 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Status</th>
+                                <th class="px-4 py-3 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Verification</th>
+                                <th class="px-4 py-3 text-[11px] font-bold text-[#64748B] uppercase tracking-wide text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#E2E8F0]">
+                            @foreach($property->units as $unit)
+                                @php
+                                    $thumb = $unit->media->first();
+                                    [$avBg] = match($unit->availability_status) {
+                                        'Available' => ['bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25'],
+                                        'Reserved'  => ['bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35'],
+                                        'Occupied'  => ['bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25'],
+                                        default     => ['bg-[#EEF8F8] text-[#64748B] ring-[#64748B]/20'],
+                                    };
+                                    [$vrBg] = match($unit->verification_status) {
+                                        'Approved' => ['bg-[#22C55E]/[0.07] text-[#15803D]'],
+                                        'Pending'  => ['bg-[#FBBF24]/[0.10] text-[#B45309]'],
+                                        'Rejected' => ['bg-[#EF4444]/[0.07] text-[#DC2626]'],
+                                        default    => ['bg-[#EEF8F8] text-[#64748B]'],
+                                    };
+                                @endphp
+                                <tr class="hover:bg-[#F7FCFC]/70 transition-colors duration-200">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-9 h-9 rounded-lg bg-[#EEF8F8] overflow-hidden shrink-0 ring-1 ring-[#64748B]/10">
+                                                @if($thumb)
+                                                    <img src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
+                                                @endif
+                                            </div>
+                                            <p class="text-[13px] font-bold text-[#1F2937]">{{ $unit->unit_label }}</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-[13px] text-[#DC2626] font-semibold whitespace-nowrap">
+                                        ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[#64748B] font-normal">/mo</span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex items-center text-[10.5px] font-semibold px-2 py-0.5 rounded-full ring-1 {{ $avBg }}">
+                                            {{ $unit->availability_status }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex items-center text-[10.5px] font-medium px-2 py-0.5 rounded-full {{ $vrBg }}">
+                                            {{ $unit->verification_status }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="{{ route('landlord.properties.units.edit', [$property, $unit]) }}"
+                                                class="h-8 px-3 flex items-center gap-1 rounded-full border border-[#64748B]/30 text-[#1F2937] text-[11px] font-medium hover:bg-[#EEF8F8] transition-colors duration-200">
+                                                Edit
+                                            </a>
+                                            <form method="POST"
+                                                action="{{ route('landlord.properties.units.destroy', [$property, $unit]) }}"
+                                                data-confirm="Remove {{ $unit->unit_label }}?"
+                                                data-confirm-type="error"
+                                                data-confirm-message="The unit will be permanently removed. This cannot be undone."
+                                                data-confirm-button="Remove unit">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                    class="h-8 px-3 flex items-center gap-1 rounded-full border border-[#EF4444]/25 text-[#DC2626] text-[11px] font-medium hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
+                                                    Remove
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             @endif
         </div>

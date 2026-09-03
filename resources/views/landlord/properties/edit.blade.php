@@ -100,6 +100,37 @@
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Living arrangement</label>
+                                <x-styled-select name="living_arrangement" :options="['Private' => 'Private', 'Shared' => 'Shared', 'Mixed' => 'Mixed', 'Female only' => 'Female only', 'Male only' => 'Male only', 'Couples allowed' => 'Couples allowed', 'Family-friendly' => 'Family-friendly']"
+                                    :selected="old('living_arrangement', $property->living_arrangement ?? '')" placeholder="Not specified"
+                                    class="w-full h-12 px-4 rounded-2xl border border-[#E2E8F0] text-[14px] font-medium text-[#156F8C]" />
+                                @error('living_arrangement')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Utilities / included charges</label>
+                            <p class="text-[11.5px] text-[#94A3B8] mb-2">Leave a box unchecked if that charge is billed separately — tenants will see it flagged as not included.</p>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                                @foreach ([
+                                    ['water_included', 'Water included'],
+                                    ['electricity_included', 'Electricity included'],
+                                    ['internet_included', 'Internet included'],
+                                    ['association_fees_included', 'Association/maintenance fees included'],
+                                    ['utilities_separately_metered', 'Utilities separately metered'],
+                                ] as [$field, $label])
+                                    <label class="inline-flex items-center gap-2 text-[13.5px] text-[#1F2937] cursor-pointer">
+                                        <input type="checkbox" name="{{ $field }}" value="1"
+                                            @checked(old($field, $property->$field ?? false))
+                                            class="rounded border-[#E2E8F0] text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                        {{ $label }}
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
                         <div class="border-t border-[#E2E8F0] pt-5">
                             <div class="flex items-center justify-between mb-2">
                                 <label class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Landlord location</label>

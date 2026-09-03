@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Events\NotificationCreated;
 use App\Services\ExpoPushNotifier;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Notification extends Model
 {
@@ -77,7 +79,22 @@ class Notification extends Model
             'is_read'         => false,
         ]);
 
-        NotificationCreated::dispatch($notification);
+        // NotificationCreated implements ShouldBroadcastNow, so this reaches
+        // out to Reverb synchronously, inline in whatever transaction the
+        // caller is in (e.g. TenancyController::endTenancy()). A stopped/
+        // unreachable Reverb throws BroadcastException here, which would
+        // otherwise abort and roll back the entire caller action just
+        // because nobody's listening for the live update — the in-app row
+        // above is already written and is the notification of record; the
+        // broadcast is a nice-to-have real-time nudge on top of it.
+        try {
+            NotificationCreated::dispatch($notification);
+        } catch (BroadcastException $e) {
+            Log::warning('Notification broadcast failed, continuing without it', [
+                'notification_id' => $notification->notification_id,
+                'error'            => $e->getMessage(),
+            ]);
+        }
 
         // Push is a third side effect on the same hook the row write and the
         // broadcast use — living anywhere else risks a creation site that
@@ -87,7 +104,14 @@ class Notification extends Model
         // an implicit relation load into a 500 (see ARCHITECTURE.md).
         $recipient = User::find($userId);
         if ($recipient) {
-            app(ExpoPushNotifier::class)->send($recipient, $title, $message, $link);
+            try {
+                app(ExpoPushNotifier::class)->send($recipient, $title, $message, $link);
+            } catch (\Throwable $e) {
+                Log::warning('Push notification failed, continuing without it', [
+                    'notification_id' => $notification->notification_id,
+                    'error'            => $e->getMessage(),
+                ]);
+            }
         }
 
         return $notification;

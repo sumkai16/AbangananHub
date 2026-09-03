@@ -12,6 +12,12 @@ class Property extends Model
     'description',
     'house_rules',
     'property_type',
+    'living_arrangement',
+    'water_included',
+    'electricity_included',
+    'internet_included',
+    'association_fees_included',
+    'utilities_separately_metered',
     'address',
     'city_municipality',
     'barangay',
@@ -24,9 +30,14 @@ class Property extends Model
     protected function casts(): array
 {
     return [
-        'latitude'    => 'decimal:7',
-        'longitude'   => 'decimal:7',
-        'house_rules' => 'array',
+        'latitude'                      => 'decimal:7',
+        'longitude'                     => 'decimal:7',
+        'house_rules'                   => 'array',
+        'water_included'                => 'boolean',
+        'electricity_included'          => 'boolean',
+        'internet_included'             => 'boolean',
+        'association_fees_included'     => 'boolean',
+        'utilities_separately_metered'  => 'boolean',
     ];
 }
 

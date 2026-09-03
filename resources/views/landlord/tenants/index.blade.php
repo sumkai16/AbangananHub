@@ -19,7 +19,7 @@
             </x-slot:icon>
             <x-slot:actions>
                 {{-- Export carries the active filters --}}
-                <a href="{{ route('landlord.tenants.export', request()->only('search', 'property')) }}"
+                <a href="{{ route('landlord.tenants.export', request()->only('search', 'property', 'status')) }}"
                     class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -38,7 +38,15 @@
 
         {{-- Stat cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <x-stat-card label="Total Tenants" :value="$reservations->total()" value-color="#1F2937" icon-bg="#EEF8F8" sub="Currently occupying units">
+            @php
+                $statusSub = match(request('status')) {
+                    'active'   => 'Currently occupying units',
+                    'pending'  => 'Approved, not yet moved in',
+                    'inactive' => 'No longer renting',
+                    default    => 'Active or pending move-in',
+                };
+            @endphp
+            <x-stat-card label="Total Tenants" :value="$reservations->total()" value-color="#1F2937" icon-bg="#EEF8F8" :sub="$statusSub">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -78,6 +86,9 @@
                     <x-styled-select name="property" :options="$tenantsPropertyOptions" :selected="(string) request('property', '')"
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[200px]" />
 
+                    <x-styled-select name="status" :options="['' => 'Active + Pending', 'active' => 'Active', 'pending' => 'Pending', 'inactive' => 'Inactive']" :selected="(string) request('status', '')"
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[180px]" />
+
                     <button type="submit"
                         class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -86,7 +97,7 @@
                         Filter
                     </button>
 
-                    @if(request()->hasAny(['search', 'property']))
+                    @if(request()->hasAny(['search', 'property', 'status']))
                         <a href="{{ route('landlord.tenants.index') }}"
                             class="h-11 px-4 rounded-xl border border-[#64748B]/25 text-[13.5px] text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 inline-flex items-center gap-1.5">
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -150,6 +161,13 @@
                             : (! $tenantActive
                                 ? 'This tenant’s account is inactive'
                                 : ($outstanding <= 0 ? 'No outstanding rent to remind about' : ''));
+
+                        $statusGroup = \App\Http\Controllers\Landlord\TenantController::statusGroupFor($reservation->rental_status);
+                        $statusStyle = [
+                            'active'   => 'bg-[#22C55E]/[0.10] text-[#15803D]',
+                            'pending'  => 'bg-[#FBBF24]/[0.12] text-[#B45309]',
+                            'inactive' => 'bg-[#94A3B8]/[0.15] text-[#64748B]',
+                        ][$statusGroup];
                     @endphp
                     <div class="group flex flex-col rounded-2xl overflow-hidden bg-white border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.1)] transition-all duration-300">
 
@@ -157,7 +175,7 @@
                             <div class="w-12 h-12 rounded-full bg-[#EEF8F8] flex items-center justify-center text-[15px] font-bold text-[#156F8C] shrink-0">
                                 {{ $initials ?: '?' }}
                             </div>
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-1.5">
                                     <p class="text-[14.5px] font-bold text-[#1F2937] truncate">
                                         {{ $reservation->tenant->first_name }} {{ $reservation->tenant->last_name }}
@@ -171,6 +189,9 @@
                                 </div>
                                 <p class="text-[12px] text-[#64748B] truncate">{{ $reservation->tenant->email ?: 'No email' }}</p>
                             </div>
+                            <span class="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold shrink-0 {{ $statusStyle }}">
+                                {{ ucfirst($statusGroup) }}
+                            </span>
                         </div>
 
                         <div class="px-5 pb-4">
@@ -265,6 +286,7 @@
                                 <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Tenant</th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Property / Unit</th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Move-in</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Status</th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Contact</th>
                                 <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide text-right">Actions</th>
                             </tr>
@@ -336,6 +358,21 @@
                                     {{-- Move-in --}}
                                     <td class="px-4 py-3.5 text-[13px] text-[#64748B] whitespace-nowrap">
                                         {{ $reservation->target_move_in_date ? \Illuminate\Support\Carbon::parse($reservation->target_move_in_date)->format('M d, Y') : 'N/A' }}
+                                    </td>
+
+                                    {{-- Status --}}
+                                    @php
+                                        $statusGroup = \App\Http\Controllers\Landlord\TenantController::statusGroupFor($reservation->rental_status);
+                                        $statusStyle = [
+                                            'active'   => 'bg-[#22C55E]/[0.10] text-[#15803D]',
+                                            'pending'  => 'bg-[#FBBF24]/[0.12] text-[#B45309]',
+                                            'inactive' => 'bg-[#94A3B8]/[0.15] text-[#64748B]',
+                                        ][$statusGroup];
+                                    @endphp
+                                    <td class="px-4 py-3.5">
+                                        <span class="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold {{ $statusStyle }}">
+                                            {{ ucfirst($statusGroup) }}
+                                        </span>
                                     </td>
 
                                     {{-- Contact --}}

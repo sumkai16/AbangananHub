@@ -17,6 +17,12 @@ class PropertyUnit extends Model
     'bathrooms',
     'floor_area_sqm',
     'is_furnished',
+    'bathroom_type',
+    'furnishing_status',
+    'kitchen_type',
+    'pets_allowed',
+    'smoking_allowed',
+    'visitors_allowed',
     'description',
     'rental_fee',
     'security_deposit',
@@ -30,10 +36,13 @@ class PropertyUnit extends Model
     protected function casts(): array
     {
         return [
-            'rental_fee'     => 'decimal:2',
-            'floor_area_sqm' => 'decimal:2',
-            'is_furnished'   => 'boolean',
-            'vacated_at'     => 'datetime',
+            'rental_fee'        => 'decimal:2',
+            'floor_area_sqm'    => 'decimal:2',
+            'is_furnished'      => 'boolean',
+            'pets_allowed'      => 'boolean',
+            'smoking_allowed'   => 'boolean',
+            'visitors_allowed'  => 'boolean',
+            'vacated_at'        => 'datetime',
         ];
     }
 

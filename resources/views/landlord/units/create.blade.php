@@ -209,6 +209,67 @@
                             @enderror
                         </div>
 
+                        {{-- Unit/room features --}}
+                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Bathroom</label>
+                                <x-styled-select name="bathroom_type"
+                                    :options="['Private bathroom' => 'Private bathroom', 'Shared bathroom' => 'Shared bathroom']"
+                                    :selected="old('bathroom_type', '')" placeholder="Not specified"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3 text-[13.5px] text-[#1F2937] bg-white" />
+                                @error('bathroom_type')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Furnishing</label>
+                                <x-styled-select name="furnishing_status"
+                                    :options="['Furnished' => 'Furnished', 'Semi-furnished' => 'Semi-furnished', 'Unfurnished' => 'Unfurnished']"
+                                    :selected="old('furnishing_status', '')" placeholder="Not specified"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3 text-[13.5px] text-[#1F2937] bg-white" />
+                                @error('furnishing_status')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Kitchen</label>
+                                <x-styled-select name="kitchen_type"
+                                    :options="['Private kitchen' => 'Private kitchen', 'Shared kitchen' => 'Shared kitchen', 'No kitchen' => 'No kitchen']"
+                                    :selected="old('kitchen_type', '')" placeholder="Not specified"
+                                    class="h-11 w-full rounded-xl border border-[#64748B]/30 px-3 text-[13.5px] text-[#1F2937] bg-white" />
+                                @error('kitchen_type')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Unit policies --}}
+                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
+                            @foreach ([
+                                ['pets_allowed', 'Pets allowed?'],
+                                ['smoking_allowed', 'Smoking allowed?'],
+                                ['visitors_allowed', 'Visitors allowed?'],
+                            ] as [$field, $label])
+                                <div>
+                                    <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">{{ $label }}</label>
+                                    @php $fieldOld = old($field); @endphp
+                                    <div class="flex items-center gap-4 h-11">
+                                        <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
+                                            <input type="radio" name="{{ $field }}" value="1" @checked((string) $fieldOld === '1') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                            Yes
+                                        </label>
+                                        <label class="inline-flex items-center gap-1.5 text-[13px] text-[#1F2937] cursor-pointer">
+                                            <input type="radio" name="{{ $field }}" value="0" @checked((string) $fieldOld === '0') class="text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                            No
+                                        </label>
+                                    </div>
+                                    @error($field)
+                                        <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endforeach
+                        </div>
+
                         {{-- Row 2 --}}
                         <div class="grid sm:grid-cols-3 gap-4 mb-5">
                             <div>

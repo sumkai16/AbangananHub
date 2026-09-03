@@ -56,6 +56,36 @@
                     </div>
 
                     <div>
+                        <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Living arrangement <span class="font-normal text-[#94A3B8]">(optional)</span></label>
+                        <x-styled-select name="living_arrangement" :options="['Private' => 'Private', 'Shared' => 'Shared', 'Mixed' => 'Mixed', 'Female only' => 'Female only', 'Male only' => 'Male only', 'Couples allowed' => 'Couples allowed', 'Family-friendly' => 'Family-friendly']"
+                            :selected="old('living_arrangement', $formValues['living_arrangement'] ?? '')" placeholder="Not specified"
+                            class="w-full h-12 px-4 rounded-xl border {{ $errors->has('living_arrangement') ? 'border-[#EF4444]/40' : 'border-[#E2E8F0]' }} text-[14px] text-[#1F2937]" />
+                        <p class="text-[11.5px] text-[#94A3B8] mt-1.5">Especially useful for a bedspace or boarding-house listing.</p>
+                        @error('living_arrangement')<p class="text-xs text-[#EF4444] mt-1.5">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Utilities / included charges</label>
+                        <p class="text-[11.5px] text-[#94A3B8] mb-2">Leave a box unchecked if that charge is billed separately — tenants will see it flagged as not included.</p>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                            @foreach ([
+                                ['water_included', 'Water included'],
+                                ['electricity_included', 'Electricity included'],
+                                ['internet_included', 'Internet included'],
+                                ['association_fees_included', 'Association/maintenance fees included'],
+                                ['utilities_separately_metered', 'Utilities separately metered'],
+                            ] as [$field, $label])
+                                <label class="inline-flex items-center gap-2 text-[13.5px] text-[#1F2937] cursor-pointer">
+                                    <input type="checkbox" name="{{ $field }}" value="1"
+                                        @checked(old($field, $formValues[$field] ?? false))
+                                        class="rounded border-[#E2E8F0] text-[#2AA7A1] focus:ring-[#2AA7A1]/30">
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div>
                         <label class="block text-[13px] font-semibold text-[#1F2937] mb-1.5">Description</label>
                         <textarea name="description" rows="6" minlength="20" maxlength="3000"
                             class="w-full p-4 rounded-xl border @error('description') border-[#EF4444]/40 @else border-[#E2E8F0] @enderror text-[14px] text-[#1F2937] leading-relaxed placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/25 focus:border-[#2AA7A1] transition-all"

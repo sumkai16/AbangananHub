@@ -29,6 +29,46 @@
             </a>
         </div>
 
+        {{-- Summary cards — account-wide totals, not affected by the filter toolbar below --}}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <x-stat-card label="Total Properties" :value="$stats['properties']" sub="Properties listed">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="Total Units" :value="$stats['units']" sub="Across all properties">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="Occupied Units" :value="$stats['occupied']" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)"
+                :percent="$stats['occupancyRate']" bar-color="#EF4444" :sub="$stats['occupancyRate'].'% occupancy'">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+
+            <x-stat-card label="Available Units" :value="$stats['available']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="Currently available">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+        </div>
+
         {{-- Filter toolbar --}}
         <x-card class="mb-8">
         <form method="GET" action="{{ route('landlord.properties.index') }}">

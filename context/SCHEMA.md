@@ -99,6 +99,12 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | description | TEXT | NULLABLE | |
 | house_rules | JSON | NULLABLE | cast to `array` |
 | property_type | ENUM('Bedspace','Room','Apartment','House') | NOT NULL | |
+| living_arrangement | ENUM('Private','Shared','Mixed','Female only','Male only','Couples allowed','Family-friendly') | NULLABLE | Added Sept 2026, optional — most useful for bedspace/boarding-house listings; an apartment/house listing can leave it unset |
+| water_included | BOOLEAN | NULLABLE | Added Sept 2026. NULL means the landlord hasn't answered utilities at all (predates this field); `false` is an explicit "not included", shown as such on the tenant-facing property page |
+| electricity_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
+| internet_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
+| association_fees_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
+| utilities_separately_metered | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
 | address | VARCHAR(255) | NOT NULL | Text-searched for browse |
 | city_municipality | VARCHAR(100) | NOT NULL | Added Aug 2026 — must be one of `config('cebu.lgus')`, enforced by `StorePropertyRequest`/`UpdatePropertyRequest`. Backfilled from `address`'s second-to-last comma segment |
 | barangay | VARCHAR(100) | NULLABLE | Added Aug 2026 |
@@ -161,6 +167,12 @@ property approval itself; the admin uses judgment, with the "request a document"
 | bathrooms | TINYINT UNSIGNED | NULLABLE | Added Aug 2026, same migration as `bedrooms` |
 | floor_area_sqm | DECIMAL(6,2) | NULLABLE | Added Aug 28 2026. Optional, like `bedrooms`/`bathrooms` — NULL means the landlord never recorded it, and no backfill invents one. Validated `nullable\|numeric\|min:1\|max:9999.99` in both `Landlord\PropertyUnitController` and its API twin. **Never render the raw column** — the `decimal:2` cast makes `24` into `"24.00"`; every display site uses the `PropertyUnit::floor_area_label` accessor, which formats it as `24 sqm` / `24.5 sqm` and returns null when unset. "sqm" over the m² symbol to match how PH real estate listings write it |
 | is_furnished | BOOLEAN | NULLABLE | Added Aug 2026. `PropertyUnit` casts it `boolean`; NULL means "not answered" (pre-existing unit), not "unfurnished" — don't treat a null the same as `false` in any consumer |
+| bathroom_type | ENUM('Private bathroom','Shared bathroom') | NULLABLE | Added Sept 2026 — distinct from `bathrooms` (a count); this answers private-vs-shared access, not how many |
+| furnishing_status | ENUM('Furnished','Semi-furnished','Unfurnished') | NULLABLE | Added Sept 2026, alongside `is_furnished`. `is_furnished` (boolean, two-state) is kept for backward compatibility but the create/edit forms now capture this three-state field instead — new consumers should read `furnishing_status`, not `is_furnished` |
+| kitchen_type | ENUM('Private kitchen','Shared kitchen','No kitchen') | NULLABLE | Added Sept 2026 |
+| pets_allowed | BOOLEAN | NULLABLE | Added Sept 2026. NULL means "not answered", same convention as `is_furnished` |
+| smoking_allowed | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
+| visitors_allowed | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
 | description | TEXT | NULLABLE | |
 | rental_fee | DECIMAL(10,2) | NOT NULL | |
 | security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026. Required at the **application layer** on unit *creation* since Aug 20 2026 — every new unit must state a deposit, enforced in `Landlord\PropertyUnitController::store()`/`Api\Landlord\UnitWriteController::store()`. `2026_08_20_000000_backfill_security_deposit_on_property_units` set every then-NULL row to one month's rent so no pre-existing listing shows blank. **Optional on edit since Sept 2026** (`PropertyUnitController::update()` only) — a unit that genuinely charges no deposit can clear it; a submit that omits the field entirely leaves the existing value untouched rather than nulling it (guarded with `array_key_exists`, not `??`). Every display site treats null as "no deposit" explicitly (e.g. "No security deposit required" on the property page), never as ₱0 |

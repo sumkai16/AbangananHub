@@ -200,22 +200,6 @@
                     </span>
                 </a>
 
-                {{-- Units --}}
-                <a href="{{ route('landlord.units.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
-                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.units') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
-                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                        class="shrink-0">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
-                    </svg>
-                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">Units</span>
-                    <span x-show="sidebarCollapsed" x-cloak
-                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
-                        Units
-                    </span>
-                </a>
-
                 {{-- Reservations --}}
                 <a href="{{ route('landlord.reservations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200

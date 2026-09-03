@@ -138,14 +138,20 @@ class PropertyController extends Controller
             $photosAdded = $request->hasFile('photos');
 
             $property->fill([
-                'title'             => $validated['title'],
-                'description'       => $validated['description'],
-                'property_type'     => $validated['property_type'],
-                'address'           => $validated['address'],
-                'city_municipality' => $validated['city_municipality'],
-                'barangay'          => $validated['barangay'] ?? null,
-                'latitude'          => $validated['latitude'],
-                'longitude'         => $validated['longitude'],
+                'title'                          => $validated['title'],
+                'description'                    => $validated['description'],
+                'property_type'                  => $validated['property_type'],
+                'living_arrangement'             => $validated['living_arrangement'] ?? null,
+                'water_included'                 => $request->boolean('water_included'),
+                'electricity_included'           => $request->boolean('electricity_included'),
+                'internet_included'              => $request->boolean('internet_included'),
+                'association_fees_included'      => $request->boolean('association_fees_included'),
+                'utilities_separately_metered'   => $request->boolean('utilities_separately_metered'),
+                'address'                        => $validated['address'],
+                'city_municipality'              => $validated['city_municipality'],
+                'barangay'                       => $validated['barangay'] ?? null,
+                'latitude'                       => $validated['latitude'],
+                'longitude'                      => $validated['longitude'],
             ]);
 
             $detailsChanged = $property->isDirty();

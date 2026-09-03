@@ -61,11 +61,26 @@ class PropertyWizardController extends Controller
     public function storeInfo(Request $request)
     {
         $validated = $request->validate([
-            'title'            => ['required', 'string', 'min:10', 'max:150'],
-            'property_type'    => ['required', 'in:Bedspace,Room,Apartment,House'],
-            'description'      => ['required', 'string', 'min:20', 'max:3000'],
-            'number_of_units'  => ['required', 'integer', 'min:1', 'max:100'],
+            'title'                          => ['required', 'string', 'min:10', 'max:150'],
+            'property_type'                  => ['required', 'in:Bedspace,Room,Apartment,House'],
+            'living_arrangement'             => ['nullable', 'in:Private,Shared,Mixed,Female only,Male only,Couples allowed,Family-friendly'],
+            'water_included'                 => ['nullable', 'boolean'],
+            'electricity_included'           => ['nullable', 'boolean'],
+            'internet_included'              => ['nullable', 'boolean'],
+            'association_fees_included'      => ['nullable', 'boolean'],
+            'utilities_separately_metered'   => ['nullable', 'boolean'],
+            'description'                    => ['required', 'string', 'min:20', 'max:3000'],
+            'number_of_units'                => ['required', 'integer', 'min:1', 'max:100'],
         ]);
+
+        // Utility checkboxes: an unchecked box means "not included", not
+        // "unanswered" (per the analyst's tenant-view requirement), so read
+        // these with $request->boolean() rather than the validated array —
+        // an absent key there would otherwise just vanish instead of
+        // becoming an explicit false.
+        foreach (['water_included', 'electricity_included', 'internet_included', 'association_fees_included', 'utilities_separately_metered'] as $utilityField) {
+            $validated[$utilityField] = $request->boolean($utilityField);
+        }
 
         session(['property_wizard.info' => $validated]);
 
@@ -78,10 +93,16 @@ class PropertyWizardController extends Controller
         $this->guardIsDraft($property);
 
         $formValues = [
-            'title'           => $property->title,
-            'property_type'   => $property->property_type,
-            'description'     => $property->description,
-            'number_of_units' => session($this->targetUnitsSessionKey($property)),
+            'title'                          => $property->title,
+            'property_type'                  => $property->property_type,
+            'living_arrangement'             => $property->living_arrangement,
+            'water_included'                 => $property->water_included,
+            'electricity_included'           => $property->electricity_included,
+            'internet_included'              => $property->internet_included,
+            'association_fees_included'      => $property->association_fees_included,
+            'utilities_separately_metered'   => $property->utilities_separately_metered,
+            'description'                    => $property->description,
+            'number_of_units'                => session($this->targetUnitsSessionKey($property)),
         ];
 
         $property->load(['amenities', 'documents', 'units.media']);
@@ -96,16 +117,23 @@ class PropertyWizardController extends Controller
         $this->guardIsDraft($property);
 
         $validated = $request->validate([
-            'title'            => ['required', 'string', 'min:10', 'max:150'],
-            'property_type'    => ['required', 'in:Bedspace,Room,Apartment,House'],
-            'description'      => ['required', 'string', 'min:20', 'max:3000'],
-            'number_of_units'  => ['required', 'integer', 'min:1', 'max:100'],
+            'title'               => ['required', 'string', 'min:10', 'max:150'],
+            'property_type'       => ['required', 'in:Bedspace,Room,Apartment,House'],
+            'living_arrangement'  => ['nullable', 'in:Private,Shared,Mixed,Female only,Male only,Couples allowed,Family-friendly'],
+            'description'         => ['required', 'string', 'min:20', 'max:3000'],
+            'number_of_units'     => ['required', 'integer', 'min:1', 'max:100'],
         ]);
 
         $property->update([
-            'title'         => $validated['title'],
-            'property_type' => $validated['property_type'],
-            'description'   => $validated['description'],
+            'title'                          => $validated['title'],
+            'property_type'                  => $validated['property_type'],
+            'living_arrangement'             => $validated['living_arrangement'] ?? null,
+            'water_included'                 => $request->boolean('water_included'),
+            'electricity_included'           => $request->boolean('electricity_included'),
+            'internet_included'              => $request->boolean('internet_included'),
+            'association_fees_included'      => $request->boolean('association_fees_included'),
+            'utilities_separately_metered'   => $request->boolean('utilities_separately_metered'),
+            'description'                    => $validated['description'],
         ]);
 
         session([$this->targetUnitsSessionKey($property) => $validated['number_of_units']]);
@@ -164,6 +192,12 @@ class PropertyWizardController extends Controller
             $property->title               = $info['title'];
             $property->description         = $info['description'];
             $property->property_type       = $info['property_type'];
+            $property->living_arrangement  = $info['living_arrangement'] ?? null;
+            $property->water_included               = $info['water_included'] ?? false;
+            $property->electricity_included         = $info['electricity_included'] ?? false;
+            $property->internet_included             = $info['internet_included'] ?? false;
+            $property->association_fees_included     = $info['association_fees_included'] ?? false;
+            $property->utilities_separately_metered  = $info['utilities_separately_metered'] ?? false;
             $property->address             = $validated['address'];
             $property->city_municipality   = $validated['city_municipality'];
             $property->barangay            = $validated['barangay'] ?? null;

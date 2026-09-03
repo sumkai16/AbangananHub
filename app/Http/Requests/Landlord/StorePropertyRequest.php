@@ -19,6 +19,7 @@ class StorePropertyRequest extends FormRequest
             'title'             => ['required', 'string', 'min:10', 'max:150'],
             'description'       => ['required', 'string', 'min:20', 'max:3000'],
             'property_type'     => ['required', 'in:Bedspace,Room,Apartment,House'],
+            'living_arrangement' => ['nullable', 'in:Private,Shared,Mixed,Female only,Male only,Couples allowed,Family-friendly'],
             'address'           => ['required', 'string', 'min:10', 'max:255'],
             'city_municipality' => ['required', 'string', Rule::in(config('cebu.lgus'))],
             'barangay'          => ['nullable', 'string', 'max:100'],

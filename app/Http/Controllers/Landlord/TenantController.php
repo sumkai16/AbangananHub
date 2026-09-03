@@ -11,15 +11,39 @@ use Illuminate\Support\Facades\Auth;
 class TenantController extends Controller
 {
     /**
-     * Current tenants (occupied reservations) with the page's search and
+     * AbangananHub keeps Tenant Management to 3 statuses, not the full
+     * reservation funnel: Active = actually occupying; Pending = agreement
+     * signed/approved but not yet moved in — a real tenant relationship,
+     * just not moved-in yet; Inactive = no longer renting. A bare Inquiry or
+     * Under Negotiation isn't a tenant yet, so those funnel stages are left
+     * out of every group rather than folded into "Pending".
+     */
+    public const STATUS_GROUPS = [
+        'active'   => ['Occupied'],
+        'pending'  => ['Pending Rental Agreement', 'Rental Agreement Signed'],
+        'inactive' => ['Cancelled', 'Rejected', 'Completed'],
+    ];
+
+    /**
+     * Tenants (reservations that are Active or Pending per STATUS_GROUPS,
+     * unless a status filter says otherwise) with the page's search and
      * property filters applied. Shared by index() and export().
      */
     private function filteredQuery(Request $request)
     {
         $landlordId = Auth::user()->user_id;
 
-        $query = Reservation::where('rental_status', 'Occupied')
-            ->whereHas('property', fn($q) => $q->where('landlord_id', $landlordId));
+        $query = Reservation::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId));
+
+        $status = $request->input('status');
+        if ($status && isset(self::STATUS_GROUPS[$status])) {
+            $query->whereIn('rental_status', self::STATUS_GROUPS[$status]);
+        } else {
+            // Default view: real tenants, moved in or on their way in —
+            // Inactive (past tenancies) is opt-in via the status filter,
+            // not shown by default.
+            $query->whereIn('rental_status', array_merge(self::STATUS_GROUPS['active'], self::STATUS_GROUPS['pending']));
+        }
 
         if ($search = $request->input('search')) {
             $query->whereHas('tenant', function ($q) use ($search) {
@@ -34,6 +58,21 @@ class TenantController extends Controller
         }
 
         return $query;
+    }
+
+    /**
+     * Maps a reservation's raw rental_status to the 3-status label the
+     * table/filter show — the inverse of STATUS_GROUPS.
+     */
+    public static function statusGroupFor(string $rentalStatus): string
+    {
+        foreach (self::STATUS_GROUPS as $group => $statuses) {
+            if (in_array($rentalStatus, $statuses, true)) {
+                return $group;
+            }
+        }
+
+        return 'pending';
     }
 
     public function index(Request $request)
@@ -71,7 +110,7 @@ class TenantController extends Controller
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, [
-                'Tenant', 'Type', 'Email', 'Contact', 'Property', 'Unit',
+                'Tenant', 'Type', 'Status', 'Email', 'Contact', 'Property', 'Unit',
                 'Monthly Rent', 'Move In', 'Move Out', 'Occupants',
             ]);
 
@@ -82,6 +121,7 @@ class TenantController extends Controller
                     fputcsv($handle, [
                         $tenant ? trim($tenant->first_name . ' ' . $tenant->last_name) : '',
                         $tenant?->is_walk_in ? 'Walk-in' : 'Platform',
+                        ucfirst(TenantController::statusGroupFor($reservation->rental_status)),
                         $tenant->email ?? '',
                         $tenant->contact_number ?? '',
                         $reservation->property->title ?? '',

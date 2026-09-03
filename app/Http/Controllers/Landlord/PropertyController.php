@@ -49,7 +49,22 @@ class PropertyController extends Controller
 
         $properties = $query->latest()->paginate(9)->withQueryString();
 
-        return view('landlord.properties.index', compact('properties'));
+        // Account-wide totals for the summary cards — deliberately unfiltered
+        // by the search/status/type toolbar above, since "how many units do
+        // I have total" shouldn't change just because the list below is
+        // narrowed to one property type.
+        $totalUnitsCount = \App\Models\PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))->count();
+        $stats = [
+            'properties' => Property::where('landlord_id', $landlordId)->count(),
+            'units'      => $totalUnitsCount,
+            'occupied'   => \App\Models\PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))
+                ->where('availability_status', 'Occupied')->count(),
+            'available'  => \App\Models\PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))
+                ->where('availability_status', 'Available')->count(),
+        ];
+        $stats['occupancyRate'] = $totalUnitsCount > 0 ? round($stats['occupied'] / $totalUnitsCount * 100) : 0;
+
+        return view('landlord.properties.index', compact('properties', 'stats'));
     }
 
     public function show(Property $property)

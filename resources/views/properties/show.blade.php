@@ -214,30 +214,52 @@
                                                     // so the map no longer needs a resize nudge on reveal.
                                                 }">
 
-        {{-- flex, not grid: with CSS Grid, a sticky item's containing block is
-             its grid CELL, which is always stretched to the row's height
-             (the tall editorial column) regardless of items-start — so the
-             media rail would "catch up" and detach once the row's bottom
-             approached, however short the rail's own content actually is.
-             Flexbox items-start does NOT stretch the item's own box to the
-             line height, so the rail's containing block is just its own
-             (short, capped) height — it stays pinned for the whole scroll,
-             deliberately at the cost of overlapping content below the grid
-             near the very bottom of the page. --}}
-        <div class="flex flex-col lg:flex-row gap-8 lg:gap-10 items-start">
+        {{-- Top-to-bottom flow (not the old sticky two-column split): header,
+             gallery, details+contact row, subunit grid, then the rest of the
+             editorial content, then Nearby Rentals. --}}
+        <div class="flex flex-col gap-8">
 
-            {{-- ===================================================== --}}
-            {{-- MEDIA RAIL — gallery + units, sticky as one panel      --}}
-            {{--                                                        --}}
-            {{-- Sticky with its own max-height and scroll rather than a --}}
-            {{-- fixed full-height rail: a one-unit property gets the    --}}
-            {{-- immersive rail, a twelve-unit one scrolls its list      --}}
-            {{-- inside the rail instead of pushing the page out of      --}}
-            {{-- alignment. Static below lg, where it simply stacks.     --}}
-            {{-- ===================================================== --}}
-            <div class="lg:basis-5/12 lg:shrink-0 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] space-y-6">
+            {{-- ===== HEADER ===== --}}
+            <div>
+                <nav class="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] mb-5" aria-label="Breadcrumb">
+                    <a href="{{ url('/') }}" class="hover:text-[#1F2937] transition-colors">Home</a>
+                    <span aria-hidden="true">·</span>
+                    <a href="{{ route('properties.index') }}" class="hover:text-[#1F2937] transition-colors">Properties</a>
+                    <span aria-hidden="true">·</span>
+                    <span class="text-[#1F2937] truncate max-w-[220px]">{{ $property->title }}</span>
+                </nav>
 
-                {{-- ===== 1. IMAGE GALLERY — bento (1 big + up to 2 small) ===== --}}
+                <h1 class="font-display text-[30px] sm:text-[38px] font-bold leading-[1.12] tracking-[-0.015em] text-[#1F2937] text-balance">
+                    {{ $property->title }}
+                </h1>
+
+                <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13.5px] font-medium text-[#64748B]">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 shrink-0 text-[#EF4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {{ $property->address }}
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        @if($avgRating)
+                            <span class="font-bold text-[#1F2937]">{{ $avgRating }}</span>
+                            <a href="#reviews" class="hover:text-[#1F2937] underline underline-offset-2">
+                                {{ $reviews->count() }} {{ Str::plural('review', $reviews->count()) }}
+                            </a>
+                        @else
+                            <span>No reviews yet</span>
+                        @endif
+                    </span>
+                </div>
+            </div>
+
+            {{-- ===== 1. IMAGE GALLERY — bento (1 big + up to 2 small) ===== --}}
                 @php
                     $mediaCount = $property->media->count();
                     // 2 photos reuses the >=3 bento shape: the hero tile takes
@@ -356,164 +378,51 @@
                     </div>
                 @endif
 
-                {{-- ===== UNIT SELECTION LIST ===== --}}
-                @if($approvedUnits->count() > 0)
-                    <div>
-                        <h2 class="text-base font-bold text-[#1F2937] mb-1">Available Units ({{ $availableUnits->count() }})
-                        </h2>
-                        <p class="text-sm text-[#64748B] mb-4">Choose a unit to contact the landlord about</p>
-
-                        <div class="space-y-3">
-                            @foreach($approvedUnits as $unit)
-                                @php $isAvailable = $unit->availability_status === 'Available'; @endphp
-                                <div class="relative" @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
-                                    <button type="button" x-on:click="selectUnit({{ $unit->unit_id }})"
-                                        :class="selectedUnit === {{ $unit->unit_id }}
-                                                ? 'border-[#2AA7A1] ring-1 ring-[#2AA7A1]'
-                                                : '{{ $isAvailable ? 'border-[#E2E8F0] hover:border-[#64748B]/40' : 'border-[#E2E8F0] cursor-not-allowed' }}'"
-                                        class="w-full text-left rounded-2xl border bg-white shadow-sm p-3.5 pr-12 flex items-center gap-3 transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
-                                        @if(!$isAvailable) disabled @endif>
-
-                                        {{-- Radio indicator --}}
-                                        <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
-                                            :class="selectedUnit === {{ $unit->unit_id }} ? 'border-[#2AA7A1]' : 'border-[#CBD5E1]'">
-                                            <span class="w-2.5 h-2.5 rounded-full bg-[#2AA7A1]"
-                                                x-show="selectedUnit === {{ $unit->unit_id }}" x-cloak></span>
-                                        </span>
-
-                                        {{-- Thumbnail --}}
-                                        @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
-                                        @if($unitThumb)
-                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
-                                                class="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#E2E8F0]">
-                                        @else
-                                            <span class="w-14 h-14 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                                <svg class="w-6 h-6 text-[#64748B]" fill="none" viewBox="0 0 24 24"
-                                                    stroke="currentColor" stroke-width="1.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                                                </svg>
-                                            </span>
-                                        @endif
-
-                                        {{-- Details --}}
-                                        <span class="flex-1 min-w-0">
-                                            <span class="block text-sm font-bold text-[#1F2937] truncate mb-0.5">{{ $unit->unit_label }}</span>
-                                            <span class="block text-xs font-medium text-[#64748B]">
-                                                {{ $property->property_type }}
-                                                &middot; {{ $unit->occupancy_limit }}
-                                                {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
-                                                @if($unit->floor_area_label)
-                                                    &middot; {{ $unit->floor_area_label }}
-                                                @endif
-                                            </span>
-                                        </span>
-
-                                        {{-- Price + status --}}
-                                        <span class="text-right shrink-0 flex flex-col items-end gap-1">
-                                            <span class="leading-tight">
-                                                <span class="text-sm font-black text-[#1F2937]">₱{{ number_format($unit->rental_fee) }}</span>
-                                                <span class="text-[11px] font-semibold text-[#64748B]">/ month</span>
-                                            </span>
-                                            <span
-                                                class="text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $isAvailable ? 'bg-[#22C55E]/[0.07] text-[#15803D]' : 'bg-[#E2E8F0] text-[#64748B]' }}">
-                                                {{ $unit->availability_status }}
-                                            </span>
-                                            @if($isOwner && $unit->verification_status !== 'Approved')
-                                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-[#FBBF24]/[0.10] text-[#B45309]">
-                                                    Pending review — hidden from tenants
-                                                </span>
-                                            @endif
-                                        </span>
-                                    </button>
-
-                                    {{-- View details button (opens slideout) --}}
-                                    <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
-                                        class="absolute top-3 right-3 w-7 h-7 rounded-lg bg-[#F7FCFC] hover:bg-[#EEF8F8] flex items-center justify-center transition-colors cursor-pointer"
-                                        title="View unit details">
-                                        <svg class="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </button>
+            {{-- ===== DETAILS + CONTACT ROW ===== --}}
+            <div class="lg:flex lg:flex-row gap-8 items-start">
+                <div class="lg:basis-7/12 lg:shrink-0 min-w-0">
+                    {{-- Property Details card --}}
+                    <x-card>
+                        <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">Property details</h2>
+                        <dl class="grid grid-cols-2 gap-3">
+                            @php
+                                $availableUnitCount = $property->units->where('availability_status', 'Available')->count();
+                                $maxCapacity = $property->units->max('occupancy_limit');
+                            @endphp
+                            @foreach (array_filter([
+                                ['Type', $property->property_type],
+                                $property->living_arrangement ? ['Living arrangement', $property->living_arrangement] : null,
+                                ['Capacity', $maxCapacity ? $maxCapacity . ' ' . Str::plural('person', $maxCapacity) : '—'],
+                                ['Landlord', trim($property->landlord->first_name . ' ' . $property->landlord->last_name)],
+                                ['Available', $availableUnitCount . ' ' . Str::plural('unit', $availableUnitCount)],
+                            ]) as [$label, $value])
+                                <div class="rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
+                                    <dt class="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">{{ $label }}</dt>
+                                    <dd class="mt-0.5 text-[14.5px] font-bold text-[#1F2937] truncate">{{ $value }}</dd>
                                 </div>
                             @endforeach
-                        </div>
-
-                        @if($approvedUnits->count() > 4)
-                            <button type="button" x-show="!moreUnits" x-on:click="moreUnits = true"
-                                class="mt-3 w-full h-11 rounded-xl border border-[#E2E8F0] bg-white text-sm font-bold text-[#1F2937] hover:bg-[#F7FCFC] shadow-sm cursor-pointer transition-colors duration-200">
-                                View all units ({{ $approvedUnits->count() }})
-                            </button>
-                        @endif
-                    </div>
-                @endif
-            </div>
-
-            {{-- ===================================================== --}}
-            {{-- EDITORIAL COLUMN — hero, then stacked detail sections  --}}
-            {{-- ===================================================== --}}
-            <div class="lg:basis-7/12 lg:shrink-0 min-w-0">
-
-                {{-- ===== HERO ===== --}}
-                <nav class="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] mb-5" aria-label="Breadcrumb">
-                    <a href="{{ url('/') }}" class="hover:text-[#1F2937] transition-colors">Home</a>
-                    <span aria-hidden="true">·</span>
-                    <a href="{{ route('properties.index') }}" class="hover:text-[#1F2937] transition-colors">Properties</a>
-                    <span aria-hidden="true">·</span>
-                    <span class="text-[#1F2937] truncate max-w-[220px]">{{ $property->title }}</span>
-                </nav>
-
-                {{-- font-display is Source Serif 4, reserved for page titles
-                     this size. Card headings and section labels stay on
-                     font-heading (Poppins) — see DESIGN.md §4. --}}
-                <h1 class="font-display text-[30px] sm:text-[38px] font-bold leading-[1.12] tracking-[-0.015em] text-[#1F2937] text-balance">
-                    {{ $property->title }}
-                </h1>
-
-                <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13.5px] font-medium text-[#64748B]">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-4 h-4 shrink-0 text-[#EF4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            stroke-width="2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {{ $property->address }}
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                        @if($avgRating)
-                            <span class="font-bold text-[#1F2937]">{{ $avgRating }}</span>
-                            <a href="#reviews" class="hover:text-[#1F2937] underline underline-offset-2">
-                                {{ $reviews->count() }} {{ Str::plural('review', $reviews->count()) }}
-                            </a>
-                        @else
-                            <span>No reviews yet</span>
-                        @endif
-                    </span>
+                        </dl>
+                    </x-card>
                 </div>
 
-                {{-- ===== CONTACT CARD =====
-                     Price, deposit, landlord row, CTA and the response note read
-                     as one panel — this used to be six ungrouped sibling blocks,
-                     the only bordered panel on the whole column was the location
-                     card below. Grouping is the point of this change; see
-                     DESIGN.md §6e for the reordering this produces. --}}
-                <x-card class="mt-6">
+                <div class="lg:basis-5/12 lg:shrink-0">
+                {{-- ===== CONTACT CARD — dark surface, per the analyst wireframe.
+                     One-off (not <x-card>, which is locked to a white surface)
+                     — #1F2937 charcoal is the app's approved dark ground, used
+                     the same way in the public hero gradient (about.blade.php)
+                     and the "Get directions" button. --}}
+                <div class="mt-6 rounded-2xl bg-[#1F2937] text-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 sm:p-6"
+                    x-data="{ phoneRevealed: false }">
                     {{-- Price follows the unit picked in the rail, so there is one
                          source of truth rather than a hero range that can disagree
                          with what the form is about to submit. --}}
                     <p class="flex items-baseline gap-2">
-                        <span class="font-display text-[34px] sm:text-[40px] font-bold tracking-tight text-[#156F8C]">
+                        <span class="font-display text-[34px] sm:text-[40px] font-bold tracking-tight text-[#69D2C6]">
                             &#8369;<span x-text="selected ? selected.price : '{{ number_format($property->units->min('rental_fee') ?? 0) }}'"></span>
                         </span>
-                        <span class="text-[15px] font-medium text-[#64748B]">/ month</span>
+                        <span class="text-[15px] font-medium text-white/60">/ month</span>
                     </p>
-                    <p class="mt-1 text-[13.5px] text-[#64748B]" x-show="selected" x-cloak>
+                    <p class="mt-1 text-[13.5px] text-white/60" x-show="selected" x-cloak>
                         <template x-if="selected && selected.deposit">
                             <span>+ &#8369;<span x-text="selected.deposit"></span> security deposit</span>
                         </template>
@@ -523,12 +432,12 @@
                     </p>
 
                     {{-- ===== LANDLORD ROW ===== --}}
-                    <div class="mt-6 pt-6 border-t border-[#E2E8F0] flex items-center gap-3">
+                    <div class="mt-6 pt-6 border-t border-white/10 flex items-center gap-3">
                         <div class="w-11 h-11 shrink-0 rounded-full bg-[#2AA7A1] text-white flex items-center justify-center text-[14px] font-bold">
                             {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="text-[14.5px] font-bold text-[#1F2937] truncate">
+                            <p class="text-[14.5px] font-bold text-white truncate">
                                 {{ trim($property->landlord->first_name . ' ' . $property->landlord->last_name) }}
                             </p>
                             {{-- Built in PHP: a directive placed immediately after a
@@ -540,29 +449,41 @@
                                     ? 'Landlord · Verified Host'
                                     : 'Landlord';
                             @endphp
-                            <p class="text-[12.5px] text-[#64748B]">{{ $hostLine }}</p>
+                            <p class="text-[12.5px] text-white/60">{{ $hostLine }}</p>
                         </div>
                         <a href="{{ route('landlord.profile.show', $property->landlord_id) }}"
-                            class="shrink-0 text-[13.5px] font-bold text-[#156F8C] hover:brightness-95 transition-all">
+                            class="shrink-0 text-[13.5px] font-bold text-[#69D2C6] hover:brightness-95 transition-all">
                             View profile &rarr;
                         </a>
                     </div>
 
+                    {{-- ===== INQUIRY PREVIEW — a visual preview of the message
+                         the "Send Inquiry" button opens in the existing
+                         inquireOpen modal; not a separate send path. ===== --}}
+                    @if(auth()->check() && !$isOwner)
+                        <div class="mt-4 bg-white/[0.06] border border-white/10 rounded-xl p-3">
+                            <p class="text-[13px] text-white/85 leading-snug">
+                                Hi {{ $property->landlord->first_name }}, I am interested in your listing
+                                "{{ $property->title }}". Is it still available?
+                            </p>
+                        </div>
+                    @endif
+
                     {{-- ===== PRIMARY ACTION ===== --}}
-                    <div class="mt-6 flex items-stretch gap-3">
+                    <div class="mt-4 flex items-stretch gap-3">
                         @if(!auth()->check())
                             <button type="button" onclick="openAuthModal('login')"
                                 class="flex-1 py-5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-base font-bold shadow-sm transition-all">
                                 Log in to contact landlord
                             </button>
                         @elseif($isOwner)
-                            <div class="flex-1 py-5 text-center rounded-xl bg-[#E2E8F0] text-[#64748B] text-base font-bold cursor-not-allowed">
+                            <div class="flex-1 py-5 text-center rounded-xl bg-white/10 text-white/60 text-base font-bold cursor-not-allowed">
                                 This is your listing
                             </div>
                         @else
                             <button type="button" x-on:click="inquireOpen = true"
                                 class="flex-1 py-5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white text-base font-bold shadow-sm transition-all cursor-pointer"
-                                x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Contact Landlord'"
+                                x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Send Inquiry'"
                                 :disabled="selected && selected.hasActive"
                                 :class="selected && selected.hasActive ? 'opacity-60 cursor-not-allowed' : ''">
                             </button>
@@ -588,9 +509,9 @@
                                     }">
                                     <button type="button" x-on:click="toggleFav()" :disabled="busy"
                                         :aria-pressed="fav"
-                                        class="h-full aspect-square rounded-xl border border-[#E2E8F0] bg-white flex items-center justify-center hover:border-[#2AA7A1] transition-all disabled:opacity-50 cursor-pointer">
+                                        class="h-full aspect-square rounded-xl border border-white/15 bg-white/5 flex items-center justify-center hover:border-[#2AA7A1] transition-all disabled:opacity-50 cursor-pointer">
                                         <span class="sr-only" x-text="fav ? 'Remove from favorites' : 'Add to favorites'"></span>
-                                        <svg class="w-5 h-5 transition-colors" :class="fav ? 'text-[#EF4444]' : 'text-[#64748B]'"
+                                        <svg class="w-5 h-5 transition-colors" :class="fav ? 'text-[#EF4444]' : 'text-white/70'"
                                             :fill="fav ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
                                             stroke-width="2" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -602,15 +523,134 @@
                         @endif
                     </div>
 
-                    <p class="mt-2.5 text-[12.5px] font-medium text-[#64748B]">Usually responds within a few hours</p>
+                    {{-- ===== SHOW PHONE NUMBER — only rendered when the
+                         landlord has one on file; contact_number is nullable
+                         (SCHEMA.md), so a walk-in-only landlord simply has no
+                         reveal button rather than a broken one. ===== --}}
+                    @if(auth()->check() && !$isOwner && $property->landlord->contact_number)
+                        <button type="button" x-on:click="phoneRevealed = !phoneRevealed"
+                            class="mt-3 w-full py-3 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                            </svg>
+                            <span x-show="!phoneRevealed" x-cloak>Show phone number</span>
+                            <span x-show="phoneRevealed" x-cloak>{{ $property->landlord->contact_number }}</span>
+                        </button>
+                    @endif
+
+                    <p class="mt-2.5 text-[12.5px] font-medium text-white/60">Usually responds within a few hours</p>
+                    <p class="mt-1 text-[11.5px] text-white/40">Always meet in a safe public place before making any payments. Never wire money to an unknown account.</p>
 
                     @auth
                         <button type="button" x-on:click="reportOpen = true"
-                            class="mt-3 inline-block text-[12.5px] font-semibold text-[#64748B] hover:text-[#1F2937] underline underline-offset-2 transition-colors cursor-pointer">
+                            class="mt-3 inline-block text-[12.5px] font-semibold text-white/60 hover:text-white underline underline-offset-2 transition-colors cursor-pointer">
                             Report this listing
                         </button>
                     @endauth
-                </x-card>
+                </div>
+                </div>
+            </div>
+
+            {{-- ===== SUBUNITS IN THIS PROPERTY — full-width grid, replaces
+                 the old sticky sidebar unit list. Selecting a card still
+                 drives selectUnit()/selectedUnit so the contact card above
+                 keeps tracking the chosen unit's price/deposit. ===== --}}
+            @if($approvedUnits->count() > 0)
+                <div>
+                    <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-1">Subunits in this property</h2>
+                    <p class="text-sm text-[#64748B] mb-4">Choose a unit to contact the landlord about</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @foreach($approvedUnits as $unit)
+                            @php
+                                $isAvailable = $unit->availability_status === 'Available';
+                                $statusColors = [
+                                    'Available' => 'bg-[#22C55E]/[0.10] text-[#15803D]',
+                                    'Reserved' => 'bg-[#FBBF24]/[0.12] text-[#B45309]',
+                                    'Occupied' => 'bg-[#EF4444]/[0.10] text-[#DC2626]',
+                                    'Maintenance' => 'bg-[#94A3B8]/[0.15] text-[#64748B]',
+                                ];
+                            @endphp
+                            <div class="relative" @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
+                                <button type="button" x-on:click="selectUnit({{ $unit->unit_id }})"
+                                    :class="selectedUnit === {{ $unit->unit_id }}
+                                            ? 'border-[#2AA7A1] ring-1 ring-[#2AA7A1]'
+                                            : '{{ $isAvailable ? 'border-[#E2E8F0] hover:border-[#64748B]/40' : 'border-[#E2E8F0] cursor-not-allowed' }}'"
+                                    class="w-full text-left rounded-2xl border bg-white shadow-sm overflow-hidden transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
+                                    @if(!$isAvailable) disabled @endif>
+
+                                    {{-- Thumbnail --}}
+                                    @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
+                                    <div class="relative aspect-[16/10] bg-[#EEF8F8]">
+                                        @if($unitThumb)
+                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
+                                                class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center">
+                                                <svg class="w-8 h-8 text-[#64748B]" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor" stroke-width="1.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                                                </svg>
+                                            </div>
+                                        @endif
+
+                                        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
+                                            {{ $unit->availability_status }}
+                                        </span>
+
+                                        <span class="absolute top-2.5 right-2.5 w-6 h-6 rounded-full border-2 bg-white/90 flex items-center justify-center shrink-0"
+                                            :class="selectedUnit === {{ $unit->unit_id }} ? 'border-[#2AA7A1]' : 'border-[#CBD5E1]'">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#2AA7A1]"
+                                                x-show="selectedUnit === {{ $unit->unit_id }}" x-cloak></span>
+                                        </span>
+                                    </div>
+
+                                    {{-- Details --}}
+                                    <div class="p-3.5">
+                                        <p class="text-sm font-bold text-[#1F2937] truncate mb-0.5">{{ $unit->unit_label }}</p>
+                                        <p class="text-xs font-medium text-[#64748B] mb-2">
+                                            {{ $property->property_type }}
+                                            &middot; {{ $unit->occupancy_limit }}
+                                            {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
+                                            @if($unit->floor_area_label)
+                                                &middot; {{ $unit->floor_area_label }}
+                                            @endif
+                                        </p>
+                                        <p class="leading-tight">
+                                            <span class="text-sm font-black text-[#1F2937]">₱{{ number_format($unit->rental_fee) }}</span>
+                                            <span class="text-[11px] font-semibold text-[#64748B]">/ month</span>
+                                        </p>
+                                        @if($isOwner && $unit->verification_status !== 'Approved')
+                                            <span class="inline-block mt-1.5 text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-[#FBBF24]/[0.10] text-[#B45309]">
+                                                Pending review — hidden from tenants
+                                            </span>
+                                        @endif
+                                    </div>
+                                </button>
+
+                                {{-- View details button (opens slideout) --}}
+                                <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
+                                    class="absolute top-2.5 right-11 w-7 h-7 rounded-lg bg-white/90 hover:bg-white flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                                    title="View unit details">
+                                    <svg class="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if($approvedUnits->count() > 4)
+                        <button type="button" x-show="!moreUnits" x-on:click="moreUnits = true"
+                            class="mt-3 w-full h-11 rounded-xl border border-[#E2E8F0] bg-white text-sm font-bold text-[#1F2937] hover:bg-[#F7FCFC] shadow-sm cursor-pointer transition-colors duration-200">
+                            View all units ({{ $approvedUnits->count() }})
+                        </button>
+                    @endif
+                </div>
+            @endif
 
                 @if($property->description)
                     <div class="mt-6 max-w-[62ch]">
@@ -630,24 +670,45 @@
                     </div>
                 @endif
 
-                {{-- ===== FACT TILES ===== --}}
-                <dl class="mt-6 grid grid-cols-2 gap-3">
-                    @php
-                        $availableUnitCount = $property->units->where('availability_status', 'Available')->count();
-                        $maxCapacity = $property->units->max('occupancy_limit');
-                    @endphp
-                    @foreach ([
-                        ['Type', $property->property_type],
-                        ['Capacity', $maxCapacity ? $maxCapacity . ' ' . Str::plural('person', $maxCapacity) : '—'],
-                        ['Landlord', trim($property->landlord->first_name . ' ' . $property->landlord->last_name)],
-                        ['Available', $availableUnitCount . ' ' . Str::plural('unit', $availableUnitCount)],
-                    ] as [$label, $value])
-                        <div class="rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
-                            <dt class="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">{{ $label }}</dt>
-                            <dd class="mt-0.5 text-[14.5px] font-bold text-[#1F2937] truncate">{{ $value }}</dd>
-                        </div>
-                    @endforeach
-                </dl>
+                @php
+                    // Nullable columns: null means the landlord hasn't
+                    // answered utilities at all (property predates this
+                    // field, or the wizard step was skipped) — the section
+                    // only renders once there's something real to show,
+                    // "not included" included.
+                    $utilityFields = [
+                        ['water_included', 'Water included'],
+                        ['electricity_included', 'Electricity included'],
+                        ['internet_included', 'Internet included'],
+                        ['association_fees_included', 'Association/maintenance fees included'],
+                        ['utilities_separately_metered', 'Utilities separately metered'],
+                    ];
+                    $utilitiesAnswered = collect($utilityFields)->contains(fn ($f) => $property->{$f[0]} !== null);
+                @endphp
+                @if($utilitiesAnswered)
+                <section id="utilities" class="mt-10 pt-8 border-t border-[#E2E8F0]">
+                    <h2 class="font-heading text-[19px] font-bold tracking-tight text-[#1F2937] mb-4">Utilities &amp; included charges</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        @foreach($utilityFields as [$field, $label])
+                            @php $included = $property->{$field}; @endphp
+                            <div class="flex items-center gap-3 text-sm font-medium {{ $included ? 'text-[#1F2937]' : 'text-[#94A3B8]' }}">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 {{ $included ? 'bg-[#EEF8F8]' : 'bg-[#F7FCFC]' }}">
+                                    @if($included)
+                                        <svg class="w-4 h-4 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                        </svg>
+                                    @else
+                                        <svg class="w-4 h-4 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <span class="min-w-0">{{ $label }} <span class="{{ $included ? 'hidden' : '' }} text-[11px] font-semibold uppercase tracking-wide">— not included</span></span>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+                @endif
 
                 @if($buildingAmenities->isNotEmpty())
                 <section id="building-amenities" class="mt-10 pt-8 border-t border-[#E2E8F0]">
@@ -1005,8 +1066,6 @@
                             </div>
                         @endforelse
                 </section>
-
-            </div>
         </div>
 
         {{-- ===== NEARBY RENTALS =====
