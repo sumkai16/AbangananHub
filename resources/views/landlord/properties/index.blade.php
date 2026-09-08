@@ -9,19 +9,19 @@
         {{-- Header --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+                <div class="w-11 h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
                     <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">My Properties</h1>
-                    <p class="text-sm text-[#64748B] mt-0.5">Manage and monitor your rental properties on AbangananHub.</p>
+                    <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">My Properties</h1>
+                    <p class="text-sm text-[#5B6A8E] mt-0.5">Manage and monitor your rental properties on AbangananHub.</p>
                 </div>
             </div>
             <a href="{{ route('properties.create') }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#2AA7A1] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200 shrink-0">
+                class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#060D26] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200 shrink-0">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
@@ -33,7 +33,7 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
             <x-stat-card label="Total Properties" :value="$stats['properties']" sub="Properties listed">
                 <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
                     </svg>
@@ -42,7 +42,7 @@
 
             <x-stat-card label="Total Units" :value="$stats['units']" sub="Across all properties">
                 <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
                     </svg>
@@ -82,7 +82,7 @@
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..." aria-label="Search by property name or address"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -91,13 +91,13 @@
                         $listTypeOptions = ['' => 'All Types', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House for Rent'];
                     @endphp
                     <x-styled-select name="status" :options="$listStatusOptions" :selected="request('status', '')"
-                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                     <x-styled-select name="type" :options="$listTypeOptions" :selected="request('type', '')"
-                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                     <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
+                        class="h-11 px-5 rounded-xl bg-[#060D26] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                         </svg>
@@ -106,7 +106,7 @@
 
                     @if(request()->hasAny(['search', 'status', 'type']))
                         <a href="{{ route('landlord.properties.index') }}"
-                            class="h-11 px-4 rounded-xl border border-[#64748B]/25 text-[13.5px] text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 inline-flex items-center gap-1.5">
+                            class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                             </svg>
@@ -115,9 +115,9 @@
                     @endif
 
                     {{-- View toggle --}}
-                    <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] ml-auto">
+                    <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] ml-auto">
                         <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
-                            :class="view === 'grid' ? 'bg-white text-[#156F8C] shadow-sm' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            :class="view === 'grid' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                             class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -125,7 +125,7 @@
                             </svg>
                         </button>
                         <button type="button" x-on:click="setView('table')" aria-label="Table view"
-                            :class="view === 'table' ? 'bg-white text-[#156F8C] shadow-sm' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            :class="view === 'table' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                             class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -137,11 +137,11 @@
             </div>
 
             @if(request()->hasAny(['search', 'status', 'type']))
-                <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#64748B]/10 text-[12.5px] text-[#64748B]">
+                <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#5B6A8E]/10 text-[12.5px] text-[#5B6A8E]">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                     </svg>
-                    <span class="font-semibold text-[#1F2937]">{{ $properties->total() }}</span>
+                    <span class="font-semibold text-[#060D26]">{{ $properties->total() }}</span>
                     {{ Str::plural('property', $properties->total()) }} match{{ $properties->total() === 1 ? 'es' : '' }} your filters
                 </div>
             @endif
@@ -151,18 +151,18 @@
         {{-- Empty state --}}
         @if($properties->isEmpty())
             <div class="flex flex-col items-center justify-center py-24 text-center">
-                <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
+                <div class="w-16 h-16 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
                     <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"
-                        class="text-[#64748B]">
+                        class="text-[#5B6A8E]">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
                     </svg>
                 </div>
-                <p class="text-[15px] font-semibold text-[#1F2937]">No properties yet</p>
-                <p class="text-sm text-[#64748B] mt-1 max-w-xs">Add your first property to start receiving reservations from
+                <p class="text-[15px] font-semibold text-[#060D26]">No properties yet</p>
+                <p class="text-sm text-[#5B6A8E] mt-1 max-w-xs">Add your first property to start receiving reservations from
                     tenants.</p>
                 <a href="{{ route('properties.create') }}"
-                    class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-full bg-[#2AA7A1] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200">
+                    class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-full bg-[#060D26] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
@@ -181,7 +181,7 @@
                         'Approved' => ['bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25', 'Approved'],
                         'Pending' => ['bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35', 'Pending'],
                         'Rejected' => ['bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25', 'Rejected'],
-                        default => ['bg-[#EEF8F8] text-[#64748B] ring-[#64748B]/20', 'Unknown'],
+                        default => ['bg-[#ECEEF6] text-[#5B6A8E] ring-[#5B6A8E]/20', 'Unknown'],
                     };
                     $derived[$property->property_id] = compact('thumb', 'statusBg', 'statusText');
                 }
@@ -192,22 +192,22 @@
                     @php extract($derived[$property->property_id]); @endphp
 
                     <article
-                        class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#64748B]/15 hover:ring-[#64748B]/30 hover:shadow-lg transition-all duration-300">
+                        class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 hover:ring-[#5B6A8E]/30 hover:shadow-lg transition-all duration-300">
 
                         {{-- Thumbnail --}}
                         <a href="{{ route('landlord.properties.show', $property) }}"
-                            class="relative block aspect-[16/10] overflow-hidden bg-[#EEF8F8] shrink-0">
+                            class="relative block aspect-[16/10] overflow-hidden bg-[#ECEEF6] shrink-0">
                             @if($thumb)
                                 <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}"
                                     class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
                             @else
                                 <div class="w-full h-full flex flex-col items-center justify-center gap-2">
                                     <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"
-                                        class="text-[#64748B]/60">
+                                        class="text-[#5B6A8E]/60">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
                                     </svg>
-                                    <span class="text-xs text-[#64748B]/70">No photos yet</span>
+                                    <span class="text-xs text-[#5B6A8E]/70">No photos yet</span>
                                 </div>
                             @endif
 
@@ -230,10 +230,10 @@
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <a href="{{ route('landlord.properties.show', $property) }}"
-                                        class="block text-[15px] font-bold text-[#1F2937] leading-snug line-clamp-1 hover:text-[#EF4444] transition-colors duration-200">
+                                        class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#EF4444] transition-colors duration-200">
                                         {{ $property->title }}
                                     </a>
-                                    <p class="text-[12px] text-[#64748B] mt-0.5 line-clamp-1 flex items-center gap-1">
+                                    <p class="text-[12px] text-[#5B6A8E] mt-0.5 line-clamp-1 flex items-center gap-1">
                                         <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2" class="shrink-0">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -245,29 +245,29 @@
                                     </p>
                                 </div>
                                 <span
-                                    class="shrink-0 text-[11px] font-medium text-[#2AA7A1] border border-[#2AA7A1]/40 rounded-full px-2.5 py-0.5 mt-0.5">
+                                    class="shrink-0 text-[11px] font-medium text-[#8a6e1e] border border-[#C9A84C]/40 rounded-full px-2.5 py-0.5 mt-0.5">
                                     {{ $property->property_type }}
                                 </span>
                             </div>
 
                             {{-- Unit stats --}}
-                            <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-[#64748B]/10 rounded-xl bg-[#EEF8F8]/60 py-2.5">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-[#5B6A8E]/10 rounded-xl bg-[#ECEEF6]/60 py-2.5">
                                 <div class="flex flex-col items-center gap-0.5">
-                                    <span class="text-[14px] font-bold text-[#1F2937]">{{ $property->units_count }}</span>
-                                    <span class="text-[10px] text-[#64748B] font-medium">Total</span>
+                                    <span class="text-[14px] font-bold text-[#060D26]">{{ $property->units_count }}</span>
+                                    <span class="text-[10px] text-[#5B6A8E] font-medium">Total</span>
                                 </div>
                                 <div class="flex flex-col items-center gap-0.5">
                                     <span
                                         class="text-[14px] font-bold text-[#15803D]">{{ $property->available_units_count }}</span>
-                                    <span class="text-[10px] text-[#64748B] font-medium">Available</span>
+                                    <span class="text-[10px] text-[#5B6A8E] font-medium">Available</span>
                                 </div>
                                 <div class="flex flex-col items-center gap-0.5">
                                     <span class="text-[14px] font-bold text-[#B45309]">{{ $property->reserved_units_count }}</span>
-                                    <span class="text-[10px] text-[#64748B] font-medium">Reserved</span>
+                                    <span class="text-[10px] text-[#5B6A8E] font-medium">Reserved</span>
                                 </div>
                                 <div class="flex flex-col items-center gap-0.5">
                                     <span class="text-[14px] font-bold text-[#EF4444]">{{ $property->occupied_units_count }}</span>
-                                    <span class="text-[10px] text-[#64748B] font-medium">Occupied</span>
+                                    <span class="text-[10px] text-[#5B6A8E] font-medium">Occupied</span>
                                 </div>
                             </div>
 
@@ -275,7 +275,7 @@
                             <div class="flex items-center gap-2 pt-1 mt-auto">
                                 @if($property->isDraft())
                                     <a href="{{ route('properties.wizard.resume', $property) }}"
-                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#1F2937] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200">
+                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                                         </svg>
@@ -288,7 +288,7 @@
                                           data-confirm-button="Delete Draft">
                                         @csrf @method('DELETE')
                                         <button type="submit" aria-label="Delete draft"
-                                            class="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#64748B] hover:text-[#DC2626] hover:border-[#DC2626]/40 hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
+                                            class="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#5B6A8E] hover:text-[#DC2626] hover:border-[#DC2626]/40 hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
                                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                                             </svg>
@@ -296,7 +296,7 @@
                                     </form>
                                 @else
                                     <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#2AA7A1] text-[#2AA7A1] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
+                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#C9A84C] text-[#8a6e1e] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -305,7 +305,7 @@
                                         View Units
                                     </a>
                                     <a href="{{ route('properties.edit', $property) }}"
-                                        class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#64748B]/30 text-[#1F2937] text-[12px] font-medium hover:bg-[#EEF8F8] transition-colors duration-200">
+                                        class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -314,7 +314,7 @@
                                         Edit
                                     </a>
                                     <a href="{{ route('landlord.properties.show', $property) }}"
-                                        class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#64748B]/30 text-[#1F2937] text-[12px] font-medium hover:bg-[#EEF8F8] transition-colors duration-200">
+                                        class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -336,26 +336,26 @@
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
-                            <tr class="border-b border-[#E2E8F0]">
-                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Property</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Type</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Units</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Status</th>
-                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide text-right">Actions</th>
+                            <tr class="border-b border-[#E2E4EC]">
+                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Property</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Type</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Units</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</th>
+                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#E2E8F0]">
+                        <tbody class="divide-y divide-[#E2E4EC]">
                             @foreach($properties as $property)
                                 @php extract($derived[$property->property_id]); @endphp
-                                <tr class="hover:bg-[#F7FCFC]/70 transition-colors duration-200">
+                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
                                     {{-- Property --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-12 h-12 rounded-lg bg-[#EEF8F8] overflow-hidden shrink-0">
+                                            <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($thumb)
                                                     <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
                                                 @else
-                                                    <div class="w-full h-full flex items-center justify-center text-[#64748B]/60">
+                                                    <div class="w-full h-full flex items-center justify-center text-[#5B6A8E]/60">
                                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21" />
@@ -365,17 +365,17 @@
                                             </div>
                                             <div class="min-w-0">
                                                 <a href="{{ route('landlord.properties.show', $property) }}"
-                                                    class="block text-[13px] font-bold text-[#1F2937] truncate max-w-[240px] hover:text-[#2AA7A1] transition-colors duration-200">
+                                                    class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#8a6e1e] transition-colors duration-200">
                                                     {{ $property->title }}
                                                 </a>
-                                                <p class="text-[11.5px] text-[#64748B] truncate max-w-[240px]">{{ $property->address }}</p>
+                                                <p class="text-[11.5px] text-[#5B6A8E] truncate max-w-[240px]">{{ $property->address }}</p>
                                             </div>
                                         </div>
                                     </td>
 
                                     {{-- Type --}}
                                     <td class="px-4 py-3.5">
-                                        <span class="inline-flex px-2.5 py-1 rounded-full bg-[#EEF8F8] text-[#156F8C] text-[11px] font-semibold whitespace-nowrap">
+                                        <span class="inline-flex px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[#060D26] text-[11px] font-semibold whitespace-nowrap">
                                             {{ $property->property_type }}
                                         </span>
                                     </td>
@@ -383,7 +383,7 @@
                                     {{-- Units --}}
                                     <td class="px-4 py-3.5">
                                         <div class="flex items-center gap-3 text-[12px] whitespace-nowrap">
-                                            <span class="font-bold text-[#1F2937]">{{ $property->units_count }} total</span>
+                                            <span class="font-bold text-[#060D26]">{{ $property->units_count }} total</span>
                                             <span class="text-[#15803D] font-semibold">{{ $property->available_units_count }} avail</span>
                                             <span class="text-[#B45309] font-semibold">{{ $property->reserved_units_count }} rsvd</span>
                                             <span class="text-[#EF4444] font-semibold">{{ $property->occupied_units_count }} occ</span>
@@ -407,7 +407,7 @@
                                         <div class="flex items-center justify-end gap-1.5">
                                             @if($property->isDraft())
                                                 <a href="{{ route('properties.wizard.resume', $property) }}"
-                                                    class="h-8 px-3 inline-flex items-center rounded-lg bg-[#1F2937] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200 whitespace-nowrap">
+                                                    class="h-8 px-3 inline-flex items-center rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200 whitespace-nowrap">
                                                     Continue Setup
                                                 </a>
                                                 <form method="POST" action="{{ route('properties.destroy', $property) }}"
@@ -417,7 +417,7 @@
                                                       data-confirm-button="Delete Draft">
                                                     @csrf @method('DELETE')
                                                     <button type="submit" aria-label="Delete draft"
-                                                        class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#64748B]/25 text-[#1F2937] hover:text-[#DC2626] hover:border-[#DC2626]/40 transition-colors duration-200">
+                                                        class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:text-[#DC2626] hover:border-[#DC2626]/40 transition-colors duration-200">
                                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                                                         </svg>
@@ -425,18 +425,18 @@
                                                 </form>
                                             @else
                                                 <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#2AA7A1] text-[#2AA7A1] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200 whitespace-nowrap">
+                                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#C9A84C] text-[#8a6e1e] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
                                                     View Units
                                                 </a>
                                                 <a href="{{ route('properties.edit', $property) }}" aria-label="Edit property"
-                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#64748B]/25 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200">
+                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200">
                                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
                                                     </svg>
                                                 </a>
                                                 <a href="{{ route('landlord.properties.show', $property) }}" aria-label="View property"
-                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#64748B]/25 text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200">
+                                                    class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200">
                                                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
