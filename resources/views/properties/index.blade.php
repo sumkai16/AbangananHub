@@ -1,18 +1,143 @@
-@extends('layouts.app')
+@extends('layouts.app', ['searchBar' => empty($heroStats)])
 
 @section('content')
 
+    {{-- ===== HERO — full-bleed photo + search + live trust strip. Only on a
+         clean arrival (no filter/sort/page active); collapses to the plain
+         filter-bar + grid below the moment the visitor does anything, per
+         DESIGN.md §6i. The header's own search pill is hidden while this is
+         showing (see the searchBar=false above) so there's one search bar,
+         not two. ===== --}}
+    @if($heroStats)
+        <section class="relative min-h-[64vh] flex flex-col justify-end overflow-hidden">
+            <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 to-[#060D26]/80"></div>
+
+            <div class="relative z-10 max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-24 pb-10">
+                <h1 class="font-display text-[32px] sm:text-[44px] font-normal leading-[1.1] text-white text-balance">
+                    Find your next home<br>in <span class="italic text-[#C9A84C]">Cebu</span>
+                </h1>
+                <p class="mt-2 text-white/70 text-[15px] sm:text-base font-light max-w-md">
+                    Apartments, rooms, boarding houses &amp; condos &mdash; all verified.
+                </p>
+
+                <div class="mt-6">
+                    <x-search-pill variant="hero" />
+                </div>
+
+                <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[13px] text-white/70">
+                    <span>{{ $heroStats['listings'] }} {{ Str::plural('listing', $heroStats['listings']) }} live</span>
+                    <span class="hidden sm:inline" aria-hidden="true">&middot;</span>
+                    <span>{{ $heroStats['units'] }} {{ Str::plural('unit', $heroStats['units']) }} available now</span>
+                    <span class="hidden sm:inline" aria-hidden="true">&middot;</span>
+                    <span>Every landlord ID-verified</span>
+                </div>
+            </div>
+        </section>
+    @endif
+
     {{-- ===== BROWSE ===== --}}
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list' }">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: true }">
+
+        @if($heroStats)
+            @if($areas->count() > 0)
+                {{-- ===== BROWSE BY AREA ===== --}}
+                <div class="mb-10">
+                    <p class="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5B6A8E] mb-3">Browse by area</p>
+                    <div class="flex gap-3 overflow-x-auto pb-1">
+                        @foreach($areas as $area)
+                            <a href="{{ route('properties.index', ['location' => $area['name']]) }}"
+                                class="relative flex-shrink-0 w-28 h-20 rounded-xl overflow-hidden group">
+                                <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/85 via-[#060D26]/10 to-transparent"></div>
+                                <p class="absolute bottom-2 left-2 right-2 text-white text-[12px] font-semibold truncate">
+                                    {{ $area['name'] }}
+                                </p>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            @if($popularProperties->count() > 0)
+                {{-- ===== POPULAR PLACES TO STAY ===== --}}
+                <div class="mb-12">
+                    <div class="flex items-center gap-2.5 mb-1.5">
+                        <div class="h-px w-4 bg-[#C9A84C]"></div>
+                        <span class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#8a6e1e]">Top rated</span>
+                    </div>
+                    <x-section-header title="Popular places to stay" />
+                    {{-- A different card treatment than the main grid's borderless
+                         image-is-the-card pattern (DESIGN.md §6), deliberately — this
+                         boxed white-card style is specific to this section, mirroring
+                         the reference mockup exactly. Only one use site, so inlined
+                         rather than a new shared component. --}}
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        @foreach($popularProperties as $property)
+                            @php
+                                $availableCount = $property->units->where('availability_status', 'Available')->count();
+                                $photo = $property->media->firstWhere('media_type', 'Image')?->media_url;
+                            @endphp
+                            <a href="{{ route('properties.show', $property->property_id) }}"
+                                class="block bg-white border border-[#E2E4EC] rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
+                                <div class="relative h-[110px] bg-[#ECEEF6]">
+                                    @if($photo)
+                                        <img src="{{ $photo }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
+                                    @endif
+                                    @if($property->hasVerifiedDocuments())
+                                        <span class="absolute top-2.5 left-2.5 inline-flex items-center gap-0.5 bg-white/95 text-[#060D26] text-[10.5px] font-semibold px-2 py-1 rounded-full">
+                                            &#10003; Verified
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="p-3.5">
+                                    <p class="text-[11px] text-[#5B6A8E] mb-0.5 truncate">
+                                        {{ $property->property_type }} &middot; {{ $property->city_municipality }}
+                                    </p>
+                                    <h3 class="font-display text-[14px] font-normal text-[#060D26] truncate mb-2.5">
+                                        {{ $property->title }}
+                                    </h3>
+                                    <div class="flex items-end justify-between gap-2">
+                                        <div>
+                                            <p class="font-display text-[19px] font-normal text-[#060D26] leading-none">
+                                                @if($property->min_rental_fee)
+                                                    &#8369;{{ number_format($property->min_rental_fee) }}
+                                                @else
+                                                    &#8212;
+                                                @endif
+                                            </p>
+                                            <p class="text-[11px] text-[#5B6A8E] mt-0.5">/ month &middot; from</p>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            @if($availableCount > 0)
+                                                <p class="text-[11px] font-semibold text-[#8a6e1e]">
+                                                    {{ $availableCount }} {{ Str::plural('unit', $availableCount) }} free
+                                                </p>
+                                            @endif
+                                            @if($property->review_count > 0)
+                                                <p class="text-[11px] text-[#060D26] mt-0.5">
+                                                    &#9733; {{ number_format($property->avg_rating, 1) }} ({{ $property->review_count }})
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        @endif
 
         {{-- ACTIVE FILTERS SUMMARY --}}
         @if(request()->hasAny(['location', 'type', 'price_max', 'verified']))
             <div class="flex flex-wrap items-center gap-2 mb-6">
-                <span class="text-[13px] text-[#64748B] font-medium">Filtering by:</span>
+                <span class="text-[13px] text-[#5B6A8E] font-medium">Filtering by:</span>
 
                 @if(request('location'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -32,7 +157,7 @@
 
                 @if(request('type'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -51,7 +176,7 @@
 
                 @if(request('price_max'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -70,7 +195,7 @@
 
                 @if(request('verified'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#1F2937] border border-[#2AA7A1]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
                             aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -95,181 +220,69 @@
 
         {{-- RESULTS COUNT + SORT --}}
         <div class="flex items-center justify-between gap-3 mb-4">
-            <p class="text-[13px] text-[#64748B] font-medium">
+            <p class="text-[13px] text-[#5B6A8E] font-medium">
                 {{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found
             </p>
+
+            <div class="flex items-center gap-2">
+                {{-- Desktop-only: the mobile List/Map switcher below already
+                     covers small screens, where the two never share the screen. --}}
+                <button type="button"
+                    @click="mapVisible = !mapVisible; if (mapVisible) $nextTick(() => window.browseMap?.invalidateSize())"
+                    class="hidden lg:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#5B6A8E]/30 bg-white text-[#060D26] text-[13px] font-semibold hover:bg-[#F7F8FC] transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
+                    </svg>
+                    <span x-text="mapVisible ? 'Hide map' : 'Show map'"></span>
+                </button>
 
             <form method="GET" class="flex items-center gap-2">
                 @foreach(request()->except(['sort', 'page']) as $key => $value)
                     <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                 @endforeach
-                <label id="sort-label" class="text-[13px] text-[#64748B] font-medium hidden sm:inline">Sort by</label>
+                <label id="sort-label" class="text-[13px] text-[#5B6A8E] font-medium hidden sm:inline">Sort by</label>
                 <x-styled-select name="sort" :options="[
                     'newest' => 'Newest',
                     'price_low' => 'Price: Low to High',
                     'price_high' => 'Price: High to Low',
                 ]" :selected="request('sort', 'newest')" aria-labelledby="sort-label" :autosubmit="true"
-                    class="h-9 text-[13px] font-semibold rounded-full border border-[#64748B]/30 bg-white text-[#1F2937] pl-3.5 pr-8" />
+                    class="h-9 text-[13px] font-semibold rounded-full border border-[#5B6A8E]/30 bg-white text-[#060D26] pl-3.5 pr-8" />
             </form>
+            </div>
         </div>
 
         {{-- MOBILE LIST/MAP TOGGLE — desktop shows both columns, this is mobile-only --}}
         <div class="flex lg:hidden gap-2 mb-5">
             <button type="button" @click="mobileView = 'list'"
-                :class="mobileView === 'list' ? 'bg-[#1F2937] text-white' : 'bg-white text-[#1F2937] border border-[#64748B]/30'"
+                :class="mobileView === 'list' ? 'bg-[#060D26] text-[#F7F4ED]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition cursor-pointer">
                 List
             </button>
             <button type="button" @click="mobileView = 'map'"
-                :class="mobileView === 'map' ? 'bg-[#1F2937] text-white' : 'bg-white text-[#1F2937] border border-[#64748B]/30'"
+                :class="mobileView === 'map' ? 'bg-[#060D26] text-[#F7F4ED]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition cursor-pointer">
                 Map
             </button>
         </div>
 
         @if($properties->count() > 0)
-            {{-- The map used to be a fixed 875px, which at 1440 left the list ~490px
-                 to fit three cards — every title truncated. The map now scales with
-                 the breakpoint and the grid stays at two columns, so a card is never
-                 narrower than its own title. --}}
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_560px] gap-6">
+            {{-- Sept 2026 — cards sized down and the map shrunk to mirror the
+                 reference mockup. A 3-column grid + narrow map was tried once
+                 before (see git history) and reverted because a fixed-875px
+                 map left ~155px cards with every title truncated; this isn't
+                 that config — the map column is wider (320px, not a fixed
+                 875px) and shorter (560px, not full viewport height), which
+                 keeps cards at ~200-300px depending on breakpoint, comfortably
+                 above the width that caused the original truncation. --}}
+            <div class="grid grid-cols-1 gap-6" :class="mapVisible ? 'lg:grid-cols-[1fr_320px]' : 'lg:grid-cols-1'">
 
                 {{-- LIST COLUMN --}}
                 <div :class="mobileView === 'list' ? 'block' : 'hidden'" class="lg:!block">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                        :class="mapVisible ? '' : 'xl:grid-cols-4'">
                         @foreach($properties as $property)
-                            <div data-property-card="{{ $property->property_id }}"
-                                class="group relative cursor-pointer transition-all duration-300 hover:-translate-y-1 motion-reduce:hover:translate-y-0"
-                                onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
-
-                                {{-- IMAGE CAROUSEL --}}
-                                <div x-data="{ activeSlide: 0, slides: {{ $property->media->count() }} }"
-                                    @mouseenter="$refs.nav.classList.remove('opacity-0')"
-                                    @mouseleave="$refs.nav.classList.add('opacity-0')"
-                                    class="relative w-full aspect-square rounded-3xl overflow-hidden bg-[#EEF8F8] shadow-sm group-hover:shadow-lg transition-all duration-500">
-
-                                    @if($property->hasVerifiedDocuments())
-                                        <span class="absolute top-3 left-3 z-10 inline-flex items-center gap-1 bg-[#156F8C] text-white text-[10.5px] font-bold px-2 py-1 rounded-full shadow-sm">
-                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Verified
-                                        </span>
-                                    @endif
-
-                                    @if($property->media->count() > 0)
-                                        <div class="flex transition-transform duration-500 ease-out h-full"
-                                            :style="`transform: translateX(-${activeSlide * 100}%)`">
-                                            @foreach($property->media as $media)
-                                                <img src="{{ $media->media_url }}" alt="{{ $property->title }}"
-                                                    class="w-full h-full object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-700 ease-out motion-reduce:group-hover:scale-100">
-                                            @endforeach
-                                        </div>
-
-                                        {{-- Navigation Arrows (visible on hover) --}}
-                                        <div x-ref="nav"
-                                            class="opacity-0 transition-opacity duration-300 absolute inset-0 flex items-center justify-between px-2"
-                                            x-show="slides > 1">
-                                            <button @click.stop="activeSlide = activeSlide > 0 ? activeSlide - 1 : slides - 1"
-                                                aria-label="Previous photo"
-                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#1F2937] cursor-pointer">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2.5" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                                                </svg>
-                                            </button>
-                                            <button @click.stop="activeSlide = activeSlide < slides - 1 ? activeSlide + 1 : 0"
-                                                aria-label="Next photo"
-                                                class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#1F2937] cursor-pointer">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2.5" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                                                </svg>
-                                            </button>
-                                        </div>
-
-                                        {{-- Pagination Dots --}}
-                                        <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10"
-                                            x-show="slides > 1">
-                                            <template x-for="i in slides" :key="i">
-                                                <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 shadow-sm"
-                                                    :class="(i-1) === activeSlide ? 'bg-white scale-125' : 'bg-white/50'"></div>
-                                            </template>
-                                        </div>
-                                    @else
-                                        <div class="w-full h-full flex items-center justify-center bg-[#EEF8F8]">
-                                            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1"
-                                                stroke-width="1.5" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                            </svg>
-                                        </div>
-                                    @endif
-
-                                    {{-- HEART top-right --}}
-                                    <button type="button" data-property-id="{{ $property->property_id }}"
-                                        data-favorited="{{ in_array($property->property_id, $favoritedIds) ? 'true' : 'false' }}"
-                                        aria-label="Save {{ $property->title }} to favorites"
-                                        onclick="event.stopPropagation(); toggleFavorite(this)"
-                                        class="favorite-btn absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer">
-                                        <svg class="heart-outline {{ in_array($property->property_id, $favoritedIds) ? 'hidden' : '' }}"
-                                            width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white"
-                                            stroke-width="2.5" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                        </svg>
-                                        <svg class="heart-filled {{ in_array($property->property_id, $favoritedIds) ? '' : 'hidden' }}"
-                                            width="20" height="20" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444"
-                                            stroke-width="1" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {{-- TEXT BELOW IMAGE — no card box --}}
-                                <div class="mt-3 px-1">
-                                    <p class="text-[11px] font-bold uppercase tracking-wide text-[#156F8C] mb-0.5">
-                                        {{ $property->property_type }}
-                                    </p>
-
-                                    <h3 class="text-[14px] font-semibold text-[#1F2937] leading-snug line-clamp-1">
-                                        {{ $property->title }}
-                                    </h3>
-
-                                    <p class="text-[13px] text-[#64748B] mt-0.5 line-clamp-1 flex items-center gap-1">
-                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2" class="flex-shrink-0" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        {{ $property->address }}
-                                    </p>
-                                    @if($property->review_count > 0)
-                                        <div class="flex items-center gap-1 mt-1">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24"
-                                                stroke-width="1" aria-hidden="true">
-                                                <path
-                                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                            </svg>
-                                            <span
-                                                class="text-[13px] font-semibold text-[#1F2937]">{{ number_format($property->avg_rating, 1) }}</span>
-                                            <span class="text-[12px] text-[#64748B]">({{ $property->review_count }})</span>
-                                        </div>
-                                    @endif
-                                    <p class="text-[14px] font-semibold text-[#1F2937] mt-1.5">
-                                        @if($property->min_rental_fee)
-                                            ₱{{ number_format($property->min_rental_fee) }}
-                                            <span class="text-[13px] font-normal text-[#64748B]">/month</span>
-                                        @else
-                                            <span class="text-[13px] font-normal text-[#64748B]">Price not set</span>
-                                        @endif
-                                    </p>
-                                </div>
-
-                            </div>
+                            <x-property-card :property="$property" :favorited-ids="$favoritedIds" />
                         @endforeach
                     </div>
 
@@ -279,10 +292,13 @@
                     </div>
                 </div>
 
-                {{-- MAP COLUMN --}}
-                <div :class="mobileView === 'map' ? 'block' : 'hidden'" class="lg:!block lg:sticky lg:top-[72px] lg:self-start">
+                {{-- MAP COLUMN — mobileView governs it below `lg` (independent
+                     of the desktop toggle, which is hidden there); mapVisible
+                     governs it at `lg` and up. --}}
+                <div :class="[mobileView === 'map' ? 'block' : 'hidden', mapVisible ? 'lg:!block' : 'lg:!hidden']"
+                    class="lg:sticky lg:top-[72px] lg:self-start">
                     <div id="browse-map"
-                        class="w-full h-[400px] lg:h-[calc(100vh-72px)] rounded-2xl overflow-hidden border border-[#64748B]/20">
+                        class="w-full h-[400px] lg:h-[560px] rounded-2xl overflow-hidden border border-[#5B6A8E]/20">
                     </div>
                     <script type="application/json" id="browse-map-data">{!! json_encode($mapProperties) !!}</script>
                 </div>
