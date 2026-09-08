@@ -48,40 +48,67 @@ What this changes in practice:
 
 ## 3. Color Palette
 
+**Navy/Gold identity (Sept 2026).** Replaced the Ocean Teal system below wholesale — see the changelog
+entry after §14 for why and what it superseded. Every hex in this table is current; the Ocean Teal
+values now live only in §10's banned-hex list.
+
 | Role | Hex | Usage |
 |---|---|---|
-| Primary (Deep Ocean Blue) | `#156F8C` | Navigation bar, headings, key interface elements |
-| Secondary (Ocean Teal) | `#2AA7A1` | Primary buttons, icons, active states — fills/borders/backgrounds only, **never foreground text on white** (fails WCAG AA, ~2.9:1) |
-| Accent (Aqua) | `#69D2C6` | Badges, highlights — fills only, **never foreground text on white** (fails WCAG AA, ~2.2:1) |
-| CTA (Soft Coral) | `#FF8A65` | CTA buttons: Search, Book Now, List Property |
-| Background (Ice White) | `#F7FCFC` | Main page background |
-| Section Background (Mist Blue) | `#EEF8F8` | Distinguishes content sections |
+| Primary (Deep Navy) | `#060D26` | Navigation bar, headings, primary button fills, key interface elements |
+| Accent (Gold) | `#C9A84C` | Active states, borders, rings, fills, backgrounds, large display text on dark — **never small foreground text on light** (fails WCAG AA, ~2.28:1) |
+| Accent text (Dark Gold) | `#8a6e1e` | The text-safe gold — small labels, icons, checkbox fills, links, display prices on a light background (~4.85:1) |
+| CTA | `#060D26` | CTA buttons: Search, Book Now, List Property — same navy fill as every other primary button, with `#F7F4ED` cream text |
+| Background (Ice White) | `#F7F8FC` | Main page background |
+| Section Background (Mist) | `#ECEEF6` | Distinguishes content sections |
 | Surface/Card (White) | `#FFFFFF` | Property cards, forms, panels |
-| Text primary (Charcoal) | `#1F2937` | Headings and essential content |
-| Text muted (Slate Gray) | `#64748B` | Descriptions, labels, supporting info |
-| Borders (Soft Gray) | `#E2E8F0` | Subtle separation between components |
+| Text primary | `#060D26` | Headings and essential content |
+| Text muted (Slate) | `#5B6A8E` | Descriptions, labels, supporting info |
+| Borders | `#E2E4EC` | Subtle separation between components |
 | Success (Emerald Green) | `#22C55E` | Successful actions, verified statuses |
 | Warning (Amber) | `#FBBF24` | Notifications, cautionary messages |
 | Error (Red) | `#EF4444` | Validation errors, failed actions, critical alerts |
-| Footer background | `#0F172A` | Accepted palette exception — footer, and the `<x-date-picker>` popover panel (§6h-bis) |
+| Footer background | `#060D26` | Same token as Primary now — the old system's `#0F172A` footer exception is gone, footer and nav share one navy |
 
 Rules:
-- One accent color for CTAs (`#FF8A65`) — everything else neutral or teal-family.
-- `#2AA7A1` and `#69D2C6` are restricted to fills, borders, and backgrounds. Never as foreground text on white.
+- One CTA treatment (`#060D26` navy + `#F7F4ED` cream text) — everything else neutral or gold-family.
+- `#C9A84C` is restricted to fills, borders, rings, and backgrounds, or large text on a dark ground. Never as small foreground text on a light ground — use `#8a6e1e` there instead.
 - Hover states: `hover:brightness-95` only. No hardcoded darker hex values.
 - No custom CSS class systems (`abg-*`), no inline `<style>` blocks — pure Tailwind only.
+- **`tailwind.config.js`'s `colors.brand.*` reflects these tokens but is not referenced by any view** — every view still uses raw bracket-hex classes (`bg-[#060D26]`), matching the old system's own pattern. Migrating views onto the named tokens is a separate, not-yet-done refactor; don't assume `bg-brand-navy` exists anywhere in `resources/views`.
 
 ## 4. Typography
-- **Page-title font: Source Serif 4** (`font-display`) — added July 2026. **Large page titles only**: the property detail `<h1>` today, home and about when they're redesigned. Not card headings, not section labels, not `<h3>`s — those stay on Poppins. The scope is the whole point: a serif used everywhere stops being a signal and becomes a third font tax.
-  - **Why not Playfair Display**, the obvious pick: §0 names the high-contrast-serif look as an AI default to avoid, and Playfair is the face that look is made of. Source Serif 4 is screen-first, shares Inter's vertical proportions so the two sit together without one reading oversized, and lands *institutional* rather than *fashion-editorial* — which is what §2's "trustworthy, not startup-trendy" asks for.
-  - **The `ital` axis was missing until July 24 2026.** The Google Fonts URL requested `opsz,wght` only, so any `italic` on `font-display` rendered as a browser-synthesized oblique — a slanted upright, not the drawn italic, which is obvious at hero sizes. The browse hero sets one accent word in italic, so all four layouts now request `ital,opsz,wght@0,…;1,…`. **Adding a style to a variable font means adding its axis to the URL** — the class alone will silently fake it.
-  - Loaded in **all four** layouts even though only `layouts/app` uses it today. Google Fonts serves all three families in one request and browsers defer the file until a glyph needs it, so the cost is nil — and it avoids re-creating the bug documented below, where a utility existed app-wide but the font was only linked in two shells.
-- Display/heading font: **Poppins** (`font-heading`) — card titles, section headings, UI labels
-- Body font: **Inter** (`font-sans`, Google Fonts, loaded in base layout)
+**Navy/Gold identity (Sept 2026): three families became two.** Poppins is dropped entirely; Source
+Serif 4 is replaced by **DM Serif Display**, and its scope widened from "large page titles only" to
+every heading — `font-heading` and `font-display` are now the same face. This is a deliberate reversal
+of the July 2026 "third font tax" reasoning below, made for the new identity's editorial brief; the
+old restraint argument is kept here as the reasoning this decision overrode, not as current guidance.
+
+- **Heading/display font: DM Serif Display** (`font-heading`, `font-display` — now identical) — page
+  titles, section headings, card titles, display prices/stat figures. **Ships a 400 weight only**: any
+  `font-bold`/`font-semibold`/`font-extrabold`/`font-black` on a heading browser-synthesizes a fake
+  bold. Headings carry `font-normal` and lean on size/color for hierarchy instead.
+  - **Money/ledger exception:** peso figures in a table or list column (rent ledger, payments,
+    receipts) stay on Inter with `tabular-nums` — a serif's proportional figures would misalign a
+    column of amounts. Only a page's one headline/display price (hero, card headline) takes the serif.
+  - The `ital` axis lesson from the Source Serif 4 era still applies to any future variable-font swap:
+    request the axis explicitly in the Google Fonts URL (`DM+Serif+Display:ital@0;1`) or `italic`
+    renders as a browser-synthesized oblique instead of the drawn italic.
+  - Loaded in **all four** layouts, same reasoning as before: one request, browsers defer until a
+    glyph needs it, and it avoids re-creating the two-shells-missing-a-link-tag bug documented below.
+- Body font: **Inter** (`font-sans`, Google Fonts, loaded in base layout) — now requests weight 300 too, for light body copy the new identity uses on photography.
 - Type scale: 12 / 14 / 16 / 20 / 24 / 32 / 48 (maps to Tailwind `text-xs` through `text-5xl`)
-- Weight rules: Poppins 600–700 for headings, Inter 400 for body, Inter 500 for labels/buttons
+- Weight rules: DM Serif Display headings at `font-normal` (see above), Inter 400 for body, Inter 500 for labels/buttons
 - Line-height: 1.5–1.75 for body text
 - Line length: 65–75 characters max (`max-w-prose` or equivalent)
+
+**Historical: the "third font tax" argument for restraint (superseded above, kept for context).**
+Source Serif 4 was originally scoped to large page titles only — not card headings, not section
+labels, not `<h3>`s — because a serif used everywhere stops being a signal and becomes a third font.
+Also historical: why not Playfair Display, the obvious serif pick — §0 names the high-contrast-serif
+look as an AI default to avoid, and Playfair is the face that look is made of; Source Serif 4 was
+chosen as screen-first and *institutional* rather than *fashion-editorial*. DM Serif Display was
+picked for the new identity for the opposite reason Source Serif 4 was picked for the old one: it *is*
+closer to that editorial-serif signal, which is now the point rather than the risk.
 
 **Font pipeline bug — found and fixed July 21, 2026.** "Body font is Inter" was true in `resources/css/app.css` (`body { font-family: 'Inter' }`) but false in practice on two of the four shells. Two independent defects stacked:
 1. `tailwind.config.js` had `fontFamily.sans` mapped to `Figtree` — a leftover from the Laravel Breeze scaffold, never updated when the app moved to Poppins/Inter. Every layout puts `class="font-sans"` directly on `<body>`, and a Tailwind utility class (specificity 0-1-0) beats the plain `body {}` element rule (0-0-1) — so `.font-sans` silently won, and the app rendered in Figtree, not Inter.
@@ -314,14 +341,14 @@ The sticky public header (`layouts/app.blade.php`, `z-[100]`, see §5) carries t
 ## 6k. Auth modal — split panel (redesigned July 25 2026)
 The guest auth dialog (`#auth-modal` in `layouts/app.blade.php`, `z-[9999]`, see §5) was a single centred white card; it is now a **two-column split panel** inside one `rounded-[24px] overflow-hidden` container (`max-w-3xl`, `flex-col md:flex-row`).
 
-- **Left brand panel (`md:w-[42%]`, hidden below `md`).** A teal gradient (`bg-gradient-to-br from-[#0E3A3A] via-[#155E6E] to-[#2AA7A1]`) with two soft blurred white blobs (`bg-white/10 blur-2xl`, `bg-white/5 blur-3xl`) as ambient depth, a rounded-square home glyph (`bg-white/15 backdrop-blur`), a contextual title + subtitle, and `© {{ date('Y') }} AbangananHub` pinned to the bottom. It carries the welcome/branding that each form view used to repeat, so the form side stays lean. The navy-ish `#0E3A3A` gradient stop is a deep-teal, not the footer navy `#0F172A` (§palette exception applies to the footer only).
+- **Left brand panel (`md:w-[42%]`, hidden below `md`).** Solid navy (`bg-[#060D26]`) with two soft blurred white blobs (`bg-white/10 blur-2xl`, `bg-white/5 blur-3xl`) as ambient depth, a rounded-square home glyph (`bg-white/15 backdrop-blur`), a contextual title + subtitle, and `© {{ date('Y') }} AbangananHub` pinned to the bottom. It carries the welcome/branding that each form view used to repeat, so the form side stays lean. **Was a teal gradient (`from-[#0E3A3A] via-[#155E6E] to-[#2AA7A1]`) until Sept 2026's navy/gold reskin** — flattened to the same solid `#060D26` every other dark surface in the app uses (sidebar, footer, page-header icon boxes), rather than inventing a new gradient; the white blur blobs already carry the depth cue on their own.
 - **Copy swaps per view, not the DOM.** `#auth-side-title` / `#auth-side-subtitle` are set by a `sideCopy` map in `openAuthModal(mode)` — login → "Welcome back", register → "Join us", forgot → "Reset password", sent → "Check your inbox". The left panel is one shared shell; only the two text nodes change, so there is no duplicated markup per mode.
 - **Right form panel (`md:w-[58%]`).** White, `overflow-y-auto` with the hidden-scrollbar recipe, holds the four swapped views (`login`/`register`/`forgot-password`/`forgot-password-sent`) and the single shared `#modal-error-bag`. Close ✕ sits top-right of *this* panel. Headings are terse per the prototype — **Login** / **Create Account** — with a one-line subtitle, dropping the per-view logo lockup and repeated copyright footer.
-- **Primary buttons are the gradient, not the flat fill.** Auth CTAs use `bg-gradient-to-r from-[#2AA7A1] to-[#156F8C]` with `hover:brightness-105` (the one place a teal→deep-teal gradient button is standard; the rest of the app uses the flat `#2AA7A1` fill per §7). Register keeps **Contact Number** and **Confirm Password** — the prototype omits them but the controller requires them; the visual match doesn't override backend validation.
+- **Primary buttons are the flat navy fill, not a gradient (Sept 2026).** Auth CTAs are `bg-[#060D26]` with `#F7F4ED` cream text, same as every other primary button in the app per §7 — no exception any more. **Was `bg-gradient-to-r from-[#2AA7A1] to-[#156F8C]`** (a deliberate one-off gradient exception) through the Ocean Teal era; the Sept 2026 reskin's first pass reworded this to a gold→navy gradient (`from-[#C9A84C] to-[#060D26]`) with `text-white` and missed that white-on-gold fails contrast at the gradient's start — found and fixed correcting this entry, not caught by the automated substitution pass. Register keeps **Contact Number** and **Confirm Password** — the prototype omits them but the controller requires them; the visual match doesn't override backend validation.
 - All AJAX wiring, routes, field `name`s, `handleAuthSubmit`/`handleForgotPasswordSubmit`, and the open/close rAF animation are unchanged — this was a markup/style reskin only.
 - **Vertical centering was clipping the card, not just cramping it (found and fixed July 25 2026).** `justify-center` on a `min-h-screen flex` column centers by clipping evenly from both ends once content is taller than the viewport — at 1366×738 the register card (six fields + banner + callout + footer) overflowed and the logo *and* the copyright line were both cropped off-screen simultaneously, with no visible top/bottom margin. That reads as "the form is huge" even though no single field grew — the whole card was just filling the viewport edge-to-edge with its middle showing. Fixed by dropping `justify-center` for plain top alignment (`items-center px-4 py-10 lg:py-14`, no `justify-center`) on all four standalone pages: short content still looks centered via the padding, tall content scrolls from a visible top instead of clipping both ends.
 - **Card scales in three tiers, not two (July 25 2026).** All four standalone forms previously jumped straight from a mobile-width card to one fixed `max-w-md`/`max-w-lg` at every screen ≥ that width — nothing distinguished a 768px tablet from a 1920px desktop, and a forced `lg:h-screen lg:overflow-hidden` on login/forgot/reset caused the same vertical cramming register had (see below). Now: card padding is `p-6 lg:p-8` and width steps `max-w-sm sm:max-w-md` (login/forgot/reset — single/paired fields don't need to grow further) or `max-w-sm sm:max-w-md lg:max-w-lg` (register — six fields benefit from the extra room only once there's a real desktop viewport). Headings step `text-lg sm:text-xl`. The `lg:h-screen`/`overflow-hidden` no-scroll box is gone from all four pages — each is a plain `min-h-screen` flex-center with natural scroll, matching the register fix already made.
-- **Standalone pages brought onto the same system (same pass).** The full-page `auth/{login,register,forgot-password,reset-password}.blade.php` keep their existing placement — form on the left half, marketing on the right half of `layouts/guest.blade.php` — but were realigned to this identity: (1) the right marketing panel's **glassmorphism was retired** (§6) — the `bg-[#0F172A]/25 backdrop-blur-lg` container and `bg-[#0F172A]/45 backdrop-blur-sm` feature cards became a plain `max-w-xl` block with solid `bg-[#0E3A3A]/70` cards (opaque enough to read as flat cards, but letting the photo texture show through), and the photo overlay went from slate `#1F2937` to a teal `from-[#0E3A3A]/95 via-[#124F5C]/88 to-[#156F8C]/70` gradient matching the modal brand panel; (2) every form **input** was unified to the modal recipe (`rounded-xl`, `px-4 py-2.5`, `text-[14px] text-[#1F2937]`, `placeholder-[#94A3B8]`, `focus:ring-2 focus:ring-[#2AA7A1]/20`) — replacing the older `rounded-lg`/`text-xs`/`ring-4`/`text-[#156F8C]` variant; (3) every submit **button** uses the same gradient CTA. Backend actions, field names, and validation untouched.
+- **Standalone pages brought onto the same system (same pass).** The full-page `auth/{login,register,forgot-password,reset-password}.blade.php` keep their existing placement — form on the left half, marketing on the right half of `layouts/guest.blade.php` — but were realigned to this identity: (1) the right marketing panel's **glassmorphism was retired** (§6) — the `bg-[#0F172A]/25 backdrop-blur-lg` container and `bg-[#0F172A]/45 backdrop-blur-sm` feature cards became a plain `max-w-xl` block with solid feature cards over a photo, and the photo overlay went from slate `#1F2937` to a two-stop navy vignette; (2) every form **input** was unified to the modal recipe (`rounded-xl`, `px-4 py-2.5`, `text-[14px]`, `placeholder-[#94A3B8]`, `focus:ring-2`); (3) every submit **button** matches the modal's flat CTA. Backend actions, field names, and validation untouched. **Navy/gold reskin (Sept 2026):** the feature cards and photo overlay were a teal gradient (`bg-[#0E3A3A]/70` cards, `from-[#0E3A3A]/95 via-[#124F5C]/88 to-[#156F8C]/70` overlay) matching the pre-reskin modal panel; both are now pure navy (`bg-[#060D26]/70` cards, `from-[#060D26]/55 to-[#060D26]/82` overlay per the reference mockup's own flat vignette formula) — found as a residual teal patch the bulk substitution pass missed (its hex, `#0E3A3A`/`#124F5C`, wasn't a top-level DESIGN.md palette token, so it wasn't in the automated grep's search list) and fixed manually after visual review.
 
 ## 6l. Part-to-whole status mix — where the breakdown belongs (`landlord/occupancy`, July 26 2026)
 The occupancy page's right rail held a **donut** with a centre percentage and a legend. It was replaced by a full-width **"Portfolio Mix" band** — a stacked Available/Reserved/Occupied/Maintenance bar with its own legend — and then **the band was deleted too**. Both moves are worth recording, because the second one undoes a mistake the first one made.
@@ -410,27 +437,27 @@ Three landlord surfaces rendered unit rows. `Occupancy`'s "Unit Status Overview"
 
 ## 7. Components
 - Border radius default: `rounded-2xl` (standard), `rounded-3xl` (hero sections only)
-- Shadow style: `shadow-[0_1px_3px_rgba(15,23,42,0.06)]` on cards — a hairline lift, not a drop shadow. `shadow-lg` is reserved for floating UI (dropdowns, modals, tooltips) that must read as detached from the page. Property cards use the image-is-the-card pattern (no shadow wrapper).
-- Button rules: `cursor-pointer` on all clickable elements; hover via `hover:brightness-95`, never layout-shifting scale. CTA buttons use `#FF8A65`. Standard buttons use `#2AA7A1` fill.
+- Shadow style: `shadow-[0_1px_3px_rgba(6,13,38,0.06)]` on cards — a hairline lift, not a drop shadow. `shadow-lg` is reserved for floating UI (dropdowns, modals, tooltips) that must read as detached from the page. Property cards use the image-is-the-card pattern (no shadow wrapper).
+- Button rules: `cursor-pointer` on all clickable elements; hover via `hover:brightness-95`, never layout-shifting scale. CTA and standard buttons share one treatment: `#060D26` navy fill with `#F7F4ED` cream text (Sept 2026 — the old system split these into coral CTA vs teal standard; the new identity uses one navy fill everywhere).
 - Input/form rules: every input has a real `<label for>`, not placeholder-as-label
-- **Search input recipe (standardized July 22, 2026):** every text search field — landlord Properties/Tenants/Units/Reservations, Conversations, Favorites, plus the pre-existing admin index pages — now shares one class string: `h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200`, with a `w-4 h-4`/`15×15` search icon in `text-[#94A3B8]` at `left-3.5`. Before this pass there were 4 different combinations in the wild (`border-[#64748B]/25` vs `border-[#E2E8F0]`, `focus:ring-1` vs `ring-2`, `h-10` vs `h-11` vs `py-2.5`, icon color `#64748B` vs `#94A3B8`). The one exception is the narrow conversation-sidebar search (`conversations/index.blade.php`), which keeps a smaller `text-[12px]`/`py-2` footprint for its tight column width but uses the same border/ring/icon colors. When adding a new search field, copy this recipe rather than approximating it.
+- **Search input recipe (standardized July 22, 2026; hexes updated Sept 2026):** every text search field — landlord Properties/Tenants/Units/Reservations, Conversations, Favorites, plus the pre-existing admin index pages — now shares one class string: `h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200`, with a `w-4 h-4`/`15×15` search icon in `text-[#94A3B8]` at `left-3.5`. Before the July 2026 pass there were 4 different combinations in the wild (`border-[#64748B]/25` vs `border-[#E2E8F0]`, `focus:ring-1` vs `ring-2`, `h-10` vs `h-11` vs `py-2.5`, icon color `#64748B` vs `#94A3B8` — those hexes are pre-Sept-2026 history, see §10 for their current-palette equivalents). The one exception is the narrow conversation-sidebar search (`conversations/index.blade.php`), which keeps a smaller `text-[12px]`/`py-2` footprint for its tight column width but uses the same border/ring/icon colors. When adding a new search field, copy this recipe rather than approximating it.
 - **`<x-search-pill variant="header|hero">`** — the Where/Type/Budget form. Rendered by the sticky header on every public page *and* by the browse hero; `variant` changes only scale and max-width, never the fields. It was inline in `layouts/app` until July 24 2026, when the hero needed it too — copying it would have made two copies of a form whose three field names the controller reads. It now also **preserves its own values** (searching "Labangon" used to clear the box) and carries `verified`/`sort` through as hidden inputs so a search can't silently drop them. Below `sm` both variants use identical tight metrics — the hero's larger padding does not fit three fields on a phone.
 - **`<x-category-strip>`** — the property-type quick filters, centred from `md` up (`justify-start` below it, because the row scrolls on narrow screens and centring overflowing content pins the first item off the left edge where it can't be scrolled back to). Takes **no props**: both placements render identically, and it briefly carried a `variant` that changed only the justification before the browse strip was centred to match the header. Active state is derived from `request()` server-side. The old inline markup carried `category-link` + `data-type` hooks for JS **that was never written**, so the strip never showed which filter was on; clicking Bedspace looked identical to browsing everything. The state is already in the URL, so it never needed JS.
 - Icon set: Heroicons (outline/stroke), inline SVG only. **No emojis anywhere, ever.** Unicode checkmarks (✓) acceptable as plain text only.
 - Touch targets: minimum 44x44px on interactive elements
-- Card spec: `<x-card>` → `bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)]` (see §6)
-- **Stat cards — unified on `<x-stat-card>` (July 26, 2026).** Before this pass every index page had hand-copied its own variant (clickable pill+dot, full-tint background, icon-top-left, no icon at all, inline icon+label row) — six divergent families across admin/landlord/tenant, plus an unused `<x-stat-card>` that matched none of them. Now every KPI card in the app is `resources/views/components/stat-card.blade.php`: white card, uppercase `#64748B` label + optional 8×8 tinted icon box top-right (`w-8 h-8 rounded-lg`, `icon-bg` prop), `text-2xl font-extrabold` value in `value-color`, optional `h-1.5` progress bar (`percent`/`bar-color` props) + muted sub-caption. Pass `href` to make a card clickable (renders `<a>` instead of `<div>`, e.g. filter-shortcut cards). Omit `percent` entirely for counts that aren't a share of a total (reviews, complaints, reservations by stage).
-- **Page headers — unified on `<x-page-header>` (same pass).** The icon-box + title/subtitle + right-side actions pattern (§6b) was also hand-copied with drift (missing icon box, badge instead of actions, smaller title). `resources/views/components/page-header.blade.php` takes `title`/`subtitle` props plus optional `<x-slot:icon>` (11×11 dark `bg-[#1F2937]` box, svg `stroke="white"`) and `<x-slot:actions>` (right-aligned buttons/controls). Use it for every index-page header instead of retyping the header block.
+- Card spec: `<x-card>` → `bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)]` (see §6)
+- **Stat cards — unified on `<x-stat-card>` (July 26, 2026).** Before this pass every index page had hand-copied its own variant (clickable pill+dot, full-tint background, icon-top-left, no icon at all, inline icon+label row) — six divergent families across admin/landlord/tenant, plus an unused `<x-stat-card>` that matched none of them. Now every KPI card in the app is `resources/views/components/stat-card.blade.php`: white card, uppercase `#5B6A8E` label + optional 8×8 tinted icon box top-right (`w-8 h-8 rounded-lg`, `icon-bg` prop), `text-2xl font-extrabold` value in `value-color` (a bare `<span>`, not a heading tag or `.font-heading`/`.font-display` class — stays on Inter, not the DM Serif Display swap, so real bold applies cleanly with no synthesis), optional `h-1.5` progress bar (`percent`/`bar-color` props) + muted sub-caption. Pass `href` to make a card clickable (renders `<a>` instead of `<div>`, e.g. filter-shortcut cards). Omit `percent` entirely for counts that aren't a share of a total (reviews, complaints, reservations by stage).
+- **Page headers — unified on `<x-page-header>` (same pass).** The icon-box + title/subtitle + right-side actions pattern (§6b) was also hand-copied with drift (missing icon box, badge instead of actions, smaller title). `resources/views/components/page-header.blade.php` takes `title`/`subtitle` props plus optional `<x-slot:icon>` (11×11 dark `bg-[#060D26]` box, svg `stroke="white"`) and `<x-slot:actions>` (right-aligned buttons/controls). Use it for every index-page header instead of retyping the header block.
 - Status color mapping — fixed across the app: Available `#22C55E`, Reserved `#FBBF24`, Occupied `#EF4444`, Maintenance `#94A3B8`. Text-on-white variants darken to `#15803D` / `#B45309` / `#DC2626` for contrast. Never use raw Tailwind `emerald-*`/`amber-*`/`red-*`/`slate-*` utilities — always the token hexes.
 - **Chart.js color parity (bug found and fixed July 21, 2026):** the migration audit greps in §11b only catch raw color utilities in Blade — they can't see hex literals inside a `<script>` block's Chart.js config, so two dashboard charts drifted from the token palette independently of the CSS migration. `admin/dashboard.blade.php`'s line-chart legend swatches (`bg-[#22C55E]`, `bg-[#FBBF24]`) didn't match the actual `borderColor` values Chart.js was rendering (`#10b981`, `#f59e0b` — a different green/amber entirely), and its fill `backgroundColor` was a leftover `rgba(40,108,210,...)`, a blue with no token behind it at all. The user-distribution donut (dashboard) and the role-breakdown donut (`admin/users/index.blade.php`) both used raw `#a855f7` purple for "Admins" — the exact anti-pattern §10 bans in CSS, just written as a JS color literal instead — and that purple didn't even match its own HTML legend dot, which was reusing the Tenant teal. Fixed: every Chart.js `borderColor`/`backgroundColor`/dataset color is now the literal token hex, matched 1:1 against the Blade-side legend swatch it corresponds to; Admins now render as `#69D2C6` (aqua accent) instead of purple. **When auditing charts for palette compliance, read the `<script>` block too — hex literals in JS are invisible to a Blade-only grep.**
 - **Deadline banners** (move-in escrow, July 22 2026) — a countdown is only ever shown to the party who can miss it. On Clock 1 the tenant sees a calm "Payment secured" note with **no** number, because a countdown there implies a deadline they can act on and the deadline is the landlord's; on Clock 2 they get a live day count that escalates from amber to red at ≤1 day, and after expiry states plainly that the deposit will be released rather than pretending the window is still open. Escalation is by tint only — never by size, motion, or an added icon. `agreements/show.blade.php` was converted from raw `amber-*`/`red-*`/`sky-*` Tailwind utilities to the token hexes (`#FBBF24`/`#EF4444`/`#EEF8F8`+`#156F8C`) on July 22, 2026, matching the rest of the app. `admin/reservations/index.blade.php` has since had the same pass (confirmed Aug 2026: zero raw Tailwind color utilities remain) — the whole escrow surface is token-clean.
 - **Landlord move-in turnover confirmation (July 22, 2026)** — "Mark keys turned over" (`landlord/reservations/index.blade.php`, both the table row and card view) starts Clock 2 and is effectively irreversible from the landlord's side, but shipped as a bare `<button type="submit">` with zero warning. Now gated behind the standard `data-confirm` → `x-confirm-modal` flow (see `public/js/modal-confirm.js`), with the message reading the live `config('rentals.move_in_confirmation_days')` value rather than a hardcoded day count, so the copy can't drift from the actual deadline logic in `Reservation::markKeysTurnedOver()`.
 - **"Needs review" tab** (admin index pages) — a queue filter that layers on top of the status tabs rather than being a status itself, so it must explicitly suppress the active state on every status tab or two tabs highlight at once (see `admin/reservations/index`'s `$disputedActive` guard). Carries a red count pill only when the queue is non-empty; an empty queue shows no badge, not a zero.
-- **Notification modal** (`x-confirm-modal`) — one global component covering four types, distinguished only by the icon ring and the confirm button fill: confirm (teal `#2AA7A1`, question mark), success (emerald `#22C55E`, check), warning (amber `#FBBF24`, triangle), error (red `#EF4444`, x-circle). Soft icon ring on a tinted circle, centered title over muted message, `max-w-[370px]` white `rounded-2xl` panel. Renders a single OK button unless an `onConfirm` callback is supplied, which turns it into a two-button confirmation. Every post-redirect flash message in the app surfaces here — there are no inline flash banners.
+- **Notification modal** (`x-confirm-modal`) — one global component covering four types, distinguished only by the icon ring and the confirm button fill: confirm (navy `#060D26`, question mark), success (emerald `#22C55E`, check), warning (amber `#FBBF24`, triangle), error (red `#EF4444`, x-circle). Soft icon ring on a tinted circle, centered title over muted message, `max-w-[370px]` white `rounded-2xl` panel. Renders a single OK button unless an `onConfirm` callback is supplied, which turns it into a two-button confirmation. Every post-redirect flash message in the app surfaces here — there are no inline flash banners.
   - **Split into two renderings (Aug 28 2026):** any dispatch carrying `onConfirm` — a real decision — still renders as this blocking backdrop dialog. A pure `success`/`warning` notification (no `onConfirm`) instead renders as a **toast** — `fixed top-20 right-5`, `w-[calc(100vw-2.5rem)] max-w-[360px]` (same responsive-width trick as `partials/message-notifications`' chat toast), white card, small tinted icon circle, a `h-1` progress bar (green/amber) that shrinks over a 5s `setTimeout` via a double-`requestAnimationFrame`'d width transition, dismissible early via a `w-11 h-11` (44px touch target) ✕. `top-20` was checked against the app's actual header heights, not guessed: the public header is `h-[64px]`, the admin/landlord mobile bar is 60px, neither varies by breakpoint, so one offset clears both. `error` notifications keep the blocking treatment on purpose.
 - **`<x-document-preview :preview-url :is-pdf :alt :height="'h-64'">`** (Aug 2026) — the inline document viewer used everywhere a `property_documents` file is shown (landlord documents page, admin document review). Renders an `<iframe>` for PDFs or an `<img>` for scans at the given height, plus an always-visible "Expand" button (top-right corner overlay, not hover-only — an iframe swallows click events, so the trigger can't be "click the preview itself") that opens a `z-[999]` fullscreen lightbox with the same content at full size, closable by an × button, backdrop click, or Escape. `height` takes a Tailwind height class (`h-48`, `h-64`, `h-[28rem]`) and is combined with a `max-` prefix for the `<img>` case so images never force scroll.
 - **`<x-document-status-badge :document>`** (Aug 2026) — the status pill for a `PropertyDocument`: reads `Requested` from `$document->isRequested()` (a row with no `file_path` yet) ahead of the stored `status`, otherwise `$document->display_status` (which folds in the derived `Expired` state — see ARCHITECTURE.md). Colors: Verified emerald, Rejected red, Expired slate, Requested blue `#3B82F6`/`#2563EB`, Pending amber (the default case) — the same status-tint family used everywhere else in the app, just with a `Requested`/`Expired` pair added for the two states that don't exist on any other model.
-- **Compact single-click upload dropzone** (`landlord/properties/wizard/partials/document-row.blade.php`, Aug 2026) — the recipe for "a file needs to go here" fields with no separate submit step, where the property/unit photo dropzones' full-height centered stack (§7 above, `p-6` + big icon + heading) is too tall to repeat once per row. `flex items-center gap-3 px-3.5 py-3 rounded-xl border-2 border-dashed border-[#E2E8F0] hover:border-[#2AA7A1] bg-[#F7FCFC]` wrapping a small icon square + "Click to upload" text, with the actual `<input type="file" class="hidden">` firing `onchange="this.form.requestSubmit()"` instead of a separate Upload button. Cuts a required-document upload from three clicks (browse, pick, click Upload) to two. Reserve the explicit-button version for a deliberate, occasional action where the user is also choosing something else first (e.g. picking a document *type* before the file, as the wizard's optional-document panel still does) — auto-submit only where the single action is unambiguous.
+- **Compact single-click upload dropzone** (`landlord/properties/wizard/partials/document-row.blade.php`, Aug 2026) — the recipe for "a file needs to go here" fields with no separate submit step, where the property/unit photo dropzones' full-height centered stack (§7 above, `p-6` + big icon + heading) is too tall to repeat once per row. `flex items-center gap-3 px-3.5 py-3 rounded-xl border-2 border-dashed border-[#E2E4EC] hover:border-[#C9A84C] bg-[#F7F8FC]` wrapping a small icon square + "Click to upload" text, with the actual `<input type="file" class="hidden">` firing `onchange="this.form.requestSubmit()"` instead of a separate Upload button. Cuts a required-document upload from three clicks (browse, pick, click Upload) to two. Reserve the explicit-button version for a deliberate, occasional action where the user is also choosing something else first (e.g. picking a document *type* before the file, as the wizard's optional-document panel still does) — auto-submit only where the single action is unambiguous.
 
 ## 8. Motion
 - Standard transition: `transition-all duration-200 ease-in-out` (200ms)
@@ -442,10 +469,10 @@ Three landlord surfaces rendered unit rows. `Occupancy`'s "Unit Status Overview"
 
 ## 9. Accessibility
 Target: **WCAG 2.2 Level AA.** Swept across all ~110 Blade views in July 2026.
-- Minimum contrast ratio: 4.5:1 for normal text (why `#2AA7A1` and `#69D2C6` are banned as foreground text on white)
+- Minimum contrast ratio: 4.5:1 for normal text (why `#C9A84C` is banned as small foreground text on a light ground — use `#8a6e1e` there, see §3)
 - Focus state: visible focus ring on every interactive element
 - Keyboard nav: tab order matches visual order
-- Skip-to-main-content link as the first focusable element in every layout, targeting `id="main"` on `<main>`. Styled `sr-only focus:not-sr-only` so it only appears on keyboard focus, then as a teal pill pinned top-left.
+- Skip-to-main-content link as the first focusable element in every layout, targeting `id="main"` on `<main>`. Styled `sr-only focus:not-sr-only` so it only appears on keyboard focus, then as a navy pill pinned top-left.
 - Alt text on meaningful images, `aria-label` on icon-only buttons
 - Every form input needs a programmatic name — a `<label for>`/`id` pair, an enclosing `<label>`, or `aria-label` for placeholder-only search fields. A visible label that isn't wired to its input is a silent failure: it looks right and is invisible to screen readers.
 - `[x-cloak] { display: none; }` in global CSS to prevent Alpine flash-of-unstyled-content
@@ -461,16 +488,18 @@ Target: **WCAG 2.2 Level AA.** Swept across all ~110 Blade views in July 2026.
 - No explicit `x-init="init()"` — Alpine.js v3 auto-invokes `init()`
 - **No raw Tailwind color utilities** (`bg-gray-50`, `text-red-600`, `border-emerald-200`, `ring-indigo-500`, …). Always the token hexes. All ~1,100 uses were migrated in July 2026; a new one is drift.
 - Joseph audit items: watch for `#1A1A2E` (wrong palette — 0 remain as of July 2026), unresolved git merge conflict markers, `<x-app-layout>` instead of `@extends`
-- Off-palette tints that keep reappearing and are always wrong: `#EEF2F5` (use `#EEF8F8`), `#1A1A2E` (use `#1F2937`)
+- Off-palette tints that keep reappearing and are always wrong: `#EEF2F5` (use `#ECEEF6`), `#1A1A2E` (use `#060D26`)
+- **The entire Ocean Teal system is now off-palette (Sept 2026) — a bulk-substituted codebase, so a reappearance almost certainly means new/pasted code, not a missed spot.** Any of `#156F8C`, `#2AA7A1`, `#69D2C6`, `#FF8A65`, `#1F2937`, `#64748B`, `#E2E8F0`, `#F7FCFC`, `#EEF8F8`, `#0F172A` in a diff is drift — see §3 for the new-hex equivalents. `#2AA7A1` is the one that needs judgment on discovery, not a blind swap: it split into two roles in the new system (solid fills → `#060D26` navy, everything else — borders/rings/tints/active-state accents — → `#C9A84C` gold, and small foreground text specifically → `#8a6e1e`). Check any `<script>`/`@push('scripts')` block too — Chart.js and other JS color literals are invisible to a Blade-only grep (see §7's Chart.js parity entry and the PHP-side `AnalyticsController` donut-color arrays, which carried the same drift risk and needed the identical fix).
 
 ## 11. Self-Critique Checklist
 - [ ] Is hierarchy carried by structure and spacing rather than by color or effects?
-- [ ] Is color doing only one job — signalling status — with everything else neutral or teal?
+- [ ] Is color doing only one job — signalling status — with everything else neutral or gold?
 - [ ] Responsive at 375px, 768px, 1024px, 1440px — no horizontal scroll
 - [ ] Cards use `<x-card>` (or its exact class string), not an ad-hoc shadow/border combination
 - [ ] No `backdrop-blur` except a modal backdrop or a panel over photography (§6); no raw `emerald-*`/`amber-*`/`red-*`/`slate-*` utilities
 - [ ] Content doesn't hide behind fixed nav
-- [ ] Page background is `#F7FCFC` — no gradient, no `bg-fixed`
+- [ ] Page background is `#F7F8FC` — no gradient, no `bg-fixed`
+- [ ] No `#C9A84C` as small foreground text on a light ground — `#8a6e1e` there instead (§3)
 
 ## 11b. Migration audit (the greps that prove a page is converted)
 Run from `resources/views`. Every one of these must return zero — they are the exact defect classes the July 2026 conversion produced or exposed:
@@ -481,6 +510,8 @@ grep -rhoE '\b(bg|text|border|ring)-(emerald|amber|red|slate|green|gray|blue|ind
 grep -rnoE '\[#[0-9A-Fa-f]{6}\](/\[0\.[0-9]+\])?[0-9]' . --include='*.blade.php'   # malformed classes
 grep -rn '1A1A2E\|EEF2F5' . --include='*.blade.php'                          # off-palette
 grep -rhoE '\[#[0-9A-Fa-f]{6}\]/[0-9]+' . --include='*.blade.php' | grep -oE '/[0-9]+$' | sort -u
+grep -rnE '#(156F8C|2AA7A1|69D2C6|FF8A65|1F2937|64748B|E2E8F0|F7FCFC|EEF8F8|0F172A)' . --include='*.blade.php'  # Ocean Teal (Sept 2026, see §10)
+grep -rnE 'rgba\([0-9]+, [0-9]+, [0-9]+,' . --include='*.blade.php'          # space-after-comma breaks a Tailwind bracket class (Sept 2026, see §15)
 ```
 
 **The fourth grep catches out-of-scale opacity modifiers, and it found a live one (July 2026).** `bg-[#EF4444]/8` appeared in four places — three warning banners on `agreements/show` and one bubble in `admin/conversations/show`. `8` is **not** in Tailwind's default opacity scale (0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100), so no class was generated and every one of those panels rendered with a fully transparent background — red text and a border floating on white. Confirmed by grepping the built CSS: `EF4444\]\/10`, `\/25`, `\/30`, `\/5` are all emitted, `\/8` is not.
@@ -495,10 +526,10 @@ Order any future bulk substitution slash-opacity-variants first, then `\b`-ancho
 Applies to the admin review/moderation queues: Landlord Verifications, Property Verifications, Unit Approvals, Payments, Reports, Reviews, Conversations, and (Aug 2026) Property Documents (`admin/documents/index.blade.php` → `admin/documents/show.blade.php`) — the last one shipped directly against this pattern rather than being migrated onto it later, having learned from the Catalogue → Properties → show page's original document-review block that a review queue belongs at the Verification & Approvals level, not nested inside an unrelated index's detail page.
 - Container: `max-w-[1600px] mx-auto` — the work-area width from §5. Previously mixed (`max-w-5xl`, `max-w-[1400px]`, `max-w-[1600px]`), then briefly over-corrected to `max-w-7xl` without `mx-auto`, which stranded ~320px of dead space on the right at 1920px.
 - Header row: title + subtitle on the left; an optional "N awaiting review" coral/amber pill on the right when a pending count > 0.
-- Stat summary: a `grid grid-cols-2 sm:grid-cols-4` (or fewer columns if fewer statuses) row of glass cards above the tabs, one per status plus a Total. Each card: small dot + uppercase label, then a large bold count in a status-tinted color (amber/emerald/red/teal family), clickable to that filter. Active filter gets `ring-2 ring-[#2AA7A1]`.
+- Stat summary: a `grid grid-cols-2 sm:grid-cols-4` (or fewer columns if fewer statuses) row of glass cards above the tabs, one per status plus a Total. Each card: small dot + uppercase label, then a large bold count in a status-tinted color (amber/emerald/red/gold family), clickable to that filter. Active filter gets `ring-2 ring-[#C9A84C]`.
 - Tabs: existing pill-tab pattern, now with a live count suffix per tab (`text-[11px]` in a muted tone).
-- List body: dense multi-column tables were replaced with a single-card, `divide-y divide-[#E2E8F0]` row-list where each row is one full-row `<a>` (avatar/thumb, key fields with `text-[11px] uppercase text-[#94A3B8]` micro-labels, status badge, trailing chevron that shifts right on hover). Kept as a genuine `<table>` only where a page needs a row-level form action inline (Payments' Release button, Property Verifications' Approve/Reject — no detail page to link to yet).
-- Empty states: icon in an `bg-[#EEF8F8]` circle with `text-[#2AA7A1]` icon (not gray), bold title + muted subtitle.
+- List body: dense multi-column tables were replaced with a single-card, `divide-y divide-[#E2E4EC]` row-list where each row is one full-row `<a>` (avatar/thumb, key fields with `text-[11px] uppercase text-[#94A3B8]` micro-labels, status badge, trailing chevron that shifts right on hover). Kept as a genuine `<table>` only where a page needs a row-level form action inline (Payments' Release button, Property Verifications' Approve/Reject — no detail page to link to yet).
+- Empty states: icon in an `bg-[#ECEEF6]` circle with `text-[#8a6e1e]` icon (not gray), bold title + muted subtitle.
 - Fixed straggling off-palette classes across these views: banned `#1A1A2E`, raw Tailwind `gray-*`/`blue-*`/`amber-*`/`emerald-*`/`slate-*` utilities were swapped for the DESIGN.md token set (`#1F2937`, `#64748B`, `#94A3B8`, `#E2E8F0`, `#F7FCFC`, `#EEF8F8`, plus the status colors `#FBBF24`/`#22C55E`/`#EF4444`/`#156F8C`/`#2AA7A1`).
 - New controller convention for these pages: alongside the paginated/filtered query, also compute a `$counts` array (one query per status, cheap at current scale) and pass it to the view for the stat cards + tab badges. See `Admin\VerificationController`, `Admin\PropertyUnitController`, `Admin\ListingController`, `Admin\PaymentController`, `Admin\ReportController` for the pattern.
 
@@ -522,3 +553,68 @@ The badge (`properties/show.blade.php` hero, `properties/index.blade.php` cards)
 - **The standard it certifies** is documented in ARCHITECTURE.md (`PropertyDocument::OWNERSHIP_TYPES`) — copy anywhere this badge is explained should stay in sync with that, not restate a looser definition.
 
 **Regression caught (Aug 2026):** the property-documents feature's two document-type pickers (landlord upload panel, admin "request a document") both shipped as plain `<select>` in the first pass — this rule is easy to forget mid-feature when a native `<select>` is the reflexive default. Converted on the next pass; checked the exemption condition first since the landlord one sits inside a scrollable (`overflow-y-auto`) slide-over panel, but the field is first in a short form well under viewport height, so the panel never actually scrolls and the open dropdown never gets clipped.
+
+## 15. Navy/Gold visual identity — app-wide reskin (Sept 2026)
+
+The Ocean Teal system (§3's old table, §4's Poppins/Source-Serif-4 pair) was replaced app-wide —
+Tenant, Landlord, and Admin all moved together, not just the public/tenant surfaces a reference
+mockup covered. Colors and fonts only: every layout, component, and feature from the sections above
+stays exactly as documented, just re-skinned. Full record: `plans/navy-gold-redesign.md`.
+
+- **New palette:** `#060D26` deep navy (was `#156F8C`/`#1F2937`/`#FF8A65`/`#0F172A` — four old roles
+  collapsed into one), `#C9A84C` gold (was `#69D2C6`, and `#2AA7A1` where it wasn't a solid fill),
+  `#8a6e1e` dark gold (the new text-safe accent, no prior equivalent — see §3), `#5B6A8E` slate,
+  `#E2E4EC` border, `#F7F8FC` background, `#ECEEF6` mist, `#F7F4ED` cream (new — CTA/primary-button
+  text, no prior equivalent). Semantic status colors (`#22C55E`/`#FBBF24`/`#EF4444`/`#94A3B8` and their
+  darkened text variants) are untouched — they were never part of the brand identity.
+- **`#2AA7A1` needed judgment, not a find/replace, and was the single biggest risk in the job.** It
+  played two roles in the old system that split apart in the new one: a solid fill with no opacity
+  suffix (a primary button) became `#060D26` navy with `#F7F4ED` cream text; everything else — borders,
+  rings, focus states, tinted backgrounds, active-state accents — became `#C9A84C` gold; small
+  text-sized foreground uses (labels, icons, checkbox fills) became `#8a6e1e` dark gold specifically
+  for contrast (plain gold is ~2.28:1 on white, fails AA even at large-text size). A blind substitution
+  here would have turned every primary button gold and broken checkbox/link contrast across the app —
+  both mistakes were caught and fixed only by explicitly auditing every `text-[#2AA7A1]`/small-fill
+  usage after the bulk pass, not by the bulk pass itself.
+- **Typography went from three families to two.** Poppins is gone; Source Serif 4 became DM Serif
+  Display, with its scope deliberately widened from "large page titles only" to every heading — see
+  §4's full entry, including the money-column exception (peso figures stay Inter/`tabular-nums`) and
+  the DM-Serif-Display-ships-400-weight-only trap (`font-bold`/`font-extrabold` on a heading tag now
+  fake-bolds; headings dropped to `font-normal`).
+- **Scale: ~6,300 hex literals across ~135 Blade views, plus JS (Leaflet map markers/popups, the
+  liveness-capture guide color) and PHP (two `AnalyticsController` donut-chart color arrays).** The
+  palette lives as raw bracket-hex Tailwind classes everywhere, not named tokens — `tailwind.config.js`
+  defines a `colors.brand.*` set matching the new palette, but (same as the old system) no view
+  references it; a future token-migration is a separate, not-yet-done refactor.
+- **§11b's bulk-substitution warning proved itself right again — a new failure mode of the same
+  family, caught only by re-running the audit greps rather than trusting any pass's own self-report.**
+  Several editors independently converting `rgba(15,23,42,…)`/`rgba(6,13,38,…)` shadow values wrote
+  the replacement as `rgba(6, 13, 38,…)` — spaces after the first two commas. That's valid CSS inside a
+  plain stylesheet, but inside a Tailwind arbitrary-value bracket (`shadow-[0_1px_3px_rgba(6, 13,
+  38,0.06)]`) the space breaks the class entirely — the exact "produced a malformed class, not merely
+  left an old one" failure §11b's sed incident describes, just from careless spacing instead of prefix
+  collision. It reached **70 sites across dozens of files** before the final repo-wide grep sweep
+  caught it (`rgba\([0-9]+, [0-9]+, [0-9]+,` — not one of the four greps below until this entry added
+  it). Fixed by removing the spaces; the four listed greps plus this rgba-spacing check are now the
+  standing verification set for any future bulk color substitution. A related, unrelated-cause, pre-existing
+  bug was found and fixed in the same pass: `layouts/guest.blade.php`'s auth-photo gradient used
+  `/88` opacity, which isn't on Tailwind's default scale (nearest valid value is `/85`) — present since
+  the gradient was written, not introduced by this reskin, but only visible once someone actually ran
+  the off-scale-opacity grep from §11b end to end.
+- **A new failure mode was found doing this at bulk-script scale: encoding.** A naive `File.ReadAllText`
+  without an explicit encoding argument mis-detects UTF-8 files with no BOM (the .NET Framework default
+  falls back to the system ANSI codepage), which would have silently corrupted every peso sign (₱),
+  em dash, and arrow glyph on write. Caught by cross-checking a `Select-String`-built file list against
+  a `grep`-built one before running anything — 13 files vanished from the PowerShell list specifically
+  because they contained non-ASCII characters, which pointed straight at the encoding bug. Fixed by
+  forcing `[System.Text.Encoding]::UTF8` on every read; any future bulk text-substitution pass over
+  this codebase needs the same explicit-encoding discipline, in either direction.
+- **Glassmorphism was not reintroduced**, despite the reference mockup's translucent, blurred sticky
+  header — the July 2026 retirement (§6) and its `backdrop-filter` containing-block hazard (RULES.md)
+  stand. Headers stay flat and opaque.
+- **Known pre-existing documentation gap, found while scoping this (not fixed, out of scope):** §6i
+  describes a browse-page hero — full-bleed gradient, italic accent word, live trust-strip counts,
+  `$heroStats`-driven collapse — that does not exist in `properties/index.blade.php` or
+  `PropertyController@index`. `<x-search-pill variant="hero">` is fully built and unused. This predates
+  the reskin and is the same "documented intent, not shipped code" failure §5 already warns about
+  twice; correcting §6i or building the hero are separate decisions for Axcee.
