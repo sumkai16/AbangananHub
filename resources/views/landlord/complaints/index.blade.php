@@ -19,7 +19,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <x-stat-card label="Total Reports" :value="$stats['total']" sub="All reports you've filed">
                 <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                     </svg>
@@ -45,14 +45,14 @@
             <div class="min-w-0">
                 {{-- Filter bar --}}
                 <form method="GET" action="{{ route('landlord.complaints.index') }}"
-                    class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 mb-6">
+                    class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 mb-6">
                     <div class="flex flex-wrap items-center gap-2.5">
                         <x-styled-select name="status" :options="['' => 'All Statuses', 'Pending' => 'Pending', 'Resolved' => 'Resolved']"
                             :selected="request('status', '')"
-                            class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                         <button type="submit"
-                            class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
+                            class="h-11 px-5 rounded-xl bg-[#060D26] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                             </svg>
@@ -61,7 +61,7 @@
 
                         @if(request()->hasAny(['status']))
                             <a href="{{ route('landlord.complaints.index') }}"
-                                class="h-11 px-4 rounded-xl border border-[#64748B]/25 text-[13.5px] text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 inline-flex items-center gap-1.5">
+                                class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
                                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                                 </svg>
@@ -70,7 +70,7 @@
                         @endif
 
                         <a href="{{ route('reports.create') }}"
-                            class="ml-auto h-11 px-5 rounded-xl bg-[#2AA7A1] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
+                            class="ml-auto h-11 px-5 rounded-xl bg-[#060D26] text-[#F7F4ED] text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
@@ -81,17 +81,17 @@
 
                 {{-- Report cards --}}
                 @if($reports->isEmpty())
-                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col items-center justify-center py-16 px-6 text-center">
-                        <div class="w-16 h-16 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
-                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
+                    <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] flex flex-col items-center justify-center py-16 px-6 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
+                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                             </svg>
                         </div>
-                        <p class="text-[15px] font-semibold text-[#1F2937]">No reports filed</p>
-                        <p class="text-[13px] text-[#64748B] mt-1 max-w-xs">Reports you submit against listings or users will be tracked here, from filing to resolution.</p>
+                        <p class="text-[15px] font-semibold text-[#060D26]">No reports filed</p>
+                        <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-xs">Reports you submit against listings or users will be tracked here, from filing to resolution.</p>
                         <a href="{{ route('reports.create') }}"
-                            class="mt-5 inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#2AA7A1] text-white text-[13px] font-semibold hover:brightness-95 transition-all duration-200">
+                            class="mt-5 inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#060D26] text-[#F7F4ED] text-[13px] font-semibold hover:brightness-95 transition-all duration-200">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
@@ -101,10 +101,10 @@
                 @else
                     <div class="space-y-3">
                         @foreach($reports as $report)
-                            <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                            <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
                                 <div class="flex items-start justify-between gap-3 mb-2">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="text-[13.5px] font-bold text-[#1F2937]">{{ Str::limit($report->report_reason, 60) }}</span>
+                                        <span class="text-[13.5px] font-bold text-[#060D26]">{{ Str::limit($report->report_reason, 60) }}</span>
                                     </div>
                                     @if($report->report_status === 'Resolved')
                                         <span class="inline-flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full bg-[#22C55E]/[0.07] text-[#15803D] text-[11px] font-semibold">
@@ -119,7 +119,7 @@
                                     @endif
                                 </div>
 
-                                <div class="flex items-center gap-4 text-[12px] text-[#64748B] flex-wrap">
+                                <div class="flex items-center gap-4 text-[12px] text-[#5B6A8E] flex-wrap">
                                     <span class="flex items-center gap-1.5">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -141,9 +141,9 @@
                                 </div>
 
                                 @if($report->report_status === 'Resolved' && $report->admin_notes)
-                                    <div class="mt-3 pt-3 border-t border-[#64748B]/10 pl-3 border-l-2 border-l-emerald-400">
+                                    <div class="mt-3 pt-3 border-t border-[#5B6A8E]/10 pl-3 border-l-2 border-l-emerald-400">
                                         <p class="text-[11px] font-semibold text-[#15803D] uppercase tracking-wide">Admin Response</p>
-                                        <p class="text-[12.5px] text-[#64748B] mt-0.5 leading-relaxed">{{ $report->admin_notes }}</p>
+                                        <p class="text-[12.5px] text-[#5B6A8E] mt-0.5 leading-relaxed">{{ $report->admin_notes }}</p>
                                     </div>
                                 @endif
                             </div>
@@ -159,30 +159,30 @@
 
             {{-- Sidebar: reporting guidelines --}}
             <aside class="flex flex-col gap-4 lg:sticky lg:top-24">
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
-                    <h3 class="text-[13px] font-bold text-[#1F2937] mb-3.5">When to file a report</h3>
+                <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
+                    <h3 class="text-[13px] font-normal text-[#060D26] mb-3.5">When to file a report</h3>
                     <ul class="flex flex-col gap-3">
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-[#EEF8F8] flex items-center justify-center shrink-0 mt-0.5">
-                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span class="w-5 h-5 rounded-full bg-[#ECEEF6] flex items-center justify-center shrink-0 mt-0.5">
+                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </span>
-                            <span class="text-[12.5px] text-[#64748B] leading-relaxed">A tenant or user violates community guidelines</span>
+                            <span class="text-[12.5px] text-[#5B6A8E] leading-relaxed">A tenant or user violates community guidelines</span>
                         </li>
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-[#EEF8F8] flex items-center justify-center shrink-0 mt-0.5">
-                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span class="w-5 h-5 rounded-full bg-[#ECEEF6] flex items-center justify-center shrink-0 mt-0.5">
+                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </span>
-                            <span class="text-[12.5px] text-[#64748B] leading-relaxed">You spot a scam, fake, or duplicate listing</span>
+                            <span class="text-[12.5px] text-[#5B6A8E] leading-relaxed">You spot a scam, fake, or duplicate listing</span>
                         </li>
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-[#EEF8F8] flex items-center justify-center shrink-0 mt-0.5">
-                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span class="w-5 h-5 rounded-full bg-[#ECEEF6] flex items-center justify-center shrink-0 mt-0.5">
+                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </span>
-                            <span class="text-[12.5px] text-[#64748B] leading-relaxed">Someone is harassing you or misusing the platform</span>
+                            <span class="text-[12.5px] text-[#5B6A8E] leading-relaxed">Someone is harassing you or misusing the platform</span>
                         </li>
                     </ul>
                 </div>
-                <div class="rounded-2xl bg-[#1F2937] p-5">
+                <div class="rounded-2xl bg-[#060D26] p-5">
                     <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center mb-3">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m6-3v8.25a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />

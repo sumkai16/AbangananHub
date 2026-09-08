@@ -7,7 +7,7 @@
 
         {{-- Back --}}
         <a href="{{ route('admin.reports.index') }}"
-            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#156F8C] transition-colors mb-5">
+            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#060D26] transition-colors mb-5">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -20,7 +20,7 @@
         <x-card flush
             class="px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h1 class="text-[16px] font-bold text-[#1F2937] leading-tight">Report #{{ $report->report_id }}</h1>
+                <h1 class="text-[16px] font-normal text-[#060D26] leading-tight">Report #{{ $report->report_id }}</h1>
                 <p class="text-[12px] text-[#94A3B8] mt-0.5">Submitted {{ $report->created_at->format('M d, Y \a\t g:i A') }}
                 </p>
             </div>
@@ -37,7 +37,7 @@
             {{-- Reporter --}}
             <x-card>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Reported By</p>
-                <p class="text-[14px] font-semibold text-[#1F2937]">
+                <p class="text-[14px] font-semibold text-[#060D26]">
                     {{ $report->reporter ? $report->reporter->first_name . ' ' . $report->reporter->last_name : '—' }}
                 </p>
                 <p class="text-[12.5px] text-[#94A3B8] mt-0.5">{{ $report->reporter->email ?? '' }}</p>
@@ -47,10 +47,10 @@
             <x-card>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Target</p>
                 @if($report->property)
-                    <p class="text-[14px] font-semibold text-[#1F2937]">{{ $report->property->title }}</p>
+                    <p class="text-[14px] font-semibold text-[#060D26]">{{ $report->property->title }}</p>
                     <p class="text-[12.5px] text-[#94A3B8] mt-0.5">Property Listing</p>
                 @elseif($report->reportedUser)
-                    <p class="text-[14px] font-semibold text-[#1F2937]">{{ $report->reportedUser->first_name }}
+                    <p class="text-[14px] font-semibold text-[#060D26]">{{ $report->reportedUser->first_name }}
                         {{ $report->reportedUser->last_name }}
                     </p>
                     <p class="text-[12.5px] text-[#94A3B8] mt-0.5">{{ $report->reportedUser->email }} · User</p>
@@ -63,31 +63,31 @@
         {{-- Reason --}}
         <x-card class="mb-4">
             <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Reason</p>
-            <p class="text-[13.5px] text-[#1F2937] leading-relaxed whitespace-pre-line">{{ $report->report_reason }}</p>
+            <p class="text-[13.5px] text-[#060D26] leading-relaxed whitespace-pre-line">{{ $report->report_reason }}</p>
         </x-card>
 
         {{-- Actions --}}
         @if($report->isPending())
             <x-card>
-                <h2 class="text-[14px] font-bold text-[#1F2937] mb-4">Resolve this report</h2>
+                <h2 class="text-[14px] font-normal text-[#060D26] mb-4">Resolve this report</h2>
                 <form method="POST" action="{{ route('admin.reports.resolve', $report) }}"
                     data-confirm="Resolve this report with the selected action?" class="space-y-4">
                     @csrf
                     @method('PATCH')
 
                     <div>
-                        <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">What did you find? <span
+                        <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">What did you find? <span
                                 class="text-[#EF4444]">*</span></label>
                         <textarea name="admin_notes" rows="3" maxlength="1000" required
                             placeholder="Describe what you found after reviewing this report"
-                            class="w-full rounded-xl border border-[#E2E8F0] px-3.5 py-2.5 text-[13px] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition"></textarea>
+                            class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/30 transition"></textarea>
                         @error('admin_notes')
                             <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-[12px] font-semibold text-[#1F2937] mb-1.5">Action <span
+                        <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Action <span
                                 class="text-[#EF4444]">*</span></label>
                         @php
                             $actionTakenOptions = ['none' => 'No action needed'];
@@ -99,14 +99,14 @@
                             }
                         @endphp
                         <x-styled-select name="action_taken" :options="$actionTakenOptions" selected="none" required
-                            class="h-11 w-full rounded-xl border border-[#E2E8F0] px-3.5 text-[13px] text-[#1F2937]" />
+                            class="h-11 w-full rounded-xl border border-[#E2E4EC] px-3.5 text-[13px] text-[#060D26]" />
                         @error('action_taken')
                             <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <button type="submit"
-                        class="inline-flex items-center gap-2 h-11 px-6 rounded-full bg-[#2AA7A1] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200">
+                        class="inline-flex items-center gap-2 h-11 px-6 rounded-full bg-[#060D26] text-[#F7F4ED] text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
@@ -117,19 +117,19 @@
             </x-card>
         @else
             <x-card>
-                <h2 class="text-[14px] font-bold text-[#1F2937] mb-3">Resolution</h2>
+                <h2 class="text-[14px] font-normal text-[#060D26] mb-3">Resolution</h2>
                 <div class="space-y-3">
                     <div>
                         <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Admin notes</p>
-                        <p class="text-[13px] text-[#1F2937] leading-relaxed">{{ $report->admin_notes ?? '—' }}</p>
+                        <p class="text-[13px] text-[#060D26] leading-relaxed">{{ $report->admin_notes ?? '—' }}</p>
                     </div>
                     <div>
                         <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Action taken</p>
-                        <p class="text-[13px] text-[#1F2937]">{{ $report->action_taken ?? 'None' }}</p>
+                        <p class="text-[13px] text-[#060D26]">{{ $report->action_taken ?? 'None' }}</p>
                     </div>
                     <div>
                         <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Resolved by</p>
-                        <p class="text-[13px] text-[#1F2937]">
+                        <p class="text-[13px] text-[#060D26]">
                             {{ $report->resolver ? $report->resolver->first_name . ' ' . $report->resolver->last_name : '—' }}
                             @if($report->resolved_at)
                                 <span class="text-[#94A3B8]"> — {{ $report->resolved_at->format('M d, Y \a\t g:i A') }}</span>

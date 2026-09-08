@@ -24,7 +24,7 @@
             <x-slot:actions>
                 {{-- Export carries the active filters so the CSV matches the page --}}
                 <a href="{{ route('landlord.units.export', request()->only('search', 'property', 'status')) }}"
-                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E8F0] bg-white hover:bg-[#F7FCFC] text-[#1F2937] text-sm font-semibold transition-all duration-200 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
@@ -33,7 +33,7 @@
 
                 @if(request('property'))
                     <a href="{{ route('landlord.properties.units.create', request('property')) }}"
-                        class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#2AA7A1] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200">
+                        class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#060D26] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
@@ -61,7 +61,7 @@
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
             <x-stat-card label="Total Units" :value="$stats['total']" sub="Across all properties">
                 <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
                     </svg>
@@ -98,10 +98,10 @@
                 </x-slot:icon>
             </x-stat-card>
 
-            <x-stat-card label="Maintenance" :value="$stats['maintenance']" value-color="#64748B" icon-bg="rgba(148,163,184,0.15)"
+            <x-stat-card label="Maintenance" :value="$stats['maintenance']" value-color="#5B6A8E" icon-bg="rgba(148,163,184,0.15)"
                 :percent="$maintenancePct" bar-color="#94A3B8" :sub="$maintenancePct.'% of total units'">
                 <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#64748B" stroke-width="2">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
                     </svg>
@@ -122,7 +122,7 @@
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search units by name or property..." aria-label="Search units by name or property"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -131,13 +131,13 @@
                         $unitsStatusOptions = ['' => 'All Status', 'Available' => 'Available', 'Reserved' => 'Reserved', 'Occupied' => 'Occupied', 'Maintenance' => 'Maintenance'];
                     @endphp
                     <x-styled-select name="property" :options="$unitsPropertyOptions" :selected="(string) request('property', '')" :autosubmit="true"
-                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[180px]" />
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[180px]" />
 
                     <x-styled-select name="status" :options="$unitsStatusOptions" :selected="request('status', '')" :autosubmit="true"
-                        class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937]" />
+                        class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                     <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
+                        class="h-11 px-5 rounded-xl bg-[#060D26] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                         </svg>
@@ -146,7 +146,7 @@
 
                     @if(request()->hasAny(['search', 'status', 'property']))
                         <a href="{{ route('landlord.units.index') }}"
-                            class="h-11 px-4 rounded-xl border border-[#64748B]/25 text-[13.5px] text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 inline-flex items-center gap-1.5">
+                            class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                             </svg>
@@ -155,9 +155,9 @@
                     @endif
 
                     {{-- View toggle --}}
-                    <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] ml-auto">
+                    <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] ml-auto">
                         <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
-                            :class="view === 'grid' ? 'bg-white text-[#156F8C] shadow-sm' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            :class="view === 'grid' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                             class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -165,7 +165,7 @@
                             </svg>
                         </button>
                         <button type="button" x-on:click="setView('table')" aria-label="Table view"
-                            :class="view === 'table' ? 'bg-white text-[#156F8C] shadow-sm' : 'text-[#64748B] hover:text-[#1F2937]'"
+                            :class="view === 'table' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                             class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -177,11 +177,11 @@
             </div>
 
             @if(request()->hasAny(['search', 'status', 'property']))
-                <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#64748B]/10 text-[12.5px] text-[#64748B]">
+                <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#5B6A8E]/10 text-[12.5px] text-[#5B6A8E]">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                     </svg>
-                    <span class="font-semibold text-[#1F2937]">{{ $units->total() }}</span>
+                    <span class="font-semibold text-[#060D26]">{{ $units->total() }}</span>
                     {{ Str::plural('unit', $units->total()) }} match{{ $units->total() === 1 ? 'es' : '' }} your filters
                 </div>
             @endif
@@ -191,15 +191,15 @@
         {{-- Empty state --}}
         @if($units->isEmpty())
             <div
-                class="rounded-2xl border border-dashed border-[#64748B]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
-                <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
-                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.2">
+                class="rounded-2xl border border-dashed border-[#5B6A8E]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
+                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
                     </svg>
                 </div>
-                <p class="text-sm font-semibold text-[#1F2937]">No units found</p>
-                <p class="text-xs text-[#64748B] mt-1">Try adjusting your search or filters.</p>
+                <p class="text-sm font-semibold text-[#060D26]">No units found</p>
+                <p class="text-xs text-[#5B6A8E] mt-1">Try adjusting your search or filters.</p>
             </div>
 
             {{-- Unit list (grid / table toggle) --}}
@@ -213,13 +213,13 @@
                         'Available' => ['bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25'],
                         'Reserved' => ['bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35'],
                         'Occupied' => ['bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25'],
-                        default => ['bg-[#EEF8F8] text-[#64748B] ring-[#64748B]/20'],
+                        default => ['bg-[#ECEEF6] text-[#5B6A8E] ring-[#5B6A8E]/20'],
                     };
                     [$vrBg] = match ($unit->verification_status) {
                         'Approved' => ['bg-[#22C55E]/[0.07] text-[#15803D]'],
                         'Pending' => ['bg-[#FBBF24]/[0.10] text-[#B45309]'],
                         'Rejected' => ['bg-[#EF4444]/[0.07] text-[#DC2626]'],
-                        default => ['bg-[#EEF8F8] text-[#64748B]'],
+                        default => ['bg-[#ECEEF6] text-[#5B6A8E]'],
                     };
 
                     // Payload for the unit detail modal (Live Preview style)
@@ -227,7 +227,7 @@
                         'Available' => ['tile' => 'border-[#22C55E]/25 bg-[#22C55E]/[0.07]', 'text' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]'],
                         'Reserved' => ['tile' => 'border-[#FBBF24]/35 bg-[#FBBF24]/[0.10]', 'text' => 'text-[#B45309]', 'dot' => 'bg-[#FBBF24]'],
                         'Occupied' => ['tile' => 'border-[#EF4444]/25 bg-[#EF4444]/[0.07]', 'text' => 'text-[#DC2626]', 'dot' => 'bg-[#EF4444]'],
-                        default => ['tile' => 'border-[#E2E8F0] bg-[#F7FCFC]', 'text' => 'text-[#64748B]', 'dot' => 'bg-[#94A3B8]'],
+                        default => ['tile' => 'border-[#E2E4EC] bg-[#F7F8FC]', 'text' => 'text-[#5B6A8E]', 'dot' => 'bg-[#94A3B8]'],
                     };
                     $activeRes = in_array($unit->availability_status, ['Reserved', 'Occupied'], true)
                         ? $unit->reservations->whereNotIn('rental_status', \App\Models\Reservation::TERMINAL_STATUSES)->sortByDesc('reservation_id')->first()
@@ -260,21 +260,21 @@
                     @php extract($derived[$unit->unit_id]); @endphp
 
                     <article
-                        class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.1)] hover:-translate-y-0.5 transition-all duration-300">
+                        class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] hover:shadow-[0_8px_28px_rgba(6,13,38,0.1)] hover:-translate-y-0.5 transition-all duration-300">
 
                         {{-- Photo --}}
-                        <div class="relative aspect-[16/10] overflow-hidden bg-[#EEF8F8] shrink-0">
+                        <div class="relative aspect-[16/10] overflow-hidden bg-[#ECEEF6] shrink-0">
                             @if($thumb)
                                 <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}"
                                     class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
                             @else
                                 <div class="w-full h-full flex flex-col items-center justify-center gap-2">
                                     <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"
-                                        class="text-[#64748B]/60">
+                                        class="text-[#5B6A8E]/60">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159" />
                                     </svg>
-                                    <span class="text-[11px] text-[#64748B]/70">No photo</span>
+                                    <span class="text-[11px] text-[#5B6A8E]/70">No photo</span>
                                 </div>
                             @endif
 
@@ -295,9 +295,9 @@
                         {{-- Body --}}
                         <div class="flex flex-col flex-1 p-4 gap-3">
                             <div>
-                                <p class="text-[15px] font-bold text-[#1F2937] leading-snug">{{ $unit->unit_label }}</p>
+                                <p class="text-[15px] font-bold text-[#060D26] leading-snug">{{ $unit->unit_label }}</p>
                                 <a href="{{ route('landlord.properties.show', $unit->property) }}"
-                                    class="text-[12px] text-[#64748B] hover:text-[#2AA7A1] transition-colors duration-200 mt-0.5 line-clamp-1 flex items-center gap-1 w-fit">
+                                    class="text-[12px] text-[#5B6A8E] hover:text-[#8a6e1e] transition-colors duration-200 mt-0.5 line-clamp-1 flex items-center gap-1 w-fit">
                                     <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
@@ -306,21 +306,21 @@
                                 </a>
                             </div>
 
-                            <div class="flex items-center justify-between rounded-xl bg-[#EEF8F8]/60 px-3.5 py-2.5">
+                            <div class="flex items-center justify-between rounded-xl bg-[#ECEEF6]/60 px-3.5 py-2.5">
                                 <div>
-                                    <p class="text-[15px] font-bold text-[#1F2937]">₱{{ number_format($unit->rental_fee, 0) }}</p>
-                                    <p class="text-[10px] text-[#64748B]">per month</p>
+                                    <p class="text-[15px] font-bold text-[#060D26]">₱{{ number_format($unit->rental_fee, 0) }}</p>
+                                    <p class="text-[10px] text-[#5B6A8E]">per month</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-[13px] font-semibold text-[#1F2937]">{{ $unit->occupancy_limit }}</p>
-                                    <p class="text-[10px] text-[#64748B]">{{ Str::plural('person', $unit->occupancy_limit) }}</p>
+                                    <p class="text-[13px] font-semibold text-[#060D26]">{{ $unit->occupancy_limit }}</p>
+                                    <p class="text-[10px] text-[#5B6A8E]">{{ Str::plural('person', $unit->occupancy_limit) }}</p>
                                 </div>
                             </div>
 
                             {{-- Actions --}}
                             <div class="flex items-center gap-2 pt-1 mt-auto">
                                 <button type="button" x-on:click="openModal(@js($unitPayload))"
-                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#64748B]/30 text-[#1F2937] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200 cursor-pointer">
+                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -328,7 +328,7 @@
                                     View
                                 </button>
                                 <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}"
-                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#2AA7A1] text-[#2AA7A1] text-[12px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
+                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#C9A84C] text-[#8a6e1e] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
@@ -361,28 +361,28 @@
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
-                            <tr class="border-b border-[#E2E8F0]">
-                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Unit</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Type</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Monthly Rent</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Status</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Tenant</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Last Updated</th>
-                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide text-right">Actions</th>
+                            <tr class="border-b border-[#E2E4EC]">
+                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Unit</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Type</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Monthly Rent</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Last Updated</th>
+                                <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#E2E8F0]">
+                        <tbody class="divide-y divide-[#E2E4EC]">
                             @foreach($units as $unit)
                                 @php extract($derived[$unit->unit_id]); @endphp
-                                <tr class="hover:bg-[#F7FCFC]/70 transition-colors duration-200">
+                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
                                     {{-- Unit --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-12 h-12 rounded-lg bg-[#EEF8F8] overflow-hidden shrink-0">
+                                            <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($thumb)
                                                     <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
                                                 @else
-                                                    <div class="w-full h-full flex items-center justify-center text-[#64748B]/60">
+                                                    <div class="w-full h-full flex items-center justify-center text-[#5B6A8E]/60">
                                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159" />
@@ -391,9 +391,9 @@
                                                 @endif
                                             </div>
                                             <div class="min-w-0">
-                                                <p class="text-[13px] font-bold text-[#1F2937] truncate">{{ $unit->unit_label }}</p>
-                                                <p class="text-[11.5px] text-[#64748B] truncate max-w-[180px]">{{ $unit->property->title }}</p>
-                                                <p class="text-[11px] text-[#64748B]">
+                                                <p class="text-[13px] font-bold text-[#060D26] truncate">{{ $unit->unit_label }}</p>
+                                                <p class="text-[11.5px] text-[#5B6A8E] truncate max-w-[180px]">{{ $unit->property->title }}</p>
+                                                <p class="text-[11px] text-[#5B6A8E]">
                                                     {{ collect([$unit->floor, $unit->occupancy_limit ? $unit->occupancy_limit . ' ' . Str::plural('person', $unit->occupancy_limit) : null])->filter()->implode(' · ') ?: '—' }}
                                                 </p>
                                             </div>
@@ -403,18 +403,18 @@
                                     {{-- Type --}}
                                     <td class="px-4 py-3.5">
                                         @if($unit->unit_type)
-                                            <span class="inline-flex px-2.5 py-1 rounded-full bg-[#EEF8F8] text-[#156F8C] text-[11px] font-semibold whitespace-nowrap">
+                                            <span class="inline-flex px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[#060D26] text-[11px] font-semibold whitespace-nowrap">
                                                 {{ $unit->unit_type }}
                                             </span>
                                         @else
-                                            <span class="text-[12px] text-[#64748B]">—</span>
+                                            <span class="text-[12px] text-[#5B6A8E]">—</span>
                                         @endif
                                     </td>
 
                                     {{-- Rent --}}
                                     <td class="px-4 py-3.5">
-                                        <p class="text-[13px] font-bold text-[#1F2937] whitespace-nowrap">₱{{ number_format($unit->rental_fee, 0) }}</p>
-                                        <p class="text-[11px] text-[#64748B]">per month</p>
+                                        <p class="text-[13px] font-bold text-[#060D26] whitespace-nowrap">₱{{ number_format($unit->rental_fee, 0) }}</p>
+                                        <p class="text-[11px] text-[#5B6A8E]">per month</p>
                                     </td>
 
                                     {{-- Status --}}
@@ -433,38 +433,38 @@
                                                     <img src="{{ $activeRes->tenant->profile_picture }}" alt="{{ $tenantName }}"
                                                         class="w-7 h-7 rounded-full object-cover shrink-0">
                                                 @else
-                                                    <div class="w-7 h-7 rounded-full bg-[#EEF8F8] text-[#156F8C] text-[10px] font-bold flex items-center justify-center shrink-0">
+                                                    <div class="w-7 h-7 rounded-full bg-[#ECEEF6] text-[#060D26] text-[10px] font-bold flex items-center justify-center shrink-0">
                                                         {{ strtoupper(substr($activeRes->tenant->first_name, 0, 1) . substr($activeRes->tenant->last_name ?? '', 0, 1)) }}
                                                     </div>
                                                 @endif
                                                 <div class="min-w-0">
-                                                    <p class="text-[12.5px] font-semibold text-[#1F2937] truncate max-w-[140px]">{{ $tenantName }}</p>
-                                                    <p class="text-[11px] text-[#64748B]">{{ $activeRes->tenant->contact_number ?? '—' }}</p>
+                                                    <p class="text-[12.5px] font-semibold text-[#060D26] truncate max-w-[140px]">{{ $tenantName }}</p>
+                                                    <p class="text-[11px] text-[#5B6A8E]">{{ $activeRes->tenant->contact_number ?? '—' }}</p>
                                                 </div>
                                             </div>
                                         @else
-                                            <span class="text-[12px] text-[#64748B]">—</span>
+                                            <span class="text-[12px] text-[#5B6A8E]">—</span>
                                         @endif
                                     </td>
 
                                     {{-- Last updated --}}
                                     <td class="px-4 py-3.5">
-                                        <p class="text-[13px] text-[#1F2937] font-medium whitespace-nowrap">{{ $unit->updated_at->format('M d, Y') }}</p>
-                                        <p class="text-[11px] text-[#64748B]">{{ $unit->updated_at->format('h:i A') }}</p>
+                                        <p class="text-[13px] text-[#060D26] font-medium whitespace-nowrap">{{ $unit->updated_at->format('M d, Y') }}</p>
+                                        <p class="text-[11px] text-[#5B6A8E]">{{ $unit->updated_at->format('h:i A') }}</p>
                                     </td>
 
                                     {{-- Actions --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center justify-end gap-1.5">
                                             <button type="button" x-on:click="openModal(@js($unitPayload))" aria-label="View unit"
-                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#64748B]/25 text-[#1F2937] hover:bg-[#EEF8F8] cursor-pointer transition-colors duration-200">
+                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:bg-[#ECEEF6] cursor-pointer transition-colors duration-200">
                                                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                                 </svg>
                                             </button>
                                             <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}" aria-label="Edit unit"
-                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#2AA7A1] text-[#2AA7A1] hover:bg-[#EEF8F8] transition-colors duration-200">
+                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#C9A84C] text-[#8a6e1e] hover:bg-[#ECEEF6] transition-colors duration-200">
                                                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
@@ -495,9 +495,9 @@
             </x-card>
 
             <div class="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <p class="text-[12.5px] text-[#64748B]">
-                    Showing <span class="font-semibold text-[#1F2937]">{{ $units->firstItem() }}–{{ $units->lastItem() }}</span> of
-                    <span class="font-semibold text-[#1F2937]">{{ $units->total() }}</span> units
+                <p class="text-[12.5px] text-[#5B6A8E]">
+                    Showing <span class="font-semibold text-[#060D26]">{{ $units->firstItem() }}–{{ $units->lastItem() }}</span> of
+                    <span class="font-semibold text-[#060D26]">{{ $units->total() }}</span> units
                 </p>
                 {{ $units->links() }}
             </div>
@@ -527,12 +527,12 @@
                     x-transition:leave-end="opacity-0 translate-y-4 scale-95">
 
                     {{-- Image area --}}
-                    <div class="relative aspect-[4/3] bg-[#EEF8F8] border-b border-[#E2E8F0]/70">
+                    <div class="relative aspect-[4/3] bg-[#ECEEF6] border-b border-[#E2E4EC]/70">
                         <template x-if="modal.photo">
                             <img :src="modal.photo" :alt="modal.label" class="w-full h-full object-cover">
                         </template>
                         <template x-if="!modal.photo">
-                            <div class="w-full h-full flex flex-col items-center justify-center text-[#64748B]">
+                            <div class="w-full h-full flex flex-col items-center justify-center text-[#5B6A8E]">
                                 <svg width="34" height="34" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                 </svg>
@@ -540,7 +540,7 @@
                             </div>
                         </template>
                         <button type="button" x-on:click="closeModal()" aria-label="Close"
-                            class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:brightness-95 flex items-center justify-center text-[#1F2937] shadow-sm transition-all cursor-pointer">
+                            class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:brightness-95 flex items-center justify-center text-[#060D26] shadow-sm transition-all cursor-pointer">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                             </svg>
@@ -551,9 +551,9 @@
                     <div class="p-5 space-y-3">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="text-[15px] font-bold text-[#1F2937] truncate" x-text="modal.label"></p>
-                                <p class="text-[12px] text-[#64748B] mt-0.5 truncate" x-text="modal.property"></p>
-                                <p class="text-[12px] text-[#64748B] mt-0.5" x-show="modal.type || modal.floor"
+                                <p class="text-[15px] font-bold text-[#060D26] truncate" x-text="modal.label"></p>
+                                <p class="text-[12px] text-[#5B6A8E] mt-0.5 truncate" x-text="modal.property"></p>
+                                <p class="text-[12px] text-[#5B6A8E] mt-0.5" x-show="modal.type || modal.floor"
                                     x-text="[modal.type, modal.floor].filter(Boolean).join(' · ')"></p>
                             </div>
                             <span class="shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold"
@@ -564,47 +564,47 @@
                         </div>
 
                         <div class="flex items-baseline gap-1">
-                            <span class="text-[20px] font-bold text-[#156F8C]" x-text="peso(modal.rent) || '₱—'"></span>
-                            <span class="text-[12px] text-[#64748B]">/ month</span>
+                            <span class="text-[20px] font-bold text-[#060D26]" x-text="peso(modal.rent) || '₱—'"></span>
+                            <span class="text-[12px] text-[#5B6A8E]">/ month</span>
                         </div>
 
-                        <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2" x-show="modal.tenant">
-                            <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Tenant</p>
-                            <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="modal.tenant"></p>
+                        <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2" x-show="modal.tenant">
+                            <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Tenant</p>
+                            <p class="text-[13px] font-semibold text-[#060D26] mt-0.5" x-text="modal.tenant"></p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-2">
-                            <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2">
-                                <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Capacity</p>
-                                <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5"
+                            <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2">
+                                <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Capacity</p>
+                                <p class="text-[13px] font-semibold text-[#060D26] mt-0.5"
                                     x-text="modal.capacity ? modal.capacity + (modal.capacity == 1 ? ' person' : ' persons') : '—'"></p>
                             </div>
-                            <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2">
-                                <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Deposit</p>
-                                <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="peso(modal.deposit) || '—'"></p>
+                            <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2">
+                                <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Deposit</p>
+                                <p class="text-[13px] font-semibold text-[#060D26] mt-0.5" x-text="peso(modal.deposit) || '—'"></p>
                             </div>
-                            <div class="rounded-lg bg-[#F7FCFC] border border-[#E2E8F0] px-3 py-2" x-show="modal.floorArea">
-                                <p class="text-[10px] uppercase tracking-wide text-[#64748B]">Floor area</p>
-                                <p class="text-[13px] font-semibold text-[#1F2937] mt-0.5" x-text="modal.floorArea"></p>
+                            <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2" x-show="modal.floorArea">
+                                <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Floor area</p>
+                                <p class="text-[13px] font-semibold text-[#060D26] mt-0.5" x-text="modal.floorArea"></p>
                             </div>
                         </div>
 
                         <div x-show="modal.amenities && modal.amenities.length" class="pt-1">
-                            <p class="text-[10px] uppercase tracking-wide text-[#64748B] mb-1.5">Amenities</p>
+                            <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E] mb-1.5">Amenities</p>
                             <div class="flex flex-wrap gap-1.5">
                                 <template x-for="a in modal.amenities" :key="a">
-                                    <span class="inline-flex items-center rounded-full bg-[#EEF8F8] border border-[#2AA7A1]/20 px-2 py-0.5 text-[11px] text-[#1F2937]" x-text="a"></span>
+                                    <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#C9A84C]/20 px-2 py-0.5 text-[11px] text-[#060D26]" x-text="a"></span>
                                 </template>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-2.5 pt-1">
                             <a :href="modal.property_url"
-                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full border border-[#64748B]/30 text-[#1F2937] text-[12.5px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
+                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                                 View property
                             </a>
                             <a :href="modal.edit_url"
-                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full bg-[#2AA7A1] text-white text-[12.5px] font-semibold hover:brightness-95 transition-all duration-200">
+                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full bg-[#060D26] text-white text-[12.5px] font-semibold hover:brightness-95 transition-all duration-200">
                                 Edit unit
                             </a>
                         </div>

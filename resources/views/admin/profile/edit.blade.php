@@ -12,15 +12,15 @@
             ['My Reviews', $stats['verifications_reviewed'], 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
             ['Properties Approved', $stats['properties_approved'], 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
         ] as [$label, $value, $icon])
-            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] px-5 py-4 flex items-center gap-4">
-                <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.8">
+            <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] px-5 py-4 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#8a6e1e" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
                     </svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-[#1F2937] leading-none">{{ $value }}</p>
-                    <p class="text-[13px] text-[#64748B] mt-0.5">{{ $label }}</p>
+                    <p class="text-2xl font-bold text-[#060D26] leading-none">{{ $value }}</p>
+                    <p class="text-[13px] text-[#5B6A8E] mt-0.5">{{ $label }}</p>
                 </div>
             </div>
         @endforeach
@@ -30,7 +30,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6 items-start">
 
         {{-- Left Column: Avatar Card --}}
-        <div class="lg:sticky lg:top-24 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6 text-center">
+        <div class="lg:sticky lg:top-24 bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-6 text-center">
             <form id="avatar-form" action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
@@ -40,9 +40,9 @@
                 <div class="relative group mx-auto w-20 h-20 mb-4">
                     @if ($user->profile_picture)
                         <img src="{{ $user->profile_picture }}" alt="Profile"
-                             class="w-20 h-20 rounded-2xl object-cover border-2 border-[#E2E8F0]" />
+                             class="w-20 h-20 rounded-2xl object-cover border-2 border-[#E2E4EC]" />
                     @else
-                        <div class="w-20 h-20 rounded-2xl bg-[#2AA7A1] flex items-center justify-center border-2 border-[#E2E8F0]">
+                        <div class="w-20 h-20 rounded-2xl bg-[#060D26] flex items-center justify-center border-2 border-[#E2E4EC]">
                             <span class="text-2xl font-bold text-white">
                                 {{ strtoupper(substr($user->first_name, 0, 1)) }}{{ strtoupper(substr($user->last_name, 0, 1)) }}
                             </span>
@@ -63,12 +63,12 @@
                 @enderror
             </form>
 
-            <h3 class="text-[15px] font-bold text-[#1F2937]">{{ $user->first_name }} {{ $user->last_name }}</h3>
-            <p class="text-[13px] text-[#64748B] mt-1">Administrator</p>
-            <p class="text-[12px] text-[#64748B] mt-0.5">Member since {{ $user->created_at->format('F Y') }}</p>
+            <h3 class="text-[15px] font-normal text-[#060D26]">{{ $user->first_name }} {{ $user->last_name }}</h3>
+            <p class="text-[13px] text-[#5B6A8E] mt-1">Administrator</p>
+            <p class="text-[12px] text-[#5B6A8E] mt-0.5">Member since {{ $user->created_at->format('F Y') }}</p>
 
-            <div class="mt-4 pt-4 border-t border-[#E2E8F0]">
-                <p class="text-[12px] text-[#64748B]">Hover the avatar to change your photo</p>
+            <div class="mt-4 pt-4 border-t border-[#E2E4EC]">
+                <p class="text-[12px] text-[#5B6A8E]">Hover the avatar to change your photo</p>
             </div>
         </div>
 
@@ -77,29 +77,29 @@
 
             {{-- Profile Form --}}
             <form action="{{ route('admin.profile.update') }}" method="POST"
-                  class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] divide-y divide-[#E2E8F0]">
+                  class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] divide-y divide-[#E2E4EC]">
                 @csrf
                 @method('PATCH')
 
                 <div class="p-6 space-y-5">
-                    <h4 class="text-[15px] font-bold text-[#1F2937]">Personal Information</h4>
+                    <h4 class="text-[15px] font-normal text-[#060D26]">Personal Information</h4>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label for="first_name" class="block text-[13px] font-medium text-[#1F2937] mb-1.5">First Name</label>
+                            <label for="first_name" class="block text-[13px] font-medium text-[#060D26] mb-1.5">First Name</label>
                             <input type="text" name="first_name" id="first_name"
                                    value="{{ old('first_name', $user->first_name) }}"
-                                   class="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-2.5 text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] transition-colors" />
+                                   class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-colors" />
                             @error('first_name')
                                 <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
-                            <label for="last_name" class="block text-[13px] font-medium text-[#1F2937] mb-1.5">Last Name</label>
+                            <label for="last_name" class="block text-[13px] font-medium text-[#060D26] mb-1.5">Last Name</label>
                             <input type="text" name="last_name" id="last_name"
                                    value="{{ old('last_name', $user->last_name) }}"
-                                   class="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-2.5 text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] transition-colors" />
+                                   class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-colors" />
                             @error('last_name')
                                 <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
                             @enderror
@@ -107,30 +107,30 @@
                     </div>
 
                     <div>
-                        <label for="contact_number" class="block text-[13px] font-medium text-[#1F2937] mb-1.5">Contact Number</label>
+                        <label for="contact_number" class="block text-[13px] font-medium text-[#060D26] mb-1.5">Contact Number</label>
                         <input type="text" name="contact_number" id="contact_number"
                                value="{{ old('contact_number', $user->contact_number) }}"
                                placeholder="e.g. 09171234567"
-                               class="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-2.5 text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] transition-colors" />
+                               class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-colors" />
                         @error('contact_number')
                             <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="email" class="block text-[13px] font-medium text-[#1F2937] mb-1.5">Email Address</label>
+                        <label for="email" class="block text-[13px] font-medium text-[#060D26] mb-1.5">Email Address</label>
                         <input type="email" id="email" value="{{ $user->email }}" disabled
-                               class="w-full rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-4 py-2.5 text-[14px] text-[#64748B] cursor-not-allowed" />
-                        <p class="text-[12px] text-[#64748B] mt-1">Email can be changed in the password section below.</p>
+                               class="w-full rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-4 py-2.5 text-[14px] text-[#5B6A8E] cursor-not-allowed" />
+                        <p class="text-[12px] text-[#5B6A8E] mt-1">Email can be changed in the password section below.</p>
                     </div>
 
                     <div x-data="{ count: {{ Js::from(strlen(old('bio', $user->bio ?? ''))) }} }">
-                        <label for="bio" class="block text-[13px] font-medium text-[#1F2937] mb-1.5">Bio</label>
+                        <label for="bio" class="block text-[13px] font-medium text-[#060D26] mb-1.5">Bio</label>
                         <textarea name="bio" id="bio" rows="4" maxlength="1000"
                                   x-on:input="count = $el.value.length"
                                   placeholder="A short bio about yourself..."
-                                  class="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-2.5 text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] transition-colors resize-none">{{ old('bio', $user->bio) }}</textarea>
-                        <p class="text-[12px] text-[#64748B] mt-1 text-right"><span x-text="count"></span> / 1,000</p>
+                                  class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-colors resize-none">{{ old('bio', $user->bio) }}</textarea>
+                        <p class="text-[12px] text-[#5B6A8E] mt-1 text-right"><span x-text="count"></span> / 1,000</p>
                         @error('bio')
                             <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
                         @enderror
@@ -139,23 +139,23 @@
 
                 <div class="p-6 flex items-center justify-end gap-3">
                     <a href="{{ route('admin.dashboard') }}"
-                       class="px-5 py-2.5 rounded-xl border border-[#E2E8F0] text-[13px] font-medium text-[#64748B] hover:bg-[#F7FCFC] transition-colors">
+                       class="px-5 py-2.5 rounded-xl border border-[#E2E4EC] text-[13px] font-medium text-[#5B6A8E] hover:bg-[#F7F8FC] transition-colors">
                         Cancel
                     </a>
                     <button type="submit"
-                            class="px-6 py-2.5 rounded-xl bg-[#2AA7A1] text-white text-[13px] font-semibold hover:brightness-95 transition-all">
+                            class="px-6 py-2.5 rounded-xl bg-[#060D26] text-[#F7F4ED] text-[13px] font-semibold hover:brightness-95 transition-all">
                         Save Changes
                     </button>
                 </div>
             </form>
 
             {{-- Password --}}
-            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
+            <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-6">
                 @include('profile.partials.update-password-form')
             </div>
 
             {{-- Danger Zone --}}
-            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-6">
+            <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-6">
                 @include('profile.partials.delete-user-form')
             </div>
         </div>

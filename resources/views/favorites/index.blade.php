@@ -6,14 +6,14 @@
     {{-- HEADER --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-xl bg-[#1F2937] flex items-center justify-center shrink-0">
+            <div class="w-11 h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl font-bold tracking-tight text-[#1F2937]">Saved Listings</h1>
-                <p class="text-sm text-[#64748B] mt-0.5">Properties you've saved for later.</p>
+                <h1 class="text-2xl font-normal tracking-tight text-[#060D26]">Saved Listings</h1>
+                <p class="text-sm text-[#5B6A8E] mt-0.5">Properties you've saved for later.</p>
             </div>
         </div>
     </div>
@@ -29,21 +29,21 @@
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Search saved properties…" aria-label="Search saved properties"
                 x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition placeholder-[#94A3B8]" />
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition placeholder-[#94A3B8]" />
         </div>
         <x-styled-select name="type" :options="['' => 'Any type', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House']"
             :selected="request('type', '')" aria-label="Filter by property type"
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl" />
+            class="px-4 py-2.5 text-sm font-semibold text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl" />
         <x-styled-select name="availability" :options="['' => 'Any status', 'Available' => 'Available', 'Unavailable' => 'Unavailable']"
             :selected="request('availability', '')" aria-label="Filter by availability"
-            class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-[#F7FCFC] border border-[#E2E8F0] rounded-xl" />
+            class="px-4 py-2.5 text-sm font-semibold text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl" />
         <button type="submit"
-            class="px-5 py-2.5 text-sm font-bold text-white bg-[#2AA7A1] hover:brightness-95 rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98]">
+            class="px-5 py-2.5 text-sm font-bold text-white bg-[#060D26] hover:brightness-95 rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98]">
             Search
         </button>
         @if(request()->hasAny(['search', 'type', 'availability']))
             <a href="{{ route('favorites.index') }}"
-                class="px-4 py-2.5 text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#F7FCFC] rounded-xl transition-all duration-200 text-center">
+                class="px-4 py-2.5 text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#F7F8FC] rounded-xl transition-all duration-200 text-center">
                 Clear
             </a>
         @endif
@@ -52,7 +52,7 @@
 
     @if($favorites->count() > 0)
 
-        <p class="text-[13px] text-[#64748B] font-medium mb-6">
+        <p class="text-[13px] text-[#5B6A8E] font-medium mb-6">
             {{ $favorites->count() }} {{ Str::plural('property', $favorites->count()) }} saved
         </p>
 
@@ -69,15 +69,15 @@
                     onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
 
                     {{-- IMAGE --}}
-                    <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#EEF8F8]">
+                    <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#ECEEF6]">
                         @if($property->media->first())
                             <img
                                 src="{{ $property->media->first()->media_url }}"
                                 alt="{{ $property->title }}"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         @else
-                            <div class="w-full h-full flex items-center justify-center bg-[#EEF8F8]">
-                                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#2AA7A1" stroke-width="1.5">
+                            <div class="w-full h-full flex items-center justify-center bg-[#ECEEF6]">
+                                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#C9A84C" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                                 </svg>
                             </div>
@@ -85,7 +85,7 @@
 
                         {{-- TYPE BADGE --}}
                         <div class="absolute top-3 left-3">
-                            <span class="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[11px] font-bold text-[#1F2937] rounded-full shadow-sm">
+                            <span class="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[11px] font-bold text-[#060D26] rounded-full shadow-sm">
                                 {{ $property->property_type }}
                             </span>
                         </div>
@@ -111,7 +111,7 @@
                     {{-- TEXT --}}
                     <div class="mt-3 px-1">
                         <div class="flex items-start justify-between gap-2">
-                            <h3 class="text-[14px] font-semibold text-[#156F8C] leading-snug line-clamp-1">
+                            <h3 class="text-[14px] font-normal text-[#060D26] leading-snug line-clamp-1">
                                 {{ $property->title }}
                             </h3>
                             @php $hasAvailableUnit = $property->units->where('availability_status', 'Available')->isNotEmpty(); @endphp
@@ -129,7 +129,7 @@
                             {{ $property->address }}
                         </p>
 
-                        <p class="text-[14px] font-semibold text-[#156F8C] mt-1.5">
+                        <p class="text-[14px] font-semibold text-[#060D26] mt-1.5">
                             @if($property->min_rental_fee)
                                 ₱{{ number_format($property->min_rental_fee) }}
                                 <span class="text-[13px] font-normal text-[#94A3B8]">/month</span>
@@ -145,15 +145,15 @@
 
     @else
         <x-card flush class="py-16 px-8 text-center">
-            <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mx-auto mb-4">
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
+            <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mx-auto mb-4">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                 </svg>
             </div>
-            <p class="text-[15px] font-bold text-[#1F2937] mb-1">No saved listings yet</p>
-            <p class="text-[13px] text-[#64748B] mb-6">Heart a property while browsing to save it here.</p>
+            <p class="text-[15px] font-bold text-[#060D26] mb-1">No saved listings yet</p>
+            <p class="text-[13px] text-[#5B6A8E] mb-6">Heart a property while browsing to save it here.</p>
             <a href="{{ route('properties.index') }}"
-                class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all shadow-sm">
+                class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all shadow-sm">
                 Browse properties
             </a>
         </x-card>

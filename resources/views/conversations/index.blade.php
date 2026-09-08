@@ -3,22 +3,22 @@
 @section('content')
     <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-5 min-h-[calc(100vh-72px)]" x-data="inboxApp()" x-cloak>
 
-        <div class="flex flex-col overflow-hidden rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06)]"
+        <div class="flex flex-col overflow-hidden rounded-[28px] border border-[#E2E4EC] bg-white shadow-[0_20px_50px_rgba(6,13,38,0.06)]"
             style="height: calc(100vh - 110px); min-height: 560px;">
 
         {{-- Header --}}
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] p-4 flex-shrink-0">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E4EC] p-4 flex-shrink-0">
             <div class="flex items-center gap-3.5">
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#1F2937]">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#060D26]">
                     <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-[#1F2937]">
+                    <h1 class="text-2xl font-normal tracking-tight text-[#060D26]">
                         {{ $isLandlord ? 'Inquiries' : 'Messages' }}
                     </h1>
-                    <p class="mt-0.5 text-[13px] text-[#64748B]">
+                    <p class="mt-0.5 text-[13px] text-[#5B6A8E]">
                         {{ $isLandlord ? 'Respond to tenant inquiries across your properties.' : 'Manage your active inquiries and conversation threads.' }}
                     </p>
                 </div>
@@ -27,7 +27,7 @@
             @if($isLandlord && $landlordProperties->isNotEmpty())
                 <div class="relative" x-data="{ filterOpen: false }">
                     <button @click="filterOpen = !filterOpen" type="button"
-                        class="flex h-10 items-center gap-2 rounded-xl border border-[#CBD5E1] bg-white px-4 text-[13px] font-medium text-[#1F2937] shadow-[0_6px_18px_rgba(15,23,42,0.04)] transition hover:border-[#2AA7A1]/50 hover:bg-[#F7FCFC] focus:outline-none">
+                        class="flex h-10 items-center gap-2 rounded-xl border border-[#CBD5E1] bg-white px-4 text-[13px] font-medium text-[#060D26] shadow-[0_6px_18px_rgba(6,13,38,0.04)] transition hover:border-[#C9A84C]/50 hover:bg-[#F7F8FC] focus:outline-none">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
@@ -40,14 +40,14 @@
                     <div x-show="filterOpen" @click.away="filterOpen = false" x-cloak
                         x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95"
                         x-transition:enter-end="opacity-100 scale-100"
-                        class="absolute right-0 top-[calc(100%+6px)] z-50 w-[240px] rounded-2xl border border-[#E2E8F0] bg-white py-1 shadow-[0_20px_45px_rgba(15,23,42,0.12)]">
+                        class="absolute right-0 top-[calc(100%+6px)] z-50 w-[240px] rounded-2xl border border-[#E2E4EC] bg-white py-1 shadow-[0_20px_45px_rgba(6,13,38,0.12)]">
                         <a href="{{ route('conversations.index', array_filter(['status' => $status !== 'all' ? $status : null])) }}"
-                            class="block px-4 py-2.5 text-[13px] font-medium text-[#1F2937] transition hover:bg-[#F7FCFC] {{ !$propertyId ? 'bg-[#EEF8F8]' : '' }}">
+                            class="block px-4 py-2.5 text-[13px] font-medium text-[#060D26] transition hover:bg-[#F7F8FC] {{ !$propertyId ? 'bg-[#ECEEF6]' : '' }}">
                             All Properties
                         </a>
                         @foreach($landlordProperties as $prop)
                             <a href="{{ route('conversations.index', array_filter(['status' => $status !== 'all' ? $status : null, 'property_id' => $prop->property_id])) }}"
-                                class="block truncate px-4 py-2.5 text-[13px] font-medium text-[#1F2937] transition hover:bg-[#F7FCFC] {{ $propertyId == $prop->property_id ? 'bg-[#EEF8F8]' : '' }}">
+                                class="block truncate px-4 py-2.5 text-[13px] font-medium text-[#060D26] transition hover:bg-[#F7F8FC] {{ $propertyId == $prop->property_id ? 'bg-[#ECEEF6]' : '' }}">
                                 {{ $prop->title }}
                             </a>
                         @endforeach
@@ -60,11 +60,11 @@
         <div class="flex flex-1 overflow-hidden">
 
             {{-- LEFT: Conversation list --}}
-            <div class="w-full lg:w-[340px] flex-shrink-0 lg:border-r border-[#64748B]/10 flex-col"
+            <div class="w-full lg:w-[340px] flex-shrink-0 lg:border-r border-[#5B6A8E]/10 flex-col"
                 :class="activeId ? 'hidden lg:flex' : 'flex'">
 
                 {{-- Tabs --}}
-                <div class="flex flex-shrink-0 items-center gap-0.5 border-b border-[#E2E8F0] bg-[#F8FAFC] px-2 pb-1 pt-2">
+                <div class="flex flex-shrink-0 items-center gap-0.5 border-b border-[#E2E4EC] bg-[#F8FAFC] px-2 pb-1 pt-2">
                     @php
                         $tabs = [
                             'all' => ['label' => 'Active', 'count' => $activeCount],
@@ -76,17 +76,17 @@
                     @foreach ($tabs as $key => $tab)
                                 <a href="{{ route('conversations.index', array_filter(['status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
                                     class="flex-1 rounded-t-xl border-b-2 py-2.5 text-center text-[12px] font-semibold transition-all
-                                        {{ $status === $key ? 'border-[#2AA7A1] bg-white text-[#1F2937] shadow-[0_-2px_0_rgba(42,167,161,0.1)]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                                        {{ $status === $key ? 'border-[#C9A84C] bg-white text-[#060D26] shadow-[0_-2px_0_rgba(201,168,76,0.1)]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                                     {{ $tab['label'] }}
                                     @if($tab['count'] > 0)
-                                        <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $tab['count'] }}</span>
+                                        <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $tab['count'] }}</span>
                                     @endif
                                 </a>
                     @endforeach
                 </div>
 
                 {{-- Search --}}
-                <div class="flex-shrink-0 border-b border-[#E2E8F0] bg-[#F8FAFC] px-3 py-3">
+                <div class="flex-shrink-0 border-b border-[#E2E4EC] bg-[#F8FAFC] px-3 py-3">
                     <form method="GET" action="{{ route('conversations.index') }}" class="relative">
                         <input type="hidden" name="status" value="{{ $status }}">
                         @if($propertyId)<input type="hidden" name="property_id" value="{{ $propertyId }}">@endif
@@ -98,7 +98,7 @@
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Search by person or property..." aria-label="Search by person or property"
                             x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                            class="w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-8 pr-3 text-[12px] text-[#1F2937] placeholder-[#94A3B8] shadow-[0_4px_10px_rgba(15,23,42,0.02)] transition focus:border-[#2AA7A1] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20" />
+                            class="w-full rounded-xl border border-[#E2E4EC] bg-white py-2.5 pl-8 pr-3 text-[12px] text-[#060D26] placeholder-[#94A3B8] shadow-[0_4px_10px_rgba(6,13,38,0.02)] transition focus:border-[#C9A84C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20" />
                     </form>
                 </div>
 
@@ -139,29 +139,29 @@
                         @endphp
 
                         <button type="button" @click="loadConversation({{ $conversation->conversation_id }})"
-                            class="group flex w-full items-start gap-3 border-b border-[#E2E8F0] px-4 py-3.5 text-left transition-all duration-200 hover:bg-[#F8FAFC]"
-                            :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#EEF8F8] shadow-[inset_2px_0_0_#2AA7A1]' : 'bg-white'"
+                            class="group flex w-full items-start gap-3 border-b border-[#E2E4EC] px-4 py-3.5 text-left transition-all duration-200 hover:bg-[#F8FAFC]"
+                            :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#ECEEF6] shadow-[inset_2px_0_0_#C9A84C]' : 'bg-white'"
                             data-conversation-id="{{ $conversation->conversation_id }}">
 
                             <div
-                                class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#DBF6F4] to-[#C7F0EF] text-[11px] font-bold text-[#156F8C] shadow-[0_8px_18px_rgba(42,167,161,0.12)]">
+                                class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#DBF6F4] to-[#C7F0EF] text-[11px] font-bold text-[#060D26] shadow-[0_8px_18px_rgba(201,168,76,0.12)]">
                                 {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
                             </div>
 
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-baseline justify-between gap-2">
-                                    <h3 class="truncate text-[13px] font-bold text-[#1F2937]">
+                                    <h3 class="truncate text-[13px] font-normal text-[#060D26]">
                                         {{ $otherParty->first_name }} {{ $otherParty->last_name }}
                                     </h3>
-                                    <span class="shrink-0 whitespace-nowrap text-[10px] text-[#64748B]">
+                                    <span class="shrink-0 whitespace-nowrap text-[10px] text-[#5B6A8E]">
                                         {{ $conversation->latestMessage ? $conversation->latestMessage->sent_at->diffForHumans(null, true) : '' }}
                                     </span>
                                 </div>
                                 <p data-preview
-                                    class="mt-0.5 truncate text-[12px] {{ $hasUnread ? 'font-semibold text-[#1F2937]' : 'text-[#64748B]' }}">
+                                    class="mt-0.5 truncate text-[12px] {{ $hasUnread ? 'font-semibold text-[#060D26]' : 'text-[#5B6A8E]' }}">
                                     {{ $previewText }}
                                 </p>
-                                <p class="mt-1 flex items-center gap-1 truncate text-[11px] text-[#64748B]">
+                                <p class="mt-1 flex items-center gap-1 truncate text-[11px] text-[#5B6A8E]">
                                     <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -174,7 +174,7 @@
                                 @if($rowStatus)
                                     <div class="mt-1.5">
                                         <span data-stage-pill="{{ $rowStatus }}"
-                                            class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold {{ $rowTerminal ? 'bg-[#E2E8F0] text-[#EF4444]' : 'bg-[#EEF8F8] text-[#156F8C]' }}">
+                                            class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold {{ $rowTerminal ? 'bg-[#E2E4EC] text-[#EF4444]' : 'bg-[#ECEEF6] text-[#060D26]' }}">
                                             {{ $rowLabel }}
                                         </span>
                                     </div>
@@ -182,25 +182,25 @@
                             </div>
 
                             @if($hasUnread)
-                                <div data-unread-dot class="mt-2 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#2AA7A1] shadow-[0_0_0_3px_rgba(42,167,161,0.15)]"></div>
+                                <div data-unread-dot class="mt-2 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#060D26] shadow-[0_0_0_3px_rgba(201,168,76,0.15)]"></div>
                             @endif
                         </button>
                     @empty
                         <div class="px-4 py-12 text-center">
-                            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(42,167,161,0.12)]">
-                                <svg class="h-6 w-6 text-[#156F8C]" fill="none" stroke="currentColor"
+                            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(201,168,76,0.12)]">
+                                <svg class="h-6 w-6 text-[#060D26]" fill="none" stroke="currentColor"
                                     stroke-width="1.5" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                 </svg>
                             </div>
-                            <p class="text-[13px] font-bold text-[#1F2937]">No conversations yet</p>
-                            <p class="mx-auto mt-1 max-w-[220px] text-[12px] leading-5 text-[#64748B]">
+                            <p class="text-[13px] font-bold text-[#060D26]">No conversations yet</p>
+                            <p class="mx-auto mt-1 max-w-[220px] text-[12px] leading-5 text-[#5B6A8E]">
                                 {{ $isLandlord ? 'Inquiries from tenants will appear here.' : 'When you send inquiries, your conversations will appear here.' }}
                             </p>
                             @if(!$isLandlord)
                                 <a href="{{ route('properties.index') }}"
-                                    class="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#2AA7A1] px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_10px_20px_rgba(42,167,161,0.25)] transition hover:brightness-95">
+                                    class="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#060D26] px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_10px_20px_rgba(201,168,76,0.25)] transition hover:brightness-95">
                                     Browse properties
                                 </a>
                             @endif
@@ -209,8 +209,8 @@
                 </div>
 
                 @if($conversations->isNotEmpty())
-                    <div class="px-4 py-2 border-t border-[#64748B]/10 flex-shrink-0">
-                        <p class="text-[11px] text-[#64748B] text-center">
+                    <div class="px-4 py-2 border-t border-[#5B6A8E]/10 flex-shrink-0">
+                        <p class="text-[11px] text-[#5B6A8E] text-center">
                             Showing 1 to {{ $conversations->count() }} of {{ $conversations->count() }} {{ $isLandlord ? Str::plural('inquiry', $conversations->count()) : Str::plural('conversation', $conversations->count()) }}
                         </p>
                     </div>
@@ -222,7 +222,7 @@
                 :class="activeId ? 'flex' : 'hidden lg:flex'">
                 {{-- Mobile back to list --}}
                 <button type="button" x-show="activeId" x-cloak @click="activeId = null; window.activeConversationId = null"
-                    class="lg:hidden flex items-center gap-1.5 px-4 py-2.5 border-b border-[#64748B]/10 text-[12px] font-bold text-[#156F8C] bg-white text-left">
+                    class="lg:hidden flex items-center gap-1.5 px-4 py-2.5 border-b border-[#5B6A8E]/10 text-[12px] font-bold text-[#060D26] bg-white text-left">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -231,21 +231,21 @@
                 {{-- Empty state --}}
                 <div x-show="!activeId" class="flex flex-1 items-center justify-center bg-gradient-to-br from-[#F8FBFC] via-white to-[#F5FBFB]">
                     <div class="text-center">
-                        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[22px] bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(42,167,161,0.12)]">
-                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
+                        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[22px] bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(201,168,76,0.12)]">
+                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
                         </div>
-                        <p class="text-[14px] font-bold text-[#1F2937]">Select a conversation</p>
-                        <p class="mt-1 text-[12px] leading-5 text-[#64748B]">Choose from your conversations on the left to start
+                        <p class="text-[14px] font-bold text-[#060D26]">Select a conversation</p>
+                        <p class="mt-1 text-[12px] leading-5 text-[#5B6A8E]">Choose from your conversations on the left to start
                             messaging.</p>
                     </div>
                 </div>
 
                 {{-- Loading state --}}
                 <div x-show="loading" class="flex-1 flex items-center justify-center">
-                    <div class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin"></div>
+                    <div class="w-6 h-6 border-2 border-[#5B6A8E] border-t-transparent rounded-full animate-spin"></div>
                 </div>
 
                 {{-- Chat content injected here --}}
@@ -311,12 +311,12 @@
                             preview.textContent = message;
                             // System messages are status narration, not someone
                             // waiting on a reply — don't mark them unread.
-                            if (!isSystem) preview.classList.add('font-semibold', 'text-[#1F2937]');
+                            if (!isSystem) preview.classList.add('font-semibold', 'text-[#060D26]');
                         }
 
                         if (!isSystem && !btn.querySelector('[data-unread-dot]')) {
                             const dot = document.createElement('div');
-                            dot.className = 'w-2.5 h-2.5 rounded-full bg-[#2AA7A1] flex-shrink-0 mt-2';
+                            dot.className = 'w-2.5 h-2.5 rounded-full bg-[#060D26] flex-shrink-0 mt-2';
                             dot.setAttribute('data-unread-dot', '');
                             btn.appendChild(dot);
                         }
@@ -548,8 +548,8 @@
 
                         pill.textContent = labels[status] ?? status;
                         pill.className = terminal
-                            ? 'shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E2E8F0] text-[#EF4444]'
-                            : 'shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EEF8F8] text-[#156F8C]';
+                            ? 'shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E2E4EC] text-[#EF4444]'
+                            : 'shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#ECEEF6] text-[#060D26]';
                         pill.setAttribute('data-stage-pill', status);
                     },
 
@@ -561,9 +561,9 @@
                             const divider = document.createElement('div');
                             divider.className = 'self-stretch flex items-center gap-3 my-2 px-2';
                             divider.innerHTML = `
-                                <div class="flex-1 h-px bg-[#E2E8F0]"></div>
-                                <p class="text-xs text-[#64748B] text-center max-w-[70%] leading-relaxed">${this.escapeHtml(data.message)}</p>
-                                <div class="flex-1 h-px bg-[#E2E8F0]"></div>
+                                <div class="flex-1 h-px bg-[#E2E4EC]"></div>
+                                <p class="text-xs text-[#5B6A8E] text-center max-w-[70%] leading-relaxed">${this.escapeHtml(data.message)}</p>
+                                <div class="flex-1 h-px bg-[#E2E4EC]"></div>
                             `;
                             msgList.appendChild(divider);
                             msgList.scrollTop = msgList.scrollHeight;
@@ -585,7 +585,7 @@
                             wrap.setAttribute('data-bubble', '');
 
                             const bubble = document.createElement('div');
-                            bubble.className = 'bg-[#1F2937] text-white rounded-2xl rounded-tr-sm px-4 py-2.5 shadow-sm cursor-default';
+                            bubble.className = 'bg-[#060D26] text-white rounded-2xl rounded-tr-sm px-4 py-2.5 shadow-sm cursor-default';
                             bubble.appendChild(this.buildBody(data.message));
 
                             wrap.appendChild(bubble);
@@ -616,10 +616,10 @@
                             wrap.setAttribute('data-bubble', '');
 
                             const bubble = document.createElement('div');
-                            bubble.className = 'bg-white text-[#1F2937] border border-[#E2E8F0] rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm cursor-default';
+                            bubble.className = 'bg-white text-[#060D26] border border-[#E2E4EC] rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm cursor-default';
 
                             const name = document.createElement('p');
-                            name.className = 'text-[11px] font-bold text-[#156F8C] mb-1';
+                            name.className = 'text-[11px] font-bold text-[#060D26] mb-1';
                             name.textContent = senderFirst;
                             bubble.appendChild(name);
                             bubble.appendChild(this.buildBody(data.message));
@@ -654,7 +654,7 @@
                     // so it stays readable to screen readers.
                     buildTime(time, self) {
                         const stamp = document.createElement('p');
-                        stamp.className = 'message-time absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] tracking-wide text-[#64748B] opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none '
+                        stamp.className = 'message-time absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] tracking-wide text-[#5B6A8E] opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none '
                             + (self ? 'right-full mr-2' : 'left-full ml-2');
                         stamp.textContent = time;
                         return stamp;
@@ -669,7 +669,7 @@
                             return img;
                         }
                         const fallback = document.createElement('div');
-                        fallback.className = 'w-7 h-7 rounded-full bg-[#2AA7A1] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mb-0.5';
+                        fallback.className = 'w-7 h-7 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mb-0.5';
                         fallback.setAttribute('aria-hidden', 'true');
                         fallback.textContent = (firstName || '?').charAt(0).toUpperCase();
                         return fallback;

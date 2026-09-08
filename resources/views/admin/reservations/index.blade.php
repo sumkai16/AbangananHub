@@ -6,21 +6,21 @@
 @php
     $allStatuses = [
         'Inquiry'                  => ['label' => 'Inquiry',           'dot' => 'bg-[#94A3B8]'],
-        'Under Negotiation'        => ['label' => 'Negotiation',       'dot' => 'bg-[#2AA7A1]'],
+        'Under Negotiation'        => ['label' => 'Negotiation',       'dot' => 'bg-[#C9A84C]'],
         'Pending Rental Agreement' => ['label' => 'Pending Agreement', 'dot' => 'bg-[#FBBF24]'],
-        'Rental Agreement Signed'  => ['label' => 'Agreement Signed',  'dot' => 'bg-[#2AA7A1]'],
+        'Rental Agreement Signed'  => ['label' => 'Agreement Signed',  'dot' => 'bg-[#C9A84C]'],
         'Occupied'                 => ['label' => 'Occupied',          'dot' => 'bg-[#22C55E]'],
         'Cancelled'                => ['label' => 'Cancelled',         'dot' => 'bg-[#94A3B8]'],
         'Rejected'                 => ['label' => 'Rejected',          'dot' => 'bg-[#EF4444]'],
     ];
 
     $statusBadge = [
-        'Inquiry'                  => 'bg-[#F7FCFC] text-[#64748B] border-[#E2E8F0]',
-        'Under Negotiation'        => 'bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25',
+        'Inquiry'                  => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]',
+        'Under Negotiation'        => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
         'Pending Rental Agreement' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35',
-        'Rental Agreement Signed'  => 'bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25',
+        'Rental Agreement Signed'  => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
         'Occupied'                 => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
-        'Cancelled'                => 'bg-[#F7FCFC] text-[#94A3B8] border-[#E2E8F0]',
+        'Cancelled'                => 'bg-[#F7F8FC] text-[#94A3B8] border-[#E2E4EC]',
         'Rejected'                 => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25',
     ];
 @endphp
@@ -43,7 +43,7 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <x-stat-card label="Total" :value="number_format($counts['all'])" sub="All time">
             <x-slot:icon>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
             </x-slot:icon>
@@ -58,11 +58,11 @@
         </x-stat-card>
 
         <x-stat-card label="In Progress" :value="number_format($counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'])"
-            value-color="#156F8C" icon-bg="#EEF8F8" sub="Active pipeline">
+            value-color="#060D26" icon-bg="#ECEEF6" sub="Active pipeline">
             <x-slot:icon>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
-                    <circle cx="12" cy="12" r="9" stroke="#156F8C" stroke-width="2" />
+                    <circle cx="12" cy="12" r="9" stroke="#060D26" stroke-width="2" />
                 </svg>
             </x-slot:icon>
         </x-stat-card>
@@ -78,7 +78,7 @@
 
     {{-- Search --}}
     <form method="GET" action="{{ route('admin.reservations.index') }}"
-        class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
+        class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(6,13,38,0.06)] flex flex-col sm:flex-row gap-3">
         <input type="hidden" name="status" value="{{ $status }}">
         <div class="relative flex-1">
             <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
@@ -88,22 +88,22 @@
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant name, email, or property…" aria-label="Search by tenant name, email, or property"
                 x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all">
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all">
         </div>
         <button type="submit"
-            class="h-10 px-5 text-[13.5px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
+            class="h-10 px-5 text-[13.5px] font-bold bg-[#060D26] text-[#F7F4ED] rounded-xl hover:brightness-95 transition-colors shadow-sm">
             Search
         </button>
         @if($search)
             <a href="{{ route('admin.reservations.index', ['status' => $status]) }}"
-                class="h-10 px-4 text-[13.5px] font-semibold border border-[#E2E8F0] text-[#64748B] rounded-xl hover:text-[#1F2937] transition-colors flex items-center">
+                class="h-10 px-4 text-[13.5px] font-semibold border border-[#E2E4EC] text-[#5B6A8E] rounded-xl hover:text-[#060D26] transition-colors flex items-center">
                 Clear
             </a>
         @endif
     </form>
 
     {{-- Status tabs --}}
-    <div class="flex items-center gap-0.5 border-b border-[#E2E8F0] mb-5 overflow-x-auto">
+    <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-5 overflow-x-auto">
         @php
             // "Needs review" is a separate filter dimension layered on top of the
             // status tabs, not a status itself — while it's active, none of the
@@ -112,21 +112,21 @@
         @endphp
         <a href="{{ route('admin.reservations.index', array_filter(['search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ ! $disputedActive && $status === 'all' ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                {{ ! $disputedActive && $status === 'all' ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
             All
-            <span class="ml-1 text-[11px] {{ ! $disputedActive && $status === 'all' ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts['all'] }}</span>
+            <span class="ml-1 text-[11px] {{ ! $disputedActive && $status === 'all' ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts['all'] }}</span>
         </a>
         @foreach($allStatuses as $key => $meta)
             <a href="{{ route('admin.reservations.index', array_filter(['status' => $key, 'search' => $search])) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ ! $disputedActive && $status === $key ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                    {{ ! $disputedActive && $status === $key ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                 {{ $meta['label'] }}
-                <span class="ml-1 text-[11px] {{ ! $disputedActive && $status === $key ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts[$key] }}</span>
+                <span class="ml-1 text-[11px] {{ ! $disputedActive && $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$key] }}</span>
             </a>
         @endforeach
         <a href="{{ route('admin.reservations.index', array_filter(['filter' => 'disputed', 'status' => $status, 'search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ $disputedActive ? 'border-[#2AA7A1] text-[#156F8C]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                {{ $disputedActive ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
             Needs review
             @if ($disputedCount > 0)
                 <span class="ml-1 rounded-full bg-[#EF4444]/[0.10] px-2 py-0.5 text-xs text-[#DC2626]">{{ $disputedCount }}</span>
@@ -136,13 +136,13 @@
 
     {{-- Table --}}
     @if($reservations->isEmpty())
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-            <div class="w-14 h-14 rounded-2xl bg-[#F7FCFC] border border-[#E2E8F0] flex items-center justify-center mx-auto mb-4">
+        <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+            <div class="w-14 h-14 rounded-2xl bg-[#F7F8FC] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
             </div>
-            <p class="text-[15px] font-bold text-[#1F2937]">No reservations found</p>
+            <p class="text-[15px] font-bold text-[#060D26]">No reservations found</p>
             <p class="text-[13px] text-[#94A3B8] mt-1">{{ $search ? 'Try adjusting your search.' : 'None with this status yet.' }}</p>
         </div>
     @else
@@ -150,7 +150,7 @@
             <div class="overflow-x-auto scrollbar-thin-light">
                 <table class="min-w-full">
                     <thead>
-                        <tr class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
+                        <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
                             <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Tenant</th>
                             <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Property / Unit</th>
                             <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Landlord</th>
@@ -159,14 +159,14 @@
                             <th class="px-6 py-3"></th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#E2E8F0]">
+                    <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach($reservations as $res)
                             @php $photo = $res->property?->media->firstWhere('media_type', 'Image'); @endphp
-                            <tr class="hover:bg-[#F7FCFC] transition-colors">
+                            <tr class="hover:bg-[#F7F8FC] transition-colors">
 
                                 {{-- Tenant --}}
                                 <td class="px-6 py-4">
-                                    <p class="text-[13.5px] font-semibold text-[#1F2937]">
+                                    <p class="text-[13.5px] font-semibold text-[#060D26]">
                                         {{ trim(($res->tenant->first_name ?? '') . ' ' . ($res->tenant->last_name ?? '')) ?: '—' }}
                                     </p>
                                     <p class="text-[12px] text-[#94A3B8]">{{ $res->tenant->email ?? '—' }}</p>
@@ -175,7 +175,7 @@
                                 {{-- Property / Unit --}}
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="w-9 h-9 rounded-xl bg-[#EEF8F8] overflow-hidden shrink-0">
+                                        <div class="w-9 h-9 rounded-xl bg-[#ECEEF6] overflow-hidden shrink-0">
                                             @if($photo)
                                                 <img src="{{ $photo->media_url }}" alt="{{ $reservation->unit->unit_label ?? 'Property' }}" loading="lazy" class="w-full h-full object-cover">
                                             @else
@@ -187,7 +187,7 @@
                                             @endif
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="text-[13.5px] font-semibold text-[#1F2937] truncate max-w-[180px]">
+                                            <p class="text-[13.5px] font-semibold text-[#060D26] truncate max-w-[180px]">
                                                 {{ $res->property->title ?? '—' }}
                                             </p>
                                             <p class="text-[12px] text-[#94A3B8]">
@@ -199,19 +199,19 @@
 
                                 {{-- Landlord --}}
                                 <td class="px-6 py-4">
-                                    <p class="text-[13.5px] font-semibold text-[#1F2937]">
+                                    <p class="text-[13.5px] font-semibold text-[#060D26]">
                                         {{ trim(($res->property->landlord->first_name ?? '') . ' ' . ($res->property->landlord->last_name ?? '')) ?: '—' }}
                                     </p>
                                 </td>
 
                                 {{-- Move-in --}}
-                                <td class="px-6 py-4 text-[13px] text-[#64748B]">
+                                <td class="px-6 py-4 text-[13px] text-[#5B6A8E]">
                                     {{ $res->target_move_in_date?->format('M d, Y') ?? '—' }}
                                 </td>
 
                                 {{-- Status --}}
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border {{ $statusBadge[$res->rental_status] ?? 'bg-[#F7FCFC] text-[#64748B] border-[#E2E8F0]' }}">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border {{ $statusBadge[$res->rental_status] ?? 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]' }}">
                                         <span class="w-1.5 h-1.5 rounded-full {{ $allStatuses[$res->rental_status]['dot'] ?? 'bg-[#94A3B8]' }}"></span>
                                         {{ $res->rental_status }}
                                     </span>
@@ -226,7 +226,7 @@
                                 {{-- Actions --}}
                                 <td class="px-6 py-4 text-right">
                                     <a href="{{ route('admin.reservations.show', $res) }}"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F7FCFC] border border-[#E2E8F0] text-[12px] font-semibold text-[#1F2937] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] text-[12px] font-semibold text-[#060D26] hover:bg-[#060D26] hover:text-[#F7F4ED] hover:border-[#060D26] transition-all">
                                         View
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -239,7 +239,7 @@
                 </table>
             </div>
             @if($reservations->hasPages())
-                <div class="px-6 py-4 border-t border-[#E2E8F0]">
+                <div class="px-6 py-4 border-t border-[#E2E4EC]">
                     {{ $reservations->links() }}
                 </div>
             @endif

@@ -78,7 +78,7 @@ class AnalyticsController extends Controller
         $occupancyBreakdown = [
             ['label' => 'Occupied',    'count' => $occupiedUnits,    'color' => '#22C55E'],
             ['label' => 'Reserved',    'count' => $reservedUnits,    'color' => '#FBBF24'],
-            ['label' => 'Available',   'count' => $availableUnits,   'color' => '#2AA7A1'],
+            ['label' => 'Available',   'count' => $availableUnits,   'color' => '#C9A84C'],
             ['label' => 'Maintenance', 'count' => $maintenanceUnits, 'color' => '#94A3B8'],
         ];
 

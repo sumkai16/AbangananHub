@@ -8,8 +8,8 @@
     {{-- Page header --}}
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-[#1F2937] tracking-tight">Property Verifications</h1>
-            <p class="text-sm text-[#64748B] mt-1">Review pending property listings before they go live.</p>
+            <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">Property Verifications</h1>
+            <p class="text-sm text-[#5B6A8E] mt-1">Review pending property listings before they go live.</p>
         </div>
         @if ($counts['Pending'] > 0)
             <span class="inline-flex items-center gap-1.5 rounded-full bg-[#FBBF24]/15 px-3 py-1.5 text-xs font-semibold text-[#92600A]">
@@ -29,15 +29,15 @@
                 'Approved' => ['label' => 'Approved', 'value' => $counts['Approved'], 'accent' => 'text-[#15803D]', 'dot' => 'bg-[#22C55E]'],
                 'Rejected' => ['label' => 'Rejected', 'value' => $counts['Rejected'], 'accent' => 'text-[#B91C1C]', 'dot' => 'bg-[#EF4444]'],
                 'Suspended' => ['label' => 'Suspended', 'value' => $counts['Suspended'], 'accent' => 'text-[#B91C1C]', 'dot' => 'bg-[#EF4444]'],
-                'All' => ['label' => 'Total', 'value' => $counts['All'], 'accent' => 'text-[#156F8C]', 'dot' => 'bg-[#156F8C]'],
+                'All' => ['label' => 'Total', 'value' => $counts['All'], 'accent' => 'text-[#060D26]', 'dot' => 'bg-[#060D26]'],
             ];
         @endphp
         @foreach ($stats as $key => $stat)
             <a href="{{ route('admin.listings.approval', ['status' => $key]) }}"
-                class="bg-white border border-[#E2E8F0] rounded-2xl px-4 py-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-all duration-200 hover:shadow-xl {{ $status === $key ? 'ring-2 ring-[#2AA7A1]' : '' }}">
+                class="bg-white border border-[#E2E4EC] rounded-2xl px-4 py-3.5 shadow-[0_1px_3px_rgba(6,13,38,0.06)] transition-all duration-200 hover:shadow-xl {{ $status === $key ? 'ring-2 ring-[#C9A84C]' : '' }}">
                 <div class="flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full {{ $stat['dot'] }}"></span>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{{ $stat['label'] }}</p>
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">{{ $stat['label'] }}</p>
                 </div>
                 <p class="text-2xl font-bold {{ $stat['accent'] }} mt-1">{{ $stat['value'] }}</p>
             </a>
@@ -45,32 +45,32 @@
     </div>
 
     {{-- Tabs --}}
-    <div class="flex items-center gap-0.5 border-b border-[#E2E8F0] mb-6 overflow-x-auto">
+    <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
         @foreach (['Pending', 'Approved', 'Rejected', 'Suspended', 'All'] as $tab)
             <a href="{{ route('admin.listings.approval', ['status' => $tab]) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $status === $tab ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                    {{ $status === $tab ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                 {{ $tab }}
-                <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
+                <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
             </a>
         @endforeach
     </div>
 
     {{-- List --}}
     @if ($pendingListings->isEmpty())
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-            <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] border border-[#E2E8F0] flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+            <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
+                <svg class="w-7 h-7 text-[#8a6e1e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            <p class="text-[15px] font-bold text-[#1F2937]">{{ $status === 'Pending' ? 'All caught up!' : 'No properties here' }}</p>
-            <p class="text-[13px] text-[#64748B] mt-1 max-w-xs mx-auto">
+            <p class="text-[15px] font-bold text-[#060D26]">{{ $status === 'Pending' ? 'All caught up!' : 'No properties here' }}</p>
+            <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-xs mx-auto">
                 {{ $status === 'Pending' ? 'No pending property listings. Check back later for new submissions.' : 'No properties match this tab right now.' }}
             </p>
         </div>
     @else
-        <x-card flush class="divide-y divide-[#E2E8F0]">
+        <x-card flush class="divide-y divide-[#E2E4EC]">
             @foreach($pendingListings as $property)
                 @php
                     $thumb = optional($property->media->firstWhere('media_type', 'Image'))->media_url;
@@ -86,15 +86,15 @@
                             ? '₱' . number_format($fees->min())
                             : '₱' . number_format($fees->min()) . '–' . number_format($fees->max()));
                 @endphp
-                <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-5 transition-colors duration-150 hover:bg-[#F7FCFC]">
+                <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-5 transition-colors duration-150 hover:bg-[#F7F8FC]">
 
                     {{-- Thumbnail --}}
-                    <div class="w-full sm:w-[132px] aspect-[4/3] rounded-xl overflow-hidden bg-[#EEF8F8] border border-[#E2E8F0] shrink-0">
+                    <div class="w-full sm:w-[132px] aspect-[4/3] rounded-xl overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC] shrink-0">
                         @if($thumb)
                             <img src="{{ $thumb }}" alt="{{ $property->title }}" class="w-full h-full object-cover" />
                         @else
                             <div class="w-full h-full flex items-center justify-center">
-                                <svg class="w-7 h-7 text-[#2AA7A1]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <svg class="w-7 h-7 text-[#8a6e1e]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                 </svg>
                             </div>
@@ -106,7 +106,7 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-3 flex-wrap">
                                 <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-                                    class="text-[16px] font-bold text-[#1F2937] leading-snug hover:text-[#156F8C] transition-colors">
+                                    class="text-[16px] font-bold text-[#060D26] leading-snug hover:text-[#060D26] transition-colors">
                                     {{ $property->title }}
                                 </a>
                                 <div class="flex items-center gap-1.5 shrink-0">
@@ -117,8 +117,8 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-[12.5px] text-[#64748B]">
-                                <span class="font-semibold text-[#156F8C]">{{ $property->property_type }}</span>
+                            <div class="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-[12.5px] text-[#5B6A8E]">
+                                <span class="font-semibold text-[#060D26]">{{ $property->property_type }}</span>
                                 <span class="text-[#CBD5E1]" aria-hidden="true">&middot;</span>
                                 <span class="inline-flex items-center gap-1">
                                     <svg class="w-3.5 h-3.5 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -135,7 +135,7 @@
                                     <span class="truncate">{{ $locationLine }}</span>
                                 </span>
                                 <span class="text-[#CBD5E1]" aria-hidden="true">&middot;</span>
-                                <span class="font-semibold text-[#1F2937]">{{ $rentLine }}</span>
+                                <span class="font-semibold text-[#060D26]">{{ $rentLine }}</span>
                             </div>
                         </div>
 
@@ -143,7 +143,7 @@
                         @if ($property->verification_status === 'Pending')
                             <div class="flex sm:flex-col gap-2 sm:items-stretch shrink-0 sm:w-[130px]">
                                 <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-                                    class="flex-1 sm:flex-none w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl border border-[#64748B]/30 text-[#1F2937] text-[13px] font-bold hover:bg-[#EEF8F8] transition-colors duration-200">
+                                    class="flex-1 sm:flex-none w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl border border-[#5B6A8E]/30 text-[#060D26] text-[13px] font-bold hover:bg-[#ECEEF6] transition-colors duration-200">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -178,7 +178,7 @@
                                     data-confirm-message="It will become visible to tenants again immediately.">
                                     @csrf
                                     <button type="submit"
-                                        class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2AA7A1] hover:brightness-95 text-white text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(21,111,140,0.35)] cursor-pointer">
+                                        class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(6,13,38,0.35)] cursor-pointer">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                         </svg>
@@ -192,7 +192,7 @@
             @endforeach
         </x-card>
         @if ($pendingListings->hasPages())
-            <div class="mt-4 bg-white border border-[#E2E8F0] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+            <div class="mt-4 bg-white border border-[#E2E4EC] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                 {{ $pendingListings->links() }}
             </div>
         @endif

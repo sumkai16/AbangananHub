@@ -18,27 +18,27 @@
                                 d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                         </svg>
                         <div>
-                            <p class="text-sm font-semibold text-[#1F2937]">Your previous application was not approved</p>
+                            <p class="text-sm font-semibold text-[#060D26]">Your previous application was not approved</p>
                             @if($verification->admin_notes)
-                                <p class="mt-1 text-sm text-[#64748B]">Reason: {{ $verification->admin_notes }}</p>
+                                <p class="mt-1 text-sm text-[#5B6A8E]">Reason: {{ $verification->admin_notes }}</p>
                             @endif
-                            <p class="mt-1 text-sm text-[#64748B]">You may re-submit with corrected information below.</p>
+                            <p class="mt-1 text-sm text-[#5B6A8E]">You may re-submit with corrected information below.</p>
                         </div>
                     </div>
                 </div>
             @endif
             {{-- Email Link Sent Notice --}}
             @if(session('email_sent'))
-                <div class="mb-6 rounded-xl border border-[#2AA7A1]/20 bg-[#EEF8F8] p-4">
+                <div class="mb-6 rounded-xl border border-[#C9A84C]/20 bg-[#ECEEF6] p-4">
                     <div class="flex items-start gap-3">
-                        <svg class="h-5 w-5 text-[#2AA7A1] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <svg class="h-5 w-5 text-[#8a6e1e] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                         </svg>
                         <div>
-                            <p class="text-sm font-semibold text-[#1F2937]">Verification link sent to your email</p>
-                            <p class="mt-1 text-sm text-[#64748B]">You can also complete verification here, or use the link we
+                            <p class="text-sm font-semibold text-[#060D26]">Verification link sent to your email</p>
+                            <p class="mt-1 text-sm text-[#5B6A8E]">You can also complete verification here, or use the link we
                                 sent (expires in 1 hour).</p>
                         </div>
                     </div>
@@ -72,74 +72,74 @@
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step === 0" x-transition:enter.duration.200ms class="max-w-xl mx-auto">
                     <div class="text-center pt-8 pb-6">
-                        <div class="w-24 h-24 rounded-full bg-[#EEF8F8] mx-auto mb-6 flex items-center justify-center">
-                            <svg class="w-12 h-12 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <div class="w-24 h-24 rounded-full bg-[#ECEEF6] mx-auto mb-6 flex items-center justify-center">
+                            <svg class="w-12 h-12 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
                             </svg>
                         </div>
-                        <h1 class="text-2xl font-bold text-[#1F2937] mb-2">Verify your identity</h1>
-                        <p class="text-sm text-[#64748B] max-w-sm mx-auto">Complete these steps to start listing properties
+                        <h1 class="text-2xl font-normal text-[#060D26] mb-2">Verify your identity</h1>
+                        <p class="text-sm text-[#5B6A8E] max-w-sm mx-auto">Complete these steps to start listing properties
                             on AbangananHub.</p>
                     </div>
 
                     <div class="space-y-3 mb-8">
                         {{-- Checklist item: Government ID --}}
-                        <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                            <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                            <div class="w-10 h-10 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
                                 </svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-[#1F2937]">Government ID</p>
-                                <p class="text-xs text-[#64748B]">Photo of front and back</p>
+                                <p class="text-sm font-semibold text-[#060D26]">Government ID</p>
+                                <p class="text-xs text-[#5B6A8E]">Photo of front and back</p>
                             </div>
                         </div>
 
                         {{-- Checklist item: Face verification --}}
-                        <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                            <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                            <div class="w-10 h-10 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                 </svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-[#1F2937]">Face verification</p>
-                                <p class="text-xs text-[#64748B]">Selfie to confirm your identity</p>
+                                <p class="text-sm font-semibold text-[#060D26]">Face verification</p>
+                                <p class="text-xs text-[#5B6A8E]">Selfie to confirm your identity</p>
                             </div>
                         </div>
 
                         {{-- Checklist item: Business details --}}
-                        <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                            <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                            <div class="w-10 h-10 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
                                 </svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-[#1F2937]">Business details</p>
-                                <p class="text-xs text-[#64748B]">Name, address, contact info</p>
+                                <p class="text-sm font-semibold text-[#060D26]">Business details</p>
+                                <p class="text-xs text-[#5B6A8E]">Name, address, contact info</p>
                             </div>
                         </div>
                     </div>
 
                     <button type="button" @click="nextStep()"
-                        class="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[#FF8A65] hover:brightness-95 transition-all duration-150">
+                        class="w-full py-3 rounded-xl text-sm font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150">
                         Get started
                     </button>
 
-                    <p class="mt-5 text-center text-xs text-[#64748B] leading-relaxed">Rather do this on your phone?
+                    <p class="mt-5 text-center text-xs text-[#5B6A8E] leading-relaxed">Rather do this on your phone?
                         <button type="button"
                             x-data="emailLinkButton('{{ route('landlord.verification.sendEmailLink') }}', '{{ csrf_token() }}')"
-                            @click="send()" class="font-semibold text-[#1F2937] hover:text-[#156F8C] transition-colors"
+                            @click="send()" class="font-semibold text-[#060D26] hover:text-[#060D26] transition-colors"
                             :class="done ? 'pointer-events-none' : ''">
                             <span x-show="!sending && !done" class="underline">Send myself a link</span>
                             <span x-show="sending" style="display:none">Sending...</span>
@@ -163,26 +163,26 @@
                 {{-- STEP 1 — Select ID Type --}}
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step === 1" x-transition:enter.duration.200ms class="max-w-2xl">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 1 of 5</p>
-                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]">Which ID will you use?</h1>
-                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">Pick a valid, unexpired Philippine
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]">Step 1 of 5</p>
+                    <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]">Which ID will you use?</h1>
+                    <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Pick a valid, unexpired Philippine
                         government ID. You'll photograph it on the next step, so have it with you.</p>
 
                     <div class="mt-6 grid sm:grid-cols-2 gap-2">
                         <template x-for="id in idTypes" :key="id">
                             <label
                                 class="flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors duration-150"
-                                :class="idType === id ? 'border-[#2AA7A1] bg-[#EEF8F8]' : 'border-[#E2E8F0] bg-white hover:bg-[#F7FCFC]'">
+                                :class="idType === id ? 'border-[#C9A84C] bg-[#ECEEF6]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'">
                                 <input type="radio" :value="id" x-model="idType"
-                                    class="h-4 w-4 text-[#2AA7A1] border-[#E2E8F0] focus:ring-[#2AA7A1]">
-                                <span class="text-sm text-[#1F2937]" x-text="id"></span>
+                                    class="h-4 w-4 text-[#8a6e1e] border-[#E2E4EC] focus:ring-[#C9A84C]">
+                                <span class="text-sm text-[#060D26]" x-text="id"></span>
                             </label>
                         </template>
                     </div>
 
-                    <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                    <div class="mt-7 pt-5 border-t border-[#E2E4EC] flex items-center gap-3">
                         <button type="button" @click="nextStep()" :disabled="!idType"
-                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
+                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
                             Continue
                         </button>
                     </div>
@@ -193,12 +193,12 @@
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step === 2" x-transition:enter.duration.200ms>
 
-                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]"
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]"
                         x-text="idCapturePhase === 'capture-back' ? 'Back of your ' + idType : 'Front of your ' + idType"></p>
-                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]"
+                    <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]"
                         x-text="idCapturePhase === 'capture-back' ? 'Now the back of your ID' : 'Line up the front of your ID'">
                     </h1>
-                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">We read your name and ID number
+                    <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">We read your name and ID number
                         straight off this photo, so the text has to be sharp.</p>
 
                     {{-- ── Ready screen ────────────────────────── --}}
@@ -212,25 +212,25 @@
                             ] as $rule)
                                 <li class="flex items-start gap-2.5">
                                     <span
-                                        class="w-4 h-4 mt-0.5 shrink-0 rounded-full bg-[#EEF8F8] flex items-center justify-center">
-                                        <svg class="w-2.5 h-2.5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg"
+                                        class="w-4 h-4 mt-0.5 shrink-0 rounded-full bg-[#ECEEF6] flex items-center justify-center">
+                                        <svg class="w-2.5 h-2.5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor"
                                             aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                         </svg>
                                     </span>
-                                    <span class="text-[13px] text-[#64748B] leading-relaxed">{{ $rule }}</span>
+                                    <span class="text-[13px] text-[#5B6A8E] leading-relaxed">{{ $rule }}</span>
                                 </li>
                             @endforeach
                         </ul>
 
-                        <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                        <div class="mt-7 pt-5 border-t border-[#E2E4EC] flex items-center gap-3">
                             <button type="button" @click="prevStep()"
-                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                                 Back
                             </button>
                             <button type="button" @click="startIdCapture()"
-                                class="ml-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                                class="ml-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150">
                                 @include('components.icons.camera')
                                 Open camera
                             </button>
@@ -267,10 +267,10 @@
                                             </svg>
                                         </div>
                                         <div class="flex items-center justify-between mt-1.5">
-                                            <span class="text-xs text-[#64748B]"
+                                            <span class="text-xs text-[#5B6A8E]"
                                                 x-text="needsBack ? 'Front' : 'ID Photo'"></span>
                                             <button type="button" @click="retakePhoto('id')"
-                                                class="text-xs text-[#2AA7A1] hover:underline">Retake</button>
+                                                class="text-xs text-[#8a6e1e] hover:underline">Retake</button>
                                         </div>
                                     </div>
                                     <div x-show="needsBack" class="relative">
@@ -291,16 +291,16 @@
                                                     </svg>
                                                 </div>
                                                 <div class="flex items-center justify-between mt-1.5">
-                                                    <span class="text-xs text-[#64748B]">Back</span>
+                                                    <span class="text-xs text-[#5B6A8E]">Back</span>
                                                     <button type="button" @click="retakePhoto('idBack')"
-                                                        class="text-xs text-[#2AA7A1] hover:underline">Retake</button>
+                                                        class="text-xs text-[#8a6e1e] hover:underline">Retake</button>
                                                 </div>
                                             </div>
                                         </template>
                                         <template x-if="!idBackBase64">
                                             <div
-                                                class="rounded-xl border-2 border-dashed border-[#E2E8F0] aspect-[4/3] flex items-center justify-center">
-                                                <span class="text-xs text-[#64748B]">Back</span>
+                                                class="rounded-xl border-2 border-dashed border-[#E2E4EC] aspect-[4/3] flex items-center justify-center">
+                                                <span class="text-xs text-[#5B6A8E]">Back</span>
                                             </div>
                                         </template>
                                     </div>
@@ -316,8 +316,8 @@
                                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                     </svg>
                                     <div>
-                                        <p class="text-sm font-semibold text-[#1F2937]">These photos look the same</p>
-                                        <p class="text-xs text-[#64748B] mt-1">Flip your ID over and retake the back photo.
+                                        <p class="text-sm font-semibold text-[#060D26]">These photos look the same</p>
+                                        <p class="text-xs text-[#5B6A8E] mt-1">Flip your ID over and retake the back photo.
                                         </p>
                                     </div>
                                 </div>
@@ -326,37 +326,37 @@
                             {{-- OCR results --}}
                             <div x-show="idCapturePhase === 'done' && (ocrLoading || ocrResult || ocrError)" class="mb-4">
                                 <div x-show="ocrLoading" class="flex items-center gap-2 py-4 justify-center">
-                                    <svg class="animate-spin h-4 w-4 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg"
+                                    <svg class="animate-spin h-4 w-4 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                             stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor"
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                     </svg>
-                                    <span class="text-xs text-[#64748B]">Checking your ID...</span>
+                                    <span class="text-xs text-[#5B6A8E]">Checking your ID...</span>
                                 </div>
 
                                 <template x-if="!ocrLoading && ocrResult">
                                     <div>
-                                        <div class="border-t border-[#E2E8F0] pt-4 mb-4">
-                                            <p class="text-xs font-semibold text-[#64748B] mb-3">What we found on your ID
+                                        <div class="border-t border-[#E2E4EC] pt-4 mb-4">
+                                            <p class="text-xs font-semibold text-[#5B6A8E] mb-3">What we found on your ID
                                             </p>
                                             <div class="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-sm"
                                                 x-data="{ names: parseNames(ocrResult?.extracted) }">
-                                                <span class="text-xs text-[#64748B]">Last Name</span>
-                                                <span class="text-sm font-medium text-[#1F2937]"
+                                                <span class="text-xs text-[#5B6A8E]">Last Name</span>
+                                                <span class="text-sm font-medium text-[#060D26]"
                                                     x-text="names.lastName || '-----'"></span>
-                                                <span class="text-xs text-[#64748B]">First Name</span>
-                                                <span class="text-sm font-medium text-[#1F2937]"
+                                                <span class="text-xs text-[#5B6A8E]">First Name</span>
+                                                <span class="text-sm font-medium text-[#060D26]"
                                                     x-text="names.firstName || '-----'"></span>
-                                                <span class="text-xs text-[#64748B]">Middle Name</span>
-                                                <span class="text-sm text-[#1F2937]"
+                                                <span class="text-xs text-[#5B6A8E]">Middle Name</span>
+                                                <span class="text-sm text-[#060D26]"
                                                     x-text="names.middleName || '-----'"></span>
-                                                <span class="text-xs text-[#64748B]">ID Number</span>
-                                                <span class="text-sm font-medium text-[#1F2937]"
+                                                <span class="text-xs text-[#5B6A8E]">ID Number</span>
+                                                <span class="text-sm font-medium text-[#060D26]"
                                                     x-text="ocrResult?.id_number || '-----'"></span>
-                                                <span class="text-xs text-[#64748B]">ID Type</span>
-                                                <span class="text-sm text-[#1F2937]" x-text="idType"></span>
+                                                <span class="text-xs text-[#5B6A8E]">ID Type</span>
+                                                <span class="text-sm text-[#060D26]" x-text="idType"></span>
                                             </div>
                                         </div>
                                         <div class="space-y-2">
@@ -380,14 +380,14 @@
                                                     </svg>
                                                 </template>
                                                 <div>
-                                                    <p class="text-sm font-semibold text-[#1F2937]"
+                                                    <p class="text-sm font-semibold text-[#060D26]"
                                                         x-text="ocrResult?.status === 'pass' ? 'We found your name on this ID' : (ocrResult?.status === 'partial' ? 'Partial name match' : 'Name not found on this ID')">
                                                     </p>
-                                                    <p class="text-xs text-[#64748B] mt-1"
+                                                    <p class="text-xs text-[#5B6A8E] mt-1"
                                                         x-show="ocrResult?.status === 'partial'">Close but not exact. Try
                                                         retaking with better lighting, or continue — our team will verify.
                                                     </p>
-                                                    <p class="text-xs text-[#64748B] mt-1"
+                                                    <p class="text-xs text-[#5B6A8E] mt-1"
                                                         x-show="ocrResult?.status === 'fail'">Make sure text is clear and
                                                         well-lit. You can retake or continue — our team will check manually.
                                                     </p>
@@ -401,7 +401,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                                 </svg>
-                                                <span class="text-sm text-[#1F2937]">This looks like a <span
+                                                <span class="text-sm text-[#060D26]">This looks like a <span
                                                         class="font-medium" x-text="idType"></span></span>
                                             </div>
                                             <div x-show="ocrResult?.type_match === 'mismatch'"
@@ -413,10 +413,10 @@
                                                         d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                                 </svg>
                                                 <div>
-                                                    <p class="text-sm font-semibold text-[#1F2937]">This doesn't look like a
+                                                    <p class="text-sm font-semibold text-[#060D26]">This doesn't look like a
                                                         <span x-text="idType"></span>
                                                     </p>
-                                                    <p class="text-xs text-[#64748B] mt-1">Make sure you photographed the
+                                                    <p class="text-xs text-[#5B6A8E] mt-1">Make sure you photographed the
                                                         correct ID type.</p>
                                                 </div>
                                             </div>
@@ -425,7 +425,7 @@
                                 </template>
 
                                 <div x-show="ocrError" class="px-3 py-2 rounded-xl bg-[#FBBF24]/[0.10]">
-                                    <p class="text-xs text-[#1F2937]">OCR unavailable — admin will review your ID manually.
+                                    <p class="text-xs text-[#060D26]">OCR unavailable — admin will review your ID manually.
                                     </p>
                                 </div>
                             </div>
@@ -435,7 +435,7 @@
                                 <div class="relative rounded-2xl overflow-hidden bg-black aspect-[4/3]">
                                     <video x-ref="videoId" autoplay playsinline class="w-full h-full object-cover"></video>
                                     <x-capture-brackets />
-                                    <p class="absolute inset-x-0 top-4 mx-auto w-fit px-3.5 py-1.5 rounded-full bg-white/90 text-xs font-semibold text-[#1F2937] pointer-events-none">
+                                    <p class="absolute inset-x-0 top-4 mx-auto w-fit px-3.5 py-1.5 rounded-full bg-white/90 text-xs font-semibold text-[#060D26] pointer-events-none">
                                         Hold steady — move the ID inside the brackets
                                     </p>
                                     <x-shutter-button label="Capture the front of your ID" @click="capturePhoto('id')"
@@ -450,7 +450,7 @@
                                     <video x-ref="videoIdBack" autoplay playsinline
                                         class="w-full h-full object-cover"></video>
                                     <x-capture-brackets />
-                                    <p class="absolute inset-x-0 top-4 mx-auto w-fit px-3.5 py-1.5 rounded-full bg-white/90 text-xs font-semibold text-[#1F2937] pointer-events-none">
+                                    <p class="absolute inset-x-0 top-4 mx-auto w-fit px-3.5 py-1.5 rounded-full bg-white/90 text-xs font-semibold text-[#060D26] pointer-events-none">
                                         Flip your ID over and line up the back
                                     </p>
                                     <x-shutter-button label="Capture the back of your ID"
@@ -463,7 +463,7 @@
 
                             {{-- Guidance column --}}
                             <div class="hidden xl:block">
-                                <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#64748B]">Before you
+                                <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#5B6A8E]">Before you
                                     capture</p>
                                 <ul class="mt-3 space-y-2.5">
                                     @foreach ([
@@ -473,21 +473,21 @@
                                     ] as $rule)
                                         <li class="flex items-start gap-2.5">
                                             <span
-                                                class="w-4 h-4 mt-0.5 shrink-0 rounded-full bg-[#EEF8F8] flex items-center justify-center">
-                                                <svg class="w-2.5 h-2.5 text-[#2AA7A1]" xmlns="http://www.w3.org/2000/svg"
+                                                class="w-4 h-4 mt-0.5 shrink-0 rounded-full bg-[#ECEEF6] flex items-center justify-center">
+                                                <svg class="w-2.5 h-2.5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg"
                                                     fill="none" viewBox="0 0 24 24" stroke-width="3.5"
                                                     stroke="currentColor" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="m4.5 12.75 6 6 9-13.5" />
                                                 </svg>
                                             </span>
-                                            <span class="text-[13px] text-[#64748B] leading-relaxed">{{ $rule }}</span>
+                                            <span class="text-[13px] text-[#5B6A8E] leading-relaxed">{{ $rule }}</span>
                                         </li>
                                     @endforeach
                                 </ul>
 
                                 <div x-show="idImageBase64">
-                                    <p class="mt-7 text-[11px] font-bold uppercase tracking-[0.09em] text-[#64748B]">
+                                    <p class="mt-7 text-[11px] font-bold uppercase tracking-[0.09em] text-[#5B6A8E]">
                                         Captured so far</p>
                                     <div class="mt-3 grid grid-cols-2 gap-2.5">
                                         <div>
@@ -497,10 +497,10 @@
                                                     class="w-full aspect-[4/3] object-cover">
                                             </div>
                                             <div class="flex items-center justify-between mt-1.5">
-                                                <span class="text-[11.5px] text-[#64748B]"
+                                                <span class="text-[11.5px] text-[#5B6A8E]"
                                                     x-text="needsBack ? 'Front' : 'ID photo'"></span>
                                                 <button type="button" @click="retakePhoto('id')"
-                                                    class="text-[11.5px] text-[#156F8C] hover:underline">Retake</button>
+                                                    class="text-[11.5px] text-[#060D26] hover:underline">Retake</button>
                                             </div>
                                         </div>
                                         <div x-show="needsBack">
@@ -512,19 +512,19 @@
                                                             class="w-full aspect-[4/3] object-cover">
                                                     </div>
                                                     <div class="flex items-center justify-between mt-1.5">
-                                                        <span class="text-[11.5px] text-[#64748B]">Back</span>
+                                                        <span class="text-[11.5px] text-[#5B6A8E]">Back</span>
                                                         <button type="button" @click="retakePhoto('idBack')"
-                                                            class="text-[11.5px] text-[#156F8C] hover:underline">Retake</button>
+                                                            class="text-[11.5px] text-[#060D26] hover:underline">Retake</button>
                                                     </div>
                                                 </div>
                                             </template>
                                             <template x-if="!idBackBase64">
                                                 <div>
                                                     <div
-                                                        class="rounded-lg border-[1.5px] border-dashed border-[#E2E8F0] aspect-[4/3] flex items-center justify-center">
-                                                        <span class="text-[11px] text-[#64748B]">Back</span>
+                                                        class="rounded-lg border-[1.5px] border-dashed border-[#E2E4EC] aspect-[4/3] flex items-center justify-center">
+                                                        <span class="text-[11px] text-[#5B6A8E]">Back</span>
                                                     </div>
-                                                    <p class="mt-1.5 text-[11.5px] text-[#64748B]">Next</p>
+                                                    <p class="mt-1.5 text-[11.5px] text-[#5B6A8E]">Next</p>
                                                 </div>
                                             </template>
                                         </div>
@@ -534,13 +534,13 @@
 
                         </div>{{-- /grid --}}
 
-                        <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                        <div class="mt-7 pt-5 border-t border-[#E2E4EC] flex items-center gap-3">
                             <button type="button" @click="prevStep()"
-                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                                 Back
                             </button>
                             <button type="button" @click="nextStep()" :disabled="!idCaptureComplete"
-                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
                                 Continue
                             </button>
                         </div>
@@ -552,38 +552,38 @@
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step === 3" x-transition:enter.duration.200ms>
 
-                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Live face check</p>
-                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]"
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]">Live face check</p>
+                    <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]"
                         x-text="livenessActive && livenessInstruction ? livenessInstruction : 'Show us it\'s really you'">
                     </h1>
-                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">Four quick movements prove you're
+                    <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Four quick movements prove you're
                         here in person. We take the photo automatically once they're done, then compare it with the
                         photo on your ID.</p>
 
                     {{-- ── Ready screen ────────────────────────── --}}
                     <div x-show="selfieCapturePhase === 'choose' && !selfieBase64" class="mt-6 max-w-xl">
-                        <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#64748B]">You'll be asked to</p>
+                        <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#5B6A8E]">You'll be asked to</p>
                         <ol class="mt-3 space-y-2 mb-5">
                             <template x-for="(label, idx) in livenessSteps" :key="idx">
                                 <li class="flex items-center gap-3">
                                     <span
-                                        class="w-[22px] h-[22px] rounded-full bg-[#EEF8F8] text-[#156F8C] text-[11px] font-bold flex items-center justify-center shrink-0"
+                                        class="w-[22px] h-[22px] rounded-full bg-[#ECEEF6] text-[#060D26] text-[11px] font-bold flex items-center justify-center shrink-0"
                                         x-text="idx + 1"></span>
-                                    <span class="text-sm text-[#1F2937]" x-text="label"></span>
+                                    <span class="text-sm text-[#060D26]" x-text="label"></span>
                                 </li>
                             </template>
                         </ol>
 
-                        <p class="text-[13px] text-[#64748B] leading-relaxed">No sunglasses or hats, and keep your
+                        <p class="text-[13px] text-[#5B6A8E] leading-relaxed">No sunglasses or hats, and keep your
                             whole face inside the ring.</p>
 
-                        <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                        <div class="mt-7 pt-5 border-t border-[#E2E4EC] flex items-center gap-3">
                             <button type="button" @click="prevStep()"
-                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                                 Back
                             </button>
                             <button type="button" @click="startSelfieCapture()"
-                                class="ml-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                                class="ml-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150">
                                 @include('components.icons.camera')
                                 Start face check
                             </button>
@@ -618,7 +618,7 @@
                                     <div x-show="livenessActive && livenessFaceDetected"
                                         class="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
                                         <span
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EEF8F8]/90 text-xs font-medium text-[#156F8C]">
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#ECEEF6]/90 text-xs font-medium text-[#060D26]">
                                             <svg class="w-3 h-3 text-[#22C55E]" xmlns="http://www.w3.org/2000/svg"
                                                 fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -684,7 +684,7 @@
 
                                 {{-- Liveness unavailable — explains why the shutter is showing --}}
                                 <div x-show="livenessError" class="mt-4 p-3 rounded-xl bg-[#FBBF24]/[0.10]">
-                                    <p class="text-xs text-[#1F2937] leading-relaxed">Face detection couldn't load, so we
+                                    <p class="text-xs text-[#060D26] leading-relaxed">Face detection couldn't load, so we
                                         can't run the movement check. Take a regular selfie instead — our team will
                                         verify it manually.</p>
                                 </div>
@@ -694,18 +694,18 @@
 
                             {{-- Movement checklist — mirrors the step rail's language --}}
                             <div x-show="livenessActive || livenessLoading">
-                                <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#64748B]">Movements</p>
+                                <p class="text-[11px] font-bold uppercase tracking-[0.09em] text-[#5B6A8E]">Movements</p>
                                 <ol class="mt-3 space-y-0.5">
                                     <template x-for="(label, idx) in livenessSteps" :key="idx">
                                         <li class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors duration-200"
-                                            :class="livenessStep === idx ? 'bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)]' : ''">
+                                            :class="livenessStep === idx ? 'bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]' : ''">
                                             <span
                                                 class="w-[22px] h-[22px] shrink-0 rounded-full border-[1.5px] flex items-center justify-center text-[11px] font-bold transition-colors duration-300"
                                                 :class="livenessCompleted[idx]
                                                     ? 'bg-[#22C55E] border-[#22C55E] text-white'
                                                     : (livenessStep === idx
-                                                        ? 'bg-[#2AA7A1] border-[#2AA7A1] text-white'
-                                                        : 'bg-white border-[#E2E8F0] text-[#64748B]')">
+                                                        ? 'bg-[#060D26] border-[#C9A84C] text-white'
+                                                        : 'bg-white border-[#E2E4EC] text-[#5B6A8E]')">
                                                 <template x-if="livenessCompleted[idx]">
                                                     <svg class="w-2.5 h-2.5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                                         viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor"
@@ -719,23 +719,23 @@
                                                 </template>
                                             </span>
                                             <span class="text-[13px] transition-colors duration-200"
-                                                :class="livenessStep === idx || livenessCompleted[idx] ? 'text-[#1F2937] font-semibold' : 'text-[#64748B] font-medium'"
+                                                :class="livenessStep === idx || livenessCompleted[idx] ? 'text-[#060D26] font-semibold' : 'text-[#5B6A8E] font-medium'"
                                                 x-text="label"></span>
                                         </li>
                                     </template>
                                 </ol>
 
-                                <div class="mt-5 p-3.5 rounded-xl bg-[#EEF8F8]">
-                                    <p class="text-xs text-[#64748B] leading-relaxed">No sunglasses or hats, and keep your
+                                <div class="mt-5 p-3.5 rounded-xl bg-[#ECEEF6]">
+                                    <p class="text-xs text-[#5B6A8E] leading-relaxed">No sunglasses or hats, and keep your
                                         whole face inside the ring.</p>
                                 </div>
                             </div>
 
                         </div>
 
-                        <div class="mt-7 pt-5 border-t border-[#E2E8F0]">
+                        <div class="mt-7 pt-5 border-t border-[#E2E4EC]">
                             <button type="button" @click="prevStep()"
-                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                                 Back
                             </button>
                         </div>
@@ -756,8 +756,8 @@
                                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                     </svg>
                                     <div>
-                                        <p class="text-sm font-semibold text-[#1F2937]">Live check not completed</p>
-                                        <p class="text-xs text-[#64748B] mt-1">We couldn't run the automatic face check on
+                                        <p class="text-sm font-semibold text-[#060D26]">Live check not completed</p>
+                                        <p class="text-xs text-[#5B6A8E] mt-1">We couldn't run the automatic face check on
                                             this photo. You can retake it or continue — our team will verify it manually,
                                             which may take longer.</p>
                                     </div>
@@ -771,27 +771,27 @@
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                     </svg>
-                                    <span class="text-sm text-[#1F2937]"
+                                    <span class="text-sm text-[#060D26]"
                                         x-text="livenessPassed ? 'Liveness verified' : 'Photo captured'"></span>
                                 </div>
                             </div>
 
                             <div class="mt-3">
                                 <button type="button" @click="retakePhoto('selfie')"
-                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-[#1F2937] border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-[#060D26] border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                                     @include('components.icons.refresh')
                                     Retake
                                 </button>
                             </div>
                         </div>
 
-                        <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                        <div class="mt-7 pt-5 border-t border-[#E2E4EC] flex items-center gap-3">
                             <button type="button" @click="prevStep()"
-                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                                class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                                 Back
                             </button>
                             <button type="button" @click="nextStep()" :disabled="!selfieBase64"
-                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
                                 Continue
                             </button>
                         </div>
@@ -802,61 +802,61 @@
                 {{-- STEP 4 — Business Details --}}
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step === 4" x-transition:enter.duration.200ms class="max-w-2xl">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 4 of 5</p>
-                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]">Tell us about your rental
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]">Step 4 of 5</p>
+                    <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]">Tell us about your rental
                         business</h1>
-                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">This is what tenants see on your
+                    <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">This is what tenants see on your
                         listings. You can change any of it later from your profile.</p>
 
                     <div class="mt-6">
                         <div class="space-y-4">
                             <div>
-                                <label for="business_name" class="block text-sm font-medium text-[#1F2937] mb-1">Business
+                                <label for="business_name" class="block text-sm font-medium text-[#060D26] mb-1">Business
                                     name <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="business_name" name="business_name" x-model="businessName"
-                                    class="w-full rounded-xl border border-[#E2E8F0] px-3.5 py-2.5 text-sm text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
                                     placeholder="e.g. Sunrise Boarding House">
                             </div>
                             <div>
-                                <label for="description" class="block text-sm font-medium text-[#1F2937] mb-1">Description
-                                    <span class="text-[#64748B] text-xs font-normal">(optional)</span></label>
+                                <label for="description" class="block text-sm font-medium text-[#060D26] mb-1">Description
+                                    <span class="text-[#5B6A8E] text-xs font-normal">(optional)</span></label>
                                 <textarea id="description" name="description" rows="3" x-model="description"
                                     maxlength="1000"
-                                    class="w-full rounded-xl border border-[#E2E8F0] px-3.5 py-2.5 text-sm text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] outline-none transition-colors resize-none"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors resize-none"
                                     placeholder="Brief description of your rental business"></textarea>
-                                <p class="mt-1 text-xs text-[#64748B]" x-text="(description?.length || 0) + '/1000'"></p>
+                                <p class="mt-1 text-xs text-[#5B6A8E]" x-text="(description?.length || 0) + '/1000'"></p>
                             </div>
                             <div>
-                                <label for="logo" class="block text-sm font-medium text-[#1F2937] mb-1">Business logo <span
-                                        class="text-[#64748B] text-xs font-normal">(optional, max 2MB)</span></label>
+                                <label for="logo" class="block text-sm font-medium text-[#060D26] mb-1">Business logo <span
+                                        class="text-[#5B6A8E] text-xs font-normal">(optional, max 2MB)</span></label>
                                 <input type="file" id="logo" name="logo" accept="image/jpeg,image/png"
-                                    class="w-full text-sm text-[#64748B] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#EEF8F8] file:text-[#156F8C] hover:file:bg-[#ddf1f1] file:cursor-pointer file:transition-colors">
+                                    class="w-full text-sm text-[#5B6A8E] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#ECEEF6] file:text-[#060D26] hover:file:bg-[#ddf1f1] file:cursor-pointer file:transition-colors">
                             </div>
                             <div>
-                                <label for="contact_number" class="block text-sm font-medium text-[#1F2937] mb-1">Contact
+                                <label for="contact_number" class="block text-sm font-medium text-[#060D26] mb-1">Contact
                                     number <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="contact_number" name="contact_number" x-model="contactNumber"
-                                    class="w-full rounded-xl border border-[#E2E8F0] px-3.5 py-2.5 text-sm text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
                                     placeholder="09XX XXX XXXX">
                             </div>
                             <div>
-                                <label for="business_address" class="block text-sm font-medium text-[#1F2937] mb-1">Business
+                                <label for="business_address" class="block text-sm font-medium text-[#060D26] mb-1">Business
                                     address <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="business_address" name="business_address" x-model="businessAddress"
-                                    class="w-full rounded-xl border border-[#E2E8F0] px-3.5 py-2.5 text-sm text-[#1F2937] placeholder-[#64748B]/50 focus:border-[#2AA7A1] focus:ring-1 focus:ring-[#2AA7A1] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
                                     placeholder="Full address of your rental property/business">
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                    <div class="mt-7 pt-5 border-t border-[#E2E4EC] flex items-center gap-3">
                         <button type="button" @click="prevStep()"
-                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                             Back
                         </button>
                         <button type="button" @click="nextStep()"
                             :disabled="!businessName || !contactNumber || !businessAddress"
-                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
+                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
                             Continue
                         </button>
                     </div>
@@ -866,15 +866,15 @@
                 {{-- STEP 5 — Review & Submit --}}
                 {{-- ═══════════════════════════════════════════════ --}}
                 <div x-show="step === 5" x-transition:enter.duration.200ms class="max-w-4xl">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 5 of 5</p>
-                    <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]">Check it over before you send</h1>
-                    <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">An admin reviews every application by
+                    <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]">Step 5 of 5</p>
+                    <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]">Check it over before you send</h1>
+                    <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">An admin reviews every application by
                         hand. Getting this right the first time is the fastest route to approval.</p>
 
                     <div class="mt-6 space-y-4">
                         {{-- Verification checks --}}
-                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
-                            <p class="text-xs font-semibold text-[#64748B] mb-3">Verification checks</p>
+                        <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
+                            <p class="text-xs font-semibold text-[#5B6A8E] mb-3">Verification checks</p>
                             <div x-show="ocrResult" class="space-y-2">
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
                                     :class="ocrResult?.status === 'pass' ? 'bg-[#22C55E]/[0.07]' : (ocrResult?.status === 'partial' ? 'bg-[#FBBF24]/[0.10]' : 'bg-[#EF4444]/[0.07]')">
@@ -894,7 +894,7 @@
                                                 d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                         </svg>
                                     </template>
-                                    <span class="text-xs text-[#1F2937]"
+                                    <span class="text-xs text-[#060D26]"
                                         x-text="ocrResult?.status === 'pass' ? 'Name found on ID' : (ocrResult?.status === 'partial' ? 'Partial name match — team will verify' : 'Name not verified — team will check')"></span>
                                 </div>
                                 <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
@@ -910,17 +910,17 @@
                                             stroke-linejoin="round"
                                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                     </svg>
-                                    <span class="text-xs text-[#1F2937]"
+                                    <span class="text-xs text-[#060D26]"
                                         x-text="ocrResult?.type_match === 'match' ? 'Looks like a ' + idType : 'Document type not confirmed — team will check'"></span>
                                 </div>
                                 <div x-show="ocrResult?.id_number"
-                                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#EEF8F8]">
-                                    <svg class="w-4 h-4 text-[#2AA7A1] shrink-0" xmlns="http://www.w3.org/2000/svg"
+                                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#ECEEF6]">
+                                    <svg class="w-4 h-4 text-[#8a6e1e] shrink-0" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
                                     </svg>
-                                    <span class="text-xs text-[#64748B]">ID Number: <span class="font-medium text-[#1F2937]"
+                                    <span class="text-xs text-[#5B6A8E]">ID Number: <span class="font-medium text-[#060D26]"
                                             x-text="ocrResult?.id_number"></span></span>
                                 </div>
                                 <div x-show="faceCheckDone" class="flex items-center gap-2 px-3 py-2.5 rounded-xl"
@@ -934,37 +934,37 @@
                                         <path x-show="!faceDetected" stroke-linecap="round" stroke-linejoin="round"
                                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                     </svg>
-                                    <span class="text-xs text-[#1F2937]"
+                                    <span class="text-xs text-[#060D26]"
                                         x-text="faceDetected ? 'Selfie looks good' : 'Face not clearly visible — team will check'"></span>
                                 </div>
                             </div>
                             <div x-show="ocrError" class="px-3 py-2.5 rounded-xl bg-[#FBBF24]/[0.10]">
-                                <p class="text-xs text-[#1F2937]">OCR unavailable — admin will review your ID manually.</p>
+                                <p class="text-xs text-[#060D26]">OCR unavailable — admin will review your ID manually.</p>
                             </div>
                         </div>
 
                         {{-- Photos --}}
-                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
-                            <p class="text-xs font-semibold text-[#64748B] mb-3">Your photos</p>
+                        <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
+                            <p class="text-xs font-semibold text-[#5B6A8E] mb-3">Your photos</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" :class="needsBack ? 'lg:grid-cols-3' : ''">
                                 <div>
-                                    <p class="text-xs text-[#64748B] mb-1.5"
+                                    <p class="text-xs text-[#5B6A8E] mb-1.5"
                                         x-text="needsBack ? 'ID Front' : 'Government ID'"></p>
-                                    <div class="rounded-xl overflow-hidden border border-[#E2E8F0] cursor-pointer"
+                                    <div class="rounded-xl overflow-hidden border border-[#E2E4EC] cursor-pointer"
                                         @click="openPreview(idImageBase64)">
                                         <img :src="idImageBase64" alt="Front of ID" class="w-full">
                                     </div>
                                 </div>
                                 <div x-show="needsBack && idBackBase64">
-                                    <p class="text-xs text-[#64748B] mb-1.5">ID Back</p>
-                                    <div class="rounded-xl overflow-hidden border border-[#E2E8F0] cursor-pointer"
+                                    <p class="text-xs text-[#5B6A8E] mb-1.5">ID Back</p>
+                                    <div class="rounded-xl overflow-hidden border border-[#E2E4EC] cursor-pointer"
                                         @click="openPreview(idBackBase64)">
                                         <img :src="idBackBase64" alt="Back of ID" class="w-full">
                                     </div>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-[#64748B] mb-1.5">Selfie</p>
-                                    <div class="rounded-xl overflow-hidden border border-[#E2E8F0] cursor-pointer"
+                                    <p class="text-xs text-[#5B6A8E] mb-1.5">Selfie</p>
+                                    <div class="rounded-xl overflow-hidden border border-[#E2E4EC] cursor-pointer"
                                         @click="openPreview(selfieBase64)">
                                         <img :src="selfieBase64" alt="Selfie" class="w-full">
                                     </div>
@@ -973,40 +973,40 @@
                         </div>
 
                         {{-- Business details --}}
-                        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
-                            <p class="text-xs font-semibold text-[#64748B] mb-3">Business details</p>
+                        <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
+                            <p class="text-xs font-semibold text-[#5B6A8E] mb-3">Business details</p>
                             <dl class="space-y-3">
                                 <div class="flex flex-col sm:flex-row sm:gap-4">
-                                    <dt class="text-xs font-medium text-[#64748B] sm:w-32 shrink-0">ID Type</dt>
-                                    <dd class="text-sm text-[#1F2937]" x-text="idType"></dd>
+                                    <dt class="text-xs font-medium text-[#5B6A8E] sm:w-32 shrink-0">ID Type</dt>
+                                    <dd class="text-sm text-[#060D26]" x-text="idType"></dd>
                                 </div>
                                 <div class="flex flex-col sm:flex-row sm:gap-4">
-                                    <dt class="text-xs font-medium text-[#64748B] sm:w-32 shrink-0">Business Name</dt>
-                                    <dd class="text-sm text-[#1F2937]" x-text="businessName"></dd>
+                                    <dt class="text-xs font-medium text-[#5B6A8E] sm:w-32 shrink-0">Business Name</dt>
+                                    <dd class="text-sm text-[#060D26]" x-text="businessName"></dd>
                                 </div>
                                 <div class="flex flex-col sm:flex-row sm:gap-4" x-show="description">
-                                    <dt class="text-xs font-medium text-[#64748B] sm:w-32 shrink-0">Description</dt>
-                                    <dd class="text-sm text-[#1F2937]" x-text="description"></dd>
+                                    <dt class="text-xs font-medium text-[#5B6A8E] sm:w-32 shrink-0">Description</dt>
+                                    <dd class="text-sm text-[#060D26]" x-text="description"></dd>
                                 </div>
                                 <div class="flex flex-col sm:flex-row sm:gap-4">
-                                    <dt class="text-xs font-medium text-[#64748B] sm:w-32 shrink-0">Contact</dt>
-                                    <dd class="text-sm text-[#1F2937]" x-text="contactNumber"></dd>
+                                    <dt class="text-xs font-medium text-[#5B6A8E] sm:w-32 shrink-0">Contact</dt>
+                                    <dd class="text-sm text-[#060D26]" x-text="contactNumber"></dd>
                                 </div>
                                 <div class="flex flex-col sm:flex-row sm:gap-4">
-                                    <dt class="text-xs font-medium text-[#64748B] sm:w-32 shrink-0">Address</dt>
-                                    <dd class="text-sm text-[#1F2937]" x-text="businessAddress"></dd>
+                                    <dt class="text-xs font-medium text-[#5B6A8E] sm:w-32 shrink-0">Address</dt>
+                                    <dd class="text-sm text-[#060D26]" x-text="businessAddress"></dd>
                                 </div>
                             </dl>
                         </div>
                     </div>
 
-                    <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                    <div class="mt-7 pt-5 border-t border-[#E2E4EC] flex items-center gap-3">
                         <button type="button" @click="prevStep()"
-                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                             Back
                         </button>
                         <button type="submit" :disabled="submitting"
-                            class="ml-auto inline-flex items-center justify-center gap-2 px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#FF8A65] hover:brightness-95 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed">
+                            class="ml-auto inline-flex items-center justify-center gap-2 px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed">
                             <svg x-show="submitting" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -1020,12 +1020,12 @@
                 </div>
 
                         {{-- Phone hand-off — the rail carries this on desktop --}}
-                        <div class="lg:hidden mt-7 pt-5 border-t border-[#E2E8F0]">
-                            <p class="text-xs text-[#64748B] leading-relaxed">Rather do this on your phone?
+                        <div class="lg:hidden mt-7 pt-5 border-t border-[#E2E4EC]">
+                            <p class="text-xs text-[#5B6A8E] leading-relaxed">Rather do this on your phone?
                                 <button type="button"
                                     x-data="emailLinkButton('{{ route('landlord.verification.sendEmailLink') }}', '{{ csrf_token() }}')"
                                     @click="send()"
-                                    class="text-left font-semibold text-[#1F2937] hover:text-[#156F8C] transition-colors"
+                                    class="text-left font-semibold text-[#060D26] hover:text-[#060D26] transition-colors"
                                     :class="done ? 'pointer-events-none' : ''">
                                     <span x-show="!sending && !done" class="underline">Send myself a link</span>
                                     <span x-show="sending" style="display:none">Sending...</span>

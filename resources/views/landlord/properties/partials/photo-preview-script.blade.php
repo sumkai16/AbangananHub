@@ -11,7 +11,7 @@
             labelText.textContent = input.files.length === 1
                 ? '1 photo selected'
                 : `${input.files.length} photos selected`;
-            labelText.classList.add('text-[#156F8C]');
+            labelText.classList.add('text-[#060D26]');
 
             Array.from(input.files).forEach(file => {
                 if (!file.type.startsWith('image/')) return;
@@ -19,7 +19,7 @@
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     const wrapper = document.createElement('div');
-                    wrapper.className = "relative aspect-square rounded-xl overflow-hidden bg-[#EEF8F8] border border-[#E2E8F0] shadow-sm";
+                    wrapper.className = "relative aspect-square rounded-xl overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC] shadow-sm";
 
                     const img = document.createElement('img');
                     img.src = e.target.result;
@@ -33,7 +33,7 @@
         } else {
             previewGrid.classList.add('hidden');
             labelText.textContent = defaultLabel;
-            labelText.classList.remove('text-[#156F8C]');
+            labelText.classList.remove('text-[#060D26]');
         }
     }
 </script>

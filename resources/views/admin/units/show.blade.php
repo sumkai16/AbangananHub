@@ -7,11 +7,11 @@
 
         {{-- Breadcrumb --}}
         <div class="flex items-center gap-1.5 text-[13px] text-[#94A3B8] mb-4">
-            <a href="{{ route('admin.units.index') }}" class="hover:text-[#1F2937] transition-colors">Unit Approvals</a>
+            <a href="{{ route('admin.units.index') }}" class="hover:text-[#060D26] transition-colors">Unit Approvals</a>
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
-            <span class="text-[#1F2937] font-medium">{{ $unit->unit_label }}</span>
+            <span class="text-[#060D26] font-medium">{{ $unit->unit_label }}</span>
         </div>
 
         @php
@@ -25,13 +25,13 @@
         <div class="flex items-center justify-between mb-6">
             <div>
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-extrabold text-[#1F2937] tracking-tight">{{ $unit->unit_label }}</h1>
+                    <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">{{ $unit->unit_label }}</h1>
                     <span
                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $statusCls }}">
                         {{ $unit->verification_status }}
                     </span>
                 </div>
-                <p class="text-[13.5px] text-[#64748B] mt-1">{{ $property->title }}</p>
+                <p class="text-[13.5px] text-[#5B6A8E] mt-1">{{ $property->title }}</p>
             </div>
         </div>
 
@@ -54,38 +54,38 @@
             {{-- Left: details + media --}}
             <div class="lg:col-span-8 space-y-5">
 
-                <div class="bg-white border border-[#E2E8F0] rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Unit Details</h2>
+                <div class="bg-white border border-[#E2E4EC] rounded-3xl p-6 shadow-sm">
+                    <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Unit Details</h2>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Monthly Rent</p>
-                            <p class="text-[14px] font-semibold text-[#1F2937]">₱{{ number_format($unit->rental_fee, 2) }}
+                            <p class="text-[14px] font-semibold text-[#060D26]">₱{{ number_format($unit->rental_fee, 2) }}
                             </p>
                         </div>
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Capacity</p>
-                            <p class="text-[14px] font-semibold text-[#1F2937]">{{ $unit->occupancy_limit }}
+                            <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->occupancy_limit }}
                                 {{ Str::plural('person', $unit->occupancy_limit) }}
                             </p>
                         </div>
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Floor Area</p>
-                            <p class="text-[14px] font-semibold text-[#1F2937]">{{ $unit->floor_area_label ?? '—' }}</p>
+                            <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->floor_area_label ?? '—' }}</p>
                         </div>
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Availability</p>
-                            <p class="text-[14px] font-semibold text-[#1F2937]">{{ $unit->availability_status }}</p>
+                            <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->availability_status }}</p>
                         </div>
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1">Submitted</p>
-                            <p class="text-[14px] font-semibold text-[#1F2937]">{{ $unit->created_at->format('M j, Y') }}
+                            <p class="text-[14px] font-semibold text-[#060D26]">{{ $unit->created_at->format('M j, Y') }}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-[#E2E8F0] rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Verification Capture</h2>
+                <div class="bg-white border border-[#E2E4EC] rounded-3xl p-6 shadow-sm">
+                    <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Verification Capture</h2>
 
                     @php
                         $photos = $unit->media->where('media_type', 'Image');
@@ -99,7 +99,7 @@
                             <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
                                 @foreach($photos as $photo)
                                     <a href="{{ $photo->media_url }}" target="_blank"
-                                        class="aspect-square rounded-xl overflow-hidden bg-[#F7FCFC] border border-[#E2E8F0] block">
+                                        class="aspect-square rounded-xl overflow-hidden bg-[#F7F8FC] border border-[#E2E4EC] block">
                                         <img src="{{ $photo->media_url }}" alt="Unit photo" class="w-full h-full object-cover">
                                     </a>
                                 @endforeach
@@ -107,7 +107,7 @@
                         @endif
 
                         @if($video)
-                            <div class="rounded-xl overflow-hidden bg-[#F7FCFC] border border-[#E2E8F0] max-w-sm">
+                            <div class="rounded-xl overflow-hidden bg-[#F7F8FC] border border-[#E2E4EC] max-w-sm">
                                 <video src="{{ $video->media_url }}" controls class="w-full h-auto"></video>
                             </div>
                         @endif
@@ -119,16 +119,16 @@
             {{-- Right: landlord card + actions --}}
             <div class="lg:col-span-4 space-y-5">
 
-                <div class="bg-white border border-[#E2E8F0] rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Landlord</h2>
+                <div class="bg-white border border-[#E2E4EC] rounded-3xl p-6 shadow-sm">
+                    <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Landlord</h2>
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
-                            <span class="text-[#156F8C] text-[13px] font-bold">
+                        <div class="w-10 h-10 rounded-full bg-[#C9A84C]/10 flex items-center justify-center shrink-0">
+                            <span class="text-[#060D26] text-[13px] font-bold">
                                 {{ strtoupper(substr($property->landlord->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name ?? '', 0, 1)) }}
                             </span>
                         </div>
                         <div>
-                            <p class="text-[13.5px] font-semibold text-[#1F2937]">
+                            <p class="text-[13.5px] font-semibold text-[#060D26]">
                                 {{ $property->landlord->first_name ?? '' }} {{ $property->landlord->last_name ?? '' }}
                             </p>
                             <p class="text-[12px] text-[#94A3B8]">{{ $property->landlord->email ?? '—' }}</p>
@@ -136,8 +136,8 @@
                     </div>
                 </div>
                 @if($unit->isPending())
-                    <div class="bg-white border border-[#E2E8F0] rounded-3xl p-6 shadow-sm space-y-3">
-                        <h2 class="text-[15px] font-bold text-[#1F2937] mb-1">Decision</h2>
+                    <div class="bg-white border border-[#E2E4EC] rounded-3xl p-6 shadow-sm space-y-3">
+                        <h2 class="text-[15px] font-normal text-[#060D26] mb-1">Decision</h2>
 
                         <form method="POST" action="{{ route('admin.units.approve', [$property, $unit]) }}"
                             data-confirm="Approve this unit?">
@@ -153,7 +153,7 @@
                             @csrf
                             <textarea name="rejection_reason" rows="3" maxlength="500"
                                 placeholder="Reason for rejection (shown to landlord)"
-                                class="w-full rounded-xl border border-[#E2E8F0] px-3.5 py-2.5 text-[13px] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#EF4444]/25 transition"></textarea>
+                                class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#EF4444]/25 transition"></textarea>
                             @error('rejection_reason')
                                 <p class="text-xs text-[#DC2626]">{{ $message }}</p>
                             @enderror

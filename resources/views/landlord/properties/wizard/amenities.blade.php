@@ -5,7 +5,7 @@
     <div class="max-w-[1200px] mx-auto">
 
         <a href="{{ route('landlord.properties.index') }}"
-            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#156F8C] transition-colors w-fit mb-6">
+            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#060D26] transition-colors w-fit mb-6">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -30,9 +30,9 @@
             <x-property-wizard-stepper current="amenities" :property="$property" :checklist="$checklist ?? null" />
 
             <div class="min-w-0">
-                <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 3 of 6</p>
-                <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]">What does the building offer?</h1>
-                <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">Shared, building-wide amenities — not what's inside a specific unit. Optional, but tenants filter on these.</p>
+                <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]">Step 3 of 6</p>
+                <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]">What does the building offer?</h1>
+                <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Shared, building-wide amenities — not what's inside a specific unit. Optional, but tenants filter on these.</p>
 
                 <form method="POST" action="{{ route('properties.wizard.amenities.store', $property) }}" class="mt-7 max-w-3xl">
                     @csrf
@@ -45,10 +45,10 @@
                                 <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2.5">{{ $category }}</p>
                                 <div class="space-y-2">
                                     @foreach($group as $amenity)
-                                        <label class="flex items-center gap-2.5 text-[14px] text-[#1F2937] cursor-pointer">
+                                        <label class="flex items-center gap-2.5 text-[14px] text-[#060D26] cursor-pointer">
                                             <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
                                                 @checked(collect($selected)->contains($amenity->amenity_id))
-                                                class="w-[18px] h-[18px] rounded-md border-[#E2E8F0] text-[#2AA7A1] focus:ring-[#2AA7A1]/30 focus:ring-offset-0">
+                                                class="w-[18px] h-[18px] rounded-md border-[#E2E4EC] text-[#8a6e1e] focus:ring-[#C9A84C]/30 focus:ring-offset-0">
                                             {{ $amenity->name }}
                                         </label>
                                     @endforeach
@@ -58,13 +58,13 @@
                     </div>
                     @error('amenities')<p class="text-xs text-[#EF4444] mt-3">{{ $message }}</p>@enderror
 
-                    <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center gap-3">
+                    <div class="mt-7 pt-5 border-t border-[#E2E4EC] flex items-center gap-3">
                         <a href="{{ route('properties.wizard.location.edit', $property) }}"
-                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                             Back
                         </a>
                         <button type="submit"
-                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#F7F4ED] bg-[#060D26] hover:brightness-95 transition-all duration-150">
                             Save & Continue
                         </button>
                     </div>

@@ -8,7 +8,7 @@
     {{-- Back + header --}}
     <div class="flex items-start gap-4 mb-6">
         <a href="{{ route('admin.conversations.index') }}"
-            class="mt-0.5 inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold border border-[#E2E8F0] text-[#64748B] rounded-xl hover:text-[#1F2937] hover:bg-[#F7FCFC] transition-colors shrink-0">
+            class="mt-0.5 inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold border border-[#E2E4EC] text-[#5B6A8E] rounded-xl hover:text-[#060D26] hover:bg-[#F7F8FC] transition-colors shrink-0">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -16,16 +16,16 @@
         </a>
         <div class="flex-1">
             <div class="flex items-center gap-3 flex-wrap">
-                <h1 class="text-xl font-extrabold text-[#1F2937] tracking-tight">Conversation Thread</h1>
+                <h1 class="text-xl font-normal text-[#060D26] tracking-tight">Conversation Thread</h1>
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border
-                    {{ ($conversation->status ?? 'Open') === 'Resolved' ? 'bg-[#F7FCFC] text-[#64748B] border-[#E2E8F0]' : 'bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25' }}">
+                    {{ ($conversation->status ?? 'Open') === 'Resolved' ? 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]' : 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25' }}">
                     {{ $conversation->status ?? 'Open' }}
                 </span>
                 <span class="text-[12px] text-[#94A3B8] font-medium">Read-only · Admin view</span>
             </div>
             @if($conversation->property)
-                <p class="text-[13px] text-[#64748B] mt-1">
-                    Re: <span class="font-semibold text-[#1F2937]">{{ $conversation->property->title }}</span>
+                <p class="text-[13px] text-[#5B6A8E] mt-1">
+                    Re: <span class="font-semibold text-[#060D26]">{{ $conversation->property->title }}</span>
                     @if($conversation->unit) · Unit {{ $conversation->unit->unit_number }} @endif
                 </p>
             @endif
@@ -37,8 +37,8 @@
         {{-- Left: message thread --}}
         <div class="lg:col-span-2">
             <x-card flush>
-                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
-                    <h2 class="text-[13.5px] font-bold text-[#1F2937]">Messages</h2>
+                <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-center justify-between">
+                    <h2 class="text-[13.5px] font-normal text-[#060D26]">Messages</h2>
                     <span class="text-[12px] text-[#94A3B8]">{{ $conversation->messages->count() }} message{{ $conversation->messages->count() !== 1 ? 's' : '' }}</span>
                 </div>
 
@@ -46,7 +46,7 @@
                      an admin arbitrating a dispute needs the stage the parties
                      are looking at, not a second reading of it. --}}
                 @if ($reservation)
-                    <div class="px-6 pt-4 pb-3 border-b border-[#E2E8F0] bg-[#F7FCFC]">
+                    <div class="px-6 pt-4 pb-3 border-b border-[#E2E4EC] bg-[#F7F8FC]">
                         @include('conversations.partials._stage-stepper', ['reservation' => $reservation])
                     </div>
                 @endif
@@ -73,18 +73,18 @@
                             <div class="flex {{ $isTenant ? 'flex-row' : 'flex-row-reverse' }} items-end gap-2.5">
                                 {{-- Avatar --}}
                                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[12px] font-bold
-                                    {{ $isTenant ? 'bg-[#2AA7A1]/10 text-[#156F8C]' : 'bg-[#22C55E]/[0.07] text-[#15803D]' }}">
+                                    {{ $isTenant ? 'bg-[#C9A84C]/10 text-[#060D26]' : 'bg-[#22C55E]/[0.07] text-[#15803D]' }}">
                                     {{ strtoupper(substr($msg->sender->first_name ?? '?', 0, 1)) }}
                                 </div>
                                 {{-- Bubble --}}
                                 <div class="max-w-[75%]">
-                                    <p class="text-[10.5px] font-semibold {{ $isTenant ? 'text-[#156F8C]' : 'text-[#15803D] text-right' }} mb-1">
+                                    <p class="text-[10.5px] font-semibold {{ $isTenant ? 'text-[#060D26]' : 'text-[#15803D] text-right' }} mb-1">
                                         {{ $senderName }} · {{ $roleLabel }}
                                     </p>
                                     <div class="px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed
                                         {{ $isTenant
-                                            ? 'bg-[#2AA7A1]/10 text-[#1F2937] rounded-bl-sm border border-[#2AA7A1]/10'
-                                            : 'bg-[#EEF8F8] text-[#1F2937] rounded-br-sm border border-[#E2E8F0]' }}">
+                                            ? 'bg-[#C9A84C]/10 text-[#060D26] rounded-bl-sm border border-[#C9A84C]/10'
+                                            : 'bg-[#ECEEF6] text-[#060D26] rounded-br-sm border border-[#E2E4EC]' }}">
                                         {{ $msg->message }}
                                     </div>
                                     <p class="text-[10.5px] text-[#94A3B8] mt-1 {{ $isTenant ? '' : 'text-right' }}">
@@ -96,7 +96,7 @@
                     </div>
                 @endif
 
-                <div class="px-6 py-3 border-t border-[#E2E8F0] bg-[#FBBF24]/[0.10]">
+                <div class="px-6 py-3 border-t border-[#E2E4EC] bg-[#FBBF24]/[0.10]">
                     <p class="text-[11px] text-[#B45309] font-medium text-center">
                         Admin view only — you cannot send messages in this conversation.
                     </p>
@@ -129,7 +129,7 @@
                                 Reported {{ $reservation->move_in_disputed_at->diffForHumans() }}. The countdown is paused.
                             </p>
                             @if ($reservation->move_in_dispute_reason)
-                                <p class="mt-1.5 text-[11.5px] text-[#1F2937] italic">
+                                <p class="mt-1.5 text-[11.5px] text-[#060D26] italic">
                                     "{{ $reservation->move_in_dispute_reason }}"</p>
                             @endif
                         </div>
@@ -138,7 +138,7 @@
                     <dl class="space-y-2 text-[12.5px]">
                         <div class="flex justify-between gap-3">
                             <dt class="text-[#94A3B8] shrink-0">Escrow</dt>
-                            <dd class="font-semibold text-right {{ $heldPayment ? 'text-[#156F8C]' : ($releasedPayment ? 'text-[#15803D]' : 'text-[#64748B]') }}">
+                            <dd class="font-semibold text-right {{ $heldPayment ? 'text-[#060D26]' : ($releasedPayment ? 'text-[#15803D]' : 'text-[#5B6A8E]') }}">
                                 @if ($heldPayment)
                                     Held &middot; &#8369;{{ number_format($heldPayment->amount, 2) }}
                                 @elseif ($releasedPayment)
@@ -150,19 +150,19 @@
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-[#94A3B8] shrink-0">Clock</dt>
-                            <dd class="font-semibold text-[#1F2937] text-right">
+                            <dd class="font-semibold text-[#060D26] text-right">
                                 {{ $onTurnoverClock ? 'Key turnover (landlord)' : 'Move-in confirmation (tenant)' }}
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-[#94A3B8] shrink-0">Deadline</dt>
-                            <dd class="font-semibold text-[#1F2937] text-right">
+                            <dd class="font-semibold text-[#060D26] text-right">
                                 {{ $deadlineAt?->format('M d, Y') ?? '—' }}
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-[#94A3B8] shrink-0">Handover</dt>
-                            <dd class="font-semibold text-right {{ $reservation->hasConfirmedHandover() ? 'text-[#15803D]' : 'text-[#64748B]' }}">
+                            <dd class="font-semibold text-right {{ $reservation->hasConfirmedHandover() ? 'text-[#15803D]' : 'text-[#5B6A8E]' }}">
                                 @if ($reservation->hasConfirmedHandover())
                                     {{ $reservation->handover_at->format('M d, g:i A') }}
                                 @elseif ($reservation->hasProposedHandover())
@@ -175,7 +175,7 @@
                         @if ($reservation->keys_turned_over_at)
                             <div class="flex justify-between gap-3">
                                 <dt class="text-[#94A3B8] shrink-0">Keys marked</dt>
-                                <dd class="font-semibold text-[#1F2937] text-right">
+                                <dd class="font-semibold text-[#060D26] text-right">
                                     {{ $reservation->keys_turned_over_at->format('M d, Y') }}</dd>
                             </div>
                         @endif
@@ -188,18 +188,18 @@
                 <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Tenant</p>
                 @if($conversation->tenant)
                     <div class="flex items-center gap-2.5 mb-3">
-                        <div class="w-9 h-9 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center text-[13px] font-bold text-[#156F8C]">
+                        <div class="w-9 h-9 rounded-full bg-[#C9A84C]/10 flex items-center justify-center text-[13px] font-bold text-[#060D26]">
                             {{ strtoupper(substr($conversation->tenant->first_name ?? '?', 0, 1)) }}
                         </div>
                         <div>
-                            <p class="text-[13px] font-bold text-[#1F2937]">
+                            <p class="text-[13px] font-bold text-[#060D26]">
                                 {{ trim($conversation->tenant->first_name . ' ' . $conversation->tenant->last_name) }}
                             </p>
                             <p class="text-[11px] text-[#94A3B8]">{{ $conversation->tenant->email }}</p>
                         </div>
                     </div>
                     <a href="{{ route('admin.users.show', $conversation->tenant) }}"
-                        class="block w-full text-center py-2 text-[12px] font-semibold border border-[#E2E8F0] text-[#64748B] rounded-xl hover:bg-[#F7FCFC] transition-colors">
+                        class="block w-full text-center py-2 text-[12px] font-semibold border border-[#E2E4EC] text-[#5B6A8E] rounded-xl hover:bg-[#F7F8FC] transition-colors">
                         View Profile
                     </a>
                 @else
@@ -216,14 +216,14 @@
                             {{ strtoupper(substr($conversation->landlord->first_name ?? '?', 0, 1)) }}
                         </div>
                         <div>
-                            <p class="text-[13px] font-bold text-[#1F2937]">
+                            <p class="text-[13px] font-bold text-[#060D26]">
                                 {{ trim($conversation->landlord->first_name . ' ' . $conversation->landlord->last_name) }}
                             </p>
                             <p class="text-[11px] text-[#94A3B8]">{{ $conversation->landlord->email }}</p>
                         </div>
                     </div>
                     <a href="{{ route('admin.users.show', $conversation->landlord) }}"
-                        class="block w-full text-center py-2 text-[12px] font-semibold border border-[#E2E8F0] text-[#64748B] rounded-xl hover:bg-[#F7FCFC] transition-colors">
+                        class="block w-full text-center py-2 text-[12px] font-semibold border border-[#E2E4EC] text-[#5B6A8E] rounded-xl hover:bg-[#F7F8FC] transition-colors">
                         View Profile
                     </a>
                 @else
@@ -235,29 +235,29 @@
             @if($conversation->property)
                 <x-card flush class="p-4">
                     <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Property</p>
-                    <p class="text-[13.5px] font-bold text-[#1F2937] mb-0.5">{{ $conversation->property->title }}</p>
+                    <p class="text-[13.5px] font-bold text-[#060D26] mb-0.5">{{ $conversation->property->title }}</p>
                     <p class="text-[12px] text-[#94A3B8] mb-1">{{ $conversation->property->address ?? '' }}</p>
                     @if($conversation->unit)
-                        <p class="text-[12px] font-semibold text-[#156F8C]">Unit {{ $conversation->unit->unit_number }}</p>
+                        <p class="text-[12px] font-semibold text-[#060D26]">Unit {{ $conversation->unit->unit_number }}</p>
                     @endif
                 </x-card>
             @endif
 
             {{-- Meta --}}
-            <div class="bg-[#F7FCFC] border border-[#E2E8F0] rounded-2xl p-4">
+            <div class="bg-[#F7F8FC] border border-[#E2E4EC] rounded-2xl p-4">
                 <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Details</p>
                 <div class="space-y-2 text-[12.5px]">
                     <div class="flex justify-between">
                         <span class="text-[#94A3B8]">Started</span>
-                        <span class="font-semibold text-[#1F2937]">{{ $conversation->created_at->format('M d, Y') }}</span>
+                        <span class="font-semibold text-[#060D26]">{{ $conversation->created_at->format('M d, Y') }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-[#94A3B8]">Last activity</span>
-                        <span class="font-semibold text-[#1F2937]">{{ $conversation->updated_at->diffForHumans() }}</span>
+                        <span class="font-semibold text-[#060D26]">{{ $conversation->updated_at->diffForHumans() }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-[#94A3B8]">Status</span>
-                        <span class="font-bold {{ ($conversation->status ?? 'Open') === 'Resolved' ? 'text-[#64748B]' : 'text-[#156F8C]' }}">
+                        <span class="font-bold {{ ($conversation->status ?? 'Open') === 'Resolved' ? 'text-[#5B6A8E]' : 'text-[#060D26]' }}">
                             {{ $conversation->status ?? 'Open' }}
                         </span>
                     </div>

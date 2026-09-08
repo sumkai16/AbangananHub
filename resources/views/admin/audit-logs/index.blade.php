@@ -18,15 +18,15 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <x-stat-card label="Total Actions" :value="number_format($stats['total'])" sub="Matching current filters">
             <x-slot:icon>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3.75-9.75H18a2.25 2.25 0 012.25 2.25v9A2.25 2.25 0 0118 21H6a2.25 2.25 0 01-2.25-2.25v-9A2.25 2.25 0 016 8.25h1.5" />
                 </svg>
             </x-slot:icon>
         </x-stat-card>
 
-        <x-stat-card label="Today" :value="number_format($stats['today'])" value-color="#156F8C" icon-bg="#EEF8F8" sub="Recorded in the last 24h">
+        <x-stat-card label="Today" :value="number_format($stats['today'])" value-color="#060D26" icon-bg="#ECEEF6" sub="Recorded in the last 24h">
             <x-slot:icon>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                 </svg>
             </x-slot:icon>
@@ -51,7 +51,7 @@
 
     {{-- Search + filters --}}
     <form method="GET" action="{{ route('admin.audit-logs.index') }}"
-        class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+        class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
         <div class="flex flex-col lg:flex-row lg:items-center gap-3">
             <div class="relative flex-1 min-w-[200px]">
                 <label for="audit-search" class="sr-only">Search audit logs</label>
@@ -61,12 +61,12 @@
                 </svg>
                 <input type="text" name="search" id="audit-search" value="{{ $search }}"
                     placeholder="Search by admin, action, or reason…"
-                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
+                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200">
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
                 <x-styled-select name="action" :options="$actionOptions" :selected="$action"
-                    class="h-11 pl-4 pr-9 rounded-xl border border-[#64748B]/25 bg-[#F7FCFC] text-[13.5px] text-[#1F2937] max-w-[220px]" />
+                    class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[220px]" />
 
                 <div>
                     <label for="audit-from" class="sr-only">From date</label>
@@ -78,7 +78,7 @@
                 </div>
 
                 <button type="submit"
-                    class="h-11 px-5 rounded-xl bg-[#1F2937] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5 cursor-pointer">
+                    class="h-11 px-5 rounded-xl bg-[#060D26] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5 cursor-pointer">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                     </svg>
@@ -87,7 +87,7 @@
 
                 @if($search || $action || $from || $to)
                     <a href="{{ route('admin.audit-logs.index') }}"
-                        class="h-11 px-4 rounded-xl border border-[#64748B]/25 text-[13.5px] text-[#64748B] hover:text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200 inline-flex items-center gap-1.5">
+                        class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
@@ -99,14 +99,14 @@
     </form>
 
     @if($logs->isEmpty())
-        <div class="rounded-2xl border border-dashed border-[#64748B]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
-            <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
-                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.2">
+        <div class="rounded-2xl border border-dashed border-[#5B6A8E]/30 bg-white flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
+                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3.75-9.75H18a2.25 2.25 0 012.25 2.25v9A2.25 2.25 0 0118 21H6a2.25 2.25 0 01-2.25-2.25v-9A2.25 2.25 0 016 8.25h1.5" />
                 </svg>
             </div>
-            <p class="text-sm font-semibold text-[#1F2937]">No audit entries found</p>
-            <p class="text-xs text-[#64748B] mt-1">
+            <p class="text-sm font-semibold text-[#060D26]">No audit entries found</p>
+            <p class="text-xs text-[#5B6A8E] mt-1">
                 {{ $search || $action || $from || $to ? 'Try adjusting your search or filters.' : 'Actions will be recorded here as they happen.' }}
             </p>
         </div>
@@ -115,24 +115,24 @@
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[980px] text-left">
                     <thead>
-                        <tr class="border-b border-[#E2E8F0]">
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">When</th>
-                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Actor</th>
-                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Action</th>
-                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">Details</th>
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-[#64748B] uppercase tracking-wide">IP</th>
+                        <tr class="border-b border-[#E2E4EC]">
+                            <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">When</th>
+                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Actor</th>
+                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Action</th>
+                            <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Details</th>
+                            <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">IP</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#E2E8F0]">
+                    <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach($logs as $log)
-                            <tr class="hover:bg-[#F7FCFC]/70 transition-colors duration-200 align-top">
+                            <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200 align-top">
                                 <td class="px-5 py-3.5 whitespace-nowrap">
-                                    <p class="text-[12.5px] font-semibold text-[#1F2937]">{{ $log->created_at?->format('M j, Y') }}</p>
-                                    <p class="text-[11px] text-[#64748B]">{{ $log->created_at?->format('g:i A') }}</p>
+                                    <p class="text-[12.5px] font-semibold text-[#060D26]">{{ $log->created_at?->format('M j, Y') }}</p>
+                                    <p class="text-[11px] text-[#5B6A8E]">{{ $log->created_at?->format('g:i A') }}</p>
                                 </td>
                                 <td class="px-4 py-3.5">
-                                    <p class="text-[12.5px] font-semibold text-[#1F2937]">{{ $log->actor_name }}</p>
-                                    <p class="text-[11px] text-[#64748B] truncate max-w-[180px]">{{ $log->actor_email }}</p>
+                                    <p class="text-[12.5px] font-semibold text-[#060D26]">{{ $log->actor_name }}</p>
+                                    <p class="text-[11px] text-[#5B6A8E] truncate max-w-[180px]">{{ $log->actor_email }}</p>
                                     @unless($log->actor_id)
                                         {{-- The FK is ON DELETE SET NULL so the trail survives the account. --}}
                                         <p class="text-[10.5px] text-[#B45309] mt-0.5">Account deleted</p>
@@ -140,37 +140,37 @@
                                 </td>
                                 <td class="px-4 py-3.5">
                                     <span class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap
-                                        {{ $log->isDestructive() ? 'bg-[#EF4444]/[0.07] text-[#DC2626]' : 'bg-[#EEF8F8] text-[#156F8C]' }}">
+                                        {{ $log->isDestructive() ? 'bg-[#EF4444]/[0.07] text-[#DC2626]' : 'bg-[#ECEEF6] text-[#060D26]' }}">
                                         {{ $log->actionLabel() }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3.5">
-                                    <p class="text-[12.5px] text-[#1F2937]">{{ $log->summary }}</p>
+                                    <p class="text-[12.5px] text-[#060D26]">{{ $log->summary }}</p>
                                     @if($log->reason)
-                                        <p class="text-[11px] text-[#64748B] mt-0.5">Reason: {{ $log->reason }}</p>
+                                        <p class="text-[11px] text-[#5B6A8E] mt-0.5">Reason: {{ $log->reason }}</p>
                                     @endif
                                     @if($log->metadata)
-                                        <p class="text-[11px] text-[#64748B] mt-0.5">
+                                        <p class="text-[11px] text-[#5B6A8E] mt-0.5">
                                             @foreach($log->metadata as $key => $value)
                                                 <span class="inline-block mr-2">
                                                     {{ Str::headline($key) }}:
-                                                    <span class="font-semibold text-[#1F2937]">{{ is_scalar($value) ? $value : json_encode($value) }}</span>
+                                                    <span class="font-semibold text-[#060D26]">{{ is_scalar($value) ? $value : json_encode($value) }}</span>
                                                 </span>
                                             @endforeach
                                         </p>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3.5 text-[11.5px] text-[#64748B] whitespace-nowrap">{{ $log->ip_address ?? '—' }}</td>
+                                <td class="px-5 py-3.5 text-[11.5px] text-[#5B6A8E] whitespace-nowrap">{{ $log->ip_address ?? '—' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
 
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-t border-[#E2E8F0]">
-                <p class="text-[12.5px] text-[#64748B]">
-                    Showing <span class="font-semibold text-[#1F2937]">{{ $logs->firstItem() }}–{{ $logs->lastItem() }}</span> of
-                    <span class="font-semibold text-[#1F2937]">{{ $logs->total() }}</span> entries
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-t border-[#E2E4EC]">
+                <p class="text-[12.5px] text-[#5B6A8E]">
+                    Showing <span class="font-semibold text-[#060D26]">{{ $logs->firstItem() }}–{{ $logs->lastItem() }}</span> of
+                    <span class="font-semibold text-[#060D26]">{{ $logs->total() }}</span> entries
                 </p>
                 {{ $logs->links() }}
             </div>

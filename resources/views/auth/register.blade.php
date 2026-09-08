@@ -4,9 +4,9 @@
     {{-- Right panel headline & feature area --}}
     <x-slot name="rightContent">
         <div class="max-w-xl mx-auto">
-            <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
+            <h1 class="text-3xl font-normal text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
-                for Verified Rental <span class="bg-gradient-to-r from-[#69D2C6] via-[#2AA7A1] to-[#156F8C] bg-clip-text text-transparent font-black">Properties.</span>
+                for Verified Rental <span class="italic text-[#C9A84C]">Properties.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
@@ -14,9 +14,9 @@
             
             <div class="space-y-3">
                 {{-- Feature 1 --}}
-                <div class="flex items-center gap-3 bg-[#0E3A3A]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20">
+                        <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                     </div>
@@ -27,9 +27,9 @@
                 </div>
 
                 {{-- Feature 2 --}}
-                <div class="flex items-center gap-3 bg-[#0E3A3A]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20">
+                        <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
@@ -40,9 +40,9 @@
                 </div>
 
                 {{-- Feature 3 --}}
-                <div class="flex items-center gap-3 bg-[#0E3A3A]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20">
+                        <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                     </div>
@@ -53,10 +53,10 @@
                 </div>
 
                 {{-- Feature 4 --}}
-                <div class="flex items-center gap-3 bg-[#0E3A3A]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20 select-none">
-                        <span class="text-white text-[8px] font-black tracking-tighter leading-none">SDG</span>
-                        <span class="text-white text-xs font-black leading-none mt-0.5">16</span>
+                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20 select-none">
+                        <span class="text-[#060D26] text-[8px] font-black tracking-tighter leading-none">SDG</span>
+                        <span class="text-[#060D26] text-xs font-black leading-none mt-0.5">16</span>
                     </div>
                     <div>
                         <p class="text-white font-black text-xs tracking-wide uppercase">Supporting SDG 16</p>
@@ -68,21 +68,21 @@
     </x-slot>
 
     {{-- Left panel: Optimized layout to maintain no-scrollbar execution --}}
-    <div class="w-full min-h-screen bg-[#F7FCFC] flex flex-col items-center px-4 py-10 lg:py-14">
-        <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg bg-white rounded-2xl border border-[#E2E8F0]/80 p-6 lg:p-8 shadow-xl shadow-[#1F2937]/[0.04] transition-all duration-300">
+    <div class="w-full min-h-screen bg-[#F7F8FC] flex flex-col items-center px-4 py-10 lg:py-14">
+        <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg bg-white rounded-2xl border border-[#E2E4EC]/80 p-6 lg:p-8 shadow-xl shadow-[#060D26]/[0.04] transition-all duration-300">
 
             {{-- Branding --}}
             <div class="mb-6">
                 <a href="/" class="flex items-center gap-2 mb-3 group inline-flex">
-                    <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-[#2AA7A1]/10 transition-transform duration-300 group-hover:scale-105">
+                    <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shadow-md shadow-[#060D26]/10 transition-transform duration-300 group-hover:scale-105">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
-                    <span class="text-[#156F8C] font-bold text-base tracking-tight">Abanganan<span class="text-[#156F8C]">Hub</span></span>
+                    <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
                 </a>
-                <h2 class="text-lg sm:text-xl font-black text-[#156F8C] tracking-tight">Create Your <span class="bg-gradient-to-r from-[#2AA7A1] to-[#2AA7A1] bg-clip-text text-transparent">Account</span></h2>
-                <p class="text-[#64748B] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
+                <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Create Your <span class="text-[#8a6e1e]">Account</span></h2>
+                <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
             </div>
 
             <form method="POST" action="{{ route('register') }}" class="space-y-4">
@@ -91,19 +91,19 @@
                 {{-- First Name + Last Name Grid Layout --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="first_name" class="block text-[13px] font-bold text-[#156F8C] mb-1.5">First Name</label>
+                        <label for="first_name" class="block text-[13px] font-bold text-[#060D26] mb-1.5">First Name</label>
                         <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" required
                             autofocus autocomplete="given-name" placeholder="First name"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
                         @error('first_name')
                             <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="last_name" class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Last Name</label>
+                        <label for="last_name" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Last Name</label>
                         <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" required
                             autocomplete="family-name" placeholder="Last name"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
                         @error('last_name')
                             <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                         @enderror
@@ -112,10 +112,10 @@
 
                 {{-- Email Address --}}
                 <div>
-                    <label for="email" class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Email Address</label>
+                    <label for="email" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
                         placeholder="Enter your email address"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
                     @error('email')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
@@ -123,10 +123,10 @@
 
                 {{-- Contact Number --}}
                 <div>
-                    <label for="contact_number" class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Contact Number</label>
+                    <label for="contact_number" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
                     <input id="contact_number" type="text" name="contact_number" value="{{ old('contact_number') }}"
                         required autocomplete="tel" placeholder="Enter your contact number"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
                     @error('contact_number')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
@@ -134,13 +134,13 @@
 
                 {{-- Password Input Module --}}
                 <div>
-                    <label for="password" class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Password</label>
+                    <label for="password" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="new-password"
                             placeholder="Create a password"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
                         <button type="button" onclick="togglePassword('password', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#156F8C] transition-colors focus:outline-none">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -154,13 +154,13 @@
 
                 {{-- Confirm Password Input Module --}}
                 <div>
-                    <label for="password_confirmation" class="block text-[13px] font-bold text-[#156F8C] mb-1.5">Confirm Password</label>
+                    <label for="password_confirmation" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
                     <div class="relative">
                         <input id="password_confirmation" type="password" name="password_confirmation" required
                             autocomplete="new-password" placeholder="Confirm your password"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
                         <button type="button" onclick="togglePassword('password_confirmation', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#156F8C] transition-colors focus:outline-none">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -173,14 +173,14 @@
                 </div>
 
                 {{-- Security Banner --}}
-                <div class="flex items-start gap-2.5 bg-[#EEF8F8] border border-[#2AA7A1]/20 rounded-xl p-2.5 shadow-sm">
-                    <div class="w-6 h-6 rounded-lg bg-[#2AA7A1] flex items-center justify-center shrink-0 mt-0.5">
-                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <div class="flex items-start gap-2.5 bg-[#ECEEF6] border border-[#C9A84C]/20 rounded-xl p-2.5 shadow-sm">
+                    <div class="w-6 h-6 rounded-lg bg-[#C9A84C] flex items-center justify-center shrink-0 mt-0.5">
+                        <svg class="w-3 h-3 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-[#156F8C] text-[11px] font-bold uppercase tracking-wide">Your security is our priority</p>
+                        <p class="text-[#060D26] text-[11px] font-bold uppercase tracking-wide">Your security is our priority</p>
                         <p class="text-[#5E6968] text-[11px] font-semibold leading-tight text-[#5E6968]/90">We protect your data and identity seamlessly.</p>
                     </div>
                 </div>
@@ -188,7 +188,7 @@
                 {{-- Action Submit Button --}}
                 <div class="pt-0.5">
                     <button type="submit"
-                        class="w-full bg-gradient-to-r from-[#2AA7A1] to-[#156F8C] text-white font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/20 text-[15px]">
+                        class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
                         Create Account
                     </button>
                 </div>
@@ -197,29 +197,29 @@
             <x-social-login-buttons />
 
             {{-- Landlord CTA Callout Node --}}
-            <div class="mt-3.5 flex items-center justify-between gap-2 bg-[#E2E8F0]/30 border border-[#E2E8F0] rounded-xl p-2.5 shadow-inner">
+            <div class="mt-3.5 flex items-center justify-between gap-2 bg-[#E2E4EC]/30 border border-[#E2E4EC] rounded-xl p-2.5 shadow-inner">
                 <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg bg-[#EEF8F8] flex items-center justify-center shrink-0 border border-[#2AA7A1]/20">
-                        <svg class="w-3.5 h-3.5 text-[#156F8C]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <div class="w-7 h-7 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0 border border-[#C9A84C]/20">
+                        <svg class="w-3.5 h-3.5 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-[#156F8C] text-[11px] font-bold uppercase tracking-wide">Listing a property?</p>
-                        <p class="text-[#64748B] text-[10px] font-semibold">Apply as a landlord later.</p>
+                        <p class="text-[#060D26] text-[11px] font-bold uppercase tracking-wide">Listing a property?</p>
+                        <p class="text-[#5B6A8E] text-[10px] font-semibold">Apply as a landlord later.</p>
                     </div>
                 </div>
-                <a href="#" class="text-[10px] text-[#FF8A65] font-black border border-[#FF8A65]/30 bg-white rounded-md px-2.5 py-1 hover:bg-[#FF8A65] hover:text-white transition-all duration-200 shrink-0">
+                <a href="#" class="text-[10px] text-[#060D26] font-black border border-[#060D26]/30 bg-white rounded-md px-2.5 py-1 hover:bg-[#060D26] hover:text-[#F7F4ED] transition-all duration-200 shrink-0">
                     Apply Later
                 </a>
             </div>
 
-            <p class="text-center text-sm text-[#64748B] font-medium mt-4">
+            <p class="text-center text-sm text-[#5B6A8E] font-medium mt-4">
                 Already have an account?
-                <a href="{{ route('login') }}" class="text-[#156F8C] font-bold hover:underline ml-1">Login</a>
+                <a href="{{ route('login') }}" class="text-[#060D26] font-bold hover:underline ml-1">Login</a>
             </p>
 
-            <p class="text-center text-[10px] font-bold text-[#64748B]/70 mt-4 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
+            <p class="text-center text-[10px] font-bold text-[#5B6A8E]/70 mt-4 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
         </div>
     </div>
 </x-guest-layout>

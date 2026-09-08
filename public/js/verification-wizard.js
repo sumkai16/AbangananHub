@@ -57,7 +57,7 @@ function verificationWizard(config) {
         livenessSteps: ['Look straight', 'Turn left', 'Turn right', 'Look up'],
         livenessCompleted: [],
         livenessFaceDetected: false,
-        livenessGuideColor: '#E2E8F0',
+        livenessGuideColor: '#E2E4EC',
         livenessInstruction: 'Preparing face detection...',
 
         _livenessFrameId: null,
@@ -196,7 +196,7 @@ function verificationWizard(config) {
             this._pitchSamples = [];
             this._pitchBaseline = null;
             this.livenessInstruction = this.livenessSteps[0];
-            this.livenessGuideColor = '#E2E8F0';
+            this.livenessGuideColor = '#E2E4EC';
 
             const processFrame = async () => {
                 if (!this.livenessActive || !this.cameraActive || this.livenessPassed) return;
@@ -241,7 +241,7 @@ function verificationWizard(config) {
             // while we can't see the applicant.
             if (!detection) {
                 this.livenessFaceDetected = false;
-                this.livenessGuideColor = '#E2E8F0';
+                this.livenessGuideColor = '#E2E4EC';
                 this._holdStart = null;
                 return;
             }
@@ -309,7 +309,7 @@ function verificationWizard(config) {
         _checkLookStraight(positions) {
             const yaw = this._getYaw(positions);
             if (Math.abs(yaw) < 15) {
-                this.livenessGuideColor = '#2AA7A1';
+                this.livenessGuideColor = '#C9A84C';
 
                 // Sample the resting pitch while the head is held straight —
                 // this becomes the baseline the "Look up" step measures against.
@@ -322,7 +322,7 @@ function verificationWizard(config) {
                     this._completeLivenessStep();
                 }
             } else {
-                this.livenessGuideColor = '#E2E8F0';
+                this.livenessGuideColor = '#E2E4EC';
                 this._pitchSamples = [];
                 this._holdStart = null;
             }
@@ -338,11 +338,11 @@ function verificationWizard(config) {
         _checkTurnLeft(positions) {
             const yaw = this._getYaw(positions);
             if (yaw < -20) {
-                this.livenessGuideColor = '#2AA7A1';
+                this.livenessGuideColor = '#C9A84C';
                 if (!this._holdStart) this._holdStart = Date.now();
                 else if (Date.now() - this._holdStart > 500) this._completeLivenessStep();
             } else {
-                this.livenessGuideColor = '#E2E8F0';
+                this.livenessGuideColor = '#E2E4EC';
                 this._holdStart = null;
             }
         },
@@ -350,11 +350,11 @@ function verificationWizard(config) {
         _checkTurnRight(positions) {
             const yaw = this._getYaw(positions);
             if (yaw > 20) {
-                this.livenessGuideColor = '#2AA7A1';
+                this.livenessGuideColor = '#C9A84C';
                 if (!this._holdStart) this._holdStart = Date.now();
                 else if (Date.now() - this._holdStart > 500) this._completeLivenessStep();
             } else {
-                this.livenessGuideColor = '#E2E8F0';
+                this.livenessGuideColor = '#E2E4EC';
                 this._holdStart = null;
             }
         },
@@ -374,11 +374,11 @@ function verificationWizard(config) {
             const delta = (pitch - this._pitchBaseline) * PITCH_UP_SIGN;
 
             if (facingForward && delta > PITCH_DELTA) {
-                this.livenessGuideColor = '#2AA7A1';
+                this.livenessGuideColor = '#C9A84C';
                 if (!this._holdStart) this._holdStart = Date.now();
                 else if (Date.now() - this._holdStart > 500) this._completeLivenessStep();
             } else {
-                this.livenessGuideColor = '#E2E8F0';
+                this.livenessGuideColor = '#E2E4EC';
                 this._holdStart = null;
             }
         },
@@ -399,7 +399,7 @@ function verificationWizard(config) {
                 this.livenessInstruction = this.livenessSteps[this.livenessStep];
 
                 setTimeout(() => {
-                    if (this.livenessActive) this.livenessGuideColor = '#E2E8F0';
+                    if (this.livenessActive) this.livenessGuideColor = '#E2E4EC';
                 }, 600);
             } else {
                 this.livenessPassed = true;

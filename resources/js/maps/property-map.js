@@ -122,18 +122,18 @@ function wireDirections(map, destLat, destLng) {
         line.className = 'flex items-baseline gap-2 flex-wrap';
 
         const dist = document.createElement('span');
-        dist.className = 'text-[22px] font-bold tracking-tight text-[#1F2937]';
+        dist.className = 'text-[22px] font-bold tracking-tight text-[#060D26]';
         dist.textContent = `${km.toFixed(1)} km`;
 
         const dot = document.createElement('span');
-        dot.className = tooFar ? 'text-[#64748B]' : 'text-[#2AA7A1]';
+        dot.className = tooFar ? 'text-[#5B6A8E]' : 'text-[#C9A84C]';
         dot.setAttribute('aria-hidden', 'true');
         dot.textContent = '·';
 
         const time = document.createElement('span');
         time.className = tooFar
-            ? 'text-[14px] font-semibold text-[#64748B]'
-            : 'text-[14px] font-semibold text-[#156F8C]';
+            ? 'text-[14px] font-semibold text-[#5B6A8E]'
+            : 'text-[14px] font-semibold text-[#060D26]';
         time.textContent = tooFar
             ? 'too far to walk'
             : `~${formatDuration(Math.round((km / mode.kmh) * 60))} ${mode.label}`;
@@ -141,7 +141,7 @@ function wireDirections(map, destLat, destLng) {
         line.append(dist, dot, time);
 
         const note = document.createElement('p');
-        note.className = 'mt-1 text-[11.5px] text-[#64748B]';
+        note.className = 'mt-1 text-[11.5px] text-[#5B6A8E]';
         // Says what it is. The previous wording ("typical Metro Cebu travel
         // speeds") implied a traffic dataset stands behind these numbers.
         note.textContent = tooFar
@@ -160,8 +160,8 @@ function wireDirections(map, destLat, destLng) {
                 other.setAttribute('aria-pressed', on ? 'true' : 'false');
                 other.classList.toggle('bg-white', on);
                 other.classList.toggle('shadow-sm', on);
-                other.classList.toggle('text-[#156F8C]', on);
-                other.classList.toggle('text-[#64748B]', !on);
+                other.classList.toggle('text-[#060D26]', on);
+                other.classList.toggle('text-[#5B6A8E]', !on);
             });
 
             renderSummary();
@@ -186,7 +186,7 @@ function wireDirections(map, destLat, destLng) {
             if (!route) throw new Error('No route found');
 
             const layer = L.geoJSON(route.geometry, {
-                style: { color: '#2AA7A1', weight: 4, opacity: 0.85 },
+                style: { color: '#060D26', weight: 4, opacity: 0.85 },
             }).addTo(map);
 
             createPin(map, fromLat, fromLng, 'origin', '<strong>Your starting point</strong>');

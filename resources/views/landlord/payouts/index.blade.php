@@ -31,7 +31,7 @@
 
         <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <x-stat-card label="Pending payout" :value="'₱' . number_format($pendingTotal, 2)" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)"
-                class="shadow-[0_10px_25px_rgba(15,23,42,0.07)] hover:-translate-y-0.5 transition-all duration-200"
+                class="shadow-[0_10px_25px_rgba(6,13,38,0.07)] hover:-translate-y-0.5 transition-all duration-200"
                 sub="Waiting on AbangananHub to send">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
@@ -40,7 +40,7 @@
                 </x-slot:icon>
             </x-stat-card>
             <x-stat-card label="Paid out" :value="'₱' . number_format($paidOutTotal, 2)" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
-                class="shadow-[0_10px_25px_rgba(15,23,42,0.07)] hover:-translate-y-0.5 transition-all duration-200"
+                class="shadow-[0_10px_25px_rgba(6,13,38,0.07)] hover:-translate-y-0.5 transition-all duration-200"
                 sub="Payouts received to date">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
@@ -52,15 +52,15 @@
 
         {{-- Pending --}}
         <x-card flush class="mb-6">
-            <div class="flex items-center justify-between border-b border-[#E2E8F0] bg-gradient-to-r from-[#F8FBFB] to-[#F3F7F8] px-5 py-4 sm:px-6">
+            <div class="flex items-center justify-between border-b border-[#E2E4EC] bg-gradient-to-r from-[#F8FBFB] to-[#F3F7F8] px-5 py-4 sm:px-6">
                 <div class="flex items-center gap-2.5">
                     <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[#F59E0B] shadow-[0_0_0_4px_rgba(245,158,11,0.14)]"></span>
-                    <p class="text-[13px] font-semibold text-[#1F2937]">Pending payout</p>
+                    <p class="text-[13px] font-semibold text-[#060D26]">Pending payout</p>
                 </div>
             </div>
             @if ($pending->isEmpty())
                 <div class="flex min-h-[120px] items-center justify-center px-6 py-10">
-                    <p class="text-[13px] text-[#64748B]">Nothing pending — you're all caught up.</p>
+                    <p class="text-[13px] text-[#5B6A8E]">Nothing pending — you're all caught up.</p>
                 </div>
             @else
                 <div class="overflow-x-auto scrollbar-thin-light">
@@ -74,15 +74,15 @@
                                 <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-[0.16em] text-[#94A3B8] sm:px-6">Settled</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#E2E8F0] bg-white">
+                        <tbody class="divide-y divide-[#E2E4EC] bg-white">
                             @foreach ($pending as $payment)
                                 @php $tenant = $payment->reservation?->tenant; @endphp
                                 <tr class="transition-colors duration-150 hover:bg-[#F8FAFC]">
-                                    <td class="px-5 py-3 text-[13px] font-medium text-[#1F2937] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
-                                    <td class="px-5 py-3 text-[13px] text-[#64748B] sm:px-6">{{ $payment->reservation?->unit?->unit_label ?? '—' }}</td>
-                                    <td class="px-5 py-3 text-[13px] text-[#64748B] sm:px-6">{{ $payment->payment_type }}</td>
-                                    <td class="px-5 py-3 text-[13px] font-semibold text-[#1F2937] sm:px-6">₱{{ number_format($payment->amount, 2) }}</td>
-                                    <td class="px-5 py-3 text-[13px] text-[#64748B] sm:px-6">{{ ($payment->released_at ?? $payment->paid_at)?->format('M d, Y') ?? '—' }}</td>
+                                    <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
+                                    <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->reservation?->unit?->unit_label ?? '—' }}</td>
+                                    <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payment_type }}</td>
+                                    <td class="px-5 py-3 text-[13px] font-semibold text-[#060D26] sm:px-6">₱{{ number_format($payment->amount, 2) }}</td>
+                                    <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ ($payment->released_at ?? $payment->paid_at)?->format('M d, Y') ?? '—' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -93,15 +93,15 @@
 
         {{-- Paid out --}}
         <x-card flush>
-            <div class="flex items-center justify-between border-b border-[#E2E8F0] bg-gradient-to-r from-[#F8FBFB] to-[#F3F7F8] px-5 py-4 sm:px-6">
+            <div class="flex items-center justify-between border-b border-[#E2E4EC] bg-gradient-to-r from-[#F8FBFB] to-[#F3F7F8] px-5 py-4 sm:px-6">
                 <div class="flex items-center gap-2.5">
                     <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[#22C55E] shadow-[0_0_0_4px_rgba(34,197,94,0.14)]"></span>
-                    <p class="text-[13px] font-semibold text-[#1F2937]">Payout history</p>
+                    <p class="text-[13px] font-semibold text-[#060D26]">Payout history</p>
                 </div>
             </div>
             @if ($paidOut->isEmpty())
                 <div class="flex min-h-[120px] items-center justify-center px-6 py-10">
-                    <p class="text-[13px] text-[#64748B]">No payouts recorded yet.</p>
+                    <p class="text-[13px] text-[#5B6A8E]">No payouts recorded yet.</p>
                 </div>
             @else
                 <div class="overflow-x-auto scrollbar-thin-light">
@@ -114,21 +114,21 @@
                                 <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-[0.16em] text-[#94A3B8] sm:px-6">Paid out</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#E2E8F0] bg-white">
+                        <tbody class="divide-y divide-[#E2E4EC] bg-white">
                             @foreach ($paidOut as $payment)
                                 @php $tenant = $payment->reservation?->tenant; @endphp
                                 <tr class="transition-colors duration-150 hover:bg-[#F8FAFC]">
-                                    <td class="px-5 py-3 text-[13px] font-medium text-[#1F2937] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
-                                    <td class="px-5 py-3 text-[13px] font-semibold text-[#1F2937] sm:px-6">₱{{ number_format($payment->amount, 2) }}</td>
-                                    <td class="px-5 py-3 text-[13px] text-[#64748B] sm:px-6">{{ $payment->payout_reference }}</td>
-                                    <td class="px-5 py-3 text-[13px] text-[#64748B] sm:px-6">{{ $payment->paid_out_at?->format('M d, Y') }}</td>
+                                    <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
+                                    <td class="px-5 py-3 text-[13px] font-semibold text-[#060D26] sm:px-6">₱{{ number_format($payment->amount, 2) }}</td>
+                                    <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payout_reference }}</td>
+                                    <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->paid_out_at?->format('M d, Y') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
                 @if ($paidOut->hasPages())
-                    <div class="border-t border-[#E2E8F0] bg-[#F8FAFC] px-6 py-4">
+                    <div class="border-t border-[#E2E4EC] bg-[#F8FAFC] px-6 py-4">
                         {{ $paidOut->links() }}
                     </div>
                 @endif

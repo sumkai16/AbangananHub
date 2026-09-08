@@ -5,7 +5,7 @@
     <div class="max-w-[1200px] mx-auto">
 
         <a href="{{ route('landlord.properties.index') }}"
-            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#156F8C] transition-colors w-fit mb-6">
+            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#060D26] transition-colors w-fit mb-6">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -31,9 +31,9 @@
             <x-property-wizard-stepper current="documents" :property="$property" :checklist="$checklist ?? null" />
 
             <div class="min-w-0">
-                <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 4 of 6</p>
-                <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]">Verify you're the owner</h1>
-                <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">Only admins see these — never shown to renters.</p>
+                <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]">Step 4 of 6</p>
+                <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]">Verify you're the owner</h1>
+                <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Only admins see these — never shown to renters.</p>
 
                 @php
                     $requiredTypes = ['Proof of Ownership', 'Tax Declaration', 'Business Permit'];
@@ -65,28 +65,28 @@
 
                     @if($availableOptionalTypes->isNotEmpty())
                         <button type="button" x-show="!addingOptional" @click="addingOptional = true"
-                            class="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl border border-dashed border-[#E2E8F0] hover:border-[#2AA7A1] hover:bg-[#F7FCFC] text-[12.5px] font-semibold text-[#156F8C] transition-colors duration-150">
+                            class="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl border border-dashed border-[#E2E4EC] hover:border-[#C9A84C] hover:bg-[#F7F8FC] text-[12.5px] font-semibold text-[#060D26] transition-colors duration-150">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
                             Add another document
                         </button>
 
-                        <div x-show="addingOptional" x-cloak class="border border-[#E2E8F0] rounded-xl p-4 bg-[#F7FCFC]">
+                        <div x-show="addingOptional" x-cloak class="border border-[#E2E4EC] rounded-xl p-4 bg-[#F7F8FC]">
                             <form method="POST" action="{{ route('landlord.properties.documents.store', $property) }}" enctype="multipart/form-data" class="space-y-3">
                                 @csrf
                                 <div>
-                                    <label class="block text-[11.5px] font-semibold text-[#1F2937] mb-1.5">Document type</label>
+                                    <label class="block text-[11.5px] font-semibold text-[#060D26] mb-1.5">Document type</label>
                                     <x-styled-select name="document_type" required :options="$availableOptionalTypes->all()" placeholder="Choose a type"
-                                        class="h-10 w-full rounded-lg border border-[#E2E8F0] px-3 text-[13px] text-[#1F2937] bg-white" />
+                                        class="h-10 w-full rounded-lg border border-[#E2E4EC] px-3 text-[13px] text-[#060D26] bg-white" />
                                 </div>
                                 <div class="flex flex-wrap items-center gap-3">
                                     <input type="file" name="file" required accept=".pdf,.jpg,.jpeg,.png,.webp"
-                                        class="flex-1 min-w-[180px] text-[12.5px] border border-[#E2E8F0] rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-[#EEF8F8] file:text-[#156F8C] file:text-xs file:font-semibold">
-                                    <button type="submit" class="h-9 px-4 rounded-xl bg-[#1F2937] text-white text-[12.5px] font-semibold hover:brightness-95 transition-all duration-200 shrink-0">
+                                        class="flex-1 min-w-[180px] text-[12.5px] border border-[#E2E4EC] rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-[#ECEEF6] file:text-[#060D26] file:text-xs file:font-semibold">
+                                    <button type="submit" class="h-9 px-4 rounded-xl bg-[#060D26] text-[#F7F4ED] text-[12.5px] font-semibold hover:brightness-95 transition-all duration-200 shrink-0">
                                         Upload
                                     </button>
-                                    <button type="button" @click="addingOptional = false" class="text-[12px] font-medium text-[#64748B] hover:text-[#1F2937] transition-colors">
+                                    <button type="button" @click="addingOptional = false" class="text-[12px] font-medium text-[#5B6A8E] hover:text-[#060D26] transition-colors">
                                         Cancel
                                     </button>
                                 </div>
@@ -95,23 +95,23 @@
                     @endif
                 </div>
 
-                <div class="mt-7 pt-5 border-t border-[#E2E8F0] max-w-2xl">
+                <div class="mt-7 pt-5 border-t border-[#E2E4EC] max-w-2xl">
                     @unless($checklist['documents']['complete'])
-                        <p class="mb-3 text-[12.5px] text-[#64748B]">Upload all required documents above to continue.</p>
+                        <p class="mb-3 text-[12.5px] text-[#5B6A8E]">Upload all required documents above to continue.</p>
                     @endunless
                     <div class="flex items-center gap-3">
                         <a href="{{ route('properties.wizard.amenities', $property) }}"
-                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                            class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                             Back
                         </a>
                         @if($checklist['documents']['complete'])
                             <a href="{{ route('properties.wizard.units', $property) }}"
-                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all duration-150">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#F7F4ED] bg-[#060D26] hover:brightness-95 transition-all duration-150">
                                 Save & Continue
                             </a>
                         @else
                             <button type="button" disabled title="Upload all required documents to continue"
-                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-white bg-[#2AA7A1] opacity-40 cursor-not-allowed">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#F7F4ED] bg-[#060D26] opacity-40 cursor-not-allowed">
                                 Save & Continue
                             </button>
                         @endif

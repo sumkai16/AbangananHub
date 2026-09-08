@@ -25,13 +25,13 @@
                 $stats = [
                     'Pending' => ['label' => 'Pending', 'value' => $counts['Pending'], 'valueColor' => '#B45309', 'iconBg' => 'rgba(251,191,36,0.10)', 'iconColor' => '#B45309'],
                     'Resolved' => ['label' => 'Resolved', 'value' => $counts['Resolved'], 'valueColor' => '#15803D', 'iconBg' => 'rgba(34,197,94,0.07)', 'iconColor' => '#059669'],
-                    'All' => ['label' => 'Total', 'value' => $counts['All'], 'valueColor' => '#156F8C', 'iconBg' => '#EEF8F8', 'iconColor' => '#156F8C'],
+                    'All' => ['label' => 'Total', 'value' => $counts['All'], 'valueColor' => '#060D26', 'iconBg' => '#ECEEF6', 'iconColor' => '#060D26'],
                 ];
             @endphp
             @foreach ($stats as $key => $stat)
                 <x-stat-card :label="$stat['label']" :value="$stat['value']" :value-color="$stat['valueColor']" :icon-bg="$stat['iconBg']"
                     :href="route('admin.reports.index', ['status' => $key])"
-                    :class="$status === $key ? 'ring-2 ring-[#2AA7A1]' : ''">
+                    :class="$status === $key ? 'ring-2 ring-[#C9A84C]' : ''">
                     <x-slot:icon>
                         @switch($key)
                             @case('Pending')
@@ -55,52 +55,52 @@
         </div>
 
         {{-- Tabs --}}
-        <div class="flex items-center gap-0.5 border-b border-[#E2E8F0] mb-6 overflow-x-auto">
+        <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
             @foreach (['Pending', 'Resolved', 'All'] as $tab)
                 <a href="{{ route('admin.reports.index', ['status' => $tab]) }}"
                     class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                        {{ $status === $tab ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937]' }}">
+                        {{ $status === $tab ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                     {{ $tab }}
-                    <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#156F8C]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
+                    <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
                 </a>
             @endforeach
         </div>
 
         @if ($reports->isEmpty())
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] border border-[#E2E8F0] flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-7 h-7 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-7 h-7 text-[#8a6e1e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                     </svg>
                 </div>
-                <p class="text-[15px] font-bold text-[#1F2937]">No reports here</p>
-                <p class="text-[13px] text-[#64748B] mt-1">No reports match this tab right now.</p>
+                <p class="text-[15px] font-bold text-[#060D26]">No reports here</p>
+                <p class="text-[13px] text-[#5B6A8E] mt-1">No reports match this tab right now.</p>
             </div>
         @else
-            <x-card flush class="divide-y divide-[#E2E8F0]">
+            <x-card flush class="divide-y divide-[#E2E4EC]">
                 @foreach ($reports as $report)
                     <a href="{{ route('admin.reports.show', $report) }}"
-                        class="flex flex-wrap sm:flex-nowrap items-center gap-4 px-6 py-4 hover:bg-[#F7FCFC]/70 transition-all duration-200 group">
-                        <div class="w-11 h-11 rounded-full bg-[#156F8C] flex items-center justify-center shrink-0">
+                        class="flex flex-wrap sm:flex-nowrap items-center gap-4 px-6 py-4 hover:bg-[#F7F8FC]/70 transition-all duration-200 group">
+                        <div class="w-11 h-11 rounded-full bg-[#060D26] flex items-center justify-center shrink-0">
                             <span class="text-white text-[13px] font-bold">
                                 {{ strtoupper(substr($report->reporter->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($report->reporter->last_name ?? '', 0, 1)) }}
                             </span>
                         </div>
 
                         <div class="min-w-0 flex-1 basis-48">
-                            <p class="text-[13.5px] font-semibold text-[#1F2937] truncate">
+                            <p class="text-[13.5px] font-semibold text-[#060D26] truncate">
                                 {{ $report->reporter ? $report->reporter->first_name . ' ' . $report->reporter->last_name : '—' }}
                             </p>
-                            <p class="text-[12px] text-[#64748B] truncate">{{ $report->reporter->email ?? '' }}</p>
+                            <p class="text-[12px] text-[#5B6A8E] truncate">{{ $report->reporter->email ?? '' }}</p>
                         </div>
 
                         <div class="min-w-0 flex-1 basis-40">
                             <p class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Target</p>
                             @if($report->property)
-                                <p class="text-[13px] text-[#1F2937] font-medium truncate">Listing: {{ $report->property->title }}</p>
+                                <p class="text-[13px] text-[#060D26] font-medium truncate">Listing: {{ $report->property->title }}</p>
                             @elseif($report->reportedUser)
-                                <p class="text-[13px] text-[#1F2937] font-medium truncate">User: {{ $report->reportedUser->first_name }} {{ $report->reportedUser->last_name }}</p>
+                                <p class="text-[13px] text-[#060D26] font-medium truncate">User: {{ $report->reportedUser->first_name }} {{ $report->reportedUser->last_name }}</p>
                             @else
                                 <p class="text-[13px] text-[#94A3B8]">—</p>
                             @endif
@@ -108,7 +108,7 @@
 
                         <div class="min-w-0 flex-1 basis-56">
                             <p class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Reason</p>
-                            <p class="text-[13px] text-[#1F2937] truncate" title="{{ $report->report_reason }}">{{ $report->report_reason }}</p>
+                            <p class="text-[13px] text-[#060D26] truncate" title="{{ $report->report_reason }}">{{ $report->report_reason }}</p>
                         </div>
 
                         <div class="shrink-0">
@@ -121,17 +121,17 @@
 
                         <div class="shrink-0 text-right w-24">
                             <p class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Submitted</p>
-                            <p class="text-[13px] text-[#64748B]">{{ $report->created_at->format('M d, Y') }}</p>
+                            <p class="text-[13px] text-[#5B6A8E]">{{ $report->created_at->format('M d, Y') }}</p>
                         </div>
 
-                        <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#2AA7A1] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#8a6e1e] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>
                 @endforeach
             </x-card>
             @if ($reports->hasPages())
-                <div class="mt-4 bg-white border border-[#E2E8F0] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+                <div class="mt-4 bg-white border border-[#E2E4EC] rounded-2xl px-6 py-3 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                     {{ $reports->links() }}
                 </div>
             @endif

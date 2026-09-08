@@ -21,7 +21,7 @@
         {{-- Page chrome — never printed --}}
         <div class="flex items-center justify-between gap-3 mb-6 print:hidden">
             <a href="{{ route('reservations.index') }}"
-                class="inline-flex items-center text-sm font-semibold text-[#64748B] hover:text-[#1F2937] transition-colors group">
+                class="inline-flex items-center text-sm font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors group">
                 <svg class="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
@@ -29,7 +29,7 @@
             </a>
 
             <button type="button" onclick="window.print()"
-                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-[12px] font-bold text-[#1F2937] hover:bg-[#F7FCFC] cursor-pointer transition-all duration-200">
+                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E4EC] bg-white text-[12px] font-bold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
                 </svg>
@@ -40,10 +40,10 @@
         {{-- Page header — bare on the background per DESIGN.md §6b --}}
         <div class="mb-6">
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h1 class="text-2xl font-bold text-[#1F2937]">Rental Agreement</h1>
-                <p class="text-[11px] font-bold text-[#64748B] tracking-wider">{{ $agreementRef }}</p>
+                <h1 class="text-2xl font-normal text-[#060D26]">Rental Agreement</h1>
+                <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider">{{ $agreementRef }}</p>
             </div>
-            <p class="text-sm text-[#64748B] mt-1 print:hidden">Please read the terms below carefully before signing.</p>
+            <p class="text-sm text-[#5B6A8E] mt-1 print:hidden">Please read the terms below carefully before signing.</p>
         </div>
 
         {{-- print:block — on paper there is no rail, so the document must not
@@ -56,20 +56,20 @@
 
             {{-- ===== Parties ===== --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                <div class="rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] p-4">
-                    <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Landlord</p>
-                    <p class="text-[14px] font-bold text-[#1F2937]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
-                    <p class="text-[11.5px] text-[#64748B] mt-0.5 break-words">{{ $landlord->email }}</p>
+                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
+                    <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">Landlord</p>
+                    <p class="text-[14px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
+                    <p class="text-[11.5px] text-[#5B6A8E] mt-0.5 break-words">{{ $landlord->email }}</p>
                     @if($landlord->contact_number)
-                        <p class="text-[11.5px] text-[#64748B]">{{ $landlord->contact_number }}</p>
+                        <p class="text-[11.5px] text-[#5B6A8E]">{{ $landlord->contact_number }}</p>
                     @endif
                 </div>
-                <div class="rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] p-4">
-                    <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Tenant</p>
-                    <p class="text-[14px] font-bold text-[#1F2937]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
-                    <p class="text-[11.5px] text-[#64748B] mt-0.5 break-words">{{ $tenant->email }}</p>
+                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
+                    <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">Tenant</p>
+                    <p class="text-[14px] font-bold text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
+                    <p class="text-[11.5px] text-[#5B6A8E] mt-0.5 break-words">{{ $tenant->email }}</p>
                     @if($tenant->contact_number)
-                        <p class="text-[11.5px] text-[#64748B]">{{ $tenant->contact_number }}</p>
+                        <p class="text-[11.5px] text-[#5B6A8E]">{{ $tenant->contact_number }}</p>
                     @endif
                 </div>
             </div>
@@ -78,7 +78,7 @@
                  No border or tint: this is the document text itself, so it sits
                  directly on the sheet. Boxing it inside the card that already
                  frames it was a third nested border for no added meaning. --}}
-            <div class="text-[#1F2937] leading-relaxed">
+            <div class="text-[#060D26] leading-relaxed">
                 <p class="text-[13.5px] leading-relaxed">
                     This Rental Agreement is entered into between
                     <strong>{{ $landlord->first_name }} {{ $landlord->last_name }}</strong> ("Landlord")
@@ -86,61 +86,61 @@
                     concerning the rental of the property located at:
                 </p>
 
-                <p class="font-bold text-[#1F2937] text-[14px] mt-3">{{ $reservation->property->address }}</p>
-                <p class="text-[12px] text-[#64748B] mt-0.5">
+                <p class="font-bold text-[#060D26] text-[14px] mt-3">{{ $reservation->property->address }}</p>
+                <p class="text-[12px] text-[#5B6A8E] mt-0.5">
                     {{ $reservation->property->title }} &middot; {{ $reservation->unit->unit_label }}
                     @if($reservation->unit->unit_type) &middot; {{ $reservation->unit->unit_type }} @endif
                 </p>
 
-                <dl class="mt-5 divide-y divide-[#E2E8F0] border-t border-[#E2E8F0]">
+                <dl class="mt-5 divide-y divide-[#E2E4EC] border-t border-[#E2E4EC]">
                     <div class="flex items-baseline justify-between gap-4 py-2.5">
-                        <dt class="text-[13px] text-[#64748B]">Rental Fee</dt>
-                        <dd class="text-[13px] font-bold text-[#1F2937] text-right">&#8369;{{ number_format($reservation->monthlyRent(), 2) }} / month</dd>
+                        <dt class="text-[13px] text-[#5B6A8E]">Rental Fee</dt>
+                        <dd class="text-[13px] font-bold text-[#060D26] text-right">&#8369;{{ number_format($reservation->monthlyRent(), 2) }} / month</dd>
                     </div>
                     @if($reservation->unit->security_deposit)
                         <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#64748B]">Security Deposit</dt>
-                            <dd class="text-[13px] font-bold text-[#1F2937] text-right">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
+                            <dt class="text-[13px] text-[#5B6A8E]">Security Deposit</dt>
+                            <dd class="text-[13px] font-bold text-[#060D26] text-right">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
                         </div>
                     @endif
                     <div class="flex items-baseline justify-between gap-4 py-2.5">
-                        <dt class="text-[13px] text-[#64748B]">Reservation Date</dt>
-                        <dd class="text-[13px] font-bold text-[#1F2937] text-right">{{ $reservation->reservation_date->format('F j, Y') }}</dd>
+                        <dt class="text-[13px] text-[#5B6A8E]">Reservation Date</dt>
+                        <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->reservation_date->format('F j, Y') }}</dd>
                     </div>
                     @if($reservation->target_move_in_date)
                         <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#64748B]">Target Move-In</dt>
-                            <dd class="text-[13px] font-bold text-[#1F2937] text-right">{{ $reservation->target_move_in_date->format('F j, Y') }}</dd>
+                            <dt class="text-[13px] text-[#5B6A8E]">Target Move-In</dt>
+                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->target_move_in_date->format('F j, Y') }}</dd>
                         </div>
                     @endif
                     @if($reservation->target_move_out_date)
                         <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#64748B]">Target Move-Out</dt>
-                            <dd class="text-[13px] font-bold text-[#1F2937] text-right">{{ $reservation->target_move_out_date->format('F j, Y') }}</dd>
+                            <dt class="text-[13px] text-[#5B6A8E]">Target Move-Out</dt>
+                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->target_move_out_date->format('F j, Y') }}</dd>
                         </div>
                     @endif
                     @if($reservation->duration_of_stay)
                         <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#64748B]">Lease Term</dt>
-                            <dd class="text-[13px] font-bold text-[#1F2937] text-right">{{ $reservation->duration_of_stay }}</dd>
+                            <dt class="text-[13px] text-[#5B6A8E]">Lease Term</dt>
+                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->duration_of_stay }}</dd>
                         </div>
                     @endif
                     @if($reservation->occupants_count)
                         <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#64748B]">Occupants</dt>
-                            <dd class="text-[13px] font-bold text-[#1F2937] text-right">{{ $reservation->occupants_count }}</dd>
+                            <dt class="text-[13px] text-[#5B6A8E]">Occupants</dt>
+                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->occupants_count }}</dd>
                         </div>
                     @endif
                 </dl>
 
                 @if($reservation->agreement_terms_notes)
-                    <div class="mt-5 pt-4 border-t border-[#E2E8F0]">
-                        <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Additional Terms</p>
-                        <p class="whitespace-pre-wrap text-[13px] text-[#1F2937] leading-relaxed">{{ $reservation->agreement_terms_notes }}</p>
+                    <div class="mt-5 pt-4 border-t border-[#E2E4EC]">
+                        <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">Additional Terms</p>
+                        <p class="whitespace-pre-wrap text-[13px] text-[#060D26] leading-relaxed">{{ $reservation->agreement_terms_notes }}</p>
                     </div>
                 @endif
 
-                <p class="text-[11.5px] text-[#64748B] leading-relaxed mt-5 pt-4 border-t border-[#E2E8F0]">
+                <p class="text-[11.5px] text-[#5B6A8E] leading-relaxed mt-5 pt-4 border-t border-[#E2E4EC]">
                     By signing this agreement, both parties acknowledge the terms above as the basis for this rental
                     arrangement. AbangananHub facilitates this agreement as a record-keeping tool between Landlord and
                     Tenant and is not a party to, nor liable for, the terms herein.
@@ -149,32 +149,32 @@
 
             {{-- ===== Signature block — the evidentiary record ===== --}}
             @if($reservation->agreed_at || $reservation->landlord_tc_accepted_at)
-                <div class="mt-6 rounded-xl border border-[#E2E8F0] p-5">
-                    <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-3">Signatures</p>
+                <div class="mt-6 rounded-xl border border-[#E2E4EC] p-5">
+                    <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-3">Signatures</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <p class="text-[13px] font-bold text-[#1F2937]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
-                            <p class="text-[11px] text-[#64748B]">Landlord</p>
+                            <p class="text-[13px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
+                            <p class="text-[11px] text-[#5B6A8E]">Landlord</p>
                             @if($reservation->landlord_tc_accepted_at)
                                 <p class="text-[11px] text-[#15803D] font-semibold mt-1.5">
                                     Accepted {{ $reservation->landlord_tc_accepted_at->format('F j, Y \a\t g:i A') }}
                                 </p>
                             @else
-                                <p class="text-[11px] text-[#64748B] mt-1.5">Awaiting acceptance</p>
+                                <p class="text-[11px] text-[#5B6A8E] mt-1.5">Awaiting acceptance</p>
                             @endif
                         </div>
-                        <div class="sm:border-l sm:border-[#E2E8F0] sm:pl-4">
-                            <p class="text-[13px] font-bold text-[#1F2937]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
-                            <p class="text-[11px] text-[#64748B]">Tenant</p>
+                        <div class="sm:border-l sm:border-[#E2E4EC] sm:pl-4">
+                            <p class="text-[13px] font-bold text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
+                            <p class="text-[11px] text-[#5B6A8E]">Tenant</p>
                             @if($reservation->agreed_at)
                                 <p class="text-[11px] text-[#15803D] font-semibold mt-1.5">
                                     Signed {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}
                                 </p>
                                 @if($reservation->agreed_ip)
-                                    <p class="text-[10.5px] text-[#64748B] mt-0.5">Recorded from {{ $reservation->agreed_ip }}</p>
+                                    <p class="text-[10.5px] text-[#5B6A8E] mt-0.5">Recorded from {{ $reservation->agreed_ip }}</p>
                                 @endif
                             @else
-                                <p class="text-[11px] text-[#64748B] mt-1.5">Not yet signed</p>
+                                <p class="text-[11px] text-[#5B6A8E] mt-1.5">Not yet signed</p>
                             @endif
                         </div>
                     </div>
@@ -190,38 +190,38 @@
                  view while the controls are. Reading the document is still the
                  point; this stops the money being off-screen at the moment of
                  signing. --}}
-            <div class="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5 mb-4">
-                <p class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">At a glance</p>
-                <p class="mt-2 text-2xl font-bold tracking-tight text-[#1F2937]">
+            <div class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 mb-4">
+                <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider">At a glance</p>
+                <p class="mt-2 text-2xl font-bold tracking-tight text-[#060D26]">
                     &#8369;{{ number_format($reservation->monthlyRent(), 2) }}
-                    <span class="text-sm font-medium text-[#64748B]">/ month</span>
+                    <span class="text-sm font-medium text-[#5B6A8E]">/ month</span>
                 </p>
                 <dl class="mt-4 space-y-2 text-[13px]">
                     <div class="flex items-baseline justify-between gap-3">
-                        <dt class="text-[#64748B]">Property</dt>
-                        <dd class="font-medium text-[#1F2937] text-right truncate">{{ $reservation->unit->unit_label }}</dd>
+                        <dt class="text-[#5B6A8E]">Property</dt>
+                        <dd class="font-medium text-[#060D26] text-right truncate">{{ $reservation->unit->unit_label }}</dd>
                     </div>
                     @if($reservation->target_move_in_date)
                         <div class="flex items-baseline justify-between gap-3">
-                            <dt class="text-[#64748B]">Target move-in</dt>
-                            <dd class="font-medium text-[#1F2937]">{{ $reservation->target_move_in_date->format('M j, Y') }}</dd>
+                            <dt class="text-[#5B6A8E]">Target move-in</dt>
+                            <dd class="font-medium text-[#060D26]">{{ $reservation->target_move_in_date->format('M j, Y') }}</dd>
                         </div>
                     @endif
                     @if($reservation->duration_of_stay)
                         <div class="flex items-baseline justify-between gap-3">
-                            <dt class="text-[#64748B]">Lease term</dt>
-                            <dd class="font-medium text-[#1F2937]">{{ $reservation->duration_of_stay }}</dd>
+                            <dt class="text-[#5B6A8E]">Lease term</dt>
+                            <dd class="font-medium text-[#060D26]">{{ $reservation->duration_of_stay }}</dd>
                         </div>
                     @endif
                     @if($reservation->unit->security_deposit)
                         <div class="flex items-baseline justify-between gap-3">
-                            <dt class="text-[#64748B]">Security deposit</dt>
-                            <dd class="font-medium text-[#1F2937]">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
+                            <dt class="text-[#5B6A8E]">Security deposit</dt>
+                            <dd class="font-medium text-[#060D26]">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
                         </div>
                     @endif
                     <div class="flex items-baseline justify-between gap-3">
-                        <dt class="text-[#64748B]">Reference</dt>
-                        <dd class="font-medium text-[#1F2937]">{{ $agreementRef }}</dd>
+                        <dt class="text-[#5B6A8E]">Reference</dt>
+                        <dd class="font-medium text-[#060D26]">{{ $agreementRef }}</dd>
                     </div>
                 </dl>
             </div>
@@ -229,7 +229,7 @@
             <div>
                 @if($reservation->rental_status === 'Pending Rental Agreement')
                     <form action="{{ route('agreements.sign', $reservation) }}" method="POST"
-                        class="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-5">
+                        class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5">
                         @csrf
 
                         <div class="flex items-start gap-3 p-4 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-xl mb-5">
@@ -245,8 +245,8 @@
 
                         <label for="agree" class="flex items-start gap-3 mb-4 cursor-pointer">
                             <input type="checkbox" name="agree" id="agree" required
-                                class="mt-0.5 w-4 h-4 rounded border-[#64748B]/40 text-[#156F8C] focus:ring-[#2AA7A1] focus:ring-offset-0 transition">
-                            <span class="text-[13px] text-[#1F2937] leading-relaxed">
+                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#C9A84C] focus:ring-offset-0 transition">
+                            <span class="text-[13px] text-[#060D26] leading-relaxed">
                                 I have read and agree to the terms of this Rental Agreement.
                             </span>
                         </label>
@@ -256,8 +256,8 @@
 
                         <label for="accept_tc" class="flex items-start gap-3 mb-4 cursor-pointer">
                             <input type="checkbox" name="accept_tc" id="accept_tc" required
-                                class="mt-0.5 w-4 h-4 rounded border-[#64748B]/40 text-[#156F8C] focus:ring-[#2AA7A1] focus:ring-offset-0 transition">
-                            <span class="text-[13px] text-[#1F2937] leading-relaxed">
+                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#C9A84C] focus:ring-offset-0 transition">
+                            <span class="text-[13px] text-[#060D26] leading-relaxed">
                                 I understand that my payment will be held by AbangananHub until I confirm move-in. Funds will only
                                 be released to the landlord after I verify that the unit matches the listing.
                             </span>
@@ -267,7 +267,7 @@
                         @enderror
 
                         <button type="submit"
-                            class="w-full bg-[#2AA7A1] hover:brightness-95 text-white font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
+                            class="w-full bg-[#060D26] hover:brightness-95 text-white font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
                             Sign Agreement
                         </button>
                     </form>
@@ -280,8 +280,8 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-[#1F2937]">Agreement Signed</p>
-                            <p class="text-xs text-[#64748B] mt-0.5">
+                            <p class="text-sm font-bold text-[#060D26]">Agreement Signed</p>
+                            <p class="text-xs text-[#5B6A8E] mt-0.5">
                                 Signed on {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}.
                             </p>
                         </div>
@@ -290,31 +290,31 @@
                     @if(!$hasPayment)
                         <form action="{{ route('payments.checkout', $reservation) }}" method="POST" class="mt-4">
                             @csrf
-                            <div class="rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] p-4 flex flex-wrap items-center justify-between gap-4">
+                            <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 flex flex-wrap items-center justify-between gap-4">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-bold text-[#1F2937]">Initial Payment</p>
-                                    <p class="text-xs text-[#64748B] mt-0.5">
+                                    <p class="text-sm font-bold text-[#060D26]">Initial Payment</p>
+                                    <p class="text-xs text-[#5B6A8E] mt-0.5">
                                         &#8369;{{ number_format($reservation->unit->rental_fee, 2) }} via GCash — you will be redirected to complete payment.
                                     </p>
                                 </div>
                                 <button type="submit"
-                                    class="shrink-0 px-5 py-2.5 rounded-xl bg-[#FF8A65] hover:brightness-95 text-white font-bold text-sm shadow-sm cursor-pointer transition-all duration-200">
+                                    class="shrink-0 px-5 py-2.5 rounded-xl bg-[#060D26] hover:brightness-95 text-white font-bold text-sm shadow-sm cursor-pointer transition-all duration-200">
                                     Pay Now
                                 </button>
                             </div>
                         </form>
 
                     @elseif($heldPayment)
-                        <div class="mt-4 rounded-xl border border-[#2AA7A1]/25 bg-[#EEF8F8]/60 p-4">
+                        <div class="mt-4 rounded-xl border border-[#C9A84C]/25 bg-[#ECEEF6]/60 p-4">
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="w-8 h-8 rounded-full bg-[#2AA7A1]/15 flex items-center justify-center shrink-0">
-                                    <svg class="w-4 h-4 text-[#156F8C]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <div class="w-8 h-8 rounded-full bg-[#C9A84C]/15 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                     </svg>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-sm font-bold text-[#1F2937]">Payment received &mdash; held by AbangananHub</p>
-                                    <p class="text-xs text-[#64748B] mt-0.5">
+                                    <p class="text-sm font-bold text-[#060D26]">Payment received &mdash; held by AbangananHub</p>
+                                    <p class="text-xs text-[#5B6A8E] mt-0.5">
                                         Your payment of &#8369;{{ number_format($heldPayment->amount, 2) }} is held until you confirm move-in.
                                     </p>
                                 </div>
@@ -329,9 +329,9 @@
                                     {{-- Clock 1: nothing for the tenant to do yet. No countdown — showing one
                                          here would imply a deadline the tenant can miss, and this one is the
                                          landlord's. --}}
-                                    <div class="rounded-lg border border-[#2AA7A1]/25 bg-[#EEF8F8] p-4 mb-4">
-                                        <p class="text-sm font-medium text-[#156F8C]">Payment secured</p>
-                                        <p class="mt-1 text-sm text-[#1F2937]">
+                                    <div class="rounded-lg border border-[#C9A84C]/25 bg-[#ECEEF6] p-4 mb-4">
+                                        <p class="text-sm font-medium text-[#060D26]">Payment secured</p>
+                                        <p class="mt-1 text-sm text-[#060D26]">
                                             Your deposit is held safely and is not released until you confirm your move-in.
                                             Your landlord will contact you to turn over the keys.
                                         </p>
@@ -376,7 +376,7 @@
                                         </p>
                                     </div>
                                     <button type="submit"
-                                        class="w-full bg-[#FF8A65] hover:brightness-95 text-white font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
+                                        class="w-full bg-[#060D26] hover:brightness-95 text-white font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
                                         I Have Moved In — Confirm Occupancy
                                     </button>
                                 </form>
@@ -385,7 +385,7 @@
                             @if ($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->move_in_disputed_at)
                                 <div x-data="{ show: false }" class="mt-3 text-center">
                                     <button type="button" @click="show = true"
-                                            class="text-xs text-[#64748B] underline hover:text-[#1F2937] cursor-pointer">
+                                            class="text-xs text-[#5B6A8E] underline hover:text-[#060D26] cursor-pointer">
                                         I haven't received the keys
                                     </button>
 
@@ -402,15 +402,15 @@
                                                  x-transition:enter-start="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
                                                  x-transition:leave="transition ease-in duration-200"
                                                  x-transition:leave-end="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0">
-                                                <h3 class="text-lg font-bold text-[#1F2937] text-left">Report a move-in issue</h3>
-                                                <p class="mt-2 text-sm text-[#64748B] text-left">
+                                                <h3 class="text-lg font-normal text-[#060D26] text-left">Report a move-in issue</h3>
+                                                <p class="mt-2 text-sm text-[#5B6A8E] text-left">
                                                     Your deposit stays on hold and an administrator will review this. Your landlord will be notified.
                                                 </p>
 
                                                 <form action="{{ route('agreements.disputeMoveIn', $reservation) }}" method="POST" class="mt-4 text-left">
                                                     @csrf
                                                     <textarea name="reason" rows="4" required minlength="10"
-                                                              class="w-full rounded-xl border-[#E2E8F0] text-sm"
+                                                              class="w-full rounded-xl border-[#E2E4EC] text-sm"
                                                               placeholder="Tell us what happened — for example, the landlord hasn't turned over the keys."></textarea>
                                                     @error('reason')
                                                         <p class="mt-1 text-sm text-[#EF4444]">{{ $message }}</p>
@@ -418,9 +418,9 @@
 
                                                     <div class="mt-4 flex justify-end gap-2">
                                                         <button type="button" @click="show = false"
-                                                                class="rounded-xl px-4 py-2 text-sm text-[#64748B] cursor-pointer">Cancel</button>
+                                                                class="rounded-xl px-4 py-2 text-sm text-[#5B6A8E] cursor-pointer">Cancel</button>
                                                         <button type="submit"
-                                                                class="rounded-xl bg-[#FF8A65] hover:brightness-95 px-4 py-2 text-sm font-bold text-white cursor-pointer transition-all duration-200">
+                                                                class="rounded-xl bg-[#060D26] hover:brightness-95 px-4 py-2 text-sm font-bold text-white cursor-pointer transition-all duration-200">
                                                             Submit report
                                                         </button>
                                                     </div>
@@ -441,14 +441,14 @@
                         </div>
 
                     @else
-                        <div class="mt-4 rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] p-4 flex items-center gap-3">
-                            <svg class="w-5 h-5 text-[#64748B] shrink-0 animate-spin motion-reduce:animate-none" fill="none" viewBox="0 0 24 24">
+                        <div class="mt-4 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 flex items-center gap-3">
+                            <svg class="w-5 h-5 text-[#5B6A8E] shrink-0 animate-spin motion-reduce:animate-none" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
                             <div>
-                                <p class="text-sm font-bold text-[#1F2937]">Payment processing</p>
-                                <p class="text-xs text-[#64748B] mt-0.5">
+                                <p class="text-sm font-bold text-[#060D26]">Payment processing</p>
+                                <p class="text-xs text-[#5B6A8E] mt-0.5">
                                     Your payment is being confirmed. This page updates automatically once it clears.
                                 </p>
                             </div>
@@ -463,8 +463,8 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-[#1F2937]">You're all moved in</p>
-                            <p class="text-xs text-[#64748B] mt-0.5">
+                            <p class="text-sm font-bold text-[#060D26]">You're all moved in</p>
+                            <p class="text-xs text-[#5B6A8E] mt-0.5">
                                 Move-in confirmed on {{ $reservation->tenant_confirmed_move_in_at?->format('F j, Y \a\t g:i A') ?? 'N/A' }}.
                             </p>
                         </div>
@@ -475,7 +475,7 @@
 
         </div>{{-- /document + rail --}}
 
-        <p class="text-[10.5px] text-[#64748B] text-center mt-4 hidden print:block">
+        <p class="text-[10.5px] text-[#5B6A8E] text-center mt-4 hidden print:block">
             {{ $agreementRef }} &middot; Generated {{ now()->format('F j, Y \a\t g:i A') }} &middot; AbangananHub
         </p>
     </div>

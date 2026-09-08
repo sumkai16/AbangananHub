@@ -5,7 +5,7 @@
     <div class="max-w-[1200px] mx-auto">
 
         <a href="{{ route('landlord.properties.index') }}"
-            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#156F8C] transition-colors w-fit mb-6">
+            class="inline-flex items-center gap-2 text-[13px] font-bold text-[#94A3B8] hover:text-[#060D26] transition-colors w-fit mb-6">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -30,11 +30,11 @@
             <x-property-wizard-stepper current="review" :property="$property" :checklist="$checklist ?? null" />
 
             <div class="min-w-0">
-                <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#156F8C]">Step 6 of 6</p>
-                <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-[#1F2937]">Review & submit</h1>
-                <p class="mt-2 text-sm text-[#64748B] leading-relaxed max-w-md">One last look before it goes to our team for review.</p>
+                <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]">Step 6 of 6</p>
+                <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]">Review & submit</h1>
+                <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">One last look before it goes to our team for review.</p>
 
-                <div class="mt-7 max-w-2xl bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)] divide-y divide-[#E2E8F0]">
+                <div class="mt-7 max-w-2xl bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] divide-y divide-[#E2E4EC]">
                     @foreach($checklist as $item)
                         <div class="flex items-center justify-between gap-4 px-5 py-4">
                             <div class="flex items-center gap-3 min-w-0">
@@ -50,23 +50,23 @@
                                     @endif
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-[13.5px] font-semibold text-[#1F2937]">{{ $item['label'] }}</p>
-                                    <p class="text-[11.5px] {{ $item['complete'] ? 'text-[#64748B]' : 'text-[#B45309]' }}">
+                                    <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $item['label'] }}</p>
+                                    <p class="text-[11.5px] {{ $item['complete'] ? 'text-[#5B6A8E]' : 'text-[#B45309]' }}">
                                         {{ $item['detail'] ?? ($item['complete'] ? 'Complete' : 'Incomplete') }}
                                     </p>
                                 </div>
                             </div>
-                            <a href="{{ $item['edit'] }}" class="shrink-0 text-[12.5px] font-semibold text-[#156F8C] hover:text-[#0E5670] transition-colors">Edit</a>
+                            <a href="{{ $item['edit'] }}" class="shrink-0 text-[12.5px] font-semibold text-[#060D26] hover:text-[#04091B] transition-colors">Edit</a>
                         </div>
                     @endforeach
                 </div>
 
                 @if($canSubmit)
-                    <div class="mt-5 max-w-2xl rounded-xl bg-[#EEF8F8]/70 border border-[#2AA7A1]/20 p-4 flex gap-3">
-                        <svg class="w-5 h-5 text-[#2AA7A1] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <div class="mt-5 max-w-2xl rounded-xl bg-[#ECEEF6]/70 border border-[#C9A84C]/20 p-4 flex gap-3">
+                        <svg class="w-5 h-5 text-[#8a6e1e] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
-                        <p class="text-[12.5px] text-[#64748B] leading-relaxed">Once submitted, your property will be reviewed by our team. You'll be notified by email.</p>
+                        <p class="text-[12.5px] text-[#5B6A8E] leading-relaxed">Once submitted, your property will be reviewed by our team. You'll be notified by email.</p>
                     </div>
                 @else
                     <div class="mt-5 max-w-2xl rounded-xl bg-[#FBBF24]/[0.08] border border-[#FBBF24]/25 p-4 flex gap-3">
@@ -79,10 +79,10 @@
 
                 <form method="POST" action="{{ route('properties.wizard.submit', $property) }}"
                     x-data="{ submitting: false, canSubmit: @js($canSubmit) }" x-on:submit="submitting = true"
-                    class="mt-7 pt-5 border-t border-[#E2E8F0] max-w-2xl flex items-center gap-3">
+                    class="mt-7 pt-5 border-t border-[#E2E4EC] max-w-2xl flex items-center gap-3">
                     @csrf
                     <a href="{{ route('properties.wizard.units', $property) }}"
-                        class="px-5 py-3 rounded-xl text-sm font-semibold text-[#1F2937] bg-white border border-[#E2E8F0] hover:bg-[#EEF8F8] transition-colors duration-150">
+                        class="px-5 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-white border border-[#E2E4EC] hover:bg-[#ECEEF6] transition-colors duration-150">
                         Back
                     </a>
                     <button type="submit" :disabled="submitting || ! canSubmit"

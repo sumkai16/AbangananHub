@@ -11,7 +11,7 @@
         <div class="max-w-xl mx-auto">
             <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Forgot your password?<br>
-                <span class="bg-gradient-to-r from-[#69D2C6] via-[#2AA7A1] to-[#156F8C] bg-clip-text text-transparent font-black">No problem.</span>
+                <span class="italic text-[#C9A84C]">No problem.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 Enter the email address linked to your account and we'll send you a secure link to reset your password.
@@ -20,21 +20,21 @@
     </x-slot>
 
     {{-- Left panel: form --}}
-    <div class="w-full min-h-screen bg-[#F7FCFC] flex flex-col items-center px-4 py-10 lg:py-14">
-        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-2xl border border-[#E2E8F0]/80 p-6 lg:p-8 shadow-xl shadow-[#1F2937]/[0.04] transition-all duration-300">
+    <div class="w-full min-h-screen bg-[#F7F8FC] flex flex-col items-center px-4 py-10 lg:py-14">
+        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-2xl border border-[#E2E4EC]/80 p-6 lg:p-8 shadow-xl shadow-[#060D26]/[0.04] transition-all duration-300">
 
             {{-- Branding --}}
             <div class="mb-5">
                 <a href="/" class="flex items-center gap-2 mb-4 group inline-flex">
-                    <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-[#2AA7A1]/10 transition-transform duration-300 group-hover:scale-105">
+                    <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shadow-md shadow-[#060D26]/10 transition-transform duration-300 group-hover:scale-105">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
-                    <span class="text-[#156F8C] font-bold text-base tracking-tight">Abanganan<span class="text-[#156F8C]">Hub</span></span>
+                    <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
                 </a>
-                <h2 class="text-lg sm:text-xl font-black text-[#156F8C] tracking-tight">Reset your password</h2>
-                <p class="text-[#64748B] text-xs font-medium mt-0.5">We'll email you a link to choose a new one.</p>
+                <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Reset your password</h2>
+                <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">We'll email you a link to choose a new one.</p>
             </div>
 
             {{-- Session alerts --}}
@@ -52,25 +52,25 @@
 
                 {{-- Email Address --}}
                 <div>
-                    <label for="email" class="block text-xs font-bold text-[#156F8C] mb-1">Email Address</label>
+                    <label for="email" class="block text-xs font-bold text-[#060D26] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Enter your email"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
                 </div>
 
                 {{-- Action Submission Button --}}
                 <div class="pt-1">
-                    <button type="submit" class="w-full bg-gradient-to-r from-[#2AA7A1] to-[#156F8C] text-white font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/20 text-[15px]">
+                    <button type="submit" class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
                         Email Password Reset Link
                     </button>
                 </div>
             </form>
 
-            <p class="text-center text-xs text-[#64748B] font-medium mt-5">
+            <p class="text-center text-xs text-[#5B6A8E] font-medium mt-5">
                 Remembered your password?
-                <a href="{{ route('login') }}" class="text-[#156F8C] font-bold hover:underline ml-1">Login here</a>
+                <a href="{{ route('login') }}" class="text-[#060D26] font-bold hover:underline ml-1">Login here</a>
             </p>
 
-            <p class="text-center text-[10px] font-bold text-[#64748B]/70 mt-5 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
+            <p class="text-center text-[10px] font-bold text-[#5B6A8E]/70 mt-5 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
         </div>
     </div>
 </x-guest-layout>

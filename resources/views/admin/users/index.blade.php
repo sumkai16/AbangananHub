@@ -13,9 +13,9 @@
             </svg>
         </x-slot:icon>
         <x-slot:actions>
-            <span class="text-[13px] font-semibold text-[#64748B]">{{ number_format($users->total()) }} total</span>
+            <span class="text-[13px] font-semibold text-[#5B6A8E]">{{ number_format($users->total()) }} total</span>
             <a href="{{ route('admin.users.create') }}"
-                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
+                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#060D26] text-[#F7F4ED] rounded-xl hover:brightness-95 transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -30,7 +30,7 @@
         <div class="min-w-0">
             {{-- Filters --}}
             <form method="GET" action="{{ route('admin.users.index') }}"
-                class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] flex flex-col sm:flex-row gap-3">
+                class="bg-white rounded-2xl p-4 mb-5 shadow-[0_1px_3px_rgba(6,13,38,0.06)] flex flex-col sm:flex-row gap-3">
                 <div class="relative flex-1">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -39,31 +39,31 @@
                     <input type="text" name="search" value="{{ $search }}"
                         placeholder="Search by name, email, or phone…" aria-label="Search by name, email, or phone"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] transition-all" />
+                        class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all" />
                 </div>
                 <x-styled-select name="role" :options="array_combine(['All', 'Admin', 'Landlord', 'Tenant'], ['All', 'Admin', 'Landlord', 'Tenant'])"
                     :selected="$role"
-                    class="h-10 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] px-3" />
+                    class="h-10 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3" />
                 <button type="submit"
-                    class="h-10 px-5 text-[13.5px] font-bold bg-[#2AA7A1] text-white rounded-xl hover:brightness-95 transition-colors shadow-sm">
+                    class="h-10 px-5 text-[13.5px] font-bold bg-[#060D26] text-[#F7F4ED] rounded-xl hover:brightness-95 transition-colors shadow-sm">
                     Filter
                 </button>
                 @if($search || $role !== 'All')
                     <a href="{{ route('admin.users.index') }}"
-                        class="h-10 px-4 text-[13.5px] font-semibold border border-[#E2E8F0] text-[#64748B] rounded-xl hover:text-[#1F2937] hover:border-[#E2E8F0] transition-colors flex items-center">
+                        class="h-10 px-4 text-[13.5px] font-semibold border border-[#E2E4EC] text-[#5B6A8E] rounded-xl hover:text-[#060D26] hover:border-[#E2E4EC] transition-colors flex items-center">
                         Clear
                     </a>
                 @endif
             </form>
 
             @if ($users->isEmpty())
-                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                    <div class="w-14 h-14 rounded-2xl bg-[#F7FCFC] border border-[#E2E8F0] flex items-center justify-center mx-auto mb-4">
+                <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                    <div class="w-14 h-14 rounded-2xl bg-[#F7F8FC] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
                         <svg class="w-7 h-7 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0Z" />
                         </svg>
                     </div>
-                    <p class="text-[15px] font-bold text-[#1F2937]">No users found</p>
+                    <p class="text-[15px] font-bold text-[#060D26]">No users found</p>
                     <p class="text-[13px] text-[#94A3B8] mt-1">Try adjusting your search or filter.</p>
                 </div>
             @else
@@ -71,7 +71,7 @@
                     <div class="overflow-x-auto scrollbar-thin-light">
                         <table class="min-w-full">
                             <thead>
-                                <tr class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
+                                <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
                                     <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">User</th>
                                     <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Contact</th>
                                     <th class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Role(s)</th>
@@ -80,33 +80,33 @@
                                     <th class="px-6 py-3"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-[#E2E8F0]">
+                            <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach ($users as $user)
                                     @php
                                         $status = $user->account_status ?? 'active';
                                         $statusCls = match(strtolower($status)) {
                                             'active'    => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
                                             'suspended' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25',
-                                            default     => 'bg-[#F7FCFC] text-[#64748B] border-[#E2E8F0]',
+                                            default     => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]',
                                         };
                                     @endphp
-                                    <tr class="hover:bg-[#F7FCFC] transition-colors">
+                                    <tr class="hover:bg-[#F7F8FC] transition-colors">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 @if ($user->profile_picture)
                                                     <img src="{{ $user->profile_picture }}"
                                                         alt="{{ $user->first_name }}"
-                                                        class="w-9 h-9 rounded-full object-cover border border-[#E2E8F0] shrink-0" />
+                                                        class="w-9 h-9 rounded-full object-cover border border-[#E2E4EC] shrink-0" />
                                                 @else
-                                                    <div class="w-9 h-9 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
-                                                        <span class="text-[#156F8C] text-[12px] font-bold">
+                                                    <div class="w-9 h-9 rounded-full bg-[#C9A84C]/10 flex items-center justify-center shrink-0">
+                                                        <span class="text-[#060D26] text-[12px] font-bold">
                                                             {{ strtoupper(substr($user->first_name ?? $user->email, 0, 1)) }}{{ strtoupper(substr($user->last_name ?? '', 0, 1)) }}
                                                         </span>
                                                     </div>
                                                 @endif
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
-                                                        <p class="text-[13.5px] font-semibold text-[#1F2937]">
+                                                        <p class="text-[13.5px] font-semibold text-[#060D26]">
                                                             {{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: '—' }}
                                                         </p>
                                                         @if ($user->is_walk_in)
@@ -120,7 +120,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-[13.5px] text-[#64748B]">
+                                        <td class="px-6 py-4 text-[13.5px] text-[#5B6A8E]">
                                             {{ $user->contact_number ?? '—' }}
                                         </td>
                                         <td class="px-6 py-4">
@@ -128,11 +128,11 @@
                                                 @forelse ($user->roles as $userRole)
                                                     @php
                                                         $roleColors = [
-                                                            'Admin'    => 'bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25',
-                                                            'Landlord' => 'bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25',
+                                                            'Admin'    => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
+                                                            'Landlord' => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
                                                             'Tenant'   => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
                                                         ];
-                                                        $cls = $roleColors[$userRole->role] ?? 'bg-[#F7FCFC] text-[#64748B] border-[#E2E8F0]';
+                                                        $cls = $roleColors[$userRole->role] ?? 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]';
                                                     @endphp
                                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $cls }}">
                                                         {{ $userRole->role }}
@@ -152,7 +152,7 @@
                                         </td>
                                         <td class="px-6 py-4 text-right">
                                             <a href="{{ route('admin.users.show', $user->user_id) }}"
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F7FCFC] border border-[#E2E8F0] text-[12px] font-semibold text-[#1F2937] hover:bg-[#2AA7A1] hover:text-white hover:border-[#2AA7A1] transition-all">
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] text-[12px] font-semibold text-[#060D26] hover:bg-[#060D26] hover:text-[#F7F4ED] hover:border-[#060D26] transition-all">
                                                 View
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -165,7 +165,7 @@
                         </table>
                     </div>
                     @if ($users->hasPages())
-                        <div class="px-6 py-4 border-t border-[#E2E8F0]">
+                        <div class="px-6 py-4 border-t border-[#E2E4EC]">
                             {{ $users->links() }}
                         </div>
                     @endif
@@ -177,39 +177,39 @@
         <div class="space-y-5">
 
             {{-- Role breakdown donut --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                <h2 class="text-[13.5px] font-bold text-[#1F2937] mb-4">User Breakdown</h2>
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-5 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                <h2 class="text-[13.5px] font-normal text-[#060D26] mb-4">User Breakdown</h2>
                 <div class="relative h-40 flex items-center justify-center mb-4">
                     <canvas id="roleBreakdownChart"></canvas>
                     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <p class="text-[24px] font-extrabold text-[#1F2937] leading-none">{{ number_format($users->total()) }}</p>
+                        <p class="text-[24px] font-extrabold text-[#060D26] leading-none">{{ number_format($users->total()) }}</p>
                         <p class="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider mt-0.5">Users</p>
                     </div>
                 </div>
                 <div class="space-y-2">
                     @php
                         $legendColors = [
-                            'Landlord' => '#156F8C',
-                            'Tenant'   => '#2AA7A1',
-                            'Admin'    => '#69D2C6',
-                            'No role'  => '#E2E8F0',
+                            'Landlord' => '#060D26',
+                            'Tenant'   => '#C9A84C',
+                            'Admin'    => '#8a6e1e',
+                            'No role'  => '#E2E4EC',
                         ];
                     @endphp
                     @foreach ($roleCounts as $label => $count)
                         <div class="flex items-center justify-between text-[12.5px]">
-                            <span class="flex items-center gap-2 text-[#64748B]">
+                            <span class="flex items-center gap-2 text-[#5B6A8E]">
                                 <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:{{ $legendColors[$label] }}"></span>
                                 {{ $label }}
                             </span>
-                            <span class="font-bold text-[#1F2937]">{{ number_format($count) }}</span>
+                            <span class="font-bold text-[#060D26]">{{ number_format($count) }}</span>
                         </div>
                     @endforeach
                 </div>
             </div>
 
             {{-- Account status --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                <h2 class="text-[13.5px] font-bold text-[#1F2937] mb-4">Account Status</h2>
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-5 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                <h2 class="text-[13.5px] font-normal text-[#060D26] mb-4">Account Status</h2>
                 <div class="space-y-3">
                     @php
                         $statusMeta = [
@@ -222,10 +222,10 @@
                     @foreach ($statusCounts as $key => $count)
                         <div>
                             <div class="flex items-center justify-between text-[12.5px] mb-1">
-                                <span class="text-[#64748B]">{{ $statusMeta[$key]['label'] }}</span>
-                                <span class="font-bold text-[#1F2937]">{{ number_format($count) }}</span>
+                                <span class="text-[#5B6A8E]">{{ $statusMeta[$key]['label'] }}</span>
+                                <span class="font-bold text-[#060D26]">{{ number_format($count) }}</span>
                             </div>
-                            <div class="h-1.5 w-full bg-[#EEF8F8] rounded-full overflow-hidden">
+                            <div class="h-1.5 w-full bg-[#ECEEF6] rounded-full overflow-hidden">
                                 <div class="h-full {{ $statusMeta[$key]['color'] }} rounded-full" style="width: {{ round($count / $statusTotal * 100) }}%"></div>
                             </div>
                         </div>
@@ -251,7 +251,7 @@
                     labels: @json(array_keys($roleCounts)),
                     datasets: [{
                         data: @json(array_values($roleCounts)),
-                        backgroundColor: ['#156F8C', '#2AA7A1', '#69D2C6', '#E2E8F0'],
+                        backgroundColor: ['#060D26', '#C9A84C', '#8a6e1e', '#E2E4EC'],
                         borderWidth: 0,
                     }],
                 },

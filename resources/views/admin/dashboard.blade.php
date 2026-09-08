@@ -9,7 +9,7 @@
         <x-page-header title="Dashboard" subtitle="Welcome back! Here's what's happening on AbangananHub.">
             <x-slot:actions>
                 <div
-                    class="hidden sm:flex items-center gap-2 bg-white border border-[#E2E8F0] rounded-2xl px-4 py-2.5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] text-[13px] text-[#64748B]">
+                    class="hidden sm:flex items-center gap-2 bg-white border border-[#E2E4EC] rounded-2xl px-4 py-2.5 shadow-[0_1px_3px_rgba(6,13,38,0.06)] text-[13px] text-[#5B6A8E]">
                     <svg class="w-4 h-4 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -33,9 +33,9 @@
                     ['label' => 'Pending Items', 'value' => $pendingItems, 'icon' => 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z', 'color' => 'red', 'sub' => 'Requires your action'],
                 ];
                 $colorMap = [
-                    'blue' => ['icon_bg' => '#EEF8F8', 'val_color' => '#156F8C'],
+                    'blue' => ['icon_bg' => '#ECEEF6', 'val_color' => '#060D26'],
                     'emerald' => ['icon_bg' => 'rgba(34,197,94,0.07)', 'val_color' => '#15803D'],
-                    'purple' => ['icon_bg' => '#EEF8F8', 'val_color' => '#156F8C'],
+                    'purple' => ['icon_bg' => '#ECEEF6', 'val_color' => '#060D26'],
                     'amber' => ['icon_bg' => 'rgba(251,191,36,0.10)', 'val_color' => '#B45309'],
                     'red' => ['icon_bg' => 'rgba(239,68,68,0.07)', 'val_color' => '#DC2626'],
                 ];
@@ -58,15 +58,15 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             {{-- Platform Overview --}}
-            <div class="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+            <div class="lg:col-span-7 bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                     <div>
-                        <h2 class="text-[15px] font-bold text-[#1F2937]">Platform Overview</h2>
+                        <h2 class="text-[15px] font-normal text-[#060D26]">Platform Overview</h2>
                         <p class="text-[12px] text-[#94A3B8] mt-0.5">New activity over the last 7 days</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#94A3B8]">
                         <span class="flex items-center gap-1.5"><span
-                                class="w-3 h-0.5 rounded-full bg-[#2AA7A1] inline-block"></span>Users</span>
+                                class="w-3 h-0.5 rounded-full bg-[#C9A84C] inline-block"></span>Users</span>
                         <span class="flex items-center gap-1.5"><span
                                 class="w-3 h-0.5 rounded-full bg-[#22C55E] inline-block"></span>Properties</span>
                         <span class="flex items-center gap-1.5"><span
@@ -79,9 +79,9 @@
             </div>
 
             {{-- User Distribution --}}
-            <div class="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+            <div class="lg:col-span-5 bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                 <div class="mb-4">
-                    <h2 class="text-[15px] font-bold text-[#1F2937]">User Distribution</h2>
+                    <h2 class="text-[15px] font-normal text-[#060D26]">User Distribution</h2>
                     <p class="text-[12px] text-[#94A3B8] mt-0.5">Breakdown by role</p>
                 </div>
                 <div class="flex flex-col sm:flex-row items-center gap-6">
@@ -91,9 +91,9 @@
                     <div class="flex-1 w-full space-y-3">
                         @php
                             $distItems = [
-                                ['label' => 'Tenants', 'value' => $totalTenants, 'dot' => 'bg-[#2AA7A1]'],
+                                ['label' => 'Tenants', 'value' => $totalTenants, 'dot' => 'bg-[#C9A84C]'],
                                 ['label' => 'Landlords', 'value' => $totalLandlords, 'dot' => 'bg-[#22C55E]'],
-                                ['label' => 'Admins', 'value' => $totalAdmins, 'dot' => 'bg-[#156F8C]'],
+                                ['label' => 'Admins', 'value' => $totalAdmins, 'dot' => 'bg-[#060D26]'],
                                 ['label' => 'Unverified Landlords', 'value' => $unverifiedLandlords, 'dot' => 'bg-[#FBBF24]'],
                             ];
                             $distTotal = max(1, $totalTenants + $totalLandlords + $totalAdmins + $unverifiedLandlords);
@@ -102,11 +102,11 @@
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-2 min-w-0">
                                     <span class="w-2.5 h-2.5 rounded-full shrink-0 {{ $item['dot'] }}"></span>
-                                    <span class="text-[12.5px] text-[#64748B] truncate">{{ $item['label'] }}</span>
+                                    <span class="text-[12.5px] text-[#5B6A8E] truncate">{{ $item['label'] }}</span>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0">
                                     <span
-                                        class="text-[13px] font-bold text-[#1F2937]">{{ number_format($item['value']) }}</span>
+                                        class="text-[13px] font-bold text-[#060D26]">{{ number_format($item['value']) }}</span>
                                     <span class="text-[11px] text-[#94A3B8] w-10 text-right">
                                         {{ $distTotal > 0 ? round(($item['value'] / $distTotal) * 100, 1) : 0 }}%
                                     </span>
@@ -125,11 +125,11 @@
             <x-card flush class="lg:col-span-8"
                 x-data="{ tab: 'landlords' }">
 
-                <div class="px-4 sm:px-6 py-4 border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3">
-                    <h2 class="text-[15px] font-bold text-[#1F2937]">Pending Verifications</h2>
-                    <div class="flex gap-1 bg-[#F7FCFC] rounded-xl p-1">
+                <div class="px-4 sm:px-6 py-4 border-b border-[#E2E4EC] flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="text-[15px] font-normal text-[#060D26]">Pending Verifications</h2>
+                    <div class="flex gap-1 bg-[#F7F8FC] rounded-xl p-1">
                         <button @click="tab = 'landlords'"
-                            :class="tab === 'landlords' ? 'bg-white shadow-sm text-[#1F2937]' : 'text-[#94A3B8]'"
+                            :class="tab === 'landlords' ? 'bg-white shadow-sm text-[#060D26]' : 'text-[#94A3B8]'"
                             class="px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-all">
                             Landlords
                             @if($pendingVerifications > 0)
@@ -138,7 +138,7 @@
                             @endif
                         </button>
                         <button @click="tab = 'properties'"
-                            :class="tab === 'properties' ? 'bg-white shadow-sm text-[#1F2937]' : 'text-[#94A3B8]'"
+                            :class="tab === 'properties' ? 'bg-white shadow-sm text-[#060D26]' : 'text-[#94A3B8]'"
                             class="px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-all">
                             Properties
                             @if($pendingListings > 0)
@@ -147,7 +147,7 @@
                             @endif
                         </button>
                         <button @click="tab = 'units'"
-                            :class="tab === 'units' ? 'bg-white shadow-sm text-[#1F2937]' : 'text-[#94A3B8]'"
+                            :class="tab === 'units' ? 'bg-white shadow-sm text-[#060D26]' : 'text-[#94A3B8]'"
                             class="px-3 py-1.5 rounded-lg text-[12.5px] font-semibold transition-all">
                             Units
                             @if($pendingUnits > 0)
@@ -166,7 +166,7 @@
                         <div class="overflow-x-auto scrollbar-thin-light">
                         <table class="w-full min-w-[640px]">
                             <thead>
-                                <tr class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
+                                <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
                                     <th
                                         class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">
                                         Name</th>
@@ -182,15 +182,15 @@
                                     <th class="px-6 py-3"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-[#E2E8F0]">
+                            <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach($pendingVerificationList as $v)
-                                    <tr class="hover:bg-[#F7FCFC] transition-colors">
+                                    <tr class="hover:bg-[#F7F8FC] transition-colors">
                                         <td class="px-6 py-3.5">
-                                            <p class="text-[13.5px] font-semibold text-[#1F2937]">{{ $v->user->first_name }}
+                                            <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $v->user->first_name }}
                                                 {{ $v->user->last_name }}</p>
                                             <p class="text-[11.5px] text-[#94A3B8]">{{ $v->user->email }}</p>
                                         </td>
-                                        <td class="px-6 py-3.5 text-[13px] text-[#64748B]">{{ $v->business_name ?? '—' }}</td>
+                                        <td class="px-6 py-3.5 text-[13px] text-[#5B6A8E]">{{ $v->business_name ?? '—' }}</td>
                                         <td class="px-6 py-3.5 text-[13px] text-[#94A3B8]">
                                             {{ $v->submitted_at ? \Carbon\Carbon::parse($v->submitted_at)->format('M j, Y') : '—' }}
                                         </td>
@@ -200,7 +200,7 @@
                                         </td>
                                         <td class="px-6 py-3.5 text-right">
                                             <a href="{{ route('admin.verifications.show', $v) }}"
-                                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
+                                                class="text-[12.5px] font-semibold text-[#060D26] hover:brightness-95 transition-colors">
                                                 Review →
                                             </a>
                                         </td>
@@ -209,9 +209,9 @@
                             </tbody>
                         </table>
                         </div>
-                        <div class="px-6 py-3 border-t border-[#E2E8F0]">
+                        <div class="px-6 py-3 border-t border-[#E2E4EC]">
                             <a href="{{ route('admin.verifications.index', ['status' => 'Pending']) }}"
-                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
+                                class="text-[12.5px] font-semibold text-[#060D26] hover:brightness-95 transition-colors">
                                 View all pending verifications →
                             </a>
                         </div>
@@ -226,7 +226,7 @@
                         <div class="overflow-x-auto scrollbar-thin-light">
                         <table class="w-full min-w-[720px]">
                             <thead>
-                                <tr class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
+                                <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
                                     <th
                                         class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">
                                         Property</th>
@@ -245,18 +245,18 @@
                                     <th class="px-6 py-3"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-[#E2E8F0]">
+                            <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach($pendingListingList as $p)
-                                    <tr class="hover:bg-[#F7FCFC] transition-colors">
+                                    <tr class="hover:bg-[#F7F8FC] transition-colors">
                                         <td class="px-6 py-3.5">
-                                            <p class="text-[13.5px] font-semibold text-[#1F2937] truncate max-w-[180px]">
+                                            <p class="text-[13.5px] font-semibold text-[#060D26] truncate max-w-[180px]">
                                                 {{ $p->title ?? 'Untitled' }}</p>
                                         </td>
                                         <td class="px-6 py-3.5">
                                             <span
-                                                class="text-[11.5px] font-bold bg-[#2AA7A1]/10 text-[#156F8C] px-2 py-0.5 rounded-full">{{ $p->property_type ?? '—' }}</span>
+                                                class="text-[11.5px] font-bold bg-[#C9A84C]/10 text-[#060D26] px-2 py-0.5 rounded-full">{{ $p->property_type ?? '—' }}</span>
                                         </td>
-                                        <td class="px-6 py-3.5 text-[13px] text-[#64748B]">{{ $p->landlord?->first_name }}
+                                        <td class="px-6 py-3.5 text-[13px] text-[#5B6A8E]">{{ $p->landlord?->first_name }}
                                             {{ $p->landlord?->last_name }}</td>
                                         <td class="px-6 py-3.5 text-[13px] text-[#94A3B8]">
                                             {{ $p->created_at ? $p->created_at->format('M j, Y') : '—' }}
@@ -267,7 +267,7 @@
                                         </td>
                                         <td class="px-6 py-3.5 text-right">
                                             <a href="{{ route('admin.listings.approval') }}"
-                                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
+                                                class="text-[12.5px] font-semibold text-[#060D26] hover:brightness-95 transition-colors">
                                                 Review →
                                             </a>
                                         </td>
@@ -276,9 +276,9 @@
                             </tbody>
                         </table>
                         </div>
-                        <div class="px-6 py-3 border-t border-[#E2E8F0]">
+                        <div class="px-6 py-3 border-t border-[#E2E4EC]">
                             <a href="{{ route('admin.listings.approval') }}"
-                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
+                                class="text-[12.5px] font-semibold text-[#060D26] hover:brightness-95 transition-colors">
                                 View all pending properties →
                             </a>
                         </div>
@@ -293,7 +293,7 @@
                         <div class="overflow-x-auto scrollbar-thin-light">
                         <table class="w-full min-w-[640px]">
                             <thead>
-                                <tr class="bg-[#F7FCFC] border-b border-[#E2E8F0]">
+                                <tr class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
                                     <th
                                         class="px-6 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">
                                         Unit</th>
@@ -309,12 +309,12 @@
                                     <th class="px-6 py-3"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-[#E2E8F0]">
+                            <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach($pendingUnitList as $u)
-                                    <tr class="hover:bg-[#F7FCFC] transition-colors">
-                                        <td class="px-6 py-3.5 text-[13.5px] font-semibold text-[#1F2937]">
+                                    <tr class="hover:bg-[#F7F8FC] transition-colors">
+                                        <td class="px-6 py-3.5 text-[13.5px] font-semibold text-[#060D26]">
                                             {{ $u->unit_label ?? '—' }}</td>
-                                        <td class="px-6 py-3.5 text-[13px] text-[#64748B] truncate max-w-[180px]">
+                                        <td class="px-6 py-3.5 text-[13px] text-[#5B6A8E] truncate max-w-[180px]">
                                             {{ $u->property?->title ?? '—' }}</td>
                                         <td class="px-6 py-3.5 text-[13px] text-[#94A3B8]">
                                             {{ $u->created_at ? $u->created_at->format('M j, Y') : '—' }}
@@ -325,7 +325,7 @@
                                         </td>
                                         <td class="px-6 py-3.5 text-right">
                                             <a href="{{ route('admin.units.index') }}"
-                                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
+                                                class="text-[12.5px] font-semibold text-[#060D26] hover:brightness-95 transition-colors">
                                                 Review →
                                             </a>
                                         </td>
@@ -334,9 +334,9 @@
                             </tbody>
                         </table>
                         </div>
-                        <div class="px-6 py-3 border-t border-[#E2E8F0]">
+                        <div class="px-6 py-3 border-t border-[#E2E4EC]">
                             <a href="{{ route('admin.units.index') }}"
-                                class="text-[12.5px] font-semibold text-[#156F8C] hover:brightness-95 transition-colors">
+                                class="text-[12.5px] font-semibold text-[#060D26] hover:brightness-95 transition-colors">
                                 View all pending units →
                             </a>
                         </div>
@@ -347,29 +347,29 @@
 
             {{-- Recent Reservations --}}
             <x-card flush class="lg:col-span-4">
-                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
-                    <h2 class="text-[15px] font-bold text-[#1F2937]">Recent Reservations</h2>
+                <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-center justify-between">
+                    <h2 class="text-[15px] font-normal text-[#060D26]">Recent Reservations</h2>
                     <span class="text-[12px] text-[#94A3B8]">Latest</span>
                 </div>
-                <div class="divide-y divide-[#E2E8F0]">
+                <div class="divide-y divide-[#E2E4EC]">
                     @forelse($recentReservations as $res)
                         @php
                             $rStatusCls = match ($res->rental_status) {
                                 'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
                                 'Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                                'Cancelled' => 'bg-[#EEF8F8] text-[#64748B]',
+                                'Cancelled' => 'bg-[#ECEEF6] text-[#5B6A8E]',
                                 'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
-                                default => 'bg-[#F7FCFC] text-[#64748B]',
+                                default => 'bg-[#F7F8FC] text-[#5B6A8E]',
                             };
                         @endphp
                         <div class="px-5 py-3.5 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-[#2AA7A1]/10 flex items-center justify-center shrink-0">
-                                <span class="text-[#156F8C] text-[11px] font-bold">
+                            <div class="w-8 h-8 rounded-full bg-[#C9A84C]/10 flex items-center justify-center shrink-0">
+                                <span class="text-[#060D26] text-[11px] font-bold">
                                     {{ strtoupper(substr($res->tenant?->first_name ?? '?', 0, 1)) }}
                                 </span>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-[13px] font-semibold text-[#1F2937] truncate">
+                                <p class="text-[13px] font-semibold text-[#060D26] truncate">
                                     {{ $res->tenant?->first_name }} {{ $res->tenant?->last_name }}
                                 </p>
                                 <p class="text-[11.5px] text-[#94A3B8] truncate">{{ $res->property?->title ?? '—' }}</p>
@@ -390,17 +390,17 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
             {{-- Reservations Overview --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-[15px] font-bold text-[#1F2937]">Reservations Overview</h2>
+                    <h2 class="text-[15px] font-normal text-[#060D26]">Reservations Overview</h2>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     @php
                         $resOverview = [
                             ['label' => 'In Progress', 'value' => ($reservationStats['Inquiry'] ?? 0) + ($reservationStats['Under Negotiation'] ?? 0) + ($reservationStats['Pending Rental Agreement'] ?? 0) + ($reservationStats['Rental Agreement Signed'] ?? 0), 'cls' => 'bg-[#FBBF24]/[0.10] border-[#FBBF24]/25 text-[#B45309]'],
                             ['label' => 'Occupied', 'value' => $reservationStats['Occupied'] ?? 0, 'cls' => 'bg-[#22C55E]/[0.07] border-[#22C55E]/20 text-[#15803D]'],
-                            ['label' => 'Cancelled', 'value' => $reservationStats['Cancelled'] ?? 0, 'cls' => 'bg-[#F7FCFC] border-[#E2E8F0] text-[#64748B]'],
-                            ['label' => 'Rejected', 'value' => $reservationStats['Rejected'] ?? 0, 'cls' => 'bg-[#EEF8F8] border-[#2AA7A1]/20 text-[#156F8C]'],
+                            ['label' => 'Cancelled', 'value' => $reservationStats['Cancelled'] ?? 0, 'cls' => 'bg-[#F7F8FC] border-[#E2E4EC] text-[#5B6A8E]'],
+                            ['label' => 'Rejected', 'value' => $reservationStats['Rejected'] ?? 0, 'cls' => 'bg-[#ECEEF6] border-[#C9A84C]/20 text-[#060D26]'],
                         ];
                     @endphp
                     @foreach($resOverview as $item)
@@ -414,20 +414,20 @@
             </div>
 
             {{-- Quick Actions --}}
-            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
-                <h2 class="text-[15px] font-bold text-[#1F2937] mb-4">Quick Actions</h2>
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-6 shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+                <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Quick Actions</h2>
                 <div class="grid grid-cols-2 gap-3">
                     @php
                         $quickActions = [
-                            ['label' => 'Review Landlords', 'sub' => $pendingVerifications . ' pending', 'href' => route('admin.verifications.index', ['status' => 'Pending']), 'icon' => 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z', 'color' => 'bg-[#2AA7A1]'],
+                            ['label' => 'Review Landlords', 'sub' => $pendingVerifications . ' pending', 'href' => route('admin.verifications.index', ['status' => 'Pending']), 'icon' => 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z', 'color' => 'bg-[#060D26]'],
                             ['label' => 'Review Properties', 'sub' => $pendingListings . ' pending', 'href' => route('admin.listings.approval'), 'icon' => 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25', 'color' => 'bg-[#22C55E]'],
-                            ['label' => 'Review Units', 'sub' => $pendingUnits . ' pending', 'href' => route('admin.units.index'), 'icon' => 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm9.75 0A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm-9.75 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75 0a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z', 'color' => 'bg-[#2AA7A1]'],
+                            ['label' => 'Review Units', 'sub' => $pendingUnits . ' pending', 'href' => route('admin.units.index'), 'icon' => 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm9.75 0A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm-9.75 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75 0a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z', 'color' => 'bg-[#060D26]'],
                             ['label' => 'Manage Users', 'sub' => number_format($totalUsers) . ' total', 'href' => route('admin.users.index'), 'icon' => 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0Zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0Z', 'color' => 'bg-[#FBBF24]'],
                         ];
                     @endphp
                     @foreach($quickActions as $action)
                         <a href="{{ $action['href'] }}"
-                            class="group flex items-center gap-3 p-4 rounded-2xl border border-[#E2E8F0] bg-[#F7FCFC] hover:bg-white hover:border-[#2AA7A1]/20 hover:shadow-sm transition-all">
+                            class="group flex items-center gap-3 p-4 rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] hover:bg-white hover:border-[#C9A84C]/20 hover:shadow-sm transition-all">
                             <div
                                 class="w-9 h-9 rounded-xl {{ $action['color'] }} flex items-center justify-center shrink-0 shadow-sm">
                                 <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -437,7 +437,7 @@
                             </div>
                             <div class="min-w-0">
                                 <p
-                                    class="text-[13px] font-bold text-[#1F2937] truncate group-hover:text-[#156F8C] transition-colors">
+                                    class="text-[13px] font-bold text-[#060D26] truncate group-hover:text-[#060D26] transition-colors">
                                     {{ $action['label'] }}</p>
                                 <p class="text-[11.5px] text-[#94A3B8]">{{ $action['sub'] }}</p>
                             </div>
@@ -467,10 +467,10 @@
                             {
                                 label: 'Users',
                                 data: {!! $chartUsers->toJson() !!},
-                                borderColor: '#2AA7A1',
-                                backgroundColor: 'rgba(42,167,161,0.08)',
+                                borderColor: '#C9A84C',
+                                backgroundColor: 'rgba(201,168,76,0.08)',
                                 borderWidth: 2.5,
-                                pointBackgroundColor: '#2AA7A1',
+                                pointBackgroundColor: '#C9A84C',
                                 pointRadius: 4,
                                 pointHoverRadius: 6,
                                 tension: 0.4,
@@ -508,7 +508,7 @@
                         plugins: {
                             legend: { display: false },
                             tooltip: {
-                                backgroundColor: '#1F2937',
+                                backgroundColor: '#060D26',
                                 titleColor: '#fff',
                                 bodyColor: 'rgba(255,255,255,0.7)',
                                 padding: 10,
@@ -545,7 +545,7 @@
                             {{ $totalAdmins }},
                             {{ $unverifiedLandlords }},
                             ],
-                            backgroundColor: ['#2AA7A1', '#22C55E', '#156F8C', '#FBBF24'],
+                            backgroundColor: ['#C9A84C', '#22C55E', '#060D26', '#FBBF24'],
                             borderWidth: 0,
                             hoverOffset: 4,
                         }],
@@ -557,7 +557,7 @@
                         plugins: {
                             legend: { display: false },
                             tooltip: {
-                                backgroundColor: '#1F2937',
+                                backgroundColor: '#060D26',
                                 titleColor: '#fff',
                                 bodyColor: 'rgba(255,255,255,0.7)',
                                 padding: 10,

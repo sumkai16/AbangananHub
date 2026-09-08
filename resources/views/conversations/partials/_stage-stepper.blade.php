@@ -32,10 +32,10 @@
         : 0;
 @endphp
 
-<div class="h-1.5 rounded-full bg-[#E2E8F0]" role="progressbar"
+<div class="h-1.5 rounded-full bg-[#E2E4EC]" role="progressbar"
     aria-label="Rental progress" aria-valuenow="{{ $currentStageIndex !== false ? $currentStageIndex + 1 : 0 }}"
     aria-valuemin="0" aria-valuemax="{{ count($stageLabels) }}">
-    <div class="h-full rounded-full bg-[#2AA7A1] transition-all duration-300" style="width: {{ $fillPercent }}%"></div>
+    <div class="h-full rounded-full bg-[#060D26] transition-all duration-300" style="width: {{ $fillPercent }}%"></div>
 </div>
 
 <div class="flex items-start mt-1.5">
@@ -45,7 +45,7 @@
             $isCurrent = $currentStageIndex !== false && $i === $currentStageIndex;
             $isLast = $i === count($stageLabels) - 1;
         @endphp
-        <p class="{{ !$isLast ? 'flex-1' : '' }} text-[9.5px] font-bold uppercase leading-tight tracking-wider {{ $isLast ? 'text-right' : '' }} {{ $isCurrent ? 'text-[#156F8C]' : ($isDone ? 'text-[#1F2937]' : 'text-[#94A3B8]') }}">
+        <p class="{{ !$isLast ? 'flex-1' : '' }} text-[9.5px] font-bold uppercase leading-tight tracking-wider {{ $isLast ? 'text-right' : '' }} {{ $isCurrent ? 'text-[#060D26]' : ($isDone ? 'text-[#060D26]' : 'text-[#94A3B8]') }}">
             {{ $label }}
         </p>
     @endforeach

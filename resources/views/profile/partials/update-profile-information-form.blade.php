@@ -1,15 +1,15 @@
-<div class="rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] bg-white p-6 sm:p-8">
+<div class="rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] bg-white p-6 sm:p-8">
 
     {{-- Section header --}}
-    <div class="mb-7 border-b border-[#E2E8F0] pb-6 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+    <div class="mb-7 border-b border-[#E2E4EC] pb-6 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
         </div>
         <div>
-            <h2 class="text-[15px] font-semibold text-[#1F2937]">Personal information</h2>
-            <p class="mt-0.5 text-sm text-[#64748B]">Update your name, email, and contact details.</p>
+            <h2 class="text-[15px] font-normal text-[#060D26]">Personal information</h2>
+            <p class="mt-0.5 text-sm text-[#5B6A8E]">Update your name, email, and contact details.</p>
         </div>
     </div>
 
@@ -23,13 +23,13 @@
             {{-- First name --}}
             <div>
                 <label for="first_name"
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
                     First name
                 </label>
                 <input id="first_name" name="first_name" type="text" value="{{ old('first_name', $user->first_name) }}"
                     required autofocus autocomplete="given-name"
-                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
+                    class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+                           focus:border-[#C9A84C] focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/15 placeholder:text-[#5B6A8E]/50">
                 @error('first_name')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -38,13 +38,13 @@
             {{-- Last name --}}
             <div>
                 <label for="last_name"
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
                     Last name
                 </label>
                 <input id="last_name" name="last_name" type="text" value="{{ old('last_name', $user->last_name) }}"
                     required autocomplete="family-name"
-                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
+                    class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+                           focus:border-[#C9A84C] focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/15 placeholder:text-[#5B6A8E]/50">
                 @error('last_name')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -52,13 +52,13 @@
 
             {{-- Email --}}
             <div class="sm:col-span-2">
-                <label for="email" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
+                <label for="email" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
                     Email address
                 </label>
                 <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required
                     autocomplete="username"
-                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
+                    class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+                           focus:border-[#C9A84C] focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/15 placeholder:text-[#5B6A8E]/50">
                 @error('email')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -83,14 +83,14 @@
             {{-- Contact number --}}
             <div class="sm:col-span-2">
                 <label for="contact_number"
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
                     Contact number
                 </label>
                 <input id="contact_number" name="contact_number" type="text"
                     value="{{ old('contact_number', $user->contact_number) }}" placeholder="+63 912 345 6789"
                     autocomplete="tel"
-                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">
+                    class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+                           focus:border-[#C9A84C] focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/15 placeholder:text-[#5B6A8E]/50">
                 @error('contact_number')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -98,12 +98,12 @@
 
             {{-- Bio --}}
             <div class="sm:col-span-2">
-                <label for="bio" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
-                    Bio <span class="normal-case font-normal text-[#64748B]/70">(Optional)</span>
+                <label for="bio" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
+                    Bio <span class="normal-case font-normal text-[#5B6A8E]/70">(Optional)</span>
                 </label>
                 <textarea id="bio" name="bio" rows="3" maxlength="1000" placeholder="Tell others a bit about yourself…"
-                    class="w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 py-2.5 text-sm text-[#1F2937] outline-none transition resize-none
-                           focus:border-[#2AA7A1] focus:bg-white focus:ring-2 focus:ring-[#2AA7A1]/15 placeholder:text-[#64748B]/50">{{ old('bio', $user->bio) }}</textarea>
+                    class="w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 py-2.5 text-sm text-[#060D26] outline-none transition resize-none
+                           focus:border-[#C9A84C] focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/15 placeholder:text-[#5B6A8E]/50">{{ old('bio', $user->bio) }}</textarea>
                 @error('bio')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -112,7 +112,7 @@
             {{-- Profile visibility --}}
             <div class="sm:col-span-2">
                 <label for="profile_visibility"
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
                     Profile visibility
                 </label>
                 @php
@@ -124,7 +124,7 @@
                     ];
                 @endphp
                 <x-styled-select name="profile_visibility" :options="$visibilityOptions" :selected="$visibility"
-                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937]" />
+                    class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26]" />
                 @error('profile_visibility')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -132,9 +132,9 @@
         </div>
 
         {{-- Actions --}}
-        <div class="mt-7 flex items-center gap-4 border-t border-[#E2E8F0] pt-6">
+        <div class="mt-7 flex items-center gap-4 border-t border-[#E2E4EC] pt-6">
             <button type="submit"
-                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#2AA7A1] px-5 text-[13px] font-semibold text-white transition hover:brightness-95 active:scale-[0.98]">
+                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#060D26] px-5 text-[13px] font-semibold text-white transition hover:brightness-95 active:scale-[0.98]">
                 Save changes
             </button>
         </div>

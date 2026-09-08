@@ -7,9 +7,9 @@
     {{-- Right panel headline & feature area --}}
     <x-slot name="rightContent">
         <div class="max-w-xl mx-auto">
-            <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
+            <h1 class="text-3xl font-normal text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
-                for Verified Rental <span class="bg-gradient-to-r from-[#69D2C6] via-[#2AA7A1] to-[#156F8C] bg-clip-text text-transparent font-black">Properties.</span>
+                for Verified Rental <span class="italic text-[#C9A84C]">Properties.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
@@ -17,9 +17,9 @@
 
             <div class="space-y-3">
                 {{-- Feature 1 --}}
-                <div class="flex items-center gap-3 bg-[#0E3A3A]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20">
+                        <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                     </div>
@@ -30,9 +30,9 @@
                 </div>
 
                 {{-- Feature 2 --}}
-                <div class="flex items-center gap-3 bg-[#0E3A3A]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20">
+                        <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
@@ -43,9 +43,9 @@
                 </div>
 
                 {{-- Feature 3 --}}
-                <div class="flex items-center gap-3 bg-[#0E3A3A]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20">
+                        <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                     </div>
@@ -56,10 +56,10 @@
                 </div>
 
                 {{-- Feature 4 (SDG 16 integrated clean into list container) --}}
-                <div class="flex items-center gap-3 bg-[#0E3A3A]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#2AA7A1] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#2AA7A1]/20 select-none">
-                        <span class="text-white text-[8px] font-black tracking-tighter leading-none">SDG</span>
-                        <span class="text-white text-xs font-black leading-none mt-0.5">16</span>
+                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20 select-none">
+                        <span class="text-[#060D26] text-[8px] font-black tracking-tighter leading-none">SDG</span>
+                        <span class="text-[#060D26] text-xs font-black leading-none mt-0.5">16</span>
                     </div>
                     <div>
                         <p class="text-white font-black text-xs tracking-wide uppercase">Supporting SDG 16</p>
@@ -71,21 +71,21 @@
     </x-slot>
 
     {{-- Left panel: Unified layout and no-scrollbar viewport constraints --}}
-    <div class="w-full min-h-screen bg-[#F7FCFC] flex flex-col items-center px-4 py-10 lg:py-14">
-        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-2xl border border-[#E2E8F0]/80 p-6 lg:p-8 shadow-xl shadow-[#1F2937]/[0.04] transition-all duration-300">
+    <div class="w-full min-h-screen bg-[#F7F8FC] flex flex-col items-center px-4 py-10 lg:py-14">
+        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-2xl border border-[#E2E4EC]/80 p-6 lg:p-8 shadow-xl shadow-[#060D26]/[0.04] transition-all duration-300">
 
             {{-- Branding --}}
             <div class="mb-5">
                 <a href="/" class="flex items-center gap-2 mb-4 group inline-flex">
-                    <div class="w-8 h-8 rounded-lg bg-[#2AA7A1] flex items-center justify-center shadow-md shadow-[#2AA7A1]/10 transition-transform duration-300 group-hover:scale-105">
+                    <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shadow-md shadow-[#060D26]/10 transition-transform duration-300 group-hover:scale-105">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
-                    <span class="text-[#156F8C] font-bold text-base tracking-tight">Abanganan<span class="text-[#156F8C]">Hub</span></span>
+                    <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
                 </a>
-                <h2 class="text-lg sm:text-xl font-black text-[#156F8C] tracking-tight">Welcome Back!</h2>
-                <p class="text-[#64748B] text-xs font-medium mt-0.5">Login to continue to AbangananHub</p>
+                <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Welcome Back!</h2>
+                <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">Login to continue to AbangananHub</p>
             </div>
 
             {{-- Session alerts --}}
@@ -103,19 +103,19 @@
 
                 {{-- Email Address --}}
                 <div>
-                    <label for="email" class="block text-xs font-bold text-[#156F8C] mb-1">Email Address</label>
+                    <label for="email" class="block text-xs font-bold text-[#060D26] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
                 </div>
 
                 {{-- Password Input --}}
                 <div>
-                    <label for="password" class="block text-xs font-bold text-[#156F8C] mb-1">Password</label>
+                    <label for="password" class="block text-xs font-bold text-[#060D26] mb-1">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#1F2937] placeholder-[#94A3B8] focus:border-[#2AA7A1] focus:ring-2 focus:ring-[#2AA7A1]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
                         <button type="button" onclick="togglePassword('password', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#156F8C] transition-colors focus:outline-none">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -127,11 +127,11 @@
                 {{-- Remember Me & Forgot Password Layout --}}
                 <div class="flex items-center justify-between pt-0.5">
                     <label class="flex items-center gap-2 text-xs text-[#5E6968] font-semibold cursor-pointer select-none">
-                        <input type="checkbox" name="remember" class="rounded border-[#E2E8F0] text-[#2AA7A1] focus:ring-[#2AA7A1] transition-colors w-3.5 h-3.5" />
+                        <input type="checkbox" name="remember" class="rounded border-[#E2E4EC] text-[#8a6e1e] focus:ring-[#C9A84C] transition-colors w-3.5 h-3.5" />
                         Remember me
                     </label>
                     @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" class="text-xs text-[#156F8C] hover:text-[#156F8C] font-bold transition-colors hover:underline">
+                        <a href="{{ route('password.request') }}" class="text-xs text-[#060D26] hover:text-[#060D26] font-bold transition-colors hover:underline">
                             Forgot Password?
                         </a>
                     @endif
@@ -139,7 +139,7 @@
 
                 {{-- Action Submission Button --}}
                 <div class="pt-1">
-                    <button type="submit" class="w-full bg-gradient-to-r from-[#2AA7A1] to-[#156F8C] text-white font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#2AA7A1]/20 text-[15px]">
+                    <button type="submit" class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
                         Login
                     </button>
                 </div>
@@ -147,12 +147,12 @@
 
             <x-social-login-buttons />
 
-            <p class="text-center text-xs text-[#64748B] font-medium mt-5">
+            <p class="text-center text-xs text-[#5B6A8E] font-medium mt-5">
                 Don't have an account?
-                <a href="{{ route('register') }}" class="text-[#156F8C] font-bold hover:underline ml-1">Register here</a>
+                <a href="{{ route('register') }}" class="text-[#060D26] font-bold hover:underline ml-1">Register here</a>
             </p>
 
-            <p class="text-center text-[10px] font-bold text-[#64748B]/70 mt-5 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
+            <p class="text-center text-[10px] font-bold text-[#5B6A8E]/70 mt-5 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
         </div>
     </div>
 </x-guest-layout>
