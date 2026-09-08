@@ -6,7 +6,7 @@
     $config = match ($status) {
         'Verified'  => ['bg' => 'bg-[#22C55E]/[0.10]', 'text' => 'text-[#15803D]'],
         'Rejected'  => ['bg' => 'bg-[#EF4444]/[0.10]', 'text' => 'text-[#DC2626]'],
-        'Expired'   => ['bg' => 'bg-[#64748B]/[0.10]', 'text' => 'text-[#64748B]'],
+        'Expired'   => ['bg' => 'bg-[#5B6A8E]/[0.10]', 'text' => 'text-[#5B6A8E]'],
         'Requested' => ['bg' => 'bg-[#3B82F6]/[0.10]', 'text' => 'text-[#2563EB]'],
         default     => ['bg' => 'bg-[#FBBF24]/[0.10]', 'text' => 'text-[#B45309]'], // Pending
     };

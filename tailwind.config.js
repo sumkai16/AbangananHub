@@ -13,19 +13,22 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                heading: ['Poppins', ...defaultTheme.fontFamily.sans],
-                // Large page titles only — see DESIGN.md §4. Not for card
-                // headings or section labels; those stay on font-heading.
-                display: ['"Source Serif 4"', 'Georgia', ...defaultTheme.fontFamily.serif],
+                // Navy/Gold identity (Sept 2026) — DM Serif Display replaces Poppins
+                // for headings and Source Serif 4 for display titles; see DESIGN.md §4.
+                heading: ['"DM Serif Display"', 'Georgia', ...defaultTheme.fontFamily.serif],
+                display: ['"DM Serif Display"', 'Georgia', ...defaultTheme.fontFamily.serif],
             },
             colors: {
                 brand: {
-                    primary: '#156F8C',
-                    secondary: '#2AA7A1',
-                    cta: '#FF8A65',
-                    dark: '#0F172A',
-                    slate: '#1F2937',
-                    muted: '#64748B',
+                    navy: '#060D26',
+                    gold: '#C9A84C',
+                    goldText: '#8a6e1e',
+                    cream: '#F7F4ED',
+                    slate: '#5B6A8E',
+                    border: '#E2E4EC',
+                    bg: '#F7F8FC',
+                    mist: '#ECEEF6',
+                    footer: '#060D26',
                 },
             },
         },

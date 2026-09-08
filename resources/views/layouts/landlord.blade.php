@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,600;1,8..60,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         (function () {
@@ -41,7 +41,7 @@
     </style>
 </head>
 
-<body class="font-sans bg-[#F7FCFC] text-[#1F2937] min-h-screen" x-data="{
+<body class="font-sans bg-[#F7F8FC] text-[#060D26] min-h-screen" x-data="{
         sidebarOpen: false,
         sidebarCollapsed: localStorage.getItem('landlordSidebarCollapsed') === 'true'
     }" x-init="
@@ -52,7 +52,7 @@
         });
     ">
 
-    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#2AA7A1] focus:text-white focus:font-semibold">Skip to main content</a>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#060D26] focus:text-white focus:font-semibold">Skip to main content</a>
 
     <div class="flex min-h-screen">
 
@@ -63,11 +63,11 @@
         {{-- ============ SIDEBAR ============ --}}
         <aside id="landlord-sidebar" x-cloak
             :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0F172A] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
             {{-- Collapse toggle --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
-                class="hidden lg:flex absolute top-5 -right-3 w-6 h-6 rounded-full bg-[#2AA7A1] text-white items-center justify-center shadow-md hover:brightness-95 transition-all duration-200 z-10"
+                class="hidden lg:flex absolute top-5 -right-3 w-6 h-6 rounded-full bg-[#060D26] text-white items-center justify-center shadow-md hover:brightness-95 transition-all duration-200 z-10"
                 :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
                     :class="sidebarCollapsed ? 'rotate-180' : ''" class="transition-transform duration-300">
@@ -84,7 +84,7 @@
                         class="w-9 h-9 object-contain shrink-0">
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
-                        Abanganan<span class="text-[#2AA7A1]">Hub</span>
+                        Abanganan<span class="text-[#8a6e1e]">Hub</span>
                     </span>
                 </a>
 
@@ -94,7 +94,7 @@
                     <button type="button" @click="toggle()" aria-label="Notifications"
                         class="relative w-10 h-10 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors shrink-0">
                         <span x-show="unreadCount > 0" x-cloak
-                            class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
+                            class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#060D26]"></span>
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                             stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -107,11 +107,11 @@
                         x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute top-[calc(100%+10px)] left-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
+                        class="absolute top-[calc(100%+10px)] left-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#5B6A8E]/15 z-50 overflow-hidden">
                         <div x-ref="dropdownBody">
                             <div class="px-4 py-8 text-center">
                                 <div
-                                    class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin mx-auto">
+                                    class="w-6 h-6 border-2 border-[#5B6A8E] border-t-transparent rounded-full animate-spin mx-auto">
                                 </div>
                             </div>
                         </div>
@@ -132,7 +132,7 @@
                         class="group relative w-full flex items-center justify-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 text-white/60 hover:bg-white/[0.06] hover:text-white/90">
                         <div class="relative">
                             <span x-show="unreadCount > 0" x-cloak
-                                class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#0F172A]"></span>
+                                class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-[#060D26]"></span>
                             <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -149,11 +149,11 @@
                         x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute top-0 left-full ml-3 w-[320px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
+                        class="absolute top-0 left-full ml-3 w-[320px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#5B6A8E]/15 z-50 overflow-hidden">
                         <div x-ref="dropdownBody">
                             <div class="px-4 py-8 text-center">
                                 <div
-                                    class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin mx-auto">
+                                    class="w-6 h-6 border-2 border-[#5B6A8E] border-t-transparent rounded-full animate-spin mx-auto">
                                 </div>
                             </div>
                         </div>
@@ -169,7 +169,7 @@
                 {{-- Dashboard --}}
                 <a href="{{ route('landlord.dashboard') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ $current === 'landlord.dashboard' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ $current === 'landlord.dashboard' ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -186,7 +186,7 @@
                 {{-- Properties --}}
                 <a href="{{ route('landlord.properties.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'landlord.properties') && !str_contains($current, 'units') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                          {{ str_starts_with($current, 'landlord.properties') && !str_contains($current, 'units') ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -203,7 +203,7 @@
                 {{-- Reservations --}}
                 <a href="{{ route('landlord.reservations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'landlord.reservations') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                          {{ str_starts_with($current, 'landlord.reservations') ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -220,7 +220,7 @@
                 {{-- Tenants — also lit for the per-tenancy management page --}}
                 <a href="{{ route('landlord.tenants.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.tenants') || str_starts_with($current, 'landlord.tenancies') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($current, 'landlord.tenants') || str_starts_with($current, 'landlord.tenancies') ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -236,7 +236,7 @@
                 {{-- Rent & Payments --}}
                 <a href="{{ route('landlord.payments.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.payments') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($current, 'landlord.payments') ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -252,7 +252,7 @@
                 {{-- Payouts --}}
                 <a href="{{ route('landlord.payouts.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.payouts') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($current, 'landlord.payouts') ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -268,7 +268,7 @@
                 {{-- Messages --}}
                 <a href="{{ route('conversations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'conversations') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                          {{ str_starts_with($current, 'conversations') ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <circle cx="12" cy="12" r="9" />
@@ -291,7 +291,7 @@
                 {{-- Reviews --}}
                 <a href="{{ route('landlord.reviews.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.reviews') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($current, 'landlord.reviews') ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -307,7 +307,7 @@
                 {{-- Analytics --}}
                 <a href="{{ route('landlord.analytics.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.analytics') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($current, 'landlord.analytics') ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -329,7 +329,7 @@
                      Reports filed *against* anyone stay admin-only. --}}
                 <a href="{{ route('landlord.complaints.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.complaints') ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                        {{ str_starts_with($current, 'landlord.complaints') ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -345,7 +345,7 @@
                 {{-- My Profile --}}
                 <a href="{{ route('landlord.profile.me') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'landlord.profile.me' || $current === 'landlord.profile.edit' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                          {{ $current === 'landlord.profile.me' || $current === 'landlord.profile.edit' ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -362,7 +362,7 @@
                 {{-- Report a Problem --}}
                 <a href="{{ route('reports.create') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'reports.create' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                          {{ $current === 'reports.create' ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -379,7 +379,7 @@
                 {{-- Settings --}}
                 <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'profile.edit' ? 'bg-[#2AA7A1] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
+                          {{ $current === 'profile.edit' ? 'bg-[#060D26] text-white font-semibold' : 'text-white/60 hover:bg-white/[0.06] hover:text-white/90' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -403,7 +403,7 @@
                             class="w-9 h-9 rounded-full object-cover shrink-0">
                     @else
                         <span
-                            class="w-9 h-9 rounded-full bg-[#2AA7A1] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
+                            class="w-9 h-9 rounded-full bg-[#060D26] text-white text-[14px] font-bold flex items-center justify-center shrink-0">
                             {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}
                         </span>
                     @endif
@@ -438,9 +438,9 @@
 
             {{-- Mobile-only slim bar --}}
             <div
-                class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E8F0] sticky top-0 z-30">
+                class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">
                 <button @click="sidebarOpen = !sidebarOpen"
-                    class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#E2E8F0] text-[#1F2937] transition-colors duration-200">
+                    class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#E2E4EC] text-[#060D26] transition-colors duration-200">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
@@ -458,7 +458,7 @@
                             })->where('sender_id', '!=', auth()->id())->where('is_read', false)->count();
                         @endphp
                         <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
-                            class="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937] text-[12.5px] font-semibold hover:bg-[#EEF8F8] transition-colors duration-200">
+                            class="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                             Messages
                             @if($mobileUnreadMsgCount > 0)
                                 <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
@@ -469,7 +469,7 @@
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                     @keydown.escape.window="close()">
                     <button type="button" @click="toggle()"
-                        class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E8F0] bg-white text-[#1F2937]/70 hover:bg-[#E2E8F0] transition-colors duration-200">
+                        class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#E2E4EC] transition-colors duration-200">
                         <span x-show="unreadCount > 0" x-cloak
                             class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4444] border-2 border-white"></span>
                         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -483,11 +483,11 @@
                         x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#64748B]/15 z-50 overflow-hidden">
+                        class="absolute top-[calc(100%+10px)] right-0 w-[calc(100vw-2rem)] max-w-[360px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#5B6A8E]/15 z-50 overflow-hidden">
                         <div x-ref="dropdownBody">
                             <div class="px-4 py-8 text-center">
                                 <div
-                                    class="w-6 h-6 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin mx-auto">
+                                    class="w-6 h-6 border-2 border-[#5B6A8E] border-t-transparent rounded-full animate-spin mx-auto">
                                 </div>
                             </div>
                         </div>
@@ -544,7 +544,7 @@
                         this.$refs.dropdownBody.innerHTML = await res.text();
                         this.loaded = true;
                     } catch (e) {
-                        this.$refs.dropdownBody.innerHTML = '<div class="px-4 py-6 text-center text-[13px] text-[#64748B]">Failed to load notifications.</div>';
+                        this.$refs.dropdownBody.innerHTML = '<div class="px-4 py-6 text-center text-[13px] text-[#5B6A8E]">Failed to load notifications.</div>';
                     }
                 },
 

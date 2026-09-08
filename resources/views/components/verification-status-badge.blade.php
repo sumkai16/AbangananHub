@@ -2,14 +2,14 @@
 
 @php
     $config = match ($status) {
-        'Approved' => ['bg' => 'bg-[#EEF8F8]', 'icon' => 'text-[#2AA7A1]'],
+        'Approved' => ['bg' => 'bg-[#ECEEF6]', 'icon' => 'text-[#8a6e1e]'],
         'Rejected' => ['bg' => 'bg-[#EF4444]/10', 'icon' => 'text-[#EF4444]'],
-        default => ['bg' => 'bg-[#E2E8F0]', 'icon' => 'text-[#64748B]'],
+        default => ['bg' => 'bg-[#E2E4EC]', 'icon' => 'text-[#5B6A8E]'],
     };
 @endphp
 
 <span
-    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-[#1F2937] {{ $config['bg'] }}">
+    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-[#060D26] {{ $config['bg'] }}">
     @if ($status === 'Approved')
         <svg class="h-3.5 w-3.5 {{ $config['icon'] }}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2">

@@ -13,7 +13,7 @@
     ]);
 @endphp
 
-<div class="relative overflow-hidden rounded-2xl bg-[#2AA7A1] p-5 sm:p-6 mb-5">
+<div class="relative overflow-hidden rounded-2xl bg-[#060D26] p-5 sm:p-6 mb-5">
     <div class="absolute inset-0 opacity-[0.06] pointer-events-none"
         style="background-image: radial-gradient(circle at 22px 22px, white 1.5px, transparent 0); background-size: 30px 30px;"></div>
 
@@ -33,7 +33,7 @@
         <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <h1 class="text-[17px] font-bold text-white leading-tight">{{ $user->first_name }} {{ $user->last_name }}</h1>
+                    <h1 class="text-[17px] font-normal text-white leading-tight">{{ $user->first_name }} {{ $user->last_name }}</h1>
                     {{ $badges ?? '' }}
                 </div>
 

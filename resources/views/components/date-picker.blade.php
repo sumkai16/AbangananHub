@@ -58,13 +58,13 @@
 
     <button type="button" id="{{ $inputId }}" @click="toggle()" :disabled="fieldDisabled"
         :aria-expanded="open" aria-haspopup="dialog"
-        class="w-full text-left rounded-xl bg-white border px-3.5 h-10 flex items-center transition-all focus:outline-none focus:border-[#2AA7A1]/60 focus:ring-4 focus:ring-[#2AA7A1]/10 disabled:cursor-not-allowed disabled:bg-[#F7FCFC] border-[#E2E8F0]">
-        <span class="text-sm font-semibold" :class="date ? 'text-[#1F2937]' : 'text-[#94A3B8] font-normal'"
+        class="w-full text-left rounded-xl bg-white border px-3.5 h-10 flex items-center transition-all focus:outline-none focus:border-[#C9A84C]/60 focus:ring-4 focus:ring-[#C9A84C]/10 disabled:cursor-not-allowed disabled:bg-[#F7F8FC] border-[#E2E4EC]">
+        <span class="text-sm font-semibold" :class="date ? 'text-[#060D26]' : 'text-[#94A3B8] font-normal'"
             x-text="date ? formatted : '{{ $placeholder }}'"></span>
     </button>
 
     <div x-show="open" x-cloak x-transition
-        class="absolute z-30 mt-2 w-[300px] rounded-2xl bg-[#0F172A] ring-1 ring-white/10 shadow-2xl overflow-hidden">
+        class="absolute z-30 mt-2 w-[300px] rounded-2xl bg-[#060D26] ring-1 ring-white/10 shadow-2xl overflow-hidden">
         <div class="px-4 pt-4 pb-3">
             <div class="flex items-center justify-between mb-3">
                 <button type="button" @click="shiftMonth(-1)" :disabled="!canGoBack"
@@ -100,9 +100,9 @@
                                 :aria-pressed="date === cell.iso" :aria-label="cell.label"
                                 class="w-9 h-9 rounded-full text-[13px] font-semibold transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
                                 :class="date === cell.iso
-                                    ? 'bg-[#2AA7A1] text-white'
+                                    ? 'bg-[#C9A84C] text-[#060D26]'
                                     : (cell.isToday
-                                        ? 'text-white ring-1 ring-[#2AA7A1] hover:bg-white/10'
+                                        ? 'text-white ring-1 ring-[#C9A84C] hover:bg-white/10'
                                         : 'text-white/85 hover:bg-white/10')">
                                 <span x-text="cell.day"></span>
                             </button>
@@ -125,7 +125,7 @@
             <button type="button" @click="clear()" class="text-[12.5px] font-semibold text-white/50 hover:text-white transition-colors">
                 Clear
             </button>
-            <button type="button" @click="today()" class="text-[12.5px] font-bold text-[#2AA7A1] hover:brightness-110 transition-all">
+            <button type="button" @click="today()" class="text-[12.5px] font-bold text-[#C9A84C] hover:brightness-110 transition-all">
                 Today
             </button>
         </div>

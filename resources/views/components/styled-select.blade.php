@@ -93,7 +93,7 @@
         {{ $attributes->class(['flex items-center justify-between gap-2 transition-shadow', $disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer']) }}>
         <span x-text="label" class="truncate"></span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            class="flex-shrink-0 text-[#64748B] transition-transform duration-200" :class="open ? 'rotate-180' : ''"
+            class="flex-shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="open ? 'rotate-180' : ''"
             aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
@@ -107,15 +107,15 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         role="listbox"
-        class="absolute z-30 mt-2 min-w-full w-max max-w-[280px] max-h-[280px] overflow-y-auto bg-white rounded-xl border border-[#E2E8F0] shadow-[0_12px_32px_rgba(15,23,42,0.14)] py-1.5 {{ $panelClass }}"
+        class="absolute z-30 mt-2 min-w-full w-max max-w-[280px] max-h-[280px] overflow-y-auto bg-white rounded-xl border border-[#E2E4EC] shadow-[0_12px_32px_rgba(6,13,38,0.14)] py-1.5 {{ $panelClass }}"
         style="display: none;">
         <template x-for="[val, lbl] in Object.entries(options)" :key="val">
             <button type="button" @click="select(val)" role="option" :aria-selected="value === val"
-                class="w-full flex items-center justify-between gap-3 text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer hover:bg-[#EEF8F8]"
-                :class="value === val ? 'text-[#156F8C] font-semibold bg-[#EEF8F8]/70' : 'text-[#1F2937]'">
+                class="w-full flex items-center justify-between gap-3 text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer hover:bg-[#ECEEF6]"
+                :class="value === val ? 'text-[#060D26] font-semibold bg-[#ECEEF6]/70' : 'text-[#060D26]'">
                 <span x-text="lbl" class="truncate"></span>
                 <svg x-show="value === val" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#2AA7A1]" aria-hidden="true">
+                    stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#8a6e1e]" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
             </button>

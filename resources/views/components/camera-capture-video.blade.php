@@ -17,21 +17,21 @@
 <div
     x-data="cameraCaptureVideo({ inputName: '{{ $name }}' })"
     x-init="init()"
-    class="rounded-2xl border border-[#64748B]/20 bg-[#F7FCFC] p-4"
+    class="rounded-2xl border border-[#5B6A8E]/20 bg-[#F7F8FC] p-4"
 >
     <input type="file" x-ref="fileInput" name="{{ $name }}" class="hidden" accept="video/*" aria-label="Captured video">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-[#1F2937] flex items-center justify-center shrink-0">
+            <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shrink-0">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
                 </svg>
             </div>
             <div>
-                <p class="text-[13px] font-semibold text-[#1F2937]">Unit Walkthrough Video</p>
-                <p class="text-[11px] text-[#64748B] mt-0.5">Live recording only — one short walkthrough clip required.</p>
+                <p class="text-[13px] font-semibold text-[#060D26]">Unit Walkthrough Video</p>
+                <p class="text-[11px] text-[#5B6A8E] mt-0.5">Live recording only — one short walkthrough clip required.</p>
             </div>
         </div>
         <span
@@ -43,11 +43,11 @@
     </div>
 
     {{-- Starting camera state --}}
-    <div x-show="!cameraReady && !error" class="flex items-center gap-2 px-3 py-2.5 mb-3 rounded-xl bg-white border border-[#64748B]/20">
-        <svg class="animate-spin text-[#64748B] shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24">
+    <div x-show="!cameraReady && !error" class="flex items-center gap-2 px-3 py-2.5 mb-3 rounded-xl bg-white border border-[#5B6A8E]/20">
+        <svg class="animate-spin text-[#5B6A8E] shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"/>
         </svg>
-        <span class="text-[12px] text-[#64748B]">Starting camera…</span>
+        <span class="text-[12px] text-[#5B6A8E]">Starting camera…</span>
     </div>
 
     {{-- Error state --}}
@@ -79,7 +79,7 @@
             type="button"
             x-show="!recording"
             @click="startRecording()"
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 h-11 px-5 rounded-full bg-white text-[#1F2937] text-[13px] font-semibold shadow-lg hover:scale-95 active:scale-90 transition-all duration-150"
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 h-11 px-5 rounded-full bg-white text-[#060D26] text-[13px] font-semibold shadow-lg hover:scale-95 active:scale-90 transition-all duration-150"
         >
             <span class="w-3 h-3 rounded-full bg-[#EF4444]"></span>
             Start Recording
@@ -114,7 +114,7 @@
         <button
             type="button"
             @click="retake()"
-            class="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg border border-[#64748B]/30 text-[12px] font-semibold text-[#1F2937] hover:bg-[#EEF8F8] transition-colors duration-200"
+            class="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg border border-[#5B6A8E]/30 text-[12px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200"
         >
             <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />

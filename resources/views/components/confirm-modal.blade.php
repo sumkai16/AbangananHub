@@ -85,13 +85,13 @@
                 x-transition:leave-end="opacity-0"
                 class="w-14 h-14 rounded-full mx-auto mb-5 flex items-center justify-center"
                 :class="{
-                    'bg-[#EEF8F8] shadow-[0_0_0_6px_rgba(42,167,161,0.08)]': type === 'confirm',
+                    'bg-[#ECEEF6] shadow-[0_0_0_6px_rgba(6,13,38,0.08)]': type === 'confirm',
                     'bg-[#ECFDF5] shadow-[0_0_0_6px_rgba(34,197,94,0.08)]': type === 'success',
                     'bg-[#FFFBEB] shadow-[0_0_0_6px_rgba(251,191,36,0.08)]': type === 'warning',
                     'bg-[#FEF2F2] shadow-[0_0_0_6px_rgba(239,68,68,0.08)]': type === 'error'
                 }">
                 {{-- question-mark-circle --}}
-                <svg x-show="type === 'confirm'" class="w-7 h-7 text-[#2AA7A1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <svg x-show="type === 'confirm'" class="w-7 h-7 text-[#060D26]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                 </svg>
                 {{-- check-circle --}}
@@ -108,20 +108,20 @@
                 </svg>
             </div>
 
-            <h3 class="text-base font-semibold text-[#1F2937] mb-1.5" x-text="title"></h3>
-            <p class="text-sm text-[#64748B] leading-relaxed mb-6" x-text="message"></p>
+            <h3 class="text-base font-semibold text-[#060D26] mb-1.5" x-text="title"></h3>
+            <p class="text-sm text-[#5B6A8E] leading-relaxed mb-6" x-text="message"></p>
 
             <div class="flex gap-3">
                 <button type="button" x-show="typeof onConfirm === 'function'" x-on:click="open = false"
-                    class="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-[#E2E8F0] text-[#64748B] bg-white hover:bg-[#F7FCFC] transition-colors"
+                    class="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-[#E2E4EC] text-[#5B6A8E] bg-white hover:bg-[#F7F8FC] transition-colors"
                     x-text="cancelText"></button>
 
                 <button type="button" x-on:click="confirm()"
                     class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all hover:brightness-95"
                     :class="{
-                        'bg-[#2AA7A1] text-white': type === 'confirm',
+                        'bg-[#060D26] text-[#F7F4ED]': type === 'confirm',
                         'bg-[#22C55E] text-white': type === 'success',
-                        'bg-[#FBBF24] text-[#1F2937]': type === 'warning',
+                        'bg-[#FBBF24] text-[#060D26]': type === 'warning',
                         'bg-[#EF4444] text-white': type === 'error'
                     }"
                     x-text="confirmText"></button>
@@ -139,7 +139,7 @@
         x-transition:leave-end="opacity-0 -translate-y-2 motion-reduce:translate-y-0"
         class="fixed top-20 right-5 z-[9998] w-[calc(100vw-2.5rem)] max-w-[360px]">
 
-        <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden">
+        <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden">
             <div class="flex items-start gap-3 p-4">
                 <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                     :class="type === 'success' ? 'bg-[#ECFDF5]' : 'bg-[#FFFBEB]'">
@@ -151,17 +151,17 @@
                     </svg>
                 </div>
                 <div class="flex-1 min-w-0 pt-0.5">
-                    <p class="text-[13.5px] font-bold text-[#1F2937]" x-text="title"></p>
-                    <p class="text-[12.5px] text-[#64748B] mt-0.5 leading-snug" x-text="message"></p>
+                    <p class="text-[13.5px] font-bold text-[#060D26]" x-text="title"></p>
+                    <p class="text-[12.5px] text-[#5B6A8E] mt-0.5 leading-snug" x-text="message"></p>
                 </div>
                 <button type="button" x-on:click="dismiss()"
-                    class="shrink-0 -mt-2 -mr-2 w-11 h-11 flex items-center justify-center rounded-full hover:bg-[#F7FCFC] text-[#94A3B8] transition-colors">
+                    class="shrink-0 -mt-2 -mr-2 w-11 h-11 flex items-center justify-center rounded-full hover:bg-[#F7F8FC] text-[#94A3B8] transition-colors">
                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
-            <div class="h-1 bg-[#F7FCFC]">
+            <div class="h-1 bg-[#F7F8FC]">
                 <template x-if="open && isToast">
                     <div class="h-full motion-reduce:transition-none"
                         :class="type === 'success' ? 'bg-[#22C55E]' : 'bg-[#FBBF24]'"

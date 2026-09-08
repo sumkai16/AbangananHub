@@ -5,16 +5,16 @@
         'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
         'Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35',
         'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25',
-        default => 'bg-[#F7FCFC] text-[#1F2937] border-[#E2E8F0]',
+        default => 'bg-[#F7F8FC] text-[#060D26] border-[#E2E4EC]',
     };
     $canCancel = !in_array($reservation->rental_status, ['Cancelled', 'Rejected', 'Occupied']);
 @endphp
 
-<div class="flex flex-col md:flex-row md:items-center gap-5 bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all reservation-row"
+<div class="flex flex-col md:flex-row md:items-center gap-5 bg-white border border-[#E2E4EC] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all reservation-row"
     data-status="{{ $reservation->rental_status }}">
 
     <div
-        class="w-[72px] h-[72px] rounded-xl flex-shrink-0 bg-[#EEF8F8] overflow-hidden flex items-center justify-center">
+        class="w-[72px] h-[72px] rounded-xl flex-shrink-0 bg-[#ECEEF6] overflow-hidden flex items-center justify-center">
         @if($reservation->property->media->first())
             <img src="{{ $reservation->property->media->first()->media_url }}" class="w-full h-full object-cover"
                 alt="Property">
@@ -26,11 +26,11 @@
     </div>
 
     <div class="flex-1 min-w-0">
-        <div class="text-[16px] font-bold text-[#156F8C] mb-1.5 truncate property-title">
+        <div class="text-[16px] font-bold text-[#060D26] mb-1.5 truncate property-title">
             {{ $reservation->property->title ?? 'Property' }}
         </div>
-        <div class="text-[14px] text-[#64748B]">
-            <span class="font-semibold text-[#1F2937]">
+        <div class="text-[14px] text-[#5B6A8E]">
+            <span class="font-semibold text-[#060D26]">
                 {{ $reservation->reservation_date?->format('M d, Y') ?? 'TBD' }}
             </span>
             @if($reservation->property->address ?? false)

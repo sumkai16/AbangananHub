@@ -41,7 +41,7 @@
 <div class="flex items-center justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none]">
     @foreach($items as $item)
         <a href="{{ $item['url'] }}" @if($item['active']) aria-current="page" @endif
-            class="flex flex-col items-center gap-1.5 pb-3 border-b-2 transition-all min-w-[56px] cursor-pointer {{ $item['active'] ? 'border-[#1F2937] text-[#1F2937]' : 'border-transparent text-[#94A3B8] hover:text-[#1F2937] hover:border-[#E2E8F0]' }}">
+            class="flex flex-col items-center gap-1.5 pb-3 border-b-2 transition-all min-w-[56px] cursor-pointer {{ $item['active'] ? 'border-[#060D26] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26] hover:border-[#E2E4EC]' }}">
             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 stroke-width="{{ $item['active'] ? '2.4' : '2' }}" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}" />

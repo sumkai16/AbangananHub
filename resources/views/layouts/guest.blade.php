@@ -9,11 +9,11 @@
     <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,600;1,8..60,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased h-screen overflow-hidden bg-[#F7FCFC]">
+<body class="font-sans antialiased h-screen overflow-hidden bg-[#F7F8FC]">
     <div class="flex h-full">
 
         {{-- Left panel: form --}}
@@ -26,8 +26,8 @@
             {{-- Background image with darker overlay --}}
             <div class="absolute inset-0">
                 <img src="{{ asset('images/auth-bg.jpg') }}" class="w-full h-full object-cover" alt="" />
-                {{-- Teal-family gradient overlay — matches the auth modal brand panel (§6k) --}}
-                <div class="absolute inset-0 bg-gradient-to-br from-[#0E3A3A]/95 via-[#124F5C]/88 to-[#156F8C]/70"></div>
+                {{-- Navy vignette overlay — mirrors the reference mockup's flat single-hue gradient --}}
+                <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/55 to-[#060D26]/82"></div>
             </div>
 
             {{-- Content overlay --}}
