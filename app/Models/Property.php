@@ -258,7 +258,7 @@ class Property extends Model
     }
 
     /**
-     * Apply tenant browse filters (location, type, price_max, verified)
+     * Apply tenant browse filters (location, type, price_max, verified, amenities)
      * and sorting (newest | price_low | price_high).
      */
     public function scopeBrowseFilters($query, array $filters)
@@ -286,6 +286,23 @@ class Property extends Model
 
         if (!empty($filters['verified'])) {
             $query->verified();
+        }
+
+        // "Must have" — AND semantics: a property matches only once every
+        // selected amenity is present, on the property itself OR on any of
+        // its units (a tenant filtering "Wi-Fi" doesn't care which level it's
+        // assigned at — same treatment the show page gives Building/Room
+        // amenities as one combined offering).
+        if (!empty($filters['amenities'])) {
+            foreach ($filters['amenities'] as $amenityId) {
+                $query->where(function ($q) use ($amenityId) {
+                    // Qualified column: the units.amenities join pulls in
+                    // both amenities.amenity_id and unit_amenities.amenity_id,
+                    // so a bare "amenity_id" is ambiguous to MySQL.
+                    $q->whereHas('amenities', fn ($aq) => $aq->where('amenities.amenity_id', $amenityId))
+                      ->orWhereHas('units.amenities', fn ($aq) => $aq->where('amenities.amenity_id', $amenityId));
+                });
+            }
         }
 
         match ($filters['sort'] ?? null) {

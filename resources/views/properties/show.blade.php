@@ -276,117 +276,133 @@
                 </div>
             </div>
 
-            {{-- ===== 1. IMAGE GALLERY — bento (1 big + up to 2 small) ===== --}}
+            {{-- ===== 1. IMAGE GALLERY + CONTACT CARD ROW (Sept 2026) =====
+                 The gallery used to stand alone at full page width, with the
+                 contact card paired with Property details further down instead.
+                 Paired the two here — 7/12 image, 5/12 card — to match the
+                 reference mockup, which puts the hero photo directly beside the
+                 price/inquiry card. Property details moved with it, staying in
+                 this left column right below the image (a brief full-page-width
+                 version didn't last — see DESIGN.md) rather than sharing a row
+                 with the card, since the card runs taller (price + landlord row
+                 + inquiry form + phone reveal) and left the column below the
+                 image empty otherwise.
+
+                 IMAGE GALLERY — single wide hero, no side thumbnails: replaced
+                 the 1-big-2-small bento (Sept 2026) with one photo; the bento's
+                 aspect-[4/3] grid stood ~1050px tall back when this rendered at
+                 full page width. aspect-[21/9] now scoped to the 7/12 column
+                 (not the full page) keeps it a wide, scannable banner that's
+                 also meaningfully narrower — the "size down the image" ask this
+                 row was built for. Browsing the rest of the set still works
+                 exactly as before — arrows step #hero-img via shiftHero(),
+                 "Show all photos" opens the lightbox — only the always-visible
+                 thumbnail tiles are gone. --}}
+                <div class="lg:flex lg:flex-row gap-8 items-start">
+                <div class="lg:basis-7/12 lg:shrink-0 min-w-0">
                 @php
                     $mediaCount = $property->media->count();
-                    // 2 photos reuses the >=3 bento shape: the hero tile takes
-                    // the left 2/3 (col-span-2 row-span-2) and the one
-                    // remaining photo fills the whole right column
-                    // (row-span-2) as a single tall image, rather than being
-                    // split into two half-height cells it can't fill.
-                    $galleryGridClass = match (true) {
-                        $mediaCount >= 2 => 'grid grid-cols-3 grid-rows-2 gap-2 aspect-[4/3]',
-                        default => 'grid grid-cols-1',
-                    };
                 @endphp
                 @if($mediaCount > 0)
                     <div class="relative">
-                        <div class="{{ $galleryGridClass }}">
+                        <div class="relative rounded-3xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group aspect-[21/9]">
+                            <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
+                                class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
+                                onclick="openLightboxAtHero()">
 
-                            {{-- Big tile: same #hero-img element, same overlays, same
-                                 behaviour as before — only its container changed from
-                                 a standalone box to a grid cell. Fills the container
-                                 via row-span-2 when >=2 photos; otherwise carries its
-                                 own aspect ratio since the container is a single cell. --}}
-                            <div class="relative rounded-3xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group {{ $mediaCount >= 2 ? 'col-span-2 row-span-2' : 'aspect-[4/3]' }}">
-                                <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
-                                    class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
-                                    onclick="openLightboxAtHero()">
-
-                                @if($mediaCount > 1)
-                                    <button type="button" onclick="shiftHero(-1)"
-                                        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:brightness-95 text-[#060D26] flex items-center justify-center shadow-sm transition-all"
-                                        aria-label="Previous photo">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                                        </svg>
-                                    </button>
-                                    <button type="button" onclick="shiftHero(1)"
-                                        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:brightness-95 text-[#060D26] flex items-center justify-center shadow-sm transition-all"
-                                        aria-label="Next photo">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                                        </svg>
-                                    </button>
-                                @endif
-
-                                <button type="button" onclick="openLightboxAtHero()"
-                                    class="absolute bottom-4 right-4 bg-white/90 text-[#060D26] text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm hover:brightness-95 transition-all flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
+                            @if($mediaCount > 1)
+                                <button type="button" onclick="shiftHero(-1)"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:brightness-95 text-[#060D26] flex items-center justify-center shadow-sm transition-all"
+                                    aria-label="Previous photo">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                                     </svg>
-                                    Show all photos
                                 </button>
+                                <button type="button" onclick="shiftHero(1)"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:brightness-95 text-[#060D26] flex items-center justify-center shadow-sm transition-all"
+                                    aria-label="Next photo">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                    </svg>
+                                </button>
+                            @endif
 
-                                @if($property->hasVerifiedDocuments())
-                                    <div class="absolute top-3 left-3 z-20" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
-                                        <button type="button" @click="open = !open"
-                                            class="inline-flex items-center gap-1.5 bg-[#060D26] text-[#F7F4ED] text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm hover:brightness-95 transition-all">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Verified Property
-                                        </button>
+                            <button type="button" onclick="openLightboxAtHero()"
+                                class="absolute bottom-4 right-4 bg-white/90 text-[#060D26] text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm hover:brightness-95 transition-all flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
+                                </svg>
+                                Show all photos
+                            </button>
 
-                                        <div x-show="open" x-cloak
-                                             x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                                             class="absolute top-full left-0 mt-2 w-64 bg-white text-left rounded-xl shadow-lg border border-[#E2E4EC] p-3.5">
-                                            <p class="font-bold text-[#060D26] text-[12.5px] mb-1">Verified Property</p>
-                                            <p class="text-[#5B6A8E] text-[12.5px] leading-snug">Our team has reviewed and confirmed this property's ownership documents — title, tax declaration, or business permit.</p>
-                                        </div>
+                            @if($property->hasVerifiedDocuments())
+                                <div class="absolute top-3 left-3 z-20" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+                                    <button type="button" @click="open = !open"
+                                        class="inline-flex items-center gap-1.5 bg-[#060D26] text-[#F7F4ED] text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm hover:brightness-95 transition-all">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Verified Property
+                                    </button>
+
+                                    <div x-show="open" x-cloak
+                                         x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                                         class="absolute top-full left-0 mt-2 w-64 bg-white text-left rounded-xl shadow-lg border border-[#E2E4EC] p-3.5">
+                                        <p class="font-bold text-[#060D26] text-[12.5px] mb-1">Verified Property</p>
+                                        <p class="text-[#5B6A8E] text-[12.5px] leading-snug">Our team has reviewed and confirmed this property's ownership documents — title, tax declaration, or business permit.</p>
                                     </div>
-                                @endif
-                            </div>
+                                </div>
+                            @endif
 
-                            {{-- Small tiles: photos 1 and 2 (0-indexed) — index 0 is
-                                 already the big tile's default photo, so it isn't
-                                 repeated as a small thumb. Each keeps its
-                                 id="thumb-{i}" so setHero()/shiftHero() work
-                                 unchanged; the highlight logic reads the id's own
-                                 number, not DOM position, so skipping thumb-0 here
-                                 is safe. --}}
-                            @if($mediaCount === 2)
-                                {{-- Only one photo left to fill the right column, so it
-                                     spans both rows as one tall image instead of being
-                                     split into two half-height cells it can't fill. --}}
-                                <button type="button" id="thumb-1" onclick="setHero(1)"
-                                    class="relative row-span-2 rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
-                                    <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
-                                        class="w-full h-full object-cover">
-                                </button>
-                            @elseif($mediaCount > 2)
-                                <button type="button" id="thumb-1" onclick="setHero(1)"
-                                    class="relative rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
-                                    <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
-                                        class="w-full h-full object-cover">
-                                </button>
-                                <button type="button" id="thumb-2" onclick="setHero(2)"
-                                    class="relative rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
-                                    <img src="{{ $property->media->get(2)->media_url }}" alt="{{ $property->title }} photo 3"
-                                        class="w-full h-full object-cover">
-                                    @if($mediaCount > 3)
-                                        <span class="absolute inset-0 bg-[#060D26]/60 flex items-center justify-center text-white text-sm font-black pointer-events-none">
-                                            +{{ $mediaCount - 3 }}
-                                        </span>
-                                    @endif
-                                </button>
+                            {{-- ===== FAVORITE (heart) — moved here from the contact
+                                 card's action row (Sept 2026), which had it beside
+                                 a flex-1 "Send Inquiry" button (the aspect-square +
+                                 h-full overflow bug fixed earlier). Top-right corner
+                                 of the hero photo is the conventional spot for a
+                                 save/favorite toggle on a rental listing (Airbnb,
+                                 Booking.com, Zillow all place it here) — the other
+                                 three corners are already taken (Verified badge
+                                 top-left, "Show all photos" bottom-right, bottom-left
+                                 open), and it fully decouples favoriting from
+                                 whatever width the price/CTA row happens to need. --}}
+                            @if(auth()->check() && ! $isOwner && auth()->user()->hasRole('Tenant'))
+                                <div class="absolute top-3 right-3 z-20" x-data="{
+                                        fav: @js($isFavorited ?? false),
+                                        busy: false,
+                                        async toggleFav() {
+                                            if (this.busy) return;
+                                            this.busy = true;
+                                            try {
+                                                const res = await fetch('{{ route('favorites.toggle', $property->property_id) }}', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                        'Accept': 'application/json',
+                                                    },
+                                                });
+                                                if (res.ok) { const d = await res.json(); this.fav = d.favorited; }
+                                            } finally { this.busy = false; }
+                                        }
+                                    }">
+                                    <button type="button" x-on:click="toggleFav()" :disabled="busy"
+                                        :aria-pressed="fav"
+                                        class="w-10 h-10 rounded-full bg-white/90 hover:brightness-95 flex items-center justify-center shadow-sm transition-all disabled:opacity-50 cursor-pointer">
+                                        <span class="sr-only" x-text="fav ? 'Remove from favorites' : 'Add to favorites'"></span>
+                                        <svg class="w-5 h-5 transition-colors" :class="fav ? 'text-[#EF4444]' : 'text-[#5B6A8E]'"
+                                            :fill="fav ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
+                                            stroke-width="2" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             @endif
                         </div>
                     </div>
                 @else
                     <div
-                        class="rounded-3xl bg-[#E2E4EC] aspect-[16/9] border border-dashed border-[#5B6A8E] flex flex-col items-center justify-center text-[#5B6A8E] shadow-sm">
+                        class="rounded-3xl bg-[#E2E4EC] aspect-[21/9] border border-dashed border-[#5B6A8E] flex flex-col items-center justify-center text-[#5B6A8E] shadow-sm">
                         <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -395,31 +411,35 @@
                     </div>
                 @endif
 
-            {{-- ===== DETAILS + CONTACT ROW ===== --}}
-            <div class="lg:flex lg:flex-row gap-8 items-start">
-                <div class="lg:basis-7/12 lg:shrink-0 min-w-0">
-                    {{-- Property Details card --}}
-                    <x-card>
-                        <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Property details</h2>
-                        <dl class="grid grid-cols-2 gap-3">
-                            @php
-                                $availableUnitCount = $property->units->where('availability_status', 'Available')->count();
-                                $maxCapacity = $property->units->max('occupancy_limit');
-                            @endphp
-                            @foreach (array_filter([
-                                ['Type', $property->property_type],
-                                $property->living_arrangement ? ['Living arrangement', $property->living_arrangement] : null,
-                                ['Capacity', $maxCapacity ? $maxCapacity . ' ' . Str::plural('person', $maxCapacity) : '—'],
-                                ['Landlord', trim($property->landlord->first_name . ' ' . $property->landlord->last_name)],
-                                ['Available', $availableUnitCount . ' ' . Str::plural('unit', $availableUnitCount)],
-                            ]) as [$label, $value])
-                                <div class="rounded-xl border border-[#E2E4EC] bg-white px-4 py-3">
-                                    <dt class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">{{ $label }}</dt>
-                                    <dd class="mt-0.5 text-[14.5px] font-bold text-[#060D26] truncate">{{ $value }}</dd>
-                                </div>
-                            @endforeach
-                        </dl>
-                    </x-card>
+                {{-- ===== PROPERTY DETAILS — back inside the left column, below
+                     the image (Sept 2026). The gallery alone left a lot of
+                     empty space here since the contact card beside it runs
+                     taller (price + landlord row + inquiry form + phone
+                     reveal); this fills that gap instead of leaving it blank,
+                     and the 2-column grid matches the column's own width
+                     rather than the full-page 5-column version this briefly
+                     was. ===== --}}
+                <x-card class="mt-6">
+                    <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Property details</h2>
+                    <dl class="grid grid-cols-2 gap-3">
+                        @php
+                            $availableUnitCount = $property->units->where('availability_status', 'Available')->count();
+                            $maxCapacity = $property->units->max('occupancy_limit');
+                        @endphp
+                        @foreach (array_filter([
+                            ['Type', $property->property_type],
+                            $property->living_arrangement ? ['Living arrangement', $property->living_arrangement] : null,
+                            ['Capacity', $maxCapacity ? $maxCapacity . ' ' . Str::plural('person', $maxCapacity) : '—'],
+                            ['Landlord', trim($property->landlord->first_name . ' ' . $property->landlord->last_name)],
+                            ['Available', $availableUnitCount . ' ' . Str::plural('unit', $availableUnitCount)],
+                        ]) as [$label, $value])
+                            <div class="rounded-xl border border-[#E2E4EC] bg-white px-4 py-3">
+                                <dt class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">{{ $label }}</dt>
+                                <dd class="mt-0.5 text-[14.5px] font-bold text-[#060D26] truncate">{{ $value }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                </x-card>
                 </div>
 
                 <div class="lg:basis-5/12 lg:shrink-0">
@@ -505,39 +525,6 @@
                                 :disabled="selected && selected.hasActive"
                                 :class="selected && selected.hasActive ? 'opacity-60 cursor-not-allowed' : ''">
                             </button>
-
-                            @if(auth()->user()->hasRole('Tenant'))
-                                <div x-data="{
-                                        fav: @js($isFavorited ?? false),
-                                        busy: false,
-                                        async toggleFav() {
-                                            if (this.busy) return;
-                                            this.busy = true;
-                                            try {
-                                                const res = await fetch('{{ route('favorites.toggle', $property->property_id) }}', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                        'Accept': 'application/json',
-                                                    },
-                                                });
-                                                if (res.ok) { const d = await res.json(); this.fav = d.favorited; }
-                                            } finally { this.busy = false; }
-                                        }
-                                    }">
-                                    <button type="button" x-on:click="toggleFav()" :disabled="busy"
-                                        :aria-pressed="fav"
-                                        class="h-full aspect-square rounded-xl border border-[#E2E4EC] bg-white flex items-center justify-center hover:border-[#C9A84C] transition-all disabled:opacity-50 cursor-pointer">
-                                        <span class="sr-only" x-text="fav ? 'Remove from favorites' : 'Add to favorites'"></span>
-                                        <svg class="w-5 h-5 transition-colors" :class="fav ? 'text-[#EF4444]' : 'text-[#5B6A8E]'"
-                                            :fill="fav ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
-                                            stroke-width="2" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            @endif
                         @endif
                     </div>
 
@@ -569,6 +556,30 @@
                 </div>
             </div>
 
+            {{-- ===== DESCRIPTION — moved above Subunits (Sept 2026), matching
+                 the reference mockup's order (About this property sits right
+                 after the stat tiles / property details, before the unit list).
+                 Previously rendered after Subunits, which read oddly since the
+                 description isn't part of either Property details or the
+                 subunit grid. ===== --}}
+                @if($property->description)
+                    <div class="max-w-[62ch]">
+                        @if(Str::length($property->description) > 220)
+                            <p class="text-[15px] text-[#060D26] leading-relaxed whitespace-pre-line" x-show="!descExpanded">
+                                {{ Str::limit($property->description, 220) }}
+                            </p>
+                            <p class="text-[15px] text-[#060D26] leading-relaxed whitespace-pre-line" x-show="descExpanded"
+                                x-cloak>{{ $property->description }}</p>
+                            <button type="button" x-on:click="descExpanded = !descExpanded"
+                                class="mt-1.5 text-[14px] font-bold text-[#060D26] hover:brightness-95 transition-all underline underline-offset-2"
+                                x-text="descExpanded ? 'Read less' : 'Read more'"></button>
+                        @else
+                            <p class="text-[15px] text-[#060D26] leading-relaxed whitespace-pre-line">
+                                {{ $property->description }}</p>
+                        @endif
+                    </div>
+                @endif
+
             {{-- ===== SUBUNITS IN THIS PROPERTY — full-width grid, replaces
                  the old sticky sidebar unit list. Selecting a card still
                  drives selectUnit()/selectedUnit so the contact card above
@@ -578,7 +589,7 @@
                     <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-1">Subunits in this property</h2>
                     <p class="text-sm text-[#5B6A8E] mb-4">Choose a unit to contact the landlord about</p>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         @foreach($approvedUnits as $unit)
                             @php
                                 $isAvailable = $unit->availability_status === 'Available';
@@ -670,24 +681,6 @@
                 </div>
             @endif
 
-                @if($property->description)
-                    <div class="mt-6 max-w-[62ch]">
-                        @if(Str::length($property->description) > 220)
-                            <p class="text-[15px] text-[#060D26] leading-relaxed whitespace-pre-line" x-show="!descExpanded">
-                                {{ Str::limit($property->description, 220) }}
-                            </p>
-                            <p class="text-[15px] text-[#060D26] leading-relaxed whitespace-pre-line" x-show="descExpanded"
-                                x-cloak>{{ $property->description }}</p>
-                            <button type="button" x-on:click="descExpanded = !descExpanded"
-                                class="mt-1.5 text-[14px] font-bold text-[#060D26] hover:brightness-95 transition-all underline underline-offset-2"
-                                x-text="descExpanded ? 'Read less' : 'Read more'"></button>
-                        @else
-                            <p class="text-[15px] text-[#060D26] leading-relaxed whitespace-pre-line">
-                                {{ $property->description }}</p>
-                        @endif
-                    </div>
-                @endif
-
                 @php
                     // Nullable columns: null means the landlord hasn't
                     // answered utilities at all (property predates this
@@ -706,7 +699,7 @@
                 @if($utilitiesAnswered)
                 <section id="utilities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Utilities &amp; included charges</h2>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-2 gap-3">
                         @foreach($utilityFields as [$field, $label])
                             @php $included = $property->{$field}; @endphp
                             <div class="flex items-center gap-3 text-sm font-medium {{ $included ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">
@@ -728,10 +721,17 @@
                 </section>
                 @endif
 
+                {{-- Building amenities + Room amenities share one row on desktop
+                     (Sept 2026) — two side-by-side columns, not two stacked
+                     full-width sections. Each keeps its own mt-10/pt-8/border-t,
+                     so if only one of the two exists it still gets its usual
+                     divider and simply takes the full row (grid auto-placement
+                     leaves the other column empty rather than stretching). --}}
+                <div class="lg:grid lg:grid-cols-2 lg:gap-x-10">
                 @if($buildingAmenities->isNotEmpty())
                 <section id="building-amenities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Building amenities</h2>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-2 gap-3">
                         @foreach($buildingAmenities as $amenityName)
                             <div class="flex items-center gap-3 text-sm text-[#060D26] font-medium">
                                 <div class="w-8 h-8 rounded-lg bg-[#ECEEF6] flex items-center justify-center flex-shrink-0">
@@ -752,7 +752,7 @@
                             Across {{ $approvedUnits->count() }} units. Select a unit to see exactly what it includes.
                         </p>
                     @endif
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-2 gap-3">
                         @foreach($offeredAmenities as $amenity)
                             <div class="flex items-center gap-3 text-sm text-[#060D26] font-medium">
                                 <div class="w-8 h-8 rounded-lg bg-[#ECEEF6] flex items-center justify-center flex-shrink-0">
@@ -769,6 +769,7 @@
                     </div>
                 </section>
                 @endif
+                </div>
 
                 @if(!empty($property->house_rules))
                 <section id="house-rules" class="mt-10 pt-8 border-t border-[#E2E4EC]">
@@ -1822,21 +1823,6 @@
                     }
 
                     if (heroBadge) heroBadge.textContent = index + 1;
-
-                    // Derived from the element's own id, not its position in the
-                    // NodeList — the bento layout renders a non-contiguous subset
-                    // of thumbs (e.g. thumb-1 and thumb-2, skipping thumb-0), and
-                    // a loop-position comparison would silently mis-highlight.
-                    document.querySelectorAll('[id^="thumb-"]').forEach((thumb) => {
-                        const i = parseInt(thumb.id.replace('thumb-', ''), 10);
-                        if (i === index) {
-                            thumb.classList.add('border-[#C9A84C]');
-                            thumb.classList.remove('border-transparent', 'opacity-60');
-                        } else {
-                            thumb.classList.remove('border-[#C9A84C]');
-                            thumb.classList.add('border-transparent', 'opacity-60');
-                        }
-                    });
                 };
 
                 window.shiftHero = function (dir) {

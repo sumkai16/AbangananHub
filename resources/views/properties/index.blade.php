@@ -37,7 +37,7 @@
     @endif
 
     {{-- ===== BROWSE ===== --}}
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: true }">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: true, filtersOpen: false }">
 
         @if($heroStats)
             @if($areas->count() > 0)
@@ -47,11 +47,11 @@
                     <div class="flex gap-3 overflow-x-auto pb-1">
                         @foreach($areas as $area)
                             <a href="{{ route('properties.index', ['location' => $area['name']]) }}"
-                                class="relative flex-shrink-0 w-28 h-20 rounded-xl overflow-hidden group">
+                                class="relative flex-shrink-0 w-40 h-28 rounded-xl overflow-hidden group">
                                 <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/85 via-[#060D26]/10 to-transparent"></div>
-                                <p class="absolute bottom-2 left-2 right-2 text-white text-[12px] font-semibold truncate">
+                                <p class="absolute bottom-2.5 left-2.5 right-2.5 text-white text-[13.5px] font-semibold truncate">
                                     {{ $area['name'] }}
                                 </p>
                             </a>
@@ -131,7 +131,7 @@
         @endif
 
         {{-- ACTIVE FILTERS SUMMARY --}}
-        @if(request()->hasAny(['location', 'type', 'price_max', 'verified']))
+        @if(request()->hasAny(['location', 'type', 'price_max', 'verified', 'amenities']))
             <div class="flex flex-wrap items-center gap-2 mb-6">
                 <span class="text-[13px] text-[#5B6A8E] font-medium">Filtering by:</span>
 
@@ -211,6 +211,24 @@
                     </span>
                 @endif
 
+                @foreach($selectedAmenities as $amenity)
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
+                        {{ $amenity->name }}
+                        {{-- Removing one amenity out of amenities[]=1&amenities[]=2 isn't
+                             a plain fullUrlWithoutQuery (that drops the whole key) — rebuild
+                             the query with just this one ID subtracted from the array. --}}
+                        <a href="{{ route('properties.index', array_merge(request()->except(['amenities', 'page']), ['amenities' => array_values(array_diff((array) request('amenities', []), [$amenity->amenity_id]))])) }}"
+                            class="hover:brightness-95"
+                            aria-label="Remove {{ $amenity->name }} filter">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" />
+                            </svg>
+                        </a>
+                    </span>
+                @endforeach
+
                 <a href="{{ route('properties.index') }}"
                     class="text-[13px] text-[#EF4444] hover:brightness-95 font-semibold ml-2">
                     Clear all
@@ -237,9 +255,35 @@
                     <span x-text="mapVisible ? 'Hide map' : 'Show map'"></span>
                 </button>
 
+                {{-- Visible at every breakpoint (unlike Show map above) —
+                     there's no mobile-only substitute for it the way the List/
+                     Map switcher below covers Show map on small screens. --}}
+                @php $activeFilterCount = count((array) request('amenities', [])) + (request()->boolean('verified') ? 1 : 0); @endphp
+                <button type="button" @click="filtersOpen = true"
+                    class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#5B6A8E]/30 bg-white text-[#060D26] text-[13px] font-semibold hover:bg-[#F7F8FC] transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+                    </svg>
+                    Filters
+                    @if($activeFilterCount > 0)
+                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#060D26] text-[#F7F4ED] text-[10px] font-bold">{{ $activeFilterCount }}</span>
+                    @endif
+                </button>
+
             <form method="GET" class="flex items-center gap-2">
+                {{-- request()->except() can return an array value (amenities[]),
+                     so this can't be a single hidden input per key — an array
+                     rendered into `value=""` would throw "Array to string
+                     conversion" the moment an amenity filter is active. --}}
                 @foreach(request()->except(['sort', 'page']) as $key => $value)
-                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @if(is_array($value))
+                        @foreach($value as $item)
+                            <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                        @endforeach
+                    @else
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endif
                 @endforeach
                 <label id="sort-label" class="text-[13px] text-[#5B6A8E] font-medium hidden sm:inline">Sort by</label>
                 <x-styled-select name="sort" :options="[
@@ -251,6 +295,81 @@
             </form>
             </div>
         </div>
+
+        {{-- ===== FILTERS PANEL — bottom sheet on mobile, centered modal from
+             `sm:` up (one template, same responsive shell as the inquiry
+             modal on properties/show: x-teleport -> items-end sm:items-center
+             overlay -> rounded-t-2xl sm:rounded-2xl panel). No multi-step flow
+             here, so unlike that modal this doesn't need a separate desktop
+             variant. ===== --}}
+        <template x-teleport="body">
+            <div x-show="filtersOpen" x-cloak class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
+                x-on:keydown.escape.window="filtersOpen = false">
+                <div class="absolute inset-0 bg-black/40" x-on:click="filtersOpen = false"></div>
+                <div class="relative w-full sm:max-w-md max-h-[85vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl"
+                    x-show="filtersOpen" x-transition>
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E4EC] sticky top-0 bg-white z-10">
+                        <h3 class="text-base font-normal text-[#060D26]">Filters</h3>
+                        <button type="button" x-on:click="filtersOpen = false" aria-label="Close"
+                            class="text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form method="GET" action="{{ route('properties.index') }}" class="p-5 space-y-6">
+                        {{-- Carries location/type/price_max/sort through untouched —
+                             this form only ever sets amenities/verified. --}}
+                        @foreach(request()->except(['amenities', 'verified', 'page']) as $key => $value)
+                            @if(is_array($value))
+                                @foreach($value as $item)
+                                    <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                                @endforeach
+                            @else
+                                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                            @endif
+                        @endforeach
+
+                        <label class="flex items-center gap-2.5 text-[14px] text-[#060D26] cursor-pointer">
+                            <input type="checkbox" name="verified" value="1"
+                                @checked(request()->boolean('verified'))
+                                class="w-[18px] h-[18px] rounded-md border-[#E2E4EC] text-[#8a6e1e] focus:ring-[#C9A84C]/30 focus:ring-offset-0">
+                            Verified listings only
+                        </label>
+
+                        @foreach($amenityGroups as $category => $group)
+                            <div class="pt-5 border-t border-[#E2E4EC]">
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2.5">{{ $category }}</p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($group as $amenity)
+                                        <label class="relative cursor-pointer">
+                                            <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
+                                                @checked(in_array($amenity->amenity_id, (array) request('amenities', [])))
+                                                class="peer sr-only">
+                                            <span class="inline-flex items-center px-3.5 py-1.5 rounded-full border border-[#E2E4EC] bg-white text-[13px] font-semibold text-[#5B6A8E] peer-checked:border-[#060D26] peer-checked:bg-[#060D26] peer-checked:text-[#F7F4ED] transition-all">
+                                                {{ $amenity->name }}
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+
+                        <div class="pt-5 border-t border-[#E2E4EC] flex items-center gap-3 sticky bottom-0 bg-white">
+                            <a href="{{ route('properties.index', request()->except(['amenities', 'verified', 'page'])) }}"
+                                class="text-[13px] font-semibold text-[#EF4444] hover:brightness-95">
+                                Clear
+                            </a>
+                            <button type="submit"
+                                class="ml-auto px-5 py-2.5 rounded-xl text-sm font-bold text-[#F7F4ED] bg-[#060D26] hover:brightness-95 transition-all duration-150 cursor-pointer">
+                                Apply filters
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </template>
 
         {{-- MOBILE LIST/MAP TOGGLE — desktop shows both columns, this is mobile-only --}}
         <div class="flex lg:hidden gap-2 mb-5">
@@ -280,7 +399,7 @@
                 {{-- LIST COLUMN --}}
                 <div :class="mobileView === 'list' ? 'block' : 'hidden'" class="lg:!block">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                        :class="mapVisible ? '' : 'xl:grid-cols-4'">
+                        :class="mapVisible ? '' : 'xl:grid-cols-5'">
                         @foreach($properties as $property)
                             <x-property-card :property="$property" :favorited-ids="$favoritedIds" />
                         @endforeach

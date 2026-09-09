@@ -24,7 +24,7 @@ class PropertyController extends Controller
         $popularProperties = collect();
         $areas = collect();
 
-        if (!$request->hasAny(['location', 'type', 'price_max', 'verified', 'sort', 'page'])) {
+        if (!$request->hasAny(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
             $heroStats = [
                 'listings' => Property::browsable()->count(),
                 'units' => PropertyUnit::where('availability_status', 'Available')
@@ -83,14 +83,26 @@ class PropertyController extends Controller
             ])
             ->browsable()
             ->browseFilters([
-                'location'  => $request->query('location'),
-                'type'      => $request->query('type'),
-                'price_max' => $request->query('price_max'),
-                'verified'  => $request->boolean('verified'),
-                'sort'      => $request->query('sort'),
+                'location'   => $request->query('location'),
+                'type'       => $request->query('type'),
+                'price_max'  => $request->query('price_max'),
+                'verified'   => $request->boolean('verified'),
+                'amenities'  => $request->query('amenities', []),
+                'sort'       => $request->query('sort'),
             ])
             ->paginate(12)
             ->withQueryString();
+
+        // Filter-panel amenity list — unscoped (not forProperty()), since the
+        // "Must have" filter itself matches unit-level amenities too (see
+        // Property::scopeBrowseFilters). Grouped to mirror the landlord
+        // amenities wizard step, whose own copy anticipated this: "Optional,
+        // but tenants filter on these."
+        $amenityGroups = Amenity::orderBy('category')->orderBy('amenity_name')->get()->groupBy('category');
+
+        // Names for the "Filtering by:" chip row — the query string only
+        // carries amenity_ids, and that row needs the label to display.
+        $selectedAmenities = Amenity::whereIn('amenity_id', $request->query('amenities', []))->get();
 
         $favoritedIds = [];
         if (auth()->check()) {
@@ -117,7 +129,8 @@ class PropertyController extends Controller
         })->values();
 
         return view('properties.index', compact(
-            'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas'
+            'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas',
+            'amenityGroups', 'selectedAmenities'
         ));
     }
 

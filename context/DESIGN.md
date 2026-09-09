@@ -228,12 +228,14 @@ The page went flat first (July 2026) and became the pattern the rest of the app 
 **Trap that bit during the rebuild:** `Landlord@if($x) · Verified Host @endif` renders the directive as *literal text* and orphans the `@endif` — Blade's `\B@` regex does not match an `@` preceded by a word character. Build the sentence in PHP instead. This is the second time it has appeared (see `chat-panel`'s `$occupiedNote`); if a page dies with "unexpected token endif", grep for `@if` with no whitespace before it.
 
 **Gallery, contact card and a nearby band added (Sept 2026).** Four changes inside the same split-immersive shell — the media rail / editorial column architecture above is unchanged:
-- **Bento gallery.** The media rail's hero-plus-5-thumbnail-strip became a 1-big-2-small `grid-cols-3 grid-rows-2` bento (big tile spans 2×2, two small tiles fill the remaining column, degrading to big-only at 1 photo and big-plus-one at 2). The big tile keeps `id="hero-img"` and the small tiles keep `id="thumb-{i}"` — everything the gallery's `@push('scripts')` IIFE does (`setHero`/`shiftHero`/`openLightboxAtHero`, arrows, "Show all photos", the Verified Property popover) works unchanged. One real JS fix was needed: the active-thumb highlight used to compare a `querySelectorAll` NodeList's *loop position* to the photo index, which only worked because thumbs 0–4 were always rendered contiguously. The bento renders a non-contiguous subset (thumb-1 and thumb-2, skipping thumb-0 since it would just repeat the big tile's own photo), so the highlight now reads the index off each element's own id instead.
+- **Bento gallery** *(superseded — see below).* The media rail's hero-plus-5-thumbnail-strip became a 1-big-2-small `grid-cols-3 grid-rows-2` bento (big tile spans 2×2, two small tiles fill the remaining column, degrading to big-only at 1 photo and big-plus-one at 2). The big tile keeps `id="hero-img"` and the small tiles keep `id="thumb-{i}"` — everything the gallery's `@push('scripts')` IIFE does (`setHero`/`shiftHero`/`openLightboxAtHero`, arrows, "Show all photos", the Verified Property popover) works unchanged. One real JS fix was needed: the active-thumb highlight used to compare a `querySelectorAll` NodeList's *loop position* to the photo index, which only worked because thumbs 0–4 were always rendered contiguously. The bento renders a non-contiguous subset (thumb-1 and thumb-2, skipping thumb-0 since it would just repeat the big tile's own photo), so the highlight now reads the index off each element's own id instead.
 - **Grouped contact card.** Price, the deposit line, the landlord row, the Contact Landlord CTA + favourite, and the response-time note now sit inside one `<x-card>` directly under the title/meta row — previously six ungrouped sibling blocks with no panel around them, the only bordered surface on the page being the location card further down. This reorders the section from price → description → fact tiles → CTA → landlord row to price+deposit → landlord row → CTA → description → fact tiles; the reorder is the point, not a side effect.
 - **Deposit line under price.** `$unitsPayload` already carried `deposit`/`depositRaw` null-preserving — a one-line Alpine addition renders "+ ₱X security deposit" or, when the selected unit has none, an explicit **"No security deposit required"** (never ₱0, never blank).
 - **Amenity icons.** Building and Room amenities, and the unit slideout, now render a name-keyed icon (`<x-amenity-icon>` / `AmenityIcons::path()` for the two Alpine `x-for` sites) instead of one generic checkmark repeated for every amenity. Selection checkboxes and compact chip lists elsewhere are deliberately unchanged — icons belong on amenity *lists*, not on controls.
 - **Nearby rentals band**, full-bleed under both columns (still inside the page's Alpine root, so the mobile sticky-bar padding already clears it): up to 6 properties in the same `city_municipality`, same barangay sorted first, using `<x-section-header>`'s existing title/sub/"View all" pattern and the sibling-card markup already established on the landlord profile page (`landlord/profile/show.blade.php`) rather than the browse page's heavier per-card-Alpine carousel card. Omitted entirely, not padded with other cities, when none exist.
 - **The two-column split became `flex`, not `grid` (Sept 2026), so the media rail stays sticky for the whole page instead of detaching near the bottom.** With CSS Grid, a sticky item's containing block is its grid *cell*, and a grid cell is always stretched to the row's height — the tallest sibling's height — regardless of `items-start` (that only aligns the item's own box within the cell, it doesn't shrink the cell). So the rail's sticky range was bounded by the *editorial column's* height, and once scroll neared the bottom of that (much taller) column, the rail ran out of room and detached, sliding up off-screen — a jarring "catch-up" motion on a long listing. Flexbox with `items-start` does not stretch an item's own box to the line height, so the rail's containing block became its own (short, already `max-h-[calc(100vh-3rem)]`-capped) height, and it now stays pinned at `top-6` for the entire scroll. **Deliberate trade-off, decided with Axcee over the catch-up motion:** the rail can now sit on top of the Nearby Rentals band and the footer near the very bottom of a long page, rather than yielding to them. `lg:col-span-5`/`lg:col-span-7` became `lg:basis-5/12`/`lg:basis-7/12` with `lg:shrink-0` on both (flex-basis needs the shrink lock or a wide word can compress the split); `grid-cols-1` became `flex flex-col` so mobile stacking is unchanged.
+
+**Bento gallery reverted to a single wide hero (Sept 9 2026).** By this point the page had already become the `flex flex-col` top-to-bottom flow described above, so the "media rail" the bento was built for no longer existed — the gallery rendered full page width (up to the page's `max-w-[1400px]`), and the bento's `aspect-[4/3]` grid stood roughly **1050px tall**, pushing the price card, description and everything else off the fold. `properties/show.blade.php`'s gallery is now one `aspect-[21/9]` image (~570–650px tall depending on viewport), no side thumbnail tiles. Browsing the rest of the set is unchanged — the same prev/next arrows call `shiftHero()`, "Show all photos" still opens the lightbox via `openLightboxAtHero()` — only the always-visible `thumb-{i}` tiles are gone; the JS's per-thumb highlight loop (`querySelectorAll('[id^="thumb-"]')`) was dead code with no thumbs left to match, so it was removed rather than left inert. The empty-state placeholder (no photos uploaded) was changed from `aspect-[16/9]` to the same `aspect-[21/9]` so both states of the same slot share one ratio.
 
 **A third Blade tokeniser trap, same family (Aug 21 2026): Alpine's `@error` shorthand collides with Blade's own `@error(...)` directive.** Blade reserves `@error('field') ... @enderror` for validation messages and scans for it regardless of context — writing `<img @error="failed = true">` as the Alpine `x-on:error` shorthand parses as the start of a `@error` block with no matching `@enderror`, breaking compilation for the whole file with `ParseError: unexpected end of file` (not a Blade-specific error message, so it's not obviously a Blade problem from the trace alone). Fix: spell it out as `x-on:error="..."` instead of `@error="..."` whenever the DOM event is `error` — the shorthand is the one Alpine event name that can never safely use `@`. `@click`, `@input`, etc. are fine; only `error` collides.
 
@@ -617,4 +619,205 @@ stays exactly as documented, just re-skinned. Full record: `plans/navy-gold-rede
   `$heroStats`-driven collapse — that does not exist in `properties/index.blade.php` or
   `PropertyController@index`. `<x-search-pill variant="hero">` is fully built and unused. This predates
   the reskin and is the same "documented intent, not shipped code" failure §5 already warns about
-  twice; correcting §6i or building the hero are separate decisions for Axcee.
+  twice; correcting §6i or building the hero are separate decisions for Axcee. **(Since resolved —
+  the browse-page hero, area cards, and popular-places section landed in a later commit; this note is
+  kept as-is as a historical record rather than edited after the fact.)**
+
+## 16. Browse page — bigger area cards, 5-column grid when the map is hidden (Sept 9 2026)
+
+Two independent sizing tweaks to `properties/index.blade.php`, both requested after seeing the page
+live rather than planned up front:
+
+- **"Browse by area" cards sized up.** `w-28 h-20` (112×80) felt too small next to the rest of the
+  page's scale → `w-40 h-28` (160×112), label text `text-[12px]` → `text-[13.5px]`. Still the only
+  use site for this exact card shape (distinct from the "Popular places to stay" card below it and
+  from anything in `x-property-card`), so still inlined rather than extracted into a component.
+- **Property grid: 5 columns instead of 4 when the map is hidden.** The list column's grid was
+  `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, gaining `xl:grid-cols-4` only when `mapVisible` is
+  `false` (map toggled off, list column spans the full `max-w-[1400px]` width). Changed that override
+  to `xl:grid-cols-5`. At 1400px with `lg:px-8` padding and `gap-6`, that's ~248px per card — inside
+  the safe range the "Popular places to stay" section already proves out at `lg:grid-cols-5` (its
+  cards run ~230–260px depending on breakpoint; see §15's neighboring section for that grid). The
+  `mapVisible: true` path (`lg:grid-cols-3` + sticky map column) is untouched — this only changes the
+  no-map state.
+- Both changes are pure Tailwind class edits with no new component or JS; the "no new class = no
+  rebuild needed" assumption bit once already this session (see the aspect-[21/9] rebuild note above)
+  — remember `npm run build` after any of `w-40`, `h-28`, `text-[13.5px]`, or `xl:grid-cols-5`, none of
+  which existed in the compiled CSS before this change.
+
+## 17. Property show page — gallery paired with the contact card, not stacked (Sept 9 2026)
+
+§16 above shrank the gallery's *height* by dropping the bento; this pairs it with the contact card so
+it's also narrower, matching the reference mockup's side-by-side hero + price card composition instead
+of a full-width image with the card further down the page.
+
+- **New row order:** Image gallery (`lg:basis-7/12`) + Contact card (`lg:basis-5/12`) share one
+  `lg:flex lg:flex-row gap-8 items-start` row at the top, reusing the exact wrapper classes the old
+  "Property details + Contact card" row used. Property details is no longer paired with the contact
+  card *(this part superseded within the hour — see §18: it briefly moved to a full-width block below
+  the row, then moved again into the left column below the image once that left a visible gap)*.
+- **The gallery's `aspect-[21/9]` (§15) was left alone** — narrowing the column already does the
+  "size down the image" work on its own (7/12 of ~1336px usable width ≈ 750px, vs. the previous full
+  1336px), and 21/9 at that narrower width lands close to the reference mockup's own hero proportions,
+  so no ratio change was needed, only the container.
+- **Property details' stat grid widened** *(also superseded by §18)* from a fixed `grid-cols-2` (sized
+  for the old ~58%-width column) to `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5` for the brief full-page-
+  width version — otherwise its 5 stat tiles (Type/Living arrangement/Capacity/Landlord/Available)
+  would render as a few oversized, sparse cells rather than filling the row.
+- Mobile is unaffected: the row's wrapper only turns into a flex row at `lg:`, so below that
+  breakpoint the gallery and contact card still stack full-width in document order exactly as before,
+  confirmed at a 390px viewport.
+
+## 18. Property details moved back into the gallery column, to fill the gap it left (Sept 9 2026)
+
+§17's full-width Property details block (below the gallery+contact row) left the left column looking
+unbalanced: the gallery is much shorter than the contact card beside it (price + landlord row +
+inquiry form + phone reveal all add up), so there was a large visible empty gap in the left column
+under the image before Property details picked back up at full width below both columns. Axcee pointed
+at exactly that gap and asked to use the space.
+
+- **Property details is back inside `lg:basis-7/12`**, directly below the gallery (`mt-6` on the
+  `<x-card>`), instead of a standalone full-width block after the row closes. Fills the gap; the left
+  and right columns now end close to the same height instead of the left one stopping short.
+- **Stat grid reverted to plain `grid-cols-2 gap-3`** (no `sm:`/`lg:` variants) — back to what it was
+  before §17 widened it for the full-page-width version, since the column is narrow again (~750px on
+  desktop, full width on mobile below `lg:`, both already proven at 2 columns pre-§17).
+- Net effect versus §17: same content, same column pairing philosophy (gallery+contact card share the
+  top row), just Property details riding along in the gallery's column rather than breaking out to
+  full width — the full-width version lived for all of one round-trip before this reverted it.
+
+## 19. Three small property-show fixes: favorite-button overflow, subunit card size, amenity columns (Sept 9 2026)
+
+- **Favorite (heart) button was overflowing the contact card's right edge.** It was sized with
+  `h-full aspect-square` sitting beside the `flex-1` Send Inquiry button inside a `flex items-stretch`
+  row with no explicit height of its own — deriving the button's *width* from `aspect-ratio` against a
+  height that only resolves via cross-axis stretch is exactly the kind of indeterminate-height case
+  flexbox/aspect-ratio interaction handles inconsistently, and it was rendering wider than the space
+  `flex-1` left for it, pushing past the card boundary (worst on the mobile-width card, where the ask
+  originated). Fixed with an explicit `w-14 shrink-0` instead of `aspect-square`, keeping `h-full` so
+  it still self-stretches to match Send Inquiry's height — removes the ambiguous computation instead
+  of working around its symptom. **Lesson for any future icon-button-beside-a-flex-1-button pairing:
+  give the icon button an explicit fixed width; don't derive it from `aspect-square` + a stretched
+  height.**
+- **Subunit cards sized down.** `grid-cols-1 sm:grid-cols-2` on a full-page-width section (not paired
+  with the contact card — see §17/§18, Subunits stayed full-width) meant 2 cards per row at ~660px
+  each. Now `sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4` — up to 4 per row (~320px each at full
+  1400px width), all existing content (thumbnail, status badge, selection ring, label, specs, price)
+  still fits comfortably at that width, nothing removed or restyled.
+- **Amenity-family sections down to a flat 2 columns** *(the item-grid part of this bullet stands;
+  the "2 columns" ask itself was misread — see §20, which puts Building/Room amenities side by side
+  as two sections instead)*. `Utilities & included charges`, `Building amenities`, and `Room
+  amenities` all shared `grid-cols-2 sm:grid-cols-3 gap-3` (2 cols mobile, 3 cols `sm:` and up) —
+  changed to a flat `grid-cols-2 gap-3` (mobile unchanged, desktop 3→2) so they
+  now match `House rules` right below them, which was already 2 columns at every breakpoint. Mobile
+  was deliberately left alone even though `House rules` is `grid-cols-1 sm:grid-cols-2` (1 col on
+  mobile) — matching that too would have doubled these three sections' mobile row count, which wasn't
+  asked for and isn't what the reference screenshot showed; only the desktop column count changed.
+
+## 20. Building amenities + Room amenities as a side-by-side row, not stacked sections (Sept 9 2026)
+
+Clarification of §19's amenity fix — "2 columns" meant the two *sections* side by side in one row,
+not (only) the item grid inside each section. Both are now true at once: two sections in a row, each
+still with its own 2-column item list from §19.
+
+- **Wrapped both `<section>`s in one `lg:grid lg:grid-cols-2 lg:gap-x-10` container**, added around
+  the existing `@if($buildingAmenities...)` / `@if($offeredAmenities...)` blocks without touching
+  either section's own markup. Each section keeps its own `mt-10 pt-8 border-t` — with both in the
+  same grid row, that renders as one shared-looking divider line above the pair on desktop.
+- **Below `lg:`, unaffected** — the wrapper is a plain block (grid only applies at `lg:` and up), so
+  the two sections stack full-width in document order exactly as before, confirmed at a 390px
+  viewport.
+- **If only one of the two exists** (e.g. no building-level amenities on a single-unit listing), grid
+  auto-placement leaves the second column empty rather than stretching the lone section across the
+  full row — an acceptable edge case not worth a `lg:col-span-2` conditional for.
+
+## 21. Favorite (heart) button moved onto the hero photo, off the contact card (Sept 9 2026)
+
+§19 fixed the heart button overflowing the contact card by giving it an explicit `w-14` instead of
+`aspect-square h-full`. This goes further and removes it from that row entirely, onto the gallery
+image's top-right corner instead — Axcee asked where a better spot would be; recommended this over
+his own suggestion (top-right of the price) because the corner was already free (Verified badge
+top-left, "Show all photos" bottom-right), it's the convention on Airbnb/Booking.com/Zillow, and it
+fully decouples favoriting from whatever width the price/CTA text needs that day — permanently
+removing the failure mode rather than just tolerating a fixed width next to it.
+
+- **Markup and Alpine scope moved as a unit** from the contact card's "PRIMARY ACTION" row into the
+  gallery's inner `overflow-hidden` frame, as its own `absolute top-3 right-3 z-20` div — same
+  `x-data` (`fav`, `busy`, `toggleFav()`) and `favorites.toggle` POST, untouched.
+- **Restyled to match the image's other floating controls** (prev/next arrows): `w-10 h-10
+  rounded-full bg-white/90 shadow-sm`, not the card's `rounded-xl border border-[#E2E4EC] bg-white`.
+  Icon color logic (`#EF4444` filled when favorited, `#5B6A8E` outline otherwise) is unchanged.
+- **Same visibility condition, reassembled explicitly** since it's no longer nested inside the
+  `@else` branch of the login/owner/tenant check: was `@if(auth()->user()->hasRole('Tenant'))` implicitly
+  gated by that `@else` (auth()->check() && !$isOwner); now `@if(auth()->check() && ! $isOwner &&
+  auth()->user()->hasRole('Tenant'))` spells out all three conditions at the new site.
+- **Contact card's "PRIMARY ACTION" row is back to a single full-width button** in every branch (login
+  CTA / owner notice / Send Inquiry) — the `flex items-stretch gap-3` wrapper was left as-is since it's
+  harmless with one child, not worth a follow-up cleanup pass.
+- Verified logged in as the seeded tenant (`axcee@abangananhub.com`): toggle works (`POST
+  /favorites/{id}/toggle`, heart fills red), and checked both 1440px and 390px — no collision with the
+  prev/next arrows at any width.
+
+## 22. Description moved above Subunits, matching the reference mockup's order (Sept 9 2026)
+
+`$property->description` ("About this property") was rendering *after* the full "Subunits in this
+property" grid — Axcee asked whether it was part of Property details (it isn't, it's the property's
+own free-text field) and pointed at the reference mockup, which puts the description right after the
+stat tiles/property details and before the unit list.
+
+- **Moved the whole description block** (the `Str::limit`/`Read more`/`descExpanded` toggle, all
+  unchanged) from after the Subunits `@if($approvedUnits->count() > 0) ... @endif` block to right
+  after the gallery+contact-card row closes, before the "Subunits in this property" comment. New
+  order: gallery+contact card → Property details → **description** → Subunits → Utilities/amenities →
+  House rules → map → Reviews.
+- **Dropped the block's own `mt-6`** — it's now a direct sibling in the page's top-level `flex
+  flex-col gap-8`, which already spaces siblings 2rem apart (matching how the Subunits section right
+  below it also carries no top-margin class of its own).
+- Confirmed the same order holds at both 1440px and 390px — the block was never breakpoint-gated to
+  begin with, so this was purely a document-order move, nothing conditional to get wrong.
+
+## 23. Browse page — "Filters" panel: amenities + verified-only (Sept 9 2026)
+
+Full plan/rationale in `plans/browse-filters-amenities-verified.md`. A reference mockup showed an
+always-expanded filter bar (Property Type / Unit Type / Must Have) with a "Filters" button next to
+Search; Axcee didn't want a button there and asked for a better spot. Landed on a **"Filters"
+button in the results toolbar** (next to "Show map"), opening a panel that reuses the exact
+bottom-sheet/modal shell already established for the `properties/show` inquiry flow
+(`x-teleport="body"` → `items-end sm:items-center` overlay → `rounded-t-2xl sm:rounded-2xl` panel).
+
+- **Scope was cut down from the mockup, not copied 1:1** — checking the mockup's categories against
+  the real schema mattered: Property Type is already a single-select control in the main search
+  pill, so the panel doesn't duplicate it as chips; Unit Type has no real data anywhere
+  (`property_units.unit_type` exists but nothing ever sets it) and was dropped. What's left —
+  **Amenities** (grouped by category, multi-select toggle pills, AND semantics) plus **"Verified
+  listings only"** — was the one dimension with real data and, for `verified`, a filter that was
+  already fully wired server-side with **zero UI control anywhere** to turn it on before this.
+- **`Property::scopeBrowseFilters()`** gained an `amenities` branch: for each selected amenity ID,
+  a property matches only if it has that amenity itself (`property_amenities`) *or* one of its
+  units does (`unit_amenities`) — same "building or room, doesn't matter" treatment the show page
+  already gives amenities. **Hit a real bug building this**: the `units.amenities` nested
+  `whereHas` joins both `amenities.amenity_id` and `unit_amenities.amenity_id` into one result set,
+  so a bare `where('amenity_id', ...)` throws `SQLSTATE[23000]: ... Column 'amenity_id' ... is
+  ambiguous` — only surfaced by actually clicking through the built filter in-browser, not from
+  reading the query. Fixed by qualifying it as `amenities.amenity_id`. Verified the fix against real
+  seeded counts via tinker (`Property::browseFilters(['amenities' => [2]])->count()` matched the
+  in-browser result exactly) before trusting it.
+- **Toggle-pill chips reuse an existing pattern**, not a new one: the `peer sr-only` checkbox +
+  `peer-checked:`-styled `<span>` already established in `admin/users/create.blade.php` (role
+  selection pills) — same mechanism, navy fill instead of that page's gold/green.
+- **The Sort form's hidden-input carry-through had a latent bug this surfaced**: `request()->except([...])`
+  can return an array value (`amenities[]`), and the existing `@foreach(... as $key => $value)
+  <input value="{{ $value }}">` loop would try to stringify that array the moment any amenity filter
+  was active — "Array to string conversion". Fixed in both places that carry filters forward (the
+  Sort form and the new panel's own hidden inputs): array values now emit one `name="{{ $key
+  }}[]"` hidden input per item instead of one input with an array value.
+- **Per-chip amenity removal needed its own href**, not `fullUrlWithoutQuery` (that drops the whole
+  `amenities` key) — rebuilds the route with that one ID subtracted from the array:
+  `array_diff((array) request('amenities', []), [$amenity->amenity_id])`.
+- **Filters button shows an active-count badge** (`count($amenities) + ($verified ? 1 : 0)`) and,
+  unlike "Show map" (`hidden lg:inline-flex` — the mobile List/Map switcher covers that job below
+  `lg:`), is visible at every breakpoint, since there's no mobile substitute for it.
+- Verified end-to-end in-browser at 1440px and 390px: opening the panel, selecting amenities across
+  multiple categories, applying, confirming the URL/result count/chip row/badge all agree, removing
+  one chip without disturbing the others, and confirming `location`/`type`/`price_max`/`sort` all
+  survive a round trip through the panel untouched.
