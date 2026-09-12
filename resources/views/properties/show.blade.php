@@ -670,19 +670,59 @@
                 @endif
                 </div>
 
-                @if(!empty($property->house_rules))
+                @php
+                    // Rules live per-unit, but tenants read them as a property
+                    // fact. Collapse each policy across the approved units:
+                    // null answers are ignored (landlord never said), and units
+                    // that disagree are surfaced as "Varies by unit" rather
+                    // than picking one unit's answer to speak for the rest.
+                    $policyFields = [
+                        ['pets_allowed', 'Pets allowed', 'No pets'],
+                        ['smoking_allowed', 'Smoking allowed', 'No smoking'],
+                        ['visitors_allowed', 'Visitors allowed', 'No visitors'],
+                    ];
+                    $houseRules = collect($policyFields)
+                        ->map(function ($f) use ($approvedUnits) {
+                            [$field, $yes, $no] = $f;
+                            $answers = $approvedUnits->pluck($field)->reject(fn ($v) => $v === null)->unique();
+                            if ($answers->isEmpty()) {
+                                return null;
+                            }
+                            $allowed = (bool) $answers->first();
+                            return [
+                                'label'   => $allowed ? $yes : $no,
+                                'allowed' => $allowed,
+                                'varies'  => $answers->count() > 1,
+                            ];
+                        })
+                        ->filter()
+                        ->values();
+                @endphp
+                @if($houseRules->isNotEmpty())
                 <section id="house-rules" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">House rules</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        @foreach($property->house_rules as $rule)
+                        @foreach($houseRules as $rule)
                             <div class="flex items-center gap-3 text-sm text-[#060D26] font-medium">
-                                <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 {{ $rule['allowed'] ? 'bg-[#ECEEF6]' : 'bg-[#EF4444]/[0.07]' }}">
+                                    @if($rule['allowed'])
+                                        <svg class="w-4 h-4 text-[#8a6e1e]" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                        </svg>
+                                    @else
+                                        <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    @endif
                                 </div>
-                                {{ $rule }}
+                                <span class="min-w-0">
+                                    {{ $rule['label'] }}
+                                    @if($rule['varies'])
+                                        <span class="ml-1 align-middle text-[10.5px] font-semibold uppercase tracking-wide text-[#060D26] bg-[#ECEEF6] rounded px-1.5 py-0.5 whitespace-nowrap">Varies by unit</span>
+                                    @endif
+                                </span>
                             </div>
                         @endforeach
                     </div>

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Property;
 use App\Models\PropertyMedia;
 use App\Models\UnitMedia;
+use RuntimeException;
 
 class PropertySeeder extends Seeder
 {
@@ -15,64 +16,105 @@ class PropertySeeder extends Seeder
     {
         $landlord = User::where('email', 'landlord@abangananhub.com')->first();
 
-        // ─── House rules pools by property type ──────────────
-        $bedspaceRules = [
-            'No overnight visitors',
-            'Quiet hours from 10:00 PM to 6:00 AM',
-            'Keep your bedspace area clean and organized',
-            'No smoking inside the premises',
-            'No cooking inside the sleeping area',
-            'Lights out by 11:00 PM',
-            'Personal belongings must be stored in assigned lockers',
-            'No pets allowed',
-            'Shared bathroom must be cleaned after use',
-            'Report maintenance issues to the caretaker immediately',
+        // ─── Amenity pools by property type ──────────────
+        // Drawing at random from the whole amenity table produced incoherent
+        // listings — a bedspace tagged "Private Kitchen", a house tagged
+        // "Curfew". Each type now draws only from what that type plausibly
+        // offers. Names must match AmenitySeeder exactly; the guard below
+        // catches drift rather than silently attaching nothing.
+        $amenityPools = [
+            'Bedspace' => [
+                'property' => ['Wi-Fi', 'Shared Kitchen', 'Water Dispenser', 'Laundry Area', 'CCTV', '24/7 Security', 'Gated Entrance', 'Curfew', 'Near Public Transport', 'Near School / University', 'Near Market / Grocery'],
+                'unit'     => ['Electric Fan', 'Bed Included', 'Study Table', 'Wardrobe / Cabinet', 'Shared Bathroom'],
+            ],
+            'Room' => [
+                'property' => ['Wi-Fi', 'Shared Kitchen', 'Water Dispenser', 'Laundry Area', 'Washing Machine', 'CCTV', 'Gated Entrance', 'Motorcycle Parking', 'Near Public Transport', 'Near School / University', 'Near Market / Grocery'],
+                'unit'     => ['Electric Fan', 'Air Conditioning', 'Bed Included', 'Study Table', 'Wardrobe / Cabinet', 'Shared Bathroom', 'Hot Shower', 'Submeter (Electricity)'],
+            ],
+            'Apartment' => [
+                'property' => ['Wi-Fi', 'Elevator', 'Parking Space', 'Motorcycle Parking', 'CCTV', '24/7 Security', 'Gated Entrance', 'Rooftop Access', 'Laundry Area', 'Near Public Transport', 'Near Market / Grocery'],
+                'unit'     => ['Air Conditioning', 'Private Kitchen', 'Private Bathroom', 'Hot Shower', 'Refrigerator', 'Microwave', 'Balcony', 'Wardrobe / Cabinet', 'Submeter (Electricity)', 'Submeter (Water)'],
+            ],
+            'House' => [
+                'property' => ['Wi-Fi', 'Parking Space', 'Motorcycle Parking', 'Gated Entrance', 'Laundry Area', 'Pet Friendly', 'Near Market / Grocery', 'Near School / University'],
+                'unit'     => ['Private Kitchen', 'Private Bathroom', 'Hot Shower', 'Refrigerator', 'Air Conditioning', 'Electric Fan', 'Wardrobe / Cabinet', 'Submeter (Electricity)', 'Submeter (Water)'],
+            ],
         ];
 
-        $roomRules = [
-            'No smoking inside the room',
-            'No pets allowed',
-            'Quiet hours from 10:00 PM to 6:00 AM',
-            'Visitors allowed until 9:00 PM only',
-            'Keep shared areas clean after use',
-            'No illegal activities on the premises',
-            'Electricity is billed separately based on sub-meter reading',
-            'One month advance and one month deposit required',
-            'No alterations to the room without landlord approval',
-            'Dispose of garbage properly using designated bins',
+        // ─── Utilities + living arrangement by property type ──────────────
+        // The local norm for each type. Individual listings override these
+        // below wherever their own description pins a different answer.
+        $propertyProfiles = [
+            'Bedspace' => [
+                'living_arrangement'           => 'Shared',
+                'water_included'               => true,
+                'electricity_included'         => true,
+                'internet_included'            => true,
+                'association_fees_included'    => false,
+                'utilities_separately_metered' => false,
+            ],
+            'Room' => [
+                'living_arrangement'           => 'Private',
+                'water_included'               => true,
+                'electricity_included'         => false,
+                'internet_included'            => true,
+                'association_fees_included'    => false,
+                'utilities_separately_metered' => true,
+            ],
+            'Apartment' => [
+                'living_arrangement'           => 'Private',
+                'water_included'               => false,
+                'electricity_included'         => false,
+                'internet_included'            => false,
+                'association_fees_included'    => true,
+                'utilities_separately_metered' => true,
+            ],
+            'House' => [
+                'living_arrangement'           => 'Family-friendly',
+                'water_included'               => false,
+                'electricity_included'         => false,
+                'internet_included'            => false,
+                'association_fees_included'    => false,
+                'utilities_separately_metered' => true,
+            ],
         ];
 
-        $apartmentRules = [
-            'No smoking inside the unit',
-            'No pets unless approved in writing by the landlord',
-            'Quiet hours from 10:00 PM to 6:00 AM',
-            'No subletting or unauthorized occupants',
-            'Keep common areas clean and orderly',
-            'Report any maintenance issues immediately',
-            'Parking is limited to assigned slots only',
-            'Garbage must be segregated and disposed of on schedule',
-            'No modifications to walls, fixtures, or appliances without approval',
-            'Guests staying overnight must be registered with building admin',
-        ];
-
-        $houseRules = [
-            'No smoking inside the house',
-            'No pets unless approved by the landlord',
-            'Tenant is responsible for yard maintenance',
-            'No illegal activities on the premises',
-            'No subletting or sharing with unregistered occupants',
-            'Report plumbing or electrical issues immediately',
-            'Garbage must be disposed of on designated collection days',
-            'Gate must be locked by 10:00 PM',
-            'No structural modifications without written consent',
-            'Water and electricity are billed separately',
-        ];
-
-        $rulesByType = [
-            'Bedspace'  => $bedspaceRules,
-            'Room'      => $roomRules,
-            'Apartment' => $apartmentRules,
-            'House'     => $houseRules,
+        // ─── Unit features + house-rule policies by property type ──────────
+        // These booleans are what the tenant page renders as "House rules"
+        // now that properties.house_rules is gone.
+        $unitProfiles = [
+            'Bedspace' => [
+                'bathroom_type'     => 'Shared bathroom',
+                'kitchen_type'      => 'Shared kitchen',
+                'furnishing_status' => 'Furnished',
+                'pets_allowed'      => false,
+                'smoking_allowed'   => false,
+                'visitors_allowed'  => false,
+            ],
+            'Room' => [
+                'bathroom_type'     => 'Shared bathroom',
+                'kitchen_type'      => 'Shared kitchen',
+                'furnishing_status' => 'Semi-furnished',
+                'pets_allowed'      => false,
+                'smoking_allowed'   => false,
+                'visitors_allowed'  => true,
+            ],
+            'Apartment' => [
+                'bathroom_type'     => 'Private bathroom',
+                'kitchen_type'      => 'Private kitchen',
+                'furnishing_status' => 'Semi-furnished',
+                'pets_allowed'      => false,
+                'smoking_allowed'   => false,
+                'visitors_allowed'  => true,
+            ],
+            'House' => [
+                'bathroom_type'     => 'Private bathroom',
+                'kitchen_type'      => 'Private kitchen',
+                'furnishing_status' => 'Unfurnished',
+                'pets_allowed'      => true,
+                'smoking_allowed'   => true,
+                'visitors_allowed'  => true,
+            ],
         ];
 
         // ─── Unit-level interior photo pool ──────────────
@@ -134,6 +176,8 @@ class PropertySeeder extends Seeder
                 'title'               => 'Studio Apartment in IT Park',
                 'description'         => 'Modern studio unit inside Cebu IT Park. Fully furnished with air conditioning, WiFi, and 24/7 security. Walking distance to restaurants and offices.',
                 'property_type'       => 'Apartment',
+                'unit_profile'        => ['furnishing_status' => 'Furnished'],
+                'internet_included'   => true,
                 'address'             => 'Cebu IT Park, Apas, Cebu City, Cebu',
                 'latitude'            => 10.3297,
                 'longitude'           => 123.9056,
@@ -189,6 +233,7 @@ class PropertySeeder extends Seeder
                 'title'               => 'Bedspace for Female in Punta Princesa',
                 'description'         => 'Female-only bedspace in a safe and clean boarding house in Punta Princesa. With electric fan, locker, and shared bathroom. Curfew strictly enforced.',
                 'property_type'       => 'Bedspace',
+                'living_arrangement'  => 'Female only',
                 'address'             => 'Punta Princesa, Cebu City, Cebu',
                 'latitude'            => 10.2970,
                 'longitude'           => 123.8770,
@@ -258,6 +303,7 @@ class PropertySeeder extends Seeder
                 'title'               => 'Bedspace Near Cebu Doctors University',
                 'description'         => 'Male bedspace accommodation near Cebu Doctors University. Suitable for medical students. With study table, locker, and 24-hour water supply.',
                 'property_type'       => 'Bedspace',
+                'living_arrangement'  => 'Male only',
                 'address'             => 'Osmena Blvd, Cebu City, Cebu',
                 'latitude'            => 10.3070,
                 'longitude'           => 123.8930,
@@ -345,6 +391,7 @@ class PropertySeeder extends Seeder
                 'title'               => 'Furnished Room in Lagtang, Talisay',
                 'description'         => 'Fully furnished room with bed frame, cabinet, and study table. Located in a residential subdivision in Lagtang.',
                 'property_type'       => 'Room',
+                'unit_profile'        => ['furnishing_status' => 'Furnished'],
                 'address'             => 'Lagtang, Talisay City, Cebu',
                 'latitude'            => 10.2600,
                 'longitude'           => 123.8310,
@@ -778,25 +825,35 @@ class PropertySeeder extends Seeder
             'Ventilated with ceiling fan',
         ];
 
-        $unitAmenityIds = Amenity::forUnit()->pluck('amenity_id');
-        $propertyAmenityIds = Amenity::forProperty()->pluck('amenity_id');
+        $amenityIdsByName = Amenity::pluck('amenity_id', 'amenity_name');
 
-        $maxUnits = 30; // keep the seeded dataset small enough to browse
+        // A renamed amenity would otherwise attach nothing and fail silently.
+        $unknownAmenities = collect($amenityPools)
+            ->flatMap(fn ($pools) => array_merge($pools['property'], $pools['unit']))
+            ->unique()
+            ->reject(fn ($name) => $amenityIdsByName->has($name));
+
+        if ($unknownAmenities->isNotEmpty()) {
+            throw new RuntimeException(
+                'PropertySeeder references amenities missing from AmenitySeeder: ' . $unknownAmenities->implode(', ')
+            );
+        }
+
+        // Counts units across the whole run so the "every Nth unit is left
+        // unanswered" dev-data paths below stay spread across all listings.
         $unitsCreated = 0;
 
         foreach ($properties as $data) {
             $mediaItems = $data['media'];
             $unitItems = $data['units'];
-            unset($data['media'], $data['units']);
+            $unitOverrides = $data['unit_profile'] ?? [];
+            unset($data['media'], $data['units'], $data['unit_profile']);
 
-            // Cap total seeded units — skip properties that would overshoot
-            if ($unitsCreated + count($unitItems) > $maxUnits) {
-                continue;
-            }
+            $type = $data['property_type'];
 
-            // Pick 4–6 random rules from the pool matching this property type
-            $pool = $rulesByType[$data['property_type']] ?? $roomRules;
-            $data['house_rules'] = collect($pool)->shuffle()->take(rand(4, 6))->values()->all();
+            // Profile first, listing second — an explicit key on the listing
+            // (the female-only bedspace, say) wins over the type default.
+            $data = array_merge($propertyProfiles[$type], $data);
 
             // Every address here is "..., <LGU>, Cebu" — same shape parsed by
             // the add_locality_to_properties_table migration's backfill.
@@ -809,12 +866,15 @@ class PropertySeeder extends Seeder
                 'landlord_id' => $landlord->user_id,
             ]));
 
-            // 3–6 random building-wide amenities on the property itself
-            if ($propertyAmenityIds->isNotEmpty()) {
-                $property->amenities()->attach(
-                    $propertyAmenityIds->shuffle()->take(rand(3, min(6, $propertyAmenityIds->count())))->values()->all()
-                );
-            }
+            // 3–6 building-wide amenities drawn from this type's pool
+            $propertyPool = collect($amenityPools[$type]['property']);
+            $property->amenities()->attach(
+                $propertyPool->shuffle()->take(rand(3, min(6, $propertyPool->count())))
+                    ->map(fn ($name) => $amenityIdsByName[$name])->values()->all()
+            );
+
+            $unitPool = collect($amenityPools[$type]['unit']);
+            $unitProfile = array_merge($unitProfiles[$type], $unitOverrides);
 
             // Create units with their own interior photos + amenities
             foreach ($unitItems as $unitData) {
@@ -825,9 +885,16 @@ class PropertySeeder extends Seeder
                     ? null
                     : round(($unitData['occupancy_limit'] ?? 2) * 9 + rand(-3, 8), 2);
 
+                // Same reasoning for the features and policies: every 7th unit
+                // answers none of them, so the tenant page's "landlord hasn't
+                // said" path is exercised by the seeded data too.
+                $features = $unitsCreated % 7 === 6 ? [] : array_merge($unitProfile, [
+                    'is_furnished' => $unitProfile['furnishing_status'] !== 'Unfurnished',
+                ]);
+
                 $unit = $property->units()->create(array_merge([
                     'floor_area_sqm' => $floorArea,
-                ], $unitData, [
+                ], $features, $unitData, [
                     'verification_status' => $unitData['verification_status'] ?? 'Approved',
                 ]));
                 $unitsCreated++;
@@ -844,12 +911,11 @@ class PropertySeeder extends Seeder
                     ]);
                 }
 
-                // 3–6 random amenities per unit
-                if ($unitAmenityIds->isNotEmpty()) {
-                    $unit->amenities()->attach(
-                        $unitAmenityIds->shuffle()->take(rand(3, min(6, $unitAmenityIds->count())))->values()->all()
-                    );
-                }
+                // 3–6 amenities per unit, drawn from this type's pool
+                $unit->amenities()->attach(
+                    $unitPool->shuffle()->take(rand(3, min(6, $unitPool->count())))
+                        ->map(fn ($name) => $amenityIdsByName[$name])->values()->all()
+                );
             }
 
             // Property-level photos (building exterior, common areas)
