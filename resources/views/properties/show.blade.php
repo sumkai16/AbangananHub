@@ -419,27 +419,29 @@
                      and the 2-column grid matches the column's own width
                      rather than the full-page 5-column version this briefly
                      was. ===== --}}
-                <x-card class="mt-6">
+                <div class="mt-6">
                     <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Property details</h2>
-                    <dl class="grid grid-cols-2 gap-3">
+                    <x-card flush>
                         @php
                             $availableUnitCount = $property->units->where('availability_status', 'Available')->count();
                             $maxCapacity = $property->units->max('occupancy_limit');
                         @endphp
-                        @foreach (array_filter([
-                            ['Type', $property->property_type],
-                            $property->living_arrangement ? ['Living arrangement', $property->living_arrangement] : null,
-                            ['Capacity', $maxCapacity ? $maxCapacity . ' ' . Str::plural('person', $maxCapacity) : '—'],
-                            ['Landlord', trim($property->landlord->first_name . ' ' . $property->landlord->last_name)],
-                            ['Available', $availableUnitCount . ' ' . Str::plural('unit', $availableUnitCount)],
-                        ]) as [$label, $value])
-                            <div class="rounded-xl border border-[#E2E4EC] bg-white px-4 py-3">
-                                <dt class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">{{ $label }}</dt>
-                                <dd class="mt-0.5 text-[14.5px] font-bold text-[#060D26] truncate">{{ $value }}</dd>
-                            </div>
-                        @endforeach
-                    </dl>
-                </x-card>
+                        <dl class="divide-y divide-[#E2E4EC]">
+                            @foreach (array_filter([
+                                ['Property type', $property->property_type],
+                                $property->living_arrangement ? ['Living arrangement', $property->living_arrangement] : null,
+                                ['Capacity', $maxCapacity ? $maxCapacity . ' ' . Str::plural('person', $maxCapacity) : '—'],
+                                ['Landlord', trim($property->landlord->first_name . ' ' . $property->landlord->last_name)],
+                                ['Available', $availableUnitCount . ' ' . Str::plural('unit', $availableUnitCount)],
+                            ]) as [$label, $value])
+                                <div class="flex items-center justify-between gap-3 px-4 sm:px-5 py-3">
+                                    <dt class="text-[13.5px] text-[#5B6A8E]">{{ $label }}</dt>
+                                    <dd class="text-[14.5px] font-bold text-[#060D26] text-right truncate">{{ $value }}</dd>
+                                </div>
+                            @endforeach
+                        </dl>
+                    </x-card>
+                </div>
                 </div>
 
                 <div class="lg:basis-5/12 lg:shrink-0">
@@ -580,107 +582,6 @@
                     </div>
                 @endif
 
-            {{-- ===== SUBUNITS IN THIS PROPERTY — full-width grid, replaces
-                 the old sticky sidebar unit list. Selecting a card still
-                 drives selectUnit()/selectedUnit so the contact card above
-                 keeps tracking the chosen unit's price/deposit. ===== --}}
-            @if($approvedUnits->count() > 0)
-                <div>
-                    <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-1">Subunits in this property</h2>
-                    <p class="text-sm text-[#5B6A8E] mb-4">Choose a unit to contact the landlord about</p>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        @foreach($approvedUnits as $unit)
-                            @php
-                                $isAvailable = $unit->availability_status === 'Available';
-                                $statusColors = [
-                                    'Available' => 'bg-[#22C55E]/[0.10] text-[#15803D]',
-                                    'Reserved' => 'bg-[#FBBF24]/[0.12] text-[#B45309]',
-                                    'Occupied' => 'bg-[#EF4444]/[0.10] text-[#DC2626]',
-                                    'Maintenance' => 'bg-[#94A3B8]/[0.15] text-[#5B6A8E]',
-                                ];
-                            @endphp
-                            <div class="relative" @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
-                                <button type="button" x-on:click="selectUnit({{ $unit->unit_id }})"
-                                    :class="selectedUnit === {{ $unit->unit_id }}
-                                            ? 'border-[#C9A84C] ring-1 ring-[#C9A84C]'
-                                            : '{{ $isAvailable ? 'border-[#E2E4EC] hover:border-[#5B6A8E]/40' : 'border-[#E2E4EC] cursor-not-allowed' }}'"
-                                    class="w-full text-left rounded-2xl border bg-white shadow-sm overflow-hidden transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
-                                    @if(!$isAvailable) disabled @endif>
-
-                                    {{-- Thumbnail --}}
-                                    @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
-                                    <div class="relative aspect-[16/10] bg-[#ECEEF6]">
-                                        @if($unitThumb)
-                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
-                                                class="w-full h-full object-cover">
-                                        @else
-                                            <div class="w-full h-full flex items-center justify-center">
-                                                <svg class="w-8 h-8 text-[#5B6A8E]" fill="none" viewBox="0 0 24 24"
-                                                    stroke="currentColor" stroke-width="1.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                                                </svg>
-                                            </div>
-                                        @endif
-
-                                        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
-                                            {{ $unit->availability_status }}
-                                        </span>
-
-                                        <span class="absolute top-2.5 right-2.5 w-6 h-6 rounded-full border-2 bg-white/90 flex items-center justify-center shrink-0"
-                                            :class="selectedUnit === {{ $unit->unit_id }} ? 'border-[#C9A84C]' : 'border-[#CBD5E1]'">
-                                            <span class="w-2.5 h-2.5 rounded-full bg-[#C9A84C]"
-                                                x-show="selectedUnit === {{ $unit->unit_id }}" x-cloak></span>
-                                        </span>
-                                    </div>
-
-                                    {{-- Details --}}
-                                    <div class="p-3.5">
-                                        <p class="text-sm font-bold text-[#060D26] truncate mb-0.5">{{ $unit->unit_label }}</p>
-                                        <p class="text-xs font-medium text-[#5B6A8E] mb-2">
-                                            {{ $property->property_type }}
-                                            &middot; {{ $unit->occupancy_limit }}
-                                            {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
-                                            @if($unit->floor_area_label)
-                                                &middot; {{ $unit->floor_area_label }}
-                                            @endif
-                                        </p>
-                                        <p class="leading-tight">
-                                            <span class="text-sm font-black text-[#060D26]">₱{{ number_format($unit->rental_fee) }}</span>
-                                            <span class="text-[11px] font-semibold text-[#5B6A8E]">/ month</span>
-                                        </p>
-                                        @if($isOwner && $unit->verification_status !== 'Approved')
-                                            <span class="inline-block mt-1.5 text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-[#FBBF24]/[0.10] text-[#B45309]">
-                                                Pending review — hidden from tenants
-                                            </span>
-                                        @endif
-                                    </div>
-                                </button>
-
-                                {{-- View details button (opens slideout) --}}
-                                <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
-                                    class="absolute top-2.5 right-11 w-7 h-7 rounded-lg bg-white/90 hover:bg-white flex items-center justify-center transition-colors cursor-pointer shadow-sm"
-                                    title="View unit details">
-                                    <svg class="w-4 h-4 text-[#5B6A8E]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </button>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    @if($approvedUnits->count() > 4)
-                        <button type="button" x-show="!moreUnits" x-on:click="moreUnits = true"
-                            class="mt-3 w-full h-11 rounded-xl border border-[#E2E4EC] bg-white text-sm font-bold text-[#060D26] hover:bg-[#F7F8FC] shadow-sm cursor-pointer transition-colors duration-200">
-                            View all units ({{ $approvedUnits->count() }})
-                        </button>
-                    @endif
-                </div>
-            @endif
-
                 @php
                     // Nullable columns: null means the landlord hasn't
                     // answered utilities at all (property predates this
@@ -731,14 +632,14 @@
                 @if($buildingAmenities->isNotEmpty())
                 <section id="building-amenities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Building amenities</h2>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="flex flex-wrap gap-2">
                         @foreach($buildingAmenities as $amenityName)
-                            <div class="flex items-center gap-3 text-sm text-[#060D26] font-medium">
-                                <div class="w-8 h-8 rounded-lg bg-[#ECEEF6] flex items-center justify-center flex-shrink-0">
-                                    <x-amenity-icon :name="$amenityName" class="w-4 h-4 text-[#8a6e1e]" />
-                                </div>
-                                <span class="min-w-0">{{ $amenityName }}</span>
-                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#C9A84C]/40 bg-[#ECEEF6] text-[13px] font-semibold text-[#060D26]">
+                                <svg class="w-3.5 h-3.5 text-[#8a6e1e] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {{ $amenityName }}
+                            </span>
                         @endforeach
                     </div>
                 </section>
@@ -752,19 +653,17 @@
                             Across {{ $approvedUnits->count() }} units. Select a unit to see exactly what it includes.
                         </p>
                     @endif
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="flex flex-wrap gap-2">
                         @foreach($offeredAmenities as $amenity)
-                            <div class="flex items-center gap-3 text-sm text-[#060D26] font-medium">
-                                <div class="w-8 h-8 rounded-lg bg-[#ECEEF6] flex items-center justify-center flex-shrink-0">
-                                    <x-amenity-icon :name="$amenity['name']" class="w-4 h-4 text-[#8a6e1e]" />
-                                </div>
-                                <span class="min-w-0">
-                                    {{ $amenity['name'] }}
-                                    @if($tagPartialAmenities && ! $amenity['inEveryUnit'])
-                                        <span class="ml-1 align-middle text-[10.5px] font-semibold uppercase tracking-wide text-[#060D26] bg-[#ECEEF6] rounded px-1.5 py-0.5 whitespace-nowrap">Some units</span>
-                                    @endif
-                                </span>
-                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#C9A84C]/40 bg-[#ECEEF6] text-[13px] font-semibold text-[#060D26]">
+                                <svg class="w-3.5 h-3.5 text-[#8a6e1e] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {{ $amenity['name'] }}
+                                @if($tagPartialAmenities && ! $amenity['inEveryUnit'])
+                                    <span class="text-[9.5px] font-bold uppercase tracking-wide text-[#8a6e1e] whitespace-nowrap">&middot; Some units</span>
+                                @endif
+                            </span>
                         @endforeach
                     </div>
                 </section>
@@ -811,7 +710,7 @@
                                 </span>
                                 <div class="min-w-0">
                                     <h2 class="font-heading text-[15px] font-normal tracking-tight text-[#060D26]">
-                                        Where you'll be</h2>
+                                        What's nearby</h2>
                                     <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $property->address }}</p>
                                 </div>
                             </div>
@@ -877,6 +776,130 @@
                         </div>
                     </div>
                 </section>
+
+                {{-- ===== UNITS IN THIS PROPERTY — full-width grid, moved here
+                     (Sept 2026) to match the reference mockup's order: Amenities,
+                     then What's nearby, then the unit list, right before Similar
+                     listings. Selecting a card still drives selectUnit()/selectedUnit
+                     so the contact card up top keeps tracking the chosen unit's
+                     price/deposit. ===== --}}
+                @if($approvedUnits->count() > 0)
+                <section id="units" class="mt-10 pt-8 border-t border-[#E2E4EC]">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-4 h-px bg-[#C9A84C]"></span>
+                        <span class="text-[11px] font-bold uppercase tracking-widest text-[#C9A84C]">Units inside</span>
+                    </div>
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-1">
+                        <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26]">Units in this property</h2>
+                        <span class="text-[13px] font-bold text-[#C9A84C] whitespace-nowrap">{{ $availableUnits->count() }} of {{ $approvedUnits->count() }} available</span>
+                    </div>
+                    <p class="text-sm text-[#5B6A8E] mb-4">Choose a unit to contact the landlord about</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        @foreach($approvedUnits as $unit)
+                            @php
+                                $isAvailable = $unit->availability_status === 'Available';
+                                $statusColors = [
+                                    'Available' => 'bg-[#22C55E]/[0.10] text-[#15803D]',
+                                    'Reserved' => 'bg-[#FBBF24]/[0.12] text-[#B45309]',
+                                    'Occupied' => 'bg-[#EF4444]/[0.10] text-[#DC2626]',
+                                    'Maintenance' => 'bg-[#94A3B8]/[0.15] text-[#5B6A8E]',
+                                ];
+                            @endphp
+                            <div class="relative" @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
+                                <button type="button" x-on:click="selectUnit({{ $unit->unit_id }})"
+                                    :class="selectedUnit === {{ $unit->unit_id }}
+                                            ? 'border-[#C9A84C] ring-1 ring-[#C9A84C]'
+                                            : '{{ $isAvailable ? 'border-[#E2E4EC] hover:border-[#5B6A8E]/40' : 'border-[#E2E4EC] cursor-not-allowed' }}'"
+                                    class="w-full text-left rounded-2xl border bg-white shadow-sm overflow-hidden transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
+                                    @if(!$isAvailable) disabled @endif>
+
+                                    {{-- Thumbnail --}}
+                                    @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
+                                    <div class="relative aspect-[16/10] bg-[#ECEEF6]">
+                                        @if($unitThumb)
+                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
+                                                class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center">
+                                                <svg class="w-8 h-8 text-[#5B6A8E]" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor" stroke-width="1.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                                                </svg>
+                                            </div>
+                                        @endif
+
+                                        @if($unit->floor)
+                                            <span class="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white drop-shadow">{{ $unit->floor }}</span>
+                                        @endif
+
+                                        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
+                                            {{ $unit->availability_status }}
+                                        </span>
+
+                                        <span class="absolute top-2.5 right-2.5 w-6 h-6 rounded-full border-2 bg-white/90 flex items-center justify-center shrink-0"
+                                            :class="selectedUnit === {{ $unit->unit_id }} ? 'border-[#C9A84C]' : 'border-[#CBD5E1]'">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#C9A84C]"
+                                                x-show="selectedUnit === {{ $unit->unit_id }}" x-cloak></span>
+                                        </span>
+                                    </div>
+
+                                    {{-- Details --}}
+                                    <div class="p-3.5">
+                                        <p class="text-sm font-bold text-[#060D26] truncate mb-0.5">{{ $unit->unit_label }}</p>
+                                        <p class="text-xs font-medium text-[#5B6A8E] mb-2">
+                                            {{ $property->property_type }}
+                                            &middot; {{ $unit->occupancy_limit }}
+                                            {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
+                                            @if($unit->floor_area_label)
+                                                &middot; {{ $unit->floor_area_label }}
+                                            @endif
+                                        </p>
+                                        <p class="leading-tight">
+                                            <span class="text-sm font-black text-[#060D26]">₱{{ number_format($unit->rental_fee) }}</span>
+                                            <span class="text-[11px] font-semibold text-[#5B6A8E]">/ month</span>
+                                        </p>
+                                        @if($unit->amenities->isNotEmpty())
+                                            <div class="flex flex-wrap gap-1 mt-2">
+                                                @foreach($unit->amenities->take(3) as $amenity)
+                                                    <span class="text-[11px] font-semibold text-[#060D26] bg-[#ECEEF6] rounded-full px-2.5 py-0.5 truncate max-w-full">{{ $amenity->amenity_name }}</span>
+                                                @endforeach
+                                                @if($unit->amenities->count() > 3)
+                                                    <span class="text-[11px] font-semibold text-[#5B6A8E] bg-[#ECEEF6] rounded-full px-2.5 py-0.5">+{{ $unit->amenities->count() - 3 }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                        @if($isOwner && $unit->verification_status !== 'Approved')
+                                            <span class="inline-block mt-1.5 text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-[#FBBF24]/[0.10] text-[#B45309]">
+                                                Pending review — hidden from tenants
+                                            </span>
+                                        @endif
+                                    </div>
+                                </button>
+
+                                {{-- View details button (opens slideout) --}}
+                                <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
+                                    class="absolute top-2.5 right-11 w-7 h-7 rounded-lg bg-white/90 hover:bg-white flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                                    title="View unit details">
+                                    <svg class="w-4 h-4 text-[#5B6A8E]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if($approvedUnits->count() > 4)
+                        <button type="button" x-show="!moreUnits" x-on:click="moreUnits = true"
+                            class="mt-3 w-full h-11 rounded-xl border border-[#E2E4EC] bg-white text-sm font-bold text-[#060D26] hover:bg-[#F7F8FC] shadow-sm cursor-pointer transition-colors duration-200">
+                            View all units ({{ $approvedUnits->count() }})
+                        </button>
+                    @endif
+                </section>
+                @endif
 
                 <section id="reviews" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <div class="flex items-center justify-between mb-4">
@@ -1095,10 +1118,10 @@
         @if($nearbyProperties->isNotEmpty())
             <div class="mt-12 pt-10 border-t border-[#E2E4EC]">
                 <x-section-header
-                    title="Nearby rentals"
+                    title="Similar listings"
                     :sub="'Other places in ' . $property->city_municipality"
                     :href="route('properties.index', ['location' => $property->city_municipality])"
-                    cta="View all nearby" />
+                    cta="View all similar" />
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                     @foreach($nearbyProperties as $nearby)
                         <a href="{{ route('properties.show', $nearby) }}"
