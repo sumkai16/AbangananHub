@@ -304,7 +304,13 @@
                     $mediaCount = $property->media->count();
                 @endphp
                 @if($mediaCount > 0)
-                    <div class="relative">
+                    {{-- items-stretch makes the side thumbnail column match the
+                         hero's height exactly (the hero's own aspect-[21/9] sets
+                         it, the column just stretches to fit) — that's what keeps
+                         the second thumbnail's bottom edge flush with the hero's
+                         bottom edge instead of drifting off on its own. --}}
+                    <div class="flex gap-3 items-stretch">
+                    <div class="relative flex-1 min-w-0">
                         <div class="relative rounded-3xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group aspect-[21/9]">
                             <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
@@ -399,6 +405,24 @@
                                 </div>
                             @endif
                         </div>
+                    </div>
+
+                    {{-- ===== SIDE THUMBNAILS — up to 2 stacked photos next to
+                         the hero, sized via items-stretch above so their combined
+                         height (minus the gap) always lands flush with the hero's
+                         bottom edge. Hidden below lg since the hero already goes
+                         full-width there and there's no room for a side column. --}}
+                    @if($mediaCount > 1)
+                        <div class="hidden lg:flex lg:flex-col gap-3 w-[30%] shrink-0">
+                            @foreach($property->media->slice(1, 2) as $i => $media)
+                                <button type="button" x-on:click="openLightbox({{ $i }})"
+                                    class="relative flex-1 min-h-0 rounded-2xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm cursor-pointer">
+                                    <img src="{{ $media->media_url }}" alt="{{ $property->title }}"
+                                        class="w-full h-full object-cover">
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                     </div>
                 @else
                     <div
