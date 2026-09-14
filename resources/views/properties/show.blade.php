@@ -219,74 +219,18 @@
              editorial content, then Nearby Rentals. --}}
         <div class="flex flex-col gap-8">
 
-            {{-- ===== HEADER ===== --}}
-            <div>
-                <nav class="flex items-center gap-1.5 text-[13px] font-semibold text-[#5B6A8E] mb-5" aria-label="Breadcrumb">
-                    <a href="{{ url('/') }}" class="hover:text-[#060D26] transition-colors">Home</a>
-                    <span aria-hidden="true">·</span>
-                    <a href="{{ route('properties.index') }}" class="hover:text-[#060D26] transition-colors">Properties</a>
-                    <span aria-hidden="true">·</span>
-                    <span class="text-[#060D26] truncate max-w-[220px]">{{ $property->title }}</span>
-                </nav>
-
-                <div class="flex flex-wrap items-center gap-2 mb-3">
-                    <span class="inline-flex items-center bg-[#060D26] text-[#F7F4ED] text-[11px] font-bold px-2.5 py-1 rounded-full">
-                        Verified
-                    </span>
-                    <span class="inline-flex items-center border border-[#E2E4EC] text-[#5B6A8E] text-[11px] font-semibold px-2.5 py-1 rounded-full">
-                        {{ $property->property_type }}
-                    </span>
-                    @if($property->hasVerifiedDocuments())
-                        <span class="inline-flex items-center gap-1 bg-[#C9A84C]/10 text-[#8a6e1e] text-[11px] font-bold px-2.5 py-1 rounded-full">
-                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Verified listing
-                        </span>
-                    @endif
-                </div>
-
-                <h1 class="font-display text-[30px] sm:text-[38px] font-normal leading-[1.12] tracking-[-0.015em] text-[#060D26] text-balance">
-                    {{ $property->title }}
-                </h1>
-
-                <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13.5px] font-medium text-[#5B6A8E]">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-4 h-4 shrink-0 text-[#EF4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            stroke-width="2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {{ $property->address }}
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                        @if($avgRating)
-                            <span class="font-bold text-[#060D26]">{{ $avgRating }}</span>
-                            <a href="#reviews" class="hover:text-[#060D26] underline underline-offset-2">
-                                {{ $reviews->count() }} {{ Str::plural('review', $reviews->count()) }}
-                            </a>
-                        @else
-                            <span>No reviews yet</span>
-                        @endif
-                    </span>
-                </div>
-            </div>
-
-            {{-- ===== 1. IMAGE GALLERY + CONTACT CARD ROW (Sept 2026) =====
-                 The gallery used to stand alone at full page width, with the
-                 contact card paired with Property details further down instead.
-                 Paired the two here — 7/12 image, 5/12 card — to match the
-                 reference mockup, which puts the hero photo directly beside the
-                 price/inquiry card. Property details moved with it, staying in
-                 this left column right below the image (a brief full-page-width
-                 version didn't last — see DESIGN.md) rather than sharing a row
-                 with the card, since the card runs taller (price + landlord row
-                 + inquiry form + phone reveal) and left the column below the
-                 image empty otherwise.
+            {{-- ===== 1. HEADER + IMAGE GALLERY + CONTACT CARD ROW (Sept 2026) =====
+                 The header (breadcrumb/badges/title/address) used to sit in its
+                 own full-width row above the image+card row — since its text
+                 rarely fills 12 columns, that left the space beside it (down to
+                 where the image row began) blank. Folded it into the 7/12
+                 column instead, so the row starts at the very top of the page:
+                 the card's own height now fills that gap rather than leaving it
+                 empty. Property details stays in this left column right below
+                 the image (a brief full-page-width version didn't last — see
+                 DESIGN.md) rather than sharing a row with the card, since the
+                 card runs taller (price + landlord row + inquiry form + phone
+                 reveal) and left the column below the image empty otherwise.
 
                  IMAGE GALLERY — single wide hero, no side thumbnails: replaced
                  the 1-big-2-small bento (Sept 2026) with one photo; the bento's
@@ -300,17 +244,70 @@
                  thumbnail tiles are gone. --}}
                 <div class="lg:flex lg:flex-row gap-8 items-start">
                 <div class="lg:basis-7/12 lg:shrink-0 min-w-0">
+
+                {{-- ===== HEADER ===== --}}
+                <div>
+                    <nav class="flex items-center gap-1.5 text-[13px] font-semibold text-[#5B6A8E] mb-5" aria-label="Breadcrumb">
+                        <a href="{{ url('/') }}" class="hover:text-[#060D26] transition-colors">Home</a>
+                        <span aria-hidden="true">·</span>
+                        <a href="{{ route('properties.index') }}" class="hover:text-[#060D26] transition-colors">Properties</a>
+                        <span aria-hidden="true">·</span>
+                        <span class="text-[#060D26] truncate max-w-[220px]">{{ $property->title }}</span>
+                    </nav>
+
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <span class="inline-flex items-center bg-[#060D26] text-[#F7F4ED] text-[11px] font-bold px-2.5 py-1 rounded-full">
+                            Verified
+                        </span>
+                        <span class="inline-flex items-center border border-[#E2E4EC] text-[#5B6A8E] text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                            {{ $property->property_type }}
+                        </span>
+                        @if($property->hasVerifiedDocuments())
+                            <span class="inline-flex items-center gap-1 bg-[#C9A84C]/10 text-[#8a6e1e] text-[11px] font-bold px-2.5 py-1 rounded-full">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Verified listing
+                            </span>
+                        @endif
+                    </div>
+
+                    <h1 class="font-display text-[30px] sm:text-[38px] font-normal leading-[1.12] tracking-[-0.015em] text-[#060D26] text-balance">
+                        {{ $property->title }}
+                    </h1>
+
+                    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13.5px] font-medium text-[#5B6A8E]">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4 shrink-0 text-[#EF4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            {{ $property->address }}
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            @if($avgRating)
+                                <span class="font-bold text-[#060D26]">{{ $avgRating }}</span>
+                                <a href="#reviews" class="hover:text-[#060D26] underline underline-offset-2">
+                                    {{ $reviews->count() }} {{ Str::plural('review', $reviews->count()) }}
+                                </a>
+                            @else
+                                <span>No reviews yet</span>
+                            @endif
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
                 @php
                     $mediaCount = $property->media->count();
                 @endphp
                 @if($mediaCount > 0)
-                    {{-- items-stretch makes the side thumbnail column match the
-                         hero's height exactly (the hero's own aspect-[21/9] sets
-                         it, the column just stretches to fit) — that's what keeps
-                         the second thumbnail's bottom edge flush with the hero's
-                         bottom edge instead of drifting off on its own. --}}
-                    <div class="flex gap-3 items-stretch">
-                    <div class="relative flex-1 min-w-0">
+                    <div class="relative">
                         <div class="relative rounded-3xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group aspect-[21/9]">
                             <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
@@ -406,24 +403,6 @@
                             @endif
                         </div>
                     </div>
-
-                    {{-- ===== SIDE THUMBNAILS — up to 2 stacked photos next to
-                         the hero, sized via items-stretch above so their combined
-                         height (minus the gap) always lands flush with the hero's
-                         bottom edge. Hidden below lg since the hero already goes
-                         full-width there and there's no room for a side column. --}}
-                    @if($mediaCount > 1)
-                        <div class="hidden lg:flex lg:flex-col gap-3 w-[30%] shrink-0">
-                            @foreach($property->media->slice(1, 2) as $i => $media)
-                                <button type="button" x-on:click="openLightbox({{ $i }})"
-                                    class="relative flex-1 min-h-0 rounded-2xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm cursor-pointer">
-                                    <img src="{{ $media->media_url }}" alt="{{ $property->title }}"
-                                        class="w-full h-full object-cover">
-                                </button>
-                            @endforeach
-                        </div>
-                    @endif
-                    </div>
                 @else
                     <div
                         class="rounded-3xl bg-[#E2E4EC] aspect-[21/9] border border-dashed border-[#5B6A8E] flex flex-col items-center justify-center text-[#5B6A8E] shadow-sm">
@@ -434,6 +413,7 @@
                         <p class="mt-2 text-sm font-semibold">No photos available yet</p>
                     </div>
                 @endif
+                </div>
 
                 {{-- ===== PROPERTY DETAILS — back inside the left column, below
                      the image (Sept 2026). The gallery alone left a lot of
@@ -466,14 +446,22 @@
                 </x-card>
                 </div>
 
-                <div class="lg:basis-5/12 lg:shrink-0">
+                <div class="lg:basis-5/12 lg:shrink-0 lg:sticky lg:top-6 lg:self-start">
                 {{-- ===== CONTACT CARD — white surface, mirroring the reference
                      mockup (Sept 2026). Was a dark navy surface per an earlier
                      analyst wireframe; the mockup's own contact rail is a plain
                      white card, so this switched to match — nothing structural
                      changed, only the surface and its dependent text/border
-                     colors. --}}
-                <div class="mt-6 rounded-2xl bg-white border border-[#E2E4EC] shadow-[0_10px_30px_rgba(6,13,38,0.08)] p-5 sm:p-6"
+                     colors.
+
+                     Sticky (Sept 2026): the left column runs much taller than
+                     this card (header + photo + property details vs. price +
+                     landlord row + inquiry form), which left a large empty
+                     block beneath the card before the row ended. Pinning it to
+                     the viewport as the page scrolls uses that space instead of
+                     leaving it blank — the conventional pattern for a short
+                     booking/contact widget beside long listing content. --}}
+                <div class="rounded-2xl bg-white border border-[#E2E4EC] shadow-[0_10px_30px_rgba(6,13,38,0.08)] p-5 sm:p-6"
                     x-data="{ phoneRevealed: false }">
                     {{-- Price follows the unit picked in the rail, so there is one
                          source of truth rather than a hero range that can disagree
