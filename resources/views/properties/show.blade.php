@@ -248,8 +248,13 @@
                 // other gallery on the site. Only a single photo (or none)
                 // falls back to one plain tile, since there's nothing to
                 // stack beside it.
+                // lg:grid-cols-12 + lg:gap-x-8 mirror the content grid below
+                // (lg:grid-cols-12, lg:gap-8) so the right column of small
+                // tiles lines up exactly with the sticky card's edges —
+                // gap-2's row-gap still applies since gap-x-8 only overrides
+                // the column axis.
                 $galleryGridClass = match (true) {
-                    $mediaCount >= 2 => 'grid grid-cols-3 grid-rows-2 gap-2 aspect-[3/1] max-h-[420px]',
+                    $mediaCount >= 2 => 'grid grid-cols-3 lg:grid-cols-12 grid-rows-2 gap-2 lg:gap-x-8 aspect-[3/1] max-h-[420px]',
                     default => 'grid grid-cols-1',
                 };
             @endphp
@@ -260,7 +265,7 @@
                         {{-- Big tile: same #hero-img element, same overlays,
                              same behaviour as before — only its container
                              changed from a standalone box to a grid cell. --}}
-                        <div class="relative rounded-3xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group {{ $mediaCount >= 2 ? 'col-span-2 row-span-2' : 'aspect-[3/1] max-h-[420px]' }}">
+                        <div class="relative rounded-2xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group {{ $mediaCount >= 2 ? 'col-span-2 lg:col-span-8 row-span-2' : 'aspect-[3/1] max-h-[420px]' }}">
                             <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
                                 onclick="openLightboxAtHero()">
@@ -374,12 +379,12 @@
                         @if($mediaCount >= 2)
                             @php $secondThumbIndex = $mediaCount >= 3 ? 2 : 1; @endphp
                             <button type="button" id="thumb-1" onclick="setHero(1)"
-                                class="relative block w-full h-full rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
+                                class="relative block w-full h-full lg:col-span-4 rounded-2xl overflow-hidden border-2 border-transparent transition-all">
                                 <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
                                     class="w-full h-full object-cover">
                             </button>
                             <button type="button" id="thumb-2" onclick="setHero({{ $secondThumbIndex }})"
-                                class="relative block w-full h-full rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
+                                class="relative block w-full h-full lg:col-span-4 rounded-2xl overflow-hidden border-2 border-transparent transition-all">
                                 <img src="{{ $property->media->get($secondThumbIndex)->media_url }}" alt="{{ $property->title }} photo {{ $secondThumbIndex + 1 }}"
                                     class="w-full h-full object-cover">
                                 {{-- A small corner badge, not a full-image dark
@@ -924,10 +929,10 @@
                             @php
                                 $isAvailable = $unit->availability_status === 'Available';
                                 $statusColors = [
-                                    'Available' => 'bg-[#22C55E]/[0.10] text-[#15803D]',
-                                    'Reserved' => 'bg-[#FBBF24]/[0.12] text-[#B45309]',
-                                    'Occupied' => 'bg-[#EF4444]/[0.10] text-[#DC2626]',
-                                    'Maintenance' => 'bg-[#94A3B8]/[0.15] text-[#5B6A8E]',
+                                    'Available' => 'bg-[#22C55E] text-white',
+                                    'Reserved' => 'bg-[#FBBF24] text-[#060D26]',
+                                    'Occupied' => 'bg-[#EF4444] text-white',
+                                    'Maintenance' => 'bg-[#94A3B8] text-white',
                                 ];
                             @endphp
                             <div class="relative" @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
@@ -958,7 +963,7 @@
                                             <span class="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white drop-shadow">{{ $unit->floor }}</span>
                                         @endif
 
-                                        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
+                                        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-bold px-2.5 py-1 rounded-full shadow-sm {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
                                             {{ $unit->availability_status }}
                                         </span>
 
