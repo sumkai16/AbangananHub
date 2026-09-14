@@ -548,8 +548,18 @@
 
                     {{-- ===== LANDLORD ROW ===== --}}
                     <div class="mt-6 pt-6 border-t border-[#E2E4EC] flex items-center gap-3">
-                        <div class="w-11 h-11 shrink-0 rounded-full bg-[#C9A84C] text-[#060D26] flex items-center justify-center text-[14px] font-bold">
-                            {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
+                        {{-- Business logo when the landlord has a registered
+                             rental business (same logo_url shown on their own
+                             profile page), object-cover so it's centered/
+                             cropped to fill the circle rather than stretched
+                             — falls back to the plain initials otherwise. --}}
+                        <div class="w-11 h-11 shrink-0 rounded-full overflow-hidden bg-[#C9A84C] text-[#060D26] flex items-center justify-center text-[14px] font-bold">
+                            @if($property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url)
+                                <img src="{{ $property->landlord->rentalBusiness->logo_url }}" alt="{{ $property->landlord->rentalBusiness->business_name }}"
+                                    class="w-full h-full object-cover">
+                            @else
+                                {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
+                            @endif
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="text-[14.5px] font-bold text-[#060D26] truncate">
