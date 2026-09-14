@@ -569,18 +569,6 @@
                         </a>
                     </div>
 
-                    {{-- ===== INQUIRY PREVIEW — a visual preview of the message
-                         the "Send Inquiry" button opens in the existing
-                         inquireOpen modal; not a separate send path. ===== --}}
-                    @if(auth()->check() && !$isOwner)
-                        <div class="mt-4 bg-[#ECEEF6] border border-[#E2E4EC] rounded-xl p-3">
-                            <p class="text-[13px] text-[#060D26]/85 leading-snug">
-                                Hi {{ $property->landlord->first_name }}, I am interested in your listing
-                                "{{ $property->title }}". Is it still available?
-                            </p>
-                        </div>
-                    @endif
-
                     {{-- ===== PRIMARY ACTION ===== --}}
                     <div class="mt-4 flex items-stretch gap-3">
                         @if(!auth()->check())
