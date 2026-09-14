@@ -419,8 +419,11 @@
                  used deliberately elsewhere (a rail that never detaches).
                  Mobile stays a plain `flex flex-col` stack in the same DOM
                  order as today (title block, then card, then the rest) — no
-                 reorder tricks needed. --}}
-                <div class="flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
+                 reorder tricks needed. mt-4 on top of the outer gap-8 gives
+                 the gallery a clearer break from the card/title row below it
+                 instead of the two feeling like they're crowding each
+                 other. --}}
+                <div class="mt-4 flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
                 <div class="min-w-0 lg:col-start-1 lg:col-span-8 lg:row-start-1">
                 {{-- ===== BADGES / TITLE / LOCATION — below the gallery, top
                      of the left column (Sept 2026), level with the sticky
