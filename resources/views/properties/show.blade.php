@@ -243,9 +243,13 @@
                  21/9 (~574px) still read as too big; see DESIGN.md. --}}
             @php
                 $mediaCount = $property->media->count();
+                // >=2 always gets the big+2-stacked bento shape — a flat 2-up
+                // row at exactly 2 photos was the odd one out next to every
+                // other gallery on the site. Only a single photo (or none)
+                // falls back to one plain tile, since there's nothing to
+                // stack beside it.
                 $galleryGridClass = match (true) {
-                    $mediaCount >= 3 => 'grid grid-cols-3 grid-rows-2 gap-2 aspect-[3/1] max-h-[420px]',
-                    $mediaCount === 2 => 'grid grid-cols-2 gap-2',
+                    $mediaCount >= 2 => 'grid grid-cols-3 grid-rows-2 gap-2 aspect-[3/1] max-h-[420px]',
                     default => 'grid grid-cols-1',
                 };
             @endphp
@@ -256,7 +260,7 @@
                         {{-- Big tile: same #hero-img element, same overlays,
                              same behaviour as before — only its container
                              changed from a standalone box to a grid cell. --}}
-                        <div class="relative rounded-3xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group {{ $mediaCount >= 3 ? 'col-span-2 row-span-2' : 'aspect-[3/1] max-h-[420px]' }}">
+                        <div class="relative rounded-3xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group {{ $mediaCount >= 2 ? 'col-span-2 row-span-2' : 'aspect-[3/1] max-h-[420px]' }}">
                             <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
                                 onclick="openLightboxAtHero()">
@@ -355,27 +359,28 @@
                              is already the big tile's default photo, so it
                              isn't repeated as a small thumb. Each keeps a
                              fixed id="thumb-{i}"/onclick="setHero(i)" so the
-                             existing gallery script works unchanged. --}}
-                        @if($mediaCount === 2)
-                            <button type="button" id="thumb-1" onclick="setHero(1)"
-                                class="relative block w-full h-full aspect-[3/1] max-h-[420px] rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
-                                <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
-                                    class="w-full h-full object-cover">
-                            </button>
-                        @elseif($mediaCount > 2)
-                            {{-- Explicit w-full h-full rather than relying on
-                                 implicit grid-item stretch — a <button> is a
-                                 replaced/form-control element and some engines
-                                 size it to content before stretching kicks in,
-                                 which read as a phantom gap next to the tiles. --}}
+                             existing gallery script works unchanged.
+
+                             At exactly 2 total photos there's only one photo
+                             left for two slots — it's shown in both rather
+                             than collapsing the whole gallery to a flat 2-up
+                             row, so every listing keeps the same big+2-stacked
+                             shape regardless of how many photos it has.
+                             Explicit w-full h-full rather than relying on
+                             implicit grid-item stretch — a <button> is a
+                             replaced/form-control element and some engines
+                             size it to content before stretching kicks in,
+                             which read as a phantom gap next to the tiles. --}}
+                        @if($mediaCount >= 2)
+                            @php $secondThumbIndex = $mediaCount >= 3 ? 2 : 1; @endphp
                             <button type="button" id="thumb-1" onclick="setHero(1)"
                                 class="relative block w-full h-full rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
                                 <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
                                     class="w-full h-full object-cover">
                             </button>
-                            <button type="button" id="thumb-2" onclick="setHero(2)"
+                            <button type="button" id="thumb-2" onclick="setHero({{ $secondThumbIndex }})"
                                 class="relative block w-full h-full rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
-                                <img src="{{ $property->media->get(2)->media_url }}" alt="{{ $property->title }} photo 3"
+                                <img src="{{ $property->media->get($secondThumbIndex)->media_url }}" alt="{{ $property->title }} photo {{ $secondThumbIndex + 1 }}"
                                     class="w-full h-full object-cover">
                                 {{-- A small corner badge, not a full-image dark
                                      shade — the photo itself stays as visible
