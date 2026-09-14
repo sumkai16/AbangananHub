@@ -11,7 +11,6 @@ class PropertyResource extends ApiResource
             'landlord_id'          => $this->attr('landlord_id'),
             'title'                => $this->attr('title'),
             'description'          => $this->attr('description'),
-            'house_rules'          => $this->attr('house_rules'),
             'property_type'        => $this->attr('property_type'),
             'address'              => $this->attr('address'),
             'city_municipality'    => $this->attr('city_municipality'),
