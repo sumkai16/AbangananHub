@@ -461,18 +461,18 @@
                      the viewport as the page scrolls uses that space instead of
                      leaving it blank — the conventional pattern for a short
                      booking/contact widget beside long listing content. --}}
-                <div class="rounded-2xl bg-white border border-[#E2E4EC] shadow-[0_10px_30px_rgba(6,13,38,0.08)] p-5 sm:p-6"
+                <div class="rounded-2xl bg-white border border-[#E2E4EC] shadow-[0_10px_30px_rgba(6,13,38,0.08)] p-4 sm:p-5"
                     x-data="{ phoneRevealed: false }">
                     {{-- Price follows the unit picked in the rail, so there is one
                          source of truth rather than a hero range that can disagree
                          with what the form is about to submit. --}}
-                    <p class="flex items-baseline gap-2">
-                        <span class="font-display text-[34px] sm:text-[40px] font-normal tracking-tight text-[#060D26]">
+                    <p class="flex items-baseline gap-1.5">
+                        <span class="font-display text-[26px] sm:text-[30px] font-normal tracking-tight text-[#060D26]">
                             &#8369;<span x-text="selected ? selected.price : '{{ number_format($property->units->min('rental_fee') ?? 0) }}'"></span>
                         </span>
-                        <span class="text-[15px] font-medium text-[#5B6A8E]">/ month</span>
+                        <span class="text-[13px] font-medium text-[#5B6A8E]">/ month</span>
                     </p>
-                    <p class="mt-1 text-[13.5px] text-[#5B6A8E]" x-show="selected" x-cloak>
+                    <p class="mt-1 text-[12.5px] text-[#5B6A8E]" x-show="selected" x-cloak>
                         <template x-if="selected && selected.deposit">
                             <span>+ &#8369;<span x-text="selected.deposit"></span> security deposit</span>
                         </template>
@@ -482,12 +482,12 @@
                     </p>
 
                     {{-- ===== LANDLORD ROW ===== --}}
-                    <div class="mt-6 pt-6 border-t border-[#E2E4EC] flex items-center gap-3">
-                        <div class="w-11 h-11 shrink-0 rounded-full bg-[#C9A84C] text-[#060D26] flex items-center justify-center text-[14px] font-bold">
+                    <div class="mt-4 pt-4 border-t border-[#E2E4EC] flex items-center gap-2.5">
+                        <div class="w-9 h-9 shrink-0 rounded-full bg-[#C9A84C] text-[#060D26] flex items-center justify-center text-[12.5px] font-bold">
                             {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="text-[14.5px] font-bold text-[#060D26] truncate">
+                            <p class="text-[13.5px] font-bold text-[#060D26] truncate">
                                 {{ trim($property->landlord->first_name . ' ' . $property->landlord->last_name) }}
                             </p>
                             {{-- Built in PHP: a directive placed immediately after a
@@ -499,10 +499,10 @@
                                     ? 'Landlord · Verified Host'
                                     : 'Landlord';
                             @endphp
-                            <p class="text-[12.5px] text-[#5B6A8E]">{{ $hostLine }}</p>
+                            <p class="text-[11.5px] text-[#5B6A8E]">{{ $hostLine }}</p>
                         </div>
                         <a href="{{ route('landlord.profile.show', $property->landlord_id) }}"
-                            class="shrink-0 text-[13.5px] font-bold text-[#8a6e1e] hover:brightness-95 transition-all">
+                            class="shrink-0 text-[12.5px] font-bold text-[#8a6e1e] hover:brightness-95 transition-all">
                             View profile &rarr;
                         </a>
                     </div>
@@ -511,8 +511,8 @@
                          the "Send Inquiry" button opens in the existing
                          inquireOpen modal; not a separate send path. ===== --}}
                     @if(auth()->check() && !$isOwner)
-                        <div class="mt-4 bg-[#ECEEF6] border border-[#E2E4EC] rounded-xl p-3">
-                            <p class="text-[13px] text-[#060D26]/85 leading-snug">
+                        <div class="mt-3 bg-[#ECEEF6] border border-[#E2E4EC] rounded-xl p-2.5">
+                            <p class="text-[12px] text-[#060D26]/85 leading-snug">
                                 Hi {{ $property->landlord->first_name }}, I am interested in your listing
                                 "{{ $property->title }}". Is it still available?
                             </p>
@@ -520,19 +520,19 @@
                     @endif
 
                     {{-- ===== PRIMARY ACTION ===== --}}
-                    <div class="mt-4 flex items-stretch gap-3">
+                    <div class="mt-3 flex items-stretch gap-3">
                         @if(!auth()->check())
                             <button type="button" onclick="openAuthModal('login')"
-                                class="flex-1 py-5 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-base font-bold shadow-sm transition-all">
+                                class="flex-1 py-3.5 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-[14.5px] font-bold shadow-sm transition-all">
                                 Log in to contact landlord
                             </button>
                         @elseif($isOwner)
-                            <div class="flex-1 py-5 text-center rounded-xl bg-[#ECEEF6] text-[#5B6A8E] text-base font-bold cursor-not-allowed">
+                            <div class="flex-1 py-3.5 text-center rounded-xl bg-[#ECEEF6] text-[#5B6A8E] text-[14.5px] font-bold cursor-not-allowed">
                                 This is your listing
                             </div>
                         @else
                             <button type="button" x-on:click="inquireOpen = true"
-                                class="flex-1 py-5 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-base font-bold shadow-sm transition-all cursor-pointer"
+                                class="flex-1 py-3.5 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-[14.5px] font-bold shadow-sm transition-all cursor-pointer"
                                 x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Send Inquiry'"
                                 :disabled="selected && selected.hasActive"
                                 :class="selected && selected.hasActive ? 'opacity-60 cursor-not-allowed' : ''">
@@ -546,8 +546,8 @@
                          reveal button rather than a broken one. ===== --}}
                     @if(auth()->check() && !$isOwner && $property->landlord->contact_number)
                         <button type="button" x-on:click="phoneRevealed = !phoneRevealed"
-                            class="mt-3 w-full py-3 rounded-xl border-2 border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            class="mt-2.5 w-full py-2.5 rounded-xl border-2 border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-[13px] font-bold transition-all cursor-pointer flex items-center justify-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                             </svg>
                             <span x-show="!phoneRevealed" x-cloak>Show phone number</span>
@@ -555,12 +555,12 @@
                         </button>
                     @endif
 
-                    <p class="mt-2.5 text-[12.5px] font-medium text-[#5B6A8E]">Usually responds within a few hours</p>
-                    <p class="mt-1 text-[11.5px] text-[#94A3B8]">Always meet in a safe public place before making any payments. Never wire money to an unknown account.</p>
+                    <p class="mt-2 text-[11.5px] font-medium text-[#5B6A8E]">Usually responds within a few hours</p>
+                    <p class="mt-1 text-[10.5px] text-[#94A3B8]">Always meet in a safe public place before making any payments. Never wire money to an unknown account.</p>
 
                     @auth
                         <button type="button" x-on:click="reportOpen = true"
-                            class="mt-3 inline-block text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline underline-offset-2 transition-colors cursor-pointer">
+                            class="mt-2.5 inline-block text-[11.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline underline-offset-2 transition-colors cursor-pointer">
                             Report this listing
                         </button>
                     @endauth
