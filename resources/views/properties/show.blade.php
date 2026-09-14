@@ -377,8 +377,11 @@
                                 class="relative block w-full h-full rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
                                 <img src="{{ $property->media->get(2)->media_url }}" alt="{{ $property->title }} photo 3"
                                     class="w-full h-full object-cover">
+                                {{-- A small corner badge, not a full-image dark
+                                     shade — the photo itself stays as visible
+                                     as thumb-1's. --}}
                                 @if($mediaCount > 3)
-                                    <span class="absolute inset-0 bg-[#060D26]/60 flex items-center justify-center text-white text-sm font-black pointer-events-none">
+                                    <span class="absolute bottom-2 right-2 bg-white/90 text-[#060D26] text-[11px] font-bold px-2 py-0.5 rounded-full pointer-events-none">
                                         +{{ $mediaCount - 3 }}
                                     </span>
                                 @endif
