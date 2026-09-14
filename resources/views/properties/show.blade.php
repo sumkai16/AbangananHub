@@ -358,18 +358,23 @@
                              existing gallery script works unchanged. --}}
                         @if($mediaCount === 2)
                             <button type="button" id="thumb-1" onclick="setHero(1)"
-                                class="relative aspect-[3/1] max-h-[420px] rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
+                                class="relative block w-full h-full aspect-[3/1] max-h-[420px] rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
                                 <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
                                     class="w-full h-full object-cover">
                             </button>
                         @elseif($mediaCount > 2)
+                            {{-- Explicit w-full h-full rather than relying on
+                                 implicit grid-item stretch — a <button> is a
+                                 replaced/form-control element and some engines
+                                 size it to content before stretching kicks in,
+                                 which read as a phantom gap next to the tiles. --}}
                             <button type="button" id="thumb-1" onclick="setHero(1)"
-                                class="relative rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
+                                class="relative block w-full h-full rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
                                 <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
                                     class="w-full h-full object-cover">
                             </button>
                             <button type="button" id="thumb-2" onclick="setHero(2)"
-                                class="relative rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
+                                class="relative block w-full h-full rounded-2xl overflow-hidden border-2 border-transparent opacity-60 transition-all">
                                 <img src="{{ $property->media->get(2)->media_url }}" alt="{{ $property->title }} photo 3"
                                     class="w-full h-full object-cover">
                                 @if($mediaCount > 3)
