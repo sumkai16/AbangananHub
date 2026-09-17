@@ -136,7 +136,7 @@
                  normally, red at a day or less. --}}
             <span class="shrink-0 font-bold whitespace-nowrap {{ $tone['text'] }}"
                 :class="expanded
-                    ? 'text-[12px] px-3 py-1 rounded-full border {{ $urgent ? 'border-[#EF4444]/30 bg-[#EF4444]/[0.07]' : 'border-[#C9A84C]/30 bg-white' }}'
+                    ? 'text-[12px] px-3 py-1 rounded-full border {{ $urgent ? 'border-[#EF4444]/30 bg-[#EF4444]/[0.07]' : 'border-[#DA8E77]/30 bg-white' }}'
                     : 'text-[11px]'">
                 {{ $daysLeft === 0 ? 'today' : $daysLeft . ' ' . Str::plural('day', $daysLeft) . ' left' }}
             </span>

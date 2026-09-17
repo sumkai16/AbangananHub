@@ -104,7 +104,7 @@
                         </label>
                         <x-styled-select name="void_reason" x-model="reason"
                             :options="\App\Models\Payment::VOID_REASONS" selected="wrong_amount"
-                            class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] bg-white focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/30 transition" />
+                            class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] bg-white focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition" />
                         @error('void_reason')
                             <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                         @enderror
@@ -116,7 +116,7 @@
                         </label>
                         <input type="text" id="void_note" name="void_note" x-model="note" maxlength="255"
                             :required="reason === 'other'" placeholder="What happened with this payment?"
-                            class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/30 transition">
+                            class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
                         @error('void_note')
                             <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                         @enderror
@@ -124,7 +124,7 @@
 
                     <label class="flex items-start gap-2.5 rounded-xl border border-[#E2E4EC] px-3.5 py-3 mb-5 cursor-pointer hover:bg-[#F7F8FC] transition-colors duration-200">
                         <input type="checkbox" name="correct" value="1" x-model="correct"
-                            class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#8a6e1e] focus:ring-[#C9A84C]/30 cursor-pointer">
+                            class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#A8573F] focus:ring-[#DA8E77]/30 cursor-pointer">
                         <span class="text-[13px] text-[#060D26]">
                             <span class="font-semibold">Record a corrected payment straight after</span>
                             <span class="block text-[12px] text-[#5B6A8E] mt-0.5">Reopens the record-payment form pre-filled with this entry's details.</span>

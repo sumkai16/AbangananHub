@@ -4,7 +4,7 @@
     <div class="max-w-xl mx-auto px-4 py-16 text-center min-h-[calc(100vh-72px)] flex flex-col justify-center">
 
         <div class="w-14 h-14 rounded-full bg-[#ECEEF6] flex items-center justify-center mx-auto mb-6">
-            <svg class="w-7 h-7 text-[#8a6e1e]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg class="w-7 h-7 text-[#A8573F]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
         </div>

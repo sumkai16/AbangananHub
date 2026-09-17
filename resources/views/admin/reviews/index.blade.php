@@ -45,7 +45,7 @@
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant, property, or review text…" aria-label="Search by tenant, property, or review text"
                 x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC]/50 focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all">
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC]/50 focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
         </div>
         @php
             $ratingOptions = ['all' => 'All ratings'];
@@ -77,7 +77,7 @@
             @endphp
             <a href="{{ route('admin.reviews.index', $params) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $isActive ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                    {{ $isActive ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                 {{ $label }}
                 <span class="ml-1 text-[11px] {{ $isActive ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $count }}</span>
             </a>
@@ -165,7 +165,7 @@
 
                         {{-- Landlord reply --}}
                         @if($review->landlord_reply)
-                            <div class="mt-3 pl-4 border-l-2 border-[#C9A84C]/30">
+                            <div class="mt-3 pl-4 border-l-2 border-[#DA8E77]/30">
                                 <p class="text-[11.5px] font-semibold text-[#060D26] mb-0.5">Landlord reply</p>
                                 <p class="text-[13px] text-[#060D26] leading-relaxed">{{ $review->landlord_reply }}</p>
                                 @if($review->landlord_replied_at)

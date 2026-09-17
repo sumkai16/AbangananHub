@@ -86,7 +86,7 @@
                         <div>
                             <label for="barangay" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Barangay <span class="text-[#94A3B8] font-normal">(optional)</span></label>
                             <input type="text" id="barangay" name="barangay" value="{{ old('barangay', $property->barangay ?? '') }}" maxlength="100"
-                                class="w-full h-12 px-4 rounded-xl border @error('barangay') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/25 focus:border-[#C9A84C] transition-all"
+                                class="w-full h-12 px-4 rounded-xl border @error('barangay') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/25 focus:border-[#DA8E77] transition-all"
                                 placeholder="e.g., Lahug">
                             @error('barangay')<p class="text-xs text-[#EF4444] mt-1.5">{{ $message }}</p>@enderror
                         </div>
@@ -95,7 +95,7 @@
                     <div>
                         <label for="address" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Street / Address</label>
                         <input type="text" id="address" name="address" value="{{ old('address', $property->address ?? '') }}" minlength="10" maxlength="255"
-                            class="w-full h-12 px-4 rounded-xl border @error('address') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/25 focus:border-[#C9A84C] transition-all"
+                            class="w-full h-12 px-4 rounded-xl border @error('address') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/25 focus:border-[#DA8E77] transition-all"
                             placeholder="Pin your location on the map above, or type it manually" required>
                         @error('address')<p class="text-xs text-[#EF4444] mt-1.5">{{ $message }}</p>@enderror
                     </div>
@@ -114,7 +114,7 @@
                             <p class="text-[11.5px] text-[#94A3B8] mb-3">{{ $property->media->count() }} photo(s) already added. Add more below, or manage them from the property page after submitting.</p>
                         @endif
 
-                        <div class="border-2 border-dashed @error('photos') border-[#EF4444]/30 @else border-[#E2E4EC] @enderror hover:border-[#C9A84C] rounded-2xl p-6 bg-[#F7F8FC] text-center transition-colors group">
+                        <div class="border-2 border-dashed @error('photos') border-[#EF4444]/30 @else border-[#E2E4EC] @enderror hover:border-[#DA8E77] rounded-2xl p-6 bg-[#F7F8FC] text-center transition-colors group">
                             <label class="cursor-pointer block">
                                 <div class="w-11 h-11 rounded-xl bg-white shadow-sm border border-[#E2E4EC] flex items-center justify-center mx-auto mb-3 text-[#94A3B8] group-hover:text-[#060D26] transition-all">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">

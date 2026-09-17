@@ -76,7 +76,7 @@
             ] as $key => $label)
                 <a href="{{ route('reservations.index', $key === 'all' ? [] : ['status' => $key]) }}"
                     class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors duration-150 whitespace-nowrap
-                              {{ $status === $key ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
+                              {{ $status === $key ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
                     {{ $label }}
                     <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#5B6A8E]' }}">
                         {{ $key === 'all' ? $counts['all'] : $counts[$key] }}
@@ -122,7 +122,7 @@
                                 'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
                                 'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
                                 'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
-                                'Completed' => 'bg-[#C9A84C]/[0.08] text-[#060D26]',
+                                'Completed' => 'bg-[#DA8E77]/[0.08] text-[#060D26]',
                                 'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
                                 'Cancelled' => 'bg-[#5B6A8E]/10 text-[#5B6A8E]',
                             ];
@@ -260,7 +260,7 @@
                                     'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
                                     'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
                                     'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
-                                    'Completed' => 'bg-[#C9A84C]/[0.08] text-[#060D26]',
+                                    'Completed' => 'bg-[#DA8E77]/[0.08] text-[#060D26]',
                                     'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
                                     'Cancelled' => 'bg-[#5B6A8E]/10 text-[#5B6A8E]',
                                 ];
@@ -420,7 +420,7 @@
                     @keydown.escape.window="modalOpen = false">
 
                     {{-- Photo banner --}}
-                    <div class="relative h-32 shrink-0 bg-gradient-to-br from-[#060D26] to-[#C9A84C] overflow-hidden">
+                    <div class="relative h-32 shrink-0 bg-gradient-to-br from-[#060D26] to-[#DA8E77] overflow-hidden">
                         <template x-if="selected.property_photo">
                             <img :src="selected.property_photo" alt="" class="w-full h-full object-cover">
                         </template>

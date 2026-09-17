@@ -99,7 +99,7 @@
                         };
                     @endphp
                     <a href="{{ route('notifications.index', array_merge(request()->except(['selected', 'page']), ['selected' => $n->notification_id])) }}"
-                        class="block p-4 transition-all duration-200 hover:bg-[#ECEEF6] {{ $isSelected ? 'bg-[#ECEEF6] border-l-[3px] border-l-[#C9A84C]' : 'border-l-[3px] border-l-transparent' }} {{ $n->is_read && !$isSelected ? 'opacity-70' : '' }}">
+                        class="block p-4 transition-all duration-200 hover:bg-[#ECEEF6] {{ $isSelected ? 'bg-[#ECEEF6] border-l-[3px] border-l-[#DA8E77]' : 'border-l-[3px] border-l-transparent' }} {{ $n->is_read && !$isSelected ? 'opacity-70' : '' }}">
                         <div class="flex items-center gap-3">
                             @if($isReview)
                                 {{-- Avatar with initials --}}

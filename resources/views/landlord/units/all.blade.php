@@ -122,7 +122,7 @@
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search units by name or property..." aria-label="Search units by name or property"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -297,7 +297,7 @@
                             <div>
                                 <p class="text-[15px] font-bold text-[#060D26] leading-snug">{{ $unit->unit_label }}</p>
                                 <a href="{{ route('landlord.properties.show', $unit->property) }}"
-                                    class="text-[12px] text-[#5B6A8E] hover:text-[#8a6e1e] transition-colors duration-200 mt-0.5 line-clamp-1 flex items-center gap-1 w-fit">
+                                    class="text-[12px] text-[#5B6A8E] hover:text-[#A8573F] transition-colors duration-200 mt-0.5 line-clamp-1 flex items-center gap-1 w-fit">
                                     <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
@@ -328,7 +328,7 @@
                                     View
                                 </button>
                                 <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}"
-                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#C9A84C] text-[#8a6e1e] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
+                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#DA8E77] text-[#A8573F] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
@@ -464,7 +464,7 @@
                                                 </svg>
                                             </button>
                                             <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}" aria-label="Edit unit"
-                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#C9A84C] text-[#8a6e1e] hover:bg-[#ECEEF6] transition-colors duration-200">
+                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#DA8E77] text-[#A8573F] hover:bg-[#ECEEF6] transition-colors duration-200">
                                                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
@@ -593,7 +593,7 @@
                             <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E] mb-1.5">Amenities</p>
                             <div class="flex flex-wrap gap-1.5">
                                 <template x-for="a in modal.amenities" :key="a">
-                                    <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#C9A84C]/20 px-2 py-0.5 text-[11px] text-[#060D26]" x-text="a"></span>
+                                    <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#DA8E77]/20 px-2 py-0.5 text-[11px] text-[#060D26]" x-text="a"></span>
                                 </template>
                             </div>
                         </div>

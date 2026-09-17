@@ -75,7 +75,7 @@
                             <div>
                                 <div class="relative">
                                     <input
-                                        @class(['w-full rounded-xl border bg-white pl-4 pr-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] transition-colors',
+                                        @class(['w-full rounded-xl border bg-white pl-4 pr-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] transition-colors',
                                             'border-[#EF4444]' => $errors->has("settings.$key") || $errors->has("settings.$key.*"),
                                             'border-[#E2E4EC]' => ! ($errors->has("settings.$key") || $errors->has("settings.$key.*")),
                                         ])

@@ -29,7 +29,7 @@
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Search saved properties…" aria-label="Search saved properties"
                 x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition placeholder-[#94A3B8]" />
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition placeholder-[#94A3B8]" />
         </div>
         <x-styled-select name="type" :options="['' => 'Any type', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House']"
             :selected="request('type', '')" aria-label="Filter by property type"
@@ -77,7 +77,7 @@
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-[#ECEEF6]">
-                                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#C9A84C" stroke-width="1.5">
+                                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#DA8E77" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                                 </svg>
                             </div>

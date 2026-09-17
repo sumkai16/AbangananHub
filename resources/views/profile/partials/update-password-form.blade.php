@@ -27,7 +27,7 @@
                     </label>
                     <input id="update_password_current_password" name="current_password" type="password"
                         autocomplete="current-password" class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
-                               focus:border-[#C9A84C] focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/15">
+                               focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15">
                     @if($errors->updatePassword->get('current_password'))
                         <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                             {{ $errors->updatePassword->get('current_password')[0] }}
@@ -44,7 +44,7 @@
                     <input id="update_password_password" name="password" type="password" autocomplete="new-password"
                         x-model="pw"
                         class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
-                               focus:border-[#C9A84C] focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/15">
+                               focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15">
                     @if($errors->updatePassword->get('password'))
                         <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                             {{ $errors->updatePassword->get('password')[0] }}
@@ -61,7 +61,7 @@
                     <input id="update_password_password_confirmation" name="password_confirmation" type="password"
                         autocomplete="new-password" x-model="confirm"
                         class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
-                               focus:border-[#C9A84C] focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/15">
+                               focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15">
                     @if($errors->updatePassword->get('password_confirmation'))
                         <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                             {{ $errors->updatePassword->get('password_confirmation')[0] }}

@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         (function () {
@@ -84,7 +84,7 @@
                         class="w-9 h-9 object-contain shrink-0">
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
-                        Abanganan<span class="text-[#8a6e1e]">Hub</span>
+                        Abanganan<span class="text-[#A8573F]">Hub</span>
                     </span>
                 </a>
 

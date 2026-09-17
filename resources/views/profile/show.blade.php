@@ -26,7 +26,7 @@
                     </h1>
                     @foreach($roles as $role)
                         <span
-                            class="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/20">
+                            class="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/20">
                             {{ $role }}
                         </span>
                     @endforeach

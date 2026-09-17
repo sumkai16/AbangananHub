@@ -98,7 +98,7 @@
                 <input type="text" name="search" value="{{ $search }}"
                     placeholder="Search by title, address, or landlord…" aria-label="Search properties"
                     x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all">
+                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
@@ -154,14 +154,14 @@
     <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
         <a href="{{ route('admin.catalogue.properties.index', array_filter(['search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ $status === '' ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                {{ $status === '' ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
             All
             <span class="ml-1 text-[11px] {{ $status === '' ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts['total'] }}</span>
         </a>
         @foreach(['Approved' => $counts['approved'], 'Pending' => $counts['pending'], 'Rejected' => $counts['rejected']] as $key => $count)
             <a href="{{ route('admin.catalogue.properties.index', array_filter(['verification_status' => $key, 'search' => $search])) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $status === $key ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                    {{ $status === $key ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                 {{ $key }}
                 <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $count }}</span>
             </a>
@@ -214,12 +214,12 @@
                         <div class="flex items-start justify-between gap-2">
                             <div class="min-w-0">
                                 <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-                                    class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#8a6e1e] transition-colors duration-200">
+                                    class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#A8573F] transition-colors duration-200">
                                     {{ $property->title }}
                                 </a>
                                 <p class="text-[12px] text-[#5B6A8E] mt-0.5 line-clamp-1">{{ $property->address }}</p>
                             </div>
-                            <span class="shrink-0 text-[11px] font-medium text-[#8a6e1e] border border-[#C9A84C]/40 rounded-full px-2.5 py-0.5 mt-0.5">
+                            <span class="shrink-0 text-[11px] font-medium text-[#A8573F] border border-[#DA8E77]/40 rounded-full px-2.5 py-0.5 mt-0.5">
                                 {{ $property->property_type }}
                             </span>
                         </div>
@@ -289,7 +289,7 @@
                                         </div>
                                         <div class="min-w-0">
                                             <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-                                                class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#8a6e1e] transition-colors duration-200">
+                                                class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#A8573F] transition-colors duration-200">
                                                 {{ $property->title }}
                                             </a>
                                             <p class="text-[11.5px] text-[#5B6A8E] truncate max-w-[240px]">{{ $property->address }}</p>

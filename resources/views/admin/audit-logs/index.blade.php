@@ -61,7 +61,7 @@
                 </svg>
                 <input type="text" name="search" id="audit-search" value="{{ $search }}"
                     placeholder="Search by admin, action, or reason…"
-                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200">
+                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition-all duration-200">
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">

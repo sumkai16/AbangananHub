@@ -109,7 +109,7 @@
                             <span class="h-[2px] w-6 rounded-full mt-0.5"
                                 :class="cell.isDeadline
                                     ? 'bg-[#EF4444]'
-                                    : (cell.isToday ? 'bg-[#C9A84C]' : 'bg-transparent')"
+                                    : (cell.isToday ? 'bg-[#DA8E77]' : 'bg-transparent')"
                                 aria-hidden="true"></span>
                         </div>
                     </template>
@@ -133,7 +133,7 @@
                             class="h-12 rounded-xl text-[14px] font-semibold transition-colors"
                             :class="time === t.value
                                 ? 'bg-[#060D26] text-[#F7F4ED] border border-[#060D26]'
-                                : 'bg-white text-[#060D26] border border-[#E2E4EC] hover:border-[#C9A84C]'"
+                                : 'bg-white text-[#060D26] border border-[#E2E4EC] hover:border-[#DA8E77]'"
                             x-text="t.label"></button>
                     </template>
                 </div>
@@ -148,11 +148,11 @@
                     </svg>
                     <label :for="$id('time')" class="sr-only">Choose another time</label>
                     <input type="time" :id="$id('time')" x-model="time" step="900"
-                        class="w-full h-12 rounded-xl border border-[#E2E4EC] bg-white pl-10 pr-3 text-[14px] text-[#060D26] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none">
+                        class="w-full h-12 rounded-xl border border-[#E2E4EC] bg-white pl-10 pr-3 text-[14px] text-[#060D26] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] outline-none">
                 </div>
 
                 <div class="mt-5 flex items-start gap-2" aria-live="polite">
-                    <svg class="w-4 h-4 shrink-0 mt-0.5" :class="value ? 'text-[#8a6e1e]' : 'text-[#94A3B8]'"
+                    <svg class="w-4 h-4 shrink-0 mt-0.5" :class="value ? 'text-[#A8573F]' : 'text-[#94A3B8]'"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />

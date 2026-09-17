@@ -152,7 +152,7 @@
                                         <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
                                     @else
                                         <div class="w-full h-full flex items-center justify-center">
-                                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#C9A84C" stroke-width="1.5">
+                                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#DA8E77" stroke-width="1.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
                                             </svg>
                                         </div>

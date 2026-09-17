@@ -77,7 +77,7 @@
                                             <svg width="10" height="10" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
                                         </span>
                                         <div class="flex-1 h-2.5 rounded-full bg-[#ECEEF6] overflow-hidden">
-                                            <div class="h-full rounded-full bg-[#C9A84C]" style="width: {{ $bar['pct'] }}%"></div>
+                                            <div class="h-full rounded-full bg-[#DA8E77]" style="width: {{ $bar['pct'] }}%"></div>
                                         </div>
                                         <span class="w-10 text-right text-[11.5px] text-[#5B6A8E] shrink-0">{{ $bar['count'] }}</span>
                                     </div>
@@ -137,12 +137,12 @@
                     labels: @json(collect($trend)->pluck('label')),
                     datasets: [{
                         data: @json(collect($trend)->pluck('value')),
-                        borderColor: '#C9A84C',
+                        borderColor: '#DA8E77',
                         backgroundColor: 'rgba(201,168,76,0.10)',
                         borderWidth: 2.5,
                         tension: 0.35,
                         fill: true,
-                        pointBackgroundColor: '#C9A84C',
+                        pointBackgroundColor: '#DA8E77',
                         pointRadius: 4,
                         spanGaps: true,
                     }],

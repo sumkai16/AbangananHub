@@ -79,7 +79,7 @@
 
             @if($isLandlord && !$conversation->isResolved())
                 <button type="button" onclick="resolveConversation({{ $conversation->conversation_id }})"
-                    class="inline-flex items-center gap-1.5 h-8 px-3 text-[11px] font-bold text-[#060D26] bg-[#ECEEF6] border border-[#C9A84C]/20 rounded-lg hover:brightness-95 cursor-pointer transition-all duration-200">
+                    class="inline-flex items-center gap-1.5 h-8 px-3 text-[11px] font-bold text-[#060D26] bg-[#ECEEF6] border border-[#DA8E77]/20 rounded-lg hover:brightness-95 cursor-pointer transition-all duration-200">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
@@ -149,7 +149,7 @@
                         <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Due at move-in</p>
                         <p class="text-[12.5px] font-bold text-[#060D26]">&#8369;{{ number_format($stripDue) }}</p>
                     </div>
-                    <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/20 whitespace-nowrap">{{ $stageLabel }}</span>
+                    <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/20 whitespace-nowrap">{{ $stageLabel }}</span>
                 </div>
             </div>
 
@@ -189,7 +189,7 @@
                             @csrf @method('PATCH')
                             <label for="reject_reason_{{ $reservation->reservation_id }}" class="sr-only">Rejection reason (optional)</label>
                             <input id="reject_reason_{{ $reservation->reservation_id }}" name="rejection_reason" placeholder="Reason (optional)"
-                                class="flex-1 text-[12px] border border-[#E2E4EC] rounded-lg px-3 py-2 text-[#060D26] placeholder-[#5B6A8E] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/10 outline-none">
+                                class="flex-1 text-[12px] border border-[#E2E4EC] rounded-lg px-3 py-2 text-[#060D26] placeholder-[#5B6A8E] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77]/10 outline-none">
                             <button type="submit" class="bg-[#EF4444] hover:brightness-95 text-white text-[12px] font-bold px-4 py-2 rounded-lg cursor-pointer transition-all duration-200">Confirm</button>
                         </form>
                     </div>
@@ -208,10 +208,10 @@
                     <div x-show="showTc" x-transition x-cloak class="mt-2">
                         <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
                             @csrf @method('PATCH')
-                            <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#C9A84C]/20">
+                            <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#DA8E77]/20">
                                 <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
                                     <input type="checkbox" name="accept_tc" required
-                                        class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#C9A84C] focus:ring-offset-0 transition">
+                                        class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#DA8E77] focus:ring-offset-0 transition">
                                     <span class="text-[11px] text-[#060D26] leading-relaxed">
                                         I agree that the tenant's payment will be held by AbangananHub until the tenant confirms move-in. Funds will be released only after tenant verification.
                                     </span>
@@ -228,7 +228,7 @@
                             @csrf @method('PATCH')
                             <label for="reject_reason_neg_{{ $reservation->reservation_id }}" class="sr-only">Rejection reason (optional)</label>
                             <input id="reject_reason_neg_{{ $reservation->reservation_id }}" name="rejection_reason" placeholder="Reason (optional)"
-                                class="flex-1 text-[12px] border border-[#E2E4EC] rounded-lg px-3 py-2 text-[#060D26] placeholder-[#5B6A8E] focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/10 outline-none">
+                                class="flex-1 text-[12px] border border-[#E2E4EC] rounded-lg px-3 py-2 text-[#060D26] placeholder-[#5B6A8E] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77]/10 outline-none">
                             <button type="submit" class="bg-[#EF4444] hover:brightness-95 text-white text-[12px] font-bold px-4 py-2 rounded-lg cursor-pointer transition-all duration-200">Confirm</button>
                         </form>
                     </div>
@@ -576,7 +576,7 @@
             <form id="message-form" class="flex items-center gap-2.5">
                 <label for="message-input" class="sr-only">Message {{ $otherParty->first_name }}</label>
                 <input type="text" id="message-input" name="message" required maxlength="2000" autocomplete="off"
-                    class="flex-1 bg-[#F7F8FC] border border-[#E2E4EC] focus:border-[#C9A84C] focus:bg-white focus:ring-2 focus:ring-[#C9A84C]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#060D26] transition-all duration-200 outline-none placeholder-[#5B6A8E]"
+                    class="flex-1 bg-[#F7F8FC] border border-[#E2E4EC] focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#060D26] transition-all duration-200 outline-none placeholder-[#5B6A8E]"
                     placeholder="Message {{ $otherParty->first_name }}...">
                 <button type="submit"
                     class="bg-[#060D26] hover:brightness-95 text-white font-bold text-[13px] px-4 py-2.5 rounded-xl shadow-sm cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5">

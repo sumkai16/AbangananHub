@@ -80,7 +80,7 @@
                                 class="text-[#EF4444]">*</span></label>
                         <textarea name="admin_notes" rows="3" maxlength="1000" required
                             placeholder="Describe what you found after reviewing this report"
-                            class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/30 transition"></textarea>
+                            class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition"></textarea>
                         @error('admin_notes')
                             <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
                         @enderror

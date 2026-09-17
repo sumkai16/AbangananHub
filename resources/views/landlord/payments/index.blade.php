@@ -131,7 +131,7 @@
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search tenants by name or email..." aria-label="Search tenants by name or email"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -237,7 +237,7 @@
                         </div>
 
                         <a href="{{ route('landlord.tenancies.show', $reservation) }}"
-                            class="mt-3 flex items-center justify-center h-9 rounded-xl border border-[#C9A84C] text-[#8a6e1e] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
+                            class="mt-3 flex items-center justify-center h-9 rounded-xl border border-[#DA8E77] text-[#A8573F] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                             Open Ledger
                         </a>
                     </x-card>
@@ -341,7 +341,7 @@
                                     </td>
                                     <td class="px-5 sm:px-6 py-4 text-right">
                                         <a href="{{ route('landlord.tenancies.show', $reservation) }}"
-                                            class="text-[#8a6e1e] text-[12.5px] font-semibold hover:underline transition-colors duration-200 cursor-pointer whitespace-nowrap">
+                                            class="text-[#A8573F] text-[12.5px] font-semibold hover:underline transition-colors duration-200 cursor-pointer whitespace-nowrap">
                                             Open Ledger
                                         </a>
                                     </td>

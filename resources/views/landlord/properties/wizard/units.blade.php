@@ -42,7 +42,7 @@
                     @if($property->units->isEmpty())
                         <div class="border border-dashed border-[#E2E4EC] rounded-2xl p-10 text-center">
                             <div class="w-12 h-12 rounded-xl bg-[#ECEEF6] flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-6 h-6 text-[#8a6e1e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <svg class="w-6 h-6 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6z" />
                                 </svg>
                             </div>

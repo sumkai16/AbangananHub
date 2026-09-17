@@ -245,7 +245,7 @@
 
                         <label for="agree" class="flex items-start gap-3 mb-4 cursor-pointer">
                             <input type="checkbox" name="agree" id="agree" required
-                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#C9A84C] focus:ring-offset-0 transition">
+                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#DA8E77] focus:ring-offset-0 transition">
                             <span class="text-[13px] text-[#060D26] leading-relaxed">
                                 I have read and agree to the terms of this Rental Agreement.
                             </span>
@@ -256,7 +256,7 @@
 
                         <label for="accept_tc" class="flex items-start gap-3 mb-4 cursor-pointer">
                             <input type="checkbox" name="accept_tc" id="accept_tc" required
-                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#C9A84C] focus:ring-offset-0 transition">
+                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#DA8E77] focus:ring-offset-0 transition">
                             <span class="text-[13px] text-[#060D26] leading-relaxed">
                                 I understand that my payment will be held by AbangananHub until I confirm move-in. Funds will only
                                 be released to the landlord after I verify that the unit matches the listing.
@@ -305,9 +305,9 @@
                         </form>
 
                     @elseif($heldPayment)
-                        <div class="mt-4 rounded-xl border border-[#C9A84C]/25 bg-[#ECEEF6]/60 p-4">
+                        <div class="mt-4 rounded-xl border border-[#DA8E77]/25 bg-[#ECEEF6]/60 p-4">
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="w-8 h-8 rounded-full bg-[#C9A84C]/15 flex items-center justify-center shrink-0">
+                                <div class="w-8 h-8 rounded-full bg-[#DA8E77]/15 flex items-center justify-center shrink-0">
                                     <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                     </svg>
@@ -329,7 +329,7 @@
                                     {{-- Clock 1: nothing for the tenant to do yet. No countdown — showing one
                                          here would imply a deadline the tenant can miss, and this one is the
                                          landlord's. --}}
-                                    <div class="rounded-lg border border-[#C9A84C]/25 bg-[#ECEEF6] p-4 mb-4">
+                                    <div class="rounded-lg border border-[#DA8E77]/25 bg-[#ECEEF6] p-4 mb-4">
                                         <p class="text-sm font-medium text-[#060D26]">Payment secured</p>
                                         <p class="mt-1 text-sm text-[#060D26]">
                                             Your deposit is held safely and is not released until you confirm your move-in.

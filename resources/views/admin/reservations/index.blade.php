@@ -6,9 +6,9 @@
 @php
     $allStatuses = [
         'Inquiry'                  => ['label' => 'Inquiry',           'dot' => 'bg-[#94A3B8]'],
-        'Under Negotiation'        => ['label' => 'Negotiation',       'dot' => 'bg-[#C9A84C]'],
+        'Under Negotiation'        => ['label' => 'Negotiation',       'dot' => 'bg-[#DA8E77]'],
         'Pending Rental Agreement' => ['label' => 'Pending Agreement', 'dot' => 'bg-[#FBBF24]'],
-        'Rental Agreement Signed'  => ['label' => 'Agreement Signed',  'dot' => 'bg-[#C9A84C]'],
+        'Rental Agreement Signed'  => ['label' => 'Agreement Signed',  'dot' => 'bg-[#DA8E77]'],
         'Occupied'                 => ['label' => 'Occupied',          'dot' => 'bg-[#22C55E]'],
         'Cancelled'                => ['label' => 'Cancelled',         'dot' => 'bg-[#94A3B8]'],
         'Rejected'                 => ['label' => 'Rejected',          'dot' => 'bg-[#EF4444]'],
@@ -16,9 +16,9 @@
 
     $statusBadge = [
         'Inquiry'                  => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]',
-        'Under Negotiation'        => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
+        'Under Negotiation'        => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
         'Pending Rental Agreement' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35',
-        'Rental Agreement Signed'  => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
+        'Rental Agreement Signed'  => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
         'Occupied'                 => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
         'Cancelled'                => 'bg-[#F7F8FC] text-[#94A3B8] border-[#E2E4EC]',
         'Rejected'                 => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25',
@@ -88,7 +88,7 @@
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant name, email, or property…" aria-label="Search by tenant name, email, or property"
                 x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all">
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
         </div>
         <button type="submit"
             class="h-10 px-5 text-[13.5px] font-bold bg-[#060D26] text-[#F7F4ED] rounded-xl hover:brightness-95 transition-colors shadow-sm">
@@ -112,21 +112,21 @@
         @endphp
         <a href="{{ route('admin.reservations.index', array_filter(['search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ ! $disputedActive && $status === 'all' ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                {{ ! $disputedActive && $status === 'all' ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
             All
             <span class="ml-1 text-[11px] {{ ! $disputedActive && $status === 'all' ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts['all'] }}</span>
         </a>
         @foreach($allStatuses as $key => $meta)
             <a href="{{ route('admin.reservations.index', array_filter(['status' => $key, 'search' => $search])) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ ! $disputedActive && $status === $key ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                    {{ ! $disputedActive && $status === $key ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                 {{ $meta['label'] }}
                 <span class="ml-1 text-[11px] {{ ! $disputedActive && $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$key] }}</span>
             </a>
         @endforeach
         <a href="{{ route('admin.reservations.index', array_filter(['filter' => 'disputed', 'status' => $status, 'search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ $disputedActive ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                {{ $disputedActive ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
             Needs review
             @if ($disputedCount > 0)
                 <span class="ml-1 rounded-full bg-[#EF4444]/[0.10] px-2 py-0.5 text-xs text-[#DC2626]">{{ $disputedCount }}</span>

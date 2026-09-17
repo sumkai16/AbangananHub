@@ -82,7 +82,7 @@
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..." aria-label="Search by property name or address"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -245,7 +245,7 @@
                                     </p>
                                 </div>
                                 <span
-                                    class="shrink-0 text-[11px] font-medium text-[#8a6e1e] border border-[#C9A84C]/40 rounded-full px-2.5 py-0.5 mt-0.5">
+                                    class="shrink-0 text-[11px] font-medium text-[#A8573F] border border-[#DA8E77]/40 rounded-full px-2.5 py-0.5 mt-0.5">
                                     {{ $property->property_type }}
                                 </span>
                             </div>
@@ -296,7 +296,7 @@
                                     </form>
                                 @else
                                     <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#C9A84C] text-[#8a6e1e] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
+                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#DA8E77] text-[#A8573F] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -365,7 +365,7 @@
                                             </div>
                                             <div class="min-w-0">
                                                 <a href="{{ route('landlord.properties.show', $property) }}"
-                                                    class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#8a6e1e] transition-colors duration-200">
+                                                    class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#A8573F] transition-colors duration-200">
                                                     {{ $property->title }}
                                                 </a>
                                                 <p class="text-[11.5px] text-[#5B6A8E] truncate max-w-[240px]">{{ $property->address }}</p>
@@ -425,7 +425,7 @@
                                                 </form>
                                             @else
                                                 <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#C9A84C] text-[#8a6e1e] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
+                                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#DA8E77] text-[#A8573F] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
                                                     View Units
                                                 </a>
                                                 <a href="{{ route('properties.edit', $property) }}" aria-label="Edit property"

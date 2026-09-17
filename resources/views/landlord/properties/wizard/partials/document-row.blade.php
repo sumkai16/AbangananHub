@@ -54,7 +54,7 @@
         <form method="POST" action="{{ route('landlord.properties.documents.store', $property) }}" enctype="multipart/form-data" class="mt-3 pt-3 border-t border-[#E2E4EC]">
             @csrf
             <input type="hidden" name="document_type" value="{{ $type }}">
-            <label class="flex items-center gap-3 px-3.5 py-3 rounded-xl border-2 border-dashed border-[#E2E4EC] hover:border-[#C9A84C] bg-[#F7F8FC] cursor-pointer transition-colors duration-150 group">
+            <label class="flex items-center gap-3 px-3.5 py-3 rounded-xl border-2 border-dashed border-[#E2E4EC] hover:border-[#DA8E77] bg-[#F7F8FC] cursor-pointer transition-colors duration-150 group">
                 <div class="w-9 h-9 rounded-lg bg-white shadow-sm border border-[#E2E4EC] flex items-center justify-center shrink-0 text-[#94A3B8] group-hover:text-[#060D26] transition-colors duration-150">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>

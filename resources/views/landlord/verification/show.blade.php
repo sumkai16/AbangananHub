@@ -9,7 +9,7 @@
                  usually isn't a Landlord yet — homeRoute() sends them wherever
                  they actually belong instead of 403'ing on a landlord route. --}}
             <a href="{{ auth()->user()->homeRoute() }}"
-               class="inline-flex items-center gap-1.5 text-sm text-[#8a6e1e] hover:text-[#060D26] mb-6 transition-colors">
+               class="inline-flex items-center gap-1.5 text-sm text-[#A8573F] hover:text-[#060D26] mb-6 transition-colors">
                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                 </svg>
@@ -154,7 +154,7 @@
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {{-- Front --}}
                             <div>
-                                <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#C9A84C] transition-colors"
+                                <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#DA8E77] transition-colors"
                                      @click="previewImage = '{{ route('verifications.preview', [$verification, 'front']) }}'">
                                     <img src="{{ route('verifications.preview', [$verification, 'front']) }}"
                                          alt="ID front"
@@ -166,7 +166,7 @@
                             {{-- Back --}}
                             @if ($verification->id_back)
                                 <div>
-                                    <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#C9A84C] transition-colors"
+                                    <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#DA8E77] transition-colors"
                                          @click="previewImage = '{{ route('verifications.preview', [$verification, 'back']) }}'">
                                         <img src="{{ route('verifications.preview', [$verification, 'back']) }}"
                                              alt="ID back"
@@ -185,7 +185,7 @@
 
                             {{-- Selfie --}}
                             <div>
-                                <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#C9A84C] transition-colors"
+                                <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#DA8E77] transition-colors"
                                      @click="previewImage = '{{ route('verifications.preview', [$verification, 'selfie']) }}'">
                                     <img src="{{ route('verifications.preview', [$verification, 'selfie']) }}"
                                          alt="Selfie"

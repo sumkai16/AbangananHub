@@ -111,7 +111,7 @@
                             <img src="{{ $thumb->media_url }}" alt="" class="w-16 h-14 rounded-lg object-cover flex-shrink-0">
                         @else
                             <div class="w-16 h-14 rounded-lg bg-[#ECEEF6] flex items-center justify-center flex-shrink-0">
-                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#C9A84C" stroke-width="1.8">
+                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#DA8E77" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
                                 </svg>
                             </div>
@@ -178,7 +178,7 @@
                         </div>
                         <p class="text-[13px] text-[#5B6A8E] leading-relaxed line-clamp-2">{{ $review->review_comment }}</p>
                         @if($review->landlord_reply)
-                            <div class="mt-2 pl-3 border-l-2 border-[#C9A84C]/30">
+                            <div class="mt-2 pl-3 border-l-2 border-[#DA8E77]/30">
                                 <p class="text-[11px] font-semibold text-[#060D26]">Landlord reply</p>
                                 <p class="text-[12px] text-[#5B6A8E] leading-relaxed mt-0.5">{{ $review->landlord_reply }}</p>
                             </div>

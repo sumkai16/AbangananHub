@@ -67,7 +67,7 @@
                     <div>
                         <label for="first_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">First name</label>
                         <input type="text" id="first_name" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
-                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
                         @error('first_name')
                             <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
                         @enderror
@@ -75,7 +75,7 @@
                     <div>
                         <label for="last_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Last name</label>
                         <input type="text" id="last_name" name="last_name" value="{{ old('last_name', $user->last_name) }}" required
-                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
                         @error('last_name')
                             <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
                         @enderror
@@ -85,7 +85,7 @@
                 <div class="mb-4">
                     <label for="contact_number" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Contact number</label>
                     <input type="text" id="contact_number" name="contact_number" value="{{ old('contact_number', $user->contact_number) }}"
-                        class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all"
+                        class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all"
                         placeholder="09XX XXX XXXX">
                     @error('contact_number')
                         <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
@@ -104,7 +104,7 @@
                     <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Bio</label>
                     <div x-data="{ count: {{ strlen(old('bio', $user->bio ?? '')) }} }">
                         <textarea name="bio" rows="3" maxlength="1000" x-on:input="count = $event.target.value.length"
-                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all resize-none"
+                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all resize-none"
                             placeholder="Tell tenants a bit about yourself...">{{ old('bio', $user->bio) }}</textarea>
                         <p class="text-[11px] text-[#5B6A8E] mt-1 text-right"><span x-text="count">0</span> / 1,000</p>
                         @error('bio')
@@ -123,7 +123,7 @@
                     <div>
                         <label for="gcash_number" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash number</label>
                         <input type="text" id="gcash_number" name="gcash_number" value="{{ old('gcash_number', $user->gcash_number) }}"
-                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all"
+                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all"
                             placeholder="09XX XXX XXXX">
                         @error('gcash_number')
                             <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
@@ -132,7 +132,7 @@
                     <div>
                         <label for="gcash_account_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash account name</label>
                         <input type="text" id="gcash_account_name" name="gcash_account_name" value="{{ old('gcash_account_name', $user->gcash_account_name) }}"
-                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all"
+                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all"
                             placeholder="Name on the GCash account">
                         @error('gcash_account_name')
                             <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
@@ -188,7 +188,7 @@
                     <label for="business_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Business name</label>
                     <input type="text" id="business_name" name="business_name"
                         value="{{ old('business_name', $business->business_name ?? '') }}"
-                        class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all"
+                        class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all"
                         placeholder="e.g. Santos Rentals">
                     @error('business_name')
                         <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
@@ -198,7 +198,7 @@
                 <div class="mb-4">
                     <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Business description</label>
                     <textarea name="business_description" rows="2" maxlength="1000"
-                        class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all resize-none"
+                        class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all resize-none"
                         placeholder="Briefly describe your rental business...">{{ old('business_description', $business->description ?? '') }}</textarea>
                     @error('business_description')
                         <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
@@ -210,7 +210,7 @@
                         <label for="business_contact" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Business contact</label>
                         <input type="text" id="business_contact" name="business_contact"
                             value="{{ old('business_contact', $business->contact_number ?? '') }}"
-                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all"
+                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all"
                             placeholder="09XX XXX XXXX">
                         @error('business_contact')
                             <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
@@ -220,7 +220,7 @@
                         <label for="business_address" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Business address</label>
                         <input type="text" id="business_address" name="business_address"
                             value="{{ old('business_address', $business->business_address ?? '') }}"
-                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all"
+                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all"
                             placeholder="Cebu City, Cebu">
                         @error('business_address')
                             <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>

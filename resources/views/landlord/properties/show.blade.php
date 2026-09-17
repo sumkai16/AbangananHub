@@ -177,7 +177,7 @@
                 </svg>
                 {{ $property->address }}
                 <a href="{{ $mapsUrl }}" target="_blank" rel="noopener"
-                   class="text-[#8a6e1e] hover:underline font-medium">View on Map</a>
+                   class="text-[#A8573F] hover:underline font-medium">View on Map</a>
             </p>
 
             @if($property->description)
@@ -189,7 +189,7 @@
                 <div class="flex flex-wrap gap-2 mt-auto pt-2">
                     @foreach($property->amenities->take(5) as $amenity)
                         <span class="inline-flex items-center gap-1.5 text-xs font-medium text-[#060D26] bg-[#ECEEF6] rounded-full px-3 py-1.5">
-                            <x-amenity-icon :name="$amenity->amenity_name" class="w-2.5 h-2.5 text-[#8a6e1e]" />
+                            <x-amenity-icon :name="$amenity->amenity_name" class="w-2.5 h-2.5 text-[#A8573F]" />
                             {{ $amenity->amenity_name }}
                         </span>
                     @endforeach
@@ -411,7 +411,7 @@
                                     @endif
                                     {{-- Available (blue) --}}
                                     @if($dAvl > 0)
-                                        <circle cx="56" cy="56" r="40" fill="none" stroke="#C9A84C" stroke-width="16"
+                                        <circle cx="56" cy="56" r="40" fill="none" stroke="#DA8E77" stroke-width="16"
                                                 stroke-dasharray="{{ $dAvl }} {{ $circ - $dAvl }}"
                                                 stroke-dashoffset="{{ $dStart - $dOcc }}"/>
                                     @endif
@@ -456,7 +456,7 @@
                     </div>
 
                     <a href="{{ route('landlord.properties.units.index', $property) }}"
-                       class="mt-4 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#8a6e1e] hover:underline">
+                       class="mt-4 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#A8573F] hover:underline">
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zm4.5-7.5A1.125 1.125 0 0 1 8.625 4.5h2.25c.621 0 1.125.504 1.125 1.125v13.5c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 7.5 19.125V5.625zm4.5-3A1.125 1.125 0 0 1 13.125 1.5h2.25C16.496 1.5 17 2.004 17 2.625v17.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 12 19.875V2.625z"/>
                         </svg>
@@ -470,7 +470,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-normal text-[#060D26]">Recent Activity</h3>
                     <a href="{{ route('landlord.properties.units.index', $property) }}"
-                       class="text-xs text-[#8a6e1e] font-medium hover:underline flex items-center gap-1">
+                       class="text-xs text-[#A8573F] font-medium hover:underline flex items-center gap-1">
                         View All Activity
                         <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
@@ -487,7 +487,7 @@
                         @foreach($recentUnits as $recentUnit)
                             <div class="flex items-start gap-3 p-3 rounded-xl bg-[#ECEEF6]/50">
                                 <div class="w-8 h-8 rounded-full bg-[#ECEEF6] flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#8a6e1e]">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#A8573F]">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z"/>
                                     </svg>
                                 </div>
@@ -718,7 +718,7 @@
                     @foreach($property->amenities as $amenity)
                         <x-card flush class="flex items-center gap-3 px-4 py-3">
                             <div class="w-8 h-8 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0">
-                                <x-amenity-icon :name="$amenity->amenity_name" class="w-3.5 h-3.5 text-[#8a6e1e]" />
+                                <x-amenity-icon :name="$amenity->amenity_name" class="w-3.5 h-3.5 text-[#A8573F]" />
                             </div>
                             <span class="text-sm font-medium text-[#060D26]">{{ $amenity->amenity_name }}</span>
                         </x-card>

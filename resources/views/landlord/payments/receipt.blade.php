@@ -95,7 +95,7 @@
             {{-- Total --}}
             <div class="flex items-center justify-between gap-4 py-5">
                 <p class="text-[13px] font-bold uppercase tracking-wider text-[#94A3B8]">Total received</p>
-                <p class="text-2xl font-extrabold text-[#8a6e1e]">₱{{ number_format((float) $payment->amount, 2) }}</p>
+                <p class="text-2xl font-extrabold text-[#A8573F]">₱{{ number_format((float) $payment->amount, 2) }}</p>
             </div>
 
             @if($payment->payment_notes)

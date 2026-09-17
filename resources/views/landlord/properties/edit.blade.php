@@ -27,7 +27,7 @@
                         {{ $property->verification_status }}
                     </span>
                     <span
-                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/20">
+                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/20">
                         {{ $property->availability_status }}
                     </span>
                 </div>
@@ -69,7 +69,7 @@
                                 class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Title</label>
                             <input type="text" id="title" name="title" value="{{ old('title', $property->title) }}" minlength="10"
                                 maxlength="150"
-                                class="w-full h-12 px-4 rounded-2xl border border-[#E2E4EC] text-[14px] font-medium text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all"
+                                class="w-full h-12 px-4 rounded-2xl border border-[#E2E4EC] text-[14px] font-medium text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all"
                                 required>
                             @error('title')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                         </div>
@@ -93,7 +93,7 @@
                                         class="absolute inset-y-0 left-0 flex items-center pl-4 text-[#94A3B8] font-bold text-sm">₱</span>
                                     <input type="number" step="0.01" min="500" max="999999" name="rental_fee" id="rental_fee"
                                         value="{{ old('rental_fee', $property->rental_fee) }}"
-                                        class="w-full h-12 pl-8 pr-4 rounded-2xl border border-[#E2E4EC] text-[14px] font-bold text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all"
+                                        class="w-full h-12 pl-8 pr-4 rounded-2xl border border-[#E2E4EC] text-[14px] font-bold text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all"
                                         required>
                                 </div>
                                 @error('rental_fee')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
@@ -124,7 +124,7 @@
                                     <label class="inline-flex items-center gap-2 text-[13.5px] text-[#060D26] cursor-pointer">
                                         <input type="checkbox" name="{{ $field }}" value="1"
                                             @checked(old($field, $property->$field ?? false))
-                                            class="rounded border-[#E2E4EC] text-[#8a6e1e] focus:ring-[#C9A84C]/30">
+                                            class="rounded border-[#E2E4EC] text-[#A8573F] focus:ring-[#DA8E77]/30">
                                         {{ $label }}
                                     </label>
                                 @endforeach
@@ -166,7 +166,7 @@
                                 class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Address</label>
                             <input type="text" id="address" name="address" value="{{ old('address', $property->address) }}"
                                 minlength="10" maxlength="255"
-                                class="w-full h-12 px-4 rounded-2xl border border-[#E2E4EC] text-[14px] font-medium text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all"
+                                class="w-full h-12 px-4 rounded-2xl border border-[#E2E4EC] text-[14px] font-medium text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all"
                                 required>
                             @error('address')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                         </div>
@@ -185,7 +185,7 @@
                             <div>
                                 <label for="barangay" class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Barangay <span class="text-[#94A3B8] normal-case font-medium">(optional)</span></label>
                                 <input type="text" id="barangay" name="barangay" value="{{ old('barangay', $property->barangay) }}" maxlength="100"
-                                    class="w-full h-12 px-4 rounded-2xl border border-[#E2E4EC] text-[14px] font-medium text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all"
+                                    class="w-full h-12 px-4 rounded-2xl border border-[#E2E4EC] text-[14px] font-medium text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all"
                                     placeholder="e.g., Lahug">
                                 @error('barangay')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                             </div>
@@ -204,7 +204,7 @@
                                                 <label class="flex items-center gap-2 text-[13px] font-medium text-[#060D26] cursor-pointer">
                                                     <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
                                                         @checked(collect($selectedAmenityIds)->contains($amenity->amenity_id))
-                                                        class="rounded border-[#E2E4EC] text-[#8a6e1e] focus:ring-[#C9A84C]/30">
+                                                        class="rounded border-[#E2E4EC] text-[#A8573F] focus:ring-[#DA8E77]/30">
                                                     {{ $amenity->name }}
                                                 </label>
                                             @endforeach
@@ -219,7 +219,7 @@
                             <label
                                 class="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">Description</label>
                             <textarea name="description" rows="6" minlength="20" maxlength="3000"
-                                class="w-full p-4 rounded-2xl border border-[#E2E4EC] text-[14px] text-[#060D26] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all"
+                                class="w-full p-4 rounded-2xl border border-[#E2E4EC] text-[14px] text-[#060D26] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all"
                                 required>{{ old('description', $property->description) }}</textarea>
                             @error('description')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                         </div>
@@ -232,7 +232,7 @@
                                 <div class="flex items-center justify-between border-b border-[#E2E4EC] pb-3 mb-4">
                                     <h3 class="text-[14px] font-normal text-[#060D26]">Current photos</h3>
                                     <span
-                                        class="text-[10px] font-bold uppercase text-[#060D26] bg-[#ECEEF6] px-2.5 py-0.5 rounded-full border border-[#C9A84C]/20">
+                                        class="text-[10px] font-bold uppercase text-[#060D26] bg-[#ECEEF6] px-2.5 py-0.5 rounded-full border border-[#DA8E77]/20">
                                         {{ $property->media->count() }} photos
                                     </span>
                                 </div>
@@ -277,7 +277,7 @@
                                     photos</h3>
 
                                 <div
-                                    class="border-2 border-dashed border-[#E2E4EC] hover:border-[#C9A84C] rounded-3xl p-6 bg-[#F7F8FC] text-center transition-colors group">
+                                    class="border-2 border-dashed border-[#E2E4EC] hover:border-[#DA8E77] rounded-3xl p-6 bg-[#F7F8FC] text-center transition-colors group">
                                     <label class="cursor-pointer block">
                                         <div
                                             class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-[#E2E4EC] flex items-center justify-center mx-auto mb-3 text-[#94A3B8] group-hover:text-[#060D26] transition-all">
@@ -303,7 +303,7 @@
                                     class="grid grid-cols-3 sm:grid-cols-4 gap-2 hidden pt-3 border-t border-[#E2E4EC]"></div>
                             </x-card>
 
-                            <div class="rounded-3xl bg-[#ECEEF6]/50 border border-[#C9A84C]/20 p-5">
+                            <div class="rounded-3xl bg-[#ECEEF6]/50 border border-[#DA8E77]/20 p-5">
                                 <p class="text-sm font-bold text-[#060D26]">Heads up</p>
                                 <p class="text-[12.5px] text-[#5B6A8E] mt-1 leading-relaxed">Changing any detail or adding
                                     photos sends this listing back for admin review before it's visible to tenants again.

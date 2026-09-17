@@ -29,9 +29,9 @@
             @endif
             {{-- Email Link Sent Notice --}}
             @if(session('email_sent'))
-                <div class="mb-6 rounded-xl border border-[#C9A84C]/20 bg-[#ECEEF6] p-4">
+                <div class="mb-6 rounded-xl border border-[#DA8E77]/20 bg-[#ECEEF6] p-4">
                     <div class="flex items-start gap-3">
-                        <svg class="h-5 w-5 text-[#8a6e1e] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <svg class="h-5 w-5 text-[#A8573F] mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
@@ -73,7 +73,7 @@
                 <div x-show="step === 0" x-transition:enter.duration.200ms class="max-w-xl mx-auto">
                     <div class="text-center pt-8 pb-6">
                         <div class="w-24 h-24 rounded-full bg-[#ECEEF6] mx-auto mb-6 flex items-center justify-center">
-                            <svg class="w-12 h-12 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            <svg class="w-12 h-12 text-[#A8573F]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
@@ -88,7 +88,7 @@
                         {{-- Checklist item: Government ID --}}
                         <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                             <div class="w-10 h-10 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                <svg class="w-5 h-5 text-[#A8573F]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
@@ -103,7 +103,7 @@
                         {{-- Checklist item: Face verification --}}
                         <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                             <div class="w-10 h-10 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                <svg class="w-5 h-5 text-[#A8573F]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -118,7 +118,7 @@
                         {{-- Checklist item: Business details --}}
                         <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                             <div class="w-10 h-10 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                <svg class="w-5 h-5 text-[#A8573F]" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
@@ -172,9 +172,9 @@
                         <template x-for="id in idTypes" :key="id">
                             <label
                                 class="flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors duration-150"
-                                :class="idType === id ? 'border-[#C9A84C] bg-[#ECEEF6]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'">
+                                :class="idType === id ? 'border-[#DA8E77] bg-[#ECEEF6]' : 'border-[#E2E4EC] bg-white hover:bg-[#F7F8FC]'">
                                 <input type="radio" :value="id" x-model="idType"
-                                    class="h-4 w-4 text-[#8a6e1e] border-[#E2E4EC] focus:ring-[#C9A84C]">
+                                    class="h-4 w-4 text-[#A8573F] border-[#E2E4EC] focus:ring-[#DA8E77]">
                                 <span class="text-sm text-[#060D26]" x-text="id"></span>
                             </label>
                         </template>
@@ -213,7 +213,7 @@
                                 <li class="flex items-start gap-2.5">
                                     <span
                                         class="w-4 h-4 mt-0.5 shrink-0 rounded-full bg-[#ECEEF6] flex items-center justify-center">
-                                        <svg class="w-2.5 h-2.5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg"
+                                        <svg class="w-2.5 h-2.5 text-[#A8573F]" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor"
                                             aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
@@ -270,7 +270,7 @@
                                             <span class="text-xs text-[#5B6A8E]"
                                                 x-text="needsBack ? 'Front' : 'ID Photo'"></span>
                                             <button type="button" @click="retakePhoto('id')"
-                                                class="text-xs text-[#8a6e1e] hover:underline">Retake</button>
+                                                class="text-xs text-[#A8573F] hover:underline">Retake</button>
                                         </div>
                                     </div>
                                     <div x-show="needsBack" class="relative">
@@ -293,7 +293,7 @@
                                                 <div class="flex items-center justify-between mt-1.5">
                                                     <span class="text-xs text-[#5B6A8E]">Back</span>
                                                     <button type="button" @click="retakePhoto('idBack')"
-                                                        class="text-xs text-[#8a6e1e] hover:underline">Retake</button>
+                                                        class="text-xs text-[#A8573F] hover:underline">Retake</button>
                                                 </div>
                                             </div>
                                         </template>
@@ -326,7 +326,7 @@
                             {{-- OCR results --}}
                             <div x-show="idCapturePhase === 'done' && (ocrLoading || ocrResult || ocrError)" class="mb-4">
                                 <div x-show="ocrLoading" class="flex items-center gap-2 py-4 justify-center">
-                                    <svg class="animate-spin h-4 w-4 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg"
+                                    <svg class="animate-spin h-4 w-4 text-[#A8573F]" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                             stroke-width="4"></circle>
@@ -474,7 +474,7 @@
                                         <li class="flex items-start gap-2.5">
                                             <span
                                                 class="w-4 h-4 mt-0.5 shrink-0 rounded-full bg-[#ECEEF6] flex items-center justify-center">
-                                                <svg class="w-2.5 h-2.5 text-[#8a6e1e]" xmlns="http://www.w3.org/2000/svg"
+                                                <svg class="w-2.5 h-2.5 text-[#A8573F]" xmlns="http://www.w3.org/2000/svg"
                                                     fill="none" viewBox="0 0 24 24" stroke-width="3.5"
                                                     stroke="currentColor" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -704,7 +704,7 @@
                                                 :class="livenessCompleted[idx]
                                                     ? 'bg-[#22C55E] border-[#22C55E] text-white'
                                                     : (livenessStep === idx
-                                                        ? 'bg-[#060D26] border-[#C9A84C] text-white'
+                                                        ? 'bg-[#060D26] border-[#DA8E77] text-white'
                                                         : 'bg-white border-[#E2E4EC] text-[#5B6A8E]')">
                                                 <template x-if="livenessCompleted[idx]">
                                                     <svg class="w-2.5 h-2.5" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -814,7 +814,7 @@
                                 <label for="business_name" class="block text-sm font-medium text-[#060D26] mb-1">Business
                                     name <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="business_name" name="business_name" x-model="businessName"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] outline-none transition-colors"
                                     placeholder="e.g. Sunrise Boarding House">
                             </div>
                             <div>
@@ -822,7 +822,7 @@
                                     <span class="text-[#5B6A8E] text-xs font-normal">(optional)</span></label>
                                 <textarea id="description" name="description" rows="3" x-model="description"
                                     maxlength="1000"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors resize-none"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] outline-none transition-colors resize-none"
                                     placeholder="Brief description of your rental business"></textarea>
                                 <p class="mt-1 text-xs text-[#5B6A8E]" x-text="(description?.length || 0) + '/1000'"></p>
                             </div>
@@ -836,14 +836,14 @@
                                 <label for="contact_number" class="block text-sm font-medium text-[#060D26] mb-1">Contact
                                     number <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="contact_number" name="contact_number" x-model="contactNumber"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] outline-none transition-colors"
                                     placeholder="09XX XXX XXXX">
                             </div>
                             <div>
                                 <label for="business_address" class="block text-sm font-medium text-[#060D26] mb-1">Business
                                     address <span class="text-[#EF4444]">*</span></label>
                                 <input type="text" id="business_address" name="business_address" x-model="businessAddress"
-                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] outline-none transition-colors"
+                                    class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] outline-none transition-colors"
                                     placeholder="Full address of your rental property/business">
                             </div>
                         </div>
@@ -915,7 +915,7 @@
                                 </div>
                                 <div x-show="ocrResult?.id_number"
                                     class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#ECEEF6]">
-                                    <svg class="w-4 h-4 text-[#8a6e1e] shrink-0" xmlns="http://www.w3.org/2000/svg"
+                                    <svg class="w-4 h-4 text-[#A8573F] shrink-0" xmlns="http://www.w3.org/2000/svg"
                                         fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />

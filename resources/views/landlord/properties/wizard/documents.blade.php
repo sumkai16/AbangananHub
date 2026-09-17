@@ -65,7 +65,7 @@
 
                     @if($availableOptionalTypes->isNotEmpty())
                         <button type="button" x-show="!addingOptional" @click="addingOptional = true"
-                            class="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl border border-dashed border-[#E2E4EC] hover:border-[#C9A84C] hover:bg-[#F7F8FC] text-[12.5px] font-semibold text-[#060D26] transition-colors duration-150">
+                            class="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl border border-dashed border-[#E2E4EC] hover:border-[#DA8E77] hover:bg-[#F7F8FC] text-[12.5px] font-semibold text-[#060D26] transition-colors duration-150">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>

@@ -11,8 +11,8 @@
     ];
     $availabilityBadge = [
         'Available'   => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
-        'Reserved'    => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
-        'Occupied'    => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
+        'Reserved'    => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
+        'Occupied'    => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
         'Maintenance' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25',
     ];
 @endphp

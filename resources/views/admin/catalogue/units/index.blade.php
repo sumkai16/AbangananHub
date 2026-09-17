@@ -8,7 +8,7 @@
         'Available'   => 'bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25',
         'Reserved'    => 'bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35',
         'Occupied'    => 'bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25',
-        'Maintenance' => 'bg-[#ECEEF6] text-[#060D26] ring-[#C9A84C]/25',
+        'Maintenance' => 'bg-[#ECEEF6] text-[#060D26] ring-[#DA8E77]/25',
     ];
     $verificationBadge = [
         'Approved' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
@@ -112,7 +112,7 @@
                 <input type="text" name="search" value="{{ $search }}"
                     placeholder="Search by unit, property, or landlord…" aria-label="Search units"
                     x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all">
+                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
@@ -168,14 +168,14 @@
     <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
         <a href="{{ route('admin.catalogue.units.index', array_filter(['search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                {{ $availability === '' ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                {{ $availability === '' ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
             All
             <span class="ml-1 text-[11px] {{ $availability === '' ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts['total'] }}</span>
         </a>
         @foreach(['Available' => $counts['available'], 'Reserved' => $counts['reserved'], 'Occupied' => $counts['occupied'], 'Maintenance' => $counts['maintenance']] as $key => $count)
             <a href="{{ route('admin.catalogue.units.index', array_filter(['availability_status' => $key, 'search' => $search])) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $availability === $key ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                    {{ $availability === $key ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                 {{ $key }}
                 <span class="ml-1 text-[11px] {{ $availability === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $count }}</span>
             </a>

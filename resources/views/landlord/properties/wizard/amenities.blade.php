@@ -48,7 +48,7 @@
                                         <label class="flex items-center gap-2.5 text-[14px] text-[#060D26] cursor-pointer">
                                             <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
                                                 @checked(collect($selected)->contains($amenity->amenity_id))
-                                                class="w-[18px] h-[18px] rounded-md border-[#E2E4EC] text-[#8a6e1e] focus:ring-[#C9A84C]/30 focus:ring-offset-0">
+                                                class="w-[18px] h-[18px] rounded-md border-[#E2E4EC] text-[#A8573F] focus:ring-[#DA8E77]/30 focus:ring-offset-0">
                                             {{ $amenity->name }}
                                         </label>
                                     @endforeach

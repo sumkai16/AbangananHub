@@ -16,23 +16,26 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
-        // The hero + "Browse by area" + "Popular places" sections only make
-        // sense on a clean arrival — once a filter, sort, or page is active
-        // the visitor is doing work, not browsing, so the page collapses to
-        // the plain filter-bar + grid it has always been. See DESIGN.md §6i.
-        $heroStats = null;
+        // The hero banner stays up regardless of filters (Sept 2026) — it's
+        // the page's identity/search entry point, not just a first-visit
+        // greeting, so collapsing it away mid-filter read as the page losing
+        // its own header. "Browse by area" + "Popular places" still only
+        // make sense on a clean arrival, though — once a filter, sort, or
+        // page is active the visitor is doing work, not idly browsing, so
+        // those two collapse to the plain filter-bar + grid as before. See
+        // DESIGN.md §6i.
+        $heroStats = [
+            'listings' => Property::browsable()->count(),
+            'units' => PropertyUnit::where('availability_status', 'Available')
+                ->where('verification_status', 'Approved')
+                ->whereHas('property', fn ($q) => $q->live())
+                ->count(),
+        ];
         $popularProperties = collect();
         $areas = collect();
+        $showDiscovery = !$request->hasAny(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page']);
 
-        if (!$request->hasAny(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
-            $heroStats = [
-                'listings' => Property::browsable()->count(),
-                'units' => PropertyUnit::where('availability_status', 'Available')
-                    ->where('verification_status', 'Approved')
-                    ->whereHas('property', fn ($q) => $q->live())
-                    ->count(),
-            ];
-
+        if ($showDiscovery) {
             $popularProperties = Property::browsable()
                 ->having('review_count', '>=', 2)
                 ->orderByDesc('avg_rating')
@@ -130,7 +133,7 @@ class PropertyController extends Controller
 
         return view('properties.index', compact(
             'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas',
-            'amenityGroups', 'selectedAmenities'
+            'amenityGroups', 'selectedAmenities', 'showDiscovery'
         ));
     }
 

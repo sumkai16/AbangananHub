@@ -2,7 +2,7 @@
 
 @php
     $config = match ($status) {
-        'Approved' => ['bg' => 'bg-[#ECEEF6]', 'icon' => 'text-[#8a6e1e]'],
+        'Approved' => ['bg' => 'bg-[#ECEEF6]', 'icon' => 'text-[#A8573F]'],
         'Rejected' => ['bg' => 'bg-[#EF4444]/10', 'icon' => 'text-[#EF4444]'],
         default => ['bg' => 'bg-[#E2E4EC]', 'icon' => 'text-[#5B6A8E]'],
     };

@@ -76,7 +76,7 @@
                 <label for="comment" class="block text-sm font-semibold text-[#060D26] mb-2">Comment <span
                         class="font-normal text-[#5B6A8E]">(optional)</span></label>
                 <textarea name="comment" id="comment" rows="4" maxlength="1000"
-                    class="w-full border border-[#E2E4EC] rounded-xl px-4 py-3 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:ring-2 focus:ring-[#C9A84C]/30 focus:border-[#C9A84C] transition-colors duration-150 resize-none"
+                    class="w-full border border-[#E2E4EC] rounded-xl px-4 py-3 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:ring-2 focus:ring-[#DA8E77]/30 focus:border-[#DA8E77] transition-colors duration-150 resize-none"
                     placeholder="How was your experience with this tenant?" x-data="{ count: 0 }"
                     x-on:input="count = $el.value.length">{{ old('comment') }}</textarea>
                 <p class="text-[11px] text-[#5B6A8E] mt-1 text-right"><span x-text="count || 0"></span>/1000</p>

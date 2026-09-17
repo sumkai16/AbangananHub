@@ -129,7 +129,7 @@
                         Reason for rejection
                     </label>
                     <textarea name="rejection_reason" id="rejection_reason" rows="3" required
-                        class="w-full rounded-lg border border-[#E2E4EC] px-3 py-2.5 text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all resize-none"
+                        class="w-full rounded-lg border border-[#E2E4EC] px-3 py-2.5 text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all resize-none"
                         placeholder="Explain why — the landlord will see this."></textarea>
                     @error('rejection_reason')
                         <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>

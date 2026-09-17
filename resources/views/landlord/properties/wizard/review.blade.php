@@ -62,8 +62,8 @@
                 </div>
 
                 @if($canSubmit)
-                    <div class="mt-5 max-w-2xl rounded-xl bg-[#ECEEF6]/70 border border-[#C9A84C]/20 p-4 flex gap-3">
-                        <svg class="w-5 h-5 text-[#8a6e1e] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <div class="mt-5 max-w-2xl rounded-xl bg-[#ECEEF6]/70 border border-[#DA8E77]/20 p-4 flex gap-3">
+                        <svg class="w-5 h-5 text-[#A8573F] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
                         <p class="text-[12.5px] text-[#5B6A8E] leading-relaxed">Once submitted, your property will be reviewed by our team. You'll be notified by email.</p>

@@ -39,7 +39,7 @@
                     <input type="text" name="search" value="{{ $search }}"
                         placeholder="Search by name, email, or phone…" aria-label="Search by name, email, or phone"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] transition-all" />
+                        class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all" />
                 </div>
                 <x-styled-select name="role" :options="array_combine(['All', 'Admin', 'Landlord', 'Tenant'], ['All', 'Admin', 'Landlord', 'Tenant'])"
                     :selected="$role"
@@ -98,7 +98,7 @@
                                                         alt="{{ $user->first_name }}"
                                                         class="w-9 h-9 rounded-full object-cover border border-[#E2E4EC] shrink-0" />
                                                 @else
-                                                    <div class="w-9 h-9 rounded-full bg-[#C9A84C]/10 flex items-center justify-center shrink-0">
+                                                    <div class="w-9 h-9 rounded-full bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
                                                         <span class="text-[#060D26] text-[12px] font-bold">
                                                             {{ strtoupper(substr($user->first_name ?? $user->email, 0, 1)) }}{{ strtoupper(substr($user->last_name ?? '', 0, 1)) }}
                                                         </span>
@@ -128,8 +128,8 @@
                                                 @forelse ($user->roles as $userRole)
                                                     @php
                                                         $roleColors = [
-                                                            'Admin'    => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
-                                                            'Landlord' => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25',
+                                                            'Admin'    => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
+                                                            'Landlord' => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
                                                             'Tenant'   => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
                                                         ];
                                                         $cls = $roleColors[$userRole->role] ?? 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]';
@@ -190,8 +190,8 @@
                     @php
                         $legendColors = [
                             'Landlord' => '#060D26',
-                            'Tenant'   => '#C9A84C',
-                            'Admin'    => '#8a6e1e',
+                            'Tenant'   => '#DA8E77',
+                            'Admin'    => '#A8573F',
                             'No role'  => '#E2E4EC',
                         ];
                     @endphp
@@ -251,7 +251,7 @@
                     labels: @json(array_keys($roleCounts)),
                     datasets: [{
                         data: @json(array_values($roleCounts)),
-                        backgroundColor: ['#060D26', '#C9A84C', '#8a6e1e', '#E2E4EC'],
+                        backgroundColor: ['#060D26', '#DA8E77', '#A8573F', '#E2E4EC'],
                         borderWidth: 0,
                     }],
                 },

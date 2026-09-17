@@ -164,7 +164,7 @@
                                         </span>
                                         <button type="button"
                                             @click="replyOpenId = replyOpenId === {{ $review->review_id }} ? null : {{ $review->review_id }}"
-                                            class="text-[12.5px] font-semibold text-[#8a6e1e] hover:text-[#060D26] transition-colors duration-150">
+                                            class="text-[12.5px] font-semibold text-[#A8573F] hover:text-[#060D26] transition-colors duration-150">
                                             <span x-text="replyOpenId === {{ $review->review_id }} ? 'Cancel' : 'Reply'"></span>
                                         </button>
                                     @endif
@@ -180,7 +180,7 @@
                                             <input type="hidden" name="review_id" value="{{ $review->review_id }}">
                                             <textarea name="landlord_reply" rows="2" maxlength="1000" required
                                                 placeholder="Write a public reply to this review..."
-                                                class="w-full rounded-xl border border-[#5B6A8E]/25 px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/30 transition">{{ old('review_id') == $review->review_id ? old('landlord_reply') : '' }}</textarea>
+                                                class="w-full rounded-xl border border-[#5B6A8E]/25 px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">{{ old('review_id') == $review->review_id ? old('landlord_reply') : '' }}</textarea>
                                             @if(old('review_id') == $review->review_id)
                                                 @error('landlord_reply')
                                                     <p class="text-[11.5px] text-[#EF4444]">{{ $message }}</p>
@@ -196,7 +196,7 @@
 
                                 {{-- Landlord reply --}}
                                 @if($review->landlord_reply)
-                                    <div class="mt-3 pt-3 border-t border-[#5B6A8E]/10 pl-3 border-l-2 border-l-[#C9A84C]">
+                                    <div class="mt-3 pt-3 border-t border-[#5B6A8E]/10 pl-3 border-l-2 border-l-[#DA8E77]">
                                         <p class="text-[11px] font-semibold text-[#060D26] uppercase tracking-wide">Your reply</p>
                                         <p class="text-[12.5px] text-[#5B6A8E] mt-0.5 leading-relaxed">{{ $review->landlord_reply }}</p>
                                     </div>

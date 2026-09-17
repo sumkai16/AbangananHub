@@ -37,7 +37,7 @@
                     <tr>
                         <td align="center" style="padding-bottom: 40px;">
                             <a href="{{ $verificationUrl }}"
-                                style="display: inline-block; background-color: #C9A84C; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 40px; border-radius: 8px;">
+                                style="display: inline-block; background-color: #DA8E77; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 40px; border-radius: 8px;">
                                 Verify identity
                             </a>
                         </td>

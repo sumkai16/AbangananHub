@@ -31,7 +31,7 @@
             @foreach ($stats as $key => $stat)
                 <x-stat-card :label="$stat['label']" :value="$stat['value']" :value-color="$stat['valueColor']" :icon-bg="$stat['iconBg']"
                     :href="route('admin.reports.index', ['status' => $key])"
-                    :class="$status === $key ? 'ring-2 ring-[#C9A84C]' : ''">
+                    :class="$status === $key ? 'ring-2 ring-[#DA8E77]' : ''">
                     <x-slot:icon>
                         @switch($key)
                             @case('Pending')
@@ -59,7 +59,7 @@
             @foreach (['Pending', 'Resolved', 'All'] as $tab)
                 <a href="{{ route('admin.reports.index', ['status' => $tab]) }}"
                     class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                        {{ $status === $tab ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                        {{ $status === $tab ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                     {{ $tab }}
                     <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
                 </a>
@@ -69,7 +69,7 @@
         @if ($reports->isEmpty())
             <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                 <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-7 h-7 text-[#8a6e1e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <svg class="w-7 h-7 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                     </svg>
@@ -124,7 +124,7 @@
                             <p class="text-[13px] text-[#5B6A8E]">{{ $report->created_at->format('M d, Y') }}</p>
                         </div>
 
-                        <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#8a6e1e] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#A8573F] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>
