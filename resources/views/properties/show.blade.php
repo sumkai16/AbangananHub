@@ -20,33 +20,10 @@
         $maxFee = $availableUnits->max('rental_fee');
 
         // Building-wide amenities (Wi-Fi, CCTV, parking) live on the property
-        // itself now (property_amenities). Per-unit amenities (AC, private
-        // bathroom) still vary by room, so that list stays derived from what
-        // approved units actually offer — counting the units carrying each
-        // one lets the section say "some units" instead of implying the
-        // whole property has something only one room does.
+        // itself (property_amenities). Per-unit amenities (AC, private
+        // bathroom) are shown per unit card / slideout instead, since they
+        // vary by room and an aggregated list here would just repeat that.
         $buildingAmenities = $property->amenities->pluck('amenity_name')->sort(SORT_NATURAL | SORT_FLAG_CASE)->values();
-
-        $amenityUnitCounts = [];
-        foreach ($approvedUnits as $unit) {
-            foreach ($unit->amenities->pluck('amenity_name')->unique() as $amenityName) {
-                $amenityUnitCounts[$amenityName] = ($amenityUnitCounts[$amenityName] ?? 0) + 1;
-            }
-        }
-        ksort($amenityUnitCounts, SORT_NATURAL | SORT_FLAG_CASE);
-
-        $offeredAmenities = collect($amenityUnitCounts)
-            ->map(fn($unitsWithIt, $name) => [
-                'name' => $name,
-                'inEveryUnit' => $unitsWithIt === $approvedUnits->count(),
-            ])
-            ->values();
-
-        // The "Some units" tag only means something next to an untagged row.
-        // When no amenity is in every unit it would land on all of them and
-        // distinguish nothing — the section's subtitle already says the list
-        // spans units, so the tag is suppressed rather than repeated.
-        $tagPartialAmenities = $offeredAmenities->contains('inEveryUnit', true);
 
         $unitsPayload = $approvedUnits->map(function ($unit) use ($property) {
             $hasActiveReservation = auth()->check() && \App\Models\Reservation::where('unit_id', $unit->unit_id)
@@ -219,6 +196,7 @@
              editorial content, then Nearby Rentals. --}}
         <div class="flex flex-col gap-8">
 
+<<<<<<< HEAD
             {{-- ===== 1. HEADER + IMAGE GALLERY + CONTACT CARD ROW (Sept 2026) =====
                  The header (breadcrumb/badges/title/address) used to sit in its
                  own full-width row above the image+card row — since its text
@@ -309,6 +287,64 @@
                 @if($mediaCount > 0)
                     <div class="relative">
                         <div class="relative rounded-3xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group aspect-[21/9]">
+=======
+            {{-- ===== HEADER — breadcrumb only. Badges/title/location moved
+                 below the gallery (Sept 2026) to match the reference layout:
+                 photos first, full width, then the listing's name/etc. right
+                 underneath, at the top of the left grid column (level with
+                 the sticky contact card, not sitting above the whole grid).
+                 ===== --}}
+            <div>
+                <nav class="flex items-center gap-1.5 text-[13px] font-semibold text-[#5B6A8E]" aria-label="Breadcrumb">
+                    <a href="{{ url('/') }}" class="hover:text-[#060D26] transition-colors">Home</a>
+                    <span aria-hidden="true">·</span>
+                    <a href="{{ route('properties.index') }}" class="hover:text-[#060D26] transition-colors">Properties</a>
+                    <span aria-hidden="true">·</span>
+                    <span class="text-[#060D26] truncate max-w-[220px]">{{ $property->title }}</span>
+                </nav>
+            </div>
+
+            {{-- ===== IMAGE GALLERY — bento (1 big + up to 2 small), full page
+                 width (Sept 2026). Sits above the two-column grid, not inside
+                 either column, so it spans the whole page. aspect-[3/1] plus
+                 a max-h-[420px] cap keeps it from standing too tall at full
+                 width — a 4/3 bento at ~1336px stands ~1000px tall, and even
+                 21/9 (~574px) still read as too big; see DESIGN.md. --}}
+            @php
+                $mediaCount = $property->media->count();
+                // >=2 always gets the big+2-stacked bento shape — a flat 2-up
+                // row at exactly 2 photos was the odd one out next to every
+                // other gallery on the site. Only a single photo (or none)
+                // falls back to one plain tile, since there's nothing to
+                // stack beside it.
+                // lg:grid-cols-12 + lg:gap-x-8 mirror the content grid below
+                // (lg:grid-cols-12, lg:gap-8) so the right column of small
+                // tiles lines up exactly with the sticky card's edges —
+                // gap-2's row-gap still applies since gap-x-8 only overrides
+                // the column axis.
+                $galleryGridClass = match (true) {
+                    // w-full pins the grid to the full content width so only
+                    // its height defers to aspect-[3/1]/max-h — without it,
+                    // once max-h-[420px] caps the height, the browser derives
+                    // width from the ratio instead (420*3=1260px) and the
+                    // whole grid renders ~76px short of the content column,
+                    // throwing off the small-tile/sticky-card alignment above.
+                    // lg:gap-x-4 must stay equal to the content grid's own
+                    // lg:gap-x-4 below (not lg:gap-8) or that alignment
+                    // breaks again.
+                    $mediaCount >= 2 => 'grid grid-cols-3 lg:grid-cols-12 grid-rows-2 gap-2 lg:gap-x-4 aspect-[3/1] max-h-[420px] w-full',
+                    default => 'grid grid-cols-1',
+                };
+            @endphp
+            @if($mediaCount > 0)
+                <div class="relative">
+                    <div class="{{ $galleryGridClass }}">
+
+                        {{-- Big tile: same #hero-img element, same overlays,
+                             same behaviour as before — only its container
+                             changed from a standalone box to a grid cell. --}}
+                        <div class="relative rounded-2xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group {{ $mediaCount >= 2 ? 'col-span-2 lg:col-span-8 row-span-2' : 'aspect-[3/1] max-h-[420px]' }}">
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                             <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
                                 onclick="openLightboxAtHero()">
@@ -339,6 +375,14 @@
                                 Show all photos
                             </button>
 
+                            {{-- Verified status now lives on the image itself
+                                 (top-left) rather than only in the badges row
+                                 below — a document-verified property gets the
+                                 fuller popover version it always had; every
+                                 other listed property still gets a plain
+                                 "Verified" badge with a checkmark, since the
+                                 badges-row pill this replaced was unconditional
+                                 too. --}}
                             @if($property->hasVerifiedDocuments())
                                 <div class="absolute top-3 left-3 z-20" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
                                     <button type="button" @click="open = !open"
@@ -356,6 +400,13 @@
                                         <p class="text-[#5B6A8E] text-[12.5px] leading-snug">Our team has reviewed and confirmed this property's ownership documents — title, tax declaration, or business permit.</p>
                                     </div>
                                 </div>
+                            @else
+                                <span class="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 bg-[#060D26] text-[#F7F4ED] text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Verified
+                                </span>
                             @endif
 
                             {{-- ===== FAVORITE (heart) — moved here from the contact
@@ -402,14 +453,107 @@
                                 </div>
                             @endif
                         </div>
+
+                        {{-- Small tiles: photos 1 and 2 (0-indexed) — index 0
+                             is already the big tile's default photo, so it
+                             isn't repeated as a small thumb. Each keeps a
+                             fixed id="thumb-{i}"/onclick="setHero(i)" so the
+                             existing gallery script works unchanged.
+
+                             At exactly 2 total photos there's only one photo
+                             left for two slots — it's shown in both rather
+                             than collapsing the whole gallery to a flat 2-up
+                             row, so every listing keeps the same big+2-stacked
+                             shape regardless of how many photos it has.
+                             Explicit w-full h-full rather than relying on
+                             implicit grid-item stretch — a <button> is a
+                             replaced/form-control element and some engines
+                             size it to content before stretching kicks in,
+                             which read as a phantom gap next to the tiles. --}}
+                        @if($mediaCount >= 2)
+                            @php $secondThumbIndex = $mediaCount >= 3 ? 2 : 1; @endphp
+                            <button type="button" id="thumb-1" onclick="setHero(1)"
+                                class="relative block w-full h-full lg:col-span-4 overflow-hidden border-2 border-transparent transition-all">
+                                <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
+                                    class="w-full h-full object-cover">
+                            </button>
+                            <button type="button" id="thumb-2" onclick="setHero({{ $secondThumbIndex }})"
+                                class="relative block w-full h-full lg:col-span-4 overflow-hidden border-2 border-transparent transition-all">
+                                <img src="{{ $property->media->get($secondThumbIndex)->media_url }}" alt="{{ $property->title }} photo {{ $secondThumbIndex + 1 }}"
+                                    class="w-full h-full object-cover">
+                                {{-- A small corner badge, not a full-image dark
+                                     shade — the photo itself stays as visible
+                                     as thumb-1's. --}}
+                                @if($mediaCount > 3)
+                                    <span class="absolute bottom-2 right-2 bg-white/90 text-[#060D26] text-[11px] font-bold px-2 py-0.5 rounded-full pointer-events-none">
+                                        +{{ $mediaCount - 3 }}
+                                    </span>
+                                @endif
+                            </button>
+                        @endif
                     </div>
-                @else
-                    <div
-                        class="rounded-3xl bg-[#E2E4EC] aspect-[21/9] border border-dashed border-[#5B6A8E] flex flex-col items-center justify-center text-[#5B6A8E] shadow-sm">
-                        <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                </div>
+            @else
+                <div
+                    class="rounded-3xl bg-[#E2E4EC] aspect-[3/1] max-h-[420px] border border-dashed border-[#5B6A8E] flex flex-col items-center justify-center text-[#5B6A8E] shadow-sm">
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="mt-2 text-sm font-semibold">No photos available yet</p>
+                </div>
+            @endif
+
+            {{-- ===== TWO-COLUMN GRID — badges/title/location + Property
+                 details + Description...Reviews (left) beside the sticky
+                 contact card (right) (Sept 2026). Badges/title/location sit
+                 at the TOP of the left column, in the same row as the card,
+                 so the card starts level with the property name — not below
+                 it. CSS Grid, not flex, is what lets the contact card's
+                 sticky range span the combined height of BOTH rows below and
+                 detach gracefully right where that content ends, rather than
+                 sticking indefinitely. A grid item's containing block is its
+                 cell, which Grid always stretches to the row's height
+                 regardless of items-start — the opposite of the flex behavior
+                 used deliberately elsewhere (a rail that never detaches).
+                 Mobile stays a plain `flex flex-col` stack in the same DOM
+                 order as today (title block, then card, then the rest) — no
+                 reorder tricks needed. No extra top margin here (dropped the
+                 mt-4 this used to carry, Sept 2026) — stacked on top of the
+                 outer gap-8 it left ~48px between the gallery and the
+                 badges/title row, visibly more than the gap-8 used between
+                 every other section on the page. --}}
+                <div class="flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-x-4 lg:gap-y-8 lg:items-start">
+                <div class="min-w-0 lg:col-start-1 lg:col-span-8 lg:row-start-1">
+                {{-- ===== BADGES / TITLE / LOCATION — below the gallery, top
+                     of the left column (Sept 2026), level with the sticky
+                     card's top rather than sitting above the whole grid. ===== --}}
+                {{-- Property type isn't repeated here anymore — it's redundant
+                     with the "Property type" stat further down the page. --}}
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    @if($property->hasVerifiedDocuments())
+                        <span class="inline-flex items-center gap-1 bg-[#C9A84C]/10 text-[#8a6e1e] text-[11px] font-bold px-2.5 py-1 rounded-full">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Verified listing
+                        </span>
+                    @endif
+                </div>
+
+                <h1 class="font-display text-[30px] sm:text-[38px] font-normal leading-[1.12] tracking-[-0.015em] text-[#060D26] text-balance">
+                    {{ $property->title }}
+                </h1>
+
+                <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13.5px] font-medium text-[#5B6A8E]">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 shrink-0 text-[#EF4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
+<<<<<<< HEAD
                         <p class="mt-2 text-sm font-semibold">No photos available yet</p>
                     </div>
                 @endif
@@ -447,6 +591,61 @@
                 </div>
 
                 <div class="lg:basis-5/12 lg:shrink-0 lg:sticky lg:top-6 lg:self-start">
+=======
+                        {{ $property->address }}
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-[#FBBF24]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        @if($avgRating)
+                            <span class="font-bold text-[#060D26]">{{ $avgRating }}</span>
+                            <a href="#reviews" class="hover:text-[#060D26] underline underline-offset-2">
+                                {{ $reviews->count() }} {{ Str::plural('review', $reviews->count()) }}
+                            </a>
+                        @else
+                            <span>No reviews yet</span>
+                        @endif
+                    </span>
+                </div>
+
+                {{-- ===== PROPERTY DETAILS — 4 tiles in a row, not a divided
+                     row-list (Sept 2026, matching reference layout). Same 4
+                     fields as before (Property type, Living arrangement,
+                     Number of units, Security deposit) — landlord and
+                     capacity already surface elsewhere (landlord row in the
+                     contact card, occupancy in the subunit cards below), so
+                     repeating them here was redundant with the tighter list.
+                     2 cols on mobile so a tile's value never has to squeeze
+                     against 3 siblings at 375px, 4 across from `sm:` up. --}}
+                <div class="mt-6">
+                    @php
+                        $unitsRequiringDeposit = $approvedUnits->filter(fn ($u) => $u->security_deposit !== null && (float) $u->security_deposit > 0)->count();
+                        $depositLabel = match (true) {
+                            $approvedUnits->isEmpty() => '—',
+                            $unitsRequiringDeposit === 0 => 'Not required',
+                            $unitsRequiringDeposit === $approvedUnits->count() => 'Required',
+                            default => 'Varies per unit',
+                        };
+                    @endphp
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        @foreach (array_filter([
+                            ['Property type', $property->property_type],
+                            $property->living_arrangement ? ['Living arrangement', $property->living_arrangement] : null,
+                            ['Number of units', $approvedUnits->count() . ' ' . Str::plural('unit', $approvedUnits->count())],
+                            ['Security deposit', $depositLabel],
+                        ]) as [$label, $value])
+                            <div class="rounded-xl border border-[#E2E4EC] bg-white px-4 py-3.5 text-center">
+                                <p class="text-[14.5px] font-bold text-[#060D26] truncate">{{ $value }}</p>
+                                <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $label }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                </div>
+
+                <div class="lg:col-start-9 lg:col-span-4 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-24">
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                 {{-- ===== CONTACT CARD — white surface, mirroring the reference
                      mockup (Sept 2026). Was a dark navy surface per an earlier
                      analyst wireframe; the mockup's own contact rail is a plain
@@ -454,6 +653,7 @@
                      changed, only the surface and its dependent text/border
                      colors.
 
+<<<<<<< HEAD
                      Sticky (Sept 2026): the left column runs much taller than
                      this card (header + photo + property details vs. price +
                      landlord row + inquiry form), which left a large empty
@@ -462,6 +662,17 @@
                      leaving it blank — the conventional pattern for a short
                      booking/contact widget beside long listing content. --}}
                 <div class="rounded-2xl bg-white border border-[#E2E4EC] shadow-[0_10px_30px_rgba(6,13,38,0.08)] p-4 sm:p-5"
+=======
+                     top-24 (96px), not top-6: the public header (`layouts/app`,
+                     this page's `searchBar => false` variant) is a sticky
+                     `h-[64px]` bar at z-[100] — a smaller top offset stuck the
+                     card's own top edge behind/under the header as it
+                     scrolled. 96px clears the header with a visible ~32px gap.
+                     No leading `mt-6` either — that existed to match an offset
+                     from an earlier layout and would misalign the card 24px
+                     below the badges above now that both start at row 1. --}}
+                <div class="rounded-2xl bg-white border border-[#E2E4EC] shadow-[0_10px_30px_rgba(6,13,38,0.08)] p-5 sm:p-6"
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                     x-data="{ phoneRevealed: false }">
                     {{-- Price follows the unit picked in the rail, so there is one
                          source of truth rather than a hero range that can disagree
@@ -482,14 +693,39 @@
                     </p>
 
                     {{-- ===== LANDLORD ROW ===== --}}
+<<<<<<< HEAD
                     <div class="mt-4 pt-4 border-t border-[#E2E4EC] flex items-center gap-2.5">
                         <div class="w-9 h-9 shrink-0 rounded-full bg-[#C9A84C] text-[#060D26] flex items-center justify-center text-[12.5px] font-bold">
                             {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="text-[13.5px] font-bold text-[#060D26] truncate">
+=======
+                    <div class="mt-6 pt-6 border-t border-[#E2E4EC] flex items-center gap-3">
+                        {{-- Business logo when the landlord has a registered
+                             rental business (same logo_url shown on their own
+                             profile page), object-cover so it's centered/
+                             cropped to fill the circle rather than stretched
+                             — falls back to the plain initials otherwise. --}}
+                        <div class="w-11 h-11 shrink-0 rounded-full overflow-hidden bg-[#C9A84C] text-[#060D26] flex items-center justify-center text-[14px] font-bold">
+                            @if($property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url)
+                                <img src="{{ $property->landlord->rentalBusiness->logo_url }}" alt="{{ $property->landlord->rentalBusiness->business_name }}"
+                                    class="w-full h-full object-cover">
+                            @else
+                                {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
+                            @endif
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="flex items-center gap-1 text-[14.5px] font-bold text-[#060D26] truncate">
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                                 {{ trim($property->landlord->first_name . ' ' . $property->landlord->last_name) }}
+                                @if($property->hasVerifiedDocuments())
+                                    <svg class="w-3.5 h-3.5 text-[#8a6e1e] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                @endif
                             </p>
+<<<<<<< HEAD
                             {{-- Built in PHP: a directive placed immediately after a
                                  word character isn't matched by Blade's \B@ regex,
                                  so "Landlord@if(...)" renders literally and orphans
@@ -500,6 +736,9 @@
                                     : 'Landlord';
                             @endphp
                             <p class="text-[11.5px] text-[#5B6A8E]">{{ $hostLine }}</p>
+=======
+                            <p class="text-[12.5px] text-[#5B6A8E]">{{ $property->hasVerifiedDocuments() ? 'Verified Owner' : 'Owner' }} &middot; Listed since {{ $property->created_at->format('Y') }}</p>
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                         </div>
                         <a href="{{ route('landlord.profile.show', $property->landlord_id) }}"
                             class="shrink-0 text-[12.5px] font-bold text-[#8a6e1e] hover:brightness-95 transition-all">
@@ -507,6 +746,7 @@
                         </a>
                     </div>
 
+<<<<<<< HEAD
                     {{-- ===== INQUIRY PREVIEW — a visual preview of the message
                          the "Send Inquiry" button opens in the existing
                          inquireOpen modal; not a separate send path. ===== --}}
@@ -516,23 +756,58 @@
                                 Hi {{ $property->landlord->first_name }}, I am interested in your listing
                                 "{{ $property->title }}". Is it still available?
                             </p>
+=======
+                    {{-- ===== SELECTED UNIT CHIP — shows which unit the rest of
+                         the card (price, deposit, CTA) is currently about, with
+                         a way to clear it back to "no unit selected" without
+                         scrolling to the unit picker. Direct selectedUnit = null
+                         assignment rather than selectUnit(), which only ever
+                         sets a unit, never clears one. ===== --}}
+                    <div x-show="selected" x-cloak class="mt-4 pt-4 border-t border-[#E2E4EC]">
+                        <div class="flex items-center justify-between gap-2 rounded-xl bg-[#C9A84C]/10 border border-[#C9A84C]/30 px-3 py-2">
+                            <span class="flex items-center gap-1.5 min-w-0 text-[12.5px] font-semibold text-[#060D26]">
+                                <svg class="w-3.5 h-3.5 text-[#8a6e1e] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="truncate">Unit: <span x-text="selected ? selected.label : ''"></span></span>
+                            </span>
+                            <button type="button" x-on:click="selectedUnit = null"
+                                class="shrink-0 text-[#5B6A8E] hover:text-[#060D26] transition-colors cursor-pointer"
+                                aria-label="Clear selected unit">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                         </div>
-                    @endif
+                    </div>
 
                     {{-- ===== PRIMARY ACTION ===== --}}
                     <div class="mt-3 flex items-stretch gap-3">
                         @if(!auth()->check())
                             <button type="button" onclick="openAuthModal('login')"
+<<<<<<< HEAD
                                 class="flex-1 py-3.5 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-[14.5px] font-bold shadow-sm transition-all">
                                 Log in to contact landlord
                             </button>
                         @elseif($isOwner)
                             <div class="flex-1 py-3.5 text-center rounded-xl bg-[#ECEEF6] text-[#5B6A8E] text-[14.5px] font-bold cursor-not-allowed">
+=======
+                                class="flex-1 py-3 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-sm font-bold shadow-sm transition-all">
+                                Log in to contact landlord
+                            </button>
+                        @elseif($isOwner)
+                            <div class="flex-1 py-3 text-center rounded-xl bg-[#ECEEF6] text-[#5B6A8E] text-sm font-bold cursor-not-allowed">
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                                 This is your listing
                             </div>
                         @else
                             <button type="button" x-on:click="inquireOpen = true"
+<<<<<<< HEAD
                                 class="flex-1 py-3.5 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-[14.5px] font-bold shadow-sm transition-all cursor-pointer"
+=======
+                                class="flex-1 py-3 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-sm font-bold shadow-sm transition-all cursor-pointer"
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                                 x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Send Inquiry'"
                                 :disabled="selected && selected.hasActive"
                                 :class="selected && selected.hasActive ? 'opacity-60 cursor-not-allowed' : ''">
@@ -543,15 +818,38 @@
                     {{-- ===== SHOW PHONE NUMBER — only rendered when the
                          landlord has one on file; contact_number is nullable
                          (SCHEMA.md), so a walk-in-only landlord simply has no
+<<<<<<< HEAD
                          reveal button rather than a broken one. ===== --}}
                     @if(auth()->check() && !$isOwner && $property->landlord->contact_number)
                         <button type="button" x-on:click="phoneRevealed = !phoneRevealed"
                             class="mt-2.5 w-full py-2.5 rounded-xl border-2 border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-[13px] font-bold transition-all cursor-pointer flex items-center justify-center gap-2">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+=======
+                         reveal button rather than a broken one. Visible to
+                         guests too now (Sept 2026) — $isOwner is only ever
+                         true for an authenticated owner, so !$isOwner alone
+                         already covers "not logged in"; a guest tap opens the
+                         login modal instead of the Alpine reveal toggle,
+                         mirroring how Send Inquiry becomes "Log in to contact
+                         landlord" for the same audience. ===== --}}
+                    @if(!$isOwner && $property->landlord->contact_number)
+                        <button type="button"
+                            @auth
+                                x-on:click="phoneRevealed = !phoneRevealed"
+                            @else
+                                onclick="openAuthModal('login')"
+                            @endauth
+                            class="mt-3 w-full py-3 rounded-xl border-2 border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                             </svg>
-                            <span x-show="!phoneRevealed" x-cloak>Show phone number</span>
-                            <span x-show="phoneRevealed" x-cloak>{{ $property->landlord->contact_number }}</span>
+                            @auth
+                                <span x-show="!phoneRevealed" x-cloak>Show phone number</span>
+                                <span x-show="phoneRevealed" x-cloak>{{ $property->landlord->contact_number }}</span>
+                            @else
+                                <span>Show phone number</span>
+                            @endauth
                         </button>
                     @endif
 
@@ -566,7 +864,17 @@
                     @endauth
                 </div>
                 </div>
-            </div>
+
+                {{-- ===== REST OF THE LISTING — Description through Reviews
+                     (Sept 2026). Nested one level deeper, sharing the grid's
+                     left column (row 2) with the badges/title/details block
+                     above (row 1): together they give the sticky contact
+                     card's cell its full height, so the card stays pinned
+                     until this content — and this grid — ends, right before
+                     Nearby Rentals. Same flex-col gap-8 these sections
+                     already had as direct siblings of the outer container,
+                     just one level in, so spacing is unchanged. ===== --}}
+                <div class="flex flex-col gap-8 lg:col-start-1 lg:col-span-8 lg:row-start-2 min-w-0">
 
             {{-- ===== DESCRIPTION — moved above Subunits (Sept 2026), matching
                  the reference mockup's order (About this property sits right
@@ -576,6 +884,7 @@
                  subunit grid. ===== --}}
                 @if($property->description)
                     <div class="max-w-[62ch]">
+                        <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-2">About this property</h2>
                         @if(Str::length($property->description) > 220)
                             <p class="text-[15px] text-[#060D26] leading-relaxed whitespace-pre-line" x-show="!descExpanded">
                                 {{ Str::limit($property->description, 220) }}
@@ -592,6 +901,7 @@
                     </div>
                 @endif
 
+<<<<<<< HEAD
             {{-- ===== SUBUNITS IN THIS PROPERTY — full-width grid, replaces
                  the old sticky sidebar unit list. Selecting a card still
                  drives selectUnit()/selectedUnit so the contact card above
@@ -740,6 +1050,8 @@
                      divider and simply takes the full row (grid auto-placement
                      leaves the other column empty rather than stretching). --}}
                 <div class="lg:grid lg:grid-cols-2 lg:gap-x-10">
+=======
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                 @if($buildingAmenities->isNotEmpty())
                 <section id="building-amenities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Building amenities</h2>
@@ -756,6 +1068,7 @@
                 </section>
                 @endif
 
+<<<<<<< HEAD
                 @if($offeredAmenities->isNotEmpty())
                 <section id="amenities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">{{ $buildingAmenities->isNotEmpty() ? 'Room amenities' : 'What this place offers' }}</h2>
@@ -776,23 +1089,107 @@
                                         <span class="ml-1 align-middle text-[10.5px] font-semibold uppercase tracking-wide text-[#060D26] bg-[#ECEEF6] rounded px-1.5 py-0.5 whitespace-nowrap">Some units</span>
                                     @endif
                                 </span>
+=======
+                @php
+                    // Nullable columns: null means the landlord hasn't
+                    // answered utilities at all (property predates this
+                    // field, or the wizard step was skipped) — the section
+                    // only renders once there's something real to show,
+                    // "not included" included.
+                    //
+                    // Icon per field (Sept 2026) — reuses AmenityIcons' paths
+                    // where the concept already exists there (water/electricity
+                    // submeter glyphs, Wi-Fi) so the same glyph means the same
+                    // thing everywhere on the page; association fees and the
+                    // separately-metered fact aren't amenities, so those two
+                    // get one-off paths defined here instead.
+                    $utilityFields = [
+                        ['water_included', 'Water included', \App\Support\AmenityIcons::path('Submeter (Water)')],
+                        ['electricity_included', 'Electricity included', \App\Support\AmenityIcons::path('Submeter (Electricity)')],
+                        ['internet_included', 'Internet included', \App\Support\AmenityIcons::path('Wi-Fi')],
+                        ['association_fees_included', 'Association/maintenance fees included', 'M2.25 6.75h19.5a.75.75 0 0 1 .75.75v9a.75.75 0 0 1-.75.75H2.25a.75.75 0 0 1-.75-.75v-9a.75.75 0 0 1 .75-.75ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z'],
+                        ['utilities_separately_metered', 'Utilities separately metered', 'M4.5 16.5a7.5 7.5 0 1 1 15 0M12 16.5 15 12'],
+                    ];
+                    $utilitiesAnswered = collect($utilityFields)->contains(fn ($f) => $property->{$f[0]} !== null);
+                @endphp
+                @if($utilitiesAnswered)
+                <section id="utilities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
+                    <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Utilities &amp; included charges</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        @foreach($utilityFields as [$field, $label, $icon])
+                            @php $included = $property->{$field}; @endphp
+                            <div class="flex items-center gap-3 text-sm font-medium {{ $included ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 {{ $included ? 'bg-[#ECEEF6]' : 'bg-[#F7F8FC]' }}">
+                                    <svg class="w-4 h-4 {{ $included ? 'text-[#8a6e1e]' : 'text-[#94A3B8]' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
+                                    </svg>
+                                </div>
+                                <span class="min-w-0">{{ $label }} <span class="{{ $included ? 'hidden' : '' }} text-[11px] font-semibold uppercase tracking-wide">— not included</span></span>
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                             </div>
                         @endforeach
                     </div>
                 </section>
                 @endif
-                </div>
 
+<<<<<<< HEAD
                 @if(!empty($property->house_rules))
+=======
+                @php
+                    // Rules live per-unit, but tenants read them as a property
+                    // fact. Collapse each policy across the approved units:
+                    // null answers are ignored (landlord never said), and units
+                    // that disagree are surfaced as "Varies by unit" rather
+                    // than picking one unit's answer to speak for the rest.
+                    //
+                    // Icon per rule (Sept 2026) — the glyph names the rule
+                    // itself (paw/cigarette/door) and stays the same shape
+                    // whichever way the policy landed; allowed-vs-not is still
+                    // read from the icon's own color (gold vs red), same as
+                    // before. Pets and Visitors reuse AmenityIcons' existing
+                    // paw/door paths; Smoking isn't an amenity, so it gets a
+                    // one-off path here.
+                    $policyFields = [
+                        ['pets_allowed', 'Pets allowed', 'No pets', \App\Support\AmenityIcons::path('Pet Friendly')],
+                        ['smoking_allowed', 'Smoking allowed', 'No smoking', 'M2.25 15.75h14.25a2.25 2.25 0 0 1 0 4.5H2.25v-4.5ZM12.75 15.75v4.5M9 9c.75-1.5 0-2.25 0-3.75s.75-2.25 1.5-3'],
+                        ['visitors_allowed', 'Visitors allowed', 'No visitors', \App\Support\AmenityIcons::path('Visitors Allowed')],
+                    ];
+                    $houseRules = collect($policyFields)
+                        ->map(function ($f) use ($approvedUnits) {
+                            [$field, $yes, $no, $icon] = $f;
+                            $answers = $approvedUnits->pluck($field)->reject(fn ($v) => $v === null)->unique();
+                            if ($answers->isEmpty()) {
+                                return null;
+                            }
+                            $allowed = (bool) $answers->first();
+                            return [
+                                'label'   => $allowed ? $yes : $no,
+                                'allowed' => $allowed,
+                                'varies'  => $answers->count() > 1,
+                                'icon'    => $icon,
+                            ];
+                        })
+                        ->filter()
+                        ->values();
+                @endphp
+                @if($houseRules->isNotEmpty())
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                 <section id="house-rules" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">House rules</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach($property->house_rules as $rule)
                             <div class="flex items-center gap-3 text-sm text-[#060D26] font-medium">
+<<<<<<< HEAD
                                 <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center flex-shrink-0">
                                     <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24"
                                         stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+=======
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 {{ $rule['allowed'] ? 'bg-[#ECEEF6]' : 'bg-[#EF4444]/[0.07]' }}">
+                                    <svg class="w-4 h-4 {{ $rule['allowed'] ? 'text-[#8a6e1e]' : 'text-[#EF4444]' }}" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $rule['icon'] }}" />
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                                     </svg>
                                 </div>
                                 {{ $rule }}
@@ -890,6 +1287,169 @@
                     </div>
                 </section>
 
+<<<<<<< HEAD
+=======
+                {{-- ===== UNITS IN THIS PROPERTY — full-width grid, moved here
+                     (Sept 2026) to match the reference mockup's order: Amenities,
+                     then What's nearby, then the unit list, right before Similar
+                     listings. Selecting a card still drives selectUnit()/selectedUnit
+                     so the contact card up top keeps tracking the chosen unit's
+                     price/deposit. ===== --}}
+                {{-- Occupied/Reserved/Maintenance units are filtered out here —
+                     there's nothing for a tenant to do with a unit they can't
+                     contact the landlord about, so only $availableUnits render
+                     as cards. --}}
+                @if($availableUnits->count() > 0)
+                <section id="units" class="mt-10 pt-8 border-t border-[#E2E4EC]">
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-1">
+                        <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26]">Units in this property</h2>
+                        <span class="text-[13px] font-bold text-[#060D26] whitespace-nowrap">{{ $availableUnits->count() }} available</span>
+                    </div>
+                    <p class="text-sm text-[#5B6A8E] mb-4">Choose a unit to contact the landlord about</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach($availableUnits as $unit)
+                            @php
+                                $isAvailable = $unit->availability_status === 'Available';
+                                // Softened from solid saturated fills (bg-[#22C55E]
+                                // text-white, etc.) to translucent white + tinted
+                                // text — same status colors the admin panel's own
+                                // pills use (admin/units/show.blade.php), just with
+                                // a white backing instead of a light tint so it
+                                // still reads over any photo, not just a white card.
+                                $statusColors = [
+                                    'Available' => 'bg-white/90 text-[#15803D]',
+                                    'Reserved' => 'bg-white/90 text-[#B45309]',
+                                    'Occupied' => 'bg-white/90 text-[#DC2626]',
+                                    'Maintenance' => 'bg-white/90 text-[#64748B]',
+                                ];
+                            @endphp
+                            {{-- Border/ring/rounding now live on this outer wrapper
+                                 instead of the inner select-button, so the "View
+                                 this unit" button can sit inside the same card
+                                 (below the details) rather than floating below it
+                                 as a separate detached element.
+
+                                 Hover state is tracked explicitly with its own
+                                 x-data flag (Sept 2026) rather than a CSS
+                                 group-hover collapse — the group-hover +
+                                 !important max-height combo it replaced wasn't
+                                 reliably collapsing back to 0 on unhovered
+                                 cards, and this is unambiguous either way. --}}
+                            <div class="relative rounded-2xl border bg-white shadow-sm overflow-hidden transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
+                                x-data="{ hovering: false }"
+                                x-on:mouseenter="hovering = true" x-on:mouseleave="hovering = false"
+                                :class="selectedUnit === {{ $unit->unit_id }} || hovering
+                                        ? 'border-[#C9A84C] ring-1 ring-[#C9A84C]'
+                                        : '{{ $isAvailable ? 'border-[#E2E4EC]' : 'border-[#E2E4EC] cursor-not-allowed' }}'"
+                                @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
+                                {{-- Clicking the card both selects the unit
+                                     (drives the contact card's price/chip)
+                                     and opens its details slideout directly —
+                                     no longer a separate step behind the
+                                     hover-revealed "View this unit" button
+                                     below, which stays as a hover affordance
+                                     but is no longer the only way in. --}}
+                                <button type="button" x-on:click="selectUnit({{ $unit->unit_id }}); openSlideout({{ $unit->unit_id }})"
+                                    class="w-full text-left transition-all"
+                                    @if(!$isAvailable) disabled @endif>
+
+                                    {{-- Thumbnail --}}
+                                    @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
+                                    <div class="relative aspect-[16/10] bg-[#ECEEF6]">
+                                        @if($unitThumb)
+                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
+                                                class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center">
+                                                <svg class="w-8 h-8 text-[#5B6A8E]" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor" stroke-width="1.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                                                </svg>
+                                            </div>
+                                        @endif
+
+                                        @if($unit->floor)
+                                            <span class="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white drop-shadow">{{ $unit->floor }}</span>
+                                        @endif
+
+                                        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-bold px-2.5 py-1 rounded-full shadow-sm {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
+                                            {{ $unit->availability_status }}
+                                        </span>
+
+                                    </div>
+
+                                    {{-- Details --}}
+                                    <div class="p-3.5">
+                                        <p class="text-sm font-bold text-[#060D26] truncate mb-0.5">{{ $unit->unit_label }}</p>
+                                        <p class="text-xs font-medium text-[#5B6A8E] mb-2">
+                                            {{ $property->property_type }}
+                                            &middot; {{ $unit->occupancy_limit }}
+                                            {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
+                                            @if($unit->floor_area_label)
+                                                &middot; {{ $unit->floor_area_label }}
+                                            @endif
+                                        </p>
+                                        <p class="leading-tight">
+                                            <span class="text-sm font-black text-[#060D26]">₱{{ number_format($unit->rental_fee) }}</span>
+                                            <span class="text-[11px] font-semibold text-[#5B6A8E]">/ month</span>
+                                        </p>
+                                        @if($unit->amenities->isNotEmpty())
+                                            <div class="flex flex-wrap gap-1 mt-2">
+                                                @foreach($unit->amenities->take(3) as $amenity)
+                                                    <span class="text-[11px] font-semibold text-[#060D26] bg-[#ECEEF6] rounded-full px-2.5 py-0.5 truncate max-w-full">{{ $amenity->amenity_name }}</span>
+                                                @endforeach
+                                                @if($unit->amenities->count() > 3)
+                                                    <span class="text-[11px] font-semibold text-[#5B6A8E] bg-[#ECEEF6] rounded-full px-2.5 py-0.5">+{{ $unit->amenities->count() - 3 }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                        @if($isOwner && $unit->verification_status !== 'Approved')
+                                            <span class="inline-block mt-1.5 text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-[#FBBF24]/[0.10] text-[#B45309]">
+                                                Pending review — hidden from tenants
+                                            </span>
+                                        @endif
+                                    </div>
+                                </button>
+
+                                {{-- View-details entry point: collapsed to
+                                     zero height until this card's own
+                                     `hovering` flag is true — no longer tied
+                                     to selection, so it doesn't sit there
+                                     permanently once you've clicked a card.
+                                     Selection still forces it open too, since
+                                     hover has no equivalent on a touch device
+                                     and a mobile tap needs some way to reach
+                                     it. Alpine `x-show` toggling `display`
+                                     directly, not a CSS group-hover class —
+                                     see the note on the wrapper above. --}}
+                                <div class="overflow-hidden transition-all duration-200"
+                                    x-show="hovering || selectedUnit === {{ $unit->unit_id }}" x-cloak>
+                                    <div class="px-4 pb-4 pt-1">
+                                        <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
+                                            class="w-full py-2.5 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-sm font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                                            View this unit
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if($availableUnits->count() > 4)
+                        <button type="button" x-show="!moreUnits" x-on:click="moreUnits = true"
+                            class="mt-3 w-full h-11 rounded-xl border border-[#E2E4EC] bg-white text-sm font-bold text-[#060D26] hover:bg-[#F7F8FC] shadow-sm cursor-pointer transition-colors duration-200">
+                            View all units ({{ $availableUnits->count() }})
+                        </button>
+                    @endif
+                </section>
+                @endif
+
+>>>>>>> f98e3d3121001a4ce64292692532f366109be4ac
                 <section id="reviews" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26]">
@@ -1097,6 +1657,8 @@
                             </div>
                         @endforelse
                 </section>
+                </div>
+                </div>
         </div>
 
         {{-- ===== NEARBY RENTALS =====

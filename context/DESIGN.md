@@ -231,11 +231,22 @@ The page went flat first (July 2026) and became the pattern the rest of the app 
 - **Bento gallery** *(superseded — see below).* The media rail's hero-plus-5-thumbnail-strip became a 1-big-2-small `grid-cols-3 grid-rows-2` bento (big tile spans 2×2, two small tiles fill the remaining column, degrading to big-only at 1 photo and big-plus-one at 2). The big tile keeps `id="hero-img"` and the small tiles keep `id="thumb-{i}"` — everything the gallery's `@push('scripts')` IIFE does (`setHero`/`shiftHero`/`openLightboxAtHero`, arrows, "Show all photos", the Verified Property popover) works unchanged. One real JS fix was needed: the active-thumb highlight used to compare a `querySelectorAll` NodeList's *loop position* to the photo index, which only worked because thumbs 0–4 were always rendered contiguously. The bento renders a non-contiguous subset (thumb-1 and thumb-2, skipping thumb-0 since it would just repeat the big tile's own photo), so the highlight now reads the index off each element's own id instead.
 - **Grouped contact card.** Price, the deposit line, the landlord row, the Contact Landlord CTA + favourite, and the response-time note now sit inside one `<x-card>` directly under the title/meta row — previously six ungrouped sibling blocks with no panel around them, the only bordered surface on the page being the location card further down. This reorders the section from price → description → fact tiles → CTA → landlord row to price+deposit → landlord row → CTA → description → fact tiles; the reorder is the point, not a side effect.
 - **Deposit line under price.** `$unitsPayload` already carried `deposit`/`depositRaw` null-preserving — a one-line Alpine addition renders "+ ₱X security deposit" or, when the selected unit has none, an explicit **"No security deposit required"** (never ₱0, never blank).
-- **Amenity icons.** Building and Room amenities, and the unit slideout, now render a name-keyed icon (`<x-amenity-icon>` / `AmenityIcons::path()` for the two Alpine `x-for` sites) instead of one generic checkmark repeated for every amenity. Selection checkboxes and compact chip lists elsewhere are deliberately unchanged — icons belong on amenity *lists*, not on controls.
+- **Amenity icons.** Building amenities and the unit slideout (Room amenities existed at the time but was later removed, §20a) render a name-keyed icon (`<x-amenity-icon>` / `AmenityIcons::path()`) instead of one generic checkmark repeated for every amenity. Selection checkboxes and compact chip lists elsewhere are deliberately unchanged — icons belong on amenity *lists*, not on controls.
 - **Nearby rentals band**, full-bleed under both columns (still inside the page's Alpine root, so the mobile sticky-bar padding already clears it): up to 6 properties in the same `city_municipality`, same barangay sorted first, using `<x-section-header>`'s existing title/sub/"View all" pattern and the sibling-card markup already established on the landlord profile page (`landlord/profile/show.blade.php`) rather than the browse page's heavier per-card-Alpine carousel card. Omitted entirely, not padded with other cities, when none exist.
 - **The two-column split became `flex`, not `grid` (Sept 2026), so the media rail stays sticky for the whole page instead of detaching near the bottom.** With CSS Grid, a sticky item's containing block is its grid *cell*, and a grid cell is always stretched to the row's height — the tallest sibling's height — regardless of `items-start` (that only aligns the item's own box within the cell, it doesn't shrink the cell). So the rail's sticky range was bounded by the *editorial column's* height, and once scroll neared the bottom of that (much taller) column, the rail ran out of room and detached, sliding up off-screen — a jarring "catch-up" motion on a long listing. Flexbox with `items-start` does not stretch an item's own box to the line height, so the rail's containing block became its own (short, already `max-h-[calc(100vh-3rem)]`-capped) height, and it now stays pinned at `top-6` for the entire scroll. **Deliberate trade-off, decided with Axcee over the catch-up motion:** the rail can now sit on top of the Nearby Rentals band and the footer near the very bottom of a long page, rather than yielding to them. `lg:col-span-5`/`lg:col-span-7` became `lg:basis-5/12`/`lg:basis-7/12` with `lg:shrink-0` on both (flex-basis needs the shrink lock or a wide word can compress the split); `grid-cols-1` became `flex flex-col` so mobile stacking is unchanged.
 
 **Bento gallery reverted to a single wide hero (Sept 9 2026).** By this point the page had already become the `flex flex-col` top-to-bottom flow described above, so the "media rail" the bento was built for no longer existed — the gallery rendered full page width (up to the page's `max-w-[1400px]`), and the bento's `aspect-[4/3]` grid stood roughly **1050px tall**, pushing the price card, description and everything else off the fold. `properties/show.blade.php`'s gallery is now one `aspect-[21/9]` image (~570–650px tall depending on viewport), no side thumbnail tiles. Browsing the rest of the set is unchanged — the same prev/next arrows call `shiftHero()`, "Show all photos" still opens the lightbox via `openLightboxAtHero()` — only the always-visible `thumb-{i}` tiles are gone; the JS's per-thumb highlight loop (`querySelectorAll('[id^="thumb-"]')`) was dead code with no thumbs left to match, so it was removed rather than left inert. The empty-state placeholder (no photos uploaded) was changed from `aspect-[16/9]` to the same `aspect-[21/9]` so both states of the same slot share one ratio.
+
+**Bento gallery reinstated + contact card made sticky across the whole listing (Sept 2026).** Axcee asked for a reference listing layout: a big-plus-two-small gallery, and the price/host card pinned in view until Nearby Rentals. Both prior patterns above already existed in this file's history, just never at the same time in this configuration:
+- **Gallery**: the exact `grid-cols-3 grid-rows-2 gap-2 aspect-[4/3]` bento from the entry above (big tile `col-span-2 row-span-2`, `id="thumb-1"`/`id="thumb-2"` for the small tiles) is back — but now scoped to the 7/12 left column instead of the full page width, so the "~1050px tall" problem that got it reverted doesn't recur (at ~760px column width, aspect-[4/3] stands ~570px). No JS changed; `setHero`/`shiftHero`/`openLightboxAtHero` are the same generic functions. The per-thumb active-highlight logic mentioned above was never reintroduced (only 2 fixed thumbs now, not a 5-thumb strip, and the reference layout doesn't call for it) — the thumbs simply swap the hero photo when clicked.
+- **Contact card sticky range**: this required going back to a two-column split for the *entire* listing, not just the hero row — the row that pairs gallery+details with the contact card used to close right after "Property details", with Description onward stacked full-width below it, so there was nothing tall enough for the card to stick against. Description → Reviews (Subunits, Utilities, Amenities, House rules, Location, Reviews) now live nested inside the same left column, in a second grid row below gallery+details.
+- **This is Grid, not the flex the entry above deliberately switched to** — and for the opposite reason. That flex change was chosen *so a sticky rail would never detach* (accepting overlap with Nearby Rentals/the footer near the bottom of a long page). Here the goal is the reverse: the card should detach right where the content ends, not overlap Nearby Rentals. Grid's own behavior — a sticky item's containing block is its cell, which is always stretched to the row's height regardless of `items-start` — is exactly the graceful-stop mechanic wanted this time. Structure: `lg:grid lg:grid-cols-12 lg:items-start`, gallery+details `lg:col-span-7 lg:row-start-1`, the Description-through-Reviews wrapper `lg:col-span-7 lg:row-start-2`, and the card `lg:col-span-5 lg:row-span-2 lg:sticky lg:top-6` — the `row-span-2` is what makes its cell span both rows, so it stays pinned through all of it and stops exactly when row 2 ends, right before Nearby Rentals (a sibling outside this grid, unaffected).
+- **Mobile is unchanged.** The three grid children keep the same DOM order they always had (gallery+details, then card, then everything else), so a plain `flex flex-col` below `lg` reproduces today's stacking with no reorder classes needed. The existing `lg:hidden` fixed bottom bar + two-step sheet remains the actual mobile contact path either way.
+- **Incidental fix**: Subunits' grid dropped `xl:grid-cols-4` (sized for the old full-~1336px-width layout) down to capping at `lg:grid-cols-3`, since the section now lives in a ~760px column where 4 columns would run ~180px each.
+
+**Gallery pulled back out of the grid to full page width, badges/title/location moved below it (Sept 2026, same day).** The version above still confined the bento to the 7/12 left column, paired with Property details in the same block — matching the page's own established convention, but not what the reference layout actually showed: photos spanning the full width first, then the listing's name/etc. directly underneath, *then* the two-column details/contact split begins. Changed to match: the gallery (and its aspect-ratio math from the entry above — 21/9, not 4/3, still keyed to full page width) now renders between the breadcrumb and the grid, outside both columns; badges/title/h1/location moved from the top of the page to directly below the gallery. The grid itself is unchanged mechanically (still `lg:grid-cols-12`, still `row-span-2 lg:sticky lg:top-6` on the card) — its left column's row 1 now holds only the Property details card instead of gallery+details, which shortens row 1 but doesn't change the sticky math (the card's cell still spans row 1 + row 2, i.e. Property details through Reviews).
+
+**Badges/title/location moved once more — into row 1 of the grid's left column, not above the grid (Sept 2026, same day).** The version above put badges/title/location in their own full-width block between the gallery and the grid, so the card's row 1 started only once that whole block ended — visually, the sticky card began below the property name instead of level with it. Corrected per reference: badges/title/location are now the first children inside the left column's `lg:row-start-1` div, directly above the Property details card, so the card (right column, same `row-start-1`) starts flush with the "Verified" badge row. Dropped the leading `mt-6` that used to sit on the card's white surface — it existed to match a taller offset from an earlier layout and would have pushed the card 24px below the badges now that they share a row start.
 
 **A third Blade tokeniser trap, same family (Aug 21 2026): Alpine's `@error` shorthand collides with Blade's own `@error(...)` directive.** Blade reserves `@error('field') ... @enderror` for validation messages and scans for it regardless of context — writing `<img @error="failed = true">` as the Alpine `x-on:error` shorthand parses as the start of a `@error` block with no matching `@enderror`, breaking compilation for the whole file with `ParseError: unexpected end of file` (not a Blade-specific error message, so it's not obviously a Blade problem from the trace alone). Fix: spell it out as `x-on:error="..."` instead of `@error="..."` whenever the DOM event is `error` — the shorthand is the one Alpine event name that can never safely use `@`. `@click`, `@input`, etc. are fine; only `error` collides.
 
@@ -731,6 +742,22 @@ still with its own 2-column item list from §19.
   auto-placement leaves the second column empty rather than stretching the lone section across the
   full row — an acceptable edge case not worth a `lg:col-span-2` conditional for.
 
+## 20a. Room amenities section removed as redundant (Sept 2026)
+
+Axcee flagged it as duplicating information already on the page: each unit card already previews
+its own amenities (up to 3 + a `+N` overflow chip) and the unit slideout lists a selected unit's
+full amenity set. The aggregated "Room amenities" / "What this place offers" section (§20, §6e) just
+repeated that same per-unit data one level up, with a "Some units" pill standing in for what the
+per-unit views already show directly.
+
+- **Removed** the `@if($offeredAmenities...)` section and the `$amenityUnitCounts` /
+  `$offeredAmenities` / `$tagPartialAmenities` `@php` block that fed it — nothing else in the file
+  referenced them.
+- **The §20 side-by-side wrapper (`lg:grid lg:grid-cols-2`) went with it.** With only Building
+  amenities left, `Building amenities` is back to being a single full-width `<section>`, same as
+  before §20 — no wrapper needed for one column.
+- **Building amenities is unaffected** and keeps its own `mt-10 pt-8 border-t` section as before.
+
 ## 21. Favorite (heart) button moved onto the hero photo, off the contact card (Sept 9 2026)
 
 §19 fixed the heart button overflowing the contact card by giving it an explicit `w-14` instead of
@@ -821,3 +848,109 @@ bottom-sheet/modal shell already established for the `properties/show` inquiry f
   multiple categories, applying, confirming the URL/result count/chip row/badge all agree, removing
   one chip without disturbing the others, and confirming `location`/`type`/`price_max`/`sort` all
   survive a round trip through the panel untouched.
+
+## 24. Property details restyled from a divided row-list to a row of stat tiles (Sept 2026)
+
+Axcee pointed at a reference screenshot (bordered white tiles, bold value on top, muted label
+underneath, side by side in one row) and asked for Property details to be arranged that way instead
+of the `dt`/`dd` divided-row-list from §17/§18 — same 4 data points, different layout only.
+
+- **Same fields, same values** — Property type, Living arrangement (conditional), Number of units,
+  Security deposit, still computed by the identical `array_filter([...])` list. Only the markup around
+  each `[$label, $value]` pair changed, from a `<dl><dt>/<dd></dl>` row to a standalone bordered tile
+  (`rounded-xl border border-[#E2E4EC] bg-white`, bold value centered on top, `text-[12px]` muted
+  label below).
+- **`<x-card flush>` wrapper dropped** — it existed to give the `divide-y` list a shared outer border;
+  each tile now carries its own border, so the wrapper had nothing left to do.
+- **`grid grid-cols-2 sm:grid-cols-4`**, not a flat `grid-cols-4` — at 375px (tenant pages are
+  mobile-first, DESIGN.md §0b) 4 tiles across would squeeze "Living arrangement"'s value against 3
+  neighbors; 2 columns on mobile, 4 from `sm:` up matches the reference at desktop width without
+  crowding the phone layout.
+
+## 25. Utilities and House rules rows get a per-field icon, not a bare checkmark/X (Sept 2026)
+
+Both sections previously drew the exact same generic check (included/allowed) or X (not included/not
+allowed) glyph for every row — the icon carried only status, never told you at a glance which line was
+water vs. internet vs. association fees. Gave each field its own glyph, keeping status on the icon's
+*color* (gold = included/allowed, gray/red = not) exactly as before, so nothing about the status
+signal changed, only the shape underneath it.
+
+- **Reused `App\Support\AmenityIcons::path()` where the concept already has a glyph there** —
+  `water_included`/`electricity_included`/`internet_included` draw the same droplet/bolt/Wi-Fi paths
+  as `Submeter (Water)`/`Submeter (Electricity)`/`Wi-Fi` in Building/Room amenities, and
+  `pets_allowed`/`visitors_allowed` reuse `Pet Friendly`'s paw and `Visitors Allowed`'s door. Same
+  glyph, same meaning, wherever it shows up on the page.
+- **Three fields aren't amenities, so they got one-off paths defined inline** in the same `@php` block
+  that already lists each field (not a new support class, for three paths used on one page):
+  `association_fees_included` (banknote + coin), `utilities_separately_metered` (meter dial + needle),
+  `smoking_allowed` (cigarette + smoke wisp).
+- **`$utilityFields`/`$policyFields` each gained an icon element** (3rd/4th tuple slot) instead of the
+  view branching on `@if($included)`/`@if($rule['allowed'])` to pick between two fixed SVGs — one
+  `<svg>` per row now, `d="{{ $icon }}"`, with only the `class` (text color) still conditional on
+  status.
+
+## 26. Contact card landlord row — verified checkmark + "Owner · Listed since", plus a clearable selected-unit chip (Sept 2026)
+
+Axcee pointed at a reference screenshot: landlord name gets a small verified checkmark inline (not a
+separate badge), the subtitle reads "Owner · Listed since {year}" instead of "Landlord"/"Landlord ·
+Verified Host", and a pale chip below the row shows which unit is currently selected with an ✕ to
+clear it.
+
+- **Verified checkmark reuses the same checkmark-circle path** already used for the "Verified
+  listing" badge and the gallery's "Verified Property" popover, gated on the same
+  `$property->hasVerifiedDocuments()` check — one meaning, one glyph, three places on the page.
+- **`$hostLine` ("Landlord" / "Landlord · Verified Host") is gone**, replaced with a fixed "Owner ·
+  Listed since {{ $property->created_at->format('Y') }}" — the property's own listing year, not the
+  landlord's account age (no "member since" field exists on the user for this yet).
+- **New selected-unit chip** (`x-show="selected"`, so it's absent until a unit is picked): a
+  `bg-[#C9A84C]/10 border-[#C9A84C]/30` pill with the same checkmark glyph, `Unit: {{ selected.label
+  }}`, and an ✕ button. The ✕ sets `selectedUnit = null` directly rather than calling
+  `selectUnit(id)` — that function only ever *sets* a unit (and only an available one), it has no
+  path for clearing the selection back to none.
+
+## 27. "Show phone number" made visible to guests too, not just logged-in tenants (Sept 2026)
+
+Was gated on `auth()->check() && !$isOwner && contact_number` — a guest viewing the listing saw no
+phone button at all, only "Log in to contact landlord" as the primary CTA. Axcee pointed at the
+logged-in card (Send Inquiry + Show phone number stacked) and asked for the same thing while logged
+out.
+
+- **Condition dropped to `!$isOwner && contact_number`** — `$isOwner` is only ever true for an
+  authenticated landlord viewing their own listing, so `!$isOwner` alone already excludes both "not
+  logged in" and "logged in as someone else's tenant" is fine; no `auth()->check()` needed on top.
+- **Guest tap opens the login modal instead of revealing the number** — `@auth` branches the
+  button's handler: `x-on:click="phoneRevealed = !phoneRevealed"` (Alpine toggle) when logged in,
+  `onclick="openAuthModal('login')"` (same call the CTA button already uses) when not. The raw
+  `contact_number` never reaches the guest's HTML either way — only the label text differs
+  (`Show phone number` static vs. the reveal-toggle spans), so there's no leak through view-source.
+
+## 28. Unit cards — "View this unit" reveals on hover, and clicking the card opens it directly (Sept 2026)
+
+Two rounds on the same cards. First: the "View this unit" button (full-width, inside the card below
+the amenity chips) was tied to `x-show="selectedUnit === id"` — visible only after a click, permanent
+once clicked, with a visible gap reserved under unselected cards. Axcee wanted it to preview on
+**hover** instead, disappearing again when you move away, with no dead space when hidden. Second:
+after that landed, he pointed out the card itself still only *selected* a unit on click — you had to
+click once to select, then a second time on the now-revealed button to actually see the unit's
+details — and asked for one click on the card to do both.
+
+- **Hover reveal, not a permanent state**: originally built as a pure-CSS collapse (`max-h-0
+  group-hover:max-h-16 overflow-hidden`, `group` on the card wrapper) — *reverted within the same
+  round* (still Sept 2026) after Axcee reported both cards showing the button permanently regardless
+  of hover. Replaced with an explicit Alpine flag instead of chasing the CSS: `x-data="{ hovering:
+  false }"` plus `x-on:mouseenter`/`x-on:mouseleave` on the card wrapper, and the button's wrapper is
+  `x-show="hovering || selectedUnit === id"`. Unambiguous either way — `x-show` toggles `display`
+  directly rather than depending on a `group-hover` + `!important` max-height combination correctly
+  out-ranking the base `max-h-0` rule, which is what likely wasn't holding up in practice.
+- **Selection still forces it open** (`hovering || selectedUnit === id`) — hover has no equivalent on
+  a touchscreen, so a mobile tap (which calls `selectUnit`) still needs some way to reach the button
+  without a mouse.
+- **The unselected hover border changed from slate to gold** (`hover:border-[#5B6A8E]/40` static CSS
+  → `hovering` folded into the same `:class` ternary as `selectedUnit === id`) so hovering previews
+  the exact same gold border+ring the card gets once actually selected, driven by the same flag as
+  the button reveal instead of a separate, unrelated CSS-only hover tint.
+- **Clicking the card now calls both `selectUnit(id)` and `openSlideout(id)`** in the same handler —
+  one click selects the unit (drives the contact card's price/deposit/chip) *and* opens its details
+  slideout, rather than select-then-click-View being two separate steps. The hover-revealed button
+  still calls `openSlideout(id)` on its own and remains as a visible affordance, it's just no longer
+  the *only* path in.
