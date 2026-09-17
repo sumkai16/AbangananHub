@@ -37,7 +37,7 @@
     @endif
 
     {{-- ===== BROWSE ===== --}}
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: true, filtersOpen: false }">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: false, filtersOpen: false }">
 
         @if($heroStats)
             @if($areas->count() > 0)

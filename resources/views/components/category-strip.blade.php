@@ -14,8 +14,7 @@
 
 @php
     $activeType = request('type');
-    $onVerified = request()->boolean('verified');
-    $noFilter = ! $activeType && ! $onVerified;
+    $noFilter = ! $activeType;
 
     $items = [
         ['label' => 'All', 'url' => route('properties.index'), 'active' => $noFilter,
@@ -28,8 +27,6 @@
          'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'],
         ['label' => 'House', 'url' => route('properties.index', ['type' => 'House']), 'active' => $activeType === 'House',
          'icon' => 'M3 21h18M3 10.5L12 3l9 7.5M5 21V10.5M19 21V10.5M9 21v-6h6v6'],
-        ['label' => 'Verified', 'url' => route('properties.index', ['verified' => 1]), 'active' => $onVerified,
-         'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
         ['label' => 'Saved', 'url' => route('favorites.index'), 'active' => false,
          'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
     ];
