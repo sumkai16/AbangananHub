@@ -126,7 +126,7 @@ function wireDirections(map, destLat, destLng) {
         dist.textContent = `${km.toFixed(1)} km`;
 
         const dot = document.createElement('span');
-        dot.className = tooFar ? 'text-[#5B6A8E]' : 'text-[#C9A84C]';
+        dot.className = tooFar ? 'text-[#5B6A8E]' : 'text-[#B35A3D]';
         dot.setAttribute('aria-hidden', 'true');
         dot.textContent = '·';
 

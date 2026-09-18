@@ -48,7 +48,7 @@
                                         <label class="flex items-center gap-2.5 text-[14px] text-[#060D26] cursor-pointer">
                                             <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
                                                 @checked(collect($selected)->contains($amenity->amenity_id))
-                                                class="w-[18px] h-[18px] rounded-md border-[#E2E4EC] text-[#8a6e1e] focus:ring-[#C9A84C]/30 focus:ring-offset-0">
+                                                class="w-[18px] h-[18px] rounded-md border-[#E2E4EC] text-[#B35A3D] focus:ring-[#FF8A66]/30 focus:ring-offset-0">
                                             {{ $amenity->name }}
                                         </label>
                                     @endforeach
@@ -64,7 +64,7 @@
                             Back
                         </a>
                         <button type="submit"
-                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#F7F4ED] bg-[#060D26] hover:brightness-95 transition-all duration-150">
+                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all duration-150">
                             Save & Continue
                         </button>
                     </div>

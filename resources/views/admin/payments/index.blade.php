@@ -22,7 +22,7 @@
         @foreach ($stats as $key => $stat)
             <x-stat-card :label="$stat['label']" :value="$stat['value']" :sub="$stat['sub']" :value-color="$stat['valueColor']" :icon-bg="$stat['iconBg']"
                 :href="route('admin.payments.index', ['status' => $key])"
-                :class="$status === $key ? 'ring-2 ring-[#C9A84C]' : ''">
+                :class="$status === $key ? 'ring-2 ring-[#FF8A66]' : ''">
                 <x-slot:icon>
                     @switch($key)
                         @case('Held')
@@ -60,7 +60,7 @@
         @foreach (['All', 'Held', 'Released', 'Paid', 'Voided', 'Pending'] as $tab)
             <a href="{{ route('admin.payments.index', ['status' => $tab]) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $status === $tab ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                    {{ $status === $tab ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                 {{ $tab }}
                 <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
             </a>
@@ -70,7 +70,7 @@
     @if ($payments->isEmpty())
         <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
             <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-[#8a6e1e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                 </svg>
             </div>
@@ -145,7 +145,7 @@
                                         </span>
                                     @elseif ($payment->status === 'Paid')
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[11.5px] font-bold text-[#060D26]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#C9A84C]"></span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66]"></span>
                                             Recorded
                                         </span>
                                     @elseif ($payment->status === 'Voided')
@@ -172,7 +172,7 @@
                                             @csrf
                                             <button type="submit"
                                                 onclick="return confirm('Release this payment to the landlord? This cannot be undone.')"
-                                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#060D26] text-[12px] font-semibold text-[#F7F4ED] hover:brightness-95 shadow-sm transition-all duration-200 cursor-pointer">
+                                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FF8A66] text-[12px] font-semibold text-[#060D26] hover:bg-[#E96F4F] shadow-sm transition-all duration-200 cursor-pointer">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                                                 </svg>

@@ -32,8 +32,8 @@
         </div>
     </div>
 
-    <div class="mb-4 px-3.5 py-3 rounded-xl bg-[#ECEEF6] border border-[#C9A84C]/20 flex items-start gap-2.5">
-        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#C9A84C" stroke-width="2" class="shrink-0 mt-0.5">
+    <div class="mb-4 px-3.5 py-3 rounded-xl bg-[#ECEEF6] border border-[#FF8A66]/20 flex items-start gap-2.5">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="2" class="shrink-0 mt-0.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
         </svg>
         <p class="text-[12px] text-[#060D26]/70 leading-relaxed">
@@ -77,7 +77,7 @@
                 <p class="text-[13px] font-semibold text-white">Camera is off</p>
                 <p class="text-[11.5px] text-[#94A3B8] mt-0.5 mb-3">Enable your camera to capture live photos at the unit.</p>
                 <button type="button" id="camera-enable"
-                    class="h-9 px-4 inline-flex items-center gap-1.5 rounded-full bg-[#060D26] text-white text-[12.5px] font-semibold hover:brightness-95 transition-all duration-200">
+                    class="h-9 px-4 inline-flex items-center gap-1.5 rounded-full bg-[#FF8A66] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                     Enable camera
                 </button>
             </div>
@@ -95,7 +95,7 @@
     {{-- Upload panel --}}
     <div x-show="tab === 'upload'" x-cloak>
         <div id="photo-dropzone"
-            class="rounded-xl border-2 border-dashed border-[#5B6A8E]/30 bg-[#F7F8FC] px-6 py-8 text-center cursor-pointer hover:border-[#C9A84C]/60 transition-colors duration-200">
+            class="rounded-xl border-2 border-dashed border-[#5B6A8E]/30 bg-[#F7F8FC] px-6 py-8 text-center cursor-pointer hover:border-[#FF8A66]/60 transition-colors duration-200">
             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5" class="mx-auto mb-2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
             </svg>
@@ -107,7 +107,7 @@
 
     {{-- Live counter — informational only, no required minimum to hit --}}
     <div class="mt-4 flex items-center gap-2 text-[12px]">
-        <span id="live-count-badge" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold bg-[#C9A84C]/[0.08] text-[#060D26] border border-[#C9A84C]/25">
+        <span id="live-count-badge" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold bg-[#FF8A66]/[0.08] text-[#060D26] border border-[#FF8A66]/25">
             <span id="live-count">{{ $existingLiveCount }}</span> live photo(s)
         </span>
         <span id="total-count" class="text-[#5B6A8E]">0 new</span>
@@ -258,7 +258,7 @@
 
                 const sourceTag = document.createElement('span');
                 sourceTag.className = 'absolute top-1.5 left-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold '
-                    + (p.source === 'camera' ? 'bg-[#060D26] text-white' : 'bg-white/90 text-[#060D26] border border-[#E2E4EC]');
+                    + (p.source === 'camera' ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-white/90 text-[#060D26] border border-[#E2E4EC]');
                 sourceTag.textContent = p.source === 'camera' ? 'Live' : 'Upload';
                 media.appendChild(sourceTag);
 
@@ -277,7 +277,7 @@
                 cap.maxLength = 150;
                 cap.placeholder = 'Add a caption (optional)';
                 cap.setAttribute('aria-label', 'Photo caption (optional)');
-                cap.className = 'h-9 w-full rounded-lg border border-[#5B6A8E]/25 px-2.5 text-[12px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/30 transition';
+                cap.className = 'h-9 w-full rounded-lg border border-[#5B6A8E]/25 px-2.5 text-[12px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition';
                 cap.value = p.caption;
                 cap.addEventListener('input', () => { p.caption = cap.value; });
                 body.appendChild(cap);

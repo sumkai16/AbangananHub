@@ -11,11 +11,11 @@
             'overdue' => ['pill' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25', 'label' => 'Overdue'],
             'due'     => ['pill' => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]', 'label' => 'Due'],
             // A month settled before it arrived, from rent paid in advance.
-            'advance' => ['pill' => 'bg-[#ECEEF6] text-[#060D26] border-[#C9A84C]/25', 'label' => 'Paid · Advance'],
+            'advance' => ['pill' => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25', 'label' => 'Paid · Advance'],
             // Part-covered by an overpayment. Deliberately NOT the amber
             // Partial pill — a tenant is not behind on a month that has not
             // arrived, and amber would read as a demand.
-            'advance_part' => ['pill' => 'bg-[#F7F8FC] text-[#060D26] border-[#C9A84C]/20', 'label' => 'Advance · part'],
+            'advance_part' => ['pill' => 'bg-[#F7F8FC] text-[#060D26] border-[#FF8A66]/20', 'label' => 'Advance · part'],
         ];
 
         // A future period only exists in the ledger because it was paid into,
@@ -90,7 +90,7 @@
                 <div class="flex items-center gap-2 shrink-0">
                     @if($canReview)
                         <a href="{{ route('properties.show', $reservation->property) }}#reviews"
-                            class="h-11 px-4 inline-flex items-center gap-2 rounded-full bg-[#060D26] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                            class="h-11 px-4 inline-flex items-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="m11.48 3.499 1.681 3.408 3.762.545a.6.6 0 0 1 .333 1.023l-2.723 2.652.643 3.746a.6.6 0 0 1-.87.632L12 13.75l-3.306 1.755a.6.6 0 0 1-.87-.632l.643-3.746-2.723-2.652a.6.6 0 0 1 .333-1.023l3.762-.545 1.68-3.408a.6.6 0 0 1 1.08 0Z" />
@@ -139,7 +139,7 @@
 
                 {{-- Pay now --}}
                 @if($isActive && $payablePeriod)
-                    <x-card class="!bg-[#ECEEF6] !border-[#C9A84C]/25">
+                    <x-card class="!bg-[#ECEEF6] !border-[#FF8A66]/25">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <p class="text-[11px] font-bold text-[#060D26] uppercase tracking-wide mb-1">
@@ -155,7 +155,7 @@
                             <form method="POST" action="{{ route('payments.rentCheckout', $reservation) }}" class="shrink-0">
                                 @csrf
                                 <button type="submit"
-                                    class="h-11 px-6 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#060D26] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                                    class="h-11 px-6 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                                     Pay ₱{{ number_format(max(0, $payablePeriod['balance']), 2) }} now
                                 </button>
                             </form>
@@ -287,7 +287,7 @@
                                                 Recorded by landlord
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#C9A84C]/25 bg-[#ECEEF6] text-[#060D26] text-[11px] font-bold">
+                                            <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#FF8A66]/25 bg-[#ECEEF6] text-[#060D26] text-[11px] font-bold">
                                                 Paid online
                                             </span>
                                         @endif
@@ -324,7 +324,7 @@
                                                         Recorded by landlord
                                                     </span>
                                                 @else
-                                                    <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#C9A84C]/25 bg-[#ECEEF6] text-[#060D26] text-[11px] font-bold">
+                                                    <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#FF8A66]/25 bg-[#ECEEF6] text-[#060D26] text-[11px] font-bold">
                                                         Paid online
                                                     </span>
                                                 @endif
@@ -346,7 +346,7 @@
                     <dl class="space-y-2.5 text-[13px]">
                         <div class="flex items-center justify-between gap-3">
                             <dt class="text-[#5B6A8E]">Monthly rent</dt>
-                            <dd class="font-bold text-[#8a6e1e]">₱{{ number_format($summary['monthlyRent'], 2) }}</dd>
+                            <dd class="font-bold text-[#B35A3D]">₱{{ number_format($summary['monthlyRent'], 2) }}</dd>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <dt class="text-[#5B6A8E]">Moved in</dt>

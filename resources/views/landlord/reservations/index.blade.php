@@ -59,7 +59,7 @@
                 </x-slot:icon>
             </x-stat-card>
 
-            <x-stat-card label="In Progress" :value="$inProgressCount" value-color="#C9A84C" sub="Awaiting action">
+            <x-stat-card label="In Progress" :value="$inProgressCount" value-color="#FF8A66" sub="Awaiting action">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
@@ -100,7 +100,7 @@
                 <input type="text" id="reservation-search" name="search" value="{{ request('search') }}"
                     placeholder="Search by tenant, unit or property..."
                     x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                    class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200">
+                    class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-2.5">
                 <div>
@@ -123,7 +123,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="submit"
-                        class="h-10 px-4 rounded-xl bg-[#060D26] text-white text-[13px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200">
+                        class="h-10 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200">
                         Filter
                     </button>
                     @if(request()->hasAny(['search', 'property', 'from', 'to']))
@@ -176,7 +176,7 @@
                         'to' => request('to'),
                     ])) }}"
                     class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                        {{ $status === $key ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                        {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                     {{ $label }}
                     <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">
                         {{ $key === 'all' ? $counts['all'] : $counts[$key] }}
@@ -333,7 +333,7 @@
                                                 <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST">
                                                     @csrf @method('PATCH')
                                                     <button type="submit"
-                                                        class="h-8 px-3 rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                        class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                                         Accept
                                                     </button>
                                                 </form>
@@ -347,7 +347,7 @@
                                             @elseif($reservation->rental_status === 'Under Negotiation')
                                                 <button type="button"
                                                     @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}')"
-                                                    class="h-8 px-3 rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                    class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                                     Send agreement
                                                 </button>
                                                 <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
@@ -379,7 +379,7 @@
                                                         data-confirm-cancel="Not yet">
                                                         @csrf
                                                         <button type="submit"
-                                                            class="h-8 px-3 rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                            class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                                             Mark keys turned over
                                                         </button>
                                                     </form>
@@ -399,7 +399,7 @@
                                                     </span>
                                                 @else
                                                     <a href="{{ route('landlord.reservations.rateTenant', $reservation) }}"
-                                                        class="h-8 px-3 inline-flex items-center rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200 whitespace-nowrap">
+                                                        class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 whitespace-nowrap">
                                                         Rate Tenant
                                                     </a>
                                                 @endif
@@ -507,7 +507,7 @@
                                     <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST">
                                         @csrf @method('PATCH')
                                         <button type="submit"
-                                            class="h-8 px-3 rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                            class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                             Accept
                                         </button>
                                     </form>
@@ -521,7 +521,7 @@
                                 @elseif($reservation->rental_status === 'Under Negotiation')
                                     <button type="button"
                                         @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}')"
-                                        class="h-8 px-3 rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                        class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                         Send agreement
                                     </button>
                                     <form action="{{ route('landlord.reservations.reject', $reservation) }}" method="POST">
@@ -553,7 +553,7 @@
                                             data-confirm-cancel="Not yet">
                                             @csrf
                                             <button type="submit"
-                                                class="h-8 px-3 rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                                 Mark keys turned over
                                             </button>
                                         </form>
@@ -573,7 +573,7 @@
                                         </span>
                                     @else
                                         <a href="{{ route('landlord.reservations.rateTenant', $reservation) }}"
-                                            class="h-8 px-3 inline-flex items-center rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200 whitespace-nowrap">
+                                            class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 whitespace-nowrap">
                                             Rate Tenant
                                         </a>
                                     @endif
@@ -688,16 +688,16 @@
 
                     <form :action="agreementAction" method="POST">
                         @csrf @method('PATCH')
-                        <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#C9A84C]/20">
+                        <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
                             <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
                                 <input type="checkbox" name="accept_tc" required
-                                    class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#C9A84C] focus:ring-offset-0 transition">
+                                    class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
                                 <span class="text-xs text-[#060D26] leading-relaxed">
                                     I agree that the tenant's payment will be held by AbangananHub until the tenant confirms move-in. Funds will be released only after tenant verification.
                                 </span>
                             </label>
                             <button type="submit"
-                                class="w-full h-9 rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200">
+                                class="w-full h-9 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200">
                                 Confirm &amp; send agreement
                             </button>
                         </div>

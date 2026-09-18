@@ -24,7 +24,7 @@
 
 <body class="font-sans bg-[#F7F8FC] text-[#060D26] min-h-screen flex flex-col" x-data="{}">
 
-    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#060D26] focus:text-white focus:font-semibold">Skip to main content</a>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#FF8A66] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
 
     <header id="site-header" x-data="{ mobileNavOpen: false, mobileAreasOpen: false }"
         class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
@@ -38,7 +38,7 @@
                 <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub"
                     class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
-                    Abanganan<span class="text-[#060D26]">Hub</span>
+                    Abanganan<span class="text-[#FF8A66]">Hub</span>
                 </span>
             </a>
 
@@ -59,7 +59,7 @@
                 @endphp
 
                 <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-all cursor-pointer {{ $onBrowse ? 'text-[#060D26] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC]' }}">
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
                     Browse
                 </a>
 
@@ -67,7 +67,8 @@
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
-                            class="flex items-center gap-1 px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-all cursor-pointer">
+                            :class="open ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
+                            class="flex items-center gap-1 px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer">
                             Areas
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2.5" class="transition-transform duration-200 motion-reduce:transition-none"
@@ -83,7 +84,7 @@
                             class="absolute top-[calc(100%+8px)] left-0 w-[248px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E4EC] py-2 z-50 motion-reduce:transition-none">
                             @foreach($navAreas as $area => $count)
                                 <a href="{{ route('properties.index', ['location' => $area]) }}"
-                                    class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
+                                    class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] hover:text-[#B35A3D] transition-colors duration-200">
                                     <span class="truncate">{{ $area }}</span>
                                     <span class="text-[12px] font-bold text-[#5B6A8E] flex-shrink-0">{{ $count }}</span>
                                 </a>
@@ -93,7 +94,7 @@
                 @endif
 
                 <a href="{{ route('about') }}#how-it-works"
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-all cursor-pointer">
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
                     How it works
                 </a>
             </nav>
@@ -133,8 +134,8 @@
                      phone visitor reaches Browse/Areas/How it works. --}}
                 <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Menu"
                     :aria-expanded="mobileNavOpen ? 'true' : 'false'" aria-haspopup="true" aria-controls="mobile-nav-panel"
-                    :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC]'"
-                    class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/40 cursor-pointer">
+                    :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
+                    class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path x-show="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         <path x-show="mobileNavOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -200,7 +201,7 @@
                                         <a href="{{ $link['route'] }}"
                                             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
                                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#060D26] transition-colors" aria-hidden="true">
+                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}" />
                                             </svg>
                                             {{ $link['label'] }}
@@ -220,8 +221,8 @@
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                         @keydown.escape.window="close()">
                         <button type="button" @click="toggle()" aria-label="Notifications"
-                            :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC]'"
-                            class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/40 cursor-pointer">
+                            :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
+                            class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                             <span x-show="unreadCount > 0" x-cloak
                                 class="absolute top-[7px] right-[8px] w-2.5 h-2.5 rounded-full bg-[#060D26] ring-2 ring-white"></span>
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -257,14 +258,14 @@
                         $abgFullName = trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
                         // One shared row style so every item lines up and hovers identically.
                         $menuRow = 'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors';
-                        $menuIcon = 'text-[#5B6A8E] group-hover:text-[#060D26] transition-colors shrink-0';
+                        $menuIcon = 'text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200 shrink-0';
                         $menuLabel = 'px-3 pt-2.5 pb-1 text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider';
                     @endphp
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
                             :class="open ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]'"
-                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/40 cursor-pointer">
+                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                             @if(auth()->user()->profile_picture)
                                 <img src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
                                     class="w-9 h-9 rounded-full object-cover shrink-0">
@@ -308,7 +309,7 @@
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-1.5">
                                         <p class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $abgFullName }}</p>
-                                        <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#060D26] ring-1 ring-[#C9A84C]/25">{{ $abgRoleLabel }}</span>
+                                        <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#060D26] ring-1 ring-[#FF8A66]/25">{{ $abgRoleLabel }}</span>
                                     </div>
                                     <p class="text-[12px] text-[#5B6A8E] truncate mt-0.5">{{ auth()->user()->email }}</p>
                                 </div>
@@ -405,7 +406,7 @@
                         </button>
 
                         <button type="button" onclick="openAuthModal('register')"
-                            class="text-[13px] sm:text-[14px] font-bold text-white bg-[#060D26] hover:brightness-95 px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">
+                            class="text-[13px] sm:text-[14px] font-bold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">
                             Sign up
                         </button>
                     </div>
@@ -524,7 +525,7 @@
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
                 <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
-                <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#C9A84C]">Hub</span></span>
+                <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#FF8A66]">Hub</span></span>
             </a>
 
             {{-- Link columns --}}
@@ -587,7 +588,7 @@
                     &copy; {{ date('Y') }} AbangananHub. All rights reserved.
                 </p>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 text-[11px] font-semibold text-white/40">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#C9A84C]"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66]"></span>
                     Supporting UN SDG 16 &middot; Cebu, Philippines
                 </span>
             </div>
@@ -605,7 +606,7 @@
                 id="auth-modal-content">
 
                 {{-- Left brand panel (split) --}}
-                <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-[#060D26] p-8 flex-col justify-between text-white">
+                <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-[#FF8A66] p-8 flex-col justify-between text-[#060D26]">
                     <div class="pointer-events-none absolute -top-12 -right-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
                     <div class="pointer-events-none absolute bottom-10 -left-14 w-56 h-56 rounded-full bg-white/5 blur-3xl"></div>
 
@@ -648,7 +649,7 @@
                             <div class="mb-4">
                                 <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                                 <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-email"></span>
                             </div>
 
@@ -656,7 +657,7 @@
                                 <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <div class="relative">
                                     <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password" aria-label="Password"
-                                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <button type="button" onclick="toggleModalPassword('modal-login-password', this)"
                                         class="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#5B6A8E]" aria-label="Show password">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
@@ -675,14 +676,14 @@
                             <div class="flex items-center justify-between text-[13px] mb-6">
                                 <label class="flex items-center gap-2 text-[#5B6A8E] cursor-pointer select-none">
                                     <input type="checkbox" name="remember"
-                                        class="w-4 h-4 rounded text-[#8a6e1e] border-[#E2E4EC] focus:ring-[#C9A84C]">
+                                        class="w-4 h-4 rounded text-[#B35A3D] border-[#E2E4EC] focus:ring-[#FF8A66]">
                                     Remember me
                                 </label>
                                 <a href="#" onclick="openAuthModal('forgot-password'); return false;" class="text-[#060D26] font-semibold hover:underline">Forgot password?</a>
                             </div>
 
                             <button type="submit"
-                                class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md text-[15px]">
+                                class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all shadow-md text-[15px]">
                                 Login
                             </button>
                         </form>
@@ -706,14 +707,14 @@
                                 <div>
                                     <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">First Name</label>
                                     <input type="text" name="first_name" required placeholder="First name" aria-label="First name"
-                                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-first_name"></span>
                                 </div>
                                 <div>
                                     <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Last Name</label>
                                     <input type="text" name="last_name" required placeholder="Last name" aria-label="Last name"
-                                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-last_name"></span>
                                 </div>
@@ -722,7 +723,7 @@
                             <div class="mb-3">
                                 <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
                                 <input type="text" name="contact_number" required placeholder="Enter your contact number" aria-label="Contact number"
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-contact_number"></span>
                             </div>
@@ -730,25 +731,25 @@
                             <div class="mb-3">
                                 <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                                 <input type="email" name="email" required placeholder="Enter your email address" aria-label="Email address"
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-email"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <input type="password" name="password" required placeholder="Create a password" aria-label="Password"
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-password"></span>
                             </div>
 
                             <div class="mb-5">
                                 <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
                                 <input type="password" name="password_confirmation" required placeholder="Confirm your password" aria-label="Confirm password"
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                             </div>
 
                             <button type="submit"
-                                class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md text-[15px]">
+                                class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all shadow-md text-[15px]">
                                 Sign Up
                             </button>
                         </form>
@@ -771,12 +772,12 @@
                             <div class="mb-5">
                                 <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                                 <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
-                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all">
+                                    class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-forgot-password-email"></span>
                             </div>
 
                             <button type="submit"
-                                class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md text-[15px]">
+                                class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all shadow-md text-[15px]">
                                 Email Password Reset Link
                             </button>
                         </form>
@@ -795,7 +796,7 @@
                         </p>
 
                         <button type="button" onclick="openAuthModal('login')"
-                            class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md text-[15px]">
+                            class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all shadow-md text-[15px]">
                             Back to login
                         </button>
                     </div>

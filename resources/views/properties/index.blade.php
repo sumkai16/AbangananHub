@@ -9,28 +9,32 @@
          showing (see the searchBar=false above) so there's one search bar,
          not two. ===== --}}
     @if($heroStats)
-        <section class="relative min-h-[64vh] flex flex-col justify-end overflow-hidden">
+        <section class="relative min-h-[72vh] sm:min-h-[80vh] flex items-center overflow-hidden">
             <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 to-[#060D26]/80"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/35 via-[#060D26]/45 to-[#060D26]/55"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_75%_at_50%_40%,rgba(6,13,38,0.45),rgba(6,13,38,0)_70%)]"></div>
 
-            <div class="relative z-10 max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-24 pb-10">
-                <h1 class="font-display text-[32px] sm:text-[44px] font-normal leading-[1.1] text-white text-balance">
-                    Find your next home<br>in <span class="italic text-[#C9A84C]">Cebu</span>
+            <div class="relative z-10 mx-auto w-full max-w-[900px] px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
+                <p class="font-['Times_New_Roman',_Georgia,_serif] text-[11px] sm:text-[12.5px] font-medium uppercase tracking-[0.2em] text-white/90">
+                    Your Next Place Starts Here
+                </p>
+                <h1 class="mt-4 sm:mt-5 font-['Times_New_Roman',_Georgia,_serif] text-[40px] sm:text-[54px] lg:text-[64px] font-semibold leading-[1.15] text-white text-balance">
+                    Find a place to call home in <span class="text-[#FF8A66]">Cebu</span>
                 </h1>
-                <p class="mt-2 text-white/70 text-[15px] sm:text-base font-light max-w-md">
-                    Apartments, rooms, boarding houses &amp; condos &mdash; all verified.
+                <p class="mt-5 sm:mt-6 mx-auto max-w-xl text-white/90 text-[15px] sm:text-[17px] font-light">
+                    Verified apartments, rooms, boarding houses, and condos &mdash; all in one place.
                 </p>
 
-                <div class="mt-6">
+                <div class="mt-8 sm:mt-10 flex justify-center">
                     <x-search-pill variant="hero" />
                 </div>
 
-                <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[13px] text-white/70">
-                    <span>{{ $heroStats['listings'] }} {{ Str::plural('listing', $heroStats['listings']) }} live</span>
+                <div class="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[13px] text-white/80">
+                    <span>{{ $heroStats['units'] }}+ available units</span>
                     <span class="hidden sm:inline" aria-hidden="true">&middot;</span>
-                    <span>{{ $heroStats['units'] }} {{ Str::plural('unit', $heroStats['units']) }} available now</span>
+                    <span>Verified landlords</span>
                     <span class="hidden sm:inline" aria-hidden="true">&middot;</span>
-                    <span>Every landlord ID-verified</span>
+                    <span>Across Cebu</span>
                 </div>
             </div>
         </section>
@@ -64,8 +68,8 @@
                 {{-- ===== POPULAR PLACES TO STAY ===== --}}
                 <div class="mb-12">
                     <div class="flex items-center gap-2.5 mb-1.5">
-                        <div class="h-px w-4 bg-[#C9A84C]"></div>
-                        <span class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#8a6e1e]">Top rated</span>
+                        <div class="h-px w-4 bg-[#FF8A66]"></div>
+                        <span class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#B35A3D]">Top rated</span>
                     </div>
                     <x-section-header title="Popular places to stay" />
                     {{-- A different card treatment than the main grid's borderless
@@ -111,7 +115,7 @@
                                         </div>
                                         <div class="text-right shrink-0">
                                             @if($availableCount > 0)
-                                                <p class="text-[11px] font-semibold text-[#8a6e1e]">
+                                                <p class="text-[11px] font-semibold text-[#B35A3D]">
                                                     {{ $availableCount }} {{ Str::plural('unit', $availableCount) }} free
                                                 </p>
                                             @endif
@@ -137,7 +141,7 @@
 
                 @if(request('location'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -157,7 +161,7 @@
 
                 @if(request('type'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -176,7 +180,7 @@
 
                 @if(request('price_max'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -195,7 +199,7 @@
 
                 @if(request('verified'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
                             aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -213,7 +217,7 @@
 
                 @foreach($selectedAmenities as $amenity)
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#C9A84C]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
                         {{ $amenity->name }}
                         {{-- Removing one amenity out of amenities[]=1&amenities[]=2 isn't
                              a plain fullUrlWithoutQuery (that drops the whole key) — rebuild
@@ -267,7 +271,7 @@
                     </svg>
                     Filters
                     @if($activeFilterCount > 0)
-                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#060D26] text-[#F7F4ED] text-[10px] font-bold">{{ $activeFilterCount }}</span>
+                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#FF8A66] text-[#060D26] text-[10px] font-bold">{{ $activeFilterCount }}</span>
                     @endif
                 </button>
 
@@ -334,7 +338,7 @@
                         <label class="flex items-center gap-2.5 text-[14px] text-[#060D26] cursor-pointer">
                             <input type="checkbox" name="verified" value="1"
                                 @checked(request()->boolean('verified'))
-                                class="w-[18px] h-[18px] rounded-md border-[#E2E4EC] text-[#8a6e1e] focus:ring-[#C9A84C]/30 focus:ring-offset-0">
+                                class="w-[18px] h-[18px] rounded-md border-[#E2E4EC] text-[#B35A3D] focus:ring-[#FF8A66]/30 focus:ring-offset-0">
                             Verified listings only
                         </label>
 
@@ -347,7 +351,7 @@
                                             <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
                                                 @checked(in_array($amenity->amenity_id, (array) request('amenities', [])))
                                                 class="peer sr-only">
-                                            <span class="inline-flex items-center px-3.5 py-1.5 rounded-full border border-[#E2E4EC] bg-white text-[13px] font-semibold text-[#5B6A8E] peer-checked:border-[#060D26] peer-checked:bg-[#060D26] peer-checked:text-[#F7F4ED] transition-all">
+                                            <span class="inline-flex items-center px-3.5 py-1.5 rounded-full border border-[#E2E4EC] bg-white text-[13px] font-semibold text-[#5B6A8E] peer-checked:border-[#060D26] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all">
                                                 {{ $amenity->name }}
                                             </span>
                                         </label>
@@ -362,7 +366,7 @@
                                 Clear
                             </a>
                             <button type="submit"
-                                class="ml-auto px-5 py-2.5 rounded-xl text-sm font-bold text-[#F7F4ED] bg-[#060D26] hover:brightness-95 transition-all duration-150 cursor-pointer">
+                                class="ml-auto px-5 py-2.5 rounded-xl text-sm font-bold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all duration-150 cursor-pointer">
                                 Apply filters
                             </button>
                         </div>
@@ -374,12 +378,12 @@
         {{-- MOBILE LIST/MAP TOGGLE — desktop shows both columns, this is mobile-only --}}
         <div class="flex lg:hidden gap-2 mb-5">
             <button type="button" @click="mobileView = 'list'"
-                :class="mobileView === 'list' ? 'bg-[#060D26] text-[#F7F4ED]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
+                :class="mobileView === 'list' ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition cursor-pointer">
                 List
             </button>
             <button type="button" @click="mobileView = 'map'"
-                :class="mobileView === 'map' ? 'bg-[#060D26] text-[#F7F4ED]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
+                :class="mobileView === 'map' ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition cursor-pointer">
                 Map
             </button>

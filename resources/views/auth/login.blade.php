@@ -9,7 +9,7 @@
         <div class="max-w-xl mx-auto">
             <h1 class="text-3xl font-normal text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
-                for Verified Rental <span class="italic text-[#C9A84C]">Properties.</span>
+                for Verified Rental <span class="italic text-[#FF8A66]">Properties.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
@@ -18,7 +18,7 @@
             <div class="space-y-3">
                 {{-- Feature 1 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20">
+                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
@@ -31,7 +31,7 @@
 
                 {{-- Feature 2 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20">
+                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
@@ -44,7 +44,7 @@
 
                 {{-- Feature 3 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20">
+                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
@@ -57,7 +57,7 @@
 
                 {{-- Feature 4 (SDG 16 integrated clean into list container) --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#C9A84C] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#C9A84C]/20 select-none">
+                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20 select-none">
                         <span class="text-[#060D26] text-[8px] font-black tracking-tighter leading-none">SDG</span>
                         <span class="text-[#060D26] text-xs font-black leading-none mt-0.5">16</span>
                     </div>
@@ -105,7 +105,7 @@
                 <div>
                     <label for="email" class="block text-xs font-bold text-[#060D26] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                 </div>
 
                 {{-- Password Input --}}
@@ -113,7 +113,7 @@
                     <label for="password" class="block text-xs font-bold text-[#060D26] mb-1">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                         <button type="button" onclick="togglePassword('password', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -127,7 +127,7 @@
                 {{-- Remember Me & Forgot Password Layout --}}
                 <div class="flex items-center justify-between pt-0.5">
                     <label class="flex items-center gap-2 text-xs text-[#5E6968] font-semibold cursor-pointer select-none">
-                        <input type="checkbox" name="remember" class="rounded border-[#E2E4EC] text-[#8a6e1e] focus:ring-[#C9A84C] transition-colors w-3.5 h-3.5" />
+                        <input type="checkbox" name="remember" class="rounded border-[#E2E4EC] text-[#B35A3D] focus:ring-[#FF8A66] transition-colors w-3.5 h-3.5" />
                         Remember me
                     </label>
                     @if (Route::has('password.request'))
@@ -139,7 +139,7 @@
 
                 {{-- Action Submission Button --}}
                 <div class="pt-1">
-                    <button type="submit" class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
+                    <button type="submit" class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
                         Login
                     </button>
                 </div>

@@ -21,7 +21,7 @@
                 </div>
             </div>
             <a href="{{ route('properties.create') }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#060D26] hover:brightness-95 text-white text-sm font-semibold shadow-sm transition-all duration-200 shrink-0">
+                class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold shadow-sm transition-all duration-200 shrink-0">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
@@ -82,7 +82,7 @@
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..." aria-label="Search by property name or address"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -97,7 +97,7 @@
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                     <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#060D26] text-white text-[13.5px] font-semibold hover:brightness-95 transition-all duration-200 inline-flex items-center gap-1.5">
+                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                         </svg>
@@ -162,7 +162,7 @@
                 <p class="text-sm text-[#5B6A8E] mt-1 max-w-xs">Add your first property to start receiving reservations from
                     tenants.</p>
                 <a href="{{ route('properties.create') }}"
-                    class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-full bg-[#060D26] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200">
+                    class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
@@ -245,7 +245,7 @@
                                     </p>
                                 </div>
                                 <span
-                                    class="shrink-0 text-[11px] font-medium text-[#8a6e1e] border border-[#C9A84C]/40 rounded-full px-2.5 py-0.5 mt-0.5">
+                                    class="shrink-0 text-[11px] font-medium text-[#B35A3D] border border-[#FF8A66]/40 rounded-full px-2.5 py-0.5 mt-0.5">
                                     {{ $property->property_type }}
                                 </span>
                             </div>
@@ -275,7 +275,7 @@
                             <div class="flex items-center gap-2 pt-1 mt-auto">
                                 @if($property->isDraft())
                                     <a href="{{ route('properties.wizard.resume', $property) }}"
-                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200">
+                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                                         </svg>
@@ -296,7 +296,7 @@
                                     </form>
                                 @else
                                     <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#C9A84C] text-[#8a6e1e] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
+                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -365,7 +365,7 @@
                                             </div>
                                             <div class="min-w-0">
                                                 <a href="{{ route('landlord.properties.show', $property) }}"
-                                                    class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#8a6e1e] transition-colors duration-200">
+                                                    class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#B35A3D] transition-colors duration-200">
                                                     {{ $property->title }}
                                                 </a>
                                                 <p class="text-[11.5px] text-[#5B6A8E] truncate max-w-[240px]">{{ $property->address }}</p>
@@ -407,7 +407,7 @@
                                         <div class="flex items-center justify-end gap-1.5">
                                             @if($property->isDraft())
                                                 <a href="{{ route('properties.wizard.resume', $property) }}"
-                                                    class="h-8 px-3 inline-flex items-center rounded-lg bg-[#060D26] text-white text-[12px] font-semibold hover:brightness-95 transition-all duration-200 whitespace-nowrap">
+                                                    class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 whitespace-nowrap">
                                                     Continue Setup
                                                 </a>
                                                 <form method="POST" action="{{ route('properties.destroy', $property) }}"
@@ -425,7 +425,7 @@
                                                 </form>
                                             @else
                                                 <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#C9A84C] text-[#8a6e1e] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
+                                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
                                                     View Units
                                                 </a>
                                                 <a href="{{ route('properties.edit', $property) }}" aria-label="Edit property"

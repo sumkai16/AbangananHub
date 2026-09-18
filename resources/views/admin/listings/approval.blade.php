@@ -34,7 +34,7 @@
         @endphp
         @foreach ($stats as $key => $stat)
             <a href="{{ route('admin.listings.approval', ['status' => $key]) }}"
-                class="bg-white border border-[#E2E4EC] rounded-2xl px-4 py-3.5 shadow-[0_1px_3px_rgba(6,13,38,0.06)] transition-all duration-200 hover:shadow-xl {{ $status === $key ? 'ring-2 ring-[#C9A84C]' : '' }}">
+                class="bg-white border border-[#E2E4EC] rounded-2xl px-4 py-3.5 shadow-[0_1px_3px_rgba(6,13,38,0.06)] transition-all duration-200 hover:shadow-xl {{ $status === $key ? 'ring-2 ring-[#FF8A66]' : '' }}">
                 <div class="flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full {{ $stat['dot'] }}"></span>
                     <p class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">{{ $stat['label'] }}</p>
@@ -49,7 +49,7 @@
         @foreach (['Pending', 'Approved', 'Rejected', 'Suspended', 'All'] as $tab)
             <a href="{{ route('admin.listings.approval', ['status' => $tab]) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                    {{ $status === $tab ? 'border-[#C9A84C] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                    {{ $status === $tab ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                 {{ $tab }}
                 <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
             </a>
@@ -60,7 +60,7 @@
     @if ($pendingListings->isEmpty())
         <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
             <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-[#8a6e1e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
@@ -94,7 +94,7 @@
                             <img src="{{ $thumb }}" alt="{{ $property->title }}" class="w-full h-full object-cover" />
                         @else
                             <div class="w-full h-full flex items-center justify-center">
-                                <svg class="w-7 h-7 text-[#8a6e1e]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <svg class="w-7 h-7 text-[#B35A3D]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                 </svg>
                             </div>
@@ -178,7 +178,7 @@
                                     data-confirm-message="It will become visible to tenants again immediately.">
                                     @csrf
                                     <button type="submit"
-                                        class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(6,13,38,0.35)] cursor-pointer">
+                                        class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(6,13,38,0.35)] cursor-pointer">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                         </svg>

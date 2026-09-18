@@ -31,19 +31,19 @@
 
                     <div class="flex flex-wrap items-center gap-2 mt-2.5">
                         <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#060D26] bg-[#ECEEF6] rounded-full pl-2 pr-3 py-1">
-                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#8a6e1e" stroke-width="2" class="shrink-0">
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="2" class="shrink-0">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
                             </svg>
                             {{ $totalProperties }} {{ Str::plural('property', $totalProperties) }}
                         </span>
                         <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#060D26] bg-[#ECEEF6] rounded-full pl-2 pr-3 py-1">
-                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#8a6e1e" stroke-width="2" class="shrink-0">
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="2" class="shrink-0">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
                             </svg>
                             {{ $totalUnits }} {{ Str::plural('unit', $totalUnits) }}
                         </span>
                         <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#060D26] bg-[#ECEEF6] rounded-full pl-2 pr-3 py-1">
-                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#8a6e1e" stroke-width="2" class="shrink-0">
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="2" class="shrink-0">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                             </svg>
                             {{ $totalTenants }} {{ Str::plural('tenant', $totalTenants) }}
@@ -51,7 +51,7 @@
                     </div>
                 </div>
                 <a href="{{ route('properties.create') }}"
-                    class="shrink-0 inline-flex items-center gap-1.5 bg-[#060D26] text-[#F7F4ED] text-[13px] font-semibold rounded-xl px-3 sm:px-4 py-2.5 shadow-sm shadow-[#060D26]/30 hover:brightness-95 hover:-translate-y-0.5 transition-all duration-200">
+                    class="shrink-0 inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-3 sm:px-4 py-2.5 shadow-sm shadow-[#060D26]/30 hover:bg-[#E96F4F] hover:-translate-y-0.5 transition-all duration-200">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
@@ -179,7 +179,7 @@
                         <h2 class="font-heading text-[15px] font-normal text-[#060D26]">Your properties</h2>
                     </div>
                     <a href="{{ route('landlord.properties.index') }}"
-                        class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#8a6e1e] hover:text-[#060D26] transition-colors duration-200">
+                        class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200">
                         Manage all
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -199,7 +199,7 @@
                         <p class="text-[13px] text-[#5B6A8E] mt-1 mb-4">Approved properties will show up here with live
                             occupancy stats.</p>
                         <a href="{{ route('properties.create') }}"
-                            class="inline-flex items-center gap-1.5 bg-[#060D26] text-[#F7F4ED] text-[13px] font-semibold rounded-xl px-4 py-2.5 hover:brightness-95 transition">
+                            class="inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 py-2.5 hover:bg-[#E96F4F] transition">
                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
@@ -271,7 +271,7 @@
                         @endforeach
                         @if($properties->count() > 5)
                             <a href="{{ route('landlord.properties.index') }}"
-                                class="block text-center py-3 text-[12.5px] font-semibold text-[#8a6e1e] hover:text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-150">
+                                class="block text-center py-3 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-150">
                                 and {{ $properties->count() - 5 }} more
                             </a>
                         @endif
@@ -292,7 +292,7 @@
                         <h2 class="font-heading text-[15px] font-normal text-[#060D26]">Recent activity</h2>
                     </div>
                     <a href="{{ route('landlord.reservations.index') }}"
-                        class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#8a6e1e] hover:text-[#060D26] transition-colors duration-200">
+                        class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200">
                         View all
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -322,13 +322,13 @@
                                         'Occupied' => 'bg-[#EF4444]',
                                         'Rejected', 'Cancelled' => 'bg-[#EF4444]',
                                         'Completed' => 'bg-[#5B6A8E]',
-                                        default => 'bg-[#C9A84C]',
+                                        default => 'bg-[#FF8A66]',
                                     };
                                 @endphp
                                 <div class="flex items-start gap-3 p-4 hover:bg-[#F7F8FC] transition-colors duration-150">
                                     <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ $isReservation ? 'bg-[#ECEEF6]' : 'bg-[#22C55E]/[0.07]' }}">
                                         @if($isReservation)
-                                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#8a6e1e" stroke-width="2">
+                                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                             </svg>

@@ -30,7 +30,7 @@
                         </p>
                     </div>
                     <a href="{{ route('landlord.properties.units.create', $property) }}?from=wizard"
-                        class="inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#060D26] text-[#F7F4ED] text-sm font-semibold hover:brightness-95 transition-all duration-200 shrink-0">
+                        class="inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 shrink-0">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
@@ -42,14 +42,14 @@
                     @if($property->units->isEmpty())
                         <div class="border border-dashed border-[#E2E4EC] rounded-2xl p-10 text-center">
                             <div class="w-12 h-12 rounded-xl bg-[#ECEEF6] flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-6 h-6 text-[#8a6e1e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <svg class="w-6 h-6 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6z" />
                                 </svg>
                             </div>
                             <p class="text-[14px] font-semibold text-[#060D26]">No units added yet</p>
                             <p class="text-[13px] text-[#5B6A8E] mt-1 mb-5">This listing can't be submitted without at least one.</p>
                             <a href="{{ route('landlord.properties.units.create', $property) }}?from=wizard"
-                                class="inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#060D26] text-[#F7F4ED] text-sm font-semibold hover:brightness-95 transition-all duration-200">
+                                class="inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                                 Add Unit
                             </a>
                         </div>
@@ -107,12 +107,12 @@
                         </a>
                         @if($checklist['units']['complete'])
                             <a href="{{ route('properties.wizard.review', $property) }}"
-                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#F7F4ED] bg-[#060D26] hover:brightness-95 transition-all duration-150">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all duration-150">
                                 Continue to Review
                             </a>
                         @else
                             <button type="button" disabled title="Add at least one unit to continue"
-                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#F7F4ED] bg-[#060D26] opacity-40 cursor-not-allowed">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-[#FF8A66] opacity-40 cursor-not-allowed">
                                 Continue to Review
                             </button>
                         @endif

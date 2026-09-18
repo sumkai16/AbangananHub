@@ -27,7 +27,7 @@
             @if($isLandlord && $landlordProperties->isNotEmpty())
                 <div class="relative" x-data="{ filterOpen: false }">
                     <button @click="filterOpen = !filterOpen" type="button"
-                        class="flex h-10 items-center gap-2 rounded-xl border border-[#CBD5E1] bg-white px-4 text-[13px] font-medium text-[#060D26] shadow-[0_6px_18px_rgba(6,13,38,0.04)] transition hover:border-[#C9A84C]/50 hover:bg-[#F7F8FC] focus:outline-none">
+                        class="flex h-10 items-center gap-2 rounded-xl border border-[#CBD5E1] bg-white px-4 text-[13px] font-medium text-[#060D26] shadow-[0_6px_18px_rgba(6,13,38,0.04)] transition hover:border-[#FF8A66]/50 hover:bg-[#F7F8FC] focus:outline-none">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
@@ -76,7 +76,7 @@
                     @foreach ($tabs as $key => $tab)
                                 <a href="{{ route('conversations.index', array_filter(['status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
                                     class="flex-1 rounded-t-xl border-b-2 py-2.5 text-center text-[12px] font-semibold transition-all
-                                        {{ $status === $key ? 'border-[#C9A84C] bg-white text-[#060D26] shadow-[0_-2px_0_rgba(201,168,76,0.1)]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                                        {{ $status === $key ? 'border-[#FF8A66] bg-white text-[#060D26] shadow-[0_-2px_0_rgba(255, 138, 102,0.1)]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                                     {{ $tab['label'] }}
                                     @if($tab['count'] > 0)
                                         <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $tab['count'] }}</span>
@@ -98,7 +98,7 @@
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Search by person or property..." aria-label="Search by person or property"
                             x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                            class="w-full rounded-xl border border-[#E2E4EC] bg-white py-2.5 pl-8 pr-3 text-[12px] text-[#060D26] placeholder-[#94A3B8] shadow-[0_4px_10px_rgba(6,13,38,0.02)] transition focus:border-[#C9A84C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20" />
+                            class="w-full rounded-xl border border-[#E2E4EC] bg-white py-2.5 pl-8 pr-3 text-[12px] text-[#060D26] placeholder-[#94A3B8] shadow-[0_4px_10px_rgba(6,13,38,0.02)] transition focus:border-[#FF8A66] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20" />
                     </form>
                 </div>
 
@@ -140,11 +140,11 @@
 
                         <button type="button" @click="loadConversation({{ $conversation->conversation_id }})"
                             class="group flex w-full items-start gap-3 border-b border-[#E2E4EC] px-4 py-3.5 text-left transition-all duration-200 hover:bg-[#F8FAFC]"
-                            :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#ECEEF6] shadow-[inset_2px_0_0_#C9A84C]' : 'bg-white'"
+                            :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#ECEEF6] shadow-[inset_2px_0_0_#FF8A66]' : 'bg-white'"
                             data-conversation-id="{{ $conversation->conversation_id }}">
 
                             <div
-                                class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#DBF6F4] to-[#C7F0EF] text-[11px] font-bold text-[#060D26] shadow-[0_8px_18px_rgba(201,168,76,0.12)]">
+                                class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#DBF6F4] to-[#C7F0EF] text-[11px] font-bold text-[#060D26] shadow-[0_8px_18px_rgba(255, 138, 102,0.12)]">
                                 {{ strtoupper(substr($otherParty->first_name, 0, 1)) }}
                             </div>
 
@@ -182,12 +182,12 @@
                             </div>
 
                             @if($hasUnread)
-                                <div data-unread-dot class="mt-2 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#060D26] shadow-[0_0_0_3px_rgba(201,168,76,0.15)]"></div>
+                                <div data-unread-dot class="mt-2 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#060D26] shadow-[0_0_0_3px_rgba(255, 138, 102,0.15)]"></div>
                             @endif
                         </button>
                     @empty
                         <div class="px-4 py-12 text-center">
-                            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(201,168,76,0.12)]">
+                            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(255, 138, 102,0.12)]">
                                 <svg class="h-6 w-6 text-[#060D26]" fill="none" stroke="currentColor"
                                     stroke-width="1.5" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -200,7 +200,7 @@
                             </p>
                             @if(!$isLandlord)
                                 <a href="{{ route('properties.index') }}"
-                                    class="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#060D26] px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_10px_20px_rgba(201,168,76,0.25)] transition hover:brightness-95">
+                                    class="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#FF8A66] px-4 py-2 text-[12.5px] font-semibold text-[#060D26] shadow-[0_10px_20px_rgba(255, 138, 102,0.25)] transition hover:bg-[#E96F4F]">
                                     Browse properties
                                 </a>
                             @endif
@@ -231,7 +231,7 @@
                 {{-- Empty state --}}
                 <div x-show="!activeId" class="flex flex-1 items-center justify-center bg-gradient-to-br from-[#F8FBFC] via-white to-[#F5FBFB]">
                     <div class="text-center">
-                        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[22px] bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(201,168,76,0.12)]">
+                        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[22px] bg-gradient-to-br from-[#DCF7F5] to-[#D7F0F7] shadow-[0_12px_24px_rgba(255, 138, 102,0.12)]">
                             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />

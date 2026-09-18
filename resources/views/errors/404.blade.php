@@ -38,7 +38,7 @@
         </p>
 
         <a href="{{ url('/') }}"
-            class="inline-flex items-center gap-2 mt-8 px-6 py-3 bg-[#060D26] text-[#F7F4ED] rounded-xl text-[14.5px] font-bold shadow-[0_4px_14px_rgba(6,13,38,0.28)] hover:brightness-95 transition-all">
+            class="inline-flex items-center gap-2 mt-8 px-6 py-3 bg-[#FF8A66] text-[#060D26] rounded-xl text-[14.5px] font-bold shadow-[0_4px_14px_rgba(6,13,38,0.28)] hover:bg-[#E96F4F] transition-all">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>

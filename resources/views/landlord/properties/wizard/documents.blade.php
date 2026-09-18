@@ -65,7 +65,7 @@
 
                     @if($availableOptionalTypes->isNotEmpty())
                         <button type="button" x-show="!addingOptional" @click="addingOptional = true"
-                            class="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl border border-dashed border-[#E2E4EC] hover:border-[#C9A84C] hover:bg-[#F7F8FC] text-[12.5px] font-semibold text-[#060D26] transition-colors duration-150">
+                            class="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl border border-dashed border-[#E2E4EC] hover:border-[#FF8A66] hover:bg-[#F7F8FC] text-[12.5px] font-semibold text-[#060D26] transition-colors duration-150">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
@@ -83,7 +83,7 @@
                                 <div class="flex flex-wrap items-center gap-3">
                                     <input type="file" name="file" required accept=".pdf,.jpg,.jpeg,.png,.webp"
                                         class="flex-1 min-w-[180px] text-[12.5px] border border-[#E2E4EC] rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-[#ECEEF6] file:text-[#060D26] file:text-xs file:font-semibold">
-                                    <button type="submit" class="h-9 px-4 rounded-xl bg-[#060D26] text-[#F7F4ED] text-[12.5px] font-semibold hover:brightness-95 transition-all duration-200 shrink-0">
+                                    <button type="submit" class="h-9 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 shrink-0">
                                         Upload
                                     </button>
                                     <button type="button" @click="addingOptional = false" class="text-[12px] font-medium text-[#5B6A8E] hover:text-[#060D26] transition-colors">
@@ -106,12 +106,12 @@
                         </a>
                         @if($checklist['documents']['complete'])
                             <a href="{{ route('properties.wizard.units', $property) }}"
-                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#F7F4ED] bg-[#060D26] hover:brightness-95 transition-all duration-150">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all duration-150">
                                 Save & Continue
                             </a>
                         @else
                             <button type="button" disabled title="Upload all required documents to continue"
-                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#F7F4ED] bg-[#060D26] opacity-40 cursor-not-allowed">
+                                class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-[#FF8A66] opacity-40 cursor-not-allowed">
                                 Save & Continue
                             </button>
                         @endif

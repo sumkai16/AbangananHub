@@ -24,11 +24,11 @@
     $inputSize = $isHero ? 'text-[12px] sm:text-[13.5px]' : 'text-[12px] sm:text-[13.5px]';
     $btn = $isHero ? 'w-8 h-8 sm:w-12 sm:h-12' : 'w-8 h-8 sm:w-11 sm:h-11';
     $maxW = $isHero ? 'max-w-[880px]' : 'max-w-[820px]';
-    $icon = 'w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#8a6e1e] flex-shrink-0';
+    $icon = 'w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#B35A3D] flex-shrink-0';
 @endphp
 
 <form action="{{ route('properties.index') }}" method="GET"
-    class="flex items-center w-full {{ $maxW }} bg-white rounded-full border border-[#E2E4EC] transition-all duration-300 {{ $isHero ? 'shadow-[0_18px_50px_rgba(6,13,38,0.28)]' : 'shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)]' }}">
+    class="flex items-center w-full {{ $maxW }} bg-white rounded-full border border-[#E2E4EC] transition-all duration-300 focus-within:border-[#FF8A66] focus-within:ring-4 focus-within:ring-[#FF8A66]/10 {{ $isHero ? 'shadow-[0_18px_50px_rgba(6,13,38,0.28)]' : 'shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.12)]' }}">
 
     {{-- Filters the pill doesn't expose are carried through, so running a
          search doesn't silently drop the verified toggle or the chosen sort. --}}
@@ -113,7 +113,7 @@
 
         @if($isHero)
             <button type="submit" aria-label="Search properties"
-                class="flex-shrink-0 flex items-center gap-1.5 rounded-full bg-[#060D26] text-[#F7F4ED] font-semibold text-[13px] sm:text-[14px] px-4 sm:px-5 h-9 sm:h-11 hover:brightness-95 active:scale-[0.97] transition-all ml-1 sm:ml-3 shadow-md cursor-pointer">
+                class="flex-shrink-0 flex items-center gap-1.5 rounded-full bg-[#FF8A66] text-[#060D26] font-semibold text-[13px] sm:text-[14px] px-4 sm:px-5 h-9 sm:h-11 hover:bg-[#E96F4F] active:scale-[0.97] transition-all ml-1 sm:ml-3 shadow-md cursor-pointer">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"
                     class="flex-shrink-0" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -122,7 +122,7 @@
             </button>
         @else
             <button type="submit" aria-label="Search properties"
-                class="{{ $btn }} rounded-full bg-[#060D26] flex items-center justify-center text-[#F7F4ED] flex-shrink-0 hover:brightness-95 transition-all ml-1 sm:ml-3 shadow-md cursor-pointer">
+                class="{{ $btn }} rounded-full bg-[#FF8A66] flex items-center justify-center text-[#060D26] flex-shrink-0 hover:bg-[#E96F4F] transition-all ml-1 sm:ml-3 shadow-md cursor-pointer">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"
                     class="sm:w-[17px] sm:h-[17px]" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

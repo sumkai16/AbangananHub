@@ -20,11 +20,11 @@
         // Five categorical slots with no semantic meaning (top properties by
         // revenue) — navy/gold/slate/amber/gray, mirrored 1:1 in the Chart.js
         // config below (DESIGN.md §7's Chart.js parity rule).
-        $sliceDotClasses = ['bg-[#060D26]', 'bg-[#C9A84C]', 'bg-[#5B6A8E]', 'bg-[#FBBF24]', 'bg-[#94A3B8]'];
+        $sliceDotClasses = ['bg-[#060D26]', 'bg-[#FF8A66]', 'bg-[#5B6A8E]', 'bg-[#FBBF24]', 'bg-[#94A3B8]'];
         $dotClassFor = [
             '#22C55E' => 'bg-[#22C55E]',
             '#FBBF24' => 'bg-[#FBBF24]',
-            '#C9A84C' => 'bg-[#C9A84C]',
+            '#FF8A66' => 'bg-[#FF8A66]',
             '#94A3B8' => 'bg-[#94A3B8]',
             '#EF4444' => 'bg-[#EF4444]',
         ];
@@ -61,7 +61,7 @@
                 </form>
 
                 <a href="{{ route('landlord.analytics.export', ['range' => $rangeKey]) }}"
-                    class="h-10 px-4 rounded-xl bg-[#060D26] text-[#F7F4ED] text-[13px] font-bold hover:brightness-95 cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5">
+                    class="h-10 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-bold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
@@ -79,7 +79,7 @@
                  'icon' => 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z'],
                 ['label' => 'Occupied Units', 'value' => number_format($stats['occupied']), 'sub' => $stats['occupancyRate'] . '% occupancy rate', 'tint' => '#22C55E', 'box' => 'bg-[#22C55E]/10', 'delta' => null,
                  'icon' => 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z'],
-                ['label' => 'Revenue', 'value' => '₱' . number_format($stats['revenue'], 2), 'sub' => 'Collected this period', 'tint' => '#8a6e1e', 'box' => 'bg-[#C9A84C]/10', 'delta' => $stats['revenueDelta'],
+                ['label' => 'Revenue', 'value' => '₱' . number_format($stats['revenue'], 2), 'sub' => 'Collected this period', 'tint' => '#B35A3D', 'box' => 'bg-[#FF8A66]/10', 'delta' => $stats['revenueDelta'],
                  'icon' => 'M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['label' => 'Active Reservations', 'value' => number_format($stats['reservations']), 'sub' => 'Currently in progress', 'tint' => '#FBBF24', 'box' => 'bg-[#FBBF24]/10', 'delta' => $stats['reservationsDelta'],
                  'icon' => 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5'],
@@ -204,7 +204,7 @@
                                     @if($row['total'] > 0)
                                         <div class="bg-[#22C55E]" style="width: {{ $row['occupied'] / $row['total'] * 100 }}%"></div>
                                         <div class="bg-[#FBBF24]" style="width: {{ $row['reserved'] / $row['total'] * 100 }}%"></div>
-                                        <div class="bg-[#C9A84C]" style="width: {{ $row['available'] / $row['total'] * 100 }}%"></div>
+                                        <div class="bg-[#FF8A66]" style="width: {{ $row['available'] / $row['total'] * 100 }}%"></div>
                                     @endif
                                 </div>
                                 <p class="text-[10.5px] text-[#5B6A8E] mt-1">
@@ -437,11 +437,11 @@
                         labels: trend.map(p => p.label),
                         datasets: [{
                             data: trend.map(p => p.value),
-                            borderColor: '#C9A84C',
-                            backgroundColor: 'rgba(201, 168, 76, 0.12)',
+                            borderColor: '#FF8A66',
+                            backgroundColor: 'rgba(255, 138, 102, 0.12)',
                             fill: true,
                             tension: 0.35,
-                            pointBackgroundColor: '#C9A84C',
+                            pointBackgroundColor: '#FF8A66',
                             pointRadius: 4,
                         }],
                     },
@@ -480,7 +480,7 @@
                         labels,
                         datasets: [{
                             data: values,
-                            backgroundColor: ['#060D26', '#C9A84C', '#5B6A8E', '#FBBF24', '#94A3B8'],
+                            backgroundColor: ['#060D26', '#FF8A66', '#5B6A8E', '#FBBF24', '#94A3B8'],
                             borderWidth: 0,
                         }],
                     },

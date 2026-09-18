@@ -48,16 +48,17 @@ What this changes in practice:
 
 ## 3. Color Palette
 
-**Navy/Gold identity (Sept 2026).** Replaced the Ocean Teal system below wholesale — see the changelog
-entry after §14 for why and what it superseded. Every hex in this table is current; the Ocean Teal
-values now live only in §10's banned-hex list.
+**Navy/Coral identity (Sept 2026).** Replaced the Navy/Gold system below wholesale — see §29 for why
+and what it superseded (Navy/Gold itself replaced Ocean Teal — see the changelog entry after §14 for
+that earlier move). Every hex in this table is current; gold (`#C9A84C`/`#8a6e1e`) and the Ocean Teal
+values now both live only in §10's banned-hex list.
 
 | Role | Hex | Usage |
 |---|---|---|
-| Primary (Deep Navy) | `#060D26` | Navigation bar, headings, primary button fills, key interface elements |
-| Accent (Gold) | `#C9A84C` | Active states, borders, rings, fills, backgrounds, large display text on dark — **never small foreground text on light** (fails WCAG AA, ~2.28:1) |
-| Accent text (Dark Gold) | `#8a6e1e` | The text-safe gold — small labels, icons, checkbox fills, links, display prices on a light background (~4.85:1) |
-| CTA | `#060D26` | CTA buttons: Search, Book Now, List Property — same navy fill as every other primary button, with `#F7F4ED` cream text |
+| Primary (Deep Navy) | `#060D26` | Navigation bar, headings, structural UI, secondary-button text/border |
+| Accent (Coral) | `#FF8A66` | CTA/primary-button fills, active/selected states, borders, rings, badges, decorative fills, hover-state fills, large text on a **dark** ground — **never foreground text on a light ground at any size** (fails WCAG AA, ~2.31:1) |
+| Accent text (Deep Coral) | `#B35A3D` | The text-safe coral — small labels, icons, links, checkmarks, highlighted words in headings, display prices, on a **light**/white background (~4.72:1) |
+| CTA | `#FF8A66` fill / `#060D26` text | CTA and primary buttons: Search, Book Now, List Property, form submits — one shared treatment (`<x-primary-button>`), coral fill with navy text (~8.6:1 contrast) |
 | Background (Ice White) | `#F7F8FC` | Main page background |
 | Section Background (Mist) | `#ECEEF6` | Distinguishes content sections |
 | Surface/Card (White) | `#FFFFFF` | Property cards, forms, panels |
@@ -67,12 +68,23 @@ values now live only in §10's banned-hex list.
 | Success (Emerald Green) | `#22C55E` | Successful actions, verified statuses |
 | Warning (Amber) | `#FBBF24` | Notifications, cautionary messages |
 | Error (Red) | `#EF4444` | Validation errors, failed actions, critical alerts |
-| Footer background | `#060D26` | Same token as Primary now — the old system's `#0F172A` footer exception is gone, footer and nav share one navy |
+| Footer background | `#060D26` | Same token as Primary — footer and nav share one navy |
 
 Rules:
-- One CTA treatment (`#060D26` navy + `#F7F4ED` cream text) — everything else neutral or gold-family.
-- `#C9A84C` is restricted to fills, borders, rings, and backgrounds, or large text on a dark ground. Never as small foreground text on a light ground — use `#8a6e1e` there instead.
-- Hover states: `hover:brightness-95` only. No hardcoded darker hex values.
+- One CTA treatment (`#FF8A66` coral fill + `#060D26` navy text) — everything else neutral, or coral only at the specific touch-points listed above. Target hierarchy is roughly 70% white / 25% navy / 5% coral by visual weight — coral marks attention points, it is never a page or section background.
+- `#FF8A66` is restricted to fills, borders, rings, backgrounds, and large text **on a dark (navy) ground**. Never as foreground text on a light ground, at any size — use `#B35A3D` there instead. **Exception: logotype.** The "Hub" accent letter in the `AbangananHub` wordmark stays bright `#FF8A66` even on the white navbar — WCAG 1.4.3 exempts logotype text from contrast requirements.
+- Ledger/table price columns (rent ledger, payment history, receipts, admin financial tables) stay navy `#060D26`, not coral — coral marks the one prominent display price per page (property card, property detail hero), not every repeated figure in a dense financial list.
+- **Interaction system (Sept 2026, see §30):** coral-filled buttons (`bg-[#FF8A66]`) hover to a
+  named darker coral `hover:bg-[#E96F4F]` — not `brightness-95` — since a specific hex reads as more
+  deliberate for the app's one CTA-style fill. Everything else neutral (white/outline buttons, badges,
+  icon-only utility buttons not part of the coral/navy system) keeps `hover:brightness-95`, still with
+  no other hardcoded darker hex. Navy text/icon/border elements that are genuinely interactive
+  (nav links, outline-button borders, dropdown-menu icons) transition to `#FF8A66` on hover — this
+  does not extend to plain navy body text/headings that merely happen to sit near a link. Active
+  navigation (top navbar, admin/landlord sidebar) marks itself with coral — text color for the pill
+  nav, a `border-l-[3px] border-[#FF8A66]` accent for the sidebar (kept navy-filled otherwise, so a
+  dense sidebar doesn't read as coral-heavy). All hover/focus/active transitions target 200–300ms
+  (`duration-200`/`duration-300`), not the old ad hoc 150ms.
 - No custom CSS class systems (`abg-*`), no inline `<style>` blocks — pure Tailwind only.
 - **`tailwind.config.js`'s `colors.brand.*` reflects these tokens but is not referenced by any view** — every view still uses raw bracket-hex classes (`bg-[#060D26]`), matching the old system's own pattern. Migrating views onto the named tokens is a separate, not-yet-done refactor; don't assume `bg-brand-navy` exists anywhere in `resources/views`.
 
@@ -954,3 +966,104 @@ details — and asked for one click on the card to do both.
   slideout, rather than select-then-click-View being two separate steps. The hover-revealed button
   still calls `openSlideout(id)` on its own and remains as a visible affordance, it's just no longer
   the *only* path in.
+
+## 29. Navy/Coral visual identity — accent reskin (Sept 2026)
+
+Axcee asked for the accent swapped from gold to coral, "throughout the entire UI," with a roughly
+70% white / 25% navy / 5% coral hierarchy — coral reserved for CTAs, active states, highlighted
+words, prices, icons, badges, decorative lines, and hover states, not a wholesale recolor. Colors
+only — every layout, component, and feature from the sections above stays exactly as documented,
+just re-hued. Full record: `plans/navy-coral-rebrand.md`.
+
+- **New palette:** `#FF8A66` coral (was `#C9A84C` gold), `#B35A3D` deep coral (was `#8a6e1e` dark
+  gold — the text-safe twin, re-derived rather than reused: computed contrast against white is
+  ~4.72:1, comparable to dark-gold's ~4.85:1). Navy `#060D26`, white, and the semantic status colors
+  are untouched.
+- **Two judgment calls, not a find/replace:**
+  - **Role split.** Every occurrence of the old gold hexes was categorized by role before swapping:
+    fill/border/ring/background/decorative uses → bright coral; foreground text/icon/link uses on a
+    light background → deep coral (mirrors the gold/dark-gold split exactly, just re-hued). ~20 sites
+    needed a manual exception to this default — large text on a *dark* ground (the four auth-page
+    headings, the footer/sidebar wordmark, an about-page dark-section heading) correctly takes bright
+    coral instead of deep, since the light/dark rule — not the small/large-text rule — decides which
+    variant applies. A stray SVG icon stroke and a data-viz progress-ring segment needed the same
+    per-site check rather than a blanket hex swap. **One of these was misjudged from reading the code
+    alone and only caught by an actual screenshot:** the homepage hero's italic "Cebu" was assumed
+    light-background text (deep coral) since nothing in its own markup said otherwise, but the `<h1>`
+    sits over a photo with a `from-[#060D26]/25 to-[#060D26]/80` dark gradient scrim
+    (`properties/index.blade.php`'s hero `<section>`) — a dark ground, so it needed bright coral like
+    the rest of that list. A text-role exception call should be checked against a render, not just the
+    enclosing component's own class string.
+  - **CTA buttons changed fill, not just accent color.** Primary buttons (`<x-primary-button>`, and
+    every hand-rolled button matching its `bg-[#060D26] text-white`-family pattern — confirmed by
+    grepping the co-occurring pair, then manually excluding avatar/initials circles and chat message
+    bubbles that share the same navy-fill-plus-white-text signature but aren't buttons) moved from
+    navy fill/cream text to coral fill/navy text (~8.6:1 contrast). This is the single biggest visual
+    change in the pass and was a deliberate reading of "coral for action, navy for structure" — not
+    implied by a literal hex substitution, since CTAs were never gold to begin with.
+  - **Prices** were also never gold, so the bulk substitution didn't touch them either — added by hand
+    to the one prominent display price per page (property card, property detail hero), explicitly
+    leaving ledger/table price columns navy (see §3's new rule) to avoid coral noise in dense
+    financial lists.
+- **Scale: ~635 hex literals across ~110 Blade views plus `app.css`, `maps.css`, and two map JS
+  files**, all raw bracket-hex/inline-style, no named tokens referenced by any view (same as every
+  prior reskin) — `tailwind.config.js`'s `colors.brand.*` keys were renamed (`gold`→`coral`,
+  `goldText`→`coralText`) to match, still unreferenced.
+- **Verification greps for any future pass over this palette:** `grep -ri "C9A84C\|8a6e1e" resources/`
+  should return nothing outside this file's own historical record; also check for the rgba
+  equivalent (`201,\s*168,\s*76`) separately, since Chart.js configs and box-shadow values carry the
+  same color as decimal triples, not hex, and won't match a hex-only grep.
+
+## 30. Consistent hover/focus/active interaction system (Sept 2026)
+
+Axcee asked for a systematic hover/interaction layer on top of §29's navy/coral palette — named hex
+values per surface, not ad hoc darkening, and a single transition-timing standard. §3's rule entry
+has the short version; this section has the reasoning and what it touched.
+
+- **Coral buttons darken to a named hex on hover, not `brightness-95`.** `#FF8A66` → `hover:bg-[#E96F4F]`
+  on every coral-filled button — `<x-primary-button>` and the ~153 hand-rolled sites from §29's CTA
+  migration (found by the same co-occurrence grep: `bg-[#FF8A66]` + the old `hover:brightness-95` on
+  one line). **First pass over-corrected:** the file list came from `grep -l` (file contains a
+  matching line *somewhere*), but the fix ran as a whole-file `sed`, so it also rewrote unrelated
+  `hover:brightness-95` uses in the same files — approve/reject buttons, white outline buttons,
+  icon-only nav arrows, mist-pill utility buttons — anything sharing a file with a real coral button.
+  56 sites across ~15 files were wrongly touched. Caught by re-deriving the check as a line-level
+  co-occurrence grep (`grep -n "hover:bg-\[#E96F4F\]"` filtered by NOT containing `bg-[#FF8A66]` on
+  that same line) and reverting exactly those lines back to `brightness-95`. **The lesson: a file-level
+  grep only proves a file is a candidate — the mutation itself still needs to be line-scoped, the same
+  discipline §29's CTA migration already used for its own list but this follow-up pass initially
+  skipped.**
+- **Navy elements that are genuinely interactive hover to `#FF8A66`** — top navbar links (text color,
+  not just the existing bg-tint pill), the areas-dropdown items, sidebar-adjacent dropdown-menu icons
+  (`$menuIcon` in `layouts/app.blade.php`, reused by every account/admin dropdown row), and the
+  hamburger/notification icon buttons. Plain navy body text and headings are unaffected — only actual
+  links/icon-buttons got this treatment, not a blanket navy→coral text sweep (~2,200 navy text sites
+  exist app-wide; touching all of them was out of scope for this pass).
+- **Secondary/outline button** (`<x-secondary-button>`) had no coral-adjacent hover at all before —
+  white bg, navy border/text, hover only tinted the bg gray. Now hovers to `border-[#FF8A66]
+  text-[#FF8A66]`, keeping the white fill (it's still the *secondary* action, so it doesn't pick up a
+  filled treatment).
+- **Active navigation gets a coral indicator, not a recolor.** Top navbar (pill-style): the active
+  item's text turns `#FF8A66` on an unchanged mist pill background. Admin/landlord sidebar
+  (dark-filled, tab-like): adding a `border-l-[3px]` reserved on every item (`border-transparent` when
+  inactive) meant the active item's `border-[#FF8A66]` accent costs zero layout shift, and the item
+  keeps its navy fill — a dense 15–20-item sidebar going fully coral on its active row would have
+  overrun the coral budget §29 established (~5% of visual weight); a 3px accent line stays well inside
+  it. Sidebar item hover also moved from a brightness-only `text-white/90` to `text-[#FF8A66]`.
+- **Property cards gained a hover surface that doesn't exist at rest.** §6's "image-is-the-card, no
+  white box" rule is unchanged — cards are still bare image+text on the page background normally. The
+  hover spec (`#FFF7F4` tint, `#FF8A66` border, soft navy shadow, `-4px` lift) needed an actual
+  boxed surface to show that tint against, so `property-card.blade.php`'s wrapper gained a permanent
+  `rounded-2xl border border-transparent bg-transparent p-2` — invisible at rest, so the resting look
+  is unchanged — that only becomes a visible white-tinted card on `:hover`. The `-4px` lift
+  (`hover:-translate-y-1`) already existed pre-this-pass; only the tint/border/shadow were added.
+- **Search inputs already had a coral focus ring** from §29's role-split (every text input/select/date
+  picker's `focus:border-[#FF8A66] focus:ring-[#FF8A66]`) — nothing to redo there. The one gap: the
+  hero/header search *pill* (`search-pill.blade.php`) deliberately strips focus rings off its three
+  individual borderless fields (one shared pill boundary, not three separately-ringed inputs), so it
+  had no focus feedback at all. Added `focus-within:border-[#FF8A66] focus-within:ring-4
+  focus-within:ring-[#FF8A66]/10` to the pill's own `<form>` so focusing any field glows the whole pill.
+- **Transition timing standardized to 200–300ms** on every component this pass touched — several
+  buttons and the admin sidebar were still on a 150ms holdover from before the Sept 2026 reskins.
+  Not swept app-wide; components outside this pass's scope may still carry 150ms until they're next
+  touched.

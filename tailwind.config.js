@@ -13,7 +13,7 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                // Navy/Gold identity (Sept 2026) — DM Serif Display replaces Poppins
+                // Navy/Coral identity (Sept 2026) — DM Serif Display replaces Poppins
                 // for headings and Source Serif 4 for display titles; see DESIGN.md §4.
                 heading: ['"DM Serif Display"', 'Georgia', ...defaultTheme.fontFamily.serif],
                 display: ['"DM Serif Display"', 'Georgia', ...defaultTheme.fontFamily.serif],
@@ -21,8 +21,8 @@ export default {
             colors: {
                 brand: {
                     navy: '#060D26',
-                    gold: '#C9A84C',
-                    goldText: '#8a6e1e',
+                    coral: '#FF8A66',
+                    coralText: '#B35A3D',
                     cream: '#F7F4ED',
                     slate: '#5B6A8E',
                     border: '#E2E4EC',
