@@ -35,6 +35,7 @@ use App\Http\Controllers\Auth\WebviewLoginController;
 
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
+Route::get('/areas', [PropertyController::class, 'areas'])->name('properties.areas');
 Route::get('/about', fn() => view('about'))->name('about');
 
 // Global Authenticated Routes Group

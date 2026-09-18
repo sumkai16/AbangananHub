@@ -7,9 +7,9 @@
     {{-- Right panel headline & feature area --}}
     <x-slot name="rightContent">
         <div class="max-w-xl mx-auto">
-            <h1 class="text-3xl font-normal text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
+            <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] font-extrabold text-white leading-[1.1] tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
-                for Verified Rental <span class="italic text-[#FF8A66]">Properties.</span>
+                for Verified Rental <span class="text-[#FF8A66]">Properties.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
@@ -24,7 +24,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Verified Landlords</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Verified Landlords</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">Strict multi-point identity verification enforced for occupant safety.</p>
                     </div>
                 </div>
@@ -37,7 +37,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Quality Listings</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Quality Listings</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">Every singular unit is curated and thoroughly evaluated before going live.</p>
                     </div>
                 </div>
@@ -50,7 +50,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Secure & Transparent</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Secure & Transparent</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">Absolute legal accountability with direct automated lease processing.</p>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
                         <span class="text-[#060D26] text-xs font-black leading-none mt-0.5">16</span>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Supporting SDG 16</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Supporting SDG 16</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">We promote transparency, accountability, and trust in rental transactions to build a safer and more trustworthy community.</p>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
 
     {{-- Left panel: Unified layout and no-scrollbar viewport constraints --}}
     <div class="w-full min-h-screen bg-[#F7F8FC] flex flex-col items-center px-4 py-10 lg:py-14">
-        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-2xl border border-[#E2E4EC]/80 p-6 lg:p-8 shadow-xl shadow-[#060D26]/[0.04] transition-all duration-300">
+        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-3xl border border-[#E2E4EC] p-6 lg:p-8 shadow-[0_20px_50px_rgba(6,13,38,0.06)] transition-all duration-300">
 
             {{-- Branding --}}
             <div class="mb-5">
@@ -84,7 +84,7 @@
                     </div>
                     <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
                 </a>
-                <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Welcome Back!</h2>
+                <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[22px] sm:text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Welcome Back!</h2>
                 <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">Login to continue to AbangananHub</p>
             </div>
 
@@ -103,17 +103,17 @@
 
                 {{-- Email Address --}}
                 <div>
-                    <label for="email" class="block text-xs font-bold text-[#060D26] mb-1">Email Address</label>
+                    <label for="email" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                 </div>
 
                 {{-- Password Input --}}
                 <div>
-                    <label for="password" class="block text-xs font-bold text-[#060D26] mb-1">Password</label>
+                    <label for="password" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                         <button type="button" onclick="togglePassword('password', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -139,7 +139,7 @@
 
                 {{-- Action Submission Button --}}
                 <div class="pt-1">
-                    <button type="submit" class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
+                    <button type="submit" class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                         Login
                     </button>
                 </div>

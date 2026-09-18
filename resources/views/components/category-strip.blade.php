@@ -35,15 +35,15 @@
 {{-- Centred from `md` up. It stays `justify-start` below that because the row
      scrolls on narrow screens, and centring overflowing content pins the first
      item off the left edge where it can't be scrolled back to. --}}
-<div class="flex items-center justify-start md:justify-center gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none]">
+<div class="flex items-center justify-start md:justify-center gap-3 sm:gap-5 md:gap-7 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none]">
     @foreach($items as $item)
         <a href="{{ $item['url'] }}" @if($item['active']) aria-current="page" @endif
-            class="flex flex-col items-center gap-1.5 pb-3 border-b-2 transition-all min-w-[56px] cursor-pointer {{ $item['active'] ? 'border-[#060D26] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26] hover:border-[#E2E4EC]' }}">
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            class="group flex flex-col items-center gap-1 pt-1 pb-2 border-b-2 transition-all duration-200 min-w-[60px] cursor-pointer {{ $item['active'] ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26] hover:border-[#FF8A66]/50' }}">
+            <svg width="20" height="20" class="{{ $item['active'] ? 'text-[#B35A3D]' : '' }} transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 stroke-width="{{ $item['active'] ? '2.4' : '2' }}" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}" />
             </svg>
-            <span class="text-[12px] font-semibold whitespace-nowrap">{{ $item['label'] }}</span>
+            <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[11.5px] font-bold whitespace-nowrap">{{ $item['label'] }}</span>
         </a>
     @endforeach
 </div>

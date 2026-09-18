@@ -90,7 +90,7 @@ class PropertyController extends Controller
                 'amenities'  => $request->query('amenities', []),
                 'sort'       => $request->query('sort'),
             ])
-            ->paginate(12)
+            ->paginate(15)
             ->withQueryString();
 
         // Filter-panel amenity list — unscoped (not forProperty()), since the
@@ -132,6 +132,35 @@ class PropertyController extends Controller
             'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas',
             'amenityGroups', 'selectedAmenities'
         ));
+    }
+
+    /**
+     * Every area with live, bookable listings — the destination of the
+     * landing page's "All areas" tile. Same grouped-count shape as the
+     * landing teaser's $areas, minus the take(8) cap.
+     */
+    public function areas()
+    {
+        $areas = Property::live()
+            ->whereHas('units', function ($q) {
+                $q->where('availability_status', 'Available')
+                  ->where('verification_status', 'Approved');
+            })
+            ->selectRaw('city_municipality, COUNT(*) as cnt')
+            ->groupBy('city_municipality')
+            ->orderByDesc('cnt')
+            ->get()
+            ->map(fn ($row) => [
+                'name' => $row->city_municipality,
+                'count' => $row->cnt,
+                'photo' => Property::browsable()
+                    ->where('city_municipality', $row->city_municipality)
+                    ->with('media')
+                    ->first()
+                    ?->media->firstWhere('media_type', 'Image')?->media_url,
+            ]);
+
+        return view('properties.areas', compact('areas'));
     }
 
     public function show(Property $property)

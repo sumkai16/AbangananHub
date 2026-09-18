@@ -78,3 +78,63 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     height: 0;
     width: 0;
 }
+/* ── Dark theme (landing page only) ──────────────────────────────────────────
+   The views use raw bracket-hex utilities (bg-[#F7F8FC], text-[#060D26] …), so
+   instead of sprinkling dark: variants everywhere the palette is remapped here,
+   under html.dark. The class is only ever added on pages that opt in with
+   @section('themeable') (see layouts/app.blade.php), so no other page changes.
+   Coral (#FF8A66) is deliberately untouched — it is the accent in both themes. */
+.theme-icon-sun { display: none; }
+html.dark .theme-icon-sun { display: block; }
+html.dark .theme-icon-moon { display: none; }
+
+html.dark body { background-color: #0A1029; color: #E8ECF8; }
+html.dark .bg-white { background-color: #111A3A; }
+html.dark .bg-\[\#F7F8FC\] { background-color: #0A1029; }
+html.dark .bg-\[\#ECEEF6\] { background-color: #1A2448; }
+html.dark .bg-\[\#FFF7F4\],
+html.dark .hover\:bg-\[\#FFF7F4\]:hover { background-color: #1A2448; }
+html.dark .hover\:bg-\[\#F7F8FC\]:hover { background-color: #1A2448; }
+html.dark .bg-white\/95 { background-color: rgba(17, 26, 58, 0.95); }
+
+html.dark .text-\[\#060D26\] { color: #F1F3FA; }
+html.dark .text-\[\#5B6A8E\] { color: #9AA6C6; }
+html.dark .text-\[\#94A3B8\] { color: #7C89AD; }
+html.dark .text-\[\#334155\] { color: #C9D1E8; }
+html.dark .text-\[\#B35A3D\] { color: #FF8A66; }
+html.dark .hover\:text-\[\#060D26\]:hover { color: #FFFFFF; }
+html.dark .hover\:text-\[\#B35A3D\]:hover { color: #FF8A66; }
+
+html.dark .border-\[\#E2E4EC\],
+html.dark .border-\[\#E2E4EC\]\/80 { border-color: rgba(255, 255, 255, 0.12); }
+html.dark .border-\[\#5B6A8E\]\/20,
+html.dark .border-\[\#5B6A8E\]\/30 { border-color: rgba(255, 255, 255, 0.14); }
+html.dark .bg-\[\#E2E4EC\] { background-color: rgba(255, 255, 255, 0.14); }
+
+/* Coral-filled chips keep navy text (contrast on coral), even though navy text is remapped. */
+html.dark .bg-\[\#FF8A66\] { color: #060D26; }
+html.dark .peer:checked ~ span { color: #060D26; }
+html.dark .to-white { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
+html.dark .bg-\[\#FF8A66\] .text-\[\#060D26\] { color: #060D26; }
+
+/* Form controls + placeholders */
+html.dark input,
+html.dark select,
+html.dark textarea { color: #F1F3FA; }
+html.dark input::placeholder,
+html.dark textarea::placeholder { color: #7C89AD; }
+html.dark .divide-\[\#E2E4EC\] > :not([hidden]) ~ :not([hidden]) { border-color: rgba(255, 255, 255, 0.12); }
+
+/* Shadows read as glows on dark — soften them. */
+html.dark .shadow-sm,
+html.dark .shadow-md,
+html.dark .shadow-xl,
+html.dark .shadow-2xl { --tw-shadow-color: rgba(0, 0, 0, 0.45); }
+
+/* Photo tiles and the hero keep their own navy overlays — nothing to remap. */
+html.dark .leaflet-container { filter: brightness(0.8) contrast(1.05); }
+
+/* Icons drawn with an inline navy stroke/fill (About feature cards, etc.) vanish on navy. */
+html.dark svg[stroke="#060D26"] { stroke: #9AA6C6; }
+html.dark svg[fill="#060D26"] { fill: #9AA6C6; }
+html.dark .feature-card div[style*="#060D26"] { background: rgba(255, 255, 255, 0.08) !important; }

@@ -1,5 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
+@section('themeable', '1')
+
 @section('content')
     @vite(['resources/js/maps/property-map.js'])
 
@@ -448,7 +450,7 @@
                     @endif
                 </div>
 
-                <h1 class="font-display text-[30px] sm:text-[38px] font-normal leading-[1.12] tracking-[-0.015em] text-[#060D26] text-balance">
+                <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] sm:text-[36px] font-extrabold leading-[1.15] tracking-tight text-[#060D26] text-balance">
                     {{ $property->title }}
                 </h1>
 
@@ -534,7 +536,7 @@
                          source of truth rather than a hero range that can disagree
                          with what the form is about to submit. --}}
                     <p class="flex items-baseline gap-2">
-                        <span class="font-display text-[34px] sm:text-[40px] font-normal tracking-tight text-[#B35A3D]">
+                        <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] sm:text-[38px] font-extrabold tracking-tight text-[#B35A3D]">
                             &#8369;<span x-text="selected ? selected.price : '{{ number_format($property->units->min('rental_fee') ?? 0) }}'"></span>
                         </span>
                         <span class="text-[15px] font-medium text-[#5B6A8E]">/ month</span>
@@ -686,7 +688,7 @@
                  subunit grid. ===== --}}
                 @if($property->description)
                     <div class="max-w-[62ch]">
-                        <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-2">About this property</h2>
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26] mb-2">About this property</h2>
                         @if(Str::length($property->description) > 220)
                             <p class="text-[15px] text-[#060D26] leading-relaxed whitespace-pre-line" x-show="!descExpanded">
                                 {{ Str::limit($property->description, 220) }}
@@ -705,7 +707,7 @@
 
                 @if($buildingAmenities->isNotEmpty())
                 <section id="building-amenities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
-                    <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Building amenities</h2>
+                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26] mb-4">Building amenities</h2>
                     <div class="flex flex-wrap gap-2">
                         @foreach($buildingAmenities as $amenityName)
                             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#FF8A66]/40 bg-[#ECEEF6] text-[13px] font-semibold text-[#060D26]">
@@ -743,7 +745,7 @@
                 @endphp
                 @if($utilitiesAnswered)
                 <section id="utilities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
-                    <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Utilities &amp; included charges</h2>
+                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26] mb-4">Utilities &amp; included charges</h2>
                     <div class="grid grid-cols-2 gap-3">
                         @foreach($utilityFields as [$field, $label, $icon])
                             @php $included = $property->{$field}; @endphp
@@ -799,7 +801,7 @@
                 @endphp
                 @if($houseRules->isNotEmpty())
                 <section id="house-rules" class="mt-10 pt-8 border-t border-[#E2E4EC]">
-                    <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">House rules</h2>
+                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26] mb-4">House rules</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach($houseRules as $rule)
                             <div class="flex items-center gap-3 text-sm text-[#060D26] font-medium">
@@ -841,7 +843,7 @@
                                     </svg>
                                 </span>
                                 <div class="min-w-0">
-                                    <h2 class="font-heading text-[15px] font-normal tracking-tight text-[#060D26]">
+                                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15px] font-bold tracking-tight text-[#060D26]">
                                         What's nearby</h2>
                                     <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $property->address }}</p>
                                 </div>
@@ -922,7 +924,7 @@
                 @if($availableUnits->count() > 0)
                 <section id="units" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-1">
-                        <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26]">Units in this property</h2>
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26]">Units in this property</h2>
                         <span class="text-[13px] font-bold text-[#060D26] whitespace-nowrap">{{ $availableUnits->count() }} available</span>
                     </div>
                     <p class="text-sm text-[#5B6A8E] mb-4">Choose a unit to contact the landlord about</p>
@@ -1071,7 +1073,7 @@
 
                 <section id="reviews" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26]">
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26]">
                             Reviews
                             @if($reviews->count() > 0)
                                 <span class="text-[14px] font-semibold text-[#5B6A8E]">({{ $reviews->count() }})</span>
@@ -1351,7 +1353,7 @@
 
                                 <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-start gap-3">
                                     <div class="flex-1 min-w-0">
-                                        <h2 id="report-modal-title" class="text-[16px] font-normal text-[#060D26]">
+                                        <h2 id="report-modal-title" class="text-[16px] font-bold text-[#060D26]">
                                             Report this listing</h2>
                                         <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">{{ $property->title }}</p>
                                     </div>
@@ -1441,7 +1443,7 @@
 
                                 <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-start gap-3">
                                     <div class="flex-1 min-w-0">
-                                        <h2 id="inquire-modal-title" class="text-[16px] font-normal text-[#060D26]">Contact Landlord</h2>
+                                        <h2 id="inquire-modal-title" class="text-[16px] font-bold text-[#060D26]">Contact Landlord</h2>
                                         <template x-if="selected">
                                             <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">
                                                 <span x-text="selected.label"></span> &middot;
@@ -1594,7 +1596,7 @@
                             {{-- Step 1: Select a Unit --}}
                             <div x-show="mstep === 1">
                                 <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E4EC] sticky top-0 bg-white z-10">
-                                    <h3 class="text-base font-normal text-[#060D26]">Select a Unit</h3>
+                                    <h3 class="text-base font-bold text-[#060D26]">Select a Unit</h3>
                                     <button type="button" x-on:click="closeMobile()" aria-label="Close"
                                         class="text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1653,7 +1655,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                                         </svg>
                                     </button>
-                                    <h3 class="text-base font-normal text-[#060D26]">Message Landlord</h3>
+                                    <h3 class="text-base font-bold text-[#060D26]">Message Landlord</h3>
                                     <button type="button" x-on:click="closeMobile()" aria-label="Close"
                                         class="text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1850,7 +1852,7 @@
                             {{-- Header --}}
                             <div>
                                 <div class="flex items-center gap-2 mb-1">
-                                    <h3 class="text-xl font-normal text-[#060D26]" x-text="slideoutUnit.label"></h3>
+                                    <h3 class="text-xl font-bold text-[#060D26]" x-text="slideoutUnit.label"></h3>
                                     <span class="text-[11px] font-bold px-2 py-0.5 rounded-md"
                                         :class="slideoutUnit.available ? 'bg-[#22C55E]/10 text-[#060D26]' : 'bg-[#E2E4EC] text-[#5B6A8E]'"
                                         x-text="slideoutUnit.available ? 'Available' : 'Occupied'"></span>
@@ -1898,7 +1900,7 @@
                             {{-- Description --}}
                             <template x-if="slideoutUnit.description">
                                 <div class="pt-4 border-t border-[#ECEEF6]">
-                                    <h4 class="text-sm font-normal text-[#060D26] mb-2">About this unit</h4>
+                                    <h4 class="text-sm font-bold text-[#060D26] mb-2">About this unit</h4>
                                     <p class="text-sm text-[#060D26] leading-relaxed whitespace-pre-line"
                                         x-text="slideoutUnit.description"></p>
                                 </div>
@@ -1907,7 +1909,7 @@
                             {{-- Amenities --}}
                             <template x-if="slideoutUnit.amenities.length > 0">
                                 <div class="pt-4 border-t border-[#ECEEF6]">
-                                    <h4 class="text-sm font-normal text-[#060D26] mb-3">Unit Amenities</h4>
+                                    <h4 class="text-sm font-bold text-[#060D26] mb-3">Unit Amenities</h4>
                                     <div class="grid grid-cols-2 gap-2.5">
                                         <template x-for="amenity in slideoutUnit.amenities" :key="amenity.name">
                                             <div class="flex items-center gap-2 text-sm font-medium text-[#060D26]">

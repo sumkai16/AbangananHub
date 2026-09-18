@@ -1,4 +1,4 @@
-@props(['variant' => 'header'])
+@props(['variant' => 'header', 'compact' => false])
 
 {{--
     The Where/Type/Budget search pill. Rendered in two places — the sticky
@@ -19,11 +19,11 @@
     // the button cannot absorb the extra padding, and the whole page picks up a
     // horizontal scroll — so below `sm` both variants use the same tight metrics.
     $isHero = $variant === 'hero';
-    $pad = $isHero ? 'px-3 py-2 sm:px-6 sm:py-2.5' : 'px-3 py-2 sm:px-7 sm:py-3';
-    $labelSize = 'text-[10px] sm:text-[11px]';
+    $pad = $compact ? 'px-3 py-1 sm:px-5 sm:py-1' : ($isHero ? 'px-3 py-2 sm:px-6 sm:py-2.5' : 'px-3 py-1.5 sm:px-6 sm:py-2');
+    $labelSize = $compact ? 'text-[9px] sm:text-[9.5px]' : 'text-[10px] sm:text-[11px]';
     $inputSize = $isHero ? 'text-[12px] sm:text-[13.5px]' : 'text-[12px] sm:text-[13.5px]';
-    $btn = $isHero ? 'w-8 h-8 sm:w-12 sm:h-12' : 'w-8 h-8 sm:w-11 sm:h-11';
-    $maxW = $isHero ? 'max-w-[880px]' : 'max-w-[820px]';
+    $btn = $compact ? 'w-8 h-8' : ($isHero ? 'w-8 h-8 sm:w-12 sm:h-12' : 'w-8 h-8 sm:w-10 sm:h-10');
+    $maxW = $compact ? 'max-w-[720px]' : ($isHero ? 'max-w-[880px]' : 'max-w-[820px]');
     $icon = 'w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#B35A3D] flex-shrink-0';
 @endphp
 

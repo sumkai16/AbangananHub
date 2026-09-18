@@ -4,9 +4,9 @@
     {{-- Right panel headline & feature area --}}
     <x-slot name="rightContent">
         <div class="max-w-xl mx-auto">
-            <h1 class="text-3xl font-normal text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
+            <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] font-extrabold text-white leading-[1.1] tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
-                for Verified Rental <span class="italic text-[#FF8A66]">Properties.</span>
+                for Verified Rental <span class="text-[#FF8A66]">Properties.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
@@ -21,7 +21,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Verified Landlords</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Verified Landlords</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">Strict multi-point identity verification enforced for occupant safety.</p>
                     </div>
                 </div>
@@ -34,7 +34,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Quality Listings</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Quality Listings</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">Every singular unit is curated and thoroughly evaluated before going live.</p>
                     </div>
                 </div>
@@ -47,7 +47,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Secure & Transparent</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Secure & Transparent</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">Absolute legal accountability with direct automated lease processing.</p>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
                         <span class="text-[#060D26] text-xs font-black leading-none mt-0.5">16</span>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Supporting SDG 16</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Supporting SDG 16</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">We promote transparency, accountability, and trust in rental transactions to build a safer and more trustworthy community.</p>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
 
     {{-- Left panel: Optimized layout to maintain no-scrollbar execution --}}
     <div class="w-full min-h-screen bg-[#F7F8FC] flex flex-col items-center px-4 py-10 lg:py-14">
-        <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg bg-white rounded-2xl border border-[#E2E4EC]/80 p-6 lg:p-8 shadow-xl shadow-[#060D26]/[0.04] transition-all duration-300">
+        <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg bg-white rounded-3xl border border-[#E2E4EC] p-6 lg:p-8 shadow-[0_20px_50px_rgba(6,13,38,0.06)] transition-all duration-300">
 
             {{-- Branding --}}
             <div class="mb-6">
@@ -81,7 +81,7 @@
                     </div>
                     <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
                 </a>
-                <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Create Your <span class="text-[#B35A3D]">Account</span></h2>
+                <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[22px] sm:text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create Your <span class="text-[#B35A3D]">Account</span></h2>
                 <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
             </div>
 
@@ -91,19 +91,19 @@
                 {{-- First Name + Last Name Grid Layout --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="first_name" class="block text-[13px] font-bold text-[#060D26] mb-1.5">First Name</label>
+                        <label for="first_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">First Name</label>
                         <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" required
                             autofocus autocomplete="given-name" placeholder="First name"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                         @error('first_name')
                             <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="last_name" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Last Name</label>
+                        <label for="last_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Last Name</label>
                         <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" required
                             autocomplete="family-name" placeholder="Last name"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                         @error('last_name')
                             <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                         @enderror
@@ -112,10 +112,10 @@
 
                 {{-- Email Address --}}
                 <div>
-                    <label for="email" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Email Address</label>
+                    <label for="email" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
                         placeholder="Enter your email address"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                     @error('email')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
@@ -123,10 +123,10 @@
 
                 {{-- Contact Number --}}
                 <div>
-                    <label for="contact_number" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
+                    <label for="contact_number" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
                     <input id="contact_number" type="text" name="contact_number" value="{{ old('contact_number') }}"
                         required autocomplete="tel" placeholder="Enter your contact number"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                     @error('contact_number')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
@@ -134,11 +134,11 @@
 
                 {{-- Password Input Module --}}
                 <div>
-                    <label for="password" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
+                    <label for="password" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="new-password"
                             placeholder="Create a password"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                         <button type="button" onclick="togglePassword('password', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -154,11 +154,11 @@
 
                 {{-- Confirm Password Input Module --}}
                 <div>
-                    <label for="password_confirmation" class="block text-[13px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
+                    <label for="password_confirmation" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
                     <div class="relative">
                         <input id="password_confirmation" type="password" name="password_confirmation" required
                             autocomplete="new-password" placeholder="Confirm your password"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                         <button type="button" onclick="togglePassword('password_confirmation', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -188,7 +188,7 @@
                 {{-- Action Submit Button --}}
                 <div class="pt-0.5">
                     <button type="submit"
-                        class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
+                        class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                         Create Account
                     </button>
                 </div>

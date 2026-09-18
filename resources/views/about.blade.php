@@ -2,6 +2,7 @@
 
 @section('title', 'About — AbangananHub')
 @section('hide_search')@endsection
+@section('themeable', '1')
 
 @push('scripts')
 <script>
@@ -57,7 +58,7 @@
             About AbangananHub
         </div>
 
-        <h1 class="text-[38px] sm:text-[52px] font-normal leading-tight tracking-tight mb-5 fade-up" style="transition-delay:.08s">
+        <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[36px] sm:text-[52px] font-extrabold leading-[1.1] tracking-tight mb-5 fade-up" style="transition-delay:.08s">
             Renting in Cebu,<br class="hidden sm:block"> <span class="text-[#060D26]">done right.</span>
         </h1>
 
@@ -110,8 +111,8 @@
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-            <span class="text-[12px] font-bold uppercase tracking-widest text-[#060D26]">Our Purpose</span>
-            <h2 class="text-[30px] sm:text-[36px] font-normal text-[#060D26] mt-2 tracking-tight">Mission & Vision</h2>
+            <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]">Our Purpose</span>
+            <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[30px] sm:text-[36px] font-extrabold text-[#060D26] mt-2 tracking-tight">Mission & Vision</h2>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
@@ -122,7 +123,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                 </div>
-                <h3 class="text-[19px] font-normal text-[#060D26] mb-3">Our Mission</h3>
+                <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold text-[#060D26] mb-3">Our Mission</h3>
                 <p class="text-[14.5px] text-[#5B6A8E] leading-relaxed">
                     To provide a safe, transparent, and efficient platform where tenants in Cebu can discover
                     verified rental properties and connect directly with trusted landlords — eliminating
@@ -137,7 +138,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
                 </div>
-                <h3 class="text-[19px] font-normal text-[#060D26] mb-3">Our Vision</h3>
+                <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold text-[#060D26] mb-3">Our Vision</h3>
                 <p class="text-[14.5px] text-[#5B6A8E] leading-relaxed">
                     To become Cebu's most trusted rental ecosystem — where every tenant finds a home they
                     can rely on, every landlord grows a reputable portfolio, and the entire process is
@@ -156,63 +157,54 @@
 <section id="how-it-works" class="bg-white py-20 scroll-mt-[72px]">
     <div class="max-w-5xl mx-auto px-6">
 
-        <div class="text-center mb-14 fade-up">
-            <span class="text-[12px] font-bold uppercase tracking-widest text-[#060D26]">The Process</span>
-            <h2 class="text-[30px] sm:text-[36px] font-normal text-[#060D26] mt-2 tracking-tight">How AbangananHub Works</h2>
-            <p class="text-[14.5px] text-[#94A3B8] mt-3 max-w-xl mx-auto">From finding a rental to moving in — the whole journey in one platform.</p>
-        </div>
-
-        {{-- Tenant Flow — vertical timeline --}}
         <div class="mb-14 fade-up">
-            <div class="flex items-center gap-2 mb-8">
-                <div class="w-7 h-7 rounded-lg bg-[#FF8A66]/10 flex items-center justify-center">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                </div>
-                <span class="text-[13px] font-bold text-[#060D26] uppercase tracking-wider">For Tenants</span>
-            </div>
-            <div class="relative pl-8 border-l-2 border-[#FF8A66]/20 space-y-6">
-                @foreach([
-                    ['title'=>'Create Account','desc'=>'Sign up and verify your email to unlock all tenant features.'],
-                    ['title'=>'Search & Filter','desc'=>'Browse by location, type, and budget. View verified listings only if you prefer.'],
-                    ['title'=>'Reserve','desc'=>'Submit a reservation request directly to the landlord with one click.'],
-                    ['title'=>'Move In','desc'=>'Once approved, coordinate with your landlord and settle your new home.'],
-                ] as $step)
-                <div class="relative">
-                    <div class="absolute -left-[41px] top-1 w-4 h-4 rounded-full bg-[#060D26] border-[3px] border-white shadow-sm"></div>
-                    <div class="text-[14.5px] font-bold text-[#060D26] mb-0.5">{{ $step['title'] }}</div>
-                    <div class="text-[13px] text-[#5B6A8E] leading-relaxed">{{ $step['desc'] }}</div>
-                </div>
-                @endforeach
-            </div>
+            <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>The Process
+            </span>
+            <h2 class="mt-3 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] sm:text-[44px] font-extrabold leading-[1.1] tracking-tight text-[#060D26]">
+                From search to
+                <span class="block text-[#5B6A8E]">move-in.</span>
+            </h2>
+            <p class="text-[14.5px] text-[#5B6A8E] mt-4 max-w-xl">From finding a rental to moving in — the whole journey in one platform.</p>
         </div>
 
-        {{-- Landlord Flow — vertical timeline --}}
-        <div class="fade-up">
-            <div class="flex items-center gap-2 mb-8">
-                <div class="w-7 h-7 rounded-lg bg-[#060D26]/10 flex items-center justify-center">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                    </svg>
-                </div>
-                <span class="text-[13px] font-bold text-[#060D26] uppercase tracking-wider">For Landlords</span>
-            </div>
-            <div class="relative pl-8 border-l-2 border-[#060D26]/20 space-y-6">
-                @foreach([
-                    ['title'=>'Apply & Verify','desc'=>'Submit your ID and documents to become a verified landlord on the platform.'],
-                    ['title'=>'List Property','desc'=>'Add your property details, photos, pricing, and available units.'],
-                    ['title'=>'Review Requests','desc'=>'Receive tenant reservation requests and approve or reject them from your dashboard.'],
-                    ['title'=>'Manage Listings','desc'=>'Keep listings up to date, track reservations, and build your reputation.'],
-                ] as $step)
-                <div class="relative">
-                    <div class="absolute -left-[41px] top-1 w-4 h-4 rounded-full bg-[#060D26] border-[3px] border-white shadow-sm"></div>
-                    <div class="text-[14.5px] font-bold text-[#060D26] mb-0.5">{{ $step['title'] }}</div>
-                    <div class="text-[13px] text-[#5B6A8E] leading-relaxed">{{ $step['desc'] }}</div>
-                </div>
+        @foreach([
+            ['label' => 'For Tenants', 'steps' => [
+                ['title'=>'Create Account','desc'=>'Sign up and verify your email to unlock all tenant features.','tag'=>'Step 1'],
+                ['title'=>'Search & Filter','desc'=>'Browse by location, type, and budget. View verified listings only if you prefer.','tag'=>'Step 2'],
+                ['title'=>'Reserve','desc'=>'Submit a reservation request directly to the landlord with one click.','tag'=>'Step 3'],
+                ['title'=>'Move In','desc'=>'Once approved, coordinate with your landlord and settle your new home.','tag'=>'Step 4'],
+            ]],
+            ['label' => 'For Landlords', 'steps' => [
+                ['title'=>'Apply & Verify','desc'=>'Submit your ID and documents to become a verified landlord on the platform.','tag'=>'Step 1'],
+                ['title'=>'List Property','desc'=>'Add your property details, photos, pricing, and available units.','tag'=>'Step 2'],
+                ['title'=>'Review Requests','desc'=>'Receive tenant reservation requests and approve or reject them from your dashboard.','tag'=>'Step 3'],
+                ['title'=>'Manage Listings','desc'=>'Keep listings up to date, track reservations, and build your reputation.','tag'=>'Step 4'],
+            ]],
+        ] as $flow)
+        <div class="{{ $loop->last ? '' : 'mb-14' }} fade-up">
+            <span class="inline-flex mb-6 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#060D26] px-3 py-1 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">{{ $flow['label'] }}</span>
+
+            <div class="relative max-w-2xl mx-auto pl-8 sm:pl-10 space-y-4">
+                <div class="absolute left-[7px] top-3 bottom-3 w-px bg-[#E2E4EC]" aria-hidden="true"></div>
+                @foreach($flow['steps'] as $step)
+                    @php $first = $loop->first; @endphp
+                    <div class="relative group/step">
+                        <span class="absolute -left-8 sm:-left-10 top-6 w-[15px] h-[15px] rounded-full bg-white border {{ $first ? 'border-[#FF8A66]' : 'border-[#E2E4EC]' }} group-hover/step:border-[#FF8A66] group-hover/step:shadow-[0_0_0_3px_rgba(255,138,102,0.2)] transition-all duration-300 flex items-center justify-center" aria-hidden="true">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $first ? 'bg-[#FF8A66]' : 'bg-[#E2E4EC]' }} group-hover/step:bg-[#FF8A66] transition-colors duration-300"></span>
+                        </span>
+                        <div class="rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(6,13,38,0.08)] motion-reduce:hover:translate-y-0 {{ $first ? 'border-[#FF8A66]/60 bg-gradient-to-br from-[#FF8A66]/15 via-[#FF8A66]/5 to-white' : 'border-[#E2E4EC] bg-white hover:border-[#FF8A66]/60' }}">
+                            <div class="flex flex-wrap items-center gap-2.5">
+                                <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15.5px] font-bold text-[#060D26]">{{ $step['title'] }}</h3>
+                                <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[9.5px] font-bold uppercase tracking-[0.06em] text-[#060D26] px-2 py-0.5 rounded-full {{ $first ? 'bg-[#FF8A66]' : 'border border-[#FF8A66]/60 bg-[#FF8A66]/10' }}">{{ $step['tag'] }}</span>
+                            </div>
+                            <p class="mt-1.5 text-[13px] text-[#5B6A8E] leading-relaxed">{{ $step['desc'] }}</p>
+                        </div>
+                    </div>
                 @endforeach
             </div>
         </div>
+        @endforeach
 
     </div>
 </section>
@@ -222,8 +214,8 @@
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-            <span class="text-[12px] font-bold uppercase tracking-widest text-[#060D26]">Platform Features</span>
-            <h2 class="text-[30px] sm:text-[36px] font-normal text-[#060D26] mt-2 tracking-tight">Built for Trust & Transparency</h2>
+            <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]">Platform Features</span>
+            <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[30px] sm:text-[36px] font-extrabold text-[#060D26] mt-2 tracking-tight">Built for Trust & Transparency</h2>
         </div>
 
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -241,7 +233,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $feature['icon'] }}"/>
                     </svg>
                 </div>
-                <h3 class="text-[15px] font-normal text-[#060D26] mb-1.5">{{ $feature['title'] }}</h3>
+                <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15px] font-bold text-[#060D26] mb-1.5">{{ $feature['title'] }}</h3>
                 <p class="text-[13px] text-[#5B6A8E] leading-relaxed">{{ $feature['desc'] }}</p>
             </div>
             @endforeach
@@ -261,7 +253,7 @@
                     <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest mb-5">
                         UN Sustainable Development Goal
                     </div>
-                    <h2 class="text-[26px] sm:text-[32px] font-normal leading-tight mb-4">
+                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] sm:text-[32px] font-extrabold leading-tight mb-4">
                         Aligned with <span class="text-[#FF8A66]">SDG 16</span>
                     </h2>
                     <p class="text-[14.5px] text-white/75 leading-relaxed">
@@ -292,7 +284,7 @@
 {{-- ── CTA ──────────────────────────────────────────────────────────────────── --}}
 <section class="bg-[#F7F8FC] py-20">
     <div class="max-w-2xl mx-auto px-6 text-center fade-up">
-        <h2 class="text-[28px] sm:text-[34px] font-normal text-[#060D26] tracking-tight mb-4">
+        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] sm:text-[34px] font-extrabold text-[#060D26] tracking-tight mb-4">
             Ready to find your next home?
         </h2>
         <p class="text-[15px] text-[#5B6A8E] mb-8 leading-relaxed">

@@ -14,14 +14,14 @@
     reads as one on hover.
 --}}
 <div data-property-card="{{ $property->property_id }}"
-    class="group relative cursor-pointer rounded-2xl border border-transparent bg-transparent p-2 transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-[#FFF7F4] hover:border-[#FF8A66] hover:shadow-[0_12px_28px_rgba(6,13,38,0.12)] motion-reduce:hover:translate-y-0"
+    class="group relative cursor-pointer overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-[#FFF7F4] hover:border-[#FF8A66] hover:shadow-[0_12px_28px_rgba(6,13,38,0.12)] motion-reduce:hover:translate-y-0"
     onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
 
     {{-- IMAGE CAROUSEL --}}
     <div x-data="{ activeSlide: 0, slides: {{ $property->media->count() }} }"
         @mouseenter="$refs.nav.classList.remove('opacity-0')"
         @mouseleave="$refs.nav.classList.add('opacity-0')"
-        class="relative w-full aspect-square rounded-3xl overflow-hidden bg-[#ECEEF6] shadow-sm group-hover:shadow-lg transition-all duration-500">
+        class="relative w-full aspect-[4/3] overflow-hidden bg-[#ECEEF6]">
 
         @if($property->hasVerifiedDocuments())
             <span class="absolute top-3 left-3 z-10 inline-flex items-center gap-1 bg-[#FF8A66] text-[#060D26] text-[10.5px] font-bold px-2 py-1 rounded-full shadow-sm">
@@ -103,12 +103,12 @@
     </div>
 
     {{-- TEXT BELOW IMAGE — no card box --}}
-    <div class="mt-3 px-1">
-        <p class="text-[11px] font-bold uppercase tracking-wide text-[#060D26] mb-0.5">
+    <div class="px-4 pt-3.5 pb-4">
+        <span class="inline-flex mb-1.5 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.05em] text-[#060D26] px-2.5 py-1 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
             {{ $property->property_type }}
-        </p>
+        </span>
 
-        <h3 class="text-[14px] font-normal text-[#060D26] leading-snug line-clamp-1">
+        <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1">
             {{ $property->title }}
         </h3>
 
@@ -134,7 +134,7 @@
                 <span class="text-[12px] text-[#5B6A8E]">({{ $property->review_count }})</span>
             </div>
         @endif
-        <p class="text-[14px] font-semibold text-[#B35A3D] mt-1.5">
+        <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15px] font-extrabold text-[#B35A3D] mt-1.5">
             @if($property->min_rental_fee)
                 ₱{{ number_format($property->min_rental_fee) }}
                 <span class="text-[13px] font-normal text-[#5B6A8E]">/month</span>
