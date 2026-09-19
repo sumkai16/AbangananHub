@@ -12,7 +12,7 @@
         <div
             class="bg-white border border-[#E2E4EC] rounded-2xl p-6 sm:p-8 mb-6 flex flex-col sm:flex-row sm:items-center gap-5">
             <div
-                class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#FF8A66] text-2xl font-bold text-[#060D26] overflow-hidden">
+                class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#DA8E77] text-2xl font-bold text-[#060D26] overflow-hidden">
                 @if($user->profile_picture)
                     <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="h-full w-full object-cover">
                 @else
@@ -26,11 +26,7 @@
                     </h1>
                     @foreach($roles as $role)
                         <span
-<<<<<<< HEAD
                             class="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/20">
-=======
-                            class="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/20">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             {{ $role }}
                         </span>
                     @endforeach

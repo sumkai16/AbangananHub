@@ -4,11 +4,7 @@
     <div class="max-w-xl mx-auto px-4 py-16 text-center min-h-[calc(100vh-72px)] flex flex-col justify-center">
 
         <div class="w-14 h-14 rounded-full bg-[#ECEEF6] flex items-center justify-center mx-auto mb-6">
-<<<<<<< HEAD
             <svg class="w-7 h-7 text-[#A8573F]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-=======
-            <svg class="w-7 h-7 text-[#B35A3D]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
         </div>
@@ -41,7 +37,7 @@
         @endif
 
         <a href="{{ $returnRoute ?? route('agreements.show', $reservation) }}"
-            class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm transition">
+            class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] font-bold text-sm transition">
             {{ isset($returnRoute) ? 'Back to Rent Ledger' : 'Back to Agreement' }}
         </a>
     </div>

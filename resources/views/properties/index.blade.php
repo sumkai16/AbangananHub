@@ -10,7 +10,6 @@
 
 @section('content')
 
-<<<<<<< HEAD
     {{-- ===== HERO — full-bleed photo + search + live trust strip. Stays up
          regardless of filter/sort/page state (Sept 2026) — it's the page's
          identity and primary search entry point, not just a first-visit
@@ -51,40 +50,6 @@
                     <span>{{ $heroStats['units'] }} {{ Str::plural('unit', $heroStats['units']) }} available now</span>
                     <span class="hidden sm:inline" aria-hidden="true">&middot;</span>
                     <span>Every landlord ID-verified</span>
-=======
-    {{-- ===== HERO — full-bleed photo + search + live trust strip. Only on a
-         clean arrival (no filter/sort/page active); collapses to the plain
-         filter-bar + grid below the moment the visitor does anything, per
-         DESIGN.md §6i. The header's own search pill is hidden while this is
-         showing (see the searchBar=false above) so there's one search bar,
-         not two. ===== --}}
-    @if($heroStats)
-        <section id="landing-hero" class="relative min-h-[72vh] sm:min-h-[80vh] flex items-center overflow-hidden">
-            <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/35 via-[#060D26]/45 to-[#060D26]/55"></div>
-            <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_75%_at_50%_40%,rgba(6,13,38,0.45),rgba(6,13,38,0)_70%)]"></div>
-
-            <div class="relative z-10 mx-auto w-full max-w-[900px] px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
-                <p class="inline-flex items-center font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] sm:text-[11.5px] font-bold uppercase tracking-[0.14em] text-white px-3.5 py-1.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
-                    Your Next Place Starts Here
-                </p>
-                <h1 class="mt-5 sm:mt-6 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[36px] sm:text-[52px] lg:text-[62px] font-extrabold leading-[1.1] tracking-tight text-white text-balance">
-                    Find a place to call home
-                    <span class="block bg-gradient-to-r from-white to-white/55 bg-clip-text text-transparent">in <span class="text-[#FF8A66]">Cebu</span>.</span>
-                </h1>
-                <p class="mt-5 sm:mt-6 mx-auto max-w-xl text-white/90 text-[15px] sm:text-[17px] font-light">
-                    Verified apartments, rooms, boarding houses, and condos &mdash; all in one place.
-                </p>
-
-                <div class="mt-8 sm:mt-10 flex justify-center">
-                    <x-search-pill variant="hero" />
-                </div>
-
-                <div class="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.06em] text-white">
-                    <span class="px-3 py-1 rounded-full border border-[#FF8A66]/60 bg-[#060D26]/40">{{ $heroStats['units'] }}+ available units</span>
-                    <span class="px-3 py-1 rounded-full border border-[#FF8A66]/60 bg-[#060D26]/40">Verified landlords</span>
-                    <span class="px-3 py-1 rounded-full border border-[#FF8A66]/60 bg-[#060D26]/40">Across Cebu</span>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 </div>
 
                 {{-- Feature strip: fills the wide banner beneath the search with
@@ -109,49 +74,6 @@
                 </div>
             </div>
         </section>
-<<<<<<< HEAD
-=======
-
-        {{-- Compact hero: once the full hero scrolls out from under the sticky
-             header, a slim photo strip carrying the same search pill slides in
-             so the search stays one tap away. Fixed (not sticky) so it never
-             shifts the layout; the strip's photo is clipped in its own
-             layer so the type dropdown can still overflow the bar. --}}
-        <div x-data="{ show: false, offset: 0 }"
-            x-init="
-                const header = document.getElementById('site-header');
-                const hero = document.getElementById('landing-hero');
-                const update = () => {
-                    offset = header ? header.offsetHeight : 0;
-                    show = hero.getBoundingClientRect().bottom <= offset + 1;
-                };
-                update();
-                window.addEventListener('scroll', update, { passive: true });
-                window.addEventListener('resize', update);
-            "
-            :style="'top:' + offset + 'px'"
-            :class="show ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0 pointer-events-none'"
-            :aria-hidden="show ? 'false' : 'true'"
-            class="fixed inset-x-0 z-[90] transition-all duration-300 ease-out motion-reduce:transition-none">
-            <div class="relative border-b-2 border-[#FF8A66] shadow-[0_8px_24px_rgba(6,13,38,0.14)] lg:shadow-none">
-                <div class="absolute inset-0 overflow-hidden" aria-hidden="true">
-                    <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-[#060D26]/55"></div>
-                </div>
-                <div class="relative flex justify-center px-3 sm:px-6 py-2">
-                    <x-search-pill variant="header" :compact="true" />
-                </div>
-            </div>
-            {{-- Same categories + Show map / Filters row the filtered pages have in the header. --}}
-            <div class="relative hidden lg:flex items-center justify-center gap-6 px-6 bg-white border-b border-[#E2E4EC] shadow-[0_8px_24px_rgba(6,13,38,0.10)]">
-                <div class="min-w-0"><x-category-strip /></div>
-                <div class="flex items-center gap-2 pl-6 border-l border-[#E2E4EC] self-center mb-1">
-                    @include('properties.partials-browse-tools')
-                </div>
-            </div>
-        </div>
-    @endif
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 
     {{-- ===== BROWSE ===== --}}
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: false, filtersOpen: false }"
@@ -163,15 +85,15 @@
             @if($areas->count() > 0)
                 {{-- ===== BROWSE BY AREA ===== --}}
                 <div class="mb-14">
-                    <div class="flex items-center gap-3"><span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>Browse by area</span>
-                    <span class="h-0.5 flex-1 rounded-full bg-gradient-to-r from-[#FF8A66] via-[#FF8A66]/70 to-[#FF8A66]/10" aria-hidden="true"></span>
+                    <div class="flex items-center gap-3"><span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#DA8E77] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>Browse by area</span>
+                    <span class="h-0.5 flex-1 rounded-full bg-gradient-to-r from-[#DA8E77] via-[#DA8E77]/70 to-[#DA8E77]/10" aria-hidden="true"></span>
                     <span class="hidden sm:inline font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.1em] text-[#5B6A8E] whitespace-nowrap">{{ $areas->count() }} {{ Str::plural('area', $areas->count()) }} &middot; {{ $areas->sum('count') }} listings</span></div>
                     <h2 class="mt-2.5 mb-5 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[24px] sm:text-[30px] font-extrabold leading-[1.15] tracking-tight text-[#060D26]">Pick a neighborhood,
                         <span class="block text-[#5B6A8E]">find your place.</span></h2>
                     <div class="flex gap-3 overflow-x-auto pb-1">
                         @foreach($areas as $area)
                             <a href="{{ route('properties.index', ['location' => $area['name']]) }}"
-                                class="relative flex-1 min-w-[176px] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0">
+                                class="relative flex-1 min-w-[176px] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#DA8E77] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0">
                                 <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/90 via-[#060D26]/35 to-transparent"></div>
@@ -179,7 +101,7 @@
                                     <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[14.5px] font-bold leading-tight truncate [text-shadow:0_1px_6px_rgba(6,13,38,0.5)]">
                                         {{ $area['name'] }}
                                     </p>
-                                    <p class="mt-1 inline-flex font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[9.5px] font-bold uppercase tracking-[0.06em] text-white px-2 py-0.5 rounded-full border border-[#FF8A66]/70 bg-[#060D26]/40">
+                                    <p class="mt-1 inline-flex font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[9.5px] font-bold uppercase tracking-[0.06em] text-white px-2 py-0.5 rounded-full border border-[#DA8E77]/70 bg-[#060D26]/40">
                                         {{ $area['count'] }} {{ Str::plural('listing', $area['count']) }}
                                     </p>
                                 </div>
@@ -187,8 +109,8 @@
                         @endforeach
 
                         <a href="{{ route('properties.areas') }}"
-                            class="relative flex-1 min-w-[176px] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#FF8A66]/60 bg-gradient-to-br from-[#FF8A66]/15 via-[#FF8A66]/5 to-white flex flex-col items-center justify-center text-center gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0">
-                            <span class="w-10 h-10 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shadow-[0_8px_20px_rgba(255,138,102,0.4)] transition-transform duration-300 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0">
+                            class="relative flex-1 min-w-[176px] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#DA8E77]/60 bg-gradient-to-br from-[#DA8E77]/15 via-[#DA8E77]/5 to-white flex flex-col items-center justify-center text-center gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#DA8E77] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0">
+                            <span class="w-10 h-10 rounded-full bg-[#DA8E77] text-[#060D26] flex items-center justify-center shadow-[0_8px_20px_rgba(255,138,102,0.4)] transition-transform duration-300 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6" /></svg>
                             </span>
                             <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[14.5px] font-extrabold text-[#060D26] leading-tight">View all areas</span>
@@ -199,21 +121,12 @@
 
             @if($popularProperties->count() > 0)
                 {{-- ===== POPULAR PLACES TO STAY ===== --}}
-<<<<<<< HEAD
                 <div class="mb-12">
                     <div class="flex items-center gap-2.5 mb-1.5">
                         <div class="h-px w-4 bg-[#DA8E77]"></div>
                         <span class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#A8573F]">Top rated</span>
                     </div>
                     <x-section-header title="Popular places to stay" />
-=======
-                <div class="mb-14">
-                    <div class="flex items-center gap-3"><span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>Top rated</span>
-                    <span class="h-0.5 flex-1 rounded-full bg-gradient-to-r from-[#FF8A66] via-[#FF8A66]/70 to-[#FF8A66]/10" aria-hidden="true"></span>
-                    <span class="hidden sm:inline font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.1em] text-[#5B6A8E] whitespace-nowrap">Highest rated by tenants</span></div>
-                    <h2 class="mt-2.5 mb-6 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[24px] sm:text-[30px] font-extrabold leading-[1.15] tracking-tight text-[#060D26]">Popular places
-                        <span class="block text-[#5B6A8E]">to stay.</span></h2>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     {{-- A different card treatment than the main grid's borderless
                          image-is-the-card pattern (DESIGN.md §6), deliberately — this
                          boxed white-card style is specific to this section, mirroring
@@ -257,11 +170,7 @@
                                         </div>
                                         <div class="text-right shrink-0">
                                             @if($availableCount > 0)
-<<<<<<< HEAD
                                                 <p class="text-[11px] font-semibold text-[#A8573F]">
-=======
-                                                <p class="inline-block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.04em] text-[#060D26] px-2 py-0.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                     {{ $availableCount }} {{ Str::plural('unit', $availableCount) }} free
                                                 </p>
                                             @endif
@@ -287,11 +196,7 @@
 
                 @if(request('location'))
                     <span
-<<<<<<< HEAD
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
-=======
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -311,11 +216,7 @@
 
                 @if(request('type'))
                     <span
-<<<<<<< HEAD
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
-=======
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -334,11 +235,7 @@
 
                 @if(request('price_min') || request('price_max'))
                     <span
-<<<<<<< HEAD
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
-=======
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -363,11 +260,7 @@
 
                 @if(request('verified'))
                     <span
-<<<<<<< HEAD
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
-=======
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
                             aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -385,11 +278,7 @@
 
                 @foreach($selectedAmenities as $amenity)
                     <span
-<<<<<<< HEAD
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
-=======
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         {{ $amenity->name }}
                         {{-- Removing one amenity out of amenities[]=1&amenities[]=2 isn't
                              a plain fullUrlWithoutQuery (that drops the whole key) — rebuild
@@ -415,8 +304,8 @@
         {{-- ===== ALL LISTINGS — compact header + one toolbar row (type pills left,
              map/filters right). ===== --}}
         <div class="flex items-center gap-3">
-            <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>All listings</span>
-            <span class="h-0.5 flex-1 rounded-full bg-gradient-to-r from-[#FF8A66] via-[#FF8A66]/70 to-[#FF8A66]/10" aria-hidden="true"></span>
+            <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#DA8E77] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>All listings</span>
+            <span class="h-0.5 flex-1 rounded-full bg-gradient-to-r from-[#DA8E77] via-[#DA8E77]/70 to-[#DA8E77]/10" aria-hidden="true"></span>
             <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.1em] text-[#5B6A8E] whitespace-nowrap">
                 {{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found
             </span>
@@ -437,7 +326,7 @@
                         @php $isActive = $type === null ? ! $activeType : $activeType === $type; @endphp
                         <a href="{{ $type ? route('properties.index', ['type' => $type]) : route('properties.index') }}"
                             @if($isActive) aria-current="page" @endif
-                            class="flex-shrink-0 h-9 inline-flex items-center px-4 rounded-full border font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#FF8A66] hover:text-[#060D26]' }}">
+                            class="flex-shrink-0 h-9 inline-flex items-center px-4 rounded-full border font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#DA8E77] hover:text-[#060D26]' }}">
                             {{ $label }}
                         </a>
                     @endforeach
@@ -471,7 +360,7 @@
                     </svg>
                     Filters
                     @if($activeFilterCount > 0)
-                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#FF8A66] text-[#060D26] text-[10px] font-bold">{{ $activeFilterCount }}</span>
+                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#DA8E77] text-[#060D26] text-[10px] font-bold">{{ $activeFilterCount }}</span>
                     @endif
                 </button>
 
@@ -494,7 +383,6 @@
             $initialSelected = count((array) request('amenities', []));
         @endphp
         <template x-teleport="body">
-<<<<<<< HEAD
             {{-- ===== FILTERS MODAL — widened + grouped into a responsive grid
                  (Sept 2026). Was a single fixed-width column (sm:max-w-md)
                  that stacked every amenity category vertically, forcing a
@@ -514,41 +402,14 @@
                         <button type="button" x-on:click="filtersOpen = false" aria-label="Close"
                             class="w-8 h-8 flex items-center justify-center rounded-full text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors cursor-pointer">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-=======
-            <div x-show="filtersOpen" x-cloak class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-6"
-                x-on:keydown.escape.window="filtersOpen = false">
-                <div class="absolute inset-0 bg-[#060D26]/50" x-on:click="filtersOpen = false"></div>
-                <form method="GET" action="{{ route('properties.index') }}"
-                    x-data="{ selected: {{ $initialSelected }}, count() { this.selected = this.$el.querySelectorAll('input[type=checkbox]:checked').length } }"
-                    @change="count()"
-                    class="relative w-full sm:max-w-6xl max-h-[92vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
-                    x-show="filtersOpen" x-transition>
-
-                    {{-- Header --}}
-                    <div class="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-[#E2E4EC] flex-shrink-0">
-                        <div>
-                            <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>Refine results</span>
-                            <h3 class="mt-1 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[22px] font-extrabold tracking-tight text-[#060D26]">Filters</h3>
-                        </div>
-                        <button type="button" x-on:click="filtersOpen = false" aria-label="Close"
-                            class="w-9 h-9 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] hover:text-[#060D26] hover:border-[#FF8A66] transition-colors cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
 
-<<<<<<< HEAD
                     <form method="GET" action="{{ route('properties.index') }}" class="flex flex-col min-h-0 flex-1">
                         {{-- Carries location/type/price_max/sort through untouched —
                              this form only ever sets amenities/verified. --}}
-=======
-                    {{-- Body (only this scrolls) --}}
-                    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4 bg-[#F7F8FC]">
-                        {{-- Carries location/type/price_min/price_max/sort through untouched —
-                             this form only ever sets amenities. --}}
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         @foreach(request()->except(['amenities', 'verified', 'page']) as $key => $value)
                             @if(is_array($value))
                                 @foreach($value as $item)
@@ -559,7 +420,6 @@
                             @endif
                         @endforeach
 
-<<<<<<< HEAD
                         <div class="px-6 py-5 overflow-y-auto min-h-0">
                             <label class="flex items-center gap-2.5 text-[14px] font-semibold text-[#060D26] cursor-pointer bg-[#DA8E77]/[0.07] border border-[#DA8E77]/25 rounded-xl px-4 py-3">
                                 <input type="checkbox" name="verified" value="1"
@@ -601,32 +461,6 @@
                                 class="ml-auto px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150 cursor-pointer">
                                 Apply filters
                             </button>
-=======
-                        <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
-                            @foreach($amenityGroups as $category => $group)
-                                <section class="bg-white border border-[#E2E4EC] rounded-2xl p-3.5">
-                                    <div class="flex items-center gap-2.5 mb-3">
-                                        <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $categoryIcons[$category] ?? $fallbackCategoryIcon }}" /></svg>
-                                        </span>
-                                        <h4 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">{{ $category }}</h4>
-                                    </div>
-                                    <div class="flex flex-wrap gap-2">
-                                        @foreach($group as $amenity)
-                                            <label class="relative cursor-pointer">
-                                                <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
-                                                    @checked(in_array($amenity->amenity_id, (array) request('amenities', [])))
-                                                    class="peer sr-only">
-                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all">
-                                                    <x-amenity-icon :name="$amenity->name" class="w-3.5 h-3.5" />
-                                                    {{ $amenity->name }}
-                                                </span>
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                </section>
-                            @endforeach
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         </div>
                     </div>
 
@@ -638,7 +472,7 @@
                         </a>
                         <span class="hidden sm:inline font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#5B6A8E]" x-text="selected + ' selected'"></span>
                         <button type="submit"
-                            class="ml-auto px-6 py-2.5 rounded-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13.5px] font-bold text-[#060D26] bg-[#FF8A66] shadow-[0_8px_20px_rgba(255,138,102,0.35)] hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                            class="ml-auto px-6 py-2.5 rounded-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13.5px] font-bold text-[#060D26] bg-[#DA8E77] shadow-[0_8px_20px_rgba(255,138,102,0.35)] hover:bg-[#C97A61] transition-all duration-200 cursor-pointer">
                             Apply filters
                         </button>
                     </div>
@@ -649,12 +483,12 @@
         {{-- MOBILE LIST/MAP TOGGLE — desktop shows both columns, this is mobile-only --}}
         <div class="flex lg:hidden gap-2 mb-5">
             <button type="button" @click="mobileView = 'list'"
-                :class="mobileView === 'list' ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
+                :class="mobileView === 'list' ? 'bg-[#DA8E77] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition cursor-pointer">
                 List
             </button>
             <button type="button" @click="mobileView = 'map'"
-                :class="mobileView === 'map' ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
+                :class="mobileView === 'map' ? 'bg-[#DA8E77] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition cursor-pointer">
                 Map
             </button>
@@ -684,14 +518,14 @@
 
                         @if($heroStats)
                             <a href="{{ route('properties.index', ['sort' => 'newest']) }}"
-                                class="group relative flex flex-col items-center justify-center text-center gap-3 rounded-2xl border border-[#FF8A66]/60 bg-gradient-to-br from-[#FF8A66]/15 via-[#FF8A66]/5 to-white p-6 min-h-[260px] transition-all duration-300 hover:-translate-y-1 hover:border-[#FF8A66] hover:shadow-[0_12px_28px_rgba(6,13,38,0.12)] motion-reduce:hover:translate-y-0">
-                                <span class="w-12 h-12 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shadow-[0_8px_20px_rgba(255,138,102,0.4)] transition-transform duration-300 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0">
+                                class="group relative flex flex-col items-center justify-center text-center gap-3 rounded-2xl border border-[#DA8E77]/60 bg-gradient-to-br from-[#DA8E77]/15 via-[#DA8E77]/5 to-white p-6 min-h-[260px] transition-all duration-300 hover:-translate-y-1 hover:border-[#DA8E77] hover:shadow-[0_12px_28px_rgba(6,13,38,0.12)] motion-reduce:hover:translate-y-0">
+                                <span class="w-12 h-12 rounded-full bg-[#DA8E77] text-[#060D26] flex items-center justify-center shadow-[0_8px_20px_rgba(255,138,102,0.4)] transition-transform duration-300 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6" />
                                     </svg>
                                 </span>
                                 <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[16px] font-extrabold leading-tight text-[#060D26]">View all rental properties</span>
-                                <span class="inline-flex font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.06em] text-[#060D26] px-2.5 py-1 rounded-full border border-[#FF8A66]/60 bg-white/70">
+                                <span class="inline-flex font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.06em] text-[#060D26] px-2.5 py-1 rounded-full border border-[#DA8E77]/60 bg-white/70">
                                     {{ $properties->total() }} {{ Str::plural('listing', $properties->total()) }}
                                 </span>
                             </a>
@@ -712,7 +546,7 @@
                 <div :class="[mobileView === 'map' ? 'block' : 'hidden', mapVisible ? 'lg:!block' : 'lg:!hidden']"
                     class="lg:sticky {{ $heroStats ? 'lg:top-[150px]' : 'lg:top-[232px]' }} lg:self-start">
                     <div id="browse-map"
-                        class="w-full h-[400px] {{ $heroStats ? 'lg:h-[calc(100vh-190px)]' : 'lg:h-[calc(100vh-256px)]' }} lg:min-h-[420px] rounded-2xl overflow-hidden border border-[#FF8A66]">
+                        class="w-full h-[400px] {{ $heroStats ? 'lg:h-[calc(100vh-190px)]' : 'lg:h-[calc(100vh-256px)]' }} lg:min-h-[420px] rounded-2xl overflow-hidden border border-[#DA8E77]">
                     </div>
                     <script type="application/json" id="browse-map-data">{!! json_encode($mapProperties) !!}</script>
                 </div>

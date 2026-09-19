@@ -27,11 +27,7 @@
             @if($isLandlord && $landlordProperties->isNotEmpty())
                 <div class="relative" x-data="{ filterOpen: false }">
                     <button @click="filterOpen = !filterOpen" type="button"
-<<<<<<< HEAD
                         class="flex h-10 items-center gap-2 rounded-xl border border-[#CBD5E1] bg-white px-4 text-[13px] font-medium text-[#060D26] shadow-[0_6px_18px_rgba(6,13,38,0.04)] transition hover:border-[#DA8E77]/50 hover:bg-[#F7F8FC] focus:outline-none">
-=======
-                        class="flex h-10 items-center gap-2 rounded-xl border border-[#CBD5E1] bg-white px-4 text-[13px] font-medium text-[#060D26] shadow-[0_6px_18px_rgba(6,13,38,0.04)] transition hover:border-[#FF8A66]/50 hover:bg-[#F7F8FC] focus:outline-none">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
@@ -80,11 +76,7 @@
                     @foreach ($tabs as $key => $tab)
                                 <a href="{{ route('conversations.index', array_filter(['status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
                                     class="flex-1 rounded-t-xl border-b-2 py-2.5 text-center text-[12px] font-semibold transition-all
-<<<<<<< HEAD
                                         {{ $status === $key ? 'border-[#DA8E77] bg-white text-[#060D26] shadow-[0_-2px_0_rgba(201,168,76,0.1)]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-=======
-                                        {{ $status === $key ? 'border-[#FF8A66] bg-white text-[#060D26] shadow-[0_-2px_0_rgba(255, 138, 102,0.1)]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     {{ $tab['label'] }}
                                     @if($tab['count'] > 0)
                                         <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $tab['count'] }}</span>
@@ -106,11 +98,7 @@
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Search by person or property..." aria-label="Search by person or property"
                             x-on:input.debounce.400ms="$el.form.requestSubmit()"
-<<<<<<< HEAD
                             class="w-full rounded-xl border border-[#E2E4EC] bg-white py-2.5 pl-8 pr-3 text-[12px] text-[#060D26] placeholder-[#94A3B8] shadow-[0_4px_10px_rgba(6,13,38,0.02)] transition focus:border-[#DA8E77] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20" />
-=======
-                            class="w-full rounded-xl border border-[#E2E4EC] bg-white py-2.5 pl-8 pr-3 text-[12px] text-[#060D26] placeholder-[#94A3B8] shadow-[0_4px_10px_rgba(6,13,38,0.02)] transition focus:border-[#FF8A66] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20" />
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     </form>
                 </div>
 
@@ -152,11 +140,7 @@
 
                         <button type="button" @click="loadConversation({{ $conversation->conversation_id }})"
                             class="group flex w-full items-start gap-3 border-b border-[#E2E4EC] px-4 py-3.5 text-left transition-all duration-200 hover:bg-[#F8FAFC]"
-<<<<<<< HEAD
                             :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#ECEEF6] shadow-[inset_2px_0_0_#DA8E77]' : 'bg-white'"
-=======
-                            :class="activeId === {{ $conversation->conversation_id }} ? 'bg-[#ECEEF6] shadow-[inset_2px_0_0_#FF8A66]' : 'bg-white'"
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             data-conversation-id="{{ $conversation->conversation_id }}">
 
                             <div
@@ -216,7 +200,7 @@
                             </p>
                             @if(!$isLandlord)
                                 <a href="{{ route('properties.index') }}"
-                                    class="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#FF8A66] px-4 py-2 text-[12.5px] font-semibold text-[#060D26] shadow-[0_10px_20px_rgba(255, 138, 102,0.25)] transition hover:bg-[#E96F4F]">
+                                    class="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#DA8E77] px-4 py-2 text-[12.5px] font-semibold text-[#060D26] shadow-[0_10px_20px_rgba(255, 138, 102,0.25)] transition hover:bg-[#C97A61]">
                                     Browse properties
                                 </a>
                             @endif

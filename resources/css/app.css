@@ -6,17 +6,8 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
-<<<<<<< HEAD
 h1, h2, h3, h4, h5, h6, .font-heading {
     font-family: 'Montserrat', sans-serif;
-=======
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
-}
-
-.font-heading {
-    font-family: 'DM Serif Display', serif;
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 }
 
 [x-cloak] {
@@ -79,11 +70,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-thumb:hover {
-<<<<<<< HEAD
     background-color: #DA8E77;
-=======
-    background-color: #FF8A66;
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-button {
@@ -96,7 +83,7 @@ h1, h2, h3, h4, h5, h6 {
    instead of sprinkling dark: variants everywhere the palette is remapped here,
    under html.dark. The class is only ever added on pages that opt in with
    @section('themeable') (see layouts/app.blade.php), so no other page changes.
-   Coral (#FF8A66) is deliberately untouched — it is the accent in both themes. */
+   Coral (#DA8E77) is deliberately untouched — it is the accent in both themes. */
 .theme-icon-sun { display: none; }
 html.dark .theme-icon-sun { display: block; }
 html.dark .theme-icon-moon { display: none; }
@@ -109,14 +96,17 @@ html.dark .bg-\[\#FFF7F4\],
 html.dark .hover\:bg-\[\#FFF7F4\]:hover { background-color: #1A2448; }
 html.dark .hover\:bg-\[\#F7F8FC\]:hover { background-color: #1A2448; }
 html.dark .bg-white\/95 { background-color: rgba(17, 26, 58, 0.95); }
+html.dark .bg-white\/90 { background-color: rgba(17, 26, 58, 0.9); }
+html.dark .bg-white\/70 { background-color: rgba(17, 26, 58, 0.7); }
+html.dark .bg-white\/60 { background-color: rgba(17, 26, 58, 0.6); }
 
 html.dark .text-\[\#060D26\] { color: #F1F3FA; }
 html.dark .text-\[\#5B6A8E\] { color: #9AA6C6; }
 html.dark .text-\[\#94A3B8\] { color: #7C89AD; }
 html.dark .text-\[\#334155\] { color: #C9D1E8; }
-html.dark .text-\[\#B35A3D\] { color: #FF8A66; }
+html.dark .text-\[\#A8573F\] { color: #DA8E77; }
 html.dark .hover\:text-\[\#060D26\]:hover { color: #FFFFFF; }
-html.dark .hover\:text-\[\#B35A3D\]:hover { color: #FF8A66; }
+html.dark .hover\:text-\[\#A8573F\]:hover { color: #DA8E77; }
 
 html.dark .border-\[\#E2E4EC\],
 html.dark .border-\[\#E2E4EC\]\/80 { border-color: rgba(255, 255, 255, 0.12); }
@@ -125,10 +115,10 @@ html.dark .border-\[\#5B6A8E\]\/30 { border-color: rgba(255, 255, 255, 0.14); }
 html.dark .bg-\[\#E2E4EC\] { background-color: rgba(255, 255, 255, 0.14); }
 
 /* Coral-filled chips keep navy text (contrast on coral), even though navy text is remapped. */
-html.dark .bg-\[\#FF8A66\] { color: #060D26; }
+html.dark .bg-\[\#DA8E77\] { color: #060D26; }
 html.dark .peer:checked ~ span { color: #060D26; }
 html.dark .to-white { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
-html.dark .bg-\[\#FF8A66\] .text-\[\#060D26\] { color: #060D26; }
+html.dark .bg-\[\#DA8E77\] .text-\[\#060D26\] { color: #060D26; }
 
 /* Form controls + placeholders */
 html.dark input,
@@ -151,6 +141,21 @@ html.dark .leaflet-container { filter: brightness(0.8) contrast(1.05); }
 html.dark svg[stroke="#060D26"] { stroke: #9AA6C6; }
 html.dark svg[fill="#060D26"] { fill: #9AA6C6; }
 html.dark .feature-card div[style*="#060D26"] { background: rgba(255, 255, 255, 0.08) !important; }
+
+/* Light decorative gradients (property contact card, conversations empty-state
+   icons, landlord public-profile highlight cards, account-menu header band)
+   had no dark remap, so the .text-[#060D26]/.text-[#5B6A8E] rules above turned
+   their text/icons light-colored while the gradient itself stayed light —
+   invisible light-on-light. Collapsing each to a flat dark surface is simpler
+   and safer than replicating Tailwind's gradient-stop CSS variables per case;
+   matched by full class combination since gradient utilities don't map to a
+   single overridable property the way background-color does. */
+html.dark .bg-gradient-to-b.from-white.to-\[\#FBF9F7\] { background-image: none; background-color: #111A3A; }
+html.dark .bg-gradient-to-br.from-\[\#DCF7F5\].to-\[\#D7F0F7\] { background-image: none; background-color: #1A2448; }
+html.dark .bg-gradient-to-br.from-\[\#DBF6F4\].to-\[\#C7F0EF\] { background-image: none; background-color: #1A2448; }
+html.dark .bg-gradient-to-br.from-\[\#F8FBFC\].via-white.to-\[\#ECEEF6\] { background-image: none; background-color: #111A3A; }
+html.dark .bg-gradient-to-br.from-\[\#F7FBFC\].via-white.to-\[\#ECEEF6\] { background-image: none; background-color: #111A3A; }
+html.dark .bg-gradient-to-br.from-\[\#ECEEF6\].to-\[\#F7F8FC\] { background-image: none; background-color: #1A2448; }
 
 /* ── Smooth navigation & interaction ─────────────────────────────────────────
    1. Cross-document view transitions: the browser cross-fades the old and new
@@ -198,7 +203,7 @@ html.dark .feature-card div[style*="#060D26"] { background: rgba(255, 255, 255, 
 /* Thin coral progress bar shown from the moment a navigation starts until the next page paints. */
 #nav-progress {
     position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 10000;
-    background: linear-gradient(90deg, #FF8A66, #FFB59F);
+    background: linear-gradient(90deg, #DA8E77, #FFB59F);
     box-shadow: 0 0 10px rgba(255, 138, 102, 0.6);
     opacity: 0; pointer-events: none;
     transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 200ms ease;

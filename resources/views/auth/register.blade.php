@@ -6,11 +6,7 @@
         <div class="max-w-xl mx-auto">
             <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] font-extrabold text-white leading-[1.1] tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
-<<<<<<< HEAD
                 for Verified Rental <span class="italic text-[#DA8E77]">Properties.</span>
-=======
-                for Verified Rental <span class="text-[#FF8A66]">Properties.</span>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
@@ -19,11 +15,7 @@
             <div class="space-y-3">
                 {{-- Feature 1 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#DA8E77] flex items-center justify-center shrink-0 shadow-md shadow-[#DA8E77]/20">
-=======
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
@@ -36,11 +28,7 @@
 
                 {{-- Feature 2 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#DA8E77] flex items-center justify-center shrink-0 shadow-md shadow-[#DA8E77]/20">
-=======
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
@@ -53,11 +41,7 @@
 
                 {{-- Feature 3 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#DA8E77] flex items-center justify-center shrink-0 shadow-md shadow-[#DA8E77]/20">
-=======
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
@@ -70,11 +54,7 @@
 
                 {{-- Feature 4 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#DA8E77] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#DA8E77]/20 select-none">
-=======
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20 select-none">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <span class="text-[#060D26] text-[8px] font-black tracking-tighter leading-none">SDG</span>
                         <span class="text-[#060D26] text-xs font-black leading-none mt-0.5">16</span>
                     </div>
@@ -101,11 +81,7 @@
                     </div>
                     <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
                 </a>
-<<<<<<< HEAD
                 <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Create Your <span class="text-[#A8573F]">Account</span></h2>
-=======
-                <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[22px] sm:text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create Your <span class="text-[#B35A3D]">Account</span></h2>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
             </div>
 
@@ -118,11 +94,7 @@
                         <label for="first_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">First Name</label>
                         <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" required
                             autofocus autocomplete="given-name" placeholder="First name"
-<<<<<<< HEAD
                             class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
-=======
-                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         @error('first_name')
                             <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                         @enderror
@@ -131,11 +103,7 @@
                         <label for="last_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Last Name</label>
                         <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" required
                             autocomplete="family-name" placeholder="Last name"
-<<<<<<< HEAD
                             class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
-=======
-                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         @error('last_name')
                             <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                         @enderror
@@ -147,11 +115,7 @@
                     <label for="email" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
                         placeholder="Enter your email address"
-<<<<<<< HEAD
                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
-=======
-                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     @error('email')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
@@ -162,11 +126,7 @@
                     <label for="contact_number" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
                     <input id="contact_number" type="text" name="contact_number" value="{{ old('contact_number') }}"
                         required autocomplete="tel" placeholder="Enter your contact number"
-<<<<<<< HEAD
                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
-=======
-                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     @error('contact_number')
                         <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
@@ -178,11 +138,7 @@
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="new-password"
                             placeholder="Create a password"
-<<<<<<< HEAD
                             class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
-=======
-                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <button type="button" onclick="togglePassword('password', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -202,11 +158,7 @@
                     <div class="relative">
                         <input id="password_confirmation" type="password" name="password_confirmation" required
                             autocomplete="new-password" placeholder="Confirm your password"
-<<<<<<< HEAD
                             class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
-=======
-                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <button type="button" onclick="togglePassword('password_confirmation', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -221,13 +173,8 @@
                 </div>
 
                 {{-- Security Banner --}}
-<<<<<<< HEAD
                 <div class="flex items-start gap-2.5 bg-[#ECEEF6] border border-[#DA8E77]/20 rounded-xl p-2.5 shadow-sm">
                     <div class="w-6 h-6 rounded-lg bg-[#DA8E77] flex items-center justify-center shrink-0 mt-0.5">
-=======
-                <div class="flex items-start gap-2.5 bg-[#ECEEF6] border border-[#FF8A66]/20 rounded-xl p-2.5 shadow-sm">
-                    <div class="w-6 h-6 rounded-lg bg-[#FF8A66] flex items-center justify-center shrink-0 mt-0.5">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-3 h-3 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
@@ -241,7 +188,7 @@
                 {{-- Action Submit Button --}}
                 <div class="pt-0.5">
                     <button type="submit"
-                        class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
+                        class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#DA8E77] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#C97A61] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                         Create Account
                     </button>
                 </div>
@@ -252,11 +199,7 @@
             {{-- Landlord CTA Callout Node --}}
             <div class="mt-3.5 flex items-center justify-between gap-2 bg-[#E2E4EC]/30 border border-[#E2E4EC] rounded-xl p-2.5 shadow-inner">
                 <div class="flex items-center gap-2">
-<<<<<<< HEAD
                     <div class="w-7 h-7 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0 border border-[#DA8E77]/20">
-=======
-                    <div class="w-7 h-7 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0 border border-[#FF8A66]/20">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-3.5 h-3.5 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
@@ -266,7 +209,7 @@
                         <p class="text-[#5B6A8E] text-[10px] font-semibold">Apply as a landlord later.</p>
                     </div>
                 </div>
-                <a href="#" class="text-[10px] text-[#060D26] font-black border border-[#060D26]/30 bg-white rounded-md px-2.5 py-1 hover:bg-[#FF8A66] hover:text-[#060D26] transition-all duration-200 shrink-0">
+                <a href="#" class="text-[10px] text-[#060D26] font-black border border-[#060D26]/30 bg-white rounded-md px-2.5 py-1 hover:bg-[#DA8E77] hover:text-[#060D26] transition-all duration-200 shrink-0">
                     Apply Later
                 </a>
             </div>

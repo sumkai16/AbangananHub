@@ -18,11 +18,7 @@
             <div class="flex items-center gap-3 flex-wrap">
                 <h1 class="text-xl font-normal text-[#060D26] tracking-tight">Conversation Thread</h1>
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border
-<<<<<<< HEAD
                     {{ ($conversation->status ?? 'Open') === 'Resolved' ? 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]' : 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25' }}">
-=======
-                    {{ ($conversation->status ?? 'Open') === 'Resolved' ? 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]' : 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25' }}">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     {{ $conversation->status ?? 'Open' }}
                 </span>
                 <span class="text-[12px] text-[#94A3B8] font-medium">Read-only · Admin view</span>
@@ -77,11 +73,7 @@
                             <div class="flex {{ $isTenant ? 'flex-row' : 'flex-row-reverse' }} items-end gap-2.5">
                                 {{-- Avatar --}}
                                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[12px] font-bold
-<<<<<<< HEAD
                                     {{ $isTenant ? 'bg-[#DA8E77]/10 text-[#060D26]' : 'bg-[#22C55E]/[0.07] text-[#15803D]' }}">
-=======
-                                    {{ $isTenant ? 'bg-[#FF8A66]/10 text-[#060D26]' : 'bg-[#22C55E]/[0.07] text-[#15803D]' }}">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     {{ strtoupper(substr($msg->sender->first_name ?? '?', 0, 1)) }}
                                 </div>
                                 {{-- Bubble --}}
@@ -91,11 +83,7 @@
                                     </p>
                                     <div class="px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed
                                         {{ $isTenant
-<<<<<<< HEAD
                                             ? 'bg-[#DA8E77]/10 text-[#060D26] rounded-bl-sm border border-[#DA8E77]/10'
-=======
-                                            ? 'bg-[#FF8A66]/10 text-[#060D26] rounded-bl-sm border border-[#FF8A66]/10'
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                             : 'bg-[#ECEEF6] text-[#060D26] rounded-br-sm border border-[#E2E4EC]' }}">
                                         {{ $msg->message }}
                                     </div>
@@ -200,11 +188,7 @@
                 <p class="text-[10.5px] font-bold uppercase tracking-widest text-[#94A3B8] mb-2.5">Tenant</p>
                 @if($conversation->tenant)
                     <div class="flex items-center gap-2.5 mb-3">
-<<<<<<< HEAD
                         <div class="w-9 h-9 rounded-full bg-[#DA8E77]/10 flex items-center justify-center text-[13px] font-bold text-[#060D26]">
-=======
-                        <div class="w-9 h-9 rounded-full bg-[#FF8A66]/10 flex items-center justify-center text-[13px] font-bold text-[#060D26]">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             {{ strtoupper(substr($conversation->tenant->first_name ?? '?', 0, 1)) }}
                         </div>
                         <div>

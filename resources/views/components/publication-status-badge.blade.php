@@ -2,11 +2,7 @@
 
 @php
     $config = match ($status) {
-<<<<<<< HEAD
         'Published' => ['bg' => 'bg-[#ECEEF6]', 'icon' => 'text-[#A8573F]'],
-=======
-        'Published' => ['bg' => 'bg-[#ECEEF6]', 'icon' => 'text-[#B35A3D]'],
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
         'Suspended' => ['bg' => 'bg-[#EF4444]/10', 'icon' => 'text-[#EF4444]'],
         'Unpublished' => ['bg' => 'bg-[#E2E4EC]', 'icon' => 'text-[#5B6A8E]'],
         default => ['bg' => 'bg-[#E2E4EC]', 'icon' => 'text-[#5B6A8E]'], // Draft

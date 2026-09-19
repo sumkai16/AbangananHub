@@ -17,8 +17,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('GCash','Cash','Bank Transfer','Maya','Check','Other') NOT NULL");
-        DB::statement("ALTER TABLE payments MODIFY payment_type ENUM('Initial','Monthly','Deposit','Utility','Other') NOT NULL");
+        // MySQL-only enum widening — see 2026_07_16_112509_update_payment_status_enum
+        // for why this is guarded rather than run unconditionally.
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('GCash','Cash','Bank Transfer','Maya','Check','Other') NOT NULL");
+            DB::statement("ALTER TABLE payments MODIFY payment_type ENUM('Initial','Monthly','Deposit','Utility','Other') NOT NULL");
+        }
 
         Schema::table('payments', function (Blueprint $table) {
             // Null = settled by the platform through PayMongo. Non-null = a
@@ -43,7 +47,9 @@ return new class extends Migration
             $table->dropColumn(['recorded_by', 'reference_no', 'payment_notes']);
         });
 
-        DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('GCash') NOT NULL");
-        DB::statement("ALTER TABLE payments MODIFY payment_type ENUM('Initial','Monthly') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('GCash') NOT NULL");
+            DB::statement("ALTER TABLE payments MODIFY payment_type ENUM('Initial','Monthly') NOT NULL");
+        }
     }
 };

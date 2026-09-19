@@ -122,11 +122,7 @@
                 <div class="bg-white border border-[#E2E4EC] rounded-3xl p-6 shadow-sm">
                     <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Landlord</h2>
                     <div class="flex items-center gap-3">
-<<<<<<< HEAD
                         <div class="w-10 h-10 rounded-full bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
-=======
-                        <div class="w-10 h-10 rounded-full bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             <span class="text-[#060D26] text-[13px] font-bold">
                                 {{ strtoupper(substr($property->landlord->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name ?? '', 0, 1)) }}
                             </span>

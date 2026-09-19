@@ -18,11 +18,7 @@
             'bottom-0 left-0 border-r-0 border-t-0 rounded-bl-lg',
             'bottom-0 right-0 border-l-0 border-t-0 rounded-br-lg',
         ] as $corner)
-<<<<<<< HEAD
             <span class="absolute w-7 h-7 border-[2.5px] border-[#DA8E77] transition-colors duration-300 {{ $corner }}"
-=======
-            <span class="absolute w-7 h-7 border-[2.5px] border-[#FF8A66] transition-colors duration-300 {{ $corner }}"
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 @if ($style) style="{{ $style }}" @endif></span>
         @endforeach
     </div>

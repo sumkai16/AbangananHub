@@ -98,11 +98,7 @@
                 <input type="text" name="search" value="{{ $search }}"
                     placeholder="Search by title, address, or landlord…" aria-label="Search properties"
                     x-on:input.debounce.400ms="$el.form.requestSubmit()"
-<<<<<<< HEAD
                     class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
-=======
-                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
@@ -116,7 +112,7 @@
                     class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                 <button type="submit"
-                    class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
+                    class="h-11 px-5 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200 inline-flex items-center gap-1.5">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                     </svg>
@@ -158,22 +154,14 @@
     <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
         <a href="{{ route('admin.catalogue.properties.index', array_filter(['search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-<<<<<<< HEAD
                 {{ $status === '' ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-=======
-                {{ $status === '' ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             All
             <span class="ml-1 text-[11px] {{ $status === '' ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts['total'] }}</span>
         </a>
         @foreach(['Approved' => $counts['approved'], 'Pending' => $counts['pending'], 'Rejected' => $counts['rejected']] as $key => $count)
             <a href="{{ route('admin.catalogue.properties.index', array_filter(['verification_status' => $key, 'search' => $search])) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-<<<<<<< HEAD
                     {{ $status === $key ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-=======
-                    {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 {{ $key }}
                 <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $count }}</span>
             </a>
@@ -226,20 +214,12 @@
                         <div class="flex items-start justify-between gap-2">
                             <div class="min-w-0">
                                 <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-<<<<<<< HEAD
                                     class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#A8573F] transition-colors duration-200">
-=======
-                                    class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#B35A3D] transition-colors duration-200">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     {{ $property->title }}
                                 </a>
                                 <p class="text-[12px] text-[#5B6A8E] mt-0.5 line-clamp-1">{{ $property->address }}</p>
                             </div>
-<<<<<<< HEAD
                             <span class="shrink-0 text-[11px] font-medium text-[#A8573F] border border-[#DA8E77]/40 rounded-full px-2.5 py-0.5 mt-0.5">
-=======
-                            <span class="shrink-0 text-[11px] font-medium text-[#B35A3D] border border-[#FF8A66]/40 rounded-full px-2.5 py-0.5 mt-0.5">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 {{ $property->property_type }}
                             </span>
                         </div>
@@ -309,11 +289,7 @@
                                         </div>
                                         <div class="min-w-0">
                                             <a href="{{ route('admin.catalogue.properties.show', $property) }}"
-<<<<<<< HEAD
                                                 class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#A8573F] transition-colors duration-200">
-=======
-                                                class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#B35A3D] transition-colors duration-200">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                 {{ $property->title }}
                                             </a>
                                             <p class="text-[11.5px] text-[#5B6A8E] truncate max-w-[240px]">{{ $property->address }}</p>

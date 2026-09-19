@@ -84,11 +84,7 @@
                         class="w-9 h-9 object-contain shrink-0">
                     <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                         class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
-<<<<<<< HEAD
                         Abanganan<span class="text-[#A8573F]">Hub</span>
-=======
-                        Abanganan<span class="text-[#FF8A66]">Hub</span>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     </span>
                 </a>
 
@@ -173,7 +169,7 @@
                 {{-- Dashboard --}}
                 <a href="{{ route('landlord.dashboard') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ $current === 'landlord.dashboard' ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                        {{ $current === 'landlord.dashboard' ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -190,7 +186,7 @@
                 {{-- Properties --}}
                 <a href="{{ route('landlord.properties.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'landlord.properties') && !str_contains($current, 'units') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                          {{ str_starts_with($current, 'landlord.properties') && !str_contains($current, 'units') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -207,7 +203,7 @@
                 {{-- Reservations --}}
                 <a href="{{ route('landlord.reservations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'landlord.reservations') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                          {{ str_starts_with($current, 'landlord.reservations') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -224,7 +220,7 @@
                 {{-- Tenants — also lit for the per-tenancy management page --}}
                 <a href="{{ route('landlord.tenants.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.tenants') || str_starts_with($current, 'landlord.tenancies') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                        {{ str_starts_with($current, 'landlord.tenants') || str_starts_with($current, 'landlord.tenancies') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -240,7 +236,7 @@
                 {{-- Rent & Payments --}}
                 <a href="{{ route('landlord.payments.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.payments') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                        {{ str_starts_with($current, 'landlord.payments') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -256,7 +252,7 @@
                 {{-- Payouts --}}
                 <a href="{{ route('landlord.payouts.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.payouts') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                        {{ str_starts_with($current, 'landlord.payouts') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -272,7 +268,7 @@
                 {{-- Messages --}}
                 <a href="{{ route('conversations.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ str_starts_with($current, 'conversations') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                          {{ str_starts_with($current, 'conversations') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <circle cx="12" cy="12" r="9" />
@@ -295,7 +291,7 @@
                 {{-- Reviews --}}
                 <a href="{{ route('landlord.reviews.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.reviews') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                        {{ str_starts_with($current, 'landlord.reviews') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -311,7 +307,7 @@
                 {{-- Analytics --}}
                 <a href="{{ route('landlord.analytics.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.analytics') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                        {{ str_starts_with($current, 'landlord.analytics') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -333,7 +329,7 @@
                      Reports filed *against* anyone stay admin-only. --}}
                 <a href="{{ route('landlord.complaints.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                        {{ str_starts_with($current, 'landlord.complaints') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                        {{ str_starts_with($current, 'landlord.complaints') ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -349,7 +345,7 @@
                 {{-- My Profile --}}
                 <a href="{{ route('landlord.profile.me') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'landlord.profile.me' || $current === 'landlord.profile.edit' ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                          {{ $current === 'landlord.profile.me' || $current === 'landlord.profile.edit' ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -366,7 +362,7 @@
                 {{-- Report a Problem --}}
                 <a href="{{ route('reports.create') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'reports.create' ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                          {{ $current === 'reports.create' ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -383,7 +379,7 @@
                 {{-- Settings --}}
                 <a href="{{ route('profile.edit') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-1 transition-colors duration-200
-                          {{ $current === 'profile.edit' ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                          {{ $current === 'profile.edit' ? 'bg-[#060D26] text-white font-semibold border-l-[3px] border-[#DA8E77]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#DA8E77]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -403,7 +399,7 @@
             <div class="border-t border-white/[0.06] shrink-0">
                 {{-- View public rentals — switch to the tenant-facing browse view --}}
                 <a href="{{ route('properties.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
-                    class="group relative flex items-center gap-3 mx-2 mt-2 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:bg-white/[0.06] hover:text-[#FF8A66] transition-colors duration-200">
+                    class="group relative flex items-center gap-3 mx-2 mt-2 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:bg-white/[0.06] hover:text-[#DA8E77] transition-colors duration-200">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                         class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round"

@@ -8,11 +8,7 @@
         'Available'   => 'bg-[#22C55E]/[0.07] text-[#15803D] ring-[#22C55E]/25',
         'Reserved'    => 'bg-[#FBBF24]/[0.10] text-[#B45309] ring-[#FBBF24]/35',
         'Occupied'    => 'bg-[#EF4444]/[0.07] text-[#DC2626] ring-[#EF4444]/25',
-<<<<<<< HEAD
         'Maintenance' => 'bg-[#ECEEF6] text-[#060D26] ring-[#DA8E77]/25',
-=======
-        'Maintenance' => 'bg-[#ECEEF6] text-[#060D26] ring-[#FF8A66]/25',
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
     ];
     $verificationBadge = [
         'Approved' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
@@ -116,11 +112,7 @@
                 <input type="text" name="search" value="{{ $search }}"
                     placeholder="Search by unit, property, or landlord…" aria-label="Search units"
                     x-on:input.debounce.400ms="$el.form.requestSubmit()"
-<<<<<<< HEAD
                     class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
-=======
-                    class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
@@ -134,7 +126,7 @@
                     class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                 <button type="submit"
-                    class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
+                    class="h-11 px-5 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200 inline-flex items-center gap-1.5">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                     </svg>
@@ -176,22 +168,14 @@
     <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">
         <a href="{{ route('admin.catalogue.units.index', array_filter(['search' => $search])) }}"
             class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-<<<<<<< HEAD
                 {{ $availability === '' ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-=======
-                {{ $availability === '' ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             All
             <span class="ml-1 text-[11px] {{ $availability === '' ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts['total'] }}</span>
         </a>
         @foreach(['Available' => $counts['available'], 'Reserved' => $counts['reserved'], 'Occupied' => $counts['occupied'], 'Maintenance' => $counts['maintenance']] as $key => $count)
             <a href="{{ route('admin.catalogue.units.index', array_filter(['availability_status' => $key, 'search' => $search])) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-<<<<<<< HEAD
                     {{ $availability === $key ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
-=======
-                    {{ $availability === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 {{ $key }}
                 <span class="ml-1 text-[11px] {{ $availability === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $count }}</span>
             </a>

@@ -112,11 +112,7 @@
                         $showCheck = $isDone && ! $isCurrent;
                     @endphp
                     <span class="w-[22px] h-[22px] shrink-0 mt-px rounded-full border-[1.5px] flex items-center justify-center text-[11px] font-bold transition-colors duration-200
-<<<<<<< HEAD
                         {{ $isCurrent ? 'bg-[#060D26] border-[#DA8E77] text-white' : ($isDone ? 'bg-[#22C55E] border-[#22C55E] text-white' : 'bg-white border-[#E2E4EC] text-[#5B6A8E]') }}">
-=======
-                        {{ $isCurrent ? 'bg-[#FF8A66] border-[#FF8A66] text-[#060D26]' : ($isDone ? 'bg-[#22C55E] border-[#22C55E] text-[#060D26]' : 'bg-white border-[#E2E4EC] text-[#5B6A8E]') }}">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         @if($showCheck)
                             <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />

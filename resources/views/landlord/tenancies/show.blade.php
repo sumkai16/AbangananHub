@@ -18,19 +18,11 @@
             'due'     => ['pill' => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]', 'label' => 'Due'],
             // A month settled before it arrived. Distinct from plain Paid so a
             // landlord can tell rent already banked from rent still to come.
-<<<<<<< HEAD
             'advance' => ['pill' => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25', 'label' => 'Paid · Advance'],
             // Part-covered by an overpayment. Deliberately NOT the amber
             // Partial pill: nobody is behind on a month that hasn't arrived,
             // and amber here would read as a collection problem.
             'advance_part' => ['pill' => 'bg-[#F7F8FC] text-[#060D26] border-[#DA8E77]/20', 'label' => 'Advance · part'],
-=======
-            'advance' => ['pill' => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25', 'label' => 'Paid · Advance'],
-            // Part-covered by an overpayment. Deliberately NOT the amber
-            // Partial pill: nobody is behind on a month that hasn't arrived,
-            // and amber here would read as a collection problem.
-            'advance_part' => ['pill' => 'bg-[#F7F8FC] text-[#060D26] border-[#FF8A66]/20', 'label' => 'Advance · part'],
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
         ];
 
         // A future period only exists in the ledger because it was paid into,
@@ -62,11 +54,7 @@
         ];
         $paymentStatusStyle = $paymentStatusStyles[$summary['paymentStatus']] ?? $paymentStatusStyles['upcoming'];
 
-<<<<<<< HEAD
         $inputClass = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition';
-=======
-        $inputClass = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition';
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
         $labelClass = 'block text-[12px] font-semibold text-[#060D26] mb-1.5';
 
         $thumb = $unit?->media->firstWhere('media_type', 'Image');
@@ -145,7 +133,7 @@
 
                     @if($isActive)
                         <button type="button" @click="$dispatch('open-record-payment')"
-                            class="h-11 px-5 inline-flex items-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                            class="h-11 px-5 inline-flex items-center gap-2 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200 cursor-pointer">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
@@ -366,11 +354,7 @@
                                                         Recorded by you
                                                     </span>
                                                 @else
-<<<<<<< HEAD
                                                     <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#DA8E77]/25 bg-[#ECEEF6] text-[#060D26] text-[11px] font-bold">
-=======
-                                                    <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#FF8A66]/25 bg-[#ECEEF6] text-[#060D26] text-[11px] font-bold">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                         Paid online
                                                     </span>
                                                 @endif
@@ -444,11 +428,7 @@
                                                     <p class="text-[11px] text-[#94A3B8] mt-0.5">{{ $voided->void_note }}</p>
                                                 @endif
                                                 @if($voided->replacements->isNotEmpty())
-<<<<<<< HEAD
                                                     <span class="inline-flex items-center h-5 px-2 mt-1 rounded-full border border-[#DA8E77]/25 bg-[#ECEEF6] text-[#060D26] text-[10px] font-bold">
-=======
-                                                    <span class="inline-flex items-center h-5 px-2 mt-1 rounded-full border border-[#FF8A66]/25 bg-[#ECEEF6] text-[#060D26] text-[10px] font-bold">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                         Corrected
                                                     </span>
                                                 @endif
@@ -510,11 +490,7 @@
                     <dl class="space-y-2.5 text-[13px]">
                         <div class="flex items-center justify-between gap-3">
                             <dt class="text-[#5B6A8E]">Monthly rent</dt>
-<<<<<<< HEAD
                             <dd class="font-bold text-[#A8573F]">₱{{ number_format($summary['monthlyRent'], 2) }}</dd>
-=======
-                            <dd class="font-bold text-[#B35A3D]">₱{{ number_format($summary['monthlyRent'], 2) }}</dd>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         </div>
                         @if($isActive)
                             <div class="flex items-center justify-between gap-3">

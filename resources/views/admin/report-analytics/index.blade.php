@@ -94,11 +94,7 @@
                             <span class="font-medium text-[#060D26]">{{ $tb['occupied_count'] }}</span>
                         </div>
                         <div class="mt-2 h-1 bg-[#ECEEF6] rounded-full overflow-hidden">
-<<<<<<< HEAD
                             <div class="h-full bg-[#DA8E77] rounded-full" style="width: {{ $tb['rate'] }}%"></div>
-=======
-                            <div class="h-full bg-[#FF8A66] rounded-full" style="width: {{ $tb['rate'] }}%"></div>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         </div>
                         <p class="text-[10px] text-[#5B6A8E] mt-1">{{ $tb['rate'] }}% occupancy</p>
                     </div>
@@ -324,13 +320,8 @@
                 </div>
                 <div class="flex flex-wrap justify-center gap-3 text-xs text-[#5B6A8E]">
                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#060D26]"></span> Admin ({{ $adminCount }})</span>
-<<<<<<< HEAD
                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#DA8E77]"></span> Landlord ({{ $landlordCount }})</span>
                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#A8573F]"></span> Tenant ({{ $tenantCount }})</span>
-=======
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#FF8A66]"></span> Landlord ({{ $landlordCount }})</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#B35A3D]"></span> Tenant ({{ $tenantCount }})</span>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#94A3B8]"></span> No role ({{ $noRoleCount }})</span>
                 </div>
             </div>
@@ -490,11 +481,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     labels: ['Admin', 'Landlord', 'Tenant', 'No role'],
                     datasets: [{
                         data: [{{ $adminCount }}, {{ $landlordCount }}, {{ $tenantCount }}, {{ $noRoleCount }}],
-<<<<<<< HEAD
                         backgroundColor: ['#060D26', '#DA8E77', '#A8573F', '#94A3B8'],
-=======
-                        backgroundColor: ['#060D26', '#FF8A66', '#B35A3D', '#94A3B8'],
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         borderWidth: 0,
                     }],
                 },

@@ -38,8 +38,8 @@
 <div class="flex items-center justify-start md:justify-center gap-3 sm:gap-5 md:gap-7 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none]">
     @foreach($items as $item)
         <a href="{{ $item['url'] }}" @if($item['active']) aria-current="page" @endif
-            class="group flex flex-col items-center gap-1 pt-1 pb-2 border-b-2 transition-all duration-200 min-w-[60px] cursor-pointer {{ $item['active'] ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26] hover:border-[#FF8A66]/50' }}">
-            <svg width="20" height="20" class="{{ $item['active'] ? 'text-[#B35A3D]' : '' }} transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            class="group flex flex-col items-center gap-1 pt-1 pb-2 border-b-2 transition-all duration-200 min-w-[60px] cursor-pointer {{ $item['active'] ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26] hover:border-[#DA8E77]/50' }}">
+            <svg width="20" height="20" class="{{ $item['active'] ? 'text-[#A8573F]' : '' }} transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 stroke-width="{{ $item['active'] ? '2.4' : '2' }}" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}" />
             </svg>

@@ -11,11 +11,7 @@
     @if ($pending->isEmpty())
         <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)] mb-8">
             <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-<<<<<<< HEAD
                 <svg class="w-7 h-7 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-=======
-                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                 </svg>
             </div>
@@ -54,7 +50,7 @@
                                 <button type="button"
                                     x-data
                                     x-on:click="$dispatch('open-payout-modal', { userId: {{ $landlord->user_id }}, name: '{{ trim(($landlord->first_name ?? '').' '.($landlord->last_name ?? '')) }}', amount: '{{ number_format($row['total'], 2) }}' })"
-                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FF8A66] text-[12px] font-semibold text-[#060D26] hover:bg-[#E96F4F] shadow-sm transition-all duration-200 cursor-pointer">
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#DA8E77] text-[12px] font-semibold text-[#060D26] hover:bg-[#C97A61] shadow-sm transition-all duration-200 cursor-pointer">
                                     Mark Paid Out
                                 </button>
                             @endif
@@ -140,11 +136,7 @@
                     @csrf
                     <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash transaction reference</label>
                     <input type="text" name="payout_reference" required
-<<<<<<< HEAD
                         class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all mb-4"
-=======
-                        class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all mb-4"
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         placeholder="e.g. 0123456789012">
                     <div class="flex items-center justify-end gap-3">
                         <button type="button" x-on:click="open = false"
@@ -152,7 +144,7 @@
                             Cancel
                         </button>
                         <button type="submit"
-                            class="px-4 py-2 bg-[#FF8A66] text-[#060D26] rounded-lg text-[13px] font-semibold hover:bg-[#E96F4F] transition-all shadow-sm">
+                            class="px-4 py-2 bg-[#DA8E77] text-[#060D26] rounded-lg text-[13px] font-semibold hover:bg-[#C97A61] transition-all shadow-sm">
                             Confirm payout
                         </button>
                     </div>

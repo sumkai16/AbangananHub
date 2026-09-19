@@ -28,7 +28,11 @@ return new class extends Migration
         // this doesn't need doctrine/dbal, matching update_payment_status_enum.
         // MySQL allows any number of NULLs under a UNIQUE index, so the
         // existing uniqueness guarantee on real addresses is unaffected.
-        DB::statement('ALTER TABLE users MODIFY email VARCHAR(255) NULL');
+        // MySQL-only statement, guarded for the same reason as the enum ALTERs
+        // above — SQLite's test DB has no equivalent MODIFY syntax.
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE users MODIFY email VARCHAR(255) NULL');
+        }
     }
 
     public function down(): void
@@ -39,6 +43,8 @@ return new class extends Migration
         });
 
         // Only reversible while no null-email rows remain.
-        DB::statement('ALTER TABLE users MODIFY email VARCHAR(255) NOT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE users MODIFY email VARCHAR(255) NOT NULL');
+        }
     }
 };

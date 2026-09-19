@@ -19,11 +19,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<<<<<<< HEAD
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
-=======
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <script>
@@ -37,7 +33,7 @@
 
 <body class="font-sans bg-[#F7F8FC] text-[#060D26] min-h-screen flex flex-col" x-data="{}">
 
-    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#FF8A66] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#DA8E77] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
 
     <header id="site-header" x-data="{ mobileNavOpen: false, mobileAreasOpen: false }"
         class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
@@ -51,7 +47,7 @@
                 <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub"
                     class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
-                    Abanganan<span class="text-[#FF8A66]">Hub</span>
+                    Abanganan<span class="text-[#DA8E77]">Hub</span>
                 </span>
             </a>
 
@@ -72,7 +68,7 @@
                 @endphp
 
                 <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#A8573F] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#A8573F]' }}">
                     Browse Rentals
                 </a>
 
@@ -80,7 +76,7 @@
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
-                            :class="open ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
+                            :class="open ? 'text-[#A8573F] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#A8573F]'"
                             class="flex items-center gap-1 px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer">
                             Areas
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -97,7 +93,7 @@
                             class="absolute top-[calc(100%+8px)] left-0 w-[248px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E4EC] py-2 z-50 motion-reduce:transition-none">
                             @foreach($navAreas as $area => $count)
                                 <a href="{{ route('properties.index', ['location' => $area]) }}"
-                                    class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] hover:text-[#B35A3D] transition-colors duration-200">
+                                    class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] hover:text-[#A8573F] transition-colors duration-200">
                                     <span class="truncate">{{ $area }}</span>
                                     <span class="text-[12px] font-bold text-[#5B6A8E] flex-shrink-0">{{ $count }}</span>
                                 </a>
@@ -107,7 +103,7 @@
                 @endif
 
                 <a href="{{ route('about') }}#how-it-works"
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#A8573F] transition-colors duration-200 cursor-pointer">
                     How it works
                 </a>
             </nav>
@@ -117,7 +113,7 @@
 
                 @hasSection('themeable')
                     <button type="button" id="theme-toggle" aria-label="Switch between light and dark theme" title="Switch theme"
-                        class="flex items-center justify-center w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] hover:border-[#FF8A66] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/50">
+                        class="flex items-center justify-center w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] hover:border-[#DA8E77] hover:text-[#A8573F] transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/50">
                         {{-- Moon: shown in the light theme (click → dark) --}}
                         <svg class="theme-icon-moon w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
@@ -140,13 +136,8 @@
                      phone visitor reaches Browse/Areas/How it works. --}}
                 <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Menu"
                     :aria-expanded="mobileNavOpen ? 'true' : 'false'" aria-haspopup="true" aria-controls="mobile-nav-panel"
-<<<<<<< HEAD
                     :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC]'"
                     class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/40 cursor-pointer">
-=======
-                    :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
-                    class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path x-show="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         <path x-show="mobileNavOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -212,7 +203,7 @@
                                         <a href="{{ $link['route'] }}"
                                             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
                                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200" aria-hidden="true">
+                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#A8573F] transition-colors duration-200" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}" />
                                             </svg>
                                             {{ $link['label'] }}
@@ -232,13 +223,8 @@
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                         @keydown.escape.window="close()">
                         <button type="button" @click="toggle()" aria-label="Notifications"
-<<<<<<< HEAD
                             :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC]'"
                             class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/40 cursor-pointer">
-=======
-                            :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
-                            class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             <span x-show="unreadCount > 0" x-cloak
                                 class="absolute top-[7px] right-[8px] w-2.5 h-2.5 rounded-full bg-[#060D26] ring-2 ring-white"></span>
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -274,18 +260,14 @@
                         $abgFullName = trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
                         // One shared row style so every item lines up and hovers identically.
                         $menuRow = 'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors';
-                        $menuIcon = 'text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200 shrink-0';
+                        $menuIcon = 'text-[#5B6A8E] group-hover:text-[#A8573F] transition-colors duration-200 shrink-0';
                         $menuLabel = 'px-3 pt-2.5 pb-1 text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider';
                     @endphp
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
                             :class="open ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]'"
-<<<<<<< HEAD
                             class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/40 cursor-pointer">
-=======
-                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             @if(auth()->user()->profile_picture)
                                 <img src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
                                     class="w-9 h-9 rounded-full object-cover shrink-0">
@@ -329,11 +311,7 @@
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-1.5">
                                         <p class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $abgFullName }}</p>
-<<<<<<< HEAD
                                         <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#060D26] ring-1 ring-[#DA8E77]/25">{{ $abgRoleLabel }}</span>
-=======
-                                        <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#060D26] ring-1 ring-[#FF8A66]/25">{{ $abgRoleLabel }}</span>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     </div>
                                     <p class="text-[12px] text-[#5B6A8E] truncate mt-0.5">{{ auth()->user()->email }}</p>
                                 </div>
@@ -430,11 +408,7 @@
                         </button>
 
                         <button type="button" onclick="openAuthModal('register')"
-<<<<<<< HEAD
                             class="text-[13px] sm:text-[14px] font-bold text-white bg-gradient-to-b from-[#1a2547] to-[#060D26] hover:brightness-110 px-4 sm:px-5 py-2 rounded-full transition-all shadow-md shadow-[#060D26]/25 hover:shadow-lg focus:outline-none whitespace-nowrap no-underline">
-=======
-                            class="text-[13px] sm:text-[14px] font-bold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             Sign up
                         </button>
                     </div>
@@ -450,7 +424,7 @@
                 {{-- Hero photo behind the pill — same treatment as the landing page's
                      compact bar, so the search reads as the same object everywhere. --}}
                 <div class="relative">
-                    <div class="absolute inset-0 border-b-2 border-[#FF8A66]" aria-hidden="true">
+                    <div class="absolute inset-0 border-b-2 border-[#DA8E77]" aria-hidden="true">
                         <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-[#060D26]/55"></div>
                     </div>
@@ -568,11 +542,7 @@
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
                 <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
-<<<<<<< HEAD
                 <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#DA8E77]">Hub</span></span>
-=======
-                <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#FF8A66]">Hub</span></span>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             </a>
 
             {{-- Link columns --}}
@@ -635,11 +605,7 @@
                     &copy; {{ date('Y') }} AbangananHub. All rights reserved.
                 </p>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 text-[11px] font-semibold text-white/40">
-<<<<<<< HEAD
                     <span class="w-1.5 h-1.5 rounded-full bg-[#DA8E77]"></span>
-=======
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66]"></span>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     Supporting UN SDG 16 &middot; Cebu, Philippines
                 </span>
             </div>
@@ -653,7 +619,6 @@
         <div id="auth-modal"
             class="hidden fixed inset-0 z-[9999] bg-[#060D26]/40 backdrop-blur-sm items-center justify-center p-4 opacity-0 transition-opacity duration-300">
 
-<<<<<<< HEAD
             <div class="bg-white rounded-[24px] shadow-2xl shadow-[#060D26]/20 max-w-3xl w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
                 id="auth-modal-content">
 
@@ -662,18 +627,9 @@
                 <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-gradient-to-br from-[#DA8E77] via-[#c97a61] to-[#060D26] p-8 flex-col justify-between text-white">
                     <div class="pointer-events-none absolute -top-12 -right-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
                     <div class="pointer-events-none absolute bottom-10 -left-14 w-56 h-56 rounded-full bg-white/5 blur-3xl"></div>
-=======
-            <div class="bg-white rounded-[24px] shadow-2xl shadow-[#FF8A66]/25 max-w-3xl w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
-                id="auth-modal-content">
-
-                {{-- Left brand panel (split) — photo + navy overlay, same language as the landing hero --}}
-                <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-[#060D26] p-8 flex-col justify-between text-white">
-                    <img src="{{ asset('images/auth-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/75 via-[#060D26]/85 to-[#060D26]/95"></div>
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 
                     <div class="relative z-10">
-                        <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-white px-3 py-1.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>AbangananHub</span>
+                        <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-white px-3 py-1.5 rounded-full border border-[#DA8E77]/60 bg-[#DA8E77]/10"><span class="w-1.5 h-1.5 rounded-full bg-[#DA8E77] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>AbangananHub</span>
                         <h3 id="auth-side-title" class="mt-7 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
                         <p id="auth-side-subtitle" class="text-white/75 text-[13px] mt-3 leading-relaxed max-w-[17rem]">
                             Sign in to manage your bookings and stay up to date with AbangananHub.
@@ -682,7 +638,7 @@
 
                     <ul class="relative z-10 space-y-4">
                         <li class="flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shrink-0">
+                            <span class="w-8 h-8 rounded-full bg-white/15 text-white flex items-center justify-center shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                             </span>
                             <span>
@@ -691,7 +647,7 @@
                             </span>
                         </li>
                         <li class="flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shrink-0">
+                            <span class="w-8 h-8 rounded-full bg-white/15 text-white flex items-center justify-center shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                             </span>
                             <span>
@@ -700,7 +656,7 @@
                             </span>
                         </li>
                         <li class="flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shrink-0">
+                            <span class="w-8 h-8 rounded-full bg-white/15 text-white flex items-center justify-center shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                             </span>
                             <span>
@@ -717,7 +673,7 @@
                 <div class="w-full md:w-[58%] relative bg-white p-6 sm:p-8 md:p-10 max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
                     <button type="button" onclick="closeAuthModal()"
-                        class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] hover:text-[#060D26] hover:border-[#FF8A66] focus:outline-none transition-colors cursor-pointer" aria-label="Close">
+                        class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] hover:text-[#060D26] hover:border-[#DA8E77] focus:outline-none transition-colors cursor-pointer" aria-label="Close">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -736,11 +692,7 @@
                             <div class="mb-4">
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                                 <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
-<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
-=======
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-email"></span>
                             </div>
 
@@ -748,11 +700,7 @@
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <div class="relative">
                                     <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password" aria-label="Password"
-<<<<<<< HEAD
                                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
-=======
-                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <button type="button" onclick="toggleModalPassword('modal-login-password', this)"
                                         class="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#5B6A8E]" aria-label="Show password">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
@@ -771,18 +719,14 @@
                             <div class="flex items-center justify-between text-[13px] mb-6">
                                 <label class="flex items-center gap-2 text-[#5B6A8E] cursor-pointer select-none">
                                     <input type="checkbox" name="remember"
-<<<<<<< HEAD
                                         class="w-4 h-4 rounded text-[#A8573F] border-[#E2E4EC] focus:ring-[#DA8E77]">
-=======
-                                        class="w-4 h-4 rounded text-[#B35A3D] border-[#E2E4EC] focus:ring-[#FF8A66]">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     Remember me
                                 </label>
                                 <a href="#" onclick="openAuthModal('forgot-password'); return false;" class="text-[#060D26] font-semibold hover:underline">Forgot password?</a>
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
+                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#DA8E77] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#C97A61] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                                 Login
                             </button>
                         </form>
@@ -806,22 +750,14 @@
                                 <div>
                                     <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">First Name</label>
                                     <input type="text" name="first_name" required placeholder="First name" aria-label="First name"
-<<<<<<< HEAD
                                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
-=======
-                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-first_name"></span>
                                 </div>
                                 <div>
                                     <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Last Name</label>
                                     <input type="text" name="last_name" required placeholder="Last name" aria-label="Last name"
-<<<<<<< HEAD
                                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
-=======
-                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-last_name"></span>
                                 </div>
@@ -830,11 +766,7 @@
                             <div class="mb-3">
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
                                 <input type="text" name="contact_number" required placeholder="Enter your contact number" aria-label="Contact number"
-<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
-=======
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-contact_number"></span>
                             </div>
@@ -842,37 +774,25 @@
                             <div class="mb-3">
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                                 <input type="email" name="email" required placeholder="Enter your email address" aria-label="Email address"
-<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
-=======
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-email"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <input type="password" name="password" required placeholder="Create a password" aria-label="Password"
-<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
-=======
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-password"></span>
                             </div>
 
                             <div class="mb-5">
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
                                 <input type="password" name="password_confirmation" required placeholder="Confirm your password" aria-label="Confirm password"
-<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
-=======
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
+                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#DA8E77] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#C97A61] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                                 Sign Up
                             </button>
                         </form>
@@ -895,16 +815,12 @@
                             <div class="mb-5">
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                                 <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
-<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
-=======
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-forgot-password-email"></span>
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
+                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#DA8E77] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#C97A61] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                                 Email Password Reset Link
                             </button>
                         </form>
@@ -923,7 +839,7 @@
                         </p>
 
                         <button type="button" onclick="openAuthModal('login')"
-                            class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
+                            class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#DA8E77] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#C97A61] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                             Back to login
                         </button>
                     </div>

@@ -136,11 +136,7 @@
                  normally, red at a day or less. --}}
             <span class="shrink-0 font-bold whitespace-nowrap {{ $tone['text'] }}"
                 :class="expanded
-<<<<<<< HEAD
                     ? 'text-[12px] px-3 py-1 rounded-full border {{ $urgent ? 'border-[#EF4444]/30 bg-[#EF4444]/[0.07]' : 'border-[#DA8E77]/30 bg-white' }}'
-=======
-                    ? 'text-[12px] px-3 py-1 rounded-full border {{ $urgent ? 'border-[#EF4444]/30 bg-[#EF4444]/[0.07]' : 'border-[#FF8A66]/30 bg-white' }}'
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     : 'text-[11px]'">
                 {{ $daysLeft === 0 ? 'today' : $daysLeft . ' ' . Str::plural('day', $daysLeft) . ' left' }}
             </span>
@@ -188,7 +184,7 @@
                 <form action="{{ route('handover.confirm', $reservation) }}" method="POST" class="contents">
                     @csrf
                     <button type="submit"
-                        class="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] sm:text-[14px] font-bold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200">
+                        class="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13.5px] sm:text-[14px] font-bold hover:bg-[#C97A61] cursor-pointer transition-all duration-200">
                         Confirm {{ $slotFull }}
                     </button>
                 </form>
@@ -262,7 +258,7 @@
                             <x-datetime-picker name="handover_at" :value="$reservation->handover_at" :min="now()"
                                 :deadline="$deadlineAt">
                                 <button type="submit" :disabled="!value"
-                                    class="w-full sm:w-auto px-7 py-3 rounded-xl bg-[#FF8A66] text-[#060D26] text-[14px] font-bold hover:bg-[#E96F4F] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer transition-all duration-200">
+                                    class="w-full sm:w-auto px-7 py-3 rounded-xl bg-[#DA8E77] text-[#060D26] text-[14px] font-bold hover:bg-[#C97A61] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer transition-all duration-200">
                                     {{ $confirmedSlot || $proposedSlot ? 'Propose new time' : 'Propose time' }}
                                 </button>
                                 <button type="button" @click="scheduling = false"
@@ -291,7 +287,7 @@
         data-confirm-cancel="Not yet">
         @csrf
         <button type="submit"
-            class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200">
+            class="w-full bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200">
             Mark keys turned over
         </button>
     </form>

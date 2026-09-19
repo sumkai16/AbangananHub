@@ -31,11 +31,7 @@
 
         <a href="{{ route('conversations.index', ['active' => $conversation->conversation_id]) }}"
             class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#E2E4EC]/50 border-b border-[#E2E4EC] last:border-b-0
-<<<<<<< HEAD
                     {{ $hasUnread ? 'bg-[#ECEEF6]/30 border-l-[3px] border-l-[#DA8E77]' : 'border-l-[3px] border-l-transparent' }}">
-=======
-                    {{ $hasUnread ? 'bg-[#ECEEF6]/30 border-l-[3px] border-l-[#FF8A66]' : 'border-l-[3px] border-l-transparent' }}">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 
             <div class="relative shrink-0">
                 <div class="w-10 h-10 rounded-full bg-[#060D26] flex items-center justify-center">

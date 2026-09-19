@@ -15,7 +15,7 @@
         <x-slot:actions>
             <span class="text-[13px] font-semibold text-[#5B6A8E]">{{ number_format($users->total()) }} total</span>
             <a href="{{ route('admin.users.create') }}"
-                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#FF8A66] text-[#060D26] rounded-xl hover:bg-[#E96F4F] transition-colors shadow-sm">
+                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#DA8E77] text-[#060D26] rounded-xl hover:bg-[#C97A61] transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -39,17 +39,13 @@
                     <input type="text" name="search" value="{{ $search }}"
                         placeholder="Search by name, email, or phone…" aria-label="Search by name, email, or phone"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-<<<<<<< HEAD
                         class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all" />
-=======
-                        class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all" />
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 </div>
                 <x-styled-select name="role" :options="array_combine(['All', 'Admin', 'Landlord', 'Tenant'], ['All', 'Admin', 'Landlord', 'Tenant'])"
                     :selected="$role"
                     class="h-10 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-3" />
                 <button type="submit"
-                    class="h-10 px-5 text-[13.5px] font-bold bg-[#FF8A66] text-[#060D26] rounded-xl hover:bg-[#E96F4F] transition-colors shadow-sm">
+                    class="h-10 px-5 text-[13.5px] font-bold bg-[#DA8E77] text-[#060D26] rounded-xl hover:bg-[#C97A61] transition-colors shadow-sm">
                     Filter
                 </button>
                 @if($search || $role !== 'All')
@@ -102,11 +98,7 @@
                                                         alt="{{ $user->first_name }}"
                                                         class="w-9 h-9 rounded-full object-cover border border-[#E2E4EC] shrink-0" />
                                                 @else
-<<<<<<< HEAD
                                                     <div class="w-9 h-9 rounded-full bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
-=======
-                                                    <div class="w-9 h-9 rounded-full bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                         <span class="text-[#060D26] text-[12px] font-bold">
                                                             {{ strtoupper(substr($user->first_name ?? $user->email, 0, 1)) }}{{ strtoupper(substr($user->last_name ?? '', 0, 1)) }}
                                                         </span>
@@ -136,13 +128,8 @@
                                                 @forelse ($user->roles as $userRole)
                                                     @php
                                                         $roleColors = [
-<<<<<<< HEAD
                                                             'Admin'    => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
                                                             'Landlord' => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
-=======
-                                                            'Admin'    => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
-                                                            'Landlord' => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                             'Tenant'   => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
                                                         ];
                                                         $cls = $roleColors[$userRole->role] ?? 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]';
@@ -165,7 +152,7 @@
                                         </td>
                                         <td class="px-6 py-4 text-right">
                                             <a href="{{ route('admin.users.show', $user->user_id) }}"
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] text-[12px] font-semibold text-[#060D26] hover:bg-[#FF8A66] hover:text-[#060D26] hover:border-[#FF8A66] transition-all">
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] text-[12px] font-semibold text-[#060D26] hover:bg-[#DA8E77] hover:text-[#060D26] hover:border-[#DA8E77] transition-all">
                                                 View
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -203,13 +190,8 @@
                     @php
                         $legendColors = [
                             'Landlord' => '#060D26',
-<<<<<<< HEAD
                             'Tenant'   => '#DA8E77',
                             'Admin'    => '#A8573F',
-=======
-                            'Tenant'   => '#FF8A66',
-                            'Admin'    => '#B35A3D',
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             'No role'  => '#E2E4EC',
                         ];
                     @endphp
@@ -269,11 +251,7 @@
                     labels: @json(array_keys($roleCounts)),
                     datasets: [{
                         data: @json(array_values($roleCounts)),
-<<<<<<< HEAD
                         backgroundColor: ['#060D26', '#DA8E77', '#A8573F', '#E2E4EC'],
-=======
-                        backgroundColor: ['#060D26', '#FF8A66', '#B35A3D', '#E2E4EC'],
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         borderWidth: 0,
                     }],
                 },

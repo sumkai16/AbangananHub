@@ -11,13 +11,8 @@
     ];
     $availabilityBadge = [
         'Available'   => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
-<<<<<<< HEAD
         'Reserved'    => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
         'Occupied'    => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
-=======
-        'Reserved'    => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
-        'Occupied'    => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
         'Maintenance' => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25',
     ];
 @endphp
@@ -183,7 +178,7 @@
                             <x-styled-select name="document_type" required :options="$requestDocumentTypeOptions" :selected="''"
                                 class="h-9 w-full rounded-lg border border-[#E2E4EC] px-3 text-[13px] text-[#060D26] bg-white" />
                         </div>
-                        <button type="submit" class="h-9 px-4 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12.5px] font-bold hover:bg-[#E96F4F] transition-all">
+                        <button type="submit" class="h-9 px-4 rounded-lg bg-[#DA8E77] text-[#060D26] text-[12.5px] font-bold hover:bg-[#C97A61] transition-all">
                             Request
                         </button>
                     </form>

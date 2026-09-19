@@ -29,11 +29,7 @@
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Search saved properties…" aria-label="Search saved properties"
                 x-on:input.debounce.400ms="$el.form.requestSubmit()"
-<<<<<<< HEAD
                 class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition placeholder-[#94A3B8]" />
-=======
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition placeholder-[#94A3B8]" />
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
         </div>
         <x-styled-select name="type" :options="['' => 'Any type', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House']"
             :selected="request('type', '')" aria-label="Filter by property type"
@@ -42,7 +38,7 @@
             :selected="request('availability', '')" aria-label="Filter by availability"
             class="px-4 py-2.5 text-sm font-semibold text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl" />
         <button type="submit"
-            class="px-5 py-2.5 text-sm font-bold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98]">
+            class="px-5 py-2.5 text-sm font-bold text-[#060D26] bg-[#DA8E77] hover:bg-[#C97A61] rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98]">
             Search
         </button>
         @if(request()->hasAny(['search', 'type', 'availability']))
@@ -81,11 +77,7 @@
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-[#ECEEF6]">
-<<<<<<< HEAD
                                 <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#DA8E77" stroke-width="1.5">
-=======
-                                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="1.5">
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                                 </svg>
                             </div>
@@ -161,7 +153,7 @@
             <p class="text-[15px] font-bold text-[#060D26] mb-1">No saved listings yet</p>
             <p class="text-[13px] text-[#5B6A8E] mb-6">Heart a property while browsing to save it here.</p>
             <a href="{{ route('properties.index') }}"
-                class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all shadow-sm">
+                class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-[#060D26] bg-[#DA8E77] hover:bg-[#C97A61] transition-all shadow-sm">
                 Browse properties
             </a>
         </x-card>

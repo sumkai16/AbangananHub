@@ -35,19 +35,7 @@ class PropertyController extends Controller
         $areas = collect();
         $showDiscovery = !$request->hasAny(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page']);
 
-<<<<<<< HEAD
         if ($showDiscovery) {
-=======
-        if (!$request->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
-            $heroStats = [
-                'listings' => Property::browsable()->count(),
-                'units' => PropertyUnit::where('availability_status', 'Available')
-                    ->where('verification_status', 'Approved')
-                    ->whereHas('property', fn ($q) => $q->live())
-                    ->count(),
-            ];
-
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             $popularProperties = Property::browsable()
                 ->having('review_count', '>=', 2)
                 ->orderByDesc('avg_rating')
