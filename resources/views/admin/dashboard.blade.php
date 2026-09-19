@@ -66,7 +66,11 @@
                     </div>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#94A3B8]">
                         <span class="flex items-center gap-1.5"><span
+<<<<<<< HEAD
                                 class="w-3 h-0.5 rounded-full bg-[#DA8E77] inline-block"></span>Users</span>
+=======
+                                class="w-3 h-0.5 rounded-full bg-[#FF8A66] inline-block"></span>Users</span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <span class="flex items-center gap-1.5"><span
                                 class="w-3 h-0.5 rounded-full bg-[#22C55E] inline-block"></span>Properties</span>
                         <span class="flex items-center gap-1.5"><span
@@ -91,7 +95,11 @@
                     <div class="flex-1 w-full space-y-3">
                         @php
                             $distItems = [
+<<<<<<< HEAD
                                 ['label' => 'Tenants', 'value' => $totalTenants, 'dot' => 'bg-[#DA8E77]'],
+=======
+                                ['label' => 'Tenants', 'value' => $totalTenants, 'dot' => 'bg-[#FF8A66]'],
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 ['label' => 'Landlords', 'value' => $totalLandlords, 'dot' => 'bg-[#22C55E]'],
                                 ['label' => 'Admins', 'value' => $totalAdmins, 'dot' => 'bg-[#060D26]'],
                                 ['label' => 'Unverified Landlords', 'value' => $unverifiedLandlords, 'dot' => 'bg-[#FBBF24]'],
@@ -254,7 +262,11 @@
                                         </td>
                                         <td class="px-6 py-3.5">
                                             <span
+<<<<<<< HEAD
                                                 class="text-[11.5px] font-bold bg-[#DA8E77]/10 text-[#060D26] px-2 py-0.5 rounded-full">{{ $p->property_type ?? '—' }}</span>
+=======
+                                                class="text-[11.5px] font-bold bg-[#FF8A66]/10 text-[#060D26] px-2 py-0.5 rounded-full">{{ $p->property_type ?? '—' }}</span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                         </td>
                                         <td class="px-6 py-3.5 text-[13px] text-[#5B6A8E]">{{ $p->landlord?->first_name }}
                                             {{ $p->landlord?->last_name }}</td>
@@ -363,7 +375,11 @@
                             };
                         @endphp
                         <div class="px-5 py-3.5 flex items-center gap-3">
+<<<<<<< HEAD
                             <div class="w-8 h-8 rounded-full bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
+=======
+                            <div class="w-8 h-8 rounded-full bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-[#060D26] text-[11px] font-bold">
                                     {{ strtoupper(substr($res->tenant?->first_name ?? '?', 0, 1)) }}
                                 </span>
@@ -400,7 +416,11 @@
                             ['label' => 'In Progress', 'value' => ($reservationStats['Inquiry'] ?? 0) + ($reservationStats['Under Negotiation'] ?? 0) + ($reservationStats['Pending Rental Agreement'] ?? 0) + ($reservationStats['Rental Agreement Signed'] ?? 0), 'cls' => 'bg-[#FBBF24]/[0.10] border-[#FBBF24]/25 text-[#B45309]'],
                             ['label' => 'Occupied', 'value' => $reservationStats['Occupied'] ?? 0, 'cls' => 'bg-[#22C55E]/[0.07] border-[#22C55E]/20 text-[#15803D]'],
                             ['label' => 'Cancelled', 'value' => $reservationStats['Cancelled'] ?? 0, 'cls' => 'bg-[#F7F8FC] border-[#E2E4EC] text-[#5B6A8E]'],
+<<<<<<< HEAD
                             ['label' => 'Rejected', 'value' => $reservationStats['Rejected'] ?? 0, 'cls' => 'bg-[#ECEEF6] border-[#DA8E77]/20 text-[#060D26]'],
+=======
+                            ['label' => 'Rejected', 'value' => $reservationStats['Rejected'] ?? 0, 'cls' => 'bg-[#ECEEF6] border-[#FF8A66]/20 text-[#060D26]'],
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         ];
                     @endphp
                     @foreach($resOverview as $item)
@@ -427,7 +447,11 @@
                     @endphp
                     @foreach($quickActions as $action)
                         <a href="{{ $action['href'] }}"
+<<<<<<< HEAD
                             class="group flex items-center gap-3 p-4 rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] hover:bg-white hover:border-[#DA8E77]/20 hover:shadow-sm transition-all">
+=======
+                            class="group flex items-center gap-3 p-4 rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] hover:bg-white hover:border-[#FF8A66]/20 hover:shadow-sm transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             <div
                                 class="w-9 h-9 rounded-xl {{ $action['color'] }} flex items-center justify-center shrink-0 shadow-sm">
                                 <svg class="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -467,10 +491,17 @@
                             {
                                 label: 'Users',
                                 data: {!! $chartUsers->toJson() !!},
+<<<<<<< HEAD
                                 borderColor: '#DA8E77',
                                 backgroundColor: 'rgba(201,168,76,0.08)',
                                 borderWidth: 2.5,
                                 pointBackgroundColor: '#DA8E77',
+=======
+                                borderColor: '#FF8A66',
+                                backgroundColor: 'rgba(255, 138, 102,0.08)',
+                                borderWidth: 2.5,
+                                pointBackgroundColor: '#FF8A66',
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 pointRadius: 4,
                                 pointHoverRadius: 6,
                                 tension: 0.4,
@@ -545,7 +576,11 @@
                             {{ $totalAdmins }},
                             {{ $unverifiedLandlords }},
                             ],
+<<<<<<< HEAD
                             backgroundColor: ['#DA8E77', '#22C55E', '#060D26', '#FBBF24'],
+=======
+                            backgroundColor: ['#FF8A66', '#22C55E', '#060D26', '#FBBF24'],
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             borderWidth: 0,
                             hoverOffset: 4,
                         }],

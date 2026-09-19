@@ -14,7 +14,11 @@
         ] as [$label, $value, $icon])
             <div class="bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] px-5 py-4 flex items-center gap-4">
                 <div class="w-10 h-10 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+<<<<<<< HEAD
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#A8573F" stroke-width="1.8">
+=======
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="1.8">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
                     </svg>
                 </div>
@@ -89,7 +93,11 @@
                             <label for="first_name" class="block text-[13px] font-medium text-[#060D26] mb-1.5">First Name</label>
                             <input type="text" name="first_name" id="first_name"
                                    value="{{ old('first_name', $user->first_name) }}"
+<<<<<<< HEAD
                                    class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] transition-colors" />
+=======
+                                   class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors" />
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             @error('first_name')
                                 <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
                             @enderror
@@ -99,7 +107,11 @@
                             <label for="last_name" class="block text-[13px] font-medium text-[#060D26] mb-1.5">Last Name</label>
                             <input type="text" name="last_name" id="last_name"
                                    value="{{ old('last_name', $user->last_name) }}"
+<<<<<<< HEAD
                                    class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] transition-colors" />
+=======
+                                   class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors" />
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             @error('last_name')
                                 <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
                             @enderror
@@ -111,7 +123,11 @@
                         <input type="text" name="contact_number" id="contact_number"
                                value="{{ old('contact_number', $user->contact_number) }}"
                                placeholder="e.g. 09171234567"
+<<<<<<< HEAD
                                class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] transition-colors" />
+=======
+                               class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors" />
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         @error('contact_number')
                             <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
                         @enderror
@@ -129,7 +145,11 @@
                         <textarea name="bio" id="bio" rows="4" maxlength="1000"
                                   x-on:input="count = $el.value.length"
                                   placeholder="A short bio about yourself..."
+<<<<<<< HEAD
                                   class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] transition-colors resize-none">{{ old('bio', $user->bio) }}</textarea>
+=======
+                                  class="w-full rounded-xl border border-[#E2E4EC] bg-white px-4 py-2.5 text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] transition-colors resize-none">{{ old('bio', $user->bio) }}</textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <p class="text-[12px] text-[#5B6A8E] mt-1 text-right"><span x-text="count"></span> / 1,000</p>
                         @error('bio')
                             <p class="text-[13px] text-[#EF4444] mt-1">{{ $message }}</p>
@@ -143,7 +163,7 @@
                         Cancel
                     </a>
                     <button type="submit"
-                            class="px-6 py-2.5 rounded-xl bg-[#060D26] text-[#F7F4ED] text-[13px] font-semibold hover:brightness-95 transition-all">
+                            class="px-6 py-2.5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all">
                         Save Changes
                     </button>
                 </div>

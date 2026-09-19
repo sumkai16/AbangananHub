@@ -69,6 +69,12 @@ function init() {
     });
 
     fitToMarkers(map, fitList);
+    // The map is built while its container is display:none (0x0), so that first
+    // fit is meaningless. The Show-map toggle calls this after un-hiding it.
+    window.browseMapRefit = () => {
+        map.invalidateSize();
+        fitToMarkers(map, fitList);
+    };
     wireListSync(markers);
 }
 

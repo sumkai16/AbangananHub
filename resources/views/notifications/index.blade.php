@@ -44,7 +44,7 @@
             @endphp
             <a href="{{ route('notifications.index', $params) }}"
                 class="px-4 py-2 rounded-full text-[13px] font-semibold transition-colors
-                    {{ $isActive ? 'bg-[#060D26] text-white shadow-sm' : 'bg-white text-[#060D26] ring-1 ring-[#5B6A8E]/15 hover:bg-[#F7F8FC]' }}">
+                    {{ $isActive ? 'bg-[#FF8A66] text-[#060D26] shadow-sm' : 'bg-white text-[#060D26] ring-1 ring-[#5B6A8E]/15 hover:bg-[#F7F8FC]' }}">
                 {{ $label }}
             </a>
         @endforeach
@@ -99,7 +99,11 @@
                         };
                     @endphp
                     <a href="{{ route('notifications.index', array_merge(request()->except(['selected', 'page']), ['selected' => $n->notification_id])) }}"
+<<<<<<< HEAD
                         class="block p-4 transition-all duration-200 hover:bg-[#ECEEF6] {{ $isSelected ? 'bg-[#ECEEF6] border-l-[3px] border-l-[#DA8E77]' : 'border-l-[3px] border-l-transparent' }} {{ $n->is_read && !$isSelected ? 'opacity-70' : '' }}">
+=======
+                        class="block p-4 transition-all duration-200 hover:bg-[#ECEEF6] {{ $isSelected ? 'bg-[#ECEEF6] border-l-[3px] border-l-[#FF8A66]' : 'border-l-[3px] border-l-transparent' }} {{ $n->is_read && !$isSelected ? 'opacity-70' : '' }}">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <div class="flex items-center gap-3">
                             @if($isReview)
                                 {{-- Avatar with initials --}}

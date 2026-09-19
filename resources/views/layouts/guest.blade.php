@@ -27,7 +27,7 @@
             <div class="absolute inset-0">
                 <img src="{{ asset('images/auth-bg.jpg') }}" class="w-full h-full object-cover" alt="" />
                 {{-- Navy vignette overlay — mirrors the reference mockup's flat single-hue gradient --}}
-                <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/55 to-[#060D26]/82"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/75 to-[#060D26]/92"></div>
             </div>
 
             {{-- Content overlay --}}

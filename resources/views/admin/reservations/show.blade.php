@@ -6,18 +6,30 @@
 @php
     $statusBadge = [
         'Inquiry'                  => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]',
+<<<<<<< HEAD
         'Under Negotiation'        => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
         'Pending Rental Agreement' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35',
         'Rental Agreement Signed'  => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
+=======
+        'Under Negotiation'        => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
+        'Pending Rental Agreement' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35',
+        'Rental Agreement Signed'  => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
         'Occupied'                 => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
         'Cancelled'                => 'bg-[#F7F8FC] text-[#94A3B8] border-[#E2E4EC]',
         'Rejected'                 => 'bg-[#EF4444]/[0.07] text-[#DC2626] border-[#EF4444]/25',
     ];
     $statusDot = [
         'Inquiry'                  => 'bg-[#94A3B8]',
+<<<<<<< HEAD
         'Under Negotiation'        => 'bg-[#DA8E77]',
         'Pending Rental Agreement' => 'bg-[#FBBF24]',
         'Rental Agreement Signed'  => 'bg-[#DA8E77]',
+=======
+        'Under Negotiation'        => 'bg-[#FF8A66]',
+        'Pending Rental Agreement' => 'bg-[#FBBF24]',
+        'Rental Agreement Signed'  => 'bg-[#FF8A66]',
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
         'Occupied'                 => 'bg-[#22C55E]',
         'Completed'                => 'bg-[#5B6A8E]',
         'Cancelled'                => 'bg-[#94A3B8]',
@@ -117,8 +129,13 @@
                         <div class="flex items-center {{ $i < count($pipeline) - 1 ? 'flex-1' : '' }}">
                             <div class="flex flex-col items-center">
                                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0
+<<<<<<< HEAD
                                     {{ $isDone ? 'bg-[#060D26] text-[#F7F4ED]' : 'bg-[#ECEEF6] text-[#94A3B8]' }}
                                     {{ $isCurrent ? 'ring-2 ring-[#DA8E77]/30' : '' }}">
+=======
+                                    {{ $isDone ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-[#ECEEF6] text-[#94A3B8]' }}
+                                    {{ $isCurrent ? 'ring-2 ring-[#FF8A66]/30' : '' }}">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     @if($isDone && !$isCurrent)
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -133,7 +150,11 @@
                                 </p>
                             </div>
                             @if($i < count($pipeline) - 1)
+<<<<<<< HEAD
                                 <div class="flex-1 h-px mx-1 {{ $stepIndex < $currentPipelineIndex ? 'bg-[#DA8E77]' : 'bg-[#ECEEF6]' }}"></div>
+=======
+                                <div class="flex-1 h-px mx-1 {{ $stepIndex < $currentPipelineIndex ? 'bg-[#FF8A66]' : 'bg-[#ECEEF6]' }}"></div>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             @endif
                         </div>
                     @endforeach
@@ -151,7 +172,11 @@
             {{-- Reservation details --}}
             <x-card flush>
                 <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-center gap-3">
+<<<<<<< HEAD
                     <div class="w-8 h-8 rounded-xl bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
+=======
+                    <div class="w-8 h-8 rounded-xl bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                         </svg>
@@ -184,7 +209,11 @@
 
             {{-- Agreement info --}}
             @if($reservation->agreed_at)
+<<<<<<< HEAD
                 <div class="bg-[#ECEEF6] border border-[#DA8E77]/20 rounded-3xl shadow-sm p-6">
+=======
+                <div class="bg-[#ECEEF6] border border-[#FF8A66]/20 rounded-3xl shadow-sm p-6">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     <p class="text-[10px] font-bold uppercase tracking-widest text-[#060D26] mb-3">Agreement Signed</p>
                     <div class="space-y-2">
                         <div class="flex justify-between text-[13px]">
@@ -197,7 +226,11 @@
                         </div>
                     </div>
                     @if($reservation->agreement_terms_notes)
+<<<<<<< HEAD
                         <div class="mt-4 pt-4 border-t border-[#DA8E77]/25">
+=======
+                        <div class="mt-4 pt-4 border-t border-[#FF8A66]/25">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             <p class="text-[10px] font-bold uppercase tracking-widest text-[#060D26] mb-1.5">Negotiated Terms</p>
                             <p class="text-[13px] text-[#060D26] leading-relaxed whitespace-pre-wrap">{{ $reservation->agreement_terms_notes }}</p>
                         </div>
@@ -259,7 +292,11 @@
                 <div class="p-5">
                     @php $tenant = $reservation->tenant; @endphp
                     <div class="flex items-center gap-3 mb-4">
+<<<<<<< HEAD
                         <div class="w-10 h-10 rounded-2xl bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
+=======
+                        <div class="w-10 h-10 rounded-2xl bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             <span class="text-[#060D26] text-[13px] font-extrabold">
                                 {{ strtoupper(substr($tenant->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($tenant->last_name ?? '', 0, 1)) }}
                             </span>
@@ -277,7 +314,7 @@
                     </div>
                     @if($tenant)
                         <a href="{{ route('admin.users.show', $tenant) }}"
-                            class="mt-4 flex items-center justify-center gap-1.5 w-full h-8 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] text-[12px] font-semibold text-[#5B6A8E] hover:bg-[#060D26] hover:text-[#F7F4ED] hover:border-[#060D26] transition-all">
+                            class="mt-4 flex items-center justify-center gap-1.5 w-full h-8 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] text-[12px] font-semibold text-[#5B6A8E] hover:bg-[#FF8A66] hover:text-[#060D26] hover:border-[#FF8A66] transition-all">
                             View Profile
                         </a>
                     @endif
@@ -338,7 +375,7 @@
                     </div>
                     @if($landlord)
                         <a href="{{ route('admin.users.show', $landlord) }}"
-                            class="flex items-center justify-center gap-1.5 w-full h-8 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] text-[12px] font-semibold text-[#5B6A8E] hover:bg-[#060D26] hover:text-[#F7F4ED] hover:border-[#060D26] transition-all">
+                            class="flex items-center justify-center gap-1.5 w-full h-8 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] text-[12px] font-semibold text-[#5B6A8E] hover:bg-[#FF8A66] hover:text-[#060D26] hover:border-[#FF8A66] transition-all">
                             View Profile
                         </a>
                     @endif

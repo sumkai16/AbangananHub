@@ -1,5 +1,7 @@
 @extends('layouts.app', ['searchBar' => false])
 
+@section('themeable', '1')
+
 @section('content')
     @vite(['resources/js/maps/property-map.js'])
 
@@ -340,7 +342,7 @@
                             @if($property->hasVerifiedDocuments())
                                 <div class="absolute top-3 left-3 z-20" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
                                     <button type="button" @click="open = !open"
-                                        class="inline-flex items-center gap-1.5 bg-[#060D26] text-[#F7F4ED] text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm hover:brightness-95 transition-all">
+                                        class="inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm hover:bg-[#E96F4F] transition-all">
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
@@ -354,6 +356,16 @@
                                         <p class="text-[#5B6A8E] text-[12.5px] leading-snug">Our team has reviewed and confirmed this property's ownership documents — title, tax declaration, or business permit.</p>
                                     </div>
                                 </div>
+<<<<<<< HEAD
+=======
+                            @else
+                                <span class="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-sm">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Verified
+                                </span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             @endif
 
                             {{-- ===== FAVORITE (heart) — moved here from the contact
@@ -401,10 +413,70 @@
                             @endif
                         </div>
                     </div>
+<<<<<<< HEAD
                 @else
                     <div
                         class="rounded-3xl bg-[#E2E4EC] aspect-[21/9] border border-dashed border-[#5B6A8E] flex flex-col items-center justify-center text-[#5B6A8E] shadow-sm">
                         <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+=======
+                </div>
+            @else
+                <div
+                    class="rounded-3xl bg-[#E2E4EC] aspect-[3/1] max-h-[420px] border border-dashed border-[#5B6A8E] flex flex-col items-center justify-center text-[#5B6A8E] shadow-sm">
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="mt-2 text-sm font-semibold">No photos available yet</p>
+                </div>
+            @endif
+
+            {{-- ===== TWO-COLUMN GRID — badges/title/location + Property
+                 details + Description...Reviews (left) beside the sticky
+                 contact card (right) (Sept 2026). Badges/title/location sit
+                 at the TOP of the left column, in the same row as the card,
+                 so the card starts level with the property name — not below
+                 it. CSS Grid, not flex, is what lets the contact card's
+                 sticky range span the combined height of BOTH rows below and
+                 detach gracefully right where that content ends, rather than
+                 sticking indefinitely. A grid item's containing block is its
+                 cell, which Grid always stretches to the row's height
+                 regardless of items-start — the opposite of the flex behavior
+                 used deliberately elsewhere (a rail that never detaches).
+                 Mobile stays a plain `flex flex-col` stack in the same DOM
+                 order as today (title block, then card, then the rest) — no
+                 reorder tricks needed. No extra top margin here (dropped the
+                 mt-4 this used to carry, Sept 2026) — stacked on top of the
+                 outer gap-8 it left ~48px between the gallery and the
+                 badges/title row, visibly more than the gap-8 used between
+                 every other section on the page. --}}
+                <div class="flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-x-4 lg:gap-y-8 lg:items-start">
+                <div class="min-w-0 lg:col-start-1 lg:col-span-8 lg:row-start-1">
+                {{-- ===== BADGES / TITLE / LOCATION — below the gallery, top
+                     of the left column (Sept 2026), level with the sticky
+                     card's top rather than sitting above the whole grid. ===== --}}
+                {{-- Property type isn't repeated here anymore — it's redundant
+                     with the "Property type" stat further down the page. --}}
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    @if($property->hasVerifiedDocuments())
+                        <span class="inline-flex items-center gap-1 bg-[#FF8A66]/10 text-[#B35A3D] text-[11px] font-bold px-2.5 py-1 rounded-full">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Verified listing
+                        </span>
+                    @endif
+                </div>
+
+                <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] sm:text-[36px] font-extrabold leading-[1.15] tracking-tight text-[#060D26] text-balance">
+                    {{ $property->title }}
+                </h1>
+
+                <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13.5px] font-medium text-[#5B6A8E]">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 shrink-0 text-[#EF4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            stroke-width="2" aria-hidden="true">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
@@ -464,8 +536,13 @@
                     {{-- Price follows the unit picked in the rail, so there is one
                          source of truth rather than a hero range that can disagree
                          with what the form is about to submit. --}}
+<<<<<<< HEAD
                     <p class="flex items-baseline gap-1.5">
                         <span class="font-display text-[26px] sm:text-[30px] font-normal tracking-tight text-[#060D26]">
+=======
+                    <p class="flex items-baseline gap-2">
+                        <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] sm:text-[38px] font-extrabold tracking-tight text-[#B35A3D]">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             &#8369;<span x-text="selected ? selected.price : '{{ number_format($property->units->min('rental_fee') ?? 0) }}'"></span>
                         </span>
                         <span class="text-[13px] font-medium text-[#5B6A8E]">/ month</span>
@@ -480,15 +557,35 @@
                     </p>
 
                     {{-- ===== LANDLORD ROW ===== --}}
+<<<<<<< HEAD
                     <div class="mt-4 pt-4 border-t border-[#E2E4EC] flex items-center gap-2.5">
                         <div class="w-9 h-9 shrink-0 rounded-full bg-[#DA8E77] text-[#060D26] flex items-center justify-center text-[12.5px] font-bold">
                             {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
+=======
+                    <div class="mt-6 pt-6 border-t border-[#E2E4EC] flex items-center gap-3">
+                        {{-- Business logo when the landlord has a registered
+                             rental business (same logo_url shown on their own
+                             profile page), object-cover so it's centered/
+                             cropped to fill the circle rather than stretched
+                             — falls back to the plain initials otherwise. --}}
+                        <div class="w-11 h-11 shrink-0 rounded-full overflow-hidden bg-[#FF8A66] text-[#060D26] flex items-center justify-center text-[14px] font-bold">
+                            @if($property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url)
+                                <img src="{{ $property->landlord->rentalBusiness->logo_url }}" alt="{{ $property->landlord->rentalBusiness->business_name }}"
+                                    class="w-full h-full object-cover">
+                            @else
+                                {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
+                            @endif
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="text-[13.5px] font-bold text-[#060D26] truncate">
                                 {{ trim($property->landlord->first_name . ' ' . $property->landlord->last_name) }}
                                 @if($property->hasVerifiedDocuments())
+<<<<<<< HEAD
                                     <svg class="w-3.5 h-3.5 text-[#A8573F] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+=======
+                                    <svg class="w-3.5 h-3.5 text-[#B35A3D] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 @endif
@@ -505,11 +602,16 @@
                             <p class="text-[11.5px] text-[#5B6A8E]">{{ $hostLine }}</p>
                         </div>
                         <a href="{{ route('landlord.profile.show', $property->landlord_id) }}"
+<<<<<<< HEAD
                             class="shrink-0 text-[12.5px] font-bold text-[#A8573F] hover:brightness-95 transition-all">
+=======
+                            class="shrink-0 text-[13.5px] font-bold text-[#B35A3D] hover:brightness-95 transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             View profile &rarr;
                         </a>
                     </div>
 
+<<<<<<< HEAD
                     {{-- ===== INQUIRY PREVIEW — a visual preview of the message
                          the "Send Inquiry" button opens in the existing
                          inquireOpen modal; not a separate send path. ===== --}}
@@ -519,6 +621,29 @@
                                 Hi {{ $property->landlord->first_name }}, I am interested in your listing
                                 "{{ $property->title }}". Is it still available?
                             </p>
+=======
+                    {{-- ===== SELECTED UNIT CHIP — shows which unit the rest of
+                         the card (price, deposit, CTA) is currently about, with
+                         a way to clear it back to "no unit selected" without
+                         scrolling to the unit picker. Direct selectedUnit = null
+                         assignment rather than selectUnit(), which only ever
+                         sets a unit, never clears one. ===== --}}
+                    <div x-show="selected" x-cloak class="mt-4 pt-4 border-t border-[#E2E4EC]">
+                        <div class="flex items-center justify-between gap-2 rounded-xl bg-[#FF8A66]/10 border border-[#FF8A66]/30 px-3 py-2">
+                            <span class="flex items-center gap-1.5 min-w-0 text-[12.5px] font-semibold text-[#060D26]">
+                                <svg class="w-3.5 h-3.5 text-[#B35A3D] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="truncate">Unit: <span x-text="selected ? selected.label : ''"></span></span>
+                            </span>
+                            <button type="button" x-on:click="selectedUnit = null"
+                                class="shrink-0 text-[#5B6A8E] hover:text-[#060D26] transition-colors cursor-pointer"
+                                aria-label="Clear selected unit">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         </div>
                     @endif
 
@@ -526,7 +651,11 @@
                     <div class="mt-3 flex items-stretch gap-3">
                         @if(!auth()->check())
                             <button type="button" onclick="openAuthModal('login')"
+<<<<<<< HEAD
                                 class="flex-1 py-3.5 rounded-xl bg-gradient-to-b from-[#e29d87] to-[#DA8E77] hover:brightness-105 text-white text-[14.5px] font-bold shadow-md shadow-[#DA8E77]/25 hover:shadow-lg hover:shadow-[#DA8E77]/35 transition-all">
+=======
+                                class="flex-1 py-3 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 Log in to contact landlord
                             </button>
                         @elseif($isOwner)
@@ -535,7 +664,11 @@
                             </div>
                         @else
                             <button type="button" x-on:click="inquireOpen = true"
+<<<<<<< HEAD
                                 class="flex-1 py-3.5 rounded-xl bg-gradient-to-b from-[#e29d87] to-[#DA8E77] hover:brightness-105 text-white text-[14.5px] font-bold shadow-md shadow-[#DA8E77]/25 hover:shadow-lg hover:shadow-[#DA8E77]/35 transition-all cursor-pointer"
+=======
+                                class="flex-1 py-3 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all cursor-pointer"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Send Inquiry'"
                                 :disabled="selected && selected.hasActive"
                                 :class="selected && selected.hasActive ? 'opacity-60 cursor-not-allowed' : ''">
@@ -582,7 +715,7 @@
                  subunit grid. ===== --}}
                 @if($property->description)
                     <div class="max-w-[62ch]">
-                        <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-2">About this property</h2>
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26] mb-2">About this property</h2>
                         @if(Str::length($property->description) > 220)
                             <p class="text-[15px] text-[#060D26] leading-relaxed whitespace-pre-line" x-show="!descExpanded">
                                 {{ Str::limit($property->description, 220) }}
@@ -599,6 +732,7 @@
                     </div>
                 @endif
 
+<<<<<<< HEAD
             {{-- ===== SUBUNITS IN THIS PROPERTY — full-width grid, replaces
                  the old sticky sidebar unit list. Selecting a card still
                  drives selectUnit()/selectedUnit so the contact card above
@@ -688,6 +822,19 @@
                                     </svg>
                                 </button>
                             </div>
+=======
+                @if($buildingAmenities->isNotEmpty())
+                <section id="building-amenities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
+                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26] mb-4">Building amenities</h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($buildingAmenities as $amenityName)
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#FF8A66]/40 bg-[#ECEEF6] text-[13px] font-semibold text-[#060D26]">
+                                <svg class="w-3.5 h-3.5 text-[#B35A3D] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {{ $amenityName }}
+                            </span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         @endforeach
                     </div>
 
@@ -717,12 +864,13 @@
                 @endphp
                 @if($utilitiesAnswered)
                 <section id="utilities" class="mt-10 pt-8 border-t border-[#E2E4EC]">
-                    <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">Utilities &amp; included charges</h2>
+                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26] mb-4">Utilities &amp; included charges</h2>
                     <div class="grid grid-cols-2 gap-3">
                         @foreach($utilityFields as [$field, $label])
                             @php $included = $property->{$field}; @endphp
                             <div class="flex items-center gap-3 text-sm font-medium {{ $included ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">
                                 <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 {{ $included ? 'bg-[#ECEEF6]' : 'bg-[#F7F8FC]' }}">
+<<<<<<< HEAD
                                     @if($included)
                                         <svg class="w-4 h-4 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -732,6 +880,11 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     @endif
+=======
+                                    <svg class="w-4 h-4 {{ $included ? 'text-[#B35A3D]' : 'text-[#94A3B8]' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
+                                    </svg>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 </div>
                                 <span class="min-w-0">{{ $label }} <span class="{{ $included ? 'hidden' : '' }} text-[11px] font-semibold uppercase tracking-wide">— not included</span></span>
                             </div>
@@ -791,14 +944,21 @@
 
                 @if(!empty($property->house_rules))
                 <section id="house-rules" class="mt-10 pt-8 border-t border-[#E2E4EC]">
-                    <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26] mb-4">House rules</h2>
+                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26] mb-4">House rules</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach($property->house_rules as $rule)
                             <div class="flex items-center gap-3 text-sm text-[#060D26] font-medium">
+<<<<<<< HEAD
                                 <div class="w-8 h-8 rounded-lg bg-[#EF4444]/[0.07] flex items-center justify-center flex-shrink-0">
                                     <svg class="w-4 h-4 text-[#EF4444]" fill="none" viewBox="0 0 24 24"
                                         stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+=======
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 {{ $rule['allowed'] ? 'bg-[#ECEEF6]' : 'bg-[#EF4444]/[0.07]' }}">
+                                    <svg class="w-4 h-4 {{ $rule['allowed'] ? 'text-[#B35A3D]' : 'text-[#EF4444]' }}" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $rule['icon'] }}" />
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     </svg>
                                 </div>
                                 {{ $rule }}
@@ -828,8 +988,13 @@
                                     </svg>
                                 </span>
                                 <div class="min-w-0">
+<<<<<<< HEAD
                                     <h2 class="font-heading text-[15px] font-normal tracking-tight text-[#060D26]">
                                         Where you'll be</h2>
+=======
+                                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15px] font-bold tracking-tight text-[#060D26]">
+                                        What's nearby</h2>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <p class="text-[12.5px] text-[#5B6A8E] truncate">{{ $property->address }}</p>
                                 </div>
                             </div>
@@ -873,7 +1038,11 @@
                                 </div>
 
                                 <button type="button" id="get-directions-btn"
+<<<<<<< HEAD
                                     class="shrink-0 inline-flex items-center gap-2 bg-gradient-to-b from-[#e29d87] to-[#DA8E77] hover:brightness-105 text-white text-[13px] font-bold px-5 py-2.5 rounded-xl shadow-md shadow-[#DA8E77]/25 hover:shadow-lg hover:shadow-[#DA8E77]/35 transition-all">
+=======
+                                    class="shrink-0 inline-flex items-center gap-2 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13px] font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     Get directions
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                         stroke-width="2.5" aria-hidden="true">
@@ -886,9 +1055,13 @@
                                 <label for="manual-origin-input" class="sr-only">Your starting address in Cebu</label>
                                 <input type="text" id="manual-origin-input"
                                     placeholder="Enter your starting address in Cebu"
+<<<<<<< HEAD
                                     class="flex-1 min-w-0 border border-[#E2E4EC] rounded-xl px-4 py-2 text-sm text-[#060D26] bg-white focus:outline-none focus:ring-4 focus:ring-[#DA8E77]/10 focus:border-[#DA8E77] transition-all">
+=======
+                                    class="flex-1 min-w-0 border border-[#E2E4EC] rounded-xl px-4 py-2 text-sm text-[#060D26] bg-white focus:outline-none focus:ring-4 focus:ring-[#FF8A66]/10 focus:border-[#FF8A66] transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <button type="submit"
-                                    class="shrink-0 bg-[#060D26] hover:brightness-95 text-[#F7F4ED] text-xs font-bold px-4 py-2 rounded-xl transition">
+                                    class="shrink-0 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-xs font-bold px-4 py-2 rounded-xl transition">
                                     Go
                                 </button>
                             </form>
@@ -896,9 +1069,172 @@
                     </div>
                 </section>
 
+<<<<<<< HEAD
+=======
+                {{-- ===== UNITS IN THIS PROPERTY — full-width grid, moved here
+                     (Sept 2026) to match the reference mockup's order: Amenities,
+                     then What's nearby, then the unit list, right before Similar
+                     listings. Selecting a card still drives selectUnit()/selectedUnit
+                     so the contact card up top keeps tracking the chosen unit's
+                     price/deposit. ===== --}}
+                {{-- Occupied/Reserved/Maintenance units are filtered out here —
+                     there's nothing for a tenant to do with a unit they can't
+                     contact the landlord about, so only $availableUnits render
+                     as cards. --}}
+                @if($availableUnits->count() > 0)
+                <section id="units" class="mt-10 pt-8 border-t border-[#E2E4EC]">
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-1">
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26]">Units in this property</h2>
+                        <span class="text-[13px] font-bold text-[#060D26] whitespace-nowrap">{{ $availableUnits->count() }} available</span>
+                    </div>
+                    <p class="text-sm text-[#5B6A8E] mb-4">Choose a unit to contact the landlord about</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach($availableUnits as $unit)
+                            @php
+                                $isAvailable = $unit->availability_status === 'Available';
+                                // Softened from solid saturated fills (bg-[#22C55E]
+                                // text-white, etc.) to translucent white + tinted
+                                // text — same status colors the admin panel's own
+                                // pills use (admin/units/show.blade.php), just with
+                                // a white backing instead of a light tint so it
+                                // still reads over any photo, not just a white card.
+                                $statusColors = [
+                                    'Available' => 'bg-white/90 text-[#15803D]',
+                                    'Reserved' => 'bg-white/90 text-[#B45309]',
+                                    'Occupied' => 'bg-white/90 text-[#DC2626]',
+                                    'Maintenance' => 'bg-white/90 text-[#64748B]',
+                                ];
+                            @endphp
+                            {{-- Border/ring/rounding now live on this outer wrapper
+                                 instead of the inner select-button, so the "View
+                                 this unit" button can sit inside the same card
+                                 (below the details) rather than floating below it
+                                 as a separate detached element.
+
+                                 Hover state is tracked explicitly with its own
+                                 x-data flag (Sept 2026) rather than a CSS
+                                 group-hover collapse — the group-hover +
+                                 !important max-height combo it replaced wasn't
+                                 reliably collapsing back to 0 on unhovered
+                                 cards, and this is unambiguous either way. --}}
+                            <div class="relative rounded-2xl border bg-white shadow-sm overflow-hidden transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
+                                x-data="{ hovering: false }"
+                                x-on:mouseenter="hovering = true" x-on:mouseleave="hovering = false"
+                                :class="selectedUnit === {{ $unit->unit_id }} || hovering
+                                        ? 'border-[#FF8A66] ring-1 ring-[#FF8A66]'
+                                        : '{{ $isAvailable ? 'border-[#E2E4EC]' : 'border-[#E2E4EC] cursor-not-allowed' }}'"
+                                @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
+                                {{-- Clicking the card both selects the unit
+                                     (drives the contact card's price/chip)
+                                     and opens its details slideout directly —
+                                     no longer a separate step behind the
+                                     hover-revealed "View this unit" button
+                                     below, which stays as a hover affordance
+                                     but is no longer the only way in. --}}
+                                <button type="button" x-on:click="selectUnit({{ $unit->unit_id }}); openSlideout({{ $unit->unit_id }})"
+                                    class="w-full text-left transition-all"
+                                    @if(!$isAvailable) disabled @endif>
+
+                                    {{-- Thumbnail --}}
+                                    @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
+                                    <div class="relative aspect-[16/10] bg-[#ECEEF6]">
+                                        @if($unitThumb)
+                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
+                                                class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center">
+                                                <svg class="w-8 h-8 text-[#5B6A8E]" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor" stroke-width="1.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                                                </svg>
+                                            </div>
+                                        @endif
+
+                                        @if($unit->floor)
+                                            <span class="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white drop-shadow">{{ $unit->floor }}</span>
+                                        @endif
+
+                                        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-bold px-2.5 py-1 rounded-full shadow-sm {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
+                                            {{ $unit->availability_status }}
+                                        </span>
+
+                                    </div>
+
+                                    {{-- Details --}}
+                                    <div class="p-3.5">
+                                        <p class="text-sm font-bold text-[#060D26] truncate mb-0.5">{{ $unit->unit_label }}</p>
+                                        <p class="text-xs font-medium text-[#5B6A8E] mb-2">
+                                            {{ $property->property_type }}
+                                            &middot; {{ $unit->occupancy_limit }}
+                                            {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
+                                            @if($unit->floor_area_label)
+                                                &middot; {{ $unit->floor_area_label }}
+                                            @endif
+                                        </p>
+                                        <p class="leading-tight">
+                                            <span class="text-sm font-black text-[#060D26]">₱{{ number_format($unit->rental_fee) }}</span>
+                                            <span class="text-[11px] font-semibold text-[#5B6A8E]">/ month</span>
+                                        </p>
+                                        @if($unit->amenities->isNotEmpty())
+                                            <div class="flex flex-wrap gap-1 mt-2">
+                                                @foreach($unit->amenities->take(3) as $amenity)
+                                                    <span class="text-[11px] font-semibold text-[#060D26] bg-[#ECEEF6] rounded-full px-2.5 py-0.5 truncate max-w-full">{{ $amenity->amenity_name }}</span>
+                                                @endforeach
+                                                @if($unit->amenities->count() > 3)
+                                                    <span class="text-[11px] font-semibold text-[#5B6A8E] bg-[#ECEEF6] rounded-full px-2.5 py-0.5">+{{ $unit->amenities->count() - 3 }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                        @if($isOwner && $unit->verification_status !== 'Approved')
+                                            <span class="inline-block mt-1.5 text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-[#FBBF24]/[0.10] text-[#B45309]">
+                                                Pending review — hidden from tenants
+                                            </span>
+                                        @endif
+                                    </div>
+                                </button>
+
+                                {{-- View-details entry point: collapsed to
+                                     zero height until this card's own
+                                     `hovering` flag is true — no longer tied
+                                     to selection, so it doesn't sit there
+                                     permanently once you've clicked a card.
+                                     Selection still forces it open too, since
+                                     hover has no equivalent on a touch device
+                                     and a mobile tap needs some way to reach
+                                     it. Alpine `x-show` toggling `display`
+                                     directly, not a CSS group-hover class —
+                                     see the note on the wrapper above. --}}
+                                <div class="overflow-hidden transition-all duration-200"
+                                    x-show="hovering || selectedUnit === {{ $unit->unit_id }}" x-cloak>
+                                    <div class="px-4 pb-4 pt-1">
+                                        <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
+                                            class="w-full py-2.5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                                            View this unit
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if($availableUnits->count() > 4)
+                        <button type="button" x-show="!moreUnits" x-on:click="moreUnits = true"
+                            class="mt-3 w-full h-11 rounded-xl border border-[#E2E4EC] bg-white text-sm font-bold text-[#060D26] hover:bg-[#F7F8FC] shadow-sm cursor-pointer transition-colors duration-200">
+                            View all units ({{ $availableUnits->count() }})
+                        </button>
+                    @endif
+                </section>
+                @endif
+
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 <section id="reviews" class="mt-10 pt-8 border-t border-[#E2E4EC]">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="font-heading text-[19px] font-normal tracking-tight text-[#060D26]">
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold tracking-tight text-[#060D26]">
                             Reviews
                             @if($reviews->count() > 0)
                                 <span class="text-[14px] font-semibold text-[#5B6A8E]">({{ $reviews->count() }})</span>
@@ -959,11 +1295,15 @@
                                             </label>
                                             <textarea id="review_comment" name="review_comment" rows="3" maxlength="1000"
                                                 placeholder="Share your experience living here..."
+<<<<<<< HEAD
                                                 class="w-full border border-[#ECEEF6] rounded-xl px-4 py-2.5 text-sm text-[#060D26] bg-[#E2E4EC] focus:outline-none focus:ring-4 focus:ring-[#DA8E77]/10 focus:border-[#DA8E77] transition-all resize-none">{{ old('review_comment') }}</textarea>
+=======
+                                                class="w-full border border-[#ECEEF6] rounded-xl px-4 py-2.5 text-sm text-[#060D26] bg-[#E2E4EC] focus:outline-none focus:ring-4 focus:ring-[#FF8A66]/10 focus:border-[#FF8A66] transition-all resize-none">{{ old('review_comment') }}</textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                         </div>
 
                                         <button type="submit" :disabled="rating === 0"
-                                            class="px-5 py-2.5 rounded-xl bg-[#060D26] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E4EC] disabled:text-[#5B6A8E]">
+                                            class="px-5 py-2.5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E4EC] disabled:text-[#5B6A8E]">
                                             Submit Review
                                         </button>
                                     </form>
@@ -1051,10 +1391,14 @@
                                                     @method('PATCH')
                                                     <textarea name="landlord_reply" rows="2" maxlength="1000"
                                                         placeholder="Write your response..."
+<<<<<<< HEAD
                                                         class="w-full border border-[#ECEEF6] rounded-xl px-3 py-2 text-sm text-[#060D26] bg-white focus:outline-none focus:ring-4 focus:ring-[#DA8E77]/10 focus:border-[#DA8E77] transition-all resize-none"></textarea>
+=======
+                                                        class="w-full border border-[#ECEEF6] rounded-xl px-3 py-2 text-sm text-[#060D26] bg-white focus:outline-none focus:ring-4 focus:ring-[#FF8A66]/10 focus:border-[#FF8A66] transition-all resize-none"></textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                     <div class="flex items-center gap-2">
                                                         <button type="submit"
-                                                            class="px-4 py-2 rounded-lg bg-[#060D26] hover:brightness-95 text-white text-xs font-bold shadow-sm transition-all">
+                                                            class="px-4 py-2 rounded-lg bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-xs font-bold shadow-sm transition-all">
                                                             Post Reply
                                                         </button>
                                                         <button type="button" x-on:click="showReply = false"
@@ -1080,10 +1424,14 @@
                                                     @csrf
                                                     @method('PATCH')
                                                     <textarea name="landlord_reply" rows="2" maxlength="1000"
+<<<<<<< HEAD
                                                         class="w-full border border-[#ECEEF6] rounded-xl px-3 py-2 text-sm text-[#060D26] bg-white focus:outline-none focus:ring-4 focus:ring-[#DA8E77]/10 focus:border-[#DA8E77] transition-all resize-none">{{ $review->landlord_reply }}</textarea>
+=======
+                                                        class="w-full border border-[#ECEEF6] rounded-xl px-3 py-2 text-sm text-[#060D26] bg-white focus:outline-none focus:ring-4 focus:ring-[#FF8A66]/10 focus:border-[#FF8A66] transition-all resize-none">{{ $review->landlord_reply }}</textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                     <div class="flex items-center gap-2">
                                                         <button type="submit"
-                                                            class="px-4 py-2 rounded-lg bg-[#060D26] hover:brightness-95 text-white text-xs font-bold shadow-sm transition-all">
+                                                            class="px-4 py-2 rounded-lg bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-xs font-bold shadow-sm transition-all">
                                                             Update Reply
                                                         </button>
                                                         <button type="button" x-on:click="editing = false"
@@ -1128,7 +1476,11 @@
                                         class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center">
+<<<<<<< HEAD
                                         <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#DA8E77" stroke-width="1.5">
+=======
+                                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="1.5">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
                                         </svg>
                                     </div>
@@ -1176,7 +1528,7 @@
 
                                 <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-start gap-3">
                                     <div class="flex-1 min-w-0">
-                                        <h2 id="report-modal-title" class="text-[16px] font-normal text-[#060D26]">
+                                        <h2 id="report-modal-title" class="text-[16px] font-bold text-[#060D26]">
                                             Report this listing</h2>
                                         <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">{{ $property->title }}</p>
                                     </div>
@@ -1207,7 +1559,11 @@
                                             Details <span class="normal-case tracking-normal font-semibold">· optional</span></label>
                                         <textarea id="report_details" x-model="reportDetails" rows="4" maxlength="1000"
                                             placeholder="Tell us what you noticed. The more specific, the faster we can act."
+<<<<<<< HEAD
                                             class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3.5 py-2.5 text-sm text-[#060D26] placeholder:text-[#5B6A8E]/60 focus:border-[#DA8E77] focus:ring-4 focus:ring-[#DA8E77]/10 outline-none transition-all resize-none"></textarea>
+=======
+                                            class="w-full rounded-xl border border-[#E2E4EC] bg-white px-3.5 py-2.5 text-sm text-[#060D26] placeholder:text-[#5B6A8E]/60 focus:border-[#FF8A66] focus:ring-4 focus:ring-[#FF8A66]/10 outline-none transition-all resize-none"></textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                         <p class="mt-1 text-[10.5px] font-semibold text-[#5B6A8E]/70 text-right">
                                             <span x-text="reportDetails.length"></span>/1000</p>
                                     </div>
@@ -1266,7 +1622,7 @@
 
                                 <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-start gap-3">
                                     <div class="flex-1 min-w-0">
-                                        <h2 id="inquire-modal-title" class="text-[16px] font-normal text-[#060D26]">Contact Landlord</h2>
+                                        <h2 id="inquire-modal-title" class="text-[16px] font-bold text-[#060D26]">Contact Landlord</h2>
                                         <template x-if="selected">
                                             <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">
                                                 <span x-text="selected.label"></span> &middot;
@@ -1345,7 +1701,11 @@
                                 </template>
 
                                 <div
+<<<<<<< HEAD
                                     class="rounded-xl bg-white border border-[#E2E4EC] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#DA8E77]/60 focus-within:ring-4 focus-within:ring-[#DA8E77]/10">
+=======
+                                    class="rounded-xl bg-white border border-[#E2E4EC] px-3.5 pt-2.5 pb-2 transition-all focus-within:border-[#FF8A66]/60 focus-within:ring-4 focus-within:ring-[#FF8A66]/10">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <label for="inquiry_message"
                                         class="block text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-0.5">Message
                                         <span class="normal-case tracking-normal font-semibold">· optional</span></label>
@@ -1365,7 +1725,7 @@
                                 </template>
                                 <template x-if="!selected || !selected.hasActive">
                                     <button type="submit" :disabled="!canSubmit"
-                                        class="w-full py-3 rounded-xl bg-[#060D26] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E4EC] disabled:text-[#5B6A8E]"
+                                        class="w-full py-3 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E4EC] disabled:text-[#5B6A8E]"
                                         x-text="!selected ? 'Select a unit' : 'Contact Landlord'">
                                     </button>
                                 </template>
@@ -1396,12 +1756,12 @@
                     </div>
                     @auth
                         <button type="button" x-on:click="openMobile()"
-                            class="h-11 px-6 rounded-xl bg-[#060D26] text-white text-sm font-bold hover:brightness-95 shadow-sm cursor-pointer transition-all duration-200 shrink-0">
+                            class="h-11 px-6 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-bold hover:bg-[#E96F4F] shadow-sm cursor-pointer transition-all duration-200 shrink-0">
                             Contact
                         </button>
                     @else
                         <button type="button" onclick="openAuthModal('login')"
-                            class="h-11 px-6 rounded-xl bg-[#060D26] text-white text-sm font-bold hover:brightness-95 shadow-sm cursor-pointer transition-all duration-200 shrink-0">
+                            class="h-11 px-6 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-bold hover:bg-[#E96F4F] shadow-sm cursor-pointer transition-all duration-200 shrink-0">
                             Log in to contact
                         </button>
                     @endauth
@@ -1419,7 +1779,7 @@
                             {{-- Step 1: Select a Unit --}}
                             <div x-show="mstep === 1">
                                 <div class="flex items-center justify-between px-5 py-4 border-b border-[#E2E4EC] sticky top-0 bg-white z-10">
-                                    <h3 class="text-base font-normal text-[#060D26]">Select a Unit</h3>
+                                    <h3 class="text-base font-bold text-[#060D26]">Select a Unit</h3>
                                     <button type="button" x-on:click="closeMobile()" aria-label="Close"
                                         class="text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1443,10 +1803,17 @@
                                     <div class="space-y-2.5">
                                         <template x-for="u in units.filter(x => x.available)" :key="u.id">
                                             <button type="button" x-on:click="selectUnit(u.id)"
+<<<<<<< HEAD
                                                 :class="selectedUnit === u.id ? 'border-[#DA8E77] ring-1 ring-[#DA8E77] bg-[#ECEEF6]/40' : 'border-[#E2E4EC]'"
                                                 class="w-full text-left rounded-xl border bg-white p-3 flex items-center gap-3 cursor-pointer transition-all duration-200">
                                                 <span class="w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0"
                                                     :class="selectedUnit === u.id ? 'border-[#DA8E77]' : 'border-[#CBD5E1]'">
+=======
+                                                :class="selectedUnit === u.id ? 'border-[#FF8A66] ring-1 ring-[#FF8A66] bg-[#ECEEF6]/40' : 'border-[#E2E4EC]'"
+                                                class="w-full text-left rounded-xl border bg-white p-3 flex items-center gap-3 cursor-pointer transition-all duration-200">
+                                                <span class="w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0"
+                                                    :class="selectedUnit === u.id ? 'border-[#FF8A66]' : 'border-[#CBD5E1]'">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                     <span class="w-2 h-2 rounded-full bg-[#060D26]" x-show="selectedUnit === u.id"></span>
                                                 </span>
                                                 <span class="flex-1 min-w-0">
@@ -1463,7 +1830,7 @@
                                     </div>
 
                                     <button type="button" x-on:click="mstep = 2" :disabled="!selected"
-                                        class="w-full h-11 rounded-xl bg-[#060D26] text-white text-sm font-bold hover:brightness-95 cursor-pointer transition-all duration-200 disabled:bg-[#E2E4EC] disabled:text-[#5B6A8E] disabled:cursor-not-allowed">
+                                        class="w-full h-11 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-bold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 disabled:bg-[#E2E4EC] disabled:text-[#5B6A8E] disabled:cursor-not-allowed">
                                         Confirm Selection
                                     </button>
                                 </div>
@@ -1478,7 +1845,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                                         </svg>
                                     </button>
-                                    <h3 class="text-base font-normal text-[#060D26]">Message Landlord</h3>
+                                    <h3 class="text-base font-bold text-[#060D26]">Message Landlord</h3>
                                     <button type="button" x-on:click="closeMobile()" aria-label="Close"
                                         class="text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1562,7 +1929,11 @@
                                             <label for="m_message" class="block text-[11px] font-bold text-[#5B6A8E] mb-1">Message <span class="font-semibold">(Optional)</span></label>
                                             <textarea id="m_message" name="message" rows="4" maxlength="300" x-model="msg"
                                                 placeholder="Hi! I'm interested in this unit..."
+<<<<<<< HEAD
                                                 class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder:text-[#5B6A8E]/60 focus:border-[#DA8E77]/60 focus:ring-4 focus:ring-[#DA8E77]/10 transition-all resize-none"></textarea>
+=======
+                                                class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-sm text-[#060D26] placeholder:text-[#5B6A8E]/60 focus:border-[#FF8A66]/60 focus:ring-4 focus:ring-[#FF8A66]/10 transition-all resize-none"></textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                             <p class="text-[10px] font-semibold text-[#5B6A8E]/70 text-right mt-0.5"><span x-text="msg.length"></span>/300</p>
                                         </div>
 
@@ -1573,7 +1944,7 @@
                                         </template>
                                         <template x-if="!selected || !selected.hasActive">
                                             <button type="submit" :disabled="!canSubmit"
-                                                class="w-full py-3 rounded-xl bg-[#060D26] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E4EC] disabled:text-[#5B6A8E]"
+                                                class="w-full py-3 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:bg-[#E2E4EC] disabled:text-[#5B6A8E]"
                                                 x-text="!selected ? 'Select a unit' : 'Contact Landlord'">
                                             </button>
                                         </template>
@@ -1675,7 +2046,7 @@
                             {{-- Header --}}
                             <div>
                                 <div class="flex items-center gap-2 mb-1">
-                                    <h3 class="text-xl font-normal text-[#060D26]" x-text="slideoutUnit.label"></h3>
+                                    <h3 class="text-xl font-bold text-[#060D26]" x-text="slideoutUnit.label"></h3>
                                     <span class="text-[11px] font-bold px-2 py-0.5 rounded-md"
                                         :class="slideoutUnit.available ? 'bg-[#22C55E]/10 text-[#060D26]' : 'bg-[#E2E4EC] text-[#5B6A8E]'"
                                         x-text="slideoutUnit.available ? 'Available' : 'Occupied'"></span>
@@ -1698,7 +2069,11 @@
                             {{-- Info pills --}}
                             <div class="flex flex-wrap gap-3 pt-4 border-t border-[#ECEEF6]">
                                 <div class="flex items-center gap-2 bg-[#ECEEF6] px-3 py-2 rounded-xl">
+<<<<<<< HEAD
                                     <svg class="w-4 h-4 text-[#A8573F]" fill="none" viewBox="0 0 24 24"
+=======
+                                    <svg class="w-4 h-4 text-[#B35A3D]" fill="none" viewBox="0 0 24 24"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                         stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -1710,7 +2085,11 @@
                                 </div>
                                 <template x-if="slideoutUnit.floorArea">
                                     <div class="flex items-center gap-2 bg-[#ECEEF6] px-3 py-2 rounded-xl">
+<<<<<<< HEAD
                                         <svg class="w-4 h-4 text-[#A8573F]" fill="none" viewBox="0 0 24 24"
+=======
+                                        <svg class="w-4 h-4 text-[#B35A3D]" fill="none" viewBox="0 0 24 24"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                             stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
@@ -1723,7 +2102,7 @@
                             {{-- Description --}}
                             <template x-if="slideoutUnit.description">
                                 <div class="pt-4 border-t border-[#ECEEF6]">
-                                    <h4 class="text-sm font-normal text-[#060D26] mb-2">About this unit</h4>
+                                    <h4 class="text-sm font-bold text-[#060D26] mb-2">About this unit</h4>
                                     <p class="text-sm text-[#060D26] leading-relaxed whitespace-pre-line"
                                         x-text="slideoutUnit.description"></p>
                                 </div>
@@ -1732,13 +2111,17 @@
                             {{-- Amenities --}}
                             <template x-if="slideoutUnit.amenities.length > 0">
                                 <div class="pt-4 border-t border-[#ECEEF6]">
-                                    <h4 class="text-sm font-normal text-[#060D26] mb-3">Unit Amenities</h4>
+                                    <h4 class="text-sm font-bold text-[#060D26] mb-3">Unit Amenities</h4>
                                     <div class="grid grid-cols-2 gap-2.5">
                                         <template x-for="amenity in slideoutUnit.amenities" :key="amenity.name">
                                             <div class="flex items-center gap-2 text-sm font-medium text-[#060D26]">
                                                 <span
                                                     class="w-6 h-6 rounded-md bg-[#ECEEF6] flex items-center justify-center shrink-0">
+<<<<<<< HEAD
                                                     <svg class="w-3.5 h-3.5 text-[#A8573F]" fill="none" viewBox="0 0 24 24"
+=======
+                                                    <svg class="w-3.5 h-3.5 text-[#B35A3D]" fill="none" viewBox="0 0 24 24"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                         stroke="currentColor" stroke-width="2.5">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             :d="amenity.icon" />
@@ -1756,7 +2139,7 @@
                                 <template x-if="slideoutUnit.available && !slideoutUnit.hasActive">
                                     <button type="button"
                                         x-on:click="selectUnit(slideoutUnit.id); closeSlideout(); $nextTick(() => { document.getElementById('target_move_in_date')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) })"
-                                        class="w-full py-3 rounded-xl bg-[#060D26] hover:brightness-95 text-white text-sm font-bold shadow-sm transition-all">
+                                        class="w-full py-3 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all">
                                         Select this unit
                                     </button>
                                 </template>

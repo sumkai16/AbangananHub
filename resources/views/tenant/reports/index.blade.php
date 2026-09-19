@@ -34,7 +34,7 @@
                     class="w-full sm:w-48 pl-4 pr-8 py-2.5 rounded-xl border border-[#E2E4EC] bg-white text-[13px] text-[#060D26]" />
 
                 <button type="submit"
-                    class="bg-[#060D26] text-white rounded-xl px-4 py-2.5 text-[13px] font-semibold hover:brightness-95 transition">
+                    class="bg-[#FF8A66] text-[#060D26] rounded-xl px-4 py-2.5 text-[13px] font-semibold hover:bg-[#E96F4F] transition">
                     Filter
                 </button>
             </form>

@@ -152,7 +152,11 @@
                                         <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
                                     @else
                                         <div class="w-full h-full flex items-center justify-center">
+<<<<<<< HEAD
                                             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#DA8E77" stroke-width="1.5">
+=======
+                                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="1.5">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
                                             </svg>
                                         </div>
@@ -266,7 +270,7 @@
 
                     @if($isOwner)
                         <div class="mt-3 flex flex-wrap gap-2">
-                            <a href="{{ route('landlord.properties.index') }}" class="inline-flex items-center justify-center px-3 py-2 rounded-full bg-[#060D26] text-white text-[12px] font-semibold hover:bg-[#125d7a] transition-all">
+                            <a href="{{ route('landlord.properties.index') }}" class="inline-flex items-center justify-center px-3 py-2 rounded-full bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#125d7a] transition-all">
                                 Manage properties
                             </a>
                             <a href="{{ route('landlord.reviews.index') }}" class="inline-flex items-center justify-center px-3 py-2 rounded-full bg-white ring-1 ring-[#5B6A8E]/15 text-[#060D26] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-all">
@@ -296,7 +300,7 @@
                     <h3 class="mt-2 text-[22px] font-normal text-[#060D26] leading-tight">A dependable place to live, with a smoother move-in experience.</h3>
                 </div>
                 @if(!$isOwner)
-                    <a href="{{ route('conversations.store') }}?landlord_id={{ $user->user_id }}" class="inline-flex items-center justify-center px-5 py-3 rounded-full bg-[#060D26] text-white text-[13px] font-semibold hover:bg-[#125d7a] transition-all">
+                    <a href="{{ route('conversations.store') }}?landlord_id={{ $user->user_id }}" class="inline-flex items-center justify-center px-5 py-3 rounded-full bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#125d7a] transition-all">
                         Message this landlord
                     </a>
                 @endif

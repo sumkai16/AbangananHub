@@ -35,7 +35,19 @@ class PropertyController extends Controller
         $areas = collect();
         $showDiscovery = !$request->hasAny(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page']);
 
+<<<<<<< HEAD
         if ($showDiscovery) {
+=======
+        if (!$request->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
+            $heroStats = [
+                'listings' => Property::browsable()->count(),
+                'units' => PropertyUnit::where('availability_status', 'Available')
+                    ->where('verification_status', 'Approved')
+                    ->whereHas('property', fn ($q) => $q->live())
+                    ->count(),
+            ];
+
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             $popularProperties = Property::browsable()
                 ->having('review_count', '>=', 2)
                 ->orderByDesc('avg_rating')
@@ -88,12 +100,13 @@ class PropertyController extends Controller
             ->browseFilters([
                 'location'   => $request->query('location'),
                 'type'       => $request->query('type'),
+                'price_min'  => $request->query('price_min'),
                 'price_max'  => $request->query('price_max'),
                 'verified'   => $request->boolean('verified'),
                 'amenities'  => $request->query('amenities', []),
                 'sort'       => $request->query('sort'),
             ])
-            ->paginate(12)
+            ->paginate(15)
             ->withQueryString();
 
         // Filter-panel amenity list — unscoped (not forProperty()), since the
@@ -135,6 +148,35 @@ class PropertyController extends Controller
             'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas',
             'amenityGroups', 'selectedAmenities', 'showDiscovery'
         ));
+    }
+
+    /**
+     * Every area with live, bookable listings — the destination of the
+     * landing page's "All areas" tile. Same grouped-count shape as the
+     * landing teaser's $areas, minus the take(8) cap.
+     */
+    public function areas()
+    {
+        $areas = Property::live()
+            ->whereHas('units', function ($q) {
+                $q->where('availability_status', 'Available')
+                  ->where('verification_status', 'Approved');
+            })
+            ->selectRaw('city_municipality, COUNT(*) as cnt')
+            ->groupBy('city_municipality')
+            ->orderByDesc('cnt')
+            ->get()
+            ->map(fn ($row) => [
+                'name' => $row->city_municipality,
+                'count' => $row->cnt,
+                'photo' => Property::browsable()
+                    ->where('city_municipality', $row->city_municipality)
+                    ->with('media')
+                    ->first()
+                    ?->media->firstWhere('media_type', 'Image')?->media_url,
+            ]);
+
+        return view('properties.areas', compact('areas'));
     }
 
     public function show(Property $property)

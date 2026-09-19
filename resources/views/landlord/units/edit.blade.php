@@ -132,7 +132,11 @@
                                 </label>
                                 <input type="text" id="unit_label" name="unit_label" x-model="unitLabel" required
                                     maxlength="100" placeholder="e.g. Room 101, Bed A, Unit 201"
+<<<<<<< HEAD
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
+=======
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @error('unit_label')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -144,7 +148,11 @@
                                 </label>
                                 <input type="number" id="occupancy_limit" name="occupancy_limit" x-model="capacity" required min="1" max="100"
                                     placeholder="Maximum number of occupants"
+<<<<<<< HEAD
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
+=======
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @error('occupancy_limit')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -165,7 +173,11 @@
                             <div>
                                 <label for="floor" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Floor</label>
                                 <input type="text" id="floor" name="floor" x-model="floor" maxlength="50" placeholder="e.g. 1st Floor"
+<<<<<<< HEAD
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
+=======
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @error('floor')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -177,7 +189,11 @@
                                 <label for="bedrooms" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Bedrooms</label>
                                 <input type="number" id="bedrooms" name="bedrooms" value="{{ old('bedrooms', $unit->bedrooms) }}" min="0" max="20"
                                     placeholder="e.g. 2"
+<<<<<<< HEAD
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
+=======
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @error('bedrooms')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -186,7 +202,11 @@
                                 <label for="bathrooms" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Bathrooms</label>
                                 <input type="number" id="bathrooms" name="bathrooms" value="{{ old('bathrooms', $unit->bathrooms) }}" min="0" max="20"
                                     placeholder="e.g. 1"
+<<<<<<< HEAD
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
+=======
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @error('bathrooms')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -194,7 +214,11 @@
                             <div>
                                 <label for="floor_area_sqm" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Floor area (sqm)</label>
                                 <input type="number" id="floor_area_sqm" name="floor_area_sqm" x-model="floorArea" min="1" max="9999.99" step="0.01" placeholder="e.g. 24"
+<<<<<<< HEAD
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
+=======
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @error('floor_area_sqm')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -206,11 +230,19 @@
                             @php $furnishedOld = old('is_furnished', $unit->is_furnished === null ? null : (int) $unit->is_furnished); @endphp
                             <div class="flex items-center gap-4 h-11">
                                 <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
+<<<<<<< HEAD
                                     <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#A8573F] focus:ring-[#DA8E77]/30">
                                     Yes
                                 </label>
                                 <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
                                     <input type="radio" name="is_furnished" value="0" @checked((string) $furnishedOld === '0') class="text-[#A8573F] focus:ring-[#DA8E77]/30">
+=======
+                                    <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
+                                    Yes
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
+                                    <input type="radio" name="is_furnished" value="0" @checked((string) $furnishedOld === '0') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     No
                                 </label>
                             </div>
@@ -265,11 +297,19 @@
                                     @php $fieldOld = old($field, $unit->$field === null ? null : (int) $unit->$field); @endphp
                                     <div class="flex items-center gap-4 h-11">
                                         <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
+<<<<<<< HEAD
                                             <input type="radio" name="{{ $field }}" value="1" @checked((string) $fieldOld === '1') class="text-[#A8573F] focus:ring-[#DA8E77]/30">
                                             Yes
                                         </label>
                                         <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
                                             <input type="radio" name="{{ $field }}" value="0" @checked((string) $fieldOld === '0') class="text-[#A8573F] focus:ring-[#DA8E77]/30">
+=======
+                                            <input type="radio" name="{{ $field }}" value="1" @checked((string) $fieldOld === '1') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
+                                            Yes
+                                        </label>
+                                        <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
+                                            <input type="radio" name="{{ $field }}" value="0" @checked((string) $fieldOld === '0') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                             No
                                         </label>
                                     </div>
@@ -287,7 +327,11 @@
                                 </label>
                                 <input type="number" id="rental_fee" name="rental_fee" x-model="rentalFee" required
                                     min="500" max="999999.99" step="0.01" placeholder="e.g. 3500"
+<<<<<<< HEAD
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
+=======
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @error('rental_fee')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -298,7 +342,11 @@
                                 </label>
                                 <input type="number" id="security_deposit" name="security_deposit" value="{{ old('security_deposit', $unit->security_deposit) }}" min="0"
                                     max="999999.99" step="0.01" placeholder="Leave blank if this unit has no deposit"
+<<<<<<< HEAD
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
+=======
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @error('security_deposit')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -342,7 +390,11 @@
                             <label for="description" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Description</label>
                             <textarea id="description" name="description" rows="3" maxlength="300"
                                 placeholder="Add any note or description about this unit..."
+<<<<<<< HEAD
                                 class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition resize-none">{{ old('description', $unit->description) }}</textarea>
+=======
+                                class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition resize-none">{{ old('description', $unit->description) }}</textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             @error('description')
                                 <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                             @enderror
@@ -372,7 +424,7 @@
                                     <div class="relative aspect-square rounded-lg overflow-hidden bg-[#F7F8FC] ring-1 ring-[#5B6A8E]/15 group">
                                         <img src="{{ $photo->media_url }}" alt="{{ $photo->caption ?? 'Unit photo' }}" class="w-full h-full object-cover">
                                         @if($photo->source === 'camera')
-                                            <span class="absolute top-1 left-1 rounded-full bg-[#060D26] text-white px-1.5 py-0.5 text-[9px] font-semibold">Live</span>
+                                            <span class="absolute top-1 left-1 rounded-full bg-[#FF8A66] text-[#060D26] px-1.5 py-0.5 text-[9px] font-semibold">Live</span>
                                         @endif
                                         @if($photo->caption)
                                             <span class="absolute inset-x-0 bottom-0 bg-black/60 text-white text-[9.5px] px-1.5 py-1 leading-tight line-clamp-2">{{ $photo->caption }}</span>
@@ -412,7 +464,7 @@
                             Cancel
                         </a>
                         <button type="submit" :disabled="submitting"
-                            class="h-11 px-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#060D26] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 disabled:opacity-70 disabled:cursor-wait">
+                            class="h-11 px-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 disabled:opacity-70 disabled:cursor-wait">
                             <svg x-show="submitting" x-cloak class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -488,7 +540,11 @@
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E] mb-1.5">Amenities</p>
                                     <div class="flex flex-wrap gap-1.5">
                                         <template x-for="id in amenities" :key="id">
+<<<<<<< HEAD
                                             <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#DA8E77]/20 px-2 py-0.5 text-[11px] text-[#060D26]"
+=======
+                                            <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#FF8A66]/20 px-2 py-0.5 text-[11px] text-[#060D26]"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                 x-text="amenityNames[id]"></span>
                                         </template>
                                     </div>
@@ -514,9 +570,15 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 @foreach($amenities as $amenity)
                                     <label class="flex items-center gap-2.5 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors duration-150"
+<<<<<<< HEAD
                                         :class="amenities.includes('{{ $amenity->amenity_id }}') ? 'border-[#DA8E77] bg-[#ECEEF6]' : 'border-[#5B6A8E]/25 bg-white hover:border-[#5B6A8E]/40'">
                                         <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}" x-model="amenities"
                                             class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#A8573F] focus:ring-[#DA8E77]/30">
+=======
+                                        :class="amenities.includes('{{ $amenity->amenity_id }}') ? 'border-[#FF8A66] bg-[#ECEEF6]' : 'border-[#5B6A8E]/25 bg-white hover:border-[#5B6A8E]/40'">
+                                        <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}" x-model="amenities"
+                                            class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#B35A3D] focus:ring-[#FF8A66]/30">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                         <span class="text-[12.5px] text-[#060D26] leading-tight">{{ $amenity->name }}</span>
                                     </label>
                                 @endforeach
@@ -524,14 +586,24 @@
                                 {{-- Others --}}
                                 <div x-data="{ others: false }" class="contents">
                                     <label class="flex items-center gap-2.5 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors duration-150"
+<<<<<<< HEAD
                                         :class="others ? 'border-[#DA8E77] bg-[#ECEEF6]' : 'border-[#5B6A8E]/25 bg-white hover:border-[#5B6A8E]/40'">
                                         <input type="checkbox" x-model="others"
                                             class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#A8573F] focus:ring-[#DA8E77]/30">
+=======
+                                        :class="others ? 'border-[#FF8A66] bg-[#ECEEF6]' : 'border-[#5B6A8E]/25 bg-white hover:border-[#5B6A8E]/40'">
+                                        <input type="checkbox" x-model="others"
+                                            class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#B35A3D] focus:ring-[#FF8A66]/30">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                         <span class="text-[12.5px] text-[#060D26] leading-tight">Others</span>
                                     </label>
                                     <div x-show="others" x-cloak class="col-span-full">
                                         <input type="text" placeholder="Specify other amenity..." aria-label="Specify other amenity"
+<<<<<<< HEAD
                                             class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
+=======
+                                            class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     </div>
                                 </div>
                             </div>

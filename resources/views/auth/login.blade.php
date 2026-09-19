@@ -7,9 +7,13 @@
     {{-- Right panel headline & feature area --}}
     <x-slot name="rightContent">
         <div class="max-w-xl mx-auto">
-            <h1 class="text-3xl font-normal text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
+            <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] font-extrabold text-white leading-[1.1] tracking-tight mb-3 drop-shadow-sm">
                 Your Trusted Platform<br>
+<<<<<<< HEAD
                 for Verified Rental <span class="italic text-[#DA8E77]">Properties.</span>
+=======
+                for Verified Rental <span class="text-[#FF8A66]">Properties.</span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
@@ -18,51 +22,67 @@
             <div class="space-y-3">
                 {{-- Feature 1 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#DA8E77] flex items-center justify-center shrink-0 shadow-md shadow-[#DA8E77]/20">
+=======
+                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Verified Landlords</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Verified Landlords</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">Strict multi-point identity verification enforced for occupant safety.</p>
                     </div>
                 </div>
 
                 {{-- Feature 2 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#DA8E77] flex items-center justify-center shrink-0 shadow-md shadow-[#DA8E77]/20">
+=======
+                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Quality Listings</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Quality Listings</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">Every singular unit is curated and thoroughly evaluated before going live.</p>
                     </div>
                 </div>
 
                 {{-- Feature 3 --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#DA8E77] flex items-center justify-center shrink-0 shadow-md shadow-[#DA8E77]/20">
+=======
+                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Secure & Transparent</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Secure & Transparent</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">Absolute legal accountability with direct automated lease processing.</p>
                     </div>
                 </div>
 
                 {{-- Feature 4 (SDG 16 integrated clean into list container) --}}
                 <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
+<<<<<<< HEAD
                     <div class="w-9 h-9 rounded-xl bg-[#DA8E77] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#DA8E77]/20 select-none">
+=======
+                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20 select-none">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <span class="text-[#060D26] text-[8px] font-black tracking-tighter leading-none">SDG</span>
                         <span class="text-[#060D26] text-xs font-black leading-none mt-0.5">16</span>
                     </div>
                     <div>
-                        <p class="text-white font-black text-xs tracking-wide uppercase">Supporting SDG 16</p>
+                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Supporting SDG 16</p>
                         <p class="text-white/80 text-[11px] font-semibold mt-0.5">We promote transparency, accountability, and trust in rental transactions to build a safer and more trustworthy community.</p>
                     </div>
                 </div>
@@ -72,7 +92,7 @@
 
     {{-- Left panel: Unified layout and no-scrollbar viewport constraints --}}
     <div class="w-full min-h-screen bg-[#F7F8FC] flex flex-col items-center px-4 py-10 lg:py-14">
-        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-2xl border border-[#E2E4EC]/80 p-6 lg:p-8 shadow-xl shadow-[#060D26]/[0.04] transition-all duration-300">
+        <div class="w-full max-w-sm sm:max-w-md bg-white rounded-3xl border border-[#E2E4EC] p-6 lg:p-8 shadow-[0_20px_50px_rgba(6,13,38,0.06)] transition-all duration-300">
 
             {{-- Branding --}}
             <div class="mb-5">
@@ -84,7 +104,7 @@
                     </div>
                     <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
                 </a>
-                <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Welcome Back!</h2>
+                <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[22px] sm:text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Welcome Back!</h2>
                 <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">Login to continue to AbangananHub</p>
             </div>
 
@@ -103,17 +123,25 @@
 
                 {{-- Email Address --}}
                 <div>
-                    <label for="email" class="block text-xs font-bold text-[#060D26] mb-1">Email Address</label>
+                    <label for="email" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="Enter your email"
+<<<<<<< HEAD
                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
+=======
+                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 </div>
 
                 {{-- Password Input --}}
                 <div>
-                    <label for="password" class="block text-xs font-bold text-[#060D26] mb-1">Password</label>
+                    <label for="password" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password"
+<<<<<<< HEAD
                             class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
+=======
+                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <button type="button" onclick="togglePassword('password', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -127,7 +155,11 @@
                 {{-- Remember Me & Forgot Password Layout --}}
                 <div class="flex items-center justify-between pt-0.5">
                     <label class="flex items-center gap-2 text-xs text-[#5E6968] font-semibold cursor-pointer select-none">
+<<<<<<< HEAD
                         <input type="checkbox" name="remember" class="rounded border-[#E2E4EC] text-[#A8573F] focus:ring-[#DA8E77] transition-colors w-3.5 h-3.5" />
+=======
+                        <input type="checkbox" name="remember" class="rounded border-[#E2E4EC] text-[#B35A3D] focus:ring-[#FF8A66] transition-colors w-3.5 h-3.5" />
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         Remember me
                     </label>
                     @if (Route::has('password.request'))
@@ -139,7 +171,7 @@
 
                 {{-- Action Submission Button --}}
                 <div class="pt-1">
-                    <button type="submit" class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
+                    <button type="submit" class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                         Login
                     </button>
                 </div>

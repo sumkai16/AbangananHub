@@ -1,8 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" @if(View::hasSection('themeable')) data-themeable="1" @endif>
 <meta name="user-authenticated" content="{{ auth()->check() ? '1' : '0' }}">
 
 <head>
+    {{-- Apply the saved theme before first paint (no light->dark flash). Only pages
+         that opt in with @section('themeable') ever go dark. --}}
+    <script>
+        try {
+            if (document.documentElement.dataset.themeable === '1' && localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        } catch (e) {}
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
@@ -10,7 +19,11 @@
     <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<<<<<<< HEAD
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+=======
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <script>
@@ -24,7 +37,7 @@
 
 <body class="font-sans bg-[#F7F8FC] text-[#060D26] min-h-screen flex flex-col" x-data="{}">
 
-    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#060D26] focus:text-white focus:font-semibold">Skip to main content</a>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#FF8A66] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
 
     <header id="site-header" x-data="{ mobileNavOpen: false, mobileAreasOpen: false }"
         class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
@@ -38,7 +51,7 @@
                 <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub"
                     class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
-                    Abanganan<span class="text-[#060D26]">Hub</span>
+                    Abanganan<span class="text-[#FF8A66]">Hub</span>
                 </span>
             </a>
 
@@ -59,15 +72,16 @@
                 @endphp
 
                 <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-all cursor-pointer {{ $onBrowse ? 'text-[#060D26] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC]' }}">
-                    Browse
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                    Browse Rentals
                 </a>
 
                 @if($navAreas->isNotEmpty())
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
-                            class="flex items-center gap-1 px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-all cursor-pointer">
+                            :class="open ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
+                            class="flex items-center gap-1 px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer">
                             Areas
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2.5" class="transition-transform duration-200 motion-reduce:transition-none"
@@ -83,7 +97,7 @@
                             class="absolute top-[calc(100%+8px)] left-0 w-[248px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E4EC] py-2 z-50 motion-reduce:transition-none">
                             @foreach($navAreas as $area => $count)
                                 <a href="{{ route('properties.index', ['location' => $area]) }}"
-                                    class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
+                                    class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] hover:text-[#B35A3D] transition-colors duration-200">
                                     <span class="truncate">{{ $area }}</span>
                                     <span class="text-[12px] font-bold text-[#5B6A8E] flex-shrink-0">{{ $count }}</span>
                                 </a>
@@ -93,48 +107,46 @@
                 @endif
 
                 <a href="{{ route('about') }}#how-it-works"
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-all cursor-pointer">
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
                     How it works
                 </a>
             </nav>
 
-            {{-- Collapsed search pill (shown on scroll) --}}
-            @if(($searchBar ?? true) && !View::hasSection('hide_search'))
-                <div id="nav-search-collapsed"
-                    class="absolute left-1/2 -translate-x-1/2 hidden opacity-0 transition-all duration-300 pointer-events-none">
-                    <button type="button" id="nav-search-collapsed-btn"
-                        class="flex items-center gap-2 h-[42px] pl-4 pr-2 bg-white rounded-full shadow-[0_2px_16px_rgba(0,0,0,0.12)] border border-[#E2E4EC] hover:shadow-[0_4px_20px_rgba(0,0,0,0.16)] transition-all duration-200 group"
-                        onclick="document.getElementById('site-header').classList.remove('is-scrolled'); window.scrollTo({top:0,behavior:'smooth'})">
-                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
-                            class="text-[#5B6A8E] shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        <span class="text-[13.5px] font-semibold text-[#060D26] pr-1">Search</span>
-                        <span class="text-[#94A3B8]">·</span>
-                        <span class="text-[13px] text-[#5B6A8E] px-1">Any type</span>
-                        <span class="text-[#94A3B8]">·</span>
-                        <span class="text-[13px] text-[#5B6A8E] pl-1 pr-2">Any price</span>
-                        <span class="w-8 h-8 rounded-full bg-[#060D26] flex items-center justify-center flex-shrink-0">
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </span>
-                    </button>
-                </div>
-            @endif
-
             {{-- Right Actions --}}
             <div class="flex items-center gap-3">
+
+                @hasSection('themeable')
+                    <button type="button" id="theme-toggle" aria-label="Switch between light and dark theme" title="Switch theme"
+                        class="flex items-center justify-center w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] hover:border-[#FF8A66] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/50">
+                        {{-- Moon: shown in the light theme (click → dark) --}}
+                        <svg class="theme-icon-moon w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                        </svg>
+                        {{-- Sun: shown in the dark theme (click → light) --}}
+                        <svg class="theme-icon-sun w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                        </svg>
+                    </button>
+                    <script>
+                        document.getElementById('theme-toggle').addEventListener('click', function () {
+                            const dark = document.documentElement.classList.toggle('dark');
+                            try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+                        });
+                    </script>
+                @endif
 
                 {{-- Mobile nav toggle — this header has no `lg:flex` primary nav
                      below `lg` (see the comment above), so this is the only way a
                      phone visitor reaches Browse/Areas/How it works. --}}
                 <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Menu"
                     :aria-expanded="mobileNavOpen ? 'true' : 'false'" aria-haspopup="true" aria-controls="mobile-nav-panel"
+<<<<<<< HEAD
                     :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC]'"
                     class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/40 cursor-pointer">
+=======
+                    :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
+                    class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path x-show="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         <path x-show="mobileNavOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -200,7 +212,7 @@
                                         <a href="{{ $link['route'] }}"
                                             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
                                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#060D26] transition-colors" aria-hidden="true">
+                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}" />
                                             </svg>
                                             {{ $link['label'] }}
@@ -220,8 +232,13 @@
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                         @keydown.escape.window="close()">
                         <button type="button" @click="toggle()" aria-label="Notifications"
+<<<<<<< HEAD
                             :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC]'"
                             class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/40 cursor-pointer">
+=======
+                            :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
+                            class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             <span x-show="unreadCount > 0" x-cloak
                                 class="absolute top-[7px] right-[8px] w-2.5 h-2.5 rounded-full bg-[#060D26] ring-2 ring-white"></span>
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -257,14 +274,18 @@
                         $abgFullName = trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
                         // One shared row style so every item lines up and hovers identically.
                         $menuRow = 'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors';
-                        $menuIcon = 'text-[#5B6A8E] group-hover:text-[#060D26] transition-colors shrink-0';
+                        $menuIcon = 'text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200 shrink-0';
                         $menuLabel = 'px-3 pt-2.5 pb-1 text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider';
                     @endphp
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
                             :class="open ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]'"
+<<<<<<< HEAD
                             class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/40 cursor-pointer">
+=======
+                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             @if(auth()->user()->profile_picture)
                                 <img src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
                                     class="w-9 h-9 rounded-full object-cover shrink-0">
@@ -308,7 +329,11 @@
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-1.5">
                                         <p class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $abgFullName }}</p>
+<<<<<<< HEAD
                                         <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#060D26] ring-1 ring-[#DA8E77]/25">{{ $abgRoleLabel }}</span>
+=======
+                                        <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#060D26] ring-1 ring-[#FF8A66]/25">{{ $abgRoleLabel }}</span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     </div>
                                     <p class="text-[12px] text-[#5B6A8E] truncate mt-0.5">{{ auth()->user()->email }}</p>
                                 </div>
@@ -405,7 +430,11 @@
                         </button>
 
                         <button type="button" onclick="openAuthModal('register')"
+<<<<<<< HEAD
                             class="text-[13px] sm:text-[14px] font-bold text-white bg-gradient-to-b from-[#1a2547] to-[#060D26] hover:brightness-110 px-4 sm:px-5 py-2 rounded-full transition-all shadow-md shadow-[#060D26]/25 hover:shadow-lg focus:outline-none whitespace-nowrap no-underline">
+=======
+                            class="text-[13px] sm:text-[14px] font-bold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             Sign up
                         </button>
                     </div>
@@ -416,15 +445,30 @@
         {{-- 2. Search Pill + Category Strip --}}
         @if(($searchBar ?? true) && !View::hasSection('hide_search'))
 
-            <div id="header-search-expanded" class="transition-all duration-300 overflow-hidden"
-                style="max-height: 80px; opacity: 1;">
+            <div id="header-search-expanded" class="transition-all duration-300">
 
-                <div class="flex justify-center pb-2 pt-0 px-4 sm:px-6">
-                    <x-search-pill variant="header" />
+                {{-- Hero photo behind the pill — same treatment as the landing page's
+                     compact bar, so the search reads as the same object everywhere. --}}
+                <div class="relative">
+                    <div class="absolute inset-0 border-b-2 border-[#FF8A66]" aria-hidden="true">
+                        <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-[#060D26]/55"></div>
+                    </div>
+                    <div class="relative flex justify-center py-2 px-4 sm:px-6">
+                        <x-search-pill variant="header" />
+                    </div>
                 </div>
 
-                <div class="px-4 sm:px-6">
-                    <x-category-strip />
+                <div class="flex items-center justify-center lg:gap-6 px-4 sm:px-6">
+                    <div class="min-w-0"><x-category-strip /></div>
+                    {{-- Page-specific tools (Show map / Filters) sit right after the
+                         categories, centred with them, from `lg` up; below that the
+                         page keeps its own toolbar. --}}
+                    @hasSection('browse_tools')
+                        <div class="hidden lg:flex items-center gap-2 pl-6 border-l border-[#E2E4EC] self-center mb-1">
+                            @yield('browse_tools')
+                        </div>
+                    @endif
                 </div>
 
             </div>{{-- /#header-search-expanded --}}
@@ -447,7 +491,7 @@
             <a href="{{ route('properties.index') }}" @click="mobileNavOpen = false"
                 @if($onBrowse) aria-current="page" @endif
                 class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold {{ $onBrowse ? 'text-[#060D26] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC]' }}">
-                Browse
+                Browse Rentals
             </a>
 
             @if($navAreas->isNotEmpty())
@@ -524,7 +568,11 @@
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
                 <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
+<<<<<<< HEAD
                 <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#DA8E77]">Hub</span></span>
+=======
+                <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#FF8A66]">Hub</span></span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
             </a>
 
             {{-- Link columns --}}
@@ -565,8 +613,8 @@
                 <div>
                     <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">Company</p>
                     <ul class="space-y-3 text-[13.5px]">
-                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="{{ route('privacy') }}" class="text-white/60 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}" class="text-white/60 hover:text-white transition-colors">Terms of Service</a></li>
                         <li><a href="#" class="text-white/60 hover:text-white transition-colors">Help Center</a></li>
                     </ul>
                 </div>
@@ -587,7 +635,11 @@
                     &copy; {{ date('Y') }} AbangananHub. All rights reserved.
                 </p>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 text-[11px] font-semibold text-white/40">
+<<<<<<< HEAD
                     <span class="w-1.5 h-1.5 rounded-full bg-[#DA8E77]"></span>
+=======
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66]"></span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     Supporting UN SDG 16 &middot; Cebu, Philippines
                 </span>
             </div>
@@ -601,6 +653,7 @@
         <div id="auth-modal"
             class="hidden fixed inset-0 z-[9999] bg-[#060D26]/40 backdrop-blur-sm items-center justify-center p-4 opacity-0 transition-opacity duration-300">
 
+<<<<<<< HEAD
             <div class="bg-white rounded-[24px] shadow-2xl shadow-[#060D26]/20 max-w-3xl w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
                 id="auth-modal-content">
 
@@ -609,28 +662,62 @@
                 <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-gradient-to-br from-[#DA8E77] via-[#c97a61] to-[#060D26] p-8 flex-col justify-between text-white">
                     <div class="pointer-events-none absolute -top-12 -right-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
                     <div class="pointer-events-none absolute bottom-10 -left-14 w-56 h-56 rounded-full bg-white/5 blur-3xl"></div>
+=======
+            <div class="bg-white rounded-[24px] shadow-2xl shadow-[#FF8A66]/25 max-w-3xl w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
+                id="auth-modal-content">
+
+                {{-- Left brand panel (split) — photo + navy overlay, same language as the landing hero --}}
+                <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-[#060D26] p-8 flex-col justify-between text-white">
+                    <img src="{{ asset('images/auth-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/75 via-[#060D26]/85 to-[#060D26]/95"></div>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 
                     <div class="relative z-10">
-                        <div class="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center mb-10 shadow-inner">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                            </svg>
-                        </div>
-                        <h3 id="auth-side-title" class="text-2xl font-normal tracking-tight leading-tight">Welcome back</h3>
-                        <p id="auth-side-subtitle" class="text-white/80 text-sm font-medium mt-2.5 leading-relaxed max-w-[16rem]">
+                        <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-white px-3 py-1.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>AbangananHub</span>
+                        <h3 id="auth-side-title" class="mt-7 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
+                        <p id="auth-side-subtitle" class="text-white/75 text-[13px] mt-3 leading-relaxed max-w-[17rem]">
                             Sign in to manage your bookings and stay up to date with AbangananHub.
                         </p>
                     </div>
 
-                    <div class="relative z-10 text-white/55 text-[11px] font-bold tracking-wide">© {{ date('Y') }} AbangananHub</div>
+                    <ul class="relative z-10 space-y-4">
+                        <li class="flex items-start gap-3">
+                            <span class="w-8 h-8 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                            </span>
+                            <span>
+                                <span class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-white">Verified landlords</span>
+                                <span class="block text-[11.5px] text-white/70 leading-snug">Every listing is document-checked.</span>
+                            </span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="w-8 h-8 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                            </span>
+                            <span>
+                                <span class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-white">Quality listings</span>
+                                <span class="block text-[11.5px] text-white/70 leading-snug">Real photos, real prices, real units.</span>
+                            </span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="w-8 h-8 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                            </span>
+                            <span>
+                                <span class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-white">Secure & transparent</span>
+                                <span class="block text-[11.5px] text-white/70 leading-snug">Clear terms from inquiry to move-in.</span>
+                            </span>
+                        </li>
+                    </ul>
+
+                    <div class="relative z-10 pt-6 text-white/50 text-[11px] font-semibold tracking-wide">© {{ date('Y') }} AbangananHub</div>
                 </div>
 
                 {{-- Right form panel (split) --}}
                 <div class="w-full md:w-[58%] relative bg-white p-6 sm:p-8 md:p-10 max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
                     <button type="button" onclick="closeAuthModal()"
-                        class="absolute top-4 right-4 text-[#94A3B8] hover:text-[#5B6A8E] focus:outline-none transition-colors" aria-label="Close">
+                        class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] hover:text-[#060D26] hover:border-[#FF8A66] focus:outline-none transition-colors cursor-pointer" aria-label="Close">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -641,23 +728,31 @@
 
                     {{-- Login View --}}
                     <div id="login-form-view" class="hidden">
-                        <h2 class="text-2xl font-normal text-[#060D26] tracking-tight leading-tight">Login</h2>
-                        <p class="text-sm text-[#94A3B8] mt-1 mb-6">Enter your details to continue</p>
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Login</h2>
+                        <p class="text-[13.5px] text-[#5B6A8E] mt-1.5 mb-6">Enter your details to continue</p>
 
                         <form id="ajax-login-form" onsubmit="handleAuthSubmit(event, '{{ route('login') }}')">
                             @csrf
                             <div class="mb-4">
-                                <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Email Address</label>
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                                 <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
+<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
+=======
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-email"></span>
                             </div>
 
                             <div class="mb-4">
-                                <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <div class="relative">
                                     <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password" aria-label="Password"
+<<<<<<< HEAD
                                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
+=======
+                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <button type="button" onclick="toggleModalPassword('modal-login-password', this)"
                                         class="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#5B6A8E]" aria-label="Show password">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
@@ -676,14 +771,18 @@
                             <div class="flex items-center justify-between text-[13px] mb-6">
                                 <label class="flex items-center gap-2 text-[#5B6A8E] cursor-pointer select-none">
                                     <input type="checkbox" name="remember"
+<<<<<<< HEAD
                                         class="w-4 h-4 rounded text-[#A8573F] border-[#E2E4EC] focus:ring-[#DA8E77]">
+=======
+                                        class="w-4 h-4 rounded text-[#B35A3D] border-[#E2E4EC] focus:ring-[#FF8A66]">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     Remember me
                                 </label>
                                 <a href="#" onclick="openAuthModal('forgot-password'); return false;" class="text-[#060D26] font-semibold hover:underline">Forgot password?</a>
                             </div>
 
                             <button type="submit"
-                                class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md text-[15px]">
+                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                                 Login
                             </button>
                         </form>
@@ -698,58 +797,82 @@
 
                     {{-- Register View --}}
                     <div id="register-form-view" class="hidden">
-                        <h2 class="text-2xl font-normal text-[#060D26] tracking-tight leading-tight">Create Account</h2>
-                        <p class="text-sm text-[#94A3B8] mt-1 mb-6">Join AbangananHub today</p>
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create Account</h2>
+                        <p class="text-[13.5px] text-[#5B6A8E] mt-1.5 mb-6">Join AbangananHub today</p>
 
                         <form id="ajax-register-form" onsubmit="handleAuthSubmit(event, '{{ route('register') }}')">
                             @csrf
                             <div class="grid grid-cols-2 gap-3 mb-3">
                                 <div>
-                                    <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">First Name</label>
+                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">First Name</label>
                                     <input type="text" name="first_name" required placeholder="First name" aria-label="First name"
+<<<<<<< HEAD
                                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
+=======
+                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-first_name"></span>
                                 </div>
                                 <div>
-                                    <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Last Name</label>
+                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Last Name</label>
                                     <input type="text" name="last_name" required placeholder="Last name" aria-label="Last name"
+<<<<<<< HEAD
                                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
+=======
+                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-last_name"></span>
                                 </div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
                                 <input type="text" name="contact_number" required placeholder="Enter your contact number" aria-label="Contact number"
+<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
+=======
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-contact_number"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Email Address</label>
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                                 <input type="email" name="email" required placeholder="Enter your email address" aria-label="Email address"
+<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
+=======
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-email"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <input type="password" name="password" required placeholder="Create a password" aria-label="Password"
+<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
+=======
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-password"></span>
                             </div>
 
                             <div class="mb-5">
-                                <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
                                 <input type="password" name="password_confirmation" required placeholder="Confirm your password" aria-label="Confirm password"
+<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
+=======
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             </div>
 
                             <button type="submit"
-                                class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md text-[15px]">
+                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                                 Sign Up
                             </button>
                         </form>
@@ -764,20 +887,24 @@
 
                     {{-- Forgot Password View --}}
                     <div id="forgot-password-form-view" class="hidden">
-                        <h2 class="text-2xl font-normal text-[#060D26] tracking-tight leading-tight">Forgot your password?</h2>
-                        <p class="text-sm text-[#94A3B8] mt-1 mb-6">No problem. We'll email you a reset link.</p>
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Forgot your password?</h2>
+                        <p class="text-[13.5px] text-[#5B6A8E] mt-1.5 mb-6">No problem. We'll email you a reset link.</p>
 
                         <form id="ajax-forgot-password-form" onsubmit="handleForgotPasswordSubmit(event, '{{ route('password.email') }}')">
                             @csrf
                             <div class="mb-5">
-                                <label class="block text-[13px] font-bold text-[#060D26] mb-1.5">Email Address</label>
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
                                 <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
+<<<<<<< HEAD
                                     class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all">
+=======
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-forgot-password-email"></span>
                             </div>
 
                             <button type="submit"
-                                class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md text-[15px]">
+                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                                 Email Password Reset Link
                             </button>
                         </form>
@@ -790,13 +917,13 @@
 
                     {{-- Forgot Password: Email Sent View --}}
                     <div id="forgot-password-sent-view" class="hidden">
-                        <h2 class="text-2xl font-normal text-[#060D26] tracking-tight leading-tight">Check your email</h2>
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Check your email</h2>
                         <p id="forgot-password-sent-message" class="text-sm text-[#5B6A8E] mt-1 mb-6 leading-relaxed">
                             We've emailed you a link to reset your password. It'll expire in 60 minutes.
                         </p>
 
                         <button type="button" onclick="openAuthModal('login')"
-                            class="w-full bg-[#060D26] text-[#F7F4ED] font-bold py-3 rounded-xl hover:brightness-95 active:scale-[0.99] transition-all shadow-md text-[15px]">
+                            class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
                             Back to login
                         </button>
                     </div>
@@ -984,90 +1111,6 @@
     {{-- The avatar and Admin Actions menus are Alpine-driven (x-data / @click.outside),
          matching the Areas and notification dropdowns — no bespoke JS handler needed. --}}
 
-    {{-- Airbnb-style scroll-collapse search bar --}}
-    <script>
-        (function () {
-            const SCROLL_THRESHOLD = 80;
-            const header = document.getElementById('site-header');
-            const expanded = document.getElementById('header-search-expanded');
-            const collapsed = document.getElementById('nav-search-collapsed');
-
-            if (!header || !expanded || !collapsed) return;
-
-            let ticking = false;
-
-            function applyScrollState() {
-                // The compact pill's layout (logo + pill + auth buttons all in one
-                // row) was never designed for mobile widths — squeezing it in there
-                // is what reads as messy. Below `lg` the full search bar just stays
-                // put; only desktop gets the Airbnb-style collapse-on-scroll.
-                if (window.innerWidth < 1024) {
-                    expanded.style.maxHeight = '';
-                    expanded.style.opacity = '';
-                    expanded.style.pointerEvents = '';
-                    collapsed.classList.add('hidden');
-                    header.classList.remove('is-scrolled');
-                    ticking = false;
-                    return;
-                }
-
-                const scrolled = window.scrollY > SCROLL_THRESHOLD;
-
-                if (scrolled) {
-                    // Collapse expanded search
-                    expanded.style.maxHeight = '0px';
-                    expanded.style.opacity = '0';
-                    expanded.style.pointerEvents = 'none';
-
-                    // Show compact pill
-                    collapsed.classList.remove('hidden');
-                    // Force reflow so transition fires
-                    collapsed.offsetHeight;
-                    collapsed.classList.remove('opacity-0');
-                    collapsed.classList.add('opacity-100');
-                    collapsed.classList.remove('pointer-events-none');
-                    collapsed.classList.add('pointer-events-auto');
-
-                    header.classList.add('is-scrolled');
-                } else {
-                    // Restore expanded search
-                    expanded.style.maxHeight = '200px';
-                    expanded.style.opacity = '1';
-                    expanded.style.pointerEvents = '';
-
-                    // Hide compact pill
-                    collapsed.classList.remove('opacity-100');
-                    collapsed.classList.add('opacity-0');
-                    collapsed.classList.add('pointer-events-none');
-                    collapsed.classList.remove('pointer-events-auto');
-                    // Hide after transition
-                    setTimeout(() => {
-                        if (window.scrollY <= SCROLL_THRESHOLD) {
-                            collapsed.classList.add('hidden');
-                        }
-                    }, 300);
-
-                    header.classList.remove('is-scrolled');
-                }
-
-                ticking = false;
-            }
-
-            window.addEventListener('scroll', () => {
-                if (!ticking) {
-                    requestAnimationFrame(applyScrollState);
-                    ticking = true;
-                }
-            }, { passive: true });
-
-            // Rotating a phone or resizing across the `lg` breakpoint should
-            // re-evaluate immediately, not wait for the next scroll event.
-            window.addEventListener('resize', applyScrollState);
-
-            // Run once on load in case page is restored mid-scroll
-            applyScrollState();
-        })();
-    </script>
     @auth
         <script>
             function notificationDropdown() {
@@ -1173,6 +1216,18 @@
     @endif
     @stack('scripts')
 
+    {{-- Navigation progress bar: appears the instant a navigation starts (link, form,
+         card click, redirect) and is reset when the next page shows. --}}
+    <div id="nav-progress" aria-hidden="true"></div>
+    <script>
+        (function () {
+            var bar = document.getElementById('nav-progress');
+            if (!bar) return;
+            window.addEventListener('beforeunload', function () { bar.classList.add('is-active'); });
+            // Back/forward cache restores a frozen page — clear the bar so it isn't stuck.
+            window.addEventListener('pageshow', function () { bar.classList.remove('is-active'); });
+        })();
+    </script>
 </body>
 
 </html>

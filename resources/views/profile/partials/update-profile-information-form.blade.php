@@ -29,7 +29,11 @@
                 <input id="first_name" name="first_name" type="text" value="{{ old('first_name', $user->first_name) }}"
                     required autofocus autocomplete="given-name"
                     class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+<<<<<<< HEAD
                            focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15 placeholder:text-[#5B6A8E]/50">
+=======
+                           focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 @error('first_name')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -44,7 +48,11 @@
                 <input id="last_name" name="last_name" type="text" value="{{ old('last_name', $user->last_name) }}"
                     required autocomplete="family-name"
                     class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+<<<<<<< HEAD
                            focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15 placeholder:text-[#5B6A8E]/50">
+=======
+                           focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 @error('last_name')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -58,7 +66,11 @@
                 <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required
                     autocomplete="username"
                     class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+<<<<<<< HEAD
                            focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15 placeholder:text-[#5B6A8E]/50">
+=======
+                           focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 @error('email')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -90,7 +102,11 @@
                     value="{{ old('contact_number', $user->contact_number) }}" placeholder="+63 912 345 6789"
                     autocomplete="tel"
                     class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+<<<<<<< HEAD
                            focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15 placeholder:text-[#5B6A8E]/50">
+=======
+                           focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 @error('contact_number')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -103,7 +119,11 @@
                 </label>
                 <textarea id="bio" name="bio" rows="3" maxlength="1000" placeholder="Tell others a bit about yourself…"
                     class="w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 py-2.5 text-sm text-[#060D26] outline-none transition resize-none
+<<<<<<< HEAD
                            focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15 placeholder:text-[#5B6A8E]/50">{{ old('bio', $user->bio) }}</textarea>
+=======
+                           focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">{{ old('bio', $user->bio) }}</textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 @error('bio')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
@@ -134,7 +154,7 @@
         {{-- Actions --}}
         <div class="mt-7 flex items-center gap-4 border-t border-[#E2E4EC] pt-6">
             <button type="submit"
-                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#060D26] px-5 text-[13px] font-semibold text-white transition hover:brightness-95 active:scale-[0.98]">
+                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#FF8A66] px-5 text-[13px] font-semibold text-[#060D26] transition hover:bg-[#E96F4F] active:scale-[0.98]">
                 Save changes
             </button>
         </div>

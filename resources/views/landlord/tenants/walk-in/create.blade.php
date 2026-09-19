@@ -33,7 +33,11 @@
             'contact' => $tenant->contact_number ?: ($tenant->email ?: 'No contact on file'),
         ])->values();
 
+<<<<<<< HEAD
         $inputClass = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition';
+=======
+        $inputClass = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition';
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
         $labelClass = 'block text-[12px] font-semibold text-[#060D26] mb-1.5';
         $errorClass = 'text-[11.5px] text-[#EF4444] mt-1';
 
@@ -104,7 +108,7 @@
                     A walk-in tenant needs an admin-approved unit that is currently vacant and has no active reservation against it.
                 </p>
                 <a href="{{ route('landlord.units.index') }}"
-                    class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#060D26] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                    class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                     Go to my units
                 </a>
             </x-card>
@@ -393,7 +397,11 @@
                                     </div>
                                 </div>
 
+<<<<<<< HEAD
                                 <div class="mt-4 flex items-start gap-2.5 rounded-xl bg-[#ECEEF6]/60 border border-[#DA8E77]/20 px-3.5 py-3">
+=======
+                                <div class="mt-4 flex items-start gap-2.5 rounded-xl bg-[#ECEEF6]/60 border border-[#FF8A66]/20 px-3.5 py-3">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2"
                                         class="shrink-0 mt-0.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -436,7 +444,11 @@
 
                                 {{-- Empty state --}}
                                 <button type="button" x-show="!unit" @click="openPicker()"
+<<<<<<< HEAD
                                     class="w-full flex items-center gap-3 rounded-xl border border-dashed border-[#5B6A8E]/40 bg-[#F7F8FC] px-4 py-3.5 text-left hover:border-[#DA8E77]/60 hover:bg-[#ECEEF6]/40 transition-all duration-200 cursor-pointer">
+=======
+                                    class="w-full flex items-center gap-3 rounded-xl border border-dashed border-[#5B6A8E]/40 bg-[#F7F8FC] px-4 py-3.5 text-left hover:border-[#FF8A66]/60 hover:bg-[#ECEEF6]/40 transition-all duration-200 cursor-pointer">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <span class="w-9 h-9 rounded-lg bg-white ring-1 ring-[#5B6A8E]/10 flex items-center justify-center shrink-0">
                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -454,7 +466,11 @@
 
                                 {{-- Selected state --}}
                                 <div x-show="unit" x-cloak
+<<<<<<< HEAD
                                     class="flex items-center gap-3 rounded-xl border border-[#DA8E77]/30 bg-[#ECEEF6]/40 p-2.5">
+=======
+                                    class="flex items-center gap-3 rounded-xl border border-[#FF8A66]/30 bg-[#ECEEF6]/40 p-2.5">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <div class="w-14 h-14 rounded-lg bg-white overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                                         <template x-if="unit && unit.photo">
                                             <img :src="unit ? unit.photo : ''" :alt="unit ? unit.label : ''" class="w-full h-full object-cover">
@@ -472,12 +488,20 @@
                                         <p class="text-[13.5px] font-bold text-[#060D26] truncate" x-text="unit ? unit.label : ''"></p>
                                         <p class="text-[11.5px] text-[#5B6A8E] truncate" x-text="selectedProperty ? selectedProperty.title : ''"></p>
                                         <div class="flex items-center gap-2.5 mt-0.5">
+<<<<<<< HEAD
                                             <span class="text-[12.5px] font-bold text-[#A8573F]" x-text="unit ? '₱' + unit.rent.toLocaleString('en-PH') : ''"></span>
+=======
+                                            <span class="text-[12.5px] font-bold text-[#B35A3D]" x-text="unit ? '₱' + unit.rent.toLocaleString('en-PH') : ''"></span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                             <span class="text-[11px] text-[#5B6A8E]" x-show="unit && unit.cap" x-text="unit ? unit.cap + ' pax' : ''"></span>
                                         </div>
                                     </div>
                                     <button type="button" @click="openPicker()"
+<<<<<<< HEAD
                                         class="h-9 px-4 shrink-0 rounded-full border border-[#DA8E77] text-[#A8573F] text-[12px] font-semibold hover:bg-white transition-colors duration-200 cursor-pointer">
+=======
+                                        class="h-9 px-4 shrink-0 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-white transition-colors duration-200 cursor-pointer">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                         Change
                                     </button>
                                 </div>
@@ -558,7 +582,11 @@
                                                     :class="String(occupants) === String(n) ? 'text-[#060D26] font-semibold bg-[#ECEEF6]/70' : 'text-[#060D26]'">
                                                     <span x-text="n + ' ' + (n === 1 ? 'person' : 'persons')" class="truncate"></span>
                                                     <svg x-show="String(occupants) === String(n)" width="14" height="14" viewBox="0 0 24 24" fill="none"
+<<<<<<< HEAD
                                                         stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#A8573F]" aria-hidden="true">
+=======
+                                                        stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#B35A3D]" aria-hidden="true">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                                     </svg>
                                                 </button>
@@ -576,7 +604,11 @@
                                 <label for="notes" class="{{ $labelClass }}">Notes <span class="text-[#5B6A8E] font-normal">(optional)</span></label>
                                 <textarea id="notes" name="notes" rows="2" maxlength="1000"
                                     placeholder="Anything worth remembering about this arrangement…"
+<<<<<<< HEAD
                                     class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition resize-y">{{ old('notes') }}</textarea>
+=======
+                                    class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition resize-y">{{ old('notes') }}</textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @error('notes')
                                     <p class="{{ $errorClass }}">{{ $message }}</p>
                                 @enderror
@@ -605,7 +637,11 @@
                                 <label for="has_payment" class="flex items-center gap-2 cursor-pointer shrink-0 pt-1"
                                     x-show="!paymentRequired">
                                     <input type="checkbox" id="has_payment" x-model="hasPayment"
+<<<<<<< HEAD
                                         class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#A8573F] focus:ring-[#DA8E77]/30 cursor-pointer">
+=======
+                                        class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#B35A3D] focus:ring-[#FF8A66]/30 cursor-pointer">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <span class="text-[12.5px] font-semibold text-[#060D26]">Record one now</span>
                                 </label>
                                 <span x-show="paymentRequired" x-cloak
@@ -676,7 +712,11 @@
                                          MoveInPaymentBreakdown; the server allocates
                                          again from its own figures on submit. --}}
                                     <div x-show="received > 0" x-cloak
+<<<<<<< HEAD
                                         class="rounded-xl border border-[#DA8E77]/25 bg-[#ECEEF6]/50 px-4 py-3.5">
+=======
+                                        class="rounded-xl border border-[#FF8A66]/25 bg-[#ECEEF6]/50 px-4 py-3.5">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                         <p class="text-[11px] font-bold uppercase tracking-wider text-[#060D26] mb-2.5">
                                             Recorded as
                                         </p>
@@ -697,7 +737,11 @@
                                                 </span>
                                                 <span class="text-[#060D26] tabular-nums" x-text="peso(allocation.advance)"></span>
                                             </div>
+<<<<<<< HEAD
                                             <div class="h-px bg-[#DA8E77]/20 my-2"></div>
+=======
+                                            <div class="h-px bg-[#FF8A66]/20 my-2"></div>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                             <div class="flex items-center justify-between gap-3">
                                                 <span class="font-semibold text-[#060D26]">Total received</span>
                                                 <span class="font-bold text-[#060D26] tabular-nums" x-text="peso(received)"></span>
@@ -797,7 +841,11 @@
 
                                 <div class="flex items-start justify-between gap-3">
                                     <span class="text-[#5B6A8E]">Monthly rent</span>
+<<<<<<< HEAD
                                     <span class="font-bold text-[#A8573F] text-right" x-text="peso(effectiveRent)"></span>
+=======
+                                    <span class="font-bold text-[#B35A3D] text-right" x-text="peso(effectiveRent)"></span>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 </div>
                                 <div class="flex items-start justify-between gap-3">
                                     <span class="text-[#5B6A8E]">Rent due</span>
@@ -846,7 +894,7 @@
                             </div>
 
                             <button type="submit"
-                                class="mt-5 w-full h-11 rounded-full bg-[#060D26] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                                class="mt-5 w-full h-11 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                                 Add tenant &amp; occupy unit
                             </button>
                             <a href="{{ route('landlord.tenants.index') }}"
@@ -906,7 +954,11 @@
                                     <label for="unit-search" class="sr-only">Search units</label>
                                     <input type="text" id="unit-search" x-model="unitSearch"
                                         placeholder="Search by unit or property…"
+<<<<<<< HEAD
                                         class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition-all duration-200">
+=======
+                                        class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 </div>
                             </div>
 
@@ -924,9 +976,15 @@
                                             <template x-for="u in property.units" :key="u.id">
                                                 <button type="button" @click="pick(u.id)"
                                                     :class="String(unitId) === String(u.id)
+<<<<<<< HEAD
                                                         ? 'border-[#DA8E77] ring-2 ring-[#DA8E77]/30'
                                                         : 'border-[#E2E4EC] hover:border-[#DA8E77]/50 hover:shadow-[0_4px_16px_rgba(6,13,38,0.08)]'"
                                                     class="group relative text-left rounded-xl border overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/40">
+=======
+                                                        ? 'border-[#FF8A66] ring-2 ring-[#FF8A66]/30'
+                                                        : 'border-[#E2E4EC] hover:border-[#FF8A66]/50 hover:shadow-[0_4px_16px_rgba(6,13,38,0.08)]'"
+                                                    class="group relative text-left rounded-xl border overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/40">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 
                                                     <span x-show="String(unitId) === String(u.id)" x-cloak
                                                         class="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-[#060D26] flex items-center justify-center shadow">
@@ -952,7 +1010,11 @@
                                                     <div class="p-2.5">
                                                         <p class="text-[12.5px] font-bold text-[#060D26] truncate" x-text="u.label"></p>
                                                         <div class="flex items-center justify-between gap-2 mt-1">
+<<<<<<< HEAD
                                                             <span class="text-[12.5px] font-bold text-[#A8573F]"
+=======
+                                                            <span class="text-[12.5px] font-bold text-[#B35A3D]"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                                                 x-text="'₱' + u.rent.toLocaleString('en-PH')"></span>
                                                             <span class="inline-flex items-center gap-1 text-[11px] text-[#5B6A8E]" x-show="u.cap">
                                                                 <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

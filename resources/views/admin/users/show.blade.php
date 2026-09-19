@@ -110,7 +110,11 @@
                     alt="{{ $fullName }}"
                     class="w-16 h-16 rounded-2xl object-cover border border-[#E2E4EC] shadow-sm shrink-0" />
             @else
+<<<<<<< HEAD
                 <div class="w-16 h-16 rounded-2xl bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
+=======
+                <div class="w-16 h-16 rounded-2xl bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     <span class="text-[#060D26] text-[22px] font-extrabold">{{ $initials }}</span>
                 </div>
             @endif
@@ -135,8 +139,13 @@
                     @forelse ($user->roles as $userRole)
                         @php
                             $roleCls = match($userRole->role) {
+<<<<<<< HEAD
                                 'Admin'    => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
                                 'Landlord' => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25',
+=======
+                                'Admin'    => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
+                                'Landlord' => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25',
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 'Tenant'   => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25',
                                 default    => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]',
                             };
@@ -188,7 +197,11 @@
             {{-- Personal Information --}}
             <x-card flush>
                 <div class="px-6 py-4 border-b border-[#E2E4EC] flex items-center gap-3">
+<<<<<<< HEAD
                     <div class="w-8 h-8 rounded-xl bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
+=======
+                    <div class="w-8 h-8 rounded-xl bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-4 h-4 text-[#060D26]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
@@ -309,7 +322,11 @@
             {{-- Activity --}}
             <x-card flush>
                 <div class="px-5 py-4 border-b border-[#E2E4EC] flex items-center gap-3">
+<<<<<<< HEAD
                     <div class="w-7 h-7 rounded-xl bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
+=======
+                    <div class="w-7 h-7 rounded-xl bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <svg class="w-3.5 h-3.5 text-[#060D26]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
                         </svg>
@@ -319,7 +336,11 @@
                 <div class="p-4 space-y-3">
 
                     @if ($user->hasRole('Landlord'))
+<<<<<<< HEAD
                         <div class="rounded-2xl bg-[#ECEEF6] border border-[#DA8E77]/20 px-4 py-4 flex items-center gap-4">
+=======
+                        <div class="rounded-2xl bg-[#ECEEF6] border border-[#FF8A66]/20 px-4 py-4 flex items-center gap-4">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             <div class="w-10 h-10 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0 shadow-sm">
                                 <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />

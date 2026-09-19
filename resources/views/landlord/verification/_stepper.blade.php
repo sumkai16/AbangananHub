@@ -56,7 +56,11 @@
                     :class="step > {{ $s['n'] }}
                         ? 'bg-[#22C55E] border-[#22C55E] text-white'
                         : (step === {{ $s['n'] }}
+<<<<<<< HEAD
                             ? 'bg-[#060D26] border-[#DA8E77] text-white'
+=======
+                            ? 'bg-[#FF8A66] border-[#FF8A66] text-[#060D26]'
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             : 'bg-white border-[#E2E4EC] text-[#5B6A8E]')">
                     <template x-if="step > {{ $s['n'] }}">
                         <svg class="w-2.5 h-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

@@ -21,7 +21,11 @@
         @foreach ($stats as $key => $stat)
             <x-stat-card :label="$stat['label']" :value="$stat['value']" :value-color="$stat['valueColor']" :icon-bg="$stat['iconBg']"
                 :href="route('admin.documents.index', ['status' => $key])"
+<<<<<<< HEAD
                 :class="$status === $key ? 'ring-2 ring-[#DA8E77]' : ''">
+=======
+                :class="$status === $key ? 'ring-2 ring-[#FF8A66]' : ''">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="{{ $stat['iconColor'] }}" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -36,7 +40,11 @@
         @foreach (['Pending', 'Requested', 'Verified', 'Rejected', 'All'] as $tab)
             <a href="{{ route('admin.documents.index', ['status' => $tab]) }}"
                 class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
+<<<<<<< HEAD
                     {{ $status === $tab ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+=======
+                    {{ $status === $tab ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                 {{ $tab }}
                 <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
             </a>
@@ -46,7 +54,11 @@
     @if ($documents->isEmpty())
         <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
             <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
+<<<<<<< HEAD
                 <svg class="w-7 h-7 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+=======
+                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
             </div>
@@ -85,7 +97,11 @@
                         <p class="text-[13px] text-[#5B6A8E]">{{ $document->updated_at?->format('M d, Y') }}</p>
                     </div>
 
+<<<<<<< HEAD
                     <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#A8573F] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+=======
+                    <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#B35A3D] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                 </a>

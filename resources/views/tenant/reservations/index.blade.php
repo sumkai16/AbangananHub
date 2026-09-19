@@ -76,7 +76,11 @@
             ] as $key => $label)
                 <a href="{{ route('reservations.index', $key === 'all' ? [] : ['status' => $key]) }}"
                     class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors duration-150 whitespace-nowrap
+<<<<<<< HEAD
                               {{ $status === $key ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
+=======
+                              {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     {{ $label }}
                     <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#5B6A8E]' }}">
                         {{ $key === 'all' ? $counts['all'] : $counts[$key] }}
@@ -100,7 +104,7 @@
                     <p class="text-[13px] text-[#5B6A8E] mb-5 max-w-xs">Your rental inquiries and reservations will show up here once you contact a landlord.</p>
                     @if($status === 'all')
                         <a href="{{ route('properties.index') }}"
-                            class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-white bg-[#060D26] hover:brightness-95 transition-all shadow-sm">
+                            class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all shadow-sm">
                             Browse properties
                         </a>
                     @else
@@ -122,7 +126,11 @@
                                 'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
                                 'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
                                 'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+<<<<<<< HEAD
                                 'Completed' => 'bg-[#DA8E77]/[0.08] text-[#060D26]',
+=======
+                                'Completed' => 'bg-[#FF8A66]/[0.08] text-[#060D26]',
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
                                 'Cancelled' => 'bg-[#5B6A8E]/10 text-[#5B6A8E]',
                             ];
@@ -204,7 +212,7 @@
                                     @endif
                                 @elseif($reservation->rental_status === 'Occupied')
                                     <a href="{{ route('tenancy.show', $reservation) }}"
-                                        class="text-[12px] font-semibold text-white bg-[#060D26] hover:brightness-95 rounded-lg px-3 py-2">
+                                        class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-2">
                                         Rent
                                     </a>
                                     @if($mCanReview)
@@ -222,7 +230,7 @@
                                 @elseif($reservation->rental_status === 'Completed')
                                     @if($mCanReview)
                                         <a href="{{ route('properties.show', $reservation->property) }}#reviews"
-                                            class="flex-1 text-center text-[12px] font-semibold text-white bg-[#060D26] hover:brightness-95 rounded-lg px-3 py-2">
+                                            class="flex-1 text-center text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-2">
                                             Leave a review
                                         </a>
                                     @endif
@@ -260,7 +268,11 @@
                                     'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
                                     'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
                                     'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+<<<<<<< HEAD
                                     'Completed' => 'bg-[#DA8E77]/[0.08] text-[#060D26]',
+=======
+                                    'Completed' => 'bg-[#FF8A66]/[0.08] text-[#060D26]',
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
                                     'Cancelled' => 'bg-[#5B6A8E]/10 text-[#5B6A8E]',
                                 ];
@@ -363,7 +375,7 @@
                                             @endif
                                         @elseif($reservation->rental_status === 'Occupied')
                                             <a href="{{ route('tenancy.show', $reservation) }}"
-                                                class="text-[12px] font-semibold text-white bg-[#060D26] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
+                                                class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-1.5 transition-all duration-150">
                                                 Rent
                                             </a>
                                             @if($canReview)
@@ -381,7 +393,7 @@
                                         @elseif($reservation->rental_status === 'Completed')
                                             @if($canReview)
                                                 <a href="{{ route('properties.show', $reservation->property) }}#reviews"
-                                                    class="text-[12px] font-semibold text-white bg-[#060D26] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
+                                                    class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-1.5 transition-all duration-150">
                                                     Leave a review
                                                 </a>
                                             @endif
@@ -420,7 +432,11 @@
                     @keydown.escape.window="modalOpen = false">
 
                     {{-- Photo banner --}}
+<<<<<<< HEAD
                     <div class="relative h-32 shrink-0 bg-gradient-to-br from-[#060D26] to-[#DA8E77] overflow-hidden">
+=======
+                    <div class="relative h-32 shrink-0 bg-gradient-to-br from-[#060D26] to-[#FF8A66] overflow-hidden">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <template x-if="selected.property_photo">
                             <img :src="selected.property_photo" alt="" class="w-full h-full object-cover">
                         </template>
@@ -450,8 +466,8 @@
                                         <div class="flex items-center flex-1 last:flex-none">
                                             <div class="flex flex-col items-center gap-1.5 shrink-0">
                                                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors duration-300"
-                                                    :class="i < selected.step_index ? 'bg-[#060D26] text-white' :
-                                                            i === selected.step_index ? 'bg-[#060D26] text-white ring-4 ring-[#060D26]/15' :
+                                                    :class="i < selected.step_index ? 'bg-[#FF8A66] text-[#060D26]' :
+                                                            i === selected.step_index ? 'bg-[#FF8A66] text-[#060D26] ring-4 ring-[#060D26]/15' :
                                                             'bg-[#F1F5F9] text-[#94A3B8]'">
                                                     <template x-if="i < selected.step_index">
                                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">

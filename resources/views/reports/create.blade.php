@@ -91,7 +91,11 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <label
                                     class="relative cursor-pointer rounded-xl border-2 px-4 py-4 transition-colors duration-150"
+<<<<<<< HEAD
                                     :class="targetType === 'property' ? 'border-[#DA8E77] bg-[#ECEEF6]' : 'border-[#5B6A8E]/20 bg-white hover:border-[#5B6A8E]/40'">
+=======
+                                    :class="targetType === 'property' ? 'border-[#FF8A66] bg-[#ECEEF6]' : 'border-[#5B6A8E]/20 bg-white hover:border-[#5B6A8E]/40'">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <input type="radio" name="target_type" value="property" x-model="targetType"
                                         class="sr-only">
                                     <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2"
@@ -107,7 +111,11 @@
                                 </label>
                                 <label
                                     class="relative cursor-pointer rounded-xl border-2 px-4 py-4 transition-colors duration-150"
+<<<<<<< HEAD
                                     :class="targetType === 'user' ? 'border-[#DA8E77] bg-[#ECEEF6]' : 'border-[#5B6A8E]/20 bg-white hover:border-[#5B6A8E]/40'">
+=======
+                                    :class="targetType === 'user' ? 'border-[#FF8A66] bg-[#ECEEF6]' : 'border-[#5B6A8E]/20 bg-white hover:border-[#5B6A8E]/40'">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     <input type="radio" name="target_type" value="user" x-model="targetType" class="sr-only">
                                     <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2"
                                         :class="targetType === 'user' ? 'bg-[#060D26]' : 'bg-[#F7F8FC]'">
@@ -171,12 +179,16 @@
                         </label>
                         <textarea name="details" rows="4" maxlength="1000"
                             placeholder="Tell us more about what happened (optional)"
+<<<<<<< HEAD
                             class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-3 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">{{ old('details') }}</textarea>
+=======
+                            class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-3 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">{{ old('details') }}</textarea>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     </div>
 
                     <div class="flex items-center gap-3 pt-2">
                         <button type="submit"
-                            class="h-11 px-6 inline-flex items-center justify-center rounded-full bg-[#060D26] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200">
+                            class="h-11 px-6 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                             Submit report
                         </button>
                         <p class="text-[11px] text-[#5B6A8E]">Our team reviews all reports and takes appropriate action.</p>
@@ -215,7 +227,11 @@
 
                     <div class="bg-[#060D26] rounded-2xl p-5">
                         <div class="flex items-center gap-2 mb-2">
+<<<<<<< HEAD
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#DA8E77" stroke-width="2">
+=======
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="2">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
                             </svg>

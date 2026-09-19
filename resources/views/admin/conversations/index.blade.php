@@ -47,13 +47,17 @@
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant, landlord, or property…" aria-label="Search by tenant, landlord, or property"
                 x-on:input.debounce.400ms="$el.form.requestSubmit()"
+<<<<<<< HEAD
                 class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC]/50 focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
+=======
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC]/50 focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
         </div>
         <x-styled-select name="status" :options="['all' => 'All statuses', 'Open' => 'Open', 'Resolved' => 'Resolved']"
             :selected="$status"
             class="h-10 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC]/50 px-3" />
         <button type="submit"
-            class="h-10 px-5 text-[13.5px] font-bold bg-[#060D26] text-[#F7F4ED] rounded-xl hover:brightness-95 transition-all duration-200 shadow-sm cursor-pointer">
+            class="h-10 px-5 text-[13.5px] font-bold bg-[#FF8A66] text-[#060D26] rounded-xl hover:bg-[#E96F4F] transition-all duration-200 shadow-sm cursor-pointer">
             Filter
         </button>
         @if($search || $status !== 'all')
@@ -68,7 +72,11 @@
     @if($conversations->isEmpty())
         <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
             <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
+<<<<<<< HEAD
                 <svg class="w-7 h-7 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+=======
+                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                 </svg>
             </div>
@@ -118,7 +126,11 @@
                         </span>
                     </div>
 
+<<<<<<< HEAD
                     <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#A8573F] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+=======
+                    <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#B35A3D] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                 </a>

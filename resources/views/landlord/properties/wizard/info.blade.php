@@ -42,7 +42,11 @@
                     <div>
                         <label for="title" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Property name</label>
                         <input type="text" id="title" name="title" value="{{ old('title', $formValues['title'] ?? '') }}" minlength="10" maxlength="150"
+<<<<<<< HEAD
                             class="w-full h-12 px-4 rounded-xl border @error('title') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/25 focus:border-[#DA8E77] transition-all"
+=======
+                            class="w-full h-12 px-4 rounded-xl border @error('title') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             placeholder="e.g., Patenio Apartment" required>
                         @error('title')<p class="text-xs text-[#EF4444] mt-1.5">{{ $message }}</p>@enderror
                     </div>
@@ -78,7 +82,11 @@
                                 <label class="inline-flex items-center gap-2 text-[13.5px] text-[#060D26] cursor-pointer">
                                     <input type="checkbox" name="{{ $field }}" value="1"
                                         @checked(old($field, $formValues[$field] ?? false))
+<<<<<<< HEAD
                                         class="rounded border-[#E2E4EC] text-[#A8573F] focus:ring-[#DA8E77]/30">
+=======
+                                        class="rounded border-[#E2E4EC] text-[#B35A3D] focus:ring-[#FF8A66]/30">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     {{ $label }}
                                 </label>
                             @endforeach
@@ -88,7 +96,11 @@
                     <div>
                         <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Description</label>
                         <textarea name="description" rows="6" minlength="20" maxlength="3000"
+<<<<<<< HEAD
                             class="w-full p-4 rounded-xl border @error('description') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] leading-relaxed placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/25 focus:border-[#DA8E77] transition-all"
+=======
+                            class="w-full p-4 rounded-xl border @error('description') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] leading-relaxed placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             placeholder="Describe the space, amenities, nearby landmarks, house rules, payment terms..." required>{{ old('description', $formValues['description'] ?? '') }}</textarea>
                         @error('description')<p class="text-xs text-[#EF4444] mt-1.5">{{ $message }}</p>@enderror
                     </div>
@@ -96,7 +108,11 @@
                     <div class="max-w-[220px]">
                         <label for="number_of_units" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Number of units</label>
                         <input type="number" id="number_of_units" name="number_of_units" value="{{ old('number_of_units', $formValues['number_of_units'] ?? '') }}" min="1" max="100"
+<<<<<<< HEAD
                             class="w-full h-12 px-4 rounded-xl border @error('number_of_units') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/25 focus:border-[#DA8E77] transition-all" required>
+=======
+                            class="w-full h-12 px-4 rounded-xl border @error('number_of_units') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all" required>
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         <p class="text-[11.5px] text-[#94A3B8] mt-1.5">A rough count, just to track your progress later — add more or fewer as you go.</p>
                         @error('number_of_units')<p class="text-xs text-[#EF4444] mt-1.5">{{ $message }}</p>@enderror
                     </div>
@@ -107,7 +123,7 @@
                             Cancel
                         </a>
                         <button type="submit"
-                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#F7F4ED] bg-[#060D26] hover:brightness-95 transition-all duration-150">
+                            class="ml-auto px-9 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all duration-150">
                             Save & Continue
                         </button>
                     </div>

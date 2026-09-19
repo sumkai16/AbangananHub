@@ -85,7 +85,7 @@
                                     :aria-label="cell.label + (cell.beyondDeadline ? ' — after the review deadline' : '')"
                                     class="w-10 h-10 rounded-lg text-[14px] font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                     :class="date === cell.iso
-                                        ? 'bg-[#060D26] text-[#F7F4ED]'
+                                        ? 'bg-[#FF8A66] text-[#060D26]'
                                         : (cell.beyondDeadline
                                             ? 'text-[#B45309] hover:bg-[#FBBF24]/[0.14]'
                                             : 'text-[#060D26] hover:bg-[#ECEEF6]')">
@@ -109,7 +109,11 @@
                             <span class="h-[2px] w-6 rounded-full mt-0.5"
                                 :class="cell.isDeadline
                                     ? 'bg-[#EF4444]'
+<<<<<<< HEAD
                                     : (cell.isToday ? 'bg-[#DA8E77]' : 'bg-transparent')"
+=======
+                                    : (cell.isToday ? 'bg-[#FF8A66]' : 'bg-transparent')"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 aria-hidden="true"></span>
                         </div>
                     </template>
@@ -132,8 +136,13 @@
                         <button type="button" @click="time = t.value" :aria-pressed="time === t.value"
                             class="h-12 rounded-xl text-[14px] font-semibold transition-colors"
                             :class="time === t.value
+<<<<<<< HEAD
                                 ? 'bg-[#060D26] text-[#F7F4ED] border border-[#060D26]'
                                 : 'bg-white text-[#060D26] border border-[#E2E4EC] hover:border-[#DA8E77]'"
+=======
+                                ? 'bg-[#FF8A66] text-[#060D26] border border-[#060D26]'
+                                : 'bg-white text-[#060D26] border border-[#E2E4EC] hover:border-[#FF8A66]'"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             x-text="t.label"></button>
                     </template>
                 </div>
@@ -148,11 +157,19 @@
                     </svg>
                     <label :for="$id('time')" class="sr-only">Choose another time</label>
                     <input type="time" :id="$id('time')" x-model="time" step="900"
+<<<<<<< HEAD
                         class="w-full h-12 rounded-xl border border-[#E2E4EC] bg-white pl-10 pr-3 text-[14px] text-[#060D26] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77] outline-none">
                 </div>
 
                 <div class="mt-5 flex items-start gap-2" aria-live="polite">
                     <svg class="w-4 h-4 shrink-0 mt-0.5" :class="value ? 'text-[#A8573F]' : 'text-[#94A3B8]'"
+=======
+                        class="w-full h-12 rounded-xl border border-[#E2E4EC] bg-white pl-10 pr-3 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none">
+                </div>
+
+                <div class="mt-5 flex items-start gap-2" aria-live="polite">
+                    <svg class="w-4 h-4 shrink-0 mt-0.5" :class="value ? 'text-[#B35A3D]' : 'text-[#94A3B8]'"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />

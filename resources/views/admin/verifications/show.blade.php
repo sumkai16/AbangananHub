@@ -18,7 +18,11 @@
         <x-card flush
             class="px-5 py-4 mb-4 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
+<<<<<<< HEAD
                 <div class="w-10 h-10 rounded-xl bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
+=======
+                <div class="w-10 h-10 rounded-xl bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                     <span class="text-[#060D26] text-[14px] font-extrabold">
                         {{ strtoupper(substr($verification->user->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($verification->user->last_name ?? '', 0, 1)) }}
                     </span>
@@ -94,7 +98,11 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
+<<<<<<< HEAD
                             <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#DA8E77] transition-colors"
+=======
+                            <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#FF8A66] transition-colors"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                 @click="previewImage = '{{ route('verifications.preview', [$verification, 'front']) }}'">
                                 <img src="{{ route('verifications.preview', [$verification, 'front']) }}" alt="ID front"
                                     class="w-full h-full object-cover">
@@ -104,7 +112,11 @@
 
                         @if ($verification->id_back)
                             <div>
+<<<<<<< HEAD
                                 <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#DA8E77] transition-colors"
+=======
+                                <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[4/3] cursor-pointer hover:border-[#FF8A66] transition-colors"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     @click="previewImage = '{{ route('verifications.preview', [$verification, 'back']) }}'">
                                     <img src="{{ route('verifications.preview', [$verification, 'back']) }}" alt="ID back"
                                         class="w-full h-full object-cover">
@@ -164,7 +176,11 @@
                     @endunless
 
                     <div class="max-w-[180px]">
+<<<<<<< HEAD
                         <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[3/4] cursor-pointer hover:border-[#DA8E77] transition-colors"
+=======
+                        <div class="rounded-lg border border-[#E2E4EC] overflow-hidden aspect-[3/4] cursor-pointer hover:border-[#FF8A66] transition-colors"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                             @click="previewImage = '{{ route('verifications.preview', [$verification, 'selfie']) }}'">
                             <img src="{{ route('verifications.preview', [$verification, 'selfie']) }}" alt="Selfie"
                                 class="w-full h-full object-cover">
@@ -228,7 +244,11 @@
                                     Reason for rejection
                                 </label>
                                 <textarea name="admin_notes" id="admin_notes" rows="3" required
+<<<<<<< HEAD
                                     class="w-full rounded-lg border border-[#E2E4EC] px-3 py-2.5 text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all resize-none"
+=======
+                                    class="w-full rounded-lg border border-[#E2E4EC] px-3 py-2.5 text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all resize-none"
+>>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
                                     placeholder="Explain why — the applicant will see this."></textarea>
                                 @error('admin_notes')
                                     <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
