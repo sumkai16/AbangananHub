@@ -89,19 +89,45 @@ Rules:
 - **`tailwind.config.js`'s `colors.brand.*` reflects these tokens but is not referenced by any view** — every view still uses raw bracket-hex classes (`bg-[#060D26]`), matching the old system's own pattern. Migrating views onto the named tokens is a separate, not-yet-done refactor; don't assume `bg-brand-navy` exists anywhere in `resources/views`.
 
 ## 4. Typography
-**Navy/Gold identity (Sept 2026): three families became two.** Poppins is dropped entirely; Source
-Serif 4 is replaced by **DM Serif Display**, and its scope widened from "large page titles only" to
-every heading — `font-heading` and `font-display` are now the same face. This is a deliberate reversal
-of the July 2026 "third font tax" reasoning below, made for the new identity's editorial brief; the
-old restraint argument is kept here as the reasoning this decision overrode, not as current guidance.
+**Serif-as-default reverted, app-wide (Sept 2026).** The "every heading" widening described below
+lasted one pass: `resources/css/app.css` had `h1, h2, h3, h4, h5, h6, .font-heading { font-family:
+'DM Serif Display' }`, which put the serif on *every* heading tag app-wide whether or not a page
+ever opted into it via a class — Axcee flagged it as reading "too elegant" for working screens
+(landlord dashboard greeting, then its section labels, then `<x-page-header>`'s "My Properties"
+title), and checking confirmed the pattern was universal, not page-specific: 84 files render a bare
+`<h1>`/`<h2>`/`<h3>` and virtually none of them ever added `.font-heading` explicitly — the serif
+was leaking onto all of them from the tag selector, not a deliberate per-page choice. The one place
+that already looked right was the marketing/hero headings (`about.blade.php`, the browse hero in
+`properties/index.blade.php`, `properties/show.blade.php`'s title) — all three hardcode their own
+`font-['Plus_Jakarta_Sans',_Inter,_sans-serif]` override and were never touched by the tag rule, so
+this fix doesn't affect them.
 
-- **Heading/display font: DM Serif Display** (`font-heading`, `font-display` — now identical) — page
-  titles, section headings, card titles, display prices/stat figures. **Ships a 400 weight only**: any
-  `font-bold`/`font-semibold`/`font-extrabold`/`font-black` on a heading browser-synthesizes a fake
-  bold. Headings carry `font-normal` and lean on size/color for hierarchy instead.
+**Current rule:** `h1`–`h6` inherit `body`'s Inter, with a base `font-weight: 600` (headings still
+need to look heavier than body text; explicit Tailwind weight classes like `font-bold` still win
+via specificity over the plain element rule, same mechanic as the July 2026 font-pipeline bug
+below). `.font-heading`/`.font-display` remain defined as DM Serif Display **utility classes** —
+available to opt into deliberately, not applied by default to anything. The two shared heading
+components, `<x-page-header>` and `<x-section-header>`, were bumped from `font-normal` to
+`font-semibold` alongside this — they were tuned for the serif's single 400 weight, and Inter at
+400 read visibly thinner once the family changed.
+
+**What this doesn't touch:** the ~30 individual pages with a hand-rolled `<h1 class="font-normal">`
+title (not routed through `<x-page-header>`) haven't been individually re-weighted — they'll now
+render Inter at whatever weight they already specified, which may read a little light on some
+pages. Fix opportunistically if one looks visibly thin, rather than as a blind sweep.
+
+**Historical, superseded by the above:** the Navy/Gold identity (Sept 2026) had widened DM Serif
+Display's scope from "large page titles only" to every heading, reversing the July 2026 "third font
+tax" restraint argument kept further below for that reasoning's own sake. That widening is what
+introduced the app.css tag-selector rule this entry reverts.
+
+- **Heading/display font, when deliberately opted into via `.font-heading`/`.font-display`:** DM
+  Serif Display. **Ships a 400 weight only**: any `font-bold`/`font-semibold`/`font-extrabold`/
+  `font-black` alongside it browser-synthesizes a fake bold — lean on size/color for hierarchy
+  instead if a future page opts in.
   - **Money/ledger exception:** peso figures in a table or list column (rent ledger, payments,
     receipts) stay on Inter with `tabular-nums` — a serif's proportional figures would misalign a
-    column of amounts. Only a page's one headline/display price (hero, card headline) takes the serif.
+    column of amounts.
   - The `ital` axis lesson from the Source Serif 4 era still applies to any future variable-font swap:
     request the axis explicitly in the Google Fonts URL (`DM+Serif+Display:ital@0;1`) or `italic`
     renders as a browser-synthesized oblique instead of the drawn italic.
@@ -466,7 +492,8 @@ Three landlord surfaces rendered unit rows. `Occupancy`'s "Unit Status Overview"
 - Button rules: `cursor-pointer` on all clickable elements; hover via `hover:brightness-95`, never layout-shifting scale. CTA and standard buttons share one treatment: `#060D26` navy fill with `#F7F4ED` cream text (Sept 2026 — the old system split these into coral CTA vs teal standard; the new identity uses one navy fill everywhere).
 - Input/form rules: every input has a real `<label for>`, not placeholder-as-label
 - **Search input recipe (standardized July 22, 2026; hexes updated Sept 2026):** every text search field — landlord Properties/Tenants/Units/Reservations, Conversations, Favorites, plus the pre-existing admin index pages — now shares one class string: `h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200`, with a `w-4 h-4`/`15×15` search icon in `text-[#94A3B8]` at `left-3.5`. Before the July 2026 pass there were 4 different combinations in the wild (`border-[#64748B]/25` vs `border-[#E2E8F0]`, `focus:ring-1` vs `ring-2`, `h-10` vs `h-11` vs `py-2.5`, icon color `#64748B` vs `#94A3B8` — those hexes are pre-Sept-2026 history, see §10 for their current-palette equivalents). The one exception is the narrow conversation-sidebar search (`conversations/index.blade.php`), which keeps a smaller `text-[12px]`/`py-2` footprint for its tight column width but uses the same border/ring/icon colors. When adding a new search field, copy this recipe rather than approximating it.
-- **`<x-search-pill variant="header|hero">`** — the Where/Type/Budget form. Rendered by the sticky header on every public page *and* by the browse hero; `variant` changes only scale and max-width, never the fields. It was inline in `layouts/app` until July 24 2026, when the hero needed it too — copying it would have made two copies of a form whose three field names the controller reads. It now also **preserves its own values** (searching "Labangon" used to clear the box) and carries `verified`/`sort` through as hidden inputs so a search can't silently drop them. Below `sm` both variants use identical tight metrics — the hero's larger padding does not fit three fields on a phone.
+- **`<x-search-pill variant="header|hero">`** — the Where/Type/Budget form. Rendered by the sticky header on every public page *and* by the browse hero; `variant` changes only scale and max-width, never the fields. It was inline in `layouts/app` until July 24 2026, when the hero needed it too — copying it would have made two copies of a form whose field names the controller reads. It now also **preserves its own values** (searching "Labangon" used to clear the box) and carries `verified`/`sort` through as hidden inputs so a search can't silently drop them. Below `sm` both variants use identical tight metrics — the hero's larger padding does not fit the fields on a phone.
+  - **Budget is a min–max range (Sept 2026), not a single "Max" field.** Two `price_min`/`price_max` number inputs share the one "Budget" label, separated by an en dash. `Property::scopeBrowseFilters()` applies each bound independently (`rental_fee >= price_min` / `<= price_max`, either optional) in the same `whereHas('units', ...)` query, and both the web `PropertyController` and the API `PropertyController` (used by the map view) pass `price_min` through identically to `price_max` — they read the same scope, so a filter added to one and not the other silently drifts between list and map results. The active-filter chip on `properties/index.blade.php` shows `₱min–₱max` when both are set, or `Min ₱x`/`Max ₱x` alone, and its ✕ clears both query params via `fullUrlWithoutQuery(['price_min', 'price_max'])`.
 - **`<x-category-strip>`** — the property-type quick filters, centred from `md` up (`justify-start` below it, because the row scrolls on narrow screens and centring overflowing content pins the first item off the left edge where it can't be scrolled back to). Takes **no props**: both placements render identically, and it briefly carried a `variant` that changed only the justification before the browse strip was centred to match the header. Active state is derived from `request()` server-side. The old inline markup carried `category-link` + `data-type` hooks for JS **that was never written**, so the strip never showed which filter was on; clicking Bedspace looked identical to browsing everything. The state is already in the URL, so it never needed JS.
 - Icon set: Heroicons (outline/stroke), inline SVG only. **No emojis anywhere, ever.** Unicode checkmarks (✓) acceptable as plain text only.
 - Touch targets: minimum 44x44px on interactive elements

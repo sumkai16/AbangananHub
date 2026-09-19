@@ -7,24 +7,17 @@
         $business = auth()->user()->rentalBusiness;
         $greetingName = $business->business_name ?? auth()->user()->first_name;
 
-        // Donut math — guard divide-by-zero when the landlord has no units yet
-        $occupancyTotal = max($totalUnits, 1);
-        $occupiedPct = $totalUnits > 0 ? round(($occupiedUnits / $occupancyTotal) * 100) : 0;
-
-        $radius = 36;
-        $circumference = 2 * M_PI * $radius;
-        $occupiedLen = $circumference * ($occupiedUnits / $occupancyTotal);
-        $availableLen = $circumference * ($availableUnits / $occupancyTotal);
-        $reservedLen = $circumference * ($reservedUnits / $occupancyTotal);
+        // Guard divide-by-zero when the landlord has no units yet
+        $occupiedPct = $totalUnits > 0 ? round(($occupiedUnits / $totalUnits) * 100) : 0;
     @endphp
 
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {{-- 1. Greeting row --}}
         <div class="mb-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div class="min-w-0">
-                    <h1 class="font-heading text-[20px] sm:text-[22px] font-normal text-[#060D26] truncate">
+                    <h1 class="font-sans text-[20px] sm:text-[22px] font-semibold text-[#060D26] truncate">
                         <span class="sm:hidden">{{ $greeting }}, {{ auth()->user()->first_name }}!</span>
                         <span class="hidden sm:inline">{{ $greeting }}, {{ $greetingName }}!</span>
                     </h1>
@@ -51,119 +44,111 @@
                     </div>
                 </div>
                 <a href="{{ route('properties.create') }}"
-                    class="shrink-0 inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-3 sm:px-4 py-2.5 shadow-sm shadow-[#060D26]/30 hover:bg-[#E96F4F] hover:-translate-y-0.5 transition-all duration-200">
+                    class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 py-2.5 shadow-sm shadow-[#060D26]/30 hover:bg-[#E96F4F] hover:-translate-y-0.5 transition-all duration-200">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
-                    <span class="hidden sm:inline">List a property</span>
-                    <span class="sm:hidden">List</span>
+                    List a property
                 </a>
             </div>
         </div>
 
-        {{-- 2. Donut + attention tiles --}}
-        <div class="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4 mb-6">
+        {{-- 2. Attention tiles --}}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <x-stat-card href="{{ route('landlord.reservations.index') }}" label="Pending reservations"
+                :value="$pendingReservations"
+                :icon-bg="$pendingReservations > 0 ? '#FBBF2412' : '#ECEEF6'"
+                :sub="$pendingReservations > 0 ? 'Awaiting your decision' : 'Nothing waiting'">
+                <x-slot:icon>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"
+                        stroke="{{ $pendingReservations > 0 ? '#B45309' : '#060D26' }}" stroke-width="1.75">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            {{-- Occupancy donut --}}
-            <x-card class="!p-5">
-                <p class="text-[12px] font-bold text-[#5B6A8E] uppercase tracking-wide mb-4">Unit Status</p>
-                <div class="flex md:flex-col items-center gap-5 md:gap-4">
-                    <div class="relative shrink-0">
-                        <svg width="112" height="112" viewBox="0 0 96 96" class="-rotate-90">
-                            <circle cx="48" cy="48" r="{{ $radius }}" fill="none" stroke="#ECEEF6" stroke-width="11" />
-                            @if($occupiedUnits > 0)
-                                <circle cx="48" cy="48" r="{{ $radius }}" fill="none" stroke="#EF4444" stroke-width="11"
-                                    stroke-linecap="round"
-                                    stroke-dasharray="{{ $occupiedLen }} {{ $circumference }}" stroke-dashoffset="0" />
-                            @endif
-                            @if($availableUnits > 0)
-                                <circle cx="48" cy="48" r="{{ $radius }}" fill="none" stroke="#22C55E" stroke-width="11"
-                                    stroke-linecap="round"
-                                    stroke-dasharray="{{ $availableLen }} {{ $circumference }}"
-                                    stroke-dashoffset="-{{ $occupiedLen }}" />
-                            @endif
-                            @if($reservedUnits > 0)
-                                <circle cx="48" cy="48" r="{{ $radius }}" fill="none" stroke="#F59E0B" stroke-width="11"
-                                    stroke-linecap="round"
-                                    stroke-dasharray="{{ $reservedLen }} {{ $circumference }}"
-                                    stroke-dashoffset="-{{ $occupiedLen + $availableLen }}" />
-                            @endif
-                        </svg>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <p class="text-[20px] font-bold text-[#060D26] leading-none">{{ $occupiedPct }}%</p>
-                            <p class="text-[10px] text-[#5B6A8E] mt-1">occupied</p>
-                        </div>
-                    </div>
+            <x-stat-card href="{{ route('conversations.index') }}" label="Unread messages"
+                :value="$unreadMessages"
+                :icon-bg="$unreadMessages > 0 ? '#FBBF2412' : '#ECEEF6'"
+                :sub="$unreadMessages > 0 ? 'Waiting on your reply' : 'Inbox is clear'">
+                <x-slot:icon>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"
+                        stroke="{{ $unreadMessages > 0 ? '#B45309' : '#060D26' }}" stroke-width="1.75">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-                    <div class="space-y-2.5 text-[12.5px] w-full">
-                        <div class="flex items-center justify-between gap-3">
-                            <span class="flex items-center gap-2 text-[#5B6A8E]"><span
-                                    class="w-2.5 h-2.5 rounded-full bg-[#EF4444] shrink-0"></span>Occupied</span>
-                            <span class="font-bold text-[#060D26]">{{ $occupiedUnits }}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-3">
-                            <span class="flex items-center gap-2 text-[#5B6A8E]"><span
-                                    class="w-2.5 h-2.5 rounded-full bg-[#22C55E] shrink-0"></span>Available</span>
-                            <span class="font-bold text-[#060D26]">{{ $availableUnits }}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-3">
-                            <span class="flex items-center gap-2 text-[#5B6A8E]"><span
-                                    class="w-2.5 h-2.5 rounded-full bg-[#FBBF24] shrink-0"></span>Reserved</span>
-                            <span class="font-bold text-[#060D26]">{{ $reservedUnits }}</span>
-                        </div>
-                    </div>
-                </div>
-            </x-card>
+            <x-stat-card href="{{ route('landlord.complaints.index') }}" label="Open complaints"
+                :value="$openComplaints"
+                :value-color="$openComplaints > 0 ? '#DC2626' : '#060D26'"
+                :icon-bg="$openComplaints > 0 ? '#EF444412' : '#ECEEF6'"
+                sub="Reports you filed">
+                <x-slot:icon>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"
+                        stroke="{{ $openComplaints > 0 ? '#DC2626' : '#060D26' }}" stroke-width="1.75">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
 
-            {{-- Attention tiles --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <x-stat-card href="{{ route('landlord.reservations.index') }}" label="Pending reservations"
-                    :value="$pendingReservations" icon-bg="#EF444412" class="group">
-                    <x-slot:icon>
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="1.75"
-                            class="group-hover:stroke-white transition-colors duration-200">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                    </x-slot:icon>
-                </x-stat-card>
-
-                <x-stat-card href="{{ route('conversations.index') }}" label="Unread messages"
-                    :value="$unreadMessages" icon-bg="#ECEEF6" class="group">
-                    <x-slot:icon>
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.75"
-                            class="group-hover:stroke-white transition-colors duration-200">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                        </svg>
-                    </x-slot:icon>
-                </x-stat-card>
-
-                <x-stat-card href="{{ route('landlord.reviews.index') }}" label="New reviews this week"
-                    :value="$newReviews" icon-bg="#FBBF241A" class="group">
-                    <x-slot:icon>
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#92400E" stroke-width="1.75"
-                            class="group-hover:stroke-white transition-colors duration-200">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                        </svg>
-                    </x-slot:icon>
-                </x-stat-card>
-
-                <x-stat-card href="{{ route('landlord.complaints.index') }}" label="My open complaints"
-                    :value="$openComplaints" icon-bg="#22C55E12" class="group">
-                    <x-slot:icon>
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#166534" stroke-width="1.75"
-                            class="group-hover:stroke-white transition-colors duration-200">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                        </svg>
-                    </x-slot:icon>
-                </x-stat-card>
-            </div>
+            <x-stat-card href="{{ route('landlord.reviews.index') }}" label="New reviews"
+                :value="$newReviews"
+                :icon-bg="$newReviews > 0 ? '#22C55E12' : '#ECEEF6'"
+                sub="Last 7 days">
+                <x-slot:icon>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"
+                        stroke="{{ $newReviews > 0 ? '#15803D' : '#060D26' }}" stroke-width="1.75">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
         </div>
 
-        {{-- 3. Properties + Recent activity row --}}
+        {{-- 3. Unit status band — single compact row, no stacked legend --}}
+        <x-card class="!py-3 !px-4 mb-6">
+            @if($totalUnits > 0)
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide shrink-0">Unit status</p>
+
+                    <p class="flex items-baseline gap-1 shrink-0">
+                        <span class="text-[16px] font-extrabold text-[#060D26] leading-none">{{ $occupiedPct }}%</span>
+                        <span class="text-[12px] text-[#5B6A8E]">occupied</span>
+                    </p>
+
+                    <div class="flex-1 min-w-[80px] h-2 rounded-full bg-[#E2E4EC] overflow-hidden"
+                        role="img"
+                        aria-label="{{ $availableUnits }} available, {{ $reservedUnits }} reserved, {{ $occupiedUnits }} occupied of {{ $totalUnits }} units">
+                        @if($availableUnits > 0)
+                            <div class="h-full bg-[#22C55E]" style="width: {{ round($availableUnits / $totalUnits * 100) }}%" title="{{ $availableUnits }} available"></div>
+                        @endif
+                        @if($reservedUnits > 0)
+                            <div class="h-full bg-[#FBBF24]" style="width: {{ round($reservedUnits / $totalUnits * 100) }}%" title="{{ $reservedUnits }} reserved"></div>
+                        @endif
+                        @if($occupiedUnits > 0)
+                            <div class="h-full bg-[#EF4444]" style="width: {{ round($occupiedUnits / $totalUnits * 100) }}%" title="{{ $occupiedUnits }} occupied"></div>
+                        @endif
+                    </div>
+
+                    <div class="flex items-center gap-3 text-[11.5px] text-[#5B6A8E] shrink-0">
+                        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#22C55E] shrink-0"></span><span class="font-bold text-[#060D26]">{{ $availableUnits }}</span> available</span>
+                        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#FBBF24] shrink-0"></span><span class="font-bold text-[#060D26]">{{ $reservedUnits }}</span> reserved</span>
+                        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#EF4444] shrink-0"></span><span class="font-bold text-[#060D26]">{{ $occupiedUnits }}</span> occupied</span>
+                    </div>
+                </div>
+            @else
+                <div class="flex items-center gap-2">
+                    <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide shrink-0">Unit status</p>
+                    <p class="text-[12.5px] text-[#5B6A8E]">Add units to a property to start tracking occupancy.</p>
+                </div>
+            @endif
+        </x-card>
+
+        {{-- 4. Properties + Recent activity row --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
             {{-- Properties section --}}
@@ -176,7 +161,7 @@
                                     d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                             </svg>
                         </div>
-                        <h2 class="font-heading text-[15px] font-normal text-[#060D26]">Your properties</h2>
+                        <h2 class="font-sans text-[15px] font-semibold text-[#060D26]">Your properties</h2>
                     </div>
                     <a href="{{ route('landlord.properties.index') }}"
                         class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200">
@@ -214,12 +199,12 @@
                                 $propPct = $property['total_units'] > 0
                                     ? round(($property['occupied_units'] / $propTotal) * 100)
                                     : 0;
-                                $availPct = round($property['available_units'] / $propTotal * 100);
-                                $reservedPct = round($property['reserved_units'] / $propTotal * 100);
-                                $occupiedPct = round($property['occupied_units'] / $propTotal * 100);
+                                $rowAvailPct = round($property['available_units'] / $propTotal * 100);
+                                $rowReservedPct = round($property['reserved_units'] / $propTotal * 100);
+                                $rowOccupiedPct = round($property['occupied_units'] / $propTotal * 100);
                             @endphp
                             <a href="{{ route('landlord.properties.show', $property['property_id']) }}"
-                                class="group flex items-center gap-4 p-4 hover:bg-[#F7F8FC] transition-colors duration-150">
+                                class="group flex items-center gap-4 p-4 hover:bg-[#F7F8FC] active:bg-[#ECEEF6] transition-colors duration-200">
                                 <div class="w-12 h-12 rounded-xl bg-[#ECEEF6] overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                                     @if($property['thumbnail'])
                                         <img src="{{ $property['thumbnail'] }}" alt="{{ $property['title'] }}"
@@ -234,21 +219,21 @@
                                     @endif
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-[13.5px] font-bold text-[#060D26] truncate group-hover:text-[#060D26] transition-colors duration-150">{{ $property['title'] }}</p>
+                                    <p class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $property['title'] }}</p>
                                     <p class="text-[12px] text-[#5B6A8E] truncate mt-0.5">
                                         {{ $property['address'] }} &middot; {{ $property['property_type'] }}
                                     </p>
 
                                     {{-- Segmented availability bar --}}
-                                    <div class="flex h-1.5 rounded-full bg-[#E2E4EC] overflow-hidden mt-2 max-w-[220px]">
+                                    <div class="flex h-1.5 rounded-full bg-[#E2E4EC] overflow-hidden mt-2 sm:max-w-[220px]">
                                         @if($property['available_units'] > 0)
-                                            <div class="h-full bg-[#22C55E]" style="width: {{ $availPct }}%"></div>
+                                            <div class="h-full bg-[#22C55E]" style="width: {{ $rowAvailPct }}%"></div>
                                         @endif
                                         @if($property['reserved_units'] > 0)
-                                            <div class="h-full bg-[#FBBF24]" style="width: {{ $reservedPct }}%"></div>
+                                            <div class="h-full bg-[#FBBF24]" style="width: {{ $rowReservedPct }}%"></div>
                                         @endif
                                         @if($property['occupied_units'] > 0)
-                                            <div class="h-full bg-[#EF4444]" style="width: {{ $occupiedPct }}%"></div>
+                                            <div class="h-full bg-[#EF4444]" style="width: {{ $rowOccupiedPct }}%"></div>
                                         @endif
                                     </div>
                                     <p class="text-[11px] text-[#5B6A8E] mt-1.5 flex items-center gap-2.5 flex-wrap">
@@ -261,9 +246,9 @@
                                     <p class="text-[15px] font-bold text-[#060D26]">{{ $propPct }}%</p>
                                     <p class="text-[11px] text-[#5B6A8E] mt-0.5">occupancy</p>
                                 </div>
-                                <div class="w-7 h-7 rounded-full bg-[#ECEEF6] group-hover:bg-[#060D26] flex items-center justify-center shrink-0 transition-colors duration-150">
+                                <div class="hidden sm:flex w-7 h-7 rounded-full bg-[#ECEEF6] group-hover:bg-[#060D26] items-center justify-center shrink-0 transition-colors duration-200">
                                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2.5"
-                                        class="group-hover:stroke-white transition-colors duration-150">
+                                        class="group-hover:stroke-white transition-colors duration-200">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                                     </svg>
                                 </div>
@@ -271,7 +256,7 @@
                         @endforeach
                         @if($properties->count() > 5)
                             <a href="{{ route('landlord.properties.index') }}"
-                                class="block text-center py-3 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-150">
+                                class="block text-center py-3 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">
                                 and {{ $properties->count() - 5 }} more
                             </a>
                         @endif
@@ -289,7 +274,7 @@
                                     d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                             </svg>
                         </div>
-                        <h2 class="font-heading text-[15px] font-normal text-[#060D26]">Recent activity</h2>
+                        <h2 class="font-sans text-[15px] font-semibold text-[#060D26]">Recent activity</h2>
                     </div>
                     <a href="{{ route('landlord.reservations.index') }}"
                         class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200">
@@ -325,7 +310,7 @@
                                         default => 'bg-[#FF8A66]',
                                     };
                                 @endphp
-                                <div class="flex items-start gap-3 p-4 hover:bg-[#F7F8FC] transition-colors duration-150">
+                                <div class="flex items-start gap-3 p-4 hover:bg-[#F7F8FC] transition-colors duration-200">
                                     <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ $isReservation ? 'bg-[#ECEEF6]' : 'bg-[#22C55E]/[0.07]' }}">
                                         @if($isReservation)
                                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="2">

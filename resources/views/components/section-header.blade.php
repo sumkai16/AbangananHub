@@ -7,7 +7,7 @@
 
 <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
     <div>
-        <h2 class="text-[22px] font-normal text-[#060D26] tracking-tight">{{ $title }}</h2>
+        <h2 class="text-[22px] font-semibold text-[#060D26] tracking-tight">{{ $title }}</h2>
     @if($sub)
 
            <p class="text-[14px] text-[#5B6A8E] mt-1">{{ $sub }}</p>

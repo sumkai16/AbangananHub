@@ -42,7 +42,10 @@
     <div
         class="flex-1 flex items-center gap-2.5 {{ $pad }} border-r border-[#E2E4EC] hover:bg-[#F7F8FC] rounded-l-full transition-colors w-[33%] overflow-hidden">
         @if($isHero)
-            <svg class="{{ $icon }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+            {{-- -mt-0.5: the pin's teardrop shape has more visual weight in its
+                 lower half than the house/coin icons beside it, so at equal
+                 geometric centering it reads as sitting lower than them. --}}
+            <svg class="{{ $icon }} -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                 aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -103,11 +106,17 @@
                 </svg>
             @endif
             <div class="flex flex-col justify-center min-w-0 flex-1">
-                <label for="search-budget-{{ $variant }}"
+                <label for="search-budget-min-{{ $variant }}"
                     class="{{ $labelSize }} font-bold text-[#5B6A8E] tracking-wide uppercase truncate cursor-pointer">Budget</label>
-                <input type="number" name="price_max" id="search-budget-{{ $variant }}" value="{{ request('price_max') }}"
-                    placeholder="Max" min="0"
-                    class="p-0 border-none bg-transparent {{ $inputSize }} text-[#060D26] focus:ring-0 placeholder-[#94A3B8] w-full outline-none mt-0.5 truncate [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                <div class="flex items-center gap-1 mt-0.5">
+                    <input type="number" name="price_min" id="search-budget-min-{{ $variant }}" value="{{ request('price_min') }}"
+                        placeholder="Min" min="0" aria-label="Minimum budget"
+                        class="p-0 border-none bg-transparent {{ $inputSize }} text-[#060D26] focus:ring-0 placeholder-[#94A3B8] w-full min-w-0 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    <span class="text-[#94A3B8] shrink-0">&ndash;</span>
+                    <input type="number" name="price_max" value="{{ request('price_max') }}"
+                        placeholder="Max" min="0" aria-label="Maximum budget"
+                        class="p-0 border-none bg-transparent {{ $inputSize }} text-[#060D26] focus:ring-0 placeholder-[#94A3B8] w-full min-w-0 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                </div>
             </div>
         </div>
 

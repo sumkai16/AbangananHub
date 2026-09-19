@@ -37,6 +37,8 @@ use App\Http\Controllers\Auth\WebviewLoginController;
 Route::get('/', [PropertyController::class, 'index'])->name('home');
 Route::get('/areas', [PropertyController::class, 'areas'])->name('properties.areas');
 Route::get('/about', fn() => view('about'))->name('about');
+Route::view('/privacy', 'legal.privacy')->name('privacy');
+Route::view('/terms', 'legal.terms')->name('terms');
 
 // Global Authenticated Routes Group
 Route::middleware('auth')->group(function () {

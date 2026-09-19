@@ -30,6 +30,7 @@ class PropertyController extends Controller
             ->browseFilters([
                 'location'  => $request->query('location'),
                 'type'      => $request->query('type'),
+                'price_min' => $request->query('price_min'),
                 'price_max' => $request->query('price_max'),
                 'verified'  => $request->boolean('verified'),
                 'sort'      => $request->query('sort'),

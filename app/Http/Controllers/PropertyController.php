@@ -24,7 +24,7 @@ class PropertyController extends Controller
         $popularProperties = collect();
         $areas = collect();
 
-        if (!$request->hasAny(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
+        if (!$request->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
             $heroStats = [
                 'listings' => Property::browsable()->count(),
                 'units' => PropertyUnit::where('availability_status', 'Available')
@@ -85,6 +85,7 @@ class PropertyController extends Controller
             ->browseFilters([
                 'location'   => $request->query('location'),
                 'type'       => $request->query('type'),
+                'price_min'  => $request->query('price_min'),
                 'price_max'  => $request->query('price_max'),
                 'verified'   => $request->boolean('verified'),
                 'amenities'  => $request->query('amenities', []),

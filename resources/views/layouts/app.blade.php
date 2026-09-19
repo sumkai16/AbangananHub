@@ -583,8 +583,8 @@
                 <div>
                     <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">Company</p>
                     <ul class="space-y-3 text-[13.5px]">
-                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="{{ route('privacy') }}" class="text-white/60 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}" class="text-white/60 hover:text-white transition-colors">Terms of Service</a></li>
                         <li><a href="#" class="text-white/60 hover:text-white transition-colors">Help Center</a></li>
                     </ul>
                 </div>
@@ -619,7 +619,7 @@
         <div id="auth-modal"
             class="hidden fixed inset-0 z-[9999] bg-[#060D26]/40 backdrop-blur-sm items-center justify-center p-4 opacity-0 transition-opacity duration-300">
 
-            <div class="bg-white rounded-[24px] shadow-2xl max-w-3xl w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
+            <div class="bg-white rounded-[24px] shadow-2xl shadow-[#FF8A66]/25 max-w-3xl w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
                 id="auth-modal-content">
 
                 {{-- Left brand panel (split) — photo + navy overlay, same language as the landing hero --}}
@@ -1131,6 +1131,18 @@
     @endif
     @stack('scripts')
 
+    {{-- Navigation progress bar: appears the instant a navigation starts (link, form,
+         card click, redirect) and is reset when the next page shows. --}}
+    <div id="nav-progress" aria-hidden="true"></div>
+    <script>
+        (function () {
+            var bar = document.getElementById('nav-progress');
+            if (!bar) return;
+            window.addEventListener('beforeunload', function () { bar.classList.add('is-active'); });
+            // Back/forward cache restores a frozen page — clear the bar so it isn't stuck.
+            window.addEventListener('pageshow', function () { bar.classList.remove('is-active'); });
+        })();
+    </script>
 </body>
 
 </html>

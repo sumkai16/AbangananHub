@@ -6,7 +6,11 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6, .font-heading {
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+}
+
+.font-heading {
     font-family: 'DM Serif Display', serif;
 }
 
@@ -138,3 +142,56 @@ html.dark .leaflet-container { filter: brightness(0.8) contrast(1.05); }
 html.dark svg[stroke="#060D26"] { stroke: #9AA6C6; }
 html.dark svg[fill="#060D26"] { fill: #9AA6C6; }
 html.dark .feature-card div[style*="#060D26"] { background: rgba(255, 255, 255, 0.08) !important; }
+
+/* ── Smooth navigation & interaction ─────────────────────────────────────────
+   1. Cross-document view transitions: the browser cross-fades the old and new
+      page instead of flashing white. Chrome/Edge/Safari 18.2+; other browsers
+      simply navigate as before (the page-enter fade below covers them).
+   2. The site header keeps its own transition name so it stays put while the
+      page body fades underneath it.
+   3. Buttons and links ease colour/shadow/press changes; :active uses the
+      independent `scale` property so it never fights Tailwind's translate. */
+@view-transition { navigation: auto; }
+
+@keyframes page-fade-out { to { opacity: 0; } }
+@keyframes page-fade-in { from { opacity: 0; transform: translateY(6px); } }
+
+::view-transition-old(root) { animation: 140ms ease-in both page-fade-out; }
+::view-transition-new(root) { animation: 260ms ease-out both page-fade-in; }
+#site-header { view-transition-name: site-header; }
+::view-transition-group(site-header) { animation-duration: 0s; }
+
+@supports not (view-transition-name: none) {
+    main, #main { animation: page-fade-in 260ms ease-out both; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+
+    button:not(:disabled):active,
+    a[class*="rounded-full"]:active,
+    [role="button"]:active { scale: 0.97; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition { navigation: none; }
+    main, #main { animation: none !important; }
+}
+
+@layer base {
+    a, button, [role="button"], input, select, textarea {
+        transition-property: color, background-color, border-color, box-shadow, opacity, scale;
+        transition-duration: 200ms;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+}
+
+/* Thin coral progress bar shown from the moment a navigation starts until the next page paints. */
+#nav-progress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 10000;
+    background: linear-gradient(90deg, #FF8A66, #FFB59F);
+    box-shadow: 0 0 10px rgba(255, 138, 102, 0.6);
+    opacity: 0; pointer-events: none;
+    transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 200ms ease;
+}
+#nav-progress.is-active { width: 85%; opacity: 1; }

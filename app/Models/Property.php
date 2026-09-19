@@ -256,7 +256,7 @@ class Property extends Model
     }
 
     /**
-     * Apply tenant browse filters (location, type, price_max, verified, amenities)
+     * Apply tenant browse filters (location, type, price_min/price_max, verified, amenities)
      * and sorting (newest | price_low | price_high).
      */
     public function scopeBrowseFilters($query, array $filters)
@@ -273,12 +273,19 @@ class Property extends Model
             $query->where('property_type', $filters['type']);
         }
 
-        if (!empty($filters['price_max'])) {
-            $priceMax = $filters['price_max'];
-            $query->whereHas('units', function ($q) use ($priceMax) {
+        if (!empty($filters['price_min']) || !empty($filters['price_max'])) {
+            $priceMin = $filters['price_min'] ?? null;
+            $priceMax = $filters['price_max'] ?? null;
+            $query->whereHas('units', function ($q) use ($priceMin, $priceMax) {
                 $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved')
-                  ->where('rental_fee', '<=', $priceMax);
+                  ->where('verification_status', 'Approved');
+
+                if (!empty($priceMin)) {
+                    $q->where('rental_fee', '>=', $priceMin);
+                }
+                if (!empty($priceMax)) {
+                    $q->where('rental_fee', '<=', $priceMax);
+                }
             });
         }
 

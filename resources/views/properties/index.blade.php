@@ -201,7 +201,7 @@
         @endif
 
         {{-- ACTIVE FILTERS SUMMARY --}}
-        @if(request()->hasAny(['location', 'type', 'price_max', 'verified', 'amenities']))
+        @if(request()->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities']))
             <div class="flex flex-wrap items-center gap-2 mb-6">
                 <span class="text-[13px] text-[#5B6A8E] font-medium">Filtering by:</span>
 
@@ -244,7 +244,7 @@
                     </span>
                 @endif
 
-                @if(request('price_max'))
+                @if(request('price_min') || request('price_max'))
                     <span
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
@@ -252,8 +252,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Max ₱{{ number_format(request('price_max')) }}
-                        <a href="{{ request()->fullUrlWithoutQuery('price_max') }}" class="hover:brightness-95"
+                        @if(request('price_min') && request('price_max'))
+                            ₱{{ number_format(request('price_min')) }}&ndash;₱{{ number_format(request('price_max')) }}
+                        @elseif(request('price_min'))
+                            Min ₱{{ number_format(request('price_min')) }}
+                        @else
+                            Max ₱{{ number_format(request('price_max')) }}
+                        @endif
+                        <a href="{{ request()->fullUrlWithoutQuery(['price_min', 'price_max']) }}" class="hover:brightness-95"
                             aria-label="Remove budget filter">
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
                                 aria-hidden="true">
@@ -413,7 +419,7 @@
 
                     {{-- Body (only this scrolls) --}}
                     <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4 bg-[#F7F8FC]">
-                        {{-- Carries location/type/price_max/sort through untouched —
+                        {{-- Carries location/type/price_min/price_max/sort through untouched —
                              this form only ever sets amenities. --}}
                         @foreach(request()->except(['amenities', 'verified', 'page']) as $key => $value)
                             @if(is_array($value))

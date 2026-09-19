@@ -397,6 +397,22 @@
 
             {{-- ── USER SECTION (sidebar bottom) ── --}}
             <div class="border-t border-white/[0.06] shrink-0">
+                {{-- View public rentals — switch to the tenant-facing browse view --}}
+                <a href="{{ route('properties.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
+                    class="group relative flex items-center gap-3 mx-2 mt-2 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:bg-white/[0.06] hover:text-[#FF8A66] transition-colors duration-200">
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap">View public rentals</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+                        View public rentals
+                    </span>
+                </a>
+
                 <div class="flex items-center gap-2.5 px-4 py-3">
                     @if(auth()->user()->profile_picture)
                         <img src="{{ auth()->user()->profile_picture }}" alt="{{ auth()->user()->first_name }}"
