@@ -750,4 +750,28 @@ public ?Payment $releasedPayment = null;
         // POST, while the other side's thread stays stale until reload.
         MessageSent::dispatch($message);
     }
+
+    /**
+     * Per-status tab counts for a reservation list, in ONE grouped query.
+     *
+     * Returns ['all' => n, '<status>' => n, ...] with every requested status
+     * present (0 when none). Replaces one COUNT per tab — 8 identical queries
+     * per page load on both the landlord and tenant reservation lists.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $base  already scoped/filtered, not yet ordered
+     */
+    public static function statusCounts($base, array $statuses): array
+    {
+        $byStatus = (clone $base)
+            ->selectRaw('rental_status, COUNT(*) as aggregate')
+            ->groupBy('rental_status')
+            ->pluck('aggregate', 'rental_status');
+
+        $counts = ['all' => (int) $byStatus->sum()];
+        foreach ($statuses as $status) {
+            $counts[$status] = (int) ($byStatus[$status] ?? 0);
+        }
+
+        return $counts;
+    }
 }

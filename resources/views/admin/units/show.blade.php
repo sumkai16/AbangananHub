@@ -100,7 +100,7 @@
                                 @foreach($photos as $photo)
                                     <a href="{{ $photo->media_url }}" target="_blank"
                                         class="aspect-square rounded-xl overflow-hidden bg-[#F7F8FC] border border-[#E2E4EC] block">
-                                        <img src="{{ $photo->media_url }}" alt="Unit photo" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="Unit photo" class="w-full h-full object-cover">
                                     </a>
                                 @endforeach
                             </div>

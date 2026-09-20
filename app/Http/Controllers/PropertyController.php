@@ -6,7 +6,10 @@ use App\Http\Requests\Landlord\UpdatePropertyRequest;
 use App\Models\Amenity;
 use App\Models\Favorite;
 use App\Models\Property;
+use App\Models\PropertyMedia;
 use App\Models\PropertyUnit;
+use App\Support\Images;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -40,47 +43,16 @@ class PropertyController extends Controller
                 ->having('review_count', '>=', 2)
                 ->orderByDesc('avg_rating')
                 ->orderByDesc('review_count')
-                ->with(['media', 'landlord', 'amenities', 'units'])
+                // documents: the card's Verified badge calls hasVerifiedDocuments(),
+                // which runs one EXISTS per card unless the relation is loaded.
+                ->with(['media', 'landlord', 'amenities', 'units',
+                    'documents:document_id,property_id,document_type,status,expiry_date'])
                 ->take(10)
                 ->get();
 
-            // A plain grouped count, not ->browsable(): that scope's
-            // withMin/withAvg/withCount subqueries add implicit columns to
-            // the SELECT list, which MySQL's ONLY_FULL_GROUP_BY mode then
-            // rejects against a GROUP BY on a single column. Replicate just
-            // the visibility + has-available-unit filters ->browsable()
-            // itself starts with, skip the aggregate columns this query
-            // doesn't need.
-            $areas = Property::live()
-                ->whereHas('units', function ($q) {
-                    $q->where('availability_status', 'Available')
-                      ->where('verification_status', 'Approved');
-                })
-                ->selectRaw('city_municipality, COUNT(*) as cnt')
-                ->groupBy('city_municipality')
-                ->orderByDesc('cnt')
-                // Wide enough to rotate through; the landing strip shows a
-                // few at a time (see the "Browse by area" block in the view).
-                ->take(20)
-                ->get()
-                ->map(function ($row) {
-                    $photo = Property::browsable()
-                        ->where('city_municipality', $row->city_municipality)
-                        ->with('media')
-                        ->first()
-                        ?->media->firstWhere('media_type', 'Image')?->media_url;
-
-                    return [
-                        'name' => $row->city_municipality,
-                        'count' => $row->cnt,
-                        'photo' => $photo,
-                        'url' => route('properties.index', ['location' => $row->city_municipality]),
-                    ];
-                })
-                // An area with no representative photo has nothing to show in
-                // a photo tile — skip it rather than render a broken image.
-                ->filter(fn ($area) => $area['photo'] !== null)
-                ->values();
+            // Wide enough to rotate through; the landing strip shows a few at a
+            // time (see the "Browse by area" block in the view).
+            $areas = $this->areaTiles(20);
         }
 
         $properties = Property::with([
@@ -131,7 +103,7 @@ class PropertyController extends Controller
                 'rental_fee'    => $minFee,
                 'url'           => route('properties.show', $property->property_id),
                 'property_type' => $property->property_type,
-                'image'         => $property->media->first()?->media_url ?? null,
+                'image'         => Images::resize($property->media->first()?->media_url, 480),
             ];
         })->values();
 
@@ -152,26 +124,66 @@ class PropertyController extends Controller
      */
     public function areas()
     {
+        $areas = $this->areaTiles();
+
+        return view('properties.areas', compact('areas'));
+    }
+
+    /**
+     * "Browse by area" tiles: every city with live, bookable listings, its
+     * listing count, and one representative photo.
+     *
+     * Three queries however many areas there are. This used to run a full
+     * browsable() query (with three aggregate subselects) per area just to
+     * borrow one photo — 40+ queries on a 20-area landing page.
+     *
+     * A plain grouped count, not ->browsable(): that scope's
+     * withMin/withAvg/withCount subqueries add implicit columns to the SELECT
+     * list, which MySQL's ONLY_FULL_GROUP_BY mode then rejects against a GROUP
+     * BY on a single column. The visibility + has-available-unit filters are
+     * replicated instead, and the aggregate columns this doesn't need skipped.
+     */
+    private function areaTiles(?int $limit = null): Collection
+    {
+        $bookable = fn ($q) => $q->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved');
+
         $areas = Property::live()
-            ->whereHas('units', function ($q) {
-                $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved');
-            })
+            ->whereHas('units', $bookable)
             ->selectRaw('city_municipality, COUNT(*) as cnt')
             ->groupBy('city_municipality')
             ->orderByDesc('cnt')
-            ->get()
+            ->when($limit, fn ($q) => $q->take($limit))
+            ->get();
+
+        // One image per city, fetched for all cities at once.
+        $photos = PropertyMedia::query()
+            ->join('properties', 'properties.property_id', '=', 'property_media.property_id')
+            ->whereIn('properties.city_municipality', $areas->pluck('city_municipality'))
+            ->where('properties.verification_status', 'Approved')
+            ->where('properties.publication_status', 'Published')
+            ->whereExists(fn ($q) => $q->selectRaw('1')->from('property_units')
+                ->whereColumn('property_units.property_id', 'properties.property_id')
+                ->where('property_units.availability_status', 'Available')
+                ->where('property_units.verification_status', 'Approved'))
+            ->where('property_media.media_type', 'Image')
+            ->orderBy('properties.property_id')
+            ->orderBy('property_media.media_id')
+            ->get(['properties.city_municipality', 'property_media.media_url'])
+            ->unique('city_municipality')
+            ->pluck('media_url', 'city_municipality');
+
+        return $areas
             ->map(fn ($row) => [
                 'name' => $row->city_municipality,
                 'count' => $row->cnt,
-                'photo' => Property::browsable()
-                    ->where('city_municipality', $row->city_municipality)
-                    ->with('media')
-                    ->first()
-                    ?->media->firstWhere('media_type', 'Image')?->media_url,
-            ]);
-
-        return view('properties.areas', compact('areas'));
+                'photo' => Images::resize($photos[$row->city_municipality] ?? null, 800),
+                'url' => route('properties.index', ['location' => $row->city_municipality]),
+            ])
+            // An area with no representative photo has nothing to show in a
+            // photo tile — skip it rather than render a broken image.
+            ->filter(fn ($area) => $area['photo'] !== null)
+            ->values();
     }
 
     public function show(Property $property)

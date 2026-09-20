@@ -120,7 +120,7 @@
             <div class="px-5 py-3 border-b border-[#E2E4EC] bg-[#F7F8FC] flex-shrink-0 flex items-center gap-4 flex-wrap">
                 <div class="flex items-center gap-3 min-w-0">
                     @if($stripThumb)
-                        <img src="{{ $stripThumb->media_url }}" alt="" class="w-11 h-9 rounded-lg object-cover flex-shrink-0">
+                        <img loading="lazy" decoding="async" src="{{ $stripThumb->media_url }}" alt="" class="w-11 h-9 rounded-lg object-cover flex-shrink-0">
                     @else
                         <div class="w-11 h-9 rounded-lg bg-white border border-[#E2E4EC] flex items-center justify-center flex-shrink-0">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5l8.5-6.75 8.5 6.75M4.5 9v12m15-12v12M9 21v-6a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0115 15v6"/></svg>
@@ -421,7 +421,7 @@
                 <div class="flex items-end gap-2 self-start max-w-[85%] mb-1.5"
                     data-msg-sender="{{ $message->sender_id }}">
                     @if($message->sender?->profile_picture)
-                        <img src="{{ $message->sender->profile_picture }}"
+                        <img loading="lazy" decoding="async" src="{{ $message->sender->profile_picture }}"
                             alt="{{ $message->sender->first_name }} {{ $message->sender->last_name }}"
                             class="w-7 h-7 rounded-full object-cover shrink-0 mb-0.5">
                     @else
@@ -434,7 +434,7 @@
                     <div class="min-w-0 w-full max-w-[300px] bg-white border border-[#E2E4EC] rounded-2xl shadow-sm overflow-hidden">
                         <div class="flex items-center gap-3 p-3 border-b border-[#E2E4EC]">
                             @if($summaryThumb)
-                                <img src="{{ $summaryThumb->media_url }}" alt="" class="w-12 h-9 rounded-lg object-cover flex-shrink-0">
+                                <img loading="lazy" decoding="async" src="{{ $summaryThumb->media_url }}" alt="" class="w-12 h-9 rounded-lg object-cover flex-shrink-0">
                             @else
                                 <div class="w-12 h-9 rounded-lg bg-[#ECEEF6] flex items-center justify-center flex-shrink-0">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-10.5l8.5-6.75 8.5 6.75M4.5 9v12m15-12v12M9 21v-6a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0115 15v6"/></svg>
@@ -524,7 +524,7 @@
                         <span data-avatar-slot class="contents">
                         @if($endsRun)
                             @if($message->sender?->profile_picture)
-                                <img src="{{ $message->sender->profile_picture }}"
+                                <img loading="lazy" decoding="async" src="{{ $message->sender->profile_picture }}"
                                     alt="{{ $message->sender->first_name }} {{ $message->sender->last_name }}"
                                     class="w-7 h-7 rounded-full object-cover shrink-0 mb-0.5">
                             @else

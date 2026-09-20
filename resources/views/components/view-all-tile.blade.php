@@ -15,7 +15,7 @@
     @if($photos)
         <div class="absolute inset-0 -z-10 grid grid-cols-2 grid-rows-2 gap-0.5" aria-hidden="true">
             @foreach($photos as $photo)
-                <img src="{{ $photo }}" alt="" loading="lazy"
+                <img src="{{ \App\Support\Images::resize($photo, 320) }}" alt="" loading="lazy" decoding="async"
                     class="w-full h-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-110 motion-reduce:group-hover:scale-100">
             @endforeach
         </div>

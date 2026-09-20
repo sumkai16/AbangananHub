@@ -7,10 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ $title ?? 'AbangananHub' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         (function () {
@@ -118,11 +115,11 @@
             </button>
 
             {{-- Logo + Notification bell --}}
-            @php $unread = auth()->user()->notifications()->where('is_read', false)->count(); @endphp
+            @php $unread = $unreadNotificationCount; @endphp
             <div class="flex items-center justify-between h-[64px] border-b border-white/[0.06] shrink-0 px-5">
                 <a href="{{ route('landlord.dashboard') }}"
                     class="flex items-center gap-2.5 overflow-hidden no-underline">
-                    <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub"
+                    <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
                         class="w-9 h-9 object-contain shrink-0">
                     <span data-sidebar-label x-show="!sidebarCollapsed"
                         class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
@@ -308,7 +305,7 @@
 
                 <div class="flex items-center gap-2.5 px-4 py-3">
                     @if(auth()->user()->profile_picture)
-                        <img src="{{ auth()->user()->profile_picture }}" alt="{{ auth()->user()->first_name }}"
+                        <img loading="lazy" decoding="async" src="{{ auth()->user()->profile_picture }}" alt="{{ auth()->user()->first_name }}"
                             class="w-9 h-9 rounded-full object-cover shrink-0">
                     @else
                         <span
@@ -362,9 +359,7 @@
                          Dispatches the same event that bubble's panel listens for. --}}
                     @auth
                         @php
-                            $mobileUnreadMsgCount = \App\Models\Message::whereHas('conversation', function ($q) {
-                                $q->where('tenant_id', auth()->id())->orWhere('landlord_id', auth()->id());
-                            })->where('sender_id', '!=', auth()->id())->where('is_read', false)->count();
+                            $mobileUnreadMsgCount = $unreadMessageCount;
                         @endphp
                         <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
                             class="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
@@ -415,7 +410,7 @@
         function notificationDropdown() {
             return {
                 open: false,
-                unreadCount: {{ auth()->user()->notifications()->where('is_read', false)->count() }},
+                unreadCount: {{ $unreadNotificationCount }},
                 loaded: false,
 
                 init() {

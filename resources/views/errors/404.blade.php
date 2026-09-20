@@ -5,10 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Page not found · AbangananHub</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
     @vite(['resources/css/app.css'])
     <style>
         body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
@@ -20,7 +17,7 @@
     <div class="min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center">
 
         <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-            <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub" class="w-10 h-10 object-contain">
+            <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub" class="w-10 h-10 object-contain">
             <span class="font-display text-[18px] font-normal text-[#060D26] tracking-tight">
                 Abanganan<span class="text-[#060D26]">Hub</span>
             </span>

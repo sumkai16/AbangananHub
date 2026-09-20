@@ -14,7 +14,7 @@
             <div
                 class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#FF8A66] text-2xl font-bold text-[#060D26] overflow-hidden">
                 @if($user->profile_picture)
-                    <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="h-full w-full object-cover">
+                    <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="h-full w-full object-cover">
                 @else
                     {{ strtoupper(substr($user->first_name ?? 'U', 0, 1)) }}
                 @endif

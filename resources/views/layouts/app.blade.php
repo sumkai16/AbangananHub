@@ -16,10 +16,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ $title ?? 'AbangananHub' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <script>
@@ -44,7 +41,7 @@
             {{-- Logo --}}
             <a href="{{ route('home') }}"
                 class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group">
-                <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub"
+                <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
                     class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
                     Abanganan<span class="text-[#FF8A66]">Hub</span>
@@ -132,9 +129,7 @@
                      Dispatches the same event that bubble's panel listens for. --}}
                 @auth
                     @php
-                        $mobileUnreadMsgCount = \App\Models\Message::whereHas('conversation', function ($q) {
-                            $q->where('tenant_id', auth()->id())->orWhere('landlord_id', auth()->id());
-                        })->where('sender_id', '!=', auth()->id())->where('is_read', false)->count();
+                        $mobileUnreadMsgCount = $unreadMessageCount;
                     @endphp
                     <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
                         class="lg:hidden relative flex items-center gap-1.5 h-10 px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
@@ -252,7 +247,7 @@
                             :class="open ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]'"
                             class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                             @if(auth()->user()->profile_picture)
-                                <img src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
+                                <img loading="lazy" decoding="async" src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
                                     class="w-9 h-9 rounded-full object-cover shrink-0">
                             @else
                                 <span
@@ -284,7 +279,7 @@
                                  turns the menu into an identity surface, not a flat list. --}}
                             <div class="flex items-center gap-3 rounded-xl bg-gradient-to-br from-[#ECEEF6] to-[#F7F8FC] px-3 py-3 mb-1">
                                 @if(auth()->user()->profile_picture)
-                                    <img src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
+                                    <img loading="lazy" decoding="async" src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
                                         class="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-white">
                                 @else
                                     <span class="w-11 h-11 rounded-full bg-[#060D26] text-white text-[16px] font-bold flex items-center justify-center shrink-0 ring-2 ring-white">
@@ -496,7 +491,7 @@
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-                <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
+                <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
                 <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#FF8A66]">Hub</span></span>
             </a>
 
@@ -579,7 +574,7 @@
 
                 {{-- Left brand panel (split) — photo + navy overlay, same language as the landing hero --}}
                 <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-[#060D26] p-8 flex-col justify-end text-white">
-                    <img src="{{ asset('images/auth-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+                    <img src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 via-[#060D26]/45 to-[#060D26]/90"></div>
 
                     <div class="relative z-10">
@@ -974,7 +969,7 @@
             function notificationDropdown() {
                 return {
                     open: false,
-                    unreadCount: {{ auth()->user()->notifications()->where('is_read', false)->count() }},
+                    unreadCount: {{ $unreadNotificationCount }},
                     loaded: false,
 
                     init() {

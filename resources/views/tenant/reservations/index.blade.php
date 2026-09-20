@@ -149,7 +149,7 @@
                             <div class="flex items-start gap-3">
                                 <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                     @if($photo = $reservation->property->media->first())
-                                        <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
                                     @endif
                                 </div>
                                 <div class="min-w-0 flex-1">
@@ -291,7 +291,7 @@
                                     <div class="flex items-center gap-2.5">
                                         <div class="w-10 h-10 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                             @if($photo = $reservation->property->media->first())
-                                                <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                                <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
                                             @endif
                                         </div>
                                         <div class="min-w-0">

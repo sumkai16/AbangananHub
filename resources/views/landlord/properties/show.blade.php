@@ -63,7 +63,7 @@
                         <button onclick="openLightbox({{ $i }}); highlightThumb({{ $i }})"
                                 id="thumb-{{ $i }}"
                                 class="shrink-0 w-[72px] h-[54px] rounded-xl overflow-hidden bg-[#ECEEF6] hover:opacity-80 transition-opacity duration-200 border-2 {{ $i === 0 ? 'border-[#060D26]' : 'border-transparent' }}">
-                            <img src="{{ $img->media_url }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
+                            <img loading="lazy" decoding="async" src="{{ $img->media_url }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
                         </button>
                     @endforeach
                     @if($images->count() > 4)
@@ -551,7 +551,7 @@
                         <div class="flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 hover:shadow-md transition-shadow duration-300">
                             <div class="relative h-36 bg-[#ECEEF6] overflow-hidden">
                                 @if($thumb)
-                                    <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
+                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center">
                                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" class="text-[#5B6A8E]/40">
@@ -643,7 +643,7 @@
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-9 h-9 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                                                 @if($thumb)
-                                                    <img src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
                                                 @endif
                                             </div>
                                             <p class="text-[13px] font-bold text-[#060D26]">{{ $unit->unit_label }}</p>
@@ -723,7 +723,7 @@
                     @foreach($images as $i => $img)
                         <button onclick="openLightbox({{ $i }})"
                                 class="aspect-square rounded-xl overflow-hidden bg-[#ECEEF6] hover:opacity-90 transition-opacity duration-200">
-                            <img src="{{ $img->media_url }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
+                            <img loading="lazy" decoding="async" src="{{ $img->media_url }}" alt="{{ $property->title }} photo {{ $i + 1 }}" class="w-full h-full object-cover">
                         </button>
                     @endforeach
                 </div>

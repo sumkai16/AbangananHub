@@ -89,6 +89,14 @@ Every controller / request-path change gets a two-front check before it's done �
 
 **Performance**
 - Eager-load every relation the view touches, **including nested `->a->b` access in Blade** — a `with(['property.landlord'])` in the controller, not a lazy load in a `@foreach`. `Model::preventLazyLoading` (on in local/dev) will throw if you miss one; watch Debugbar query counts (>25/page = investigate).
+- **Measure before optimising, and measure the right thing (Sept 21 2026).** The "fast at home, 2-5 s at school" report was *not* the database — every page spent 5-30 ms there. It was ~4.4 MB of eager 1200px photos, Debugbar HTML, render-blocking Google Fonts and CDN Chart.js. Check payload (DevTools → Network on a throttled connection) before touching queries. Baseline harness: `php artisan test --filter=PerformanceBaseline` (query count + DB ms + repeated-query shapes per route). Compare **query counts**, not milliseconds — ms is noisy. See `plans/performance-optimization.md`.
+- **Never query inside a loop or a Blade `@foreach`/`->map()`.** Fetch once up front and look up by key (`array_flip` of ids, `pluck('x','id')`). Per-item `EXISTS`/`COUNT`/photo lookups were the N+1s found: area tiles (40 queries), analytics revenue (22), per-card `hasVerifiedDocuments()` (10), per-unit reservation check.
+- **Tab / status counts = one grouped query**, never one `COUNT` per tab — `Reservation::statusCounts($base, $statuses)`.
+- **Roles are cached on the model.** `User::hasRole()` reads the loaded `roles` relation (one query per request, not one per call). Any code that writes roles must `$user->unsetRelation('roles')` afterwards (`assignRole()` already does).
+- **Images:** every `<img>` of a listing photo gets `loading="lazy" decoding="async"` and a right-sized URL via `App\Support\Images::resize($url, $width)` (Unsplash `?w=` / Cloudinary `/upload/` aware); cards also get `srcset`. Only the above-the-fold hero image may be eager. Never ship an uncompressed photo in `public/images` (`auth-bg.jpg` was 3 MB; use the `-1600`/`-256` variants).
+- **No third-party render-blocking assets.** Fonts are self-hosted via `@fontsource` in `resources/css/app.css`; Chart.js is bundled (`resources/js/charts.js`, `@vite('resources/js/charts.js')`), not loaded from a CDN. The browse map (`browse-map.js`) only imports Leaflet when the map is opened.
+- **`DEBUGBAR_ENABLED=false`** in `.env` by default (flip to `true` only while profiling) — it adds ~100 KB to every page.
+- Add composite indexes for any new visibility/status filter (`2026_09_21_000000_add_performance_indexes.php` lists the current ones); FK columns alone are not enough.
 - Keep broadcasts / mail / outbound HTTP out of the synchronous request path where it matters (see Broadcasting — `ShouldBroadcastNow` is a deliberate capstone tradeoff, not a pattern to extend to slow calls).
 - Local dev is IPv4-only on Windows: `127.0.0.1` never `localhost` in `.env` and the browser; OPcache stays enabled in `php.ini`; if pages go slow/unstyled, `ls public/hot` and delete a stale one.
 
@@ -142,7 +150,7 @@ what `modal-confirm.js` reads), not the button.
 edit/update form wrapping the page content, check this section — don't nest, use `form="id"`.**
 
 ## View Composers
-Data the **layout** needs on every page goes in a `View::composer('layouts.app', …)` in `AppServiceProvider::boot`, not a variable each controller passes. The header renders everywhere; a controller that forgot would drop the feature silently on that page only. Cache anything that hits the DB (`Cache::remember`, 10 min is fine for nav-level data) — the layout renders on *every* request, so an uncached query there is a site-wide cost. Current composer: `navAreas` for the header's Areas menu.
+Data the **layout** needs on every page goes in a `View::composer('layouts.app', …)` in `AppServiceProvider::boot`, not a variable each controller passes. The header renders everywhere; a controller that forgot would drop the feature silently on that page only. Cache anything that hits the DB (`Cache::remember`, 10 min is fine for nav-level data) — the layout renders on *every* request, so an uncached query there is a site-wide cost. Current composer: header badge counts (`$unreadNotificationCount`, `$unreadMessageCount`) for `layouts.app|landlord|admin`, memoised on the request so each layout renders them from one query each instead of re-counting inline.
 
 ## Storage
 - Filter `unit_media`/`property_media` to `media_type === 'Image'` before rendering in `<img>` — the table also holds Video rows, which render as broken images otherwise (applies to galleries, thumbnails, and JS payloads)
@@ -166,6 +174,8 @@ The move-in escrow is the only place in the app where money moves with no human 
 - Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Concerns\RecordsMoveInPayments`.
 
 ## Testing
+- **DO NOT run the full `php artisan test` / `phpunit` against the dev database.** `phpunit.xml` has the sqlite override commented out, and the Breeze tests in `tests/Feature/Auth/*` + `ProfileTest` use `RefreshDatabase`, which **wipes the MySQL `abanganan_hub` data** (seeded properties, users, reviews). Run only `--filter=PerformanceBaseline` (read-only GETs). To make the suite safe, uncomment the sqlite `DB_CONNECTION`/`DB_DATABASE` lines in `phpunit.xml` first.
+- To verify a fixture-dependent change, insert rows inside `DB::beginTransaction()` … `DB::rollBack()` in a throwaway test and delete the file afterwards.
 - Manual testing for capstone scope (no automated test suite)
 - **Axcee tests manually.** When a feature needs verifying, build the fixtures that put the app into each state plus a checklist of what to look at — not a test suite. `escrow:scenarios` is the pattern: additive, tagged, `--clean` teardown, prints login credentials and expected appearance per state.
 - **Time-based features need backdated fixtures.** Anything measured in days cannot be observed by using the app; `Carbon::setTestNow()` does not reach a separate `php artisan` process, so backdate the data instead.

@@ -10,6 +10,7 @@ use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Services\OccupancyRateCalculator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -47,7 +48,10 @@ class AnalyticsController extends Controller
         $availableUnits = $units->where('availability_status', 'Available')->count();
         $maintenanceUnits = $units->where('availability_status', 'Maintenance')->count();
 
-        $revenue = $this->revenueBetween($propertyIds, $from, $to);
+        // One grouped query for the window; the headline total and every
+        // per-property figure below are read out of it.
+        $revenueByPropertyId = $this->revenueByProperty($propertyIds, $from, $to);
+        $revenue = (float) $revenueByPropertyId->sum();
         $activeReservations = $this->activeReservationCount($propertyIds);
 
         // Previous window of equal length, for the month-over-month deltas.
@@ -83,18 +87,18 @@ class AnalyticsController extends Controller
         ];
 
         // ── Revenue over the last 6 months (line) ────────────
-        $revenueTrend = collect(range(5, 0))->map(function ($monthsAgo) use ($propertyIds) {
+        $monthlyRevenue = $this->monthlyRevenue($propertyIds, 6);
+        $revenueTrend = collect(range(5, 0))->map(function ($monthsAgo) use ($monthlyRevenue) {
             $start = now()->startOfMonth()->subMonths($monthsAgo);
-            $end = (clone $start)->endOfMonth();
 
             return [
                 'label' => $start->format('M'),
-                'value' => $this->revenueBetween($propertyIds, $start, $end),
+                'value' => $monthlyRevenue[$start->format('Y-m')] ?? 0.0,
             ];
         })->values();
 
         // ── Per-property revenue + occupancy ─────────────────
-        $perProperty = $properties->map(function (Property $property) use ($units, $from, $to) {
+        $perProperty = $properties->map(function (Property $property) use ($units, $revenueByPropertyId) {
             $propertyUnits = $units->where('property_id', $property->property_id);
             $total = $propertyUnits->count();
             $occupied = $propertyUnits->where('availability_status', 'Occupied')->count();
@@ -107,7 +111,7 @@ class AnalyticsController extends Controller
                 'reserved'    => $propertyUnits->where('availability_status', 'Reserved')->count(),
                 'available'   => $propertyUnits->where('availability_status', 'Available')->count(),
                 'rate'        => $total > 0 ? round(($occupied / $total) * 100, 1) : 0.0,
-                'revenue'     => $this->revenueBetween(collect([$property->property_id]), $from, $to),
+                'revenue'     => (float) ($revenueByPropertyId[$property->property_id] ?? 0),
             ];
         })->sortByDesc('revenue')->values();
 
@@ -200,11 +204,12 @@ class AnalyticsController extends Controller
         $landlordId = Auth::id();
         $properties = Property::where('landlord_id', $landlordId)->orderBy('title')->get();
         $units = PropertyUnit::whereIn('property_id', $properties->pluck('property_id'))->get();
+        $revenueByPropertyId = $this->revenueByProperty($properties->pluck('property_id'), $from, $to);
 
         $filename = 'analytics-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.csv';
 
         // Streamed, matching the existing export pattern (OccupancyController).
-        return response()->streamDownload(function () use ($properties, $units, $from, $to) {
+        return response()->streamDownload(function () use ($properties, $units, $revenueByPropertyId) {
             $out = fopen('php://output', 'w');
             fputcsv($out, ['Property', 'Total Units', 'Occupied', 'Reserved', 'Available', 'Occupancy Rate (%)', 'Revenue (PHP)']);
 
@@ -220,7 +225,7 @@ class AnalyticsController extends Controller
                     $propertyUnits->where('availability_status', 'Reserved')->count(),
                     $propertyUnits->where('availability_status', 'Available')->count(),
                     $total > 0 ? round(($occupied / $total) * 100, 1) : 0,
-                    number_format($this->revenueBetween(collect([$property->property_id]), $from, $to), 2, '.', ''),
+                    number_format((float) ($revenueByPropertyId[$property->property_id] ?? 0), 2, '.', ''),
                 ]);
             }
 
@@ -236,10 +241,40 @@ class AnalyticsController extends Controller
      */
     private function revenueBetween($propertyIds, Carbon $from, Carbon $to): float
     {
-        return (float) Payment::whereIn('status', self::EARNED_STATUSES)
-            ->whereBetween('paid_at', [$from, $to])
-            ->whereHas('reservation', fn ($q) => $q->whereIn('property_id', $propertyIds))
-            ->sum('amount');
+        return (float) $this->revenueByProperty($propertyIds, $from, $to)->sum();
+    }
+
+    /**
+     * Earned revenue per property in one grouped query — property_id => total.
+     * Properties with no earnings in the window are simply absent.
+     */
+    private function revenueByProperty($propertyIds, Carbon $from, Carbon $to): Collection
+    {
+        return Payment::query()
+            ->join('reservations', 'reservations.reservation_id', '=', 'payments.reservation_id')
+            ->whereIn('payments.status', self::EARNED_STATUSES)
+            ->whereBetween('payments.paid_at', [$from, $to])
+            ->whereIn('reservations.property_id', $propertyIds)
+            ->groupBy('reservations.property_id')
+            ->selectRaw('reservations.property_id, SUM(payments.amount) as total')
+            ->pluck('total', 'property_id')
+            ->map(fn ($total) => (float) $total);
+    }
+
+    /** Earned revenue per calendar month for the trailing N months — 'Y-m' => total. */
+    private function monthlyRevenue($propertyIds, int $months): Collection
+    {
+        $from = now()->startOfMonth()->subMonths($months - 1);
+
+        return Payment::query()
+            ->join('reservations', 'reservations.reservation_id', '=', 'payments.reservation_id')
+            ->whereIn('payments.status', self::EARNED_STATUSES)
+            ->whereBetween('payments.paid_at', [$from, now()->endOfMonth()])
+            ->whereIn('reservations.property_id', $propertyIds)
+            ->groupByRaw("DATE_FORMAT(payments.paid_at, '%Y-%m')")
+            ->selectRaw("DATE_FORMAT(payments.paid_at, '%Y-%m') as ym, SUM(payments.amount) as total")
+            ->pluck('total', 'ym')
+            ->map(fn ($total) => (float) $total);
     }
 
     private function activeReservationCount($propertyIds): int

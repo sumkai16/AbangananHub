@@ -295,7 +295,7 @@
                         $photo    = $property?->media->firstWhere('media_type', 'Image');
                     @endphp
                     @if($photo)
-                        <img src="{{ $photo->media_url }}" alt="" class="w-full h-32 object-cover rounded-2xl mb-3">
+                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-32 object-cover rounded-2xl mb-3">
                     @endif
                     <p class="text-[13.5px] font-bold text-[#060D26]">{{ $property->title ?? '—' }}</p>
                     <p class="text-[12px] text-[#94A3B8] mt-0.5">{{ $property->address ?? '—' }}</p>

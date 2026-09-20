@@ -6,10 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'AbangananHub') }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon.png') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -31,7 +28,7 @@
 
             {{-- Background image with darker overlay --}}
             <div class="absolute inset-0">
-                <img src="{{ asset('images/auth-bg.jpg') }}" class="w-full h-full object-cover" alt="" />
+                <img src="{{ asset('images/auth-bg-1600.jpg') }}" class="w-full h-full object-cover" alt="" />
                 {{-- Photo shows through at the top; navy builds toward the bottom where the copy sits --}}
                 <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/95 via-[#060D26]/70 to-[#060D26]/15"></div>
             </div>

@@ -16,7 +16,7 @@
     <div
         class="w-[72px] h-[72px] rounded-xl flex-shrink-0 bg-[#ECEEF6] overflow-hidden flex items-center justify-center">
         @if($reservation->property->media->first())
-            <img src="{{ $reservation->property->media->first()->media_url }}" class="w-full h-full object-cover"
+            <img loading="lazy" decoding="async" src="{{ $reservation->property->media->first()->media_url }}" class="w-full h-full object-cover"
                 alt="Property">
         @else
             <div class="text-2xl font-bold text-[#94A3B8]">

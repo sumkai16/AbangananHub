@@ -260,7 +260,7 @@
                                     <td class="px-5 py-4">
                                         <div class="flex items-center gap-3">
                                             @if($reservation->tenant?->profile_picture)
-                                                <img src="{{ $reservation->tenant->profile_picture }}" alt="{{ $modalData['tenant_name'] }}"
+                                                <img loading="lazy" decoding="async" src="{{ $reservation->tenant->profile_picture }}" alt="{{ $modalData['tenant_name'] }}"
                                                     class="w-9 h-9 rounded-full object-cover shrink-0">
                                             @else
                                                 <div class="w-9 h-9 rounded-full bg-[#ECEEF6] text-[#060D26] text-[12px] font-bold flex items-center justify-center shrink-0">
@@ -281,7 +281,7 @@
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-9 h-9 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($photo)
-                                                    <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
                                                 @endif
                                             </div>
                                             <div class="min-w-0">
@@ -447,7 +447,7 @@
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0">
                                     @if($reservation->tenant?->profile_picture)
-                                        <img src="{{ $reservation->tenant->profile_picture }}" alt="{{ $modalData['tenant_name'] }}"
+                                        <img loading="lazy" decoding="async" src="{{ $reservation->tenant->profile_picture }}" alt="{{ $modalData['tenant_name'] }}"
                                             class="w-9 h-9 rounded-full object-cover shrink-0">
                                     @else
                                         <div class="w-9 h-9 rounded-full bg-[#ECEEF6] text-[#060D26] text-[12px] font-bold flex items-center justify-center shrink-0">
@@ -470,7 +470,7 @@
                             <div class="flex items-center gap-2.5 rounded-xl bg-[#ECEEF6]/60 px-3 py-2.5">
                                 <div class="w-9 h-9 rounded-lg bg-white overflow-hidden shrink-0">
                                     @if($photo)
-                                        <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
                                     @endif
                                 </div>
                                 <div class="min-w-0">

@@ -19,7 +19,7 @@
                 <a href="{{ route('properties.index', ['location' => $area['name']]) }}"
                     class="relative h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] bg-[#ECEEF6] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0">
                     @if($area['photo'])
-                        <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     @endif
                     <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/90 via-[#060D26]/35 to-transparent"></div>
                     <div class="absolute bottom-3 left-3 right-3">

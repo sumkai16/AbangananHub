@@ -107,7 +107,7 @@
                             <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
                                 @foreach($property->media as $media)
                                     <div class="aspect-square rounded-lg overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC]">
-                                        <img src="{{ $media->media_url }}" alt="" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ $media->media_url }}" alt="" class="w-full h-full object-cover">
                                     </div>
                                 @endforeach
                             </div>

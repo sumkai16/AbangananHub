@@ -245,7 +245,7 @@
                                 <a href="{{ route('properties.show', $selReview->property_id) }}"
                                     class="flex items-center gap-3 p-3 bg-white ring-1 ring-[#5B6A8E]/10 rounded-2xl hover:bg-[#F7F8FC] transition-all mt-auto">
                                     @if($selReview->property->media->isNotEmpty())
-                                        <img src="{{ $selReview->property->media->first()->media_url }}"
+                                        <img loading="lazy" decoding="async" src="{{ $selReview->property->media->first()->media_url }}"
                                             alt="{{ $selReview->property->title }}"
                                             class="w-12 h-12 rounded-lg object-cover flex-shrink-0">
                                     @else

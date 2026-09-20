@@ -108,7 +108,7 @@
                         class="group flex gap-3 items-center rounded-xl p-2.5 -mx-2.5 hover:bg-[#F7F8FC] transition-colors {{ !$loop->first ? 'mt-1.5' : '' }}">
                         @php $thumb = $reservation->property->media->first(); @endphp
                         @if($thumb)
-                            <img src="{{ $thumb->media_url }}" alt="" class="w-16 h-14 rounded-lg object-cover flex-shrink-0">
+                            <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="w-16 h-14 rounded-lg object-cover flex-shrink-0">
                         @else
                             <div class="w-16 h-14 rounded-lg bg-[#ECEEF6] flex items-center justify-center flex-shrink-0">
                                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="1.8">
