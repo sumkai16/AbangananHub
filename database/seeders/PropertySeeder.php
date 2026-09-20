@@ -145,7 +145,7 @@ class PropertySeeder extends Seeder
                 'units' => [
                     ['unit_label' => 'Bed A', 'rental_fee' => 2500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                     ['unit_label' => 'Bed B', 'rental_fee' => 2500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
-                    ['unit_label' => 'Bed C', 'rental_fee' => 2200, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Bed C', 'rental_fee' => 2200, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                     ['unit_label' => 'Bed D', 'rental_fee' => 2200, 'occupancy_limit' => 1, 'availability_status' => 'Reserved'],
                 ],
                 'media' => [
@@ -165,7 +165,7 @@ class PropertySeeder extends Seeder
                 'units' => [
                     ['unit_label' => 'Room 1', 'rental_fee' => 4500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                     ['unit_label' => 'Room 2', 'rental_fee' => 4000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
-                    ['unit_label' => 'Room 3', 'rental_fee' => 4500, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Room 3', 'rental_fee' => 4500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                 ],
                 'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=1200&q=80'],
@@ -184,7 +184,7 @@ class PropertySeeder extends Seeder
                 'verification_status' => 'Approved',
                 'units' => [
                     ['unit_label' => 'Unit 101', 'rental_fee' => 12000, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
-                    ['unit_label' => 'Unit 102', 'rental_fee' => 12000, 'occupancy_limit' => 2, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Unit 102', 'rental_fee' => 12000, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
                     ['unit_label' => 'Unit 201', 'rental_fee' => 14000, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
                     ['unit_label' => 'Unit 202', 'rental_fee' => 14000, 'occupancy_limit' => 2, 'availability_status' => 'Reserved'],
                 ],
@@ -241,7 +241,7 @@ class PropertySeeder extends Seeder
                 'units' => [
                     ['unit_label' => 'Bed 1', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                     ['unit_label' => 'Bed 2', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
-                    ['unit_label' => 'Bed 3', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Bed 3', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                 ],
                 'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=1200&q=80'],
@@ -311,7 +311,7 @@ class PropertySeeder extends Seeder
                 'units' => [
                     ['unit_label' => 'Bed 1', 'rental_fee' => 2800, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                     ['unit_label' => 'Bed 2', 'rental_fee' => 2800, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
-                    ['unit_label' => 'Bed 3', 'rental_fee' => 2500, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Bed 3', 'rental_fee' => 2500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                     ['unit_label' => 'Bed 4', 'rental_fee' => 2500, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                 ],
                 'media' => [
@@ -478,7 +478,7 @@ class PropertySeeder extends Seeder
                 'verification_status' => 'Approved',
                 'units' => [
                     ['unit_label' => 'Bed 1', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
-                    ['unit_label' => 'Bed 2', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Bed 2', 'rental_fee' => 2000, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                     ['unit_label' => 'Bed 3', 'rental_fee' => 1800, 'occupancy_limit' => 1, 'availability_status' => 'Available'],
                 ],
                 'media' => [
@@ -548,7 +548,7 @@ class PropertySeeder extends Seeder
                 'units' => [
                     ['unit_label' => 'Unit 1A', 'rental_fee' => 9000, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
                     ['unit_label' => 'Unit 1B', 'rental_fee' => 8500, 'occupancy_limit' => 2, 'availability_status' => 'Available'],
-                    ['unit_label' => 'Unit 2A', 'rental_fee' => 9500, 'occupancy_limit' => 3, 'availability_status' => 'Occupied'],
+                    ['unit_label' => 'Unit 2A', 'rental_fee' => 9500, 'occupancy_limit' => 3, 'availability_status' => 'Available'],
                 ],
                 'media' => [
                     ['media_type' => 'Image', 'media_url' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80'],

@@ -25,7 +25,7 @@
 
         {{-- Header --}}
         <div class="mb-6">
-            <h1 class="text-2xl font-normal text-[#060D26] leading-tight">Add New Unit</h1>
+            <h1 class="text-2xl font-semibold text-[#060D26] leading-tight">Add New Unit</h1>
             <p class="text-sm text-[#5B6A8E] mt-1">Add a new rental unit under your property.</p>
         </div>
 
@@ -89,40 +89,24 @@
                 {{-- ── Left column: form fields ──────────────────────────── --}}
                 <div class="lg:col-span-7 space-y-6">
 
-                    {{-- Property Information (read-only) --}}
-                    <x-card flush class="p-6">
-                        <div class="flex items-center gap-2.5 mb-5">
-                            <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shrink-0">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
-                                </svg>
-                            </div>
-                            <h2 class="text-[13px] font-normal text-[#060D26]">Property Information</h2>
+                    {{-- Which property this unit is being added to (read-only context, not a form field) --}}
+                    <div class="flex items-center gap-3 rounded-2xl border border-[#E2E4EC] bg-white px-4 py-3">
+                        <div class="w-9 h-9 rounded-lg bg-[#060D26] flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21" />
+                            </svg>
                         </div>
-
-                        <div class="grid sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="rental-business" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Rental Business</label>
-                                <input type="text" id="rental-business" value="{{ $property->rentalBusiness->business_name ?? 'N/A' }}" disabled
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 bg-[#ECEEF6] px-3.5 text-[13.5px] text-[#5B6A8E] cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label for="property-display" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Property</label>
-                                <input type="text" id="property-display" value="{{ $property->title . ' - ' . $property->address }}" disabled
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 bg-[#ECEEF6] px-3.5 text-[13.5px] text-[#5B6A8E] cursor-not-allowed">
-                            </div>
+                        <div class="min-w-0">
+                            <p class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">Adding a unit to</p>
+                            <p class="text-[14px] font-semibold text-[#060D26] truncate">{{ $property->title }}</p>
+                            <p class="text-[12px] text-[#5B6A8E] truncate">{{ $property->address }}@if($property->rentalBusiness) &middot; {{ $property->rentalBusiness->business_name }}@endif</p>
                         </div>
-                    </x-card>
+                    </div>
 
-                    {{-- Unit Details --}}
-                    <x-card flush class="p-6">
-                        <div class="flex items-center gap-2.5 mb-5">
-                            <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shrink-0">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
-                                </svg>
-                            </div>
-                            <h2 class="text-[13px] font-normal text-[#060D26]">Unit Details</h2>
+                    <x-card>
+                        <div class="mb-5">
+                            <h2 class="text-[15px] font-semibold text-[#060D26]">Unit basics</h2>
+                            <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">What tenants will see first.</p>
                         </div>
 
                         {{-- Row 1 --}}
@@ -161,113 +145,12 @@
                             </div>
                         </div>
 
-                        {{-- Room details --}}
-                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
-                            <div>
-                                <label for="bedrooms" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Bedrooms</label>
-                                <input type="number" id="bedrooms" name="bedrooms" value="{{ old('bedrooms') }}" min="0" max="20"
-                                    placeholder="e.g. 2"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
-                                @error('bedrooms')
-                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="bathrooms" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Bathrooms</label>
-                                <input type="number" id="bathrooms" name="bathrooms" value="{{ old('bathrooms') }}" min="0" max="20"
-                                    placeholder="e.g. 1"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
-                                @error('bathrooms')
-                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="floor_area_sqm" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Floor area (sqm)</label>
-                                <input type="number" id="floor_area_sqm" name="floor_area_sqm" x-model="floorArea" min="1" max="9999.99" step="0.01" placeholder="e.g. 24"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
-                                @error('floor_area_sqm')
-                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
+                    </x-card>
 
-                        <div class="mb-4">
-                            <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Furnished?</label>
-                            @php $furnishedOld = old('is_furnished'); @endphp
-                            <div class="flex items-center gap-4 h-11">
-                                <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
-                                    <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
-                                    Yes
-                                </label>
-                                <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
-                                    <input type="radio" name="is_furnished" value="0" @checked((string) $furnishedOld === '0') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
-                                    No
-                                </label>
-                            </div>
-                            @error('is_furnished')
-                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        {{-- Unit/room features --}}
-                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
-                            <div>
-                                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Bathroom</label>
-                                <x-styled-select name="bathroom_type"
-                                    :options="['Private bathroom' => 'Private bathroom', 'Shared bathroom' => 'Shared bathroom']"
-                                    :selected="old('bathroom_type', '')" placeholder="Not specified"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3 text-[13.5px] text-[#060D26] bg-white" />
-                                @error('bathroom_type')
-                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Furnishing</label>
-                                <x-styled-select name="furnishing_status"
-                                    :options="['Furnished' => 'Furnished', 'Semi-furnished' => 'Semi-furnished', 'Unfurnished' => 'Unfurnished']"
-                                    :selected="old('furnishing_status', '')" placeholder="Not specified"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3 text-[13.5px] text-[#060D26] bg-white" />
-                                @error('furnishing_status')
-                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Kitchen</label>
-                                <x-styled-select name="kitchen_type"
-                                    :options="['Private kitchen' => 'Private kitchen', 'Shared kitchen' => 'Shared kitchen', 'No kitchen' => 'No kitchen']"
-                                    :selected="old('kitchen_type', '')" placeholder="Not specified"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3 text-[13.5px] text-[#060D26] bg-white" />
-                                @error('kitchen_type')
-                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-
-                        {{-- Unit policies --}}
-                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
-                            @foreach ([
-                                ['pets_allowed', 'Pets allowed?'],
-                                ['smoking_allowed', 'Smoking allowed?'],
-                                ['visitors_allowed', 'Visitors allowed?'],
-                            ] as [$field, $label])
-                                <div>
-                                    <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">{{ $label }}</label>
-                                    @php $fieldOld = old($field); @endphp
-                                    <div class="flex items-center gap-4 h-11">
-                                        <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
-                                            <input type="radio" name="{{ $field }}" value="1" @checked((string) $fieldOld === '1') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
-                                            Yes
-                                        </label>
-                                        <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
-                                            <input type="radio" name="{{ $field }}" value="0" @checked((string) $fieldOld === '0') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
-                                            No
-                                        </label>
-                                    </div>
-                                    @error($field)
-                                        <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            @endforeach
+                    <x-card>
+                        <div class="mb-5">
+                            <h2 class="text-[15px] font-semibold text-[#060D26]">Pricing & availability</h2>
+                            <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">Rent, deposit, who it fits and whether it's open.</p>
                         </div>
 
                         {{-- Row 2 --}}
@@ -349,6 +232,121 @@
                             @enderror
                         </div>
 
+                    </x-card>
+
+                    <x-card>
+                        <div class="mb-5">
+                            <h2 class="text-[15px] font-semibold text-[#060D26]">Room details</h2>
+                            <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">Size and what comes with the room.</p>
+                        </div>
+
+                        {{-- Room details --}}
+                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label for="bedrooms" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Bedrooms</label>
+                                <input type="number" id="bedrooms" name="bedrooms" value="{{ old('bedrooms') }}" min="0" max="20"
+                                    placeholder="e.g. 2"
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+                                @error('bedrooms')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="bathrooms" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Bathrooms</label>
+                                <input type="number" id="bathrooms" name="bathrooms" value="{{ old('bathrooms') }}" min="0" max="20"
+                                    placeholder="e.g. 1"
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+                                @error('bathrooms')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="floor_area_sqm" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Floor area (sqm)</label>
+                                <input type="number" id="floor_area_sqm" name="floor_area_sqm" x-model="floorArea" min="1" max="9999.99" step="0.01" placeholder="e.g. 24"
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+                                @error('floor_area_sqm')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Unit/room features --}}
+                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Bathroom</label>
+                                <x-styled-select name="bathroom_type"
+                                    :options="['Private bathroom' => 'Private bathroom', 'Shared bathroom' => 'Shared bathroom']"
+                                    :selected="old('bathroom_type', '')" placeholder="Not specified"
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3 text-[13.5px] text-[#060D26] bg-white" />
+                                @error('bathroom_type')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Furnishing</label>
+                                <x-styled-select name="furnishing_status"
+                                    :options="['Furnished' => 'Furnished', 'Semi-furnished' => 'Semi-furnished', 'Unfurnished' => 'Unfurnished']"
+                                    :selected="old('furnishing_status', '')" placeholder="Not specified"
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3 text-[13.5px] text-[#060D26] bg-white" />
+                                @error('furnishing_status')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Kitchen</label>
+                                <x-styled-select name="kitchen_type"
+                                    :options="['Private kitchen' => 'Private kitchen', 'Shared kitchen' => 'Shared kitchen', 'No kitchen' => 'No kitchen']"
+                                    :selected="old('kitchen_type', '')" placeholder="Not specified"
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3 text-[13.5px] text-[#060D26] bg-white" />
+                                @error('kitchen_type')
+                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                    </x-card>
+
+                    <x-card>
+                        <div class="mb-5">
+                            <h2 class="text-[15px] font-semibold text-[#060D26]">House rules</h2>
+                            <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">Tenants filter on these, so answer what you can.</p>
+                        </div>
+
+                        {{-- Unit policies --}}
+                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
+                            @foreach ([
+                                ['pets_allowed', 'Pets allowed?'],
+                                ['smoking_allowed', 'Smoking allowed?'],
+                                ['visitors_allowed', 'Visitors allowed?'],
+                            ] as [$field, $label])
+                                <div>
+                                    <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">{{ $label }}</label>
+                                    @php $fieldOld = old($field); @endphp
+                                    <div class="flex items-center gap-2">
+                                        <label class="cursor-pointer">
+<input type="radio" name="{{ $field }}" value="1" @checked((string) $fieldOld === '1') class="peer sr-only">
+<span class="inline-flex h-10 min-w-[64px] items-center justify-center rounded-full border border-[#E2E4EC] bg-white px-4 text-[13px] font-semibold text-[#5B6A8E] transition-colors duration-200 hover:border-[#060D26]/40 peer-checked:border-[#060D26] peer-checked:bg-[#060D26] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66] peer-focus-visible:ring-offset-2">Yes</span>
+</label>
+                                        <label class="cursor-pointer">
+<input type="radio" name="{{ $field }}" value="0" @checked((string) $fieldOld === '0') class="peer sr-only">
+<span class="inline-flex h-10 min-w-[64px] items-center justify-center rounded-full border border-[#E2E4EC] bg-white px-4 text-[13px] font-semibold text-[#5B6A8E] transition-colors duration-200 hover:border-[#060D26]/40 peer-checked:border-[#060D26] peer-checked:bg-[#060D26] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66] peer-focus-visible:ring-offset-2">No</span>
+</label>
+                                    </div>
+                                    @error($field)
+                                        <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endforeach
+                        </div>
+
+                    </x-card>
+
+                    <x-card>
+                        <div class="mb-5">
+                            <h2 class="text-[15px] font-semibold text-[#060D26]">Description</h2>
+                            <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">Anything else worth knowing.</p>
+                        </div>
+
                         {{-- Description --}}
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
@@ -367,25 +365,10 @@
                     {{-- Unit Photos --}}
                     @include('landlord.units.partials._photo-capture', ['existingLiveCount' => 0])
 
-                    {{-- Actions --}}
-                    <div class="flex items-center gap-3">
-                        <a href="{{ ($fromWizard ?? false) ? route('properties.wizard.units', $property) : route('landlord.properties.units.index', $property) }}"
-                            class="h-11 px-6 inline-flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-sm font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
-                            Cancel
-                        </a>
-                        <button type="submit" :disabled="submitting"
-                            class="h-11 px-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 disabled:opacity-70 disabled:cursor-wait">
-                            <svg x-show="submitting" x-cloak class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                            <span x-text="submitting ? 'Uploading photos…' : 'Save Unit'"></span>
-                        </button>
-                    </div>
                 </div>
 
                 {{-- ── Right rail: live preview + amenities ───────────────── --}}
-                <div class="lg:col-span-5">
+                <div class="lg:col-span-5 lg:max-w-[420px]">
                     <div class="space-y-6">
                         <x-card flush>
                             <div class="px-5 pt-5 pb-3 flex items-center gap-2 border-b border-[#E2E4EC]/70">
@@ -393,22 +376,17 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                 </svg>
-                                <h3 class="text-[13px] font-normal text-[#060D26]">Live Preview</h3>
+                                <h3 class="text-[13px] font-semibold text-[#060D26]">Live Preview</h3>
                                 <span class="ml-auto text-[10.5px] font-medium text-[#5B6A8E]">Updates as you type</span>
                             </div>
 
-                            {{-- Image area --}}
-                            <div class="aspect-[4/3] bg-[#ECEEF6] flex flex-col items-center justify-center text-[#5B6A8E] border-b border-[#E2E4EC]/70">
-                                <svg width="34" height="34" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                                </svg>
-                                <p class="text-[11px] mt-1.5">Photos appear here</p>
-                            </div>
-
                             {{-- Body --}}
-                            <div class="p-5 space-y-3">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div class="min-w-0">
+                            <div class="p-4 space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-16 h-16 shrink-0 rounded-xl bg-[#ECEEF6] flex items-center justify-center text-[#5B6A8E]" aria-hidden="true" title="Photos appear here">
+                                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 19.5h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5z" /></svg>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
                                         <p class="text-[15px] font-bold text-[#060D26] truncate"
                                             x-text="unitLabel || 'Unit name'"
                                             :class="unitLabel ? '' : 'text-[#5B6A8E] font-semibold italic'"></p>
@@ -417,7 +395,7 @@
                                         </p>
                                     </div>
                                     {{-- Status pill --}}
-                                    <span class="shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+                                    <span class="shrink-0 self-start inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold"
                                         :style="`border-color:${statusMeta[status].dot}55; background:${statusMeta[status].dot}14; color:#060D26`">
                                         <span class="w-1.5 h-1.5 rounded-full" :style="`background:${statusMeta[status].dot}`"></span>
                                         <span x-text="status"></span>
@@ -431,17 +409,17 @@
                                 </div>
 
                                 {{-- Meta rows --}}
-                                <div class="grid grid-cols-2 gap-2 pt-1">
-                                    <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-2.5 py-1.5">
                                         <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Capacity</p>
                                         <p class="text-[13px] font-semibold text-[#060D26] mt-0.5"
                                             x-text="capacity ? capacity + (capacity == 1 ? ' person' : ' persons') : '—'"></p>
                                     </div>
-                                    <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2">
+                                    <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-2.5 py-1.5">
                                         <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Deposit</p>
                                         <p class="text-[13px] font-semibold text-[#060D26] mt-0.5" x-text="peso(securityDeposit) || '—'"></p>
                                     </div>
-                                    <div x-show="floorArea" x-cloak class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2">
+                                    <div x-show="floorArea" x-cloak class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-2.5 py-1.5">
                                         <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Floor area</p>
                                         <p class="text-[13px] font-semibold text-[#060D26] mt-0.5" x-text="floorArea ? floorArea + ' sqm' : '—'"></p>
                                     </div>
@@ -464,19 +442,17 @@
                             </div>
                         </x-card>
 
-                        <p class="text-[11px] text-[#5B6A8E] text-center px-4 leading-relaxed">
-                            This is a preview of how the unit's key details will read to tenants once approved.
-                        </p>
+                        
 
                         {{-- Unit Amenities --}}
-                        <x-card flush class="p-6">
+                        <x-card>
                             <div class="flex items-center gap-2.5 mb-5">
                                 <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shrink-0">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                                     </svg>
                                 </div>
-                                <h2 class="text-[13px] font-normal text-[#060D26]">Unit Amenities</h2>
+                                <h2 class="text-[13px] font-semibold text-[#060D26]">Unit Amenities</h2>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -513,6 +489,22 @@
                     </div>
                 </div>
 
+            </div>
+
+            {{-- Sticky on phones so Save stays reachable past the long form and the amenities rail below it. --}}
+            <div class="sticky bottom-0 z-20 -mx-4 sm:mx-0 mt-8 px-4 sm:px-0 py-3 bg-[#F7F8FC] border-t border-[#E2E4EC] sm:border-0 flex items-center gap-3">
+                <a href="{{ ($fromWizard ?? false) ? route('properties.wizard.units', $property) : route('landlord.properties.units.index', $property) }}"
+                    class="flex-1 sm:flex-none h-11 px-6 inline-flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-sm font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
+                    Cancel
+                </a>
+                <button type="submit" :disabled="submitting"
+                    class="flex-1 sm:flex-none h-11 px-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 disabled:opacity-70 disabled:cursor-wait">
+                    <svg x-show="submitting" x-cloak class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span x-text="submitting ? 'Uploading photos…' : 'Save Unit'"></span>
+                </button>
             </div>
         </form>
 

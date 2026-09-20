@@ -3,7 +3,7 @@
 @section('content')
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16"
         x-data="{
-            view: localStorage.getItem('unitsView') || 'grid',
+            view: {!! "localStorage.getItem('unitsView') || 'table'" !!},
             setView(v) { this.view = v; localStorage.setItem('unitsView', v); },
             modal: null,
             show: false,
@@ -13,14 +13,14 @@
         }"
         x-on:keydown.escape.window="closeModal()">
 
+        {{-- One layout only: ?property= (from a property card) just narrows the list via the dropdown. It no longer switches to a separate single-property layout. --}}
+        @php
+            $scopedProperty = null;
+        @endphp
+
         {{-- Header --}}
-        <x-page-header title="Units" subtitle="Manage all units and their availability across your properties.">
-            <x-slot:icon>
-                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
-                </svg>
-            </x-slot:icon>
+        <x-page-header :title="$scopedProperty ? $scopedProperty->title : 'Units'"
+            :subtitle="$scopedProperty ? 'Units in this property.' : 'Manage all units and their availability across your properties.'">
             <x-slot:actions>
                 {{-- Export carries the active filters so the CSV matches the page --}}
                 <a href="{{ route('landlord.units.export', request()->only('search', 'property', 'status')) }}"
@@ -51,63 +51,31 @@
             </div>
         @endif
 
-        {{-- Stat cards --}}
+        {{-- Status summary. Each status cell filters the list (click again to clear); Total clears any filter. --}}
         @php
-            $availPct = $stats['total'] > 0 ? round($stats['available'] / $stats['total'] * 100) : 0;
-            $reservedPct = $stats['total'] > 0 ? round($stats['reserved'] / $stats['total'] * 100) : 0;
-            $occupiedPct = $stats['total'] > 0 ? round($stats['occupied'] / $stats['total'] * 100) : 0;
-            $maintenancePct = $stats['total'] > 0 ? round($stats['maintenance'] / $stats['total'] * 100) : 0;
+            $pctOfTotal = fn (int $n) => $stats['total'] > 0 ? round($n / $stats['total'] * 100) : 0;
+            $cellHref = fn (?string $status) => route('landlord.units.index', array_filter([
+                'property' => request('property'),
+                'search' => request('search'),
+                'status' => $status && request('status') !== $status ? $status : null,
+            ]));
+            $summary = [
+                ['label' => 'Total units', 'value' => $stats['total'], 'note' => request('property') ? 'In the selected property' : 'Across all properties', 'href' => $cellHref(null)],
+            ];
+            foreach ([
+                ['Available', 'available', '#22C55E', '% of units'],
+                ['Reserved', 'reserved', '#FBBF24', '% of units'],
+                ['Occupied', 'occupied', '#EF4444', '% occupancy'],
+                ['Maintenance', 'maintenance', '#94A3B8', '% of units'],
+            ] as [$label, $key, $dot, $suffix]) {
+                if ($key === 'maintenance' && $stats[$key] === 0 && request('status') !== $label) {
+                    continue;
+                }
+                $summary[] = ['label' => $label, 'value' => $stats[$key], 'note' => $pctOfTotal($stats[$key]) . $suffix, 'dot' => $dot,
+                    'href' => $cellHref($label), 'active' => request('status') === $label];
+            }
         @endphp
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-            <x-stat-card label="Total Units" :value="$stats['total']" sub="Across all properties">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Available" :value="$stats['available']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)"
-                :percent="$availPct" bar-color="#22C55E" :sub="$availPct.'% of total units'">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Reserved" :value="$stats['reserved']" value-color="#B45309" icon-bg="rgba(251,191,36,0.10)"
-                :percent="$reservedPct" bar-color="#FBBF24" :sub="$reservedPct.'% of total units'">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Occupied" :value="$stats['occupied']" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)"
-                :percent="$occupiedPct" bar-color="#EF4444" :sub="$occupiedPct.'% occupancy rate'">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Maintenance" :value="$stats['maintenance']" value-color="#5B6A8E" icon-bg="rgba(148,163,184,0.15)"
-                :percent="$maintenancePct" bar-color="#94A3B8" :sub="$maintenancePct.'% of total units'">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-        </div>
+        <x-stat-strip :cells="$summary" class="mb-6" />
 
         {{-- Filters --}}
         <x-card class="mb-6">
@@ -120,7 +88,7 @@
                             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}"
-                        placeholder="Search units by name or property..." aria-label="Search units by name or property"
+                        placeholder="{{ $scopedProperty ? 'Search units by name...' : 'Search units by name or property...' }}" aria-label="Search units"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
@@ -130,9 +98,19 @@
                         $unitsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                         $unitsStatusOptions = ['' => 'All Status', 'Available' => 'Available', 'Reserved' => 'Reserved', 'Occupied' => 'Occupied', 'Maintenance' => 'Maintenance'];
                     @endphp
-                    <x-styled-select name="property" :options="$unitsPropertyOptions" :selected="(string) request('property', '')" :autosubmit="true"
-                        class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[180px]" />
+                    @if($scopedProperty)
+                        <input type="hidden" name="property" value="{{ $scopedProperty->property_id }}">
+                    @else
+                        <x-styled-select name="property" :options="$unitsPropertyOptions" :selected="(string) request('property', '')" :autosubmit="true"
+                            class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[180px]" />
+                    @endif
 
+                    @if($scopedProperty)
+                        {{-- Status is chosen with the tabs above; keep it through a search --}}
+                        @if(request('status'))
+                            <input type="hidden" name="status" value="{{ request('status') }}">
+                        @endif
+                    @else
                     <x-styled-select name="status" :options="$unitsStatusOptions" :selected="request('status', '')" :autosubmit="true"
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
@@ -143,9 +121,10 @@
                         </svg>
                         Filter
                     </button>
+                    @endif
 
-                    @if(request()->hasAny(['search', 'status', 'property']))
-                        <a href="{{ route('landlord.units.index') }}"
+                    @if(request()->hasAny(['search', 'status']) || (! $scopedProperty && request()->has('property')))
+                        <a href="{{ route('landlord.units.index', $scopedProperty ? ['property' => $scopedProperty->property_id] : []) }}"
                             class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -154,7 +133,8 @@
                         </a>
                     @endif
 
-                    {{-- View toggle --}}
+                    {{-- View toggle (one property is always a table on desktop, cards on phones) --}}
+                    @unless($scopedProperty)
                     <div class="flex items-center gap-0.5 h-11 p-1 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] ml-auto">
                         <button type="button" x-on:click="setView('grid')" aria-label="Grid view"
                             :class="view === 'grid' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
@@ -173,10 +153,11 @@
                             </svg>
                         </button>
                     </div>
+                    @endunless
                 </div>
             </div>
 
-            @if(request()->hasAny(['search', 'status', 'property']))
+            @if(request()->hasAny(['search', 'status']) || (! $scopedProperty && request()->has('property')))
                 <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-[#5B6A8E]/10 text-[12.5px] text-[#5B6A8E]">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
@@ -255,47 +236,51 @@
                 }
             @endphp
 
-            <div x-show="view === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div {!! $scopedProperty ? '' : 'x-show="view === \'grid\'"' !!}
+                class="grid grid-cols-1 {{ $scopedProperty ? 'lg:hidden' : 'xl:grid-cols-2 2xl:grid-cols-3' }} gap-4">
                 @foreach($units as $unit)
                     @php extract($derived[$unit->unit_id]); @endphp
 
+                    {{-- Horizontal card: photo left, details right --}}
                     <article
-                        class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] hover:shadow-[0_8px_28px_rgba(6,13,38,0.1)] hover:-translate-y-0.5 transition-all duration-300">
+                        class="group flex flex-row rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] hover:shadow-[0_8px_28px_rgba(6,13,38,0.1)] hover:-translate-y-0.5 transition-all duration-300">
 
                         {{-- Photo --}}
-                        <div class="relative aspect-[16/10] overflow-hidden bg-[#ECEEF6] shrink-0">
+                        <div class="relative w-32 sm:w-44 min-h-[148px] self-stretch overflow-hidden bg-[#ECEEF6] shrink-0">
+                            {{-- Placeholder sits underneath, so a photo that fails to load falls back to it --}}
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                                <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"
+                                    class="text-[#5B6A8E]/60">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159" />
+                                </svg>
+                                <span class="text-[11px] text-[#5B6A8E]/70">No photo</span>
+                            </div>
                             @if($thumb)
-                                <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}"
-                                    class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
-                            @else
-                                <div class="w-full h-full flex flex-col items-center justify-center gap-2">
-                                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"
-                                        class="text-[#5B6A8E]/60">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159" />
-                                    </svg>
-                                    <span class="text-[11px] text-[#5B6A8E]/70">No photo</span>
-                                </div>
+                                <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" onerror="this.remove()"
+                                    class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
                             @endif
 
                             {{-- Status chip --}}
-                            <span
-                                class="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 {{ $avBg }}">
-                                <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                                {{ $unit->availability_status }}
-                            </span>
-
-                            {{-- Verification chip --}}
-                            <span
-                                class="absolute top-3 right-3 inline-flex items-center text-[10.5px] font-semibold px-2 py-1 rounded-full {{ $vrBg }}">
-                                {{ $unit->verification_status }}
+                            {{-- Solid white base under each chip: the tints are translucent and vanish on busy photos --}}
+                            <span class="absolute top-2 left-2 rounded-full bg-white">
+                                <span class="inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full ring-1 {{ $avBg }}">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                    {{ $unit->availability_status }}
+                                </span>
                             </span>
                         </div>
 
                         {{-- Body --}}
-                        <div class="flex flex-col flex-1 p-4 gap-3">
-                            <div>
-                                <p class="text-[15px] font-bold text-[#060D26] leading-snug">{{ $unit->unit_label }}</p>
+                        <div class="flex flex-col flex-1 min-w-0 p-3.5 gap-2.5">
+                            <div class="min-w-0">
+                                <div class="flex items-start justify-between gap-2">
+                                    <p class="text-[15px] font-bold text-[#060D26] leading-snug truncate">{{ $unit->unit_label }}</p>
+                                    <span class="shrink-0 inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full {{ $vrBg }}">
+                                        {{ $unit->verification_status }}
+                                    </span>
+                                </div>
+                                @unless($scopedProperty)
                                 <a href="{{ route('landlord.properties.show', $unit->property) }}"
                                     class="text-[12px] text-[#5B6A8E] hover:text-[#B35A3D] transition-colors duration-200 mt-0.5 line-clamp-1 flex items-center gap-1 w-fit">
                                     <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
@@ -304,21 +289,18 @@
                                     </svg>
                                     {{ $unit->property->title }}
                                 </a>
+                                @endunless
                             </div>
 
-                            <div class="flex items-center justify-between rounded-xl bg-[#ECEEF6]/60 px-3.5 py-2.5">
-                                <div>
-                                    <p class="text-[15px] font-bold text-[#060D26]">₱{{ number_format($unit->rental_fee, 0) }}</p>
-                                    <p class="text-[10px] text-[#5B6A8E]">per month</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[13px] font-semibold text-[#060D26]">{{ $unit->occupancy_limit }}</p>
-                                    <p class="text-[10px] text-[#5B6A8E]">{{ Str::plural('person', $unit->occupancy_limit) }}</p>
-                                </div>
-                            </div>
+                            <p class="text-[13px] text-[#5B6A8E] tabular-nums">
+                                <span class="text-[16px] font-semibold text-[#060D26]">₱{{ number_format($unit->rental_fee, 0) }}</span>
+                                /month
+                                <span class="mx-1.5 text-[#5B6A8E]/50">·</span>
+                                Fits {{ $unit->occupancy_limit }}
+                            </p>
 
                             {{-- Actions --}}
-                            <div class="flex items-center gap-2 pt-1 mt-auto">
+                            <div class="flex items-center gap-1.5 mt-auto">
                                 <button type="button" x-on:click="openModal(@js($unitPayload))"
                                     class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -328,7 +310,7 @@
                                     View
                                 </button>
                                 <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}"
-                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
+                                    class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full text-[#5B6A8E] text-[12px] font-semibold hover:bg-[#ECEEF6] hover:text-[#B35A3D] transition-colors duration-200">
                                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
@@ -343,7 +325,7 @@
                                     data-confirm-button="Remove unit">
                                     @csrf @method('DELETE')
                                     <button type="submit"
-                                        class="h-9 w-9 flex items-center justify-center rounded-full border border-[#EF4444]/25 text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
+                                        class="h-9 w-9 flex items-center justify-center rounded-full text-[#5B6A8E] hover:text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
                                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79" />
@@ -357,13 +339,35 @@
             </div>
 
             {{-- Table view --}}
-            <x-card flush x-show="view === 'table'" x-cloak>
+            <div @if($scopedProperty) class="hidden lg:block" @else x-show="view === 'table'" x-cloak @endif>
+            <div class="space-y-8">
+            {{-- One table per property. Scoped to a single property the heading is redundant (it's the page title). --}}
+            @foreach($units->groupBy('property_id') as $groupUnits)
+            @php
+                $groupProperty = $groupUnits->first()->property;
+                // A column that is "—" on every row is noise: only show Type when some unit here has one.
+                $showType = $groupUnits->contains(fn ($u) => filled($u->unit_type));
+            @endphp
+            <section>
+                @unless($scopedProperty)
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-3 px-1">
+                        <div class="min-w-0">
+                            <h2 class="text-[16px] font-semibold text-[#060D26] truncate">{{ $groupProperty->title }}</h2>
+                            <p class="text-[12.5px] text-[#5B6A8E]">{{ $groupUnits->count() }} {{ Str::plural('unit', $groupUnits->count()) }}@if($groupProperty->address) &middot; {{ $groupProperty->address }}@endif</p>
+                        </div>
+                        <div class="flex items-center gap-4 text-[13px] font-semibold">
+                            <a href="{{ route('landlord.properties.show', $groupProperty) }}" class="text-[#B35A3D] hover:underline">View property</a>
+                            <a href="{{ route('landlord.properties.units.create', $groupProperty) }}" class="text-[#B35A3D] hover:underline">+ Add unit</a>
+                        </div>
+                    </div>
+                @endunless
+            <x-card flush>
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
                             <tr class="border-b border-[#E2E4EC]">
                                 <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Unit</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Type</th>
+                                @if($showType)<th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Type</th>@endif
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Monthly Rent</th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant</th>
@@ -372,9 +376,9 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E4EC]">
-                            @foreach($units as $unit)
+                            @foreach($groupUnits as $unit)
                                 @php extract($derived[$unit->unit_id]); @endphp
-                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
+                                <trclass="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
                                     {{-- Unit --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">
@@ -392,7 +396,9 @@
                                             </div>
                                             <div class="min-w-0">
                                                 <p class="text-[13px] font-bold text-[#060D26] truncate">{{ $unit->unit_label }}</p>
+                                                @unless($scopedProperty)
                                                 <p class="text-[11.5px] text-[#5B6A8E] truncate max-w-[180px]">{{ $unit->property->title }}</p>
+                                                @endunless
                                                 <p class="text-[11px] text-[#5B6A8E]">
                                                     {{ collect([$unit->floor, $unit->occupancy_limit ? $unit->occupancy_limit . ' ' . Str::plural('person', $unit->occupancy_limit) : null])->filter()->implode(' · ') ?: '—' }}
                                                 </p>
@@ -401,6 +407,7 @@
                                     </td>
 
                                     {{-- Type --}}
+                                    @if($showType)
                                     <td class="px-4 py-3.5">
                                         @if($unit->unit_type)
                                             <span class="inline-flex px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[#060D26] text-[11px] font-semibold whitespace-nowrap">
@@ -410,6 +417,7 @@
                                             <span class="text-[12px] text-[#5B6A8E]">—</span>
                                         @endif
                                     </td>
+                                    @endif
 
                                     {{-- Rent --}}
                                     <td class="px-4 py-3.5">
@@ -493,6 +501,10 @@
                     </table>
                 </div>
             </x-card>
+            </section>
+            @endforeach
+            </div>
+            </div>
 
             <div class="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <p class="text-[12.5px] text-[#5B6A8E]">

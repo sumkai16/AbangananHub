@@ -70,6 +70,7 @@ class ProfileController extends Controller
         $units = PropertyUnit::whereIn('property_id', $propertyIds)->get();
         $totalUnits = $units->count();
         $occupiedUnits = $units->where('availability_status', 'Occupied')->count();
+        $availableUnits = $units->where('availability_status', 'Available')->count();
 
         // Reviews received on this landlord's properties
         $reviews = Review::whereIn('property_id', $propertyIds)
@@ -97,6 +98,7 @@ class ProfileController extends Controller
             'properties' => $properties,
             'totalUnits' => $totalUnits,
             'occupiedUnits' => $occupiedUnits,
+            'availableUnits' => $availableUnits,
             'reviews' => $reviews,
             'averageRating' => $ratingSummary['avg'],
             'ratingCount' => $ratingSummary['count'],

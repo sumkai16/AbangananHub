@@ -201,24 +201,6 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Furnished?</label>
-                            @php $furnishedOld = old('is_furnished', $unit->is_furnished === null ? null : (int) $unit->is_furnished); @endphp
-                            <div class="flex items-center gap-4 h-11">
-                                <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
-                                    <input type="radio" name="is_furnished" value="1" @checked((string) $furnishedOld === '1') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
-                                    Yes
-                                </label>
-                                <label class="inline-flex items-center gap-1.5 text-[13px] text-[#060D26] cursor-pointer">
-                                    <input type="radio" name="is_furnished" value="0" @checked((string) $furnishedOld === '0') class="text-[#B35A3D] focus:ring-[#FF8A66]/30">
-                                    No
-                                </label>
-                            </div>
-                            @error('is_furnished')
-                                <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         {{-- Unit/room features --}}
                         <div class="grid sm:grid-cols-3 gap-4 mb-4">
                             <div>

@@ -29,13 +29,20 @@ writing-plans, writing-skills
 
 - `frontend-design`
 - `ui-ux-pro-max` (project copy, overrides the user-level one above)
+- `impeccable` (added 2026-09-20) — pre-ship design-polish checklist skill: catches generic
+  AI-slop patterns and drift from this file's own `DESIGN.md` rules. Invoked deliberately by
+  Claude before calling a UI change done — **not** hook-driven, see below.
 - `AI Design Slop Why It Happens & How to Kill It.md` — loose reference doc, not a proper
-  `SKILL.md`, so it isn't directly invokable as a skill
+  `SKILL.md`, so it isn't directly invokable as a skill; `impeccable` folds its actionable rules in.
 
-## Hooks configured for this project (`.claude/settings.local.json`)
+## Hooks configured for this project
 
-- **PostToolUse** (Edit/Write/MultiEdit) → runs `impeccable`'s immediate-tier design checks
-- **Stop** → runs `impeccable`'s full deep design-rule pass
+**None.** `.claude/settings.local.json` has no `hooks` key — only a Bash permission entry. An
+earlier version of this file claimed a `PostToolUse`/`Stop` hook pair ran an `impeccable` skill's
+checks automatically; that was never actually true on this machine (verified 2026-09-20 — no
+hooks in settings, no `impeccable` skill existed at all until added above). If automatic
+per-edit/per-stop enforcement is wanted, that still needs to be set up deliberately via the
+`update-config` skill — it does not exist today.
 
 ## Notes
 

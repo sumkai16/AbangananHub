@@ -193,6 +193,13 @@
                                                     // so the map no longer needs a resize nudge on reveal.
                                                 }">
 
+        {{-- Back to the search results the visitor came from (filters, sort and page kept). --}}
+        <a href="{{ $backUrl }}"
+            class="group mb-4 inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-full border border-[#E2E4EC] bg-white text-[14px] font-semibold text-[#5B6A8E] transition-colors duration-200 hover:border-[#060D26]/40 hover:text-[#060D26] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
+            <svg class="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            Back to results
+        </a>
+
         {{-- Top-to-bottom flow (not the old sticky two-column split): header,
              gallery, details+contact row, subunit grid, then the rest of the
              editorial content, then Nearby Rentals. --}}
@@ -242,7 +249,7 @@
                     // lg:gap-x-4 must stay equal to the content grid's own
                     // lg:gap-x-4 below (not lg:gap-8) or that alignment
                     // breaks again.
-                    $mediaCount >= 2 => 'grid grid-cols-3 lg:grid-cols-12 grid-rows-2 gap-2 lg:gap-x-4 aspect-[3/1] max-h-[420px] w-full',
+                    $mediaCount >= 2 => 'grid grid-cols-3 lg:grid-cols-12 grid-rows-2 gap-2 lg:gap-4 aspect-[3/1] max-h-[420px] w-full',
                     default => 'grid grid-cols-1',
                 };
             @endphp
@@ -253,7 +260,7 @@
                         {{-- Big tile: same #hero-img element, same overlays,
                              same behaviour as before — only its container
                              changed from a standalone box to a grid cell. --}}
-                        <div class="relative rounded-2xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] shadow-sm group {{ $mediaCount >= 2 ? 'col-span-2 lg:col-span-8 row-span-2' : 'aspect-[3/1] max-h-[420px]' }}">
+                        <div class="relative rounded-2xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] group {{ $mediaCount >= 2 ? 'col-span-2 lg:col-span-8 row-span-2' : 'aspect-[3/1] max-h-[420px]' }}">
                             <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
                                 onclick="openLightboxAtHero()">
@@ -276,7 +283,7 @@
                             @endif
 
                             <button type="button" onclick="openLightboxAtHero()"
-                                class="absolute bottom-4 right-4 bg-white/90 text-[#060D26] text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm hover:brightness-95 transition-all flex items-center gap-1.5">
+                                class="absolute bottom-4 right-4 bg-white/90 text-[#060D26] text-xs font-bold px-4 py-2.5 rounded-full hover:bg-white transition-colors duration-200 flex items-center gap-1.5 cursor-pointer">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
@@ -382,14 +389,15 @@
                         @if($mediaCount >= 2)
                             @php $secondThumbIndex = $mediaCount >= 3 ? 2 : 1; @endphp
                             <button type="button" id="thumb-1" onclick="setHero(1)"
-                                class="relative block w-full h-full lg:col-span-4 overflow-hidden border-2 border-transparent transition-all">
+                                class="group relative block w-full h-full lg:col-span-4 {{ $mediaCount === 2 ? 'row-span-2' : '' }} overflow-hidden rounded-2xl bg-[#E2E4EC] border border-[#ECEEF6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                                 <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
-                                    class="w-full h-full object-cover">
+                                    class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                             </button>
+                            @if($mediaCount >= 3)
                             <button type="button" id="thumb-2" onclick="setHero({{ $secondThumbIndex }})"
-                                class="relative block w-full h-full lg:col-span-4 overflow-hidden border-2 border-transparent transition-all">
+                                class="group relative block w-full h-full lg:col-span-4 overflow-hidden rounded-2xl bg-[#E2E4EC] border border-[#ECEEF6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                                 <img src="{{ $property->media->get($secondThumbIndex)->media_url }}" alt="{{ $property->title }} photo {{ $secondThumbIndex + 1 }}"
-                                    class="w-full h-full object-cover">
+                                    class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                                 {{-- A small corner badge, not a full-image dark
                                      shade — the photo itself stays as visible
                                      as thumb-1's. --}}
@@ -399,12 +407,13 @@
                                     </span>
                                 @endif
                             </button>
+                            @endif
                         @endif
                     </div>
                 </div>
             @else
                 <div
-                    class="rounded-3xl bg-[#E2E4EC] aspect-[3/1] max-h-[420px] border border-dashed border-[#5B6A8E] flex flex-col items-center justify-center text-[#5B6A8E] shadow-sm">
+                    class="rounded-2xl bg-[#E2E4EC] aspect-[3/1] max-h-[420px] border border-dashed border-[#5B6A8E] flex flex-col items-center justify-center text-[#5B6A8E]">
                     <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -450,13 +459,13 @@
                     @endif
                 </div>
 
-                <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] sm:text-[36px] font-extrabold leading-[1.15] tracking-tight text-[#060D26] text-balance">
+                <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[23px] sm:text-[29px] font-extrabold leading-[1.15] tracking-tight text-[#060D26] text-balance">
                     {{ $property->title }}
                 </h1>
 
                 <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13.5px] font-medium text-[#5B6A8E]">
                     <span class="flex items-center gap-1.5">
-                        <svg class="w-4 h-4 shrink-0 text-[#EF4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        <svg class="w-4 h-4 shrink-0 text-[#B35A3D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -498,16 +507,16 @@
                             default => 'Varies per unit',
                         };
                     @endphp
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-[#E2E4EC] bg-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                         @foreach (array_filter([
                             ['Property type', $property->property_type],
                             $property->living_arrangement ? ['Living arrangement', $property->living_arrangement] : null,
                             ['Number of units', $approvedUnits->count() . ' ' . Str::plural('unit', $approvedUnits->count())],
                             ['Security deposit', $depositLabel],
                         ]) as [$label, $value])
-                            <div class="rounded-xl border border-[#E2E4EC] bg-white px-4 py-3.5 text-center">
-                                <p class="text-[14.5px] font-bold text-[#060D26] truncate">{{ $value }}</p>
-                                <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $label }}</p>
+                            <div class="bg-white px-4 py-3.5 min-w-0">
+                                <p class="text-[12px] font-semibold text-[#5B6A8E]">{{ $label }}</p>
+                                <p class="mt-1 text-[15px] font-bold text-[#060D26] truncate">{{ $value }}</p>
                             </div>
                         @endforeach
                     </div>
@@ -530,16 +539,16 @@
                      No leading `mt-6` either — that existed to match an offset
                      from an earlier layout and would misalign the card 24px
                      below the badges above now that both start at row 1. --}}
-                <div class="rounded-2xl bg-white border border-[#E2E4EC] shadow-[0_10px_30px_rgba(6,13,38,0.08)] p-5 sm:p-6"
-                    x-data="{ phoneRevealed: false }">
+                <div class="rounded-2xl bg-white border border-[#E2E4EC] shadow-[0_4px_16px_rgba(6,13,38,0.06)] p-5 sm:p-6"
+                    x-data="{ phoneRevealed: false, agreed: false }">
                     {{-- Price follows the unit picked in the rail, so there is one
                          source of truth rather than a hero range that can disagree
                          with what the form is about to submit. --}}
                     <p class="flex items-baseline gap-2">
-                        <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] sm:text-[38px] font-extrabold tracking-tight text-[#B35A3D]">
+                        <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] sm:text-[30px] font-extrabold tracking-tight text-[#B35A3D]">
                             &#8369;<span x-text="selected ? selected.price : '{{ number_format($property->units->min('rental_fee') ?? 0) }}'"></span>
                         </span>
-                        <span class="text-[15px] font-medium text-[#5B6A8E]">/ month</span>
+                        <span class="text-[14px] font-medium text-[#5B6A8E]">/ month</span>
                     </p>
                     <p class="mt-1 text-[13.5px] text-[#5B6A8E]" x-show="selected" x-cloak>
                         <template x-if="selected && selected.deposit">
@@ -557,7 +566,7 @@
                              profile page), object-cover so it's centered/
                              cropped to fill the circle rather than stretched
                              — falls back to the plain initials otherwise. --}}
-                        <div class="w-11 h-11 shrink-0 rounded-full overflow-hidden bg-[#FF8A66] text-[#060D26] flex items-center justify-center text-[14px] font-bold">
+                        <div class="w-12 h-12 shrink-0 rounded-full overflow-hidden {{ $property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url ? 'bg-white ring-1 ring-[#E2E4EC]' : 'bg-[#FF8A66]' }} text-[#060D26] flex items-center justify-center text-[15px] font-bold">
                             @if($property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url)
                                 <img src="{{ $property->landlord->rentalBusiness->logo_url }}" alt="{{ $property->landlord->rentalBusiness->business_name }}"
                                     class="w-full h-full object-cover">
@@ -606,11 +615,25 @@
                         </div>
                     </div>
 
+                    {{-- ===== LEGAL CONSENT — contacting the landlord (inquiry, login-to-contact, phone reveal)
+                         stays disabled until the visitor ticks Terms + Privacy. ===== --}}
+                    @unless($isOwner)
+                        <label class="mt-4 flex items-start gap-2.5 cursor-pointer text-[12.5px] leading-snug text-[#5B6A8E]">
+                            <input type="checkbox" x-model="agreed"
+                                class="mt-0.5 h-4 w-4 shrink-0 rounded border-[#C9CEDD] text-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/40 cursor-pointer">
+                            <span>I agree to the
+                                <a href="{{ route('terms') }}" target="_blank" rel="noopener" class="font-semibold text-[#060D26] underline underline-offset-2 hover:text-[#B35A3D]">Terms and Conditions</a>
+                                and
+                                <a href="{{ route('privacy') }}" target="_blank" rel="noopener" class="font-semibold text-[#060D26] underline underline-offset-2 hover:text-[#B35A3D]">Privacy Policy</a>.</span>
+                        </label>
+                    @endunless
+
                     {{-- ===== PRIMARY ACTION ===== --}}
                     <div class="mt-4 flex items-stretch gap-3">
                         @if(!auth()->check())
                             <button type="button" onclick="openAuthModal('login')"
-                                class="flex-1 py-3 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all">
+                                :disabled="!agreed" :class="!agreed ? 'opacity-50 cursor-not-allowed' : ''"
+                                class="flex-1 py-3 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] disabled:hover:bg-[#FF8A66] text-[#060D26] text-sm font-bold shadow-sm transition-all">
                                 Log in to contact landlord
                             </button>
                         @elseif($isOwner)
@@ -621,8 +644,8 @@
                             <button type="button" x-on:click="inquireOpen = true"
                                 class="flex-1 py-3 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all cursor-pointer"
                                 x-text="selected && selected.hasActive ? 'Inquiry already active' : 'Send Inquiry'"
-                                :disabled="selected && selected.hasActive"
-                                :class="selected && selected.hasActive ? 'opacity-60 cursor-not-allowed' : ''">
+                                :disabled="!agreed || (selected && selected.hasActive)"
+                                :class="!agreed || (selected && selected.hasActive) ? 'opacity-60 cursor-not-allowed' : ''">
                             </button>
                         @endif
                     </div>
@@ -644,6 +667,7 @@
                             @else
                                 onclick="openAuthModal('login')"
                             @endauth
+                            :disabled="!agreed" :class="!agreed ? 'opacity-50 !cursor-not-allowed' : ''"
                             class="mt-3 w-full py-3 rounded-xl border-2 border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
@@ -658,7 +682,7 @@
                     @endif
 
                     <p class="mt-2.5 text-[12.5px] font-medium text-[#5B6A8E]">Usually responds within a few hours</p>
-                    <p class="mt-1 text-[11.5px] text-[#94A3B8]">Always meet in a safe public place before making any payments. Never wire money to an unknown account.</p>
+                    <p class="mt-2 text-[12.5px] leading-snug text-[#5B6A8E]">Always meet in a safe public place before making any payments. Never wire money to an unknown account.</p>
 
                     @auth
                         <button type="button" x-on:click="reportOpen = true"
@@ -749,9 +773,9 @@
                     <div class="grid grid-cols-2 gap-3">
                         @foreach($utilityFields as [$field, $label, $icon])
                             @php $included = $property->{$field}; @endphp
-                            <div class="flex items-center gap-3 text-sm font-medium {{ $included ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">
+                            <div class="flex items-center gap-3 text-sm font-medium {{ $included ? 'text-[#060D26]' : 'text-[#5B6A8E]' }}">
                                 <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 {{ $included ? 'bg-[#ECEEF6]' : 'bg-[#F7F8FC]' }}">
-                                    <svg class="w-4 h-4 {{ $included ? 'text-[#B35A3D]' : 'text-[#94A3B8]' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <svg class="w-4 h-4 {{ $included ? 'text-[#B35A3D]' : 'text-[#5B6A8E]' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
                                     </svg>
                                 </div>
@@ -965,23 +989,17 @@
                                         ? 'border-[#FF8A66] ring-1 ring-[#FF8A66]'
                                         : '{{ $isAvailable ? 'border-[#E2E4EC]' : 'border-[#E2E4EC] cursor-not-allowed' }}'"
                                 @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
-                                {{-- Clicking the card both selects the unit
-                                     (drives the contact card's price/chip)
-                                     and opens its details slideout directly —
-                                     no longer a separate step behind the
-                                     hover-revealed "View this unit" button
-                                     below, which stays as a hover affordance
-                                     but is no longer the only way in. --}}
+                                {{-- The whole card is the control: one click selects the unit (drives the contact card's price/chip) and opens its details modal. --}}
                                 <button type="button" x-on:click="selectUnit({{ $unit->unit_id }}); openSlideout({{ $unit->unit_id }})"
-                                    class="w-full text-left transition-all"
+                                    class="group w-full text-left transition-all {{ $isAvailable ? 'cursor-pointer' : '' }}"
                                     @if(!$isAvailable) disabled @endif>
 
                                     {{-- Thumbnail --}}
                                     @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
-                                    <div class="relative aspect-[16/10] bg-[#ECEEF6]">
+                                    <div class="relative aspect-[16/10] bg-[#ECEEF6] overflow-hidden">
                                         @if($unitThumb)
                                             <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
-                                                class="w-full h-full object-cover">
+                                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out motion-reduce:transition-none">
                                         @else
                                             <div class="w-full h-full flex items-center justify-center">
                                                 <svg class="w-8 h-8 text-[#5B6A8E]" fill="none" viewBox="0 0 24 24"
@@ -996,16 +1014,27 @@
                                             <span class="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white drop-shadow">{{ $unit->floor }}</span>
                                         @endif
 
-                                        <span class="absolute top-2.5 left-2.5 text-[10.5px] font-bold px-2.5 py-1 rounded-full shadow-sm {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
+                                        <span class="absolute top-2.5 left-2.5 text-[12px] font-semibold px-2.5 py-1 rounded-full shadow-sm {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
                                             {{ $unit->availability_status }}
                                         </span>
 
+                                        <span x-show="selectedUnit === {{ $unit->unit_id }}" x-cloak
+                                            class="absolute top-2.5 right-2.5 inline-flex items-center gap-1 rounded-full bg-[#060D26] text-white text-[12px] font-semibold pl-2 pr-2.5 py-1 shadow-sm">
+                                            <svg class="w-3.5 h-3.5 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                            Selected
+                                        </span>
                                     </div>
 
                                     {{-- Details --}}
-                                    <div class="p-3.5">
-                                        <p class="text-sm font-bold text-[#060D26] truncate mb-0.5">{{ $unit->unit_label }}</p>
-                                        <p class="text-xs font-medium text-[#5B6A8E] mb-2">
+                                    <div class="p-4">
+                                        <div class="flex items-baseline justify-between gap-3">
+                                            <p class="text-[16px] font-bold text-[#060D26] truncate">{{ $unit->unit_label }}</p>
+                                            <p class="shrink-0 leading-tight">
+                                                <span class="text-[16px] font-extrabold text-[#060D26] tabular-nums">₱{{ number_format($unit->rental_fee) }}</span>
+                                                <span class="text-[12px] font-medium text-[#5B6A8E]">/ mo</span>
+                                            </p>
+                                        </div>
+                                        <p class="mt-1 text-[13px] text-[#5B6A8E]">
                                             {{ $property->property_type }}
                                             &middot; {{ $unit->occupancy_limit }}
                                             {{ $unit->occupancy_limit > 1 ? 'People' : 'Person' }}
@@ -1013,17 +1042,14 @@
                                                 &middot; {{ $unit->floor_area_label }}
                                             @endif
                                         </p>
-                                        <p class="leading-tight">
-                                            <span class="text-sm font-black text-[#060D26]">₱{{ number_format($unit->rental_fee) }}</span>
-                                            <span class="text-[11px] font-semibold text-[#5B6A8E]">/ month</span>
-                                        </p>
+
                                         @if($unit->amenities->isNotEmpty())
-                                            <div class="flex flex-wrap gap-1 mt-2">
+                                            <div class="flex flex-wrap gap-1.5 mt-3">
                                                 @foreach($unit->amenities->take(3) as $amenity)
-                                                    <span class="text-[11px] font-semibold text-[#060D26] bg-[#ECEEF6] rounded-full px-2.5 py-0.5 truncate max-w-full">{{ $amenity->amenity_name }}</span>
+                                                    <span class="text-[12px] font-medium text-[#060D26] bg-[#ECEEF6] rounded-full px-2.5 py-1 truncate max-w-full">{{ $amenity->amenity_name }}</span>
                                                 @endforeach
                                                 @if($unit->amenities->count() > 3)
-                                                    <span class="text-[11px] font-semibold text-[#5B6A8E] bg-[#ECEEF6] rounded-full px-2.5 py-0.5">+{{ $unit->amenities->count() - 3 }}</span>
+                                                    <span class="text-[12px] font-medium text-[#5B6A8E] bg-[#ECEEF6] rounded-full px-2.5 py-1">+{{ $unit->amenities->count() - 3 }}</span>
                                                 @endif
                                             </div>
                                         @endif
@@ -1034,30 +1060,6 @@
                                         @endif
                                     </div>
                                 </button>
-
-                                {{-- View-details entry point: collapsed to
-                                     zero height until this card's own
-                                     `hovering` flag is true — no longer tied
-                                     to selection, so it doesn't sit there
-                                     permanently once you've clicked a card.
-                                     Selection still forces it open too, since
-                                     hover has no equivalent on a touch device
-                                     and a mobile tap needs some way to reach
-                                     it. Alpine `x-show` toggling `display`
-                                     directly, not a CSS group-hover class —
-                                     see the note on the wrapper above. --}}
-                                <div class="overflow-hidden transition-all duration-200"
-                                    x-show="hovering || selectedUnit === {{ $unit->unit_id }}" x-cloak>
-                                    <div class="px-4 pb-4 pt-1">
-                                        <button type="button" x-on:click.stop="openSlideout({{ $unit->unit_id }})"
-                                            class="w-full py-2.5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5">
-                                            View this unit
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -1764,8 +1766,9 @@
             @endauth
         @endif
 
-        {{-- ===== UNIT DETAIL SLIDEOUT ===== --}}
-        <div x-show="slideoutUnit" x-cloak class="fixed inset-0 z-[998]" x-on:keydown.escape.window="closeSlideout()">
+        {{-- ===== UNIT DETAIL MODAL — centred dialog on desktop, bottom sheet on phones ===== --}}
+        <div x-show="slideoutUnit" x-cloak class="fixed inset-0 z-[998] flex items-end sm:items-center justify-center sm:p-6" x-on:keydown.escape.window="closeSlideout()"
+            role="dialog" aria-modal="true" :aria-label="slideoutUnit ? slideoutUnit.label : 'Unit details'">
             {{-- Overlay --}}
             <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" x-on:click="closeSlideout()" x-show="slideoutUnit"
                 x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
@@ -1774,24 +1777,24 @@
             </div>
 
             {{-- Panel --}}
-            <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl overflow-y-auto"
-                x-show="slideoutUnit" x-transition:enter="transition ease-out duration-250 transform"
-                x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
-                x-transition:leave="transition ease-in duration-200 transform" x-transition:leave-start="translate-x-0"
-                x-transition:leave-end="translate-x-full" x-on:click.stop>
+            <div class="relative w-full sm:max-w-4xl max-h-[92vh] sm:max-h-[88vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-y-auto"
+                x-show="slideoutUnit" x-transition:enter="transition ease-out duration-200 transform"
+                x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-2 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="transition ease-in duration-150 transform" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-6 sm:translate-y-2 sm:scale-95" x-on:click.stop>
 
                 <template x-if="slideoutUnit">
-                    <div>
+                    <div class="md:grid md:grid-cols-[1.05fr_1fr]">
                         {{-- Close button --}}
                         <button type="button" x-on:click="closeSlideout()"
-                            class="absolute top-4 right-4 z-10 w-9 h-9 rounded-xl bg-white/90 hover:brightness-95 text-[#060D26] flex items-center justify-center shadow-sm transition-all">
+                            class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white text-[#060D26] ring-1 ring-[#E2E4EC] hover:bg-[#F7F8FC] flex items-center justify-center shadow-sm transition-colors duration-200" aria-label="Close unit details">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
 
                         {{-- Image gallery --}}
-                        <div class="relative aspect-[4/3] bg-[#E2E4EC]">
+                        <div class="relative aspect-[4/3] md:aspect-auto md:min-h-[460px] bg-[#E2E4EC]">
                             <template x-if="slideoutUnit.media.length > 0">
                                 <div class="relative w-full h-full">
                                     <img :src="slideoutUnit.media[slideoutIdx].url" :alt="slideoutUnit.label"
@@ -1847,7 +1850,7 @@
                         </div>
 
                         {{-- Content --}}
-                        <div class="p-6 space-y-6">
+                        <div class="p-6 md:p-8 space-y-6">
 
                             {{-- Header --}}
                             <div>

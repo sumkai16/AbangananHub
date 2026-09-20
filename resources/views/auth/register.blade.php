@@ -1,226 +1,137 @@
 <x-guest-layout>
-    {{-- Right panel top action intentionally left empty to keep footer link consistent --}}
-
-    {{-- Right panel headline & feature area --}}
     <x-slot name="rightContent">
-        <div class="max-w-xl mx-auto">
-            <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] font-extrabold text-white leading-[1.1] tracking-tight mb-3 drop-shadow-sm">
-                Your Trusted Platform<br>
-                for Verified Rental <span class="text-[#FF8A66]">Properties.</span>
-            </h1>
-            <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
-                We engine-verify listings to match you with premier, safe, and highly affordable accommodations with absolute certainty.
-            </p>
-            
-            <div class="space-y-3">
-                {{-- Feature 1 --}}
-                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
-                        <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Verified Landlords</p>
-                        <p class="text-white/80 text-[11px] font-semibold mt-0.5">Strict multi-point identity verification enforced for occupant safety.</p>
-                    </div>
-                </div>
-
-                {{-- Feature 2 --}}
-                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
-                        <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Quality Listings</p>
-                        <p class="text-white/80 text-[11px] font-semibold mt-0.5">Every singular unit is curated and thoroughly evaluated before going live.</p>
-                    </div>
-                </div>
-
-                {{-- Feature 3 --}}
-                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20">
-                        <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Secure & Transparent</p>
-                        <p class="text-white/80 text-[11px] font-semibold mt-0.5">Absolute legal accountability with direct automated lease processing.</p>
-                    </div>
-                </div>
-
-                {{-- Feature 4 --}}
-                <div class="flex items-center gap-3 bg-[#060D26]/70 p-3 rounded-xl border border-white/10 shadow-lg">
-                    <div class="w-9 h-9 rounded-xl bg-[#FF8A66] flex flex-col items-center justify-center shrink-0 shadow-md shadow-[#FF8A66]/20 select-none">
-                        <span class="text-[#060D26] text-[8px] font-black tracking-tighter leading-none">SDG</span>
-                        <span class="text-[#060D26] text-xs font-black leading-none mt-0.5">16</span>
-                    </div>
-                    <div>
-                        <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-extrabold text-[11.5px] tracking-[0.06em] uppercase">Supporting SDG 16</p>
-                        <p class="text-white/80 text-[11px] font-semibold mt-0.5">We promote transparency, accountability, and trust in rental transactions to build a safer and more trustworthy community.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('auth.partials.brand-panel')
     </x-slot>
 
-    {{-- Left panel: Optimized layout to maintain no-scrollbar execution --}}
-    <div class="w-full min-h-screen bg-[#F7F8FC] flex flex-col items-center px-4 py-10 lg:py-14">
-        <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg bg-white rounded-3xl border border-[#E2E4EC] p-6 lg:p-8 shadow-[0_20px_50px_rgba(6,13,38,0.06)] transition-all duration-300">
+    <x-slot name="backLink">
+        <a href="{{ route('home') }}"
+            class="group inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-full border border-[#E2E4EC] text-[14px] font-semibold text-[#5B6A8E] transition-colors duration-200 hover:border-[#060D26]/40 hover:text-[#060D26] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
+            <svg class="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            Back
+        </a>
+    </x-slot>
+    <div class="flex-1 flex flex-col justify-center w-full max-w-lg mx-auto px-6 sm:px-8 py-10">
 
-            {{-- Branding --}}
-            <div class="mb-6">
-                <a href="/" class="flex items-center gap-2 mb-3 group inline-flex">
-                    <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shadow-md shadow-[#060D26]/10 transition-transform duration-300 group-hover:scale-105">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </div>
-                    <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
-                </a>
-                <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[22px] sm:text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create Your <span class="text-[#B35A3D]">Account</span></h2>
-                <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">Join AbangananHub and find your perfect place to stay.</p>
+        {{-- Branding --}}
+        <a href="/" class="group inline-flex items-center gap-2 self-start">
+            <div class="w-9 h-9 rounded-lg bg-[#060D26] flex items-center justify-center transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+            </div>
+            <span class="text-[#060D26] font-bold text-[17px] tracking-tight">AbangananHub</span>
+        </a>
+
+        <h2 class="mt-8 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create your account</h2>
+        <p class="mt-1.5 text-[15px] text-[#5B6A8E]">Join AbangananHub and find your place to stay.</p>
+
+        <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-4">
+            @csrf
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="first_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">First name</label>
+                    <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" required
+                        autofocus autocomplete="given-name" placeholder="First name"
+                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
+                    @error('first_name')
+                        <p class="mt-1 text-[12.5px] text-[#EF4444] font-semibold">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label for="last_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Last name</label>
+                    <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" required
+                        autocomplete="family-name" placeholder="Last name"
+                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
+                    @error('last_name')
+                        <p class="mt-1 text-[12.5px] text-[#EF4444] font-semibold">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
-            <form method="POST" action="{{ route('register') }}" class="space-y-4">
-                @csrf
+            <div>
+                <label for="email" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
+                    placeholder="you@example.com"
+                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
+                @error('email')
+                    <p class="mt-1 text-[12.5px] text-[#EF4444] font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
 
-                {{-- First Name + Last Name Grid Layout --}}
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="first_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">First Name</label>
-                        <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" required
-                            autofocus autocomplete="given-name" placeholder="First name"
-                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
-                        @error('first_name')
-                            <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label for="last_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Last Name</label>
-                        <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" required
-                            autocomplete="family-name" placeholder="Last name"
-                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
-                        @error('last_name')
-                            <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
+            <div>
+                <label for="contact_number" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Contact number</label>
+                <input id="contact_number" type="tel" name="contact_number" value="{{ old('contact_number') }}"
+                    required autocomplete="tel" inputmode="tel" placeholder="09XX XXX XXXX"
+                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
+                @error('contact_number')
+                    <p class="mt-1 text-[12.5px] text-[#EF4444] font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
 
-                {{-- Email Address --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="email" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
-                    <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
-                        placeholder="Enter your email address"
-                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
-                    @error('email')
-                        <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Contact Number --}}
-                <div>
-                    <label for="contact_number" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
-                    <input id="contact_number" type="text" name="contact_number" value="{{ old('contact_number') }}"
-                        required autocomplete="tel" placeholder="Enter your contact number"
-                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
-                    @error('contact_number')
-                        <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Password Input Module --}}
-                <div>
-                    <label for="password" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
+                    <label for="password" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
                     <div class="relative">
                         <input id="password" type="password" name="password" required autocomplete="new-password"
                             placeholder="Create a password"
-                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
-                        <button type="button" onclick="togglePassword('password', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            class="w-full pl-4 pr-12 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
+                        <button type="button" onclick="togglePassword('password', this)" aria-label="Show password"
+                            class="absolute right-1.5 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-lg text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                         </button>
                     </div>
                     @error('password')
-                        <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
+                        <p class="mt-1 text-[12.5px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- Confirm Password Input Module --}}
                 <div>
-                    <label for="password_confirmation" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
+                    <label for="password_confirmation" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Confirm password</label>
                     <div class="relative">
                         <input id="password_confirmation" type="password" name="password_confirmation" required
-                            autocomplete="new-password" placeholder="Confirm your password"
-                            class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
-                        <button type="button" onclick="togglePassword('password_confirmation', this)"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            autocomplete="new-password" placeholder="Repeat password"
+                            class="w-full pl-4 pr-12 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
+                        <button type="button" onclick="togglePassword('password_confirmation', this)" aria-label="Show password"
+                            class="absolute right-1.5 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-lg text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                         </button>
                     </div>
                     @error('password_confirmation')
-                        <p class="mt-0.5 text-[11px] text-[#EF4444] font-semibold">{{ $message }}</p>
+                        <p class="mt-1 text-[12.5px] text-[#EF4444] font-semibold">{{ $message }}</p>
                     @enderror
                 </div>
-
-                {{-- Security Banner --}}
-                <div class="flex items-start gap-2.5 bg-[#ECEEF6] border border-[#FF8A66]/20 rounded-xl p-2.5 shadow-sm">
-                    <div class="w-6 h-6 rounded-lg bg-[#FF8A66] flex items-center justify-center shrink-0 mt-0.5">
-                        <svg class="w-3 h-3 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-[#060D26] text-[11px] font-bold uppercase tracking-wide">Your security is our priority</p>
-                        <p class="text-[#5E6968] text-[11px] font-semibold leading-tight text-[#5E6968]/90">We protect your data and identity seamlessly.</p>
-                    </div>
-                </div>
-
-                {{-- Action Submit Button --}}
-                <div class="pt-0.5">
-                    <button type="submit"
-                        class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
-                        Create Account
-                    </button>
-                </div>
-            </form>
-
-            <x-social-login-buttons />
-
-            {{-- Landlord CTA Callout Node --}}
-            <div class="mt-3.5 flex items-center justify-between gap-2 bg-[#E2E4EC]/30 border border-[#E2E4EC] rounded-xl p-2.5 shadow-inner">
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0 border border-[#FF8A66]/20">
-                        <svg class="w-3.5 h-3.5 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-[#060D26] text-[11px] font-bold uppercase tracking-wide">Listing a property?</p>
-                        <p class="text-[#5B6A8E] text-[10px] font-semibold">Apply as a landlord later.</p>
-                    </div>
-                </div>
-                <a href="#" class="text-[10px] text-[#060D26] font-black border border-[#060D26]/30 bg-white rounded-md px-2.5 py-1 hover:bg-[#FF8A66] hover:text-[#060D26] transition-all duration-200 shrink-0">
-                    Apply Later
-                </a>
             </div>
 
-            <p class="text-center text-sm text-[#5B6A8E] font-medium mt-4">
-                Already have an account?
-                <a href="{{ route('login') }}" class="text-[#060D26] font-bold hover:underline ml-1">Login</a>
+            <p class="text-[13px] leading-snug text-[#5B6A8E]">
+                By creating an account you agree to our
+                <a href="{{ route('terms') }}" class="font-semibold text-[#060D26] hover:text-[#B35A3D] hover:underline" target="_blank" rel="noopener">Terms</a>
+                and
+                <a href="{{ route('privacy') }}" class="font-semibold text-[#060D26] hover:text-[#B35A3D] hover:underline" target="_blank" rel="noopener">Privacy Policy</a>.
             </p>
 
-            <p class="text-center text-[10px] font-bold text-[#5B6A8E]/70 mt-4 tracking-wider uppercase">© {{ date('Y') }} AbangananHub. All rights reserved.</p>
-        </div>
+            <button type="submit"
+                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3.5 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+                Create account
+            </button>
+        </form>
+
+        <x-social-login-buttons />
+
+        <p class="mt-6 text-center text-[14px] text-[#5B6A8E]">
+            Already have an account?
+            <a href="{{ route('login') }}" class="ml-1 font-bold text-[#060D26] hover:text-[#B35A3D] hover:underline transition-colors">Log in</a>
+        </p>
+
+        <p class="mt-3 text-center text-[13px] text-[#5B6A8E]">
+            Listing a property? Create an account first, then apply as a landlord.
+        </p>
     </div>
 </x-guest-layout>
 
@@ -229,8 +140,9 @@
         const input = document.getElementById(fieldId);
         const isPassword = input.type === 'password';
         input.type = isPassword ? 'text' : 'password';
+        btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
         btn.innerHTML = isPassword
-            ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`
-            : `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+            ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`
+            : `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
     }
 </script>

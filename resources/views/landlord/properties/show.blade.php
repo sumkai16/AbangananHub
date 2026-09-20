@@ -21,13 +21,6 @@
             ? 'https://www.google.com/maps?q=' . $property->latitude . ',' . $property->longitude
             : 'https://www.google.com/maps?q=' . urlencode($property->address);
 
-        // SVG donut chart values (r=40, cx=56, cy=56 → circ ≈ 251.33)
-        $circ    = 251.33;
-        $tot     = max($unitStats['total'], 1);
-        $dOcc    = round($unitStats['occupied']  / $tot * $circ, 2);
-        $dAvl    = round($unitStats['available'] / $tot * $circ, 2);
-        $dRsv    = round($unitStats['reserved']  / $tot * $circ, 2);
-        $dStart  = $circ * 0.25; // 12 o'clock
     @endphp
 
     {{-- ═══════════════════════════════════════════════════════
@@ -50,7 +43,7 @@
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5z"/>
                             </svg>
-                            +{{ $images->count() }} photos
+                            {{ $images->count() }} photos
                         </button>
                     @endif
                 @else
@@ -89,7 +82,7 @@
             {{-- Action buttons --}}
             <div class="flex flex-wrap items-center justify-start lg:justify-end gap-2 mb-4">
                 <a href="{{ route('properties.edit', $property) }}"
-                   class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-sm font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
+                   class="hidden lg:inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-sm font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z"/>
                     </svg>
@@ -104,13 +97,13 @@
                 </a>
                 @php $documentNudgeCount = $property->documents->filter(fn ($d) => $d->status === 'Rejected' || $d->isRequested())->count(); @endphp
                 <a href="{{ route('landlord.properties.documents.index', $property) }}"
-                   class="relative inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-sm font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
+                   class="relative hidden lg:inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-sm font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#5B6A8E]">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
                     </svg>
                     Documents
                     @if($documentNudgeCount > 0)
-                        <span class="inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $documentNudgeCount }}</span>
+                        <span class="inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-[#EF4444] text-white text-[11px] font-bold">{{ $documentNudgeCount }}</span>
                     @endif
                 </a>
                 <div class="relative">
@@ -122,7 +115,22 @@
                         More
                     </button>
                     <div x-show="moreOpen" x-cloak @click.outside="moreOpen = false"
-                         class="absolute right-0 top-11 w-48 bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-1 z-20">
+                         class="absolute right-0 top-11 w-52 bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/5 py-1 z-20">
+                        {{-- Edit + Documents are toolbar buttons from lg up; on phones they live here so Add Unit stays the one visible action. --}}
+                        <div class="lg:hidden">
+                            <a href="{{ route('properties.edit', $property) }}"
+                               class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
+                                Edit Property
+                            </a>
+                            <a href="{{ route('landlord.properties.documents.index', $property) }}"
+                               class="flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
+                                Documents
+                                @if($documentNudgeCount > 0)
+                                    <span class="inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-[#EF4444] text-white text-[11px] font-bold">{{ $documentNudgeCount }}</span>
+                                @endif
+                            </a>
+                            <div class="h-px bg-[#5B6A8E]/10 mx-3 my-1"></div>
+                        </div>
                         <a href="{{ route('landlord.properties.units.index', $property) }}"
                            class="flex items-center gap-2 px-4 py-2.5 text-sm text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#5B6A8E]">
@@ -158,17 +166,8 @@
                 </div>
             </div>
 
-            {{-- Verified badge --}}
-            @if($verified)
-                <div class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#15803D] mb-2 w-fit">
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-[#15803D]">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-                    </svg>
-                    Verified Property
-                </div>
-            @endif
 
-            <h1 class="text-2xl font-normal text-[#060D26] leading-tight mb-1">{{ $property->title }}</h1>
+            <h1 class="text-2xl font-semibold text-[#060D26] leading-tight mb-1">{{ $property->title }}</h1>
 
             <p class="text-sm text-[#5B6A8E] flex items-center gap-1.5 mb-3 flex-wrap">
                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
@@ -176,17 +175,35 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0z"/>
                 </svg>
                 {{ $property->address }}
-                <a href="{{ $mapsUrl }}" target="_blank" rel="noopener"
-                   class="text-[#B35A3D] hover:underline font-medium">View on Map</a>
             </p>
 
-            @if($property->description)
-                <p class="text-sm text-[#060D26]/70 leading-relaxed mb-4 line-clamp-3">{{ $property->description }}</p>
-            @endif
+            {{-- Key facts: fills the hero column with what a landlord checks first (money, occupancy, reputation). --}}
+            @php
+                $fees        = $property->units->pluck('rental_fee')->filter()->map(fn ($v) => (float) $v);
+                $heroReviews = $reviews->where('is_hidden', false);
+                $heroRating  = $heroReviews->count() > 0 ? round($heroReviews->avg('rating'), 1) : null;
+                $occupancyPct = $unitStats['total'] > 0 ? round($unitStats['occupied'] / $unitStats['total'] * 100) : null;
+                $keyFacts = [
+                    ['Rent per month', $fees->isEmpty() ? '—' : ($fees->min() === $fees->max()
+                        ? '₱' . number_format($fees->min(), 0)
+                        : '₱' . number_format($fees->min(), 0) . ' – ₱' . number_format($fees->max(), 0))],
+                    ['Occupancy', $occupancyPct === null ? '—' : $occupancyPct . '%'],
+                    ['Rating', $heroRating === null ? 'No reviews' : $heroRating . ' / 5 (' . $heroReviews->count() . ')'],
+                    ['Units', $unitStats['total'] . ' · ' . $unitStats['available'] . ' open'],
+                ];
+            @endphp
+            <dl class="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 mt-5 py-4 border-y border-[#E2E4EC]">
+                @foreach($keyFacts as [$label, $value])
+                    <div class="min-w-0">
+                        <dt class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">{{ $label }}</dt>
+                        <dd class="mt-1 text-[15px] font-semibold text-[#060D26] tabular-nums truncate">{{ $value }}</dd>
+                    </div>
+                @endforeach
+            </dl>
 
             {{-- Amenity chips --}}
             @if($property->amenities->isNotEmpty())
-                <div class="flex flex-wrap gap-2 mt-auto pt-2">
+                <div class="flex flex-wrap gap-2 mt-5">
                     @foreach($property->amenities->take(5) as $amenity)
                         <span class="inline-flex items-center gap-1.5 text-xs font-medium text-[#060D26] bg-[#ECEEF6] rounded-full px-3 py-1.5">
                             <x-amenity-icon :name="$amenity->amenity_name" class="w-2.5 h-2.5 text-[#B35A3D]" />
@@ -203,96 +220,103 @@
         </div>
 
         {{-- Property Status card --}}
-        <div class="w-full lg:w-56 shrink-0">
-            <x-card flush class="p-4 space-y-3">
-                <div class="flex items-center justify-between gap-2">
-                    <h3 class="text-xs font-normal text-[#5B6A8E] uppercase tracking-widest">Property Status</h3>
-                    @php
-                        $statusBg = match($property->verification_status) {
-                            'Approved' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
-                            'Pending'  => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                            'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
-                            default    => 'bg-[#ECEEF6] text-[#5B6A8E]',
-                        };
-                    @endphp
-                    <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full {{ $statusBg }} shrink-0">
-                        {{ $property->verification_status }}
-                    </span>
-                </div>
+        <div class="w-full lg:w-64 shrink-0">
+            <x-card flush class="p-5">
+                {{-- Two statuses, one treatment: label left, dot + word right. (They used to be a green pill and a grey pill with a tiny check.) --}}
+                @php
+                    $dotFor = fn (string $s) => match ($s) {
+                        'Approved', 'Published' => 'bg-[#22C55E]',
+                        'Pending' => 'bg-[#FBBF24]',
+                        'Rejected', 'Suspended' => 'bg-[#EF4444]',
+                        default => 'bg-[#5B6A8E]',
+                    };
+                @endphp
+                <h3 class="text-[14px] font-semibold text-[#060D26]">Listing status</h3>
 
-                <div class="flex items-center justify-between gap-2">
-                    <span class="text-[13px] text-[#5B6A8E]">Visibility</span>
-                    <x-publication-status-badge :status="$property->publication_status" />
-                </div>
+                <dl class="mt-4 space-y-3 text-[13px]">
+                    <div class="flex items-center justify-between gap-3">
+                        <dt class="text-[#5B6A8E]">Verification</dt>
+                        <dd class="inline-flex items-center gap-2 font-semibold text-[#060D26]">
+                            <span class="h-2 w-2 rounded-full {{ $dotFor($property->verification_status) }}" aria-hidden="true"></span>
+                            {{ $property->verification_status }}
+                        </dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <dt class="text-[#5B6A8E]">Visibility</dt>
+                        <dd><x-publication-status-badge :status="$property->publication_status" class="text-[13px]" /></dd>
+                    </div>
+                </dl>
 
                 @if($property->publication_status === 'Suspended')
-                    <p class="text-[12px] text-[#DC2626] bg-[#EF4444]/[0.06] rounded-xl px-3 py-2 leading-relaxed">
+                    <p class="mt-4 rounded-xl bg-[#EF4444]/[0.06] px-3 py-2 text-[12px] leading-relaxed text-[#DC2626]">
                         This listing was suspended by an admin and is hidden from tenants. Contact support if you believe this was a mistake.
                     </p>
                 @elseif($property->publication_status === 'Published')
-                    <form method="POST" action="{{ route('properties.unpublish', $property) }}"
+                    <form method="POST" action="{{ route('properties.unpublish', $property) }}" class="mt-4"
                         data-confirm="Unpublish this listing?"
                         data-confirm-message="It will be hidden from tenants until you publish it again. You can do this anytime.">
                         @csrf
                         <button type="submit"
-                            class="w-full h-9 rounded-xl border border-[#E2E4EC] hover:bg-[#F7F8FC] text-[12.5px] font-semibold text-[#060D26] transition-colors">
+                            class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl border border-[#E2E4EC] hover:border-[#060D26]/40 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 cursor-pointer">
+                            <svg class="w-4 h-4 text-[#5B6A8E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
                             Unpublish
                         </button>
                     </form>
                 @elseif($property->publication_status === 'Unpublished')
-                    <form method="POST" action="{{ route('properties.publish', $property) }}">
+                    <form method="POST" action="{{ route('properties.publish', $property) }}" class="mt-4">
                         @csrf
                         <button type="submit"
-                            class="w-full h-9 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12.5px] font-semibold transition-all shadow-sm">
+                            class="w-full h-10 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13px] font-semibold transition-colors duration-200 cursor-pointer">
                             Publish
                         </button>
                     </form>
                 @endif
 
-                <div class="space-y-2.5 text-[13px]">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[#5B6A8E]">Property ID</span>
-                        <span class="font-semibold text-[#060D26] font-mono text-xs">PRP-{{ str_pad($property->property_id, 4, '0', STR_PAD_LEFT) }}</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[#5B6A8E]">Total Units</span>
-                        <span class="font-semibold text-[#060D26]">{{ $unitStats['total'] }} units</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[#5B6A8E]">Occupied</span>
-                        <span class="font-semibold text-[#060D26]">
-                            {{ $unitStats['occupied'] }} units
-                            @if($unitStats['total'] > 0)
-                                <span class="text-[#5B6A8E] font-normal">({{ round($unitStats['occupied'] / $unitStats['total'] * 100) }}%)</span>
-                            @endif
-                        </span>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[#5B6A8E]">Available</span>
-                        <span class="font-semibold text-[#15803D]">
-                            {{ $unitStats['available'] }} units
-                            @if($unitStats['total'] > 0)
-                                <span class="text-[#5B6A8E] font-normal">({{ round($unitStats['available'] / $unitStats['total'] * 100) }}%)</span>
-                            @endif
-                        </span>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[#5B6A8E]">Reserved</span>
-                        <span class="font-semibold text-[#B45309]">
-                            {{ $unitStats['reserved'] }} units
-                            @if($unitStats['total'] > 0)
-                                <span class="text-[#5B6A8E] font-normal">({{ round($unitStats['reserved'] / $unitStats['total'] * 100) }}%)</span>
-                            @endif
-                        </span>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[#5B6A8E]">Created Date</span>
-                        <span class="font-semibold text-[#060D26]">{{ $property->created_at->format('M d, Y') }}</span>
-                    </div>
-                </div>
+                {{-- Reference details: low value, so one quiet line instead of two more rows. --}}
+                <p class="mt-4 border-t border-[#E2E4EC] pt-3 text-[12px] leading-relaxed text-[#5B6A8E]">
+                    <span class="font-mono">PRP-{{ str_pad($property->property_id, 4, '0', STR_PAD_LEFT) }}</span>
+                    &middot; Created {{ $property->created_at->format('M d, Y') }}
+                </p>
             </x-card>
         </div>
     </div>
+
+    {{-- ═══════════════════════════════════════════════════════
+         NEEDS ATTENTION — only renders when something is actionable
+    ══════════════════════════════════════════════════════════ --}}
+    @php
+        $attention = [];
+        if ($unitStats['total'] === 0) {
+            $attention[] = ['Add your first unit — tenants can\'t reserve until this property has one.', route('landlord.properties.units.create', $property), 'Add unit'];
+        }
+        if ($unitStats['reserved'] > 0) {
+            $attention[] = [$unitStats['reserved'] . ' ' . Str::plural('unit', $unitStats['reserved']) . ' reserved — check the reservation is moving forward.', route('landlord.properties.units.index', $property), 'Manage units'];
+        }
+        if ($images->isEmpty()) {
+            $attention[] = ['No photos yet — listings with photos get far more views.', route('properties.edit', $property), 'Add photos'];
+        }
+        if ($documentNudgeCount > 0) {
+            $attention[] = [$documentNudgeCount . ' ' . Str::plural('document', $documentNudgeCount) . ' rejected or requested by admin.', route('landlord.properties.documents.index', $property), 'Open documents'];
+        }
+        if ($property->publication_status === 'Unpublished') {
+            $attention[] = ['This listing is unpublished and hidden from tenants.', null, null];
+        }
+    @endphp
+    @if($attention)
+        <div class="mb-6 rounded-2xl border border-[#FBBF24]/40 bg-[#FBBF24]/[0.08] px-4 py-3" role="status">
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-[#B45309] mb-1.5">Needs attention</p>
+            <ul class="space-y-1.5">
+                @foreach($attention as [$text, $url, $cta])
+                    <li class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 text-[13px] text-[#060D26]">
+                        <span>{{ $text }}</span>
+                        @if($url)
+                            <a href="{{ $url }}" class="shrink-0 font-semibold text-[#B35A3D] hover:underline">{{ $cta }} &rarr;</a>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     {{-- ═══════════════════════════════════════════════════════
          TABS
@@ -325,46 +349,63 @@
 
                 {{-- Property Information --}}
                 <x-card flush class="p-5">
-                    <h3 class="text-sm font-normal text-[#060D26] mb-4 flex items-center gap-2">
+                    <h3 class="text-sm font-semibold text-[#060D26] mb-4 flex items-center gap-2">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#5B6A8E]">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9-3.75h.008v.008H12V8.25z"/>
                         </svg>
                         Property Information
                     </h3>
-                    <div class="space-y-3 text-sm">
-                        <div>
-                            <p class="text-[10px] text-[#5B6A8E] font-semibold uppercase tracking-wider mb-0.5">Property Type</p>
-                            <p class="text-[#060D26] font-semibold">{{ $property->property_type }}</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-[#5B6A8E] font-semibold uppercase tracking-wider mb-0.5">Address</p>
-                            <p class="text-[#060D26] font-semibold">{{ $property->address }}</p>
-                        </div>
+                    @php
+                        // What the wizard's first step collects but this page never showed. Address and type live in
+                        // the hero (location line, facts row), so they are not repeated here.
+                        $utilityLabels = [
+                            'water_included' => 'Water',
+                            'electricity_included' => 'Electricity',
+                            'internet_included' => 'Internet',
+                            'association_fees_included' => 'Association fees',
+                        ];
+                        $utilitiesIn = collect($utilityLabels)->filter(fn ($l, $k) => $property->{$k})->values();
+                        $utilitiesOut = collect($utilityLabels)->reject(fn ($l, $k) => $property->{$k})->values();
+                    @endphp
+                    <div class="space-y-5 text-sm">
                         @if($property->description)
                             <div>
-                                <p class="text-[10px] text-[#5B6A8E] font-semibold uppercase tracking-wider mb-0.5">Property Description</p>
-                                <p class="text-[#060D26]/75 leading-relaxed text-xs">{{ $property->description }}</p>
+                                <p class="text-[11px] text-[#5B6A8E] font-semibold uppercase tracking-wider mb-1">About</p>
+                                <p class="text-[13.5px] leading-relaxed text-[#5B6A8E]">{{ $property->description }}</p>
                             </div>
                         @endif
-                        @if($property->amenities->isNotEmpty())
+
+                        @if($property->living_arrangement)
                             <div>
-                                <p class="text-[10px] text-[#5B6A8E] font-semibold uppercase tracking-wider mb-1.5">Amenities</p>
-                                <div class="flex flex-wrap gap-1.5">
-                                    @foreach($property->amenities->take(5) as $amenity)
-                                        <span class="text-[11px] text-[#060D26] bg-[#ECEEF6] rounded-full px-2.5 py-0.5">{{ $amenity->amenity_name }}</span>
-                                    @endforeach
-                                    @if($property->amenities->count() > 5)
-                                        <span class="text-[11px] text-[#5B6A8E] bg-[#ECEEF6] rounded-full px-2.5 py-0.5">+{{ $property->amenities->count() - 5 }}</span>
-                                    @endif
-                                </div>
+                                <p class="text-[11px] text-[#5B6A8E] font-semibold uppercase tracking-wider mb-1">Living arrangement</p>
+                                <p class="text-[#060D26] font-semibold">{{ $property->living_arrangement }}</p>
                             </div>
                         @endif
+
+                        <div>
+                            <p class="text-[11px] text-[#5B6A8E] font-semibold uppercase tracking-wider mb-1.5">Included in rent</p>
+                            @if($utilitiesIn->isNotEmpty())
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach($utilitiesIn as $label)
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-[#22C55E]/10 px-2.5 py-1 text-[12px] font-medium text-[#15803D]">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                            {{ $label }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
+                            @if($utilitiesOut->isNotEmpty())
+                                <p class="{{ $utilitiesIn->isNotEmpty() ? 'mt-2' : '' }} text-[12.5px] text-[#5B6A8E]">
+                                    Billed separately: {{ $utilitiesOut->implode(', ') }}@if($property->utilities_separately_metered) &middot; separately metered @endif
+                                </p>
+                            @endif
+                        </div>
                     </div>
                 </x-card>
 
                 {{-- Location --}}
                 <x-card flush class="p-5 flex flex-col">
-                    <h3 class="text-sm font-normal text-[#060D26] mb-3 flex items-center gap-2">
+                    <h3 class="text-sm font-semibold text-[#060D26] mb-3 flex items-center gap-2">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#5B6A8E]">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0z"/>
@@ -388,79 +429,22 @@
                 </x-card>
 
                 {{-- Statistics (SVG donut) --}}
-                <x-card flush class="p-5">
-                    <h3 class="text-sm font-normal text-[#060D26] mb-4 flex items-center gap-2">
+                <x-card flush class="p-5 flex flex-col">
+                    <h3 class="text-sm font-semibold text-[#060D26] mb-4 flex items-center gap-2">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#5B6A8E]">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zm4.5-7.5A1.125 1.125 0 0 1 8.625 4.5h2.25c.621 0 1.125.504 1.125 1.125v13.5c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 7.5 19.125V5.625zm4.5-3A1.125 1.125 0 0 1 13.125 1.5h2.25C16.496 1.5 17 2.004 17 2.625v17.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 12 19.875V2.625z"/>
                         </svg>
                         Statistics
                     </h3>
 
-                    {{-- Donut chart --}}
-                    <div class="flex items-center justify-center mb-4">
-                        <div class="relative w-32 h-32">
-                            <svg viewBox="0 0 112 112" class="w-full h-full -rotate-90">
-                                {{-- Track --}}
-                                <circle cx="56" cy="56" r="40" fill="none" stroke="#ECEEF6" stroke-width="16"/>
-                                @if($unitStats['total'] > 0)
-                                    {{-- Occupied (emerald) --}}
-                                    @if($dOcc > 0)
-                                        <circle cx="56" cy="56" r="40" fill="none" stroke="#10b981" stroke-width="16"
-                                                stroke-dasharray="{{ $dOcc }} {{ $circ - $dOcc }}"
-                                                stroke-dashoffset="{{ $dStart }}"/>
-                                    @endif
-                                    {{-- Available (blue) --}}
-                                    @if($dAvl > 0)
-                                        <circle cx="56" cy="56" r="40" fill="none" stroke="#FF8A66" stroke-width="16"
-                                                stroke-dasharray="{{ $dAvl }} {{ $circ - $dAvl }}"
-                                                stroke-dashoffset="{{ $dStart - $dOcc }}"/>
-                                    @endif
-                                    {{-- Reserved (amber) --}}
-                                    @if($dRsv > 0)
-                                        <circle cx="56" cy="56" r="40" fill="none" stroke="#f59e0b" stroke-width="16"
-                                                stroke-dasharray="{{ $dRsv }} {{ $circ - $dRsv }}"
-                                                stroke-dashoffset="{{ $dStart - $dOcc - $dAvl }}"/>
-                                    @endif
-                                @else
-                                    <circle cx="56" cy="56" r="40" fill="none" stroke="#E2E4EC" stroke-width="16"/>
-                                @endif
-                            </svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span class="text-2xl font-bold text-[#060D26] leading-none">{{ $unitStats['total'] }}</span>
-                                <span class="text-[10px] text-[#5B6A8E] mt-0.5">Total Units</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Legend --}}
-                    <div class="space-y-1.5">
-                        @php
-                            $legend = [
-                                ['label' => 'Occupied',    'count' => $unitStats['occupied'],  'color' => 'bg-[#22C55E]'],
-                                ['label' => 'Available',   'count' => $unitStats['available'], 'color' => 'bg-[#060D26]'],
-                                ['label' => 'Reserved',    'count' => $unitStats['reserved'],  'color' => 'bg-[#FBBF24]'],
-                                ['label' => 'Maintenance', 'count' => 0,                       'color' => 'bg-[#5B6A8E]/40'],
-                            ];
-                        @endphp
-                        @foreach($legend as $row)
-                            <div class="flex items-center justify-between text-xs">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-2.5 h-2.5 rounded-full {{ $row['color'] }} shrink-0"></span>
-                                    <span class="text-[#5B6A8E]">{{ $row['label'] }}</span>
-                                </div>
-                                <span class="font-semibold text-[#060D26]">
-                                    {{ $row['count'] }} ({{ $unitStats['total'] > 0 ? round($row['count'] / $unitStats['total'] * 100) : 0 }}%)
-                                </span>
-                            </div>
-                        @endforeach
-                    </div>
+                    <x-unit-status-donut :stats="$unitStats" layout="stack" />
 
                     <a href="{{ route('landlord.properties.units.index', $property) }}"
-                       class="mt-4 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#B35A3D] hover:underline">
+                       class="mt-auto pt-4 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#B35A3D] hover:underline">
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zm4.5-7.5A1.125 1.125 0 0 1 8.625 4.5h2.25c.621 0 1.125.504 1.125 1.125v13.5c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 7.5 19.125V5.625zm4.5-3A1.125 1.125 0 0 1 13.125 1.5h2.25C16.496 1.5 17 2.004 17 2.625v17.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 12 19.875V2.625z"/>
                         </svg>
-                        View Full Analytics
+                        View all units
                     </a>
                 </x-card>
             </div>
@@ -468,7 +452,7 @@
             {{-- Recent Activity --}}
             <x-card flush class="p-5">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-normal text-[#060D26]">Recent Activity</h3>
+                    <h3 class="text-sm font-semibold text-[#060D26]">Recent Activity</h3>
                     <a href="{{ route('landlord.properties.units.index', $property) }}"
                        class="text-xs text-[#B35A3D] font-medium hover:underline flex items-center gap-1">
                         View All Activity
@@ -575,7 +559,7 @@
                                         </svg>
                                     </div>
                                 @endif
-                                <span class="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full ring-1 {{ $avBg }}">
+                                <span class="absolute top-2 right-2 text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 {{ $avBg }}">
                                     {{ $unit->availability_status }}
                                 </span>
                             </div>
@@ -587,7 +571,7 @@
                                             ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[#5B6A8E] font-normal">/mo</span>
                                         </p>
                                     </div>
-                                    <span class="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full {{ $vrBg }}">
+                                    <span class="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full {{ $vrBg }}">
                                         {{ $unit->verification_status }}
                                     </span>
                                 </div>
@@ -669,12 +653,12 @@
                                         ₱{{ number_format($unit->rental_fee, 0) }}<span class="text-[#5B6A8E] font-normal">/mo</span>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <span class="inline-flex items-center text-[10.5px] font-semibold px-2 py-0.5 rounded-full ring-1 {{ $avBg }}">
+                                        <span class="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full ring-1 {{ $avBg }}">
                                             {{ $unit->availability_status }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <span class="inline-flex items-center text-[10.5px] font-medium px-2 py-0.5 rounded-full {{ $vrBg }}">
+                                        <span class="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full {{ $vrBg }}">
                                             {{ $unit->verification_status }}
                                         </span>
                                     </td>
@@ -804,11 +788,11 @@
                             @if($review->landlord_reply)
                                 <div class="mt-3 bg-[#ECEEF6] rounded-xl p-3.5">
                                     <div class="flex items-center gap-2 mb-1.5">
-                                        <div class="w-6 h-6 rounded-lg bg-[#060D26] text-white text-[10px] font-black flex items-center justify-center shrink-0">
+                                        <div class="w-6 h-6 rounded-lg bg-[#060D26] text-white text-[11px] font-black flex items-center justify-center shrink-0">
                                             {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}
                                         </div>
                                         <span class="text-xs font-semibold text-[#060D26]">You</span>
-                                        <span class="text-[10px] text-[#5B6A8E]">{{ $review->landlord_replied_at->format('M d, Y') }}</span>
+                                        <span class="text-[11px] text-[#5B6A8E]">{{ $review->landlord_replied_at->format('M d, Y') }}</span>
                                     </div>
                                     <p class="text-sm text-[#060D26]/75 leading-relaxed pl-8">{{ $review->landlord_reply }}</p>
                                 </div>

@@ -35,14 +35,14 @@
 
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#FF8A66] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
 
-    <header id="site-header" x-data="{ mobileNavOpen: false, mobileAreasOpen: false }"
+    <header id="site-header" x-data="{ mobileNavOpen: false }"
         class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
 
         {{-- 1. Nav Row --}}
         <div class="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-[64px] relative">
 
             {{-- Logo --}}
-            <a href="{{ route('properties.index') }}"
+            <a href="{{ route('home') }}"
                 class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group">
                 <img src="{{ asset('images/AbangananHub-icon.png') }}" alt="AbangananHub"
                     class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
@@ -64,43 +64,26 @@
                      comment still opens a PHP block and silently drops the markup
                      that follows it. --}}
                 @php
-                    $onBrowse = request()->routeIs('properties.index') || request()->routeIs('home');
+                    $onHome = request()->routeIs('home');
+                    $onBrowse = request()->routeIs('properties.index');
+                    $onAreas = request()->routeIs('properties.areas');
                 @endphp
+
+                <a href="{{ route('home') }}" @if($onHome) aria-current="page" @endif
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onHome ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                    Home
+                </a>
+
 
                 <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
                     class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
                     Browse Rentals
                 </a>
 
-                @if($navAreas->isNotEmpty())
-                    <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-                        <button type="button" @click="open = !open" @click.outside="open = false"
-                            :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
-                            :class="open ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
-                            class="flex items-center gap-1 px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer">
-                            Areas
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5" class="transition-transform duration-200 motion-reduce:transition-none"
-                                :class="open && 'rotate-180'" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-
-                        <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
-                            x-transition:leave-end="opacity-0 -translate-y-1"
-                            class="absolute top-[calc(100%+8px)] left-0 w-[248px] bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-[#E2E4EC] py-2 z-50 motion-reduce:transition-none">
-                            @foreach($navAreas as $area => $count)
-                                <a href="{{ route('properties.index', ['location' => $area]) }}"
-                                    class="flex items-center justify-between gap-3 px-4 py-2.5 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] hover:text-[#B35A3D] transition-colors duration-200">
-                                    <span class="truncate">{{ $area }}</span>
-                                    <span class="text-[12px] font-bold text-[#5B6A8E] flex-shrink-0">{{ $count }}</span>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
+                <a href="{{ route('properties.areas') }}" @if($onAreas) aria-current="page" @endif
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onAreas ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                    Areas
+                </a>
 
                 <a href="{{ route('about') }}#how-it-works"
                     class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
@@ -416,39 +399,6 @@
             </div>
         </div>
 
-        {{-- 2. Search Pill + Category Strip --}}
-        @if(($searchBar ?? true) && !View::hasSection('hide_search'))
-
-            <div id="header-search-expanded" class="transition-all duration-300">
-
-                {{-- Hero photo behind the pill — same treatment as the landing page's
-                     compact bar, so the search reads as the same object everywhere. --}}
-                <div class="relative">
-                    <div class="absolute inset-0 border-b-2 border-[#FF8A66]" aria-hidden="true">
-                        <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-[#060D26]/55"></div>
-                    </div>
-                    <div class="relative flex justify-center py-2 px-4 sm:px-6">
-                        <x-search-pill variant="header" />
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-center lg:gap-6 px-4 sm:px-6">
-                    <div class="min-w-0"><x-category-strip /></div>
-                    {{-- Page-specific tools (Show map / Filters) sit right after the
-                         categories, centred with them, from `lg` up; below that the
-                         page keeps its own toolbar. --}}
-                    @hasSection('browse_tools')
-                        <div class="hidden lg:flex items-center gap-2 pl-6 border-l border-[#E2E4EC] self-center mb-1">
-                            @yield('browse_tools')
-                        </div>
-                    @endif
-                </div>
-
-            </div>{{-- /#header-search-expanded --}}
-
-        @endif
-
         {{-- 3. Mobile nav panel — the `lg:hidden` counterpart to the primary
              nav at the top of this file, which is `hidden` below `lg`. Same
              transition timing as the Areas/Avatar dropdowns above it, so it
@@ -462,37 +412,24 @@
             x-transition:leave-end="opacity-0"
             class="lg:hidden border-t border-[#E2E4EC] bg-white px-4 py-3">
 
+            <a href="{{ route('home') }}" @click="mobileNavOpen = false"
+                @if($onHome) aria-current="page" @endif
+                class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold {{ $onHome ? 'text-[#060D26] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC]' }}">
+                Home
+            </a>
+
+
             <a href="{{ route('properties.index') }}" @click="mobileNavOpen = false"
                 @if($onBrowse) aria-current="page" @endif
                 class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold {{ $onBrowse ? 'text-[#060D26] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC]' }}">
                 Browse Rentals
             </a>
 
-            @if($navAreas->isNotEmpty())
-                <button type="button" @click="mobileAreasOpen = !mobileAreasOpen"
-                    :aria-expanded="mobileAreasOpen ? 'true' : 'false'"
-                    class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer">
-                    Areas
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        class="transition-transform duration-200 motion-reduce:transition-none" :class="mobileAreasOpen && 'rotate-180'" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="mobileAreasOpen" x-cloak
-                    x-transition:enter="transition ease-out duration-150"
-                    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                    x-transition:leave="transition ease-in duration-100"
-                    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                    class="pl-3.5">
-                    @foreach($navAreas as $area => $count)
-                        <a href="{{ route('properties.index', ['location' => $area]) }}" @click="mobileNavOpen = false"
-                            class="flex items-center justify-between gap-3 px-3.5 py-2 text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] rounded-xl transition-colors">
-                            <span class="truncate">{{ $area }}</span>
-                            <span class="text-[12px] font-bold text-[#5B6A8E] flex-shrink-0">{{ $count }}</span>
-                        </a>
-                    @endforeach
-                </div>
-            @endif
+            <a href="{{ route('properties.areas') }}" @click="mobileNavOpen = false"
+                @if($onAreas) aria-current="page" @endif
+                class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold {{ $onAreas ? 'text-[#060D26] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC]' }}">
+                Areas
+            </a>
 
             <a href="{{ route('about') }}#how-it-works" @click="mobileNavOpen = false"
                 class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] hover:bg-[#F7F8FC]">
@@ -532,12 +469,30 @@
 
     </header>
 
+    {{-- 2. Search + category band. Deliberately OUTSIDE the sticky <header>: only the nav row follows
+         the visitor down the page; this band scrolls away with the content. The Browse page opts in
+         (@section('sticky_search')) so search + filters stay put on desktop while only the listings scroll. z-[60] keeps the search
+         pill's dropdowns above the listings but under the sticky header (z-[100]). --}}
+    @if(($searchBar ?? true) && !View::hasSection('hide_search'))
+        <div id="header-search-expanded" class="{{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
+            <div class="bg-[#060D26]">
+                <div class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-4">
+                    <x-search-pill variant="header" />
+                </div>
+            </div>
+
+            <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+                <x-category-strip />
+            </div>
+        </div>
+    @endif
+
     <main id="main" class="flex-grow">
         @yield('content')
     </main>
 
     <footer class="bg-[#060D26] mt-auto">
-        <div class="w-full px-4 sm:px-6 lg:px-8 pt-14 pb-8">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8">
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
@@ -546,67 +501,67 @@
             </a>
 
             {{-- Link columns --}}
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-8 gap-y-10 pb-12">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-x-8 gap-y-10 pb-12">
 
                 <div>
-                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">Explore</p>
-                    <ul class="space-y-3 text-[13.5px]">
-                        <li><a href="{{ route('home') }}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                        <li><a href="{{ route('properties.index') }}" class="text-white/60 hover:text-white transition-colors">Browse Properties</a></li>
-                        <li><a href="{{ route('about') }}" class="text-white/60 hover:text-white transition-colors">About Us</a></li>
+                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">Explore</p>
+                    <ul class="space-y-3 text-[14px]">
+                        <li><a href="{{ route('home') }}" class="text-white/75 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="{{ route('properties.index') }}" class="text-white/75 hover:text-white transition-colors">Browse Properties</a></li>
+                        <li><a href="{{ route('about') }}" class="text-white/75 hover:text-white transition-colors">About Us</a></li>
                     </ul>
                 </div>
 
                 @auth
                     <div>
-                        <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">For Tenants</p>
-                        <ul class="space-y-3 text-[13.5px]">
-                            <li><a href="{{ route('favorites.index') }}" class="text-white/60 hover:text-white transition-colors">Saved Listings</a></li>
-                            <li><a href="{{ route('conversations.index') }}" class="text-white/60 hover:text-white transition-colors">Messages</a></li>
-                            <li><a href="{{ route('reservations.index') }}" class="text-white/60 hover:text-white transition-colors">My Reservations</a></li>
-                            <li><a href="{{ route('reports.create') }}" class="text-white/60 hover:text-white transition-colors">Report a Problem</a></li>
+                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">For Tenants</p>
+                        <ul class="space-y-3 text-[14px]">
+                            <li><a href="{{ route('favorites.index') }}" class="text-white/75 hover:text-white transition-colors">Saved Listings</a></li>
+                            <li><a href="{{ route('conversations.index') }}" class="text-white/75 hover:text-white transition-colors">Messages</a></li>
+                            <li><a href="{{ route('reservations.index') }}" class="text-white/75 hover:text-white transition-colors">My Reservations</a></li>
+                            <li><a href="{{ route('reports.create') }}" class="text-white/75 hover:text-white transition-colors">Report a Problem</a></li>
                         </ul>
                     </div>
                 @endauth
 
                 @auth
                     <div>
-                        <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">For Landlords</p>
-                        <ul class="space-y-3 text-[13.5px]">
-                            <li><a href="{{ route('landlord.verification.create') }}" class="text-white/60 hover:text-white transition-colors">Become a Landlord</a></li>
-                            <li><a href="{{ route('landlord.dashboard') }}" class="text-white/60 hover:text-white transition-colors">Landlord Dashboard</a></li>
-                            <li><a href="{{ route('landlord.analytics.index') }}" class="text-white/60 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
+                        <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">For Landlords</p>
+                        <ul class="space-y-3 text-[14px]">
+                            <li><a href="{{ route('landlord.verification.create') }}" class="text-white/75 hover:text-white transition-colors">Become a Landlord</a></li>
+                            <li><a href="{{ route('landlord.dashboard') }}" class="text-white/75 hover:text-white transition-colors">Landlord Dashboard</a></li>
+                            <li><a href="{{ route('landlord.analytics.index') }}" class="text-white/75 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
                         </ul>
                     </div>
                 @endauth
 
                 <div>
-                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">Company</p>
-                    <ul class="space-y-3 text-[13.5px]">
-                        <li><a href="{{ route('privacy') }}" class="text-white/60 hover:text-white transition-colors">Privacy Policy</a></li>
-                        <li><a href="{{ route('terms') }}" class="text-white/60 hover:text-white transition-colors">Terms of Service</a></li>
-                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Help Center</a></li>
+                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">Company</p>
+                    <ul class="space-y-3 text-[14px]">
+                        <li><a href="{{ route('privacy') }}" class="text-white/75 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}" class="text-white/75 hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">Help Center</a></li>
                     </ul>
                 </div>
 
                 <div>
-                    <p class="text-[11px] font-bold text-white/35 uppercase tracking-widest mb-4">Social</p>
-                    <ul class="space-y-3 text-[13.5px]">
-                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Facebook</a></li>
-                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">Instagram</a></li>
-                        <li><a href="#" class="text-white/60 hover:text-white transition-colors">X (Twitter)</a></li>
+                    <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">Social</p>
+                    <ul class="space-y-3 text-[14px]">
+                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">Facebook</a></li>
+                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">Instagram</a></li>
+                        <li><a href="#" class="text-white/75 hover:text-white transition-colors">X (Twitter)</a></li>
                     </ul>
                 </div>
             </div>
 
             {{-- Bottom bar --}}
             <div class="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <p class="text-[12px] text-white/40 text-center sm:text-left">
+                <p class="text-[13px] text-white/60 text-center sm:text-left">
                     &copy; {{ date('Y') }} AbangananHub. All rights reserved.
                 </p>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 text-[11px] font-semibold text-white/40">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-[12px] font-semibold text-white/70">
                     <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66]"></span>
-                    Supporting UN SDG 16 &middot; Cebu, Philippines
+                    Supporting UN SDG 11 &middot; Cebu, Philippines
                 </span>
             </div>
         </div>
@@ -619,89 +574,56 @@
         <div id="auth-modal"
             class="hidden fixed inset-0 z-[9999] bg-[#060D26]/40 backdrop-blur-sm items-center justify-center p-4 opacity-0 transition-opacity duration-300">
 
-            <div class="bg-white rounded-[24px] shadow-2xl shadow-[#FF8A66]/25 max-w-3xl w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
-                id="auth-modal-content">
+            <div class="bg-white rounded-[24px] shadow-2xl max-w-[820px] w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
+                id="auth-modal-content" role="dialog" aria-modal="true" aria-label="Log in or create an account">
 
                 {{-- Left brand panel (split) — photo + navy overlay, same language as the landing hero --}}
-                <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-[#060D26] p-8 flex-col justify-between text-white">
+                <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-[#060D26] p-8 flex-col justify-end text-white">
                     <img src="{{ asset('images/auth-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/75 via-[#060D26]/85 to-[#060D26]/95"></div>
+                    <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 via-[#060D26]/45 to-[#060D26]/90"></div>
 
                     <div class="relative z-10">
-                        <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-white px-3 py-1.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>AbangananHub</span>
-                        <h3 id="auth-side-title" class="mt-7 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
+                        <h3 id="auth-side-title" class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
                         <p id="auth-side-subtitle" class="text-white/75 text-[13px] mt-3 leading-relaxed max-w-[17rem]">
-                            Sign in to manage your bookings and stay up to date with AbangananHub.
+                            Pick up where you left off.
                         </p>
                     </div>
 
-                    <ul class="relative z-10 space-y-4">
-                        <li class="flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                            </span>
-                            <span>
-                                <span class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-white">Verified landlords</span>
-                                <span class="block text-[11.5px] text-white/70 leading-snug">Every listing is document-checked.</span>
-                            </span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                            </span>
-                            <span>
-                                <span class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-white">Quality listings</span>
-                                <span class="block text-[11.5px] text-white/70 leading-snug">Real photos, real prices, real units.</span>
-                            </span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="w-8 h-8 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                            </span>
-                            <span>
-                                <span class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-white">Secure & transparent</span>
-                                <span class="block text-[11.5px] text-white/70 leading-snug">Clear terms from inquiry to move-in.</span>
-                            </span>
-                        </li>
-                    </ul>
-
-                    <div class="relative z-10 pt-6 text-white/50 text-[11px] font-semibold tracking-wide">© {{ date('Y') }} AbangananHub</div>
                 </div>
 
                 {{-- Right form panel (split) --}}
                 <div class="w-full md:w-[58%] relative bg-white p-6 sm:p-8 md:p-10 max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
                     <button type="button" onclick="closeAuthModal()"
-                        class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] hover:text-[#060D26] hover:border-[#FF8A66] focus:outline-none transition-colors cursor-pointer" aria-label="Close">
+                        class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] hover:text-[#060D26] hover:border-[#FF8A66] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] transition-colors cursor-pointer" aria-label="Close">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
 
-                    <div id="modal-error-bag"
+                    <div id="modal-error-bag" role="alert"
                         class="hidden mb-4 p-3 bg-[#EF4444]/[0.07] text-[#DC2626] rounded-xl text-sm border border-[#EF4444]/20"></div>
 
                     {{-- Login View --}}
                     <div id="login-form-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Login</h2>
-                        <p class="text-[13.5px] text-[#5B6A8E] mt-1.5 mb-6">Enter your details to continue</p>
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Log in</h2>
 
                         <form id="ajax-login-form" onsubmit="handleAuthSubmit(event, '{{ route('login') }}')">
                             @csrf
                             <div class="mb-4">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
-                                <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                                <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="username"
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-email"></span>
                             </div>
 
                             <div class="mb-4">
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <div class="relative">
-                                    <input type="password" name="password" id="modal-login-password" required placeholder="Enter your password" aria-label="Password"
-                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                                    <input type="password" name="password" id="modal-login-password" required placeholder="Your password" aria-label="Password" autocomplete="current-password"
+                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <button type="button" onclick="toggleModalPassword('modal-login-password', this)"
-                                        class="absolute right-4 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#5B6A8E]" aria-label="Show password">
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26]" aria-label="Show password">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -725,8 +647,8 @@
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
-                                Login
+                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
+                                Log in
                             </button>
                         </form>
 
@@ -734,64 +656,72 @@
 
                         <p class="text-[13px] text-center text-[#5B6A8E] mt-6">
                             Don't have an account? <a href="#" onclick="openAuthModal('register'); return false;"
-                                class="text-[#060D26] font-bold hover:underline">Register here</a>
+                                class="text-[#060D26] font-bold hover:underline">Sign up</a>
                         </p>
                     </div>
 
                     {{-- Register View --}}
                     <div id="register-form-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create Account</h2>
-                        <p class="text-[13.5px] text-[#5B6A8E] mt-1.5 mb-6">Join AbangananHub today</p>
+                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Create your account</h2>
 
                         <form id="ajax-register-form" onsubmit="handleAuthSubmit(event, '{{ route('register') }}')">
                             @csrf
                             <div class="grid grid-cols-2 gap-3 mb-3">
                                 <div>
-                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">First Name</label>
-                                    <input type="text" name="first_name" required placeholder="First name" aria-label="First name"
-                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">First name</label>
+                                    <input type="text" name="first_name" required placeholder="Maria" aria-label="First name" autocomplete="given-name"
+                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-first_name"></span>
                                 </div>
                                 <div>
-                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Last Name</label>
-                                    <input type="text" name="last_name" required placeholder="Last name" aria-label="Last name"
-                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Last name</label>
+                                    <input type="text" name="last_name" required placeholder="Santos" aria-label="Last name" autocomplete="family-name"
+                                        class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-last_name"></span>
                                 </div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact Number</label>
-                                <input type="text" name="contact_number" required placeholder="Enter your contact number" aria-label="Contact number"
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact number</label>
+                                <input type="tel" name="contact_number" required placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-contact_number"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
-                                <input type="email" name="email" required placeholder="Enter your email address" aria-label="Email address"
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                                <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="email"
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-email"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
-                                <input type="password" name="password" required placeholder="Create a password" aria-label="Password"
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                                <div class="relative">
+                                    <input type="password" name="password" id="modal-register-password" autocomplete="new-password" required placeholder="At least 8 characters" aria-label="Password"
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all pr-11">
+                                    <button type="button" onclick="toggleModalPassword('modal-register-password', this)"
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26]" aria-label="Show password"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+                                </div>
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-password"></span>
+                                <p class="text-[11.5px] text-[#5B6A8E] mt-1">Use at least 8 characters.</p>
                             </div>
 
                             <div class="mb-5">
                                 <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
-                                <input type="password" name="password_confirmation" required placeholder="Confirm your password" aria-label="Confirm password"
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                                <div class="relative">
+                                    <input type="password" name="password_confirmation" id="modal-register-password-confirm" autocomplete="new-password" required placeholder="Repeat your password" aria-label="Confirm password"
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all pr-11">
+                                    <button type="button" onclick="toggleModalPassword('modal-register-password-confirm', this)"
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26]" aria-label="Show password"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
+                                </div>
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
+                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                                 Sign Up
                             </button>
                         </form>
@@ -800,7 +730,7 @@
 
                         <p class="text-[13px] text-center text-[#5B6A8E] mt-6">
                             Already have an account? <a href="#" onclick="openAuthModal('login'); return false;"
-                                class="text-[#060D26] font-bold hover:underline">Login here</a>
+                                class="text-[#060D26] font-bold hover:underline">Log in</a>
                         </p>
                     </div>
 
@@ -812,21 +742,21 @@
                         <form id="ajax-forgot-password-form" onsubmit="handleForgotPasswordSubmit(event, '{{ route('password.email') }}')">
                             @csrf
                             <div class="mb-5">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email Address</label>
-                                <input type="email" name="email" required placeholder="Enter your email" aria-label="Email address"
-                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                                <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="email"
+                                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-forgot-password-email"></span>
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
+                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                                 Email Password Reset Link
                             </button>
                         </form>
 
                         <p class="text-[13px] text-center text-[#5B6A8E] mt-6">
                             Remembered your password? <a href="#" onclick="openAuthModal('login'); return false;"
-                                class="text-[#060D26] font-bold hover:underline">Login here</a>
+                                class="text-[#060D26] font-bold hover:underline">Log in</a>
                         </p>
                     </div>
 
@@ -838,7 +768,7 @@
                         </p>
 
                         <button type="button" onclick="openAuthModal('login')"
-                            class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 shadow-[0_8px_20px_rgba(255,138,102,0.35)] text-[15px] cursor-pointer">
+                            class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                             Back to login
                         </button>
                     </div>
@@ -867,6 +797,7 @@
 
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
+                document.body.classList.add('overflow-hidden');
 
                 const errorBag = document.getElementById('modal-error-bag');
                 errorBag?.classList.add('hidden');
@@ -877,10 +808,10 @@
 
                 // Swap the split-panel side copy to match the active view.
                 const sideCopy = {
-                    'login': ['Welcome back', 'Sign in to manage your bookings and stay up to date with AbangananHub.'],
-                    'register': ['Join us', 'Create an account to start booking with AbangananHub today.'],
-                    'forgot-password': ['Reset password', "Enter your email and we'll send you a secure link to reset it."],
-                    'forgot-password-sent': ['Check your inbox', "We've sent a reset link to your email. Follow it to set a new password."],
+                    'login': ['Welcome back', 'Pick up where you left off.'],
+                    'register': ['Find your place', 'Create a free account to save listings and reserve.'],
+                    'forgot-password': ['Reset password', "We'll email you a link to set a new one."],
+                    'forgot-password-sent': ['Check your inbox', 'Follow the link we sent to set a new password.'],
                 };
                 const sideTitle = document.getElementById('auth-side-title');
                 const sideSubtitle = document.getElementById('auth-side-subtitle');
@@ -894,6 +825,7 @@
                 requestAnimationFrame(() => requestAnimationFrame(() => {
                     modal.classList.remove('opacity-0');
                     panel?.classList.remove('opacity-0', 'scale-95', 'translate-y-4');
+                    views[mode].querySelector('input:not([type=hidden]):not([type=checkbox])')?.focus({ preventScroll: true });
                 }));
             }
 
@@ -913,6 +845,7 @@
                 if (!modal) return;
 
                 modal.classList.add('opacity-0');
+                document.body.classList.remove('overflow-hidden');
                 panel?.classList.add('opacity-0', 'scale-95', 'translate-y-4');
 
                 clearTimeout(authModalCloseTimer);
@@ -927,6 +860,11 @@
                 if (event.target === modal) closeAuthModal();
             });
 
+            window.addEventListener('keydown', function (event) {
+                const modal = document.getElementById('auth-modal');
+                if (event.key === 'Escape' && modal && !modal.classList.contains('hidden')) closeAuthModal();
+            });
+
             window.handleAuthSubmit = async function (event, endpoint) {
                 event.preventDefault();
 
@@ -937,6 +875,9 @@
 
                 const formData = new FormData(form);
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const idleLabel = submitBtn?.textContent.trim();
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = form.id === 'ajax-register-form' ? 'Creating account…' : 'Signing in…'; }
 
                 try {
                     const res = await fetch(endpoint, {
@@ -968,6 +909,8 @@
                 } catch (e) {
                     errorBag?.classList.remove('hidden');
                     errorBag && (errorBag.innerText = 'Network error. Please try again.');
+                } finally {
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = idleLabel; }
                 }
             };
 

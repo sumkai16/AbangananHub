@@ -8,65 +8,45 @@
 
         {{-- Header --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
-                    <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">My Properties</h1>
-                    <p class="text-sm text-[#5B6A8E] mt-0.5">Manage and monitor your rental properties on AbangananHub.</p>
-                </div>
+            <div class="min-w-0">
+                <h1 class="text-[22px] sm:text-[26px] font-semibold text-[#060D26] tracking-tight">My Properties</h1>
+                <p class="text-[14px] text-[#5B6A8E] mt-0.5">Manage and monitor your rental properties on AbangananHub.</p>
             </div>
             <a href="{{ route('properties.create') }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold shadow-sm transition-all duration-200 shrink-0">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[14px] font-semibold transition-colors duration-200 shrink-0">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
                 Add New Property
             </a>
         </div>
 
-        {{-- Summary cards — account-wide totals, not affected by the filter toolbar below --}}
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <x-stat-card label="Total Properties" :value="$stats['properties']" sub="Properties listed">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Total Units" :value="$stats['units']" sub="Across all properties">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Occupied Units" :value="$stats['occupied']" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)"
-                :percent="$stats['occupancyRate']" bar-color="#EF4444" :sub="$stats['occupancyRate'].'% occupancy'">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Available Units" :value="$stats['available']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="Currently available">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
+        {{-- Summary strip — account-wide totals, not affected by the filter toolbar below --}}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-px mb-6 overflow-hidden rounded-2xl border border-[#E2E4EC] bg-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+            <div class="bg-white p-4 sm:p-5">
+                <p class="text-[12px] font-semibold text-[#5B6A8E]">Properties</p>
+                <p class="mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['properties'] }}</p>
+                <p class="mt-2 text-[12.5px] text-[#5B6A8E]">Listed on AbangananHub</p>
+            </div>
+            <div class="bg-white p-4 sm:p-5">
+                <p class="text-[12px] font-semibold text-[#5B6A8E]">Units</p>
+                <p class="mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['units'] }}</p>
+                <p class="mt-2 text-[12.5px] text-[#5B6A8E]">Across all properties</p>
+            </div>
+            <div class="bg-white p-4 sm:p-5">
+                <p class="text-[12px] font-semibold text-[#5B6A8E]">Occupied</p>
+                <p class="mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['occupied'] }}</p>
+                <div class="mt-2.5 h-1.5 rounded-full bg-[#E2E4EC] overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                    aria-valuenow="{{ $stats['occupancyRate'] }}" aria-label="Occupancy rate">
+                    <div class="h-full rounded-full bg-[#060D26]" style="width: {{ $stats['occupancyRate'] }}%"></div>
+                </div>
+                <p class="mt-1.5 text-[12.5px] text-[#5B6A8E]">{{ $stats['occupancyRate'] }}% occupancy</p>
+            </div>
+            <div class="bg-white p-4 sm:p-5">
+                <p class="text-[12px] font-semibold text-[#5B6A8E]">Available</p>
+                <p class="mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['available'] }}</p>
+                <p class="mt-2 text-[12.5px] text-[#5B6A8E]">Ready for tenants</p>
+            </div>
         </div>
 
         {{-- Filter toolbar --}}
@@ -75,14 +55,14 @@
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
                 <div class="relative flex-1 min-w-[200px]">
-                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
+                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6A8E]" width="15" height="15" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by property name or address..." aria-label="Search by property name or address"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -90,19 +70,11 @@
                         $listStatusOptions = ['' => 'All Status', 'Approved' => 'Approved', 'Pending' => 'Pending', 'Rejected' => 'Rejected'];
                         $listTypeOptions = ['' => 'All Types', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House for Rent'];
                     @endphp
-                    <x-styled-select name="status" :options="$listStatusOptions" :selected="request('status', '')"
+                    <x-styled-select name="status" :options="$listStatusOptions" :selected="request('status', '')" autosubmit
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
-                    <x-styled-select name="type" :options="$listTypeOptions" :selected="request('type', '')"
+                    <x-styled-select name="type" :options="$listTypeOptions" :selected="request('type', '')" autosubmit
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
-
-                    <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                        </svg>
-                        Filter
-                    </button>
 
                     @if(request()->hasAny(['search', 'status', 'type']))
                         <a href="{{ route('landlord.properties.index') }}"
@@ -158,16 +130,25 @@
                             d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
                     </svg>
                 </div>
-                <p class="text-[15px] font-semibold text-[#060D26]">No properties yet</p>
-                <p class="text-sm text-[#5B6A8E] mt-1 max-w-xs">Add your first property to start receiving reservations from
-                    tenants.</p>
-                <a href="{{ route('properties.create') }}"
-                    class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Property
-                </a>
+                @if(request()->hasAny(['search', 'status', 'type']))
+                    <p class="text-[15px] font-semibold text-[#060D26]">No properties match your filters</p>
+                    <p class="text-sm text-[#5B6A8E] mt-1 max-w-xs">Try a different search, status or type.</p>
+                    <a href="{{ route('landlord.properties.index') }}"
+                        class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-xl border border-[#060D26]/25 text-[#060D26] text-sm font-semibold hover:border-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">
+                        Clear filters
+                    </a>
+                @else
+                    <p class="text-[15px] font-semibold text-[#060D26]">No properties yet</p>
+                    <p class="text-sm text-[#5B6A8E] mt-1 max-w-xs">Add your first property to start receiving reservations from
+                        tenants.</p>
+                    <a href="{{ route('properties.create') }}"
+                        class="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Property
+                    </a>
+                @endif
             </div>
 
             {{-- Property list (grid / table toggle) --}}
@@ -196,7 +177,7 @@
 
                         {{-- Thumbnail --}}
                         <a href="{{ route('landlord.properties.show', $property) }}"
-                            class="relative block aspect-[16/10] overflow-hidden bg-[#ECEEF6] shrink-0">
+                            class="relative block aspect-[16/9] overflow-hidden bg-[#ECEEF6] shrink-0">
                             @if($thumb)
                                 <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}"
                                     class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
@@ -213,9 +194,10 @@
 
                             {{-- Status chip --}}
                             <div class="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
-                                <span
-                                    class="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 {{ $statusBg }}">
-                                    {{ $statusText }}
+                                <span class="inline-flex rounded-full bg-white shadow-sm">
+                                    <span class="inline-flex items-center text-[12px] font-semibold px-2.5 py-1 rounded-full ring-1 {{ $statusBg }}">
+                                        {{ $statusText }}
+                                    </span>
                                 </span>
                                 @if($property->publication_status !== 'Published')
                                     <x-publication-status-badge :status="$property->publication_status" />
@@ -230,7 +212,7 @@
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <a href="{{ route('landlord.properties.show', $property) }}"
-                                        class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#EF4444] transition-colors duration-200">
+                                        class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#B35A3D] transition-colors duration-200">
                                         {{ $property->title }}
                                     </a>
                                     <p class="text-[12px] text-[#5B6A8E] mt-0.5 line-clamp-1 flex items-center gap-1">
@@ -245,37 +227,44 @@
                                     </p>
                                 </div>
                                 <span
-                                    class="shrink-0 text-[11px] font-medium text-[#B35A3D] border border-[#FF8A66]/40 rounded-full px-2.5 py-0.5 mt-0.5">
+                                    class="shrink-0 text-[12px] font-medium text-[#060D26] bg-[#ECEEF6] rounded-full px-2.5 py-0.5 mt-0.5">
                                     {{ $property->property_type }}
                                 </span>
                             </div>
 
-                            {{-- Unit stats --}}
-                            <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-[#5B6A8E]/10 rounded-xl bg-[#ECEEF6]/60 py-2.5">
-                                <div class="flex flex-col items-center gap-0.5">
-                                    <span class="text-[14px] font-bold text-[#060D26]">{{ $property->units_count }}</span>
-                                    <span class="text-[10px] text-[#5B6A8E] font-medium">Total</span>
+                            {{-- Unit stats — same segmented bar + legend as the dashboard rows --}}
+                            @php
+                                $unitTotal = max($property->units_count, 1);
+                            @endphp
+                            <div>
+                                <div class="flex items-baseline justify-between gap-2">
+                                    <span class="text-[13px] font-semibold text-[#060D26]">{{ $property->units_count }} {{ Str::plural('unit', $property->units_count) }}</span>
+                                    <span class="text-[12.5px] text-[#5B6A8E] tabular-nums">{{ $property->units_count > 0 ? round($property->occupied_units_count / $unitTotal * 100) : 0 }}% occupied</span>
                                 </div>
-                                <div class="flex flex-col items-center gap-0.5">
-                                    <span
-                                        class="text-[14px] font-bold text-[#15803D]">{{ $property->available_units_count }}</span>
-                                    <span class="text-[10px] text-[#5B6A8E] font-medium">Available</span>
+                                <div class="mt-2 flex h-1.5 rounded-full bg-[#E2E4EC] overflow-hidden" role="img"
+                                    aria-label="{{ $property->available_units_count }} available, {{ $property->reserved_units_count }} reserved, {{ $property->occupied_units_count }} occupied">
+                                    @if($property->available_units_count > 0)
+                                        <div class="h-full bg-[#22C55E]" style="width: {{ $property->available_units_count / $unitTotal * 100 }}%"></div>
+                                    @endif
+                                    @if($property->reserved_units_count > 0)
+                                        <div class="h-full bg-[#FBBF24]" style="width: {{ $property->reserved_units_count / $unitTotal * 100 }}%"></div>
+                                    @endif
+                                    @if($property->occupied_units_count > 0)
+                                        <div class="h-full bg-[#EF4444]" style="width: {{ $property->occupied_units_count / $unitTotal * 100 }}%"></div>
+                                    @endif
                                 </div>
-                                <div class="flex flex-col items-center gap-0.5">
-                                    <span class="text-[14px] font-bold text-[#B45309]">{{ $property->reserved_units_count }}</span>
-                                    <span class="text-[10px] text-[#5B6A8E] font-medium">Reserved</span>
-                                </div>
-                                <div class="flex flex-col items-center gap-0.5">
-                                    <span class="text-[14px] font-bold text-[#EF4444]">{{ $property->occupied_units_count }}</span>
-                                    <span class="text-[10px] text-[#5B6A8E] font-medium">Occupied</span>
-                                </div>
+                                <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#5B6A8E]">
+                                    <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span>{{ $property->available_units_count }} available</span>
+                                    <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#FBBF24]"></span>{{ $property->reserved_units_count }} reserved</span>
+                                    <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#EF4444]"></span>{{ $property->occupied_units_count }} occupied</span>
+                                </p>
                             </div>
 
                             {{-- Actions --}}
                             <div class="flex items-center gap-2 pt-1 mt-auto">
                                 @if($property->isDraft())
                                     <a href="{{ route('properties.wizard.resume', $property) }}"
-                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                                        class="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                                         </svg>
@@ -288,7 +277,7 @@
                                           data-confirm-button="Delete Draft">
                                         @csrf @method('DELETE')
                                         <button type="submit" aria-label="Delete draft"
-                                            class="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#5B6A8E] hover:text-[#DC2626] hover:border-[#DC2626]/40 hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
+                                            class="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl border border-[#5B6A8E]/30 text-[#5B6A8E] hover:text-[#DC2626] hover:border-[#DC2626]/40 hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
                                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                                             </svg>
@@ -296,7 +285,7 @@
                                     </form>
                                 @else
                                     <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                        class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
+                                        class="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl border border-[#060D26]/25 text-[#060D26] text-[13px] font-semibold hover:border-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -305,24 +294,13 @@
                                         View Units
                                     </a>
                                     <a href="{{ route('properties.edit', $property) }}"
-                                        class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
+                                        class="h-10 px-4 flex items-center gap-1.5 rounded-xl border border-[#5B6A8E]/30 text-[#060D26] text-[13px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
                                         </svg>
                                         Edit
-                                    </a>
-                                    <a href="{{ route('landlord.properties.show', $property) }}"
-                                        class="h-9 px-3.5 flex items-center gap-1.5 rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
-                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                                        </svg>
-                                        View
                                     </a>
                                 @endif
                             </div>

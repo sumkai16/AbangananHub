@@ -257,7 +257,7 @@ class Property extends Model
 
     /**
      * Apply tenant browse filters (location, type, price_min/price_max, verified, amenities)
-     * and sorting (newest | price_low | price_high).
+     * and sorting (newest | price_low | price_high | top_rated).
      */
     public function scopeBrowseFilters($query, array $filters)
     {
@@ -313,6 +313,7 @@ class Property extends Model
         match ($filters['sort'] ?? null) {
             'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
             'price_high' => $query->orderByDesc('min_rental_fee'),
+            'top_rated'  => $query->orderByDesc('avg_rating')->orderByDesc('review_count'),
             default      => $query->latest('created_at'),
         };
 

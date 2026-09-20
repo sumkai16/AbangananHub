@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\Property;
 use App\Models\PropertyUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,6 +51,10 @@ class UnitIndexController extends Controller
                 'amenities',
                 'reservations.tenant:user_id,first_name,last_name',
             ])
+            // Property first so each property's units sit together (the table view
+            // renders one table per property); newest first within a property.
+            ->orderBy(Property::select('title')->whereColumn('properties.property_id', 'property_units.property_id'))
+            ->orderBy('property_id')
             ->latest()->paginate(12)->withQueryString();
 
         $properties = Auth::user()->properties()
@@ -59,7 +64,9 @@ class UnitIndexController extends Controller
 
         // One grouped aggregate instead of a COUNT per status: the whereHas
         // subquery is the expensive part, and this pays for it once.
+        // When opened from a property card, the cards count that property's units only.
         $counts = PropertyUnit::whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
+            ->when($request->input('property'), fn ($q, $propertyId) => $q->where('property_id', $propertyId))
             ->selectRaw('availability_status, count(*) as aggregate')
             ->groupBy('availability_status')
             ->pluck('aggregate', 'availability_status');

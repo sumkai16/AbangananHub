@@ -2,11 +2,8 @@
 
 @section('themeable', '1')
 
-@section('browse_tools')
-    @unless($heroStats)
-        @include('properties.partials-browse-tools')
-    @endunless
-@endsection
+{{-- Browse (filter/search view): keep the search + category band pinned under the nav on desktop; the listings are what scrolls. --}}
+@section('sticky_search', '1')
 
 @section('content')
 
@@ -17,8 +14,17 @@
          showing (see the searchBar=false above) so there's one search bar,
          not two. ===== --}}
     @if($heroStats)
-        <section id="landing-hero" class="relative min-h-[72vh] sm:min-h-[80vh] flex items-center overflow-hidden">
+        <section id="landing-hero" class="relative min-h-[72vh] sm:min-h-[80vh] flex items-center overflow-hidden"
+            x-data="{ slides: [
+                    '{{ asset('images/pexels-photo-10530237.webp') }}',
+                    '{{ asset('images/photo-1448630360428-65456885c650.webp') }}'
+                ], active: -1 }"
+            x-init="setInterval(() => active = active >= slides.length - 1 ? -1 : active + 1, 12000)">
             <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+            <template x-for="(slide, i) in slides" :key="i">
+                <img :src="slide" alt="" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out motion-reduce:transition-none"
+                    :class="active === i ? 'opacity-100' : 'opacity-0'">
+            </template>
             <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/35 via-[#060D26]/45 to-[#060D26]/55"></div>
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_75%_at_50%_40%,rgba(6,13,38,0.45),rgba(6,13,38,0)_70%)]"></div>
 
@@ -26,11 +32,11 @@
                 <p class="inline-flex items-center font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] sm:text-[11.5px] font-bold uppercase tracking-[0.14em] text-white px-3.5 py-1.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
                     Your Next Place Starts Here
                 </p>
-                <h1 class="mt-5 sm:mt-6 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[36px] sm:text-[52px] lg:text-[62px] font-extrabold leading-[1.1] tracking-tight text-white text-balance">
+                <h1 class="mt-5 sm:mt-6 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[40px] sm:text-[58px] lg:text-[70px] font-extrabold leading-[1.08] tracking-tight text-white text-balance">
                     Find a place to call home
-                    <span class="block bg-gradient-to-r from-white to-white/55 bg-clip-text text-transparent">in <span class="text-[#FF8A66]">Cebu</span>.</span>
+                    <span class="block">in <span class="text-[#FF8A66]">Cebu</span>.</span>
                 </h1>
-                <p class="mt-5 sm:mt-6 mx-auto max-w-xl text-white/90 text-[15px] sm:text-[17px] font-light">
+                <p class="mt-5 sm:mt-6 mx-auto max-w-xl text-white/90 text-[15px] sm:text-[17px] font-normal">
                     Verified apartments, rooms, boarding houses, and condos &mdash; all in one place.
                 </p>
 
@@ -39,54 +45,22 @@
                 </div>
 
                 <div class="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.06em] text-white">
-                    <span class="px-3 py-1 rounded-full border border-[#FF8A66]/60 bg-[#060D26]/40">{{ $heroStats['units'] }}+ available units</span>
-                    <span class="px-3 py-1 rounded-full border border-[#FF8A66]/60 bg-[#060D26]/40">Verified landlords</span>
-                    <span class="px-3 py-1 rounded-full border border-[#FF8A66]/60 bg-[#060D26]/40">Across Cebu</span>
+                    <span class="px-3 py-1 rounded-full border border-white/25 bg-[#060D26]/40">{{ $heroStats['units'] }}+ available units</span>
+                    <span class="px-3 py-1 rounded-full border border-white/25 bg-[#060D26]/40">Verified landlords</span>
+                    <span class="px-3 py-1 rounded-full border border-white/25 bg-[#060D26]/40">Across Cebu</span>
                 </div>
             </div>
         </section>
 
-        {{-- Compact hero: once the full hero scrolls out from under the sticky
-             header, a slim photo strip carrying the same search pill slides in
-             so the search stays one tap away. Fixed (not sticky) so it never
-             shifts the layout; the strip's photo is clipped in its own
-             layer so the type dropdown can still overflow the bar. --}}
-        <div x-data="{ show: false, offset: 0 }"
-            x-init="
-                const header = document.getElementById('site-header');
-                const hero = document.getElementById('landing-hero');
-                const update = () => {
-                    offset = header ? header.offsetHeight : 0;
-                    show = hero.getBoundingClientRect().bottom <= offset + 1;
-                };
-                update();
-                window.addEventListener('scroll', update, { passive: true });
-                window.addEventListener('resize', update);
-            "
-            :style="'top:' + offset + 'px'"
-            :class="show ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0 pointer-events-none'"
-            :aria-hidden="show ? 'false' : 'true'"
-            class="fixed inset-x-0 z-[90] transition-all duration-300 ease-out motion-reduce:transition-none">
-            <div class="relative border-b-2 border-[#FF8A66] shadow-[0_8px_24px_rgba(6,13,38,0.14)] lg:shadow-none">
-                <div class="absolute inset-0 overflow-hidden" aria-hidden="true">
-                    <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-[#060D26]/55"></div>
-                </div>
-                <div class="relative flex justify-center px-3 sm:px-6 py-2">
-                    <x-search-pill variant="header" :compact="true" />
-                </div>
-            </div>
-            {{-- Same categories + Show map / Filters row the filtered pages have in the header. --}}
-            <div class="relative hidden lg:flex items-center justify-center gap-6 px-6 bg-white border-b border-[#E2E4EC] shadow-[0_8px_24px_rgba(6,13,38,0.10)]">
-                <div class="min-w-0"><x-category-strip /></div>
-                <div class="flex items-center gap-2 pl-6 border-l border-[#E2E4EC] self-center mb-1">
-                    @include('properties.partials-browse-tools')
-                </div>
-            </div>
-        </div>
     @endif
 
     {{-- ===== BROWSE ===== --}}
+    <div class="relative isolate overflow-hidden">
+    @if($heroStats)
+        {{-- Background texture for the wide side margins on the landing page: soft colour glows, a dot
+             grid, diagonal hairlines and flowing curves. Purely decorative, low contrast, behind content. --}}
+        <x-section-texture />
+    @endif
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: false, filtersOpen: false }"
         x-effect="window.dispatchEvent(new CustomEvent('browse-map-state', { detail: mapVisible }))"
         @browse-toggle-map.window="mapVisible = !mapVisible; if (mapVisible) $nextTick(() => window.browseMapRefit?.())"
@@ -95,62 +69,87 @@
         @if($heroStats)
             @if($areas->count() > 0)
                 {{-- ===== BROWSE BY AREA ===== --}}
-                <div class="mb-14">
-                    <div class="flex items-center gap-3"><span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>Browse by area</span>
-                    <span class="h-0.5 flex-1 rounded-full bg-gradient-to-r from-[#FF8A66] via-[#FF8A66]/70 to-[#FF8A66]/10" aria-hidden="true"></span>
-                    <span class="hidden sm:inline font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.1em] text-[#5B6A8E] whitespace-nowrap">{{ $areas->count() }} {{ Str::plural('area', $areas->count()) }} &middot; {{ $areas->sum('count') }} listings</span></div>
-                    <h2 class="mt-2.5 mb-5 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[24px] sm:text-[30px] font-extrabold leading-[1.15] tracking-tight text-[#060D26]">Pick a neighborhood,
-                        <span class="block text-[#5B6A8E]">find your place.</span></h2>
-                    <div class="flex gap-3 overflow-x-auto pb-1">
+                <div class="mb-14" x-data="{
+                        scrollByPage(dir) { const el = this.$refs.track; el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: 'smooth' }); }
+                    }">
+                    <div class="flex items-end justify-between gap-4 mb-5">
+                        <div>
+                            <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Browse by neighborhood</h2>
+                            <span class="mt-1 block text-[13px] text-[#5B6A8E]">{{ $areas->count() }} {{ Str::plural('area', $areas->count()) }} &middot; {{ $areas->sum('count') }} listings</span>
+                        </div>
+                        <div class="hidden sm:flex items-center gap-2 shrink-0">
+                            <button type="button" @click="scrollByPage(-1)" aria-label="Scroll left"
+                                class="w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] flex items-center justify-center transition-colors duration-200 hover:border-[#060D26]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <button type="button" @click="scrollByPage(1)" aria-label="Scroll right"
+                                class="w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] flex items-center justify-center transition-colors duration-200 hover:border-[#060D26]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                    {{-- Same swipeable scroll-snap row as "Popular places to stay": ~5 tiles visible on
+                         desktop, ~1.5 on phones (next tile peeks in), "View all areas" is the last one. --}}
+                    <div x-ref="track" class="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         @foreach($areas as $area)
-                            <a href="{{ route('properties.index', ['location' => $area['name']]) }}"
-                                class="relative flex-1 min-w-[176px] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0">
-                                <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}"
+                            <a href="{{ $area['url'] }}"
+                                class="relative shrink-0 snap-start w-[62%] sm:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-3rem)/5)] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+                                <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}" loading="lazy"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/90 via-[#060D26]/35 to-transparent"></div>
                                 <div class="absolute bottom-3 left-3 right-3">
-                                    <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[14.5px] font-bold leading-tight truncate [text-shadow:0_1px_6px_rgba(6,13,38,0.5)]">
-                                        {{ $area['name'] }}
-                                    </p>
-                                    <p class="mt-1 inline-flex font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[9.5px] font-bold uppercase tracking-[0.06em] text-white px-2 py-0.5 rounded-full border border-[#FF8A66]/70 bg-[#060D26]/40">
+                                    <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[14.5px] font-bold leading-tight truncate [text-shadow:0_1px_6px_rgba(6,13,38,0.5)]">{{ $area['name'] }}</p>
+                                    <p class="mt-1 inline-flex font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12px] font-semibold text-white px-2.5 py-0.5 rounded-full border border-white/30 bg-[#060D26]/40">
                                         {{ $area['count'] }} {{ Str::plural('listing', $area['count']) }}
                                     </p>
                                 </div>
                             </a>
                         @endforeach
 
-                        <a href="{{ route('properties.areas') }}"
-                            class="relative flex-1 min-w-[176px] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#FF8A66]/60 bg-gradient-to-br from-[#FF8A66]/15 via-[#FF8A66]/5 to-white flex flex-col items-center justify-center text-center gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0">
-                            <span class="w-10 h-10 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shadow-[0_8px_20px_rgba(255,138,102,0.4)] transition-transform duration-300 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6" /></svg>
-                            </span>
-                            <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[14.5px] font-extrabold text-[#060D26] leading-tight">View all areas</span>
-                        </a>
+                        <x-view-all-tile :href="route('properties.areas')" label="View all areas"
+                            :sub="$areas->count() . ' neighborhoods'"
+                            :photos="$areas->reverse()->pluck('photo')->all()"
+                            class="w-[62%] sm:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-3rem)/5)] h-36 sm:h-40" />
                     </div>
                 </div>
             @endif
 
             @if($popularProperties->count() > 0)
                 {{-- ===== POPULAR PLACES TO STAY ===== --}}
-                <div class="mb-14">
-                    <div class="flex items-center gap-3"><span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>Top rated</span>
-                    <span class="h-0.5 flex-1 rounded-full bg-gradient-to-r from-[#FF8A66] via-[#FF8A66]/70 to-[#FF8A66]/10" aria-hidden="true"></span>
-                    <span class="hidden sm:inline font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.1em] text-[#5B6A8E] whitespace-nowrap">Highest rated by tenants</span></div>
-                    <h2 class="mt-2.5 mb-6 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[24px] sm:text-[30px] font-extrabold leading-[1.15] tracking-tight text-[#060D26]">Popular places
-                        <span class="block text-[#5B6A8E]">to stay.</span></h2>
+                <div class="mb-14" x-data="{
+                        scrollByPage(dir) { const el = this.$refs.track; el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: 'smooth' }); }
+                    }">
+                    <div class="flex items-end justify-between gap-4 mb-6">
+                        <div>
+                            <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12px] font-semibold uppercase tracking-[0.08em] text-[#B35A3D]">Highest rated by tenants</p>
+                            <h2 class="mt-1.5 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Popular places to stay</h2>
+                        </div>
+                        <div class="hidden sm:flex items-center gap-2 shrink-0">
+                            <button type="button" @click="scrollByPage(-1)" aria-label="Scroll left"
+                                class="w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] flex items-center justify-center transition-colors duration-200 hover:border-[#060D26]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <button type="button" @click="scrollByPage(1)" aria-label="Scroll right"
+                                class="w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] flex items-center justify-center transition-colors duration-200 hover:border-[#060D26]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                        </div>
+                    </div>
                     {{-- A different card treatment than the main grid's borderless
                          image-is-the-card pattern (DESIGN.md §6), deliberately — this
                          boxed white-card style is specific to this section, mirroring
                          the reference mockup exactly. Only one use site, so inlined
                          rather than a new shared component. --}}
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {{-- One swipeable row (scroll-snap): ~5 cards visible on desktop, ~1.5 on phones
+                         so the next card peeks in as a swipe hint. "View all" is the last item. --}}
+                    <div x-ref="track" class="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         @foreach($popularProperties as $property)
                             @php
                                 $availableCount = $property->units->where('availability_status', 'Available')->count();
                                 $photo = $property->media->firstWhere('media_type', 'Image')?->media_url;
                             @endphp
                             <a href="{{ route('properties.show', $property->property_id) }}"
-                                class="block bg-white border border-[#E2E4EC] rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
+                                class="block shrink-0 snap-start w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)] bg-white border border-[#E2E4EC] rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66]/60 hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                                 <div class="relative h-[110px] bg-[#ECEEF6]">
                                     @if($photo)
                                         <img src="{{ $photo }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
@@ -181,7 +180,7 @@
                                         </div>
                                         <div class="text-right shrink-0">
                                             @if($availableCount > 0)
-                                                <p class="inline-block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.04em] text-[#060D26] px-2 py-0.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
+                                                <p class="inline-block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.04em] text-[#060D26] px-2 py-0.5 rounded-full bg-[#ECEEF6]">
                                                     {{ $availableCount }} {{ Str::plural('unit', $availableCount) }} free
                                                 </p>
                                             @endif
@@ -195,6 +194,11 @@
                                 </div>
                             </a>
                         @endforeach
+
+                        <x-view-all-tile :href="route('properties.index', ['sort' => 'top_rated'])" label="View all popular properties"
+                            sub="Highest rated by tenants"
+                            :photos="$popularProperties->reverse()->map(fn ($p) => $p->media->firstWhere('media_type', 'Image')?->media_url)->all()"
+                            class="w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]" />
                     </div>
                 </div>
             @endif
@@ -314,22 +318,20 @@
 
         {{-- ===== ALL LISTINGS — compact header + one toolbar row (type pills left,
              map/filters right). ===== --}}
-        <div class="flex items-center gap-3">
-            <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>All listings</span>
-            <span class="h-0.5 flex-1 rounded-full bg-gradient-to-r from-[#FF8A66] via-[#FF8A66]/70 to-[#FF8A66]/10" aria-hidden="true"></span>
-            <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.1em] text-[#5B6A8E] whitespace-nowrap">
-                {{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found
-            </span>
-        </div>
         @if($heroStats)
-            <h2 class="mt-3 mb-6 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[22px] sm:text-[28px] font-extrabold leading-tight tracking-tight text-[#060D26]">Every place, <span class="text-[#5B6A8E]">ready to view.</span></h2>
+        <div class="flex items-end justify-between gap-4 mb-6">
+                <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Every place, ready to view</h2>
+                <span class="text-[13px] text-[#5B6A8E] whitespace-nowrap">
+                    {{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found
+                </span>
+        </div>
         @endif
 
         @php
             $typePills = ['All' => null, 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House'];
             $activeType = request('type');
         @endphp
-        <div class="{{ $heroStats ? 'lg:hidden' : 'mt-4' }} mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div class="mb-4 flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
             {{-- Type pills: landing only. Every other view has the header's category strip. --}}
             @if($heroStats)
                 <div class="flex items-center gap-2 overflow-x-auto max-w-full [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -343,7 +345,10 @@
                     @endforeach
                 </div>
             @else
-                <span></span>
+                <div class="min-w-0">
+                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] font-bold leading-tight text-[#060D26]">{{ request('location') ? 'Rentals in ' . request('location') : 'All listings' }}</h2>
+                    <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">{{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found</p>
+                </div>
             @endif
 
             <div class="flex items-center gap-2">
@@ -351,7 +356,7 @@
                      covers small screens, where the two never share the screen. --}}
                 <button type="button"
                     @click="mapVisible = !mapVisible; if (mapVisible) $nextTick(() => window.browseMapRefit?.())"
-                    class="{{ $heroStats ? 'hidden lg:inline-flex' : 'hidden' }} items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold shadow-sm hover:bg-[#F7F8FC] transition cursor-pointer">
+                    class="hidden lg:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:bg-[#F7F8FC] transition cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
@@ -364,7 +369,7 @@
                      Map switcher below covers Show map on small screens. --}}
                 @php $activeFilterCount = count((array) request('amenities', [])); @endphp
                 <button type="button" @click="filtersOpen = true"
-                    class="{{ $heroStats ? '' : 'lg:hidden' }} inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold shadow-sm hover:bg-[#F7F8FC] transition cursor-pointer">
+                    class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:bg-[#F7F8FC] transition cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
@@ -511,18 +516,10 @@
                         @endforeach
 
                         @if($heroStats)
-                            <a href="{{ route('properties.index', ['sort' => 'newest']) }}"
-                                class="group relative flex flex-col items-center justify-center text-center gap-3 rounded-2xl border border-[#FF8A66]/60 bg-gradient-to-br from-[#FF8A66]/15 via-[#FF8A66]/5 to-white p-6 min-h-[260px] transition-all duration-300 hover:-translate-y-1 hover:border-[#FF8A66] hover:shadow-[0_12px_28px_rgba(6,13,38,0.12)] motion-reduce:hover:translate-y-0">
-                                <span class="w-12 h-12 rounded-full bg-[#FF8A66] text-[#060D26] flex items-center justify-center shadow-[0_8px_20px_rgba(255,138,102,0.4)] transition-transform duration-300 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6" />
-                                    </svg>
-                                </span>
-                                <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[16px] font-extrabold leading-tight text-[#060D26]">View all rental properties</span>
-                                <span class="inline-flex font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.06em] text-[#060D26] px-2.5 py-1 rounded-full border border-[#FF8A66]/60 bg-white/70">
-                                    {{ $properties->total() }} {{ Str::plural('listing', $properties->total()) }}
-                                </span>
-                            </a>
+                            <x-view-all-tile :href="route('properties.index', ['sort' => 'newest'])" label="View all rental properties"
+                                :sub="$properties->total() . ' ' . Str::plural('listing', $properties->total())"
+                                :photos="$properties->reverse()->map(fn ($p) => $p->media->firstWhere('media_type', 'Image')?->media_url)->all()"
+                                class="min-h-[260px]" />
                         @endif
                     </div>
 
@@ -538,9 +535,9 @@
                      of the desktop toggle, which is hidden there); mapVisible
                      governs it at `lg` and up. --}}
                 <div :class="[mobileView === 'map' ? 'block' : 'hidden', mapVisible ? 'lg:!block' : 'lg:!hidden']"
-                    class="lg:sticky {{ $heroStats ? 'lg:top-[150px]' : 'lg:top-[232px]' }} lg:self-start">
+                    class="lg:sticky lg:top-[240px] lg:self-start">
                     <div id="browse-map"
-                        class="w-full h-[400px] {{ $heroStats ? 'lg:h-[calc(100vh-190px)]' : 'lg:h-[calc(100vh-256px)]' }} lg:min-h-[420px] rounded-2xl overflow-hidden border border-[#FF8A66]">
+                        class="w-full h-[400px] lg:h-[calc(100vh-256px)] lg:min-h-[420px] rounded-2xl overflow-hidden border border-[#FF8A66]">
                     </div>
                     <script type="application/json" id="browse-map-data">{!! json_encode($mapProperties) !!}</script>
                 </div>
@@ -561,6 +558,213 @@
         @endif
 
     </div>
+    </div>
+
+    @if($heroStats)
+        {{-- How it works — after the listings, where it reassures rather than blocks the way to them. --}}
+        {{-- Slides up into view the first time it scrolls on screen; steps stagger 150ms apart. --}}
+        <section class="relative isolate overflow-hidden bg-white border-t border-[#E2E4EC]" aria-labelledby="how-it-works-title"
+            x-data="{ shown: false }"
+            x-init="if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) { shown = true; return; }
+                    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { shown = true; io.disconnect(); } }, { threshold: 0.25 });
+                    io.observe($el);">
+            <x-section-texture compact />
+            <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+                <h2 id="how-it-works-title" class="sr-only">How AbangananHub works</h2>
+                <ol class="grid gap-8 sm:grid-cols-3 sm:gap-10">
+                    @foreach([
+                        ['01', 'Find a verified place', 'Search by area, budget and type. Every landlord is identity-checked before listing.'],
+                        ['02', 'Message the landlord', 'Ask questions, agree on move-in date and terms, all in one conversation.'],
+                        ['03', 'Sign, pay, move in', 'Sign the rental agreement online and pay through the platform. Your deposit is held safely until move-in.'],
+                    ] as $i => [$num, $title, $body])
+                        <li class="transition-all duration-700 ease-out"
+                            style="transition-delay: {{ $i * 150 }}ms"
+                            :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
+                            <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">{{ $num }}</span>
+                            <span class="mt-2 block h-0.5 rounded-full bg-[#FF8A66] transition-all duration-700 ease-out"
+                                style="transition-delay: {{ $i * 150 + 300 }}ms"
+                                :class="shown ? 'w-8' : 'w-0'" aria-hidden="true"></span>
+                            <h3 class="mt-3 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[16px] font-bold text-[#060D26]">{{ $title }}</h3>
+                            <p class="mt-1 text-[14px] leading-relaxed text-[#5B6A8E] max-w-xs">{{ $body }}</p>
+                        </li>
+                    @endforeach
+                </ol>
+                <a href="{{ route('about') }}#how-it-works"
+                    style="transition-delay: 600ms"
+                    :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                    class="mt-8 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#B35A3D] hover:underline transition-all duration-700 ease-out">
+                    See the full step-by-step guide
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </a>
+            </div>
+        </section>
+    @endif
+
+    @if($heroStats && !(auth()->check() && auth()->user()->hasRole('Landlord')))
+        @php
+            $ownerPerks = [
+                ['Reach tenants already searching in Cebu', 'M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z'],
+                ['Manage units, inquiries and rent in one place', 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 7h6m-6 4h4'],
+                ['Digital agreements, no paperwork chasing', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+                ['A Verified badge that builds tenant trust', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
+            ];
+        @endphp
+        <section class="relative isolate overflow-hidden bg-[#ECEEF6]" aria-labelledby="landlord-cta-title">
+            <x-section-texture compact />
+            <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 grid gap-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-center lg:gap-16">
+                <div>
+                    <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#B35A3D]">For property owners</p>
+                    <h2 id="landlord-cta-title" class="mt-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] sm:text-[34px] font-extrabold leading-[1.15] tracking-tight text-[#060D26] text-balance">Have a room or unit to rent out?</h2>
+                    <ul class="mt-7 grid gap-3 sm:grid-cols-2">
+                        @foreach($ownerPerks as [$perk, $icon])
+                            <li class="flex items-center gap-3 rounded-2xl bg-white/70 border border-[#E2E4EC] p-3.5">
+                                <span class="w-10 h-10 shrink-0 rounded-xl bg-[#060D26] text-[#FF8A66] flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" /></svg>
+                                </span>
+                                <span class="text-[14px] leading-snug font-medium text-[#060D26]">{{ $perk }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                    <a href="{{ auth()->check() ? route('landlord.verification.create') : route('register') }}"
+                        class="group relative isolate mt-9 w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 py-4 rounded-2xl bg-[#FF8A66] text-[#060D26] text-[17px] font-extrabold font-['Plus_Jakarta_Sans',_Inter,_sans-serif] shadow-[0_14px_32px_rgba(255,138,102,0.55)] transition-all duration-300 hover:bg-[#E96F4F] hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(255,138,102,0.65)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#060D26] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ECEEF6]">
+                        {{-- Slow pulsing halo so the button reads as the primary action of the section. --}}
+                        <span class="absolute inset-0 -z-10 rounded-2xl bg-[#FF8A66] motion-safe:animate-[owner-cta-pulse_2.4s_ease-out_infinite]" aria-hidden="true"></span>
+                        List your property
+                        <span class="w-7 h-7 rounded-full bg-[#060D26] text-[#FF8A66] flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6" /></svg>
+                        </span>
+                    </a>
+                </div>
+
+                {{-- Decorative "landlord dashboard" scene: a lit building on navy with floating status chips. --}}
+                <div class="hidden md:block relative h-[340px] lg:h-[380px] rounded-[28px] bg-[#060D26] overflow-hidden" aria-hidden="true">
+                    <div class="absolute -top-16 -right-10 w-64 h-64 rounded-full bg-[#FF8A66]/25 blur-3xl"></div>
+                    <div class="absolute -bottom-20 -left-10 w-64 h-64 rounded-full bg-[#5B6A8E]/30 blur-3xl"></div>
+
+                    {{-- 3D-style isometric building: lit left/right faces, a light roof, glowing windows,
+                         and a soft ground platform. Window grids are drawn flat then skewed onto each face. --}}
+                    @php
+                        $litLeft  = [[1,0,0],[0,1,0],[1,0,1]];
+                        $litRight = [[0,1,1],[1,0,0],[0,1,0],[1,1,0]];
+                    @endphp
+                    <svg viewBox="0 0 260 310" class="absolute left-[43%] bottom-[2%] -translate-x-1/2 h-[90%] w-auto" fill="none">
+                        <defs>
+                            <linearGradient id="ow-left" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1C2858"/><stop offset="1" stop-color="#2A3A78"/></linearGradient>
+                            <linearGradient id="ow-right" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4356A6"/><stop offset="1" stop-color="#2E3F86"/></linearGradient>
+                            <linearGradient id="ow-roof" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7183CC"/><stop offset="1" stop-color="#4A5DAA"/></linearGradient>
+                            <linearGradient id="ow-lit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC7AF"/><stop offset="1" stop-color="#FF8A66"/></linearGradient>
+                            <linearGradient id="ow-dim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A6B2DA" stop-opacity=".55"/><stop offset="1" stop-color="#6A79B0" stop-opacity=".4"/></linearGradient>
+                            <linearGradient id="ow-plat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B3A78"/><stop offset="1" stop-color="#141D45"/></linearGradient>
+                            <radialGradient id="ow-shadow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+                        </defs>
+
+                        <ellipse cx="128" cy="292" rx="122" ry="16" fill="url(#ow-shadow)"/>
+                        <path d="M8 262l112 42 132-46-132-52z" fill="url(#ow-plat)"/>
+                        <path d="M8 262l112 42 132-46" stroke="#5F70B8" stroke-opacity=".5" stroke-width="1.5" stroke-linejoin="round"/>
+
+                        {{-- faces --}}
+                        <path d="M30 60l90 35v190l-90-35z" fill="url(#ow-left)"/>
+                        <path d="M120 95l90-35v190l-90 35z" fill="url(#ow-right)"/>
+                        <path d="M30 60l90-35 90 35-90 35z" fill="url(#ow-roof)"/>
+                        {{-- rooftop unit --}}
+                        <path d="M92 52l22-8 22 8-22 8z" fill="#8FA0E0"/>
+                        <path d="M92 52v12l22 8V60z" fill="#3B4C98"/><path d="M114 60v12l22-8V52z" fill="#5468BC"/>
+
+                        {{-- left-face windows + lobby door --}}
+                        <g transform="translate(30 60) skewY(21.25)">
+                            @foreach($litLeft as $r => $row)
+                                @foreach($row as $c => $lit)
+                                    @if($lit)<rect x="{{ 8 + $c * 26 }}" y="{{ 12 + $r * 44 }}" width="22" height="30" rx="3" fill="#FF8A66" opacity=".28"/>@endif
+                                    <rect x="{{ 10 + $c * 26 }}" y="{{ 14 + $r * 44 }}" width="18" height="26" rx="2.5" fill="url(#{{ $lit ? 'ow-lit' : 'ow-dim' }})"/>
+                                @endforeach
+                            @endforeach
+                            <rect x="30" y="144" width="30" height="46" rx="3" fill="#0B1435"/>
+                            <rect x="26" y="138" width="38" height="7" rx="2" fill="#FF8A66"/>
+                        </g>
+
+                        {{-- right-face windows --}}
+                        <g transform="translate(120 95) skewY(-21.25)">
+                            @foreach($litRight as $r => $row)
+                                @foreach($row as $c => $lit)
+                                    @if($lit)<rect x="{{ 8 + $c * 26 }}" y="{{ 12 + $r * 44 }}" width="22" height="30" rx="3" fill="#FF8A66" opacity=".28"/>@endif
+                                    <rect x="{{ 10 + $c * 26 }}" y="{{ 14 + $r * 44 }}" width="18" height="26" rx="2.5" fill="url(#{{ $lit ? 'ow-lit' : 'ow-dim' }})"/>
+                                @endforeach
+                            @endforeach
+                        </g>
+
+                        {{-- edge highlights sell the 3D volume --}}
+                        <path d="M30 60l90-35 90 35" stroke="#B5C2F5" stroke-opacity=".65" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M120 95v190" stroke="#8FA0E6" stroke-opacity=".5" stroke-width="1.5"/>
+                        <path d="M30 60l90 35 90-35" stroke="#9AA9EA" stroke-opacity=".45" stroke-width="1.2" stroke-linejoin="round"/>
+                    </svg>
+
+                    {{-- 3D-style landlord: rounded "clay" shapes with gradients and soft highlights. --}}
+                    <svg viewBox="0 0 110 236" class="absolute bottom-[3%] left-[62%] h-[56%] w-auto" fill="none">
+                        <defs>
+                            <radialGradient id="ow-skin" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#FFDCC6"/><stop offset="1" stop-color="#E29A78"/></radialGradient>
+                            <linearGradient id="ow-jacket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB094"/><stop offset="1" stop-color="#E2603C"/></linearGradient>
+                            <linearGradient id="ow-sleeve" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF9C7A"/><stop offset="1" stop-color="#CF5433"/></linearGradient>
+                            <linearGradient id="ow-pants" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5D6FAE"/><stop offset="1" stop-color="#2C3970"/></linearGradient>
+                            <linearGradient id="ow-hair" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#434C7E"/><stop offset="1" stop-color="#10152C"/></linearGradient>
+                            <linearGradient id="ow-shoe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BCC6E6"/></linearGradient>
+                            <linearGradient id="ow-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A3"/><stop offset="1" stop-color="#E0A21B"/></linearGradient>
+                            <radialGradient id="ow-pshadow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".6"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+                        </defs>
+                        <ellipse cx="55" cy="230" rx="42" ry="7" fill="url(#ow-pshadow)"/>
+                        {{-- legs + sneakers --}}
+                        <rect x="34" y="130" width="17" height="94" rx="8" fill="url(#ow-pants)"/>
+                        <rect x="56" y="130" width="17" height="94" rx="8" fill="url(#ow-pants)"/>
+                        <rect x="29" y="216" width="26" height="14" rx="7" fill="url(#ow-shoe)"/>
+                        <rect x="53" y="216" width="26" height="14" rx="7" fill="url(#ow-shoe)"/>
+                        {{-- left arm --}}
+                        <rect x="13" y="66" width="20" height="68" rx="10" fill="url(#ow-sleeve)"/>
+                        <circle cx="23" cy="138" r="8" fill="url(#ow-skin)"/>
+                        {{-- torso --}}
+                        <rect x="24" y="60" width="62" height="80" rx="20" fill="url(#ow-jacket)"/>
+                        <ellipse cx="42" cy="82" rx="12" ry="20" fill="#fff" opacity=".16"/>
+                        <path d="M74 64c8 4 12 14 12 26v34a18 18 0 01-18 16h6c10 0 18-8 18-18V84c0-10-6-18-18-20z" fill="#B8431F" opacity=".22"/>
+                        <path d="M45 61h22L56 94z" fill="#fff"/>
+                        {{-- raised arm holding the key --}}
+                        <path d="M78 72l19 21a9 9 0 01-3 14l-6 3" stroke="url(#ow-sleeve)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="87" cy="108" r="8.5" fill="url(#ow-skin)"/>
+                        <g transform="translate(90 80) rotate(20)">
+                            <circle cx="0" cy="0" r="6.5" stroke="url(#ow-gold)" stroke-width="3.4"/>
+                            <path d="M0 6.5v20m0-6h6.5m-6.5 6h5" stroke="url(#ow-gold)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                        {{-- neck, head, ears, hair, face --}}
+                        <rect x="48" y="46" width="14" height="20" rx="6" fill="#DB9270"/>
+                        <circle cx="35" cy="36" r="4.5" fill="#E9A583"/><circle cx="75" cy="36" r="4.5" fill="#E9A583"/>
+                        <circle cx="55" cy="34" r="21" fill="url(#ow-skin)"/>
+                        <path d="M34 33c0-15 9-23 21-23s21 8 21 23c-4-7-10-10-17-10-8 0-18 3-25 10z" fill="url(#ow-hair)"/>
+                        <ellipse cx="46" cy="16" rx="8" ry="3.5" fill="#fff" opacity=".22"/>
+                        <circle cx="47" cy="38" r="2.3" fill="#1B2140"/><circle cx="63" cy="38" r="2.3" fill="#1B2140"/>
+                        <circle cx="47.8" cy="37.2" r=".8" fill="#fff"/><circle cx="63.8" cy="37.2" r=".8" fill="#fff"/>
+                        <circle cx="41" cy="45" r="3.4" fill="#FF8F7A" opacity=".45"/><circle cx="69" cy="45" r="3.4" fill="#FF8F7A" opacity=".45"/>
+                        <path d="M49 46c3.5 3.5 8.5 3.5 12 0" stroke="#1B2140" stroke-width="2.2" stroke-linecap="round"/>
+                    </svg>
+
+                    <div class="absolute top-6 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
+                        <span class="w-8 h-8 rounded-full bg-[#E7F6EC] text-[#1F8A4C] flex items-center justify-center">
+                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $ownerPerks[3][1] }}" /></svg>
+                        </span>
+                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Verified<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Landlord</span></span>
+                    </div>
+                    <div class="absolute top-24 right-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
+                        <span class="w-8 h-8 rounded-full bg-[#FFE9E1] text-[#B35A3D] flex items-center justify-center">
+                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H19a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14z" /></svg>
+                        </span>
+                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">New inquiry<span class="block text-[10.5px] font-medium text-[#5B6A8E]">A tenant is interested</span></span>
+                    </div>
+                    <div class="absolute bottom-10 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_8s_ease-in-out_-4s_infinite]">
+                        <span class="w-8 h-8 rounded-full bg-[#E8ECFA] text-[#2A3A75] flex items-center justify-center text-[15px] font-extrabold">&#8369;</span>
+                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Rent received<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Tracked automatically</span></span>
+                    </div>
+                </div>
+                <style>@keyframes owner-cta-pulse { 0% { opacity: .55; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.14, 1.35); } }
+                @keyframes owner-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }</style>
+            </div>
+        </section>
+    @endif
 
     @push('scripts')
         @vite(['resources/js/maps/browse-map.js'])

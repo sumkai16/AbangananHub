@@ -18,6 +18,12 @@
 
         {{-- Left panel: form --}}
         <div class="w-full md:w-1/2 h-full overflow-y-auto bg-white flex flex-col">
+            {{-- Optional back button, pinned top-left of the form panel (pages opt in via the `backLink` slot). --}}
+            @isset($backLink)
+                <div class="px-4 sm:px-6 pt-5 shrink-0">
+                    {{ $backLink }}
+                </div>
+            @endisset
             {{ $slot }}
         </div>
         {{-- Right panel: image + marketing --}}
@@ -26,24 +32,22 @@
             {{-- Background image with darker overlay --}}
             <div class="absolute inset-0">
                 <img src="{{ asset('images/auth-bg.jpg') }}" class="w-full h-full object-cover" alt="" />
-                {{-- Navy vignette overlay — mirrors the reference mockup's flat single-hue gradient --}}
-                <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/75 to-[#060D26]/92"></div>
+                {{-- Photo shows through at the top; navy builds toward the bottom where the copy sits --}}
+                <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/95 via-[#060D26]/70 to-[#060D26]/15"></div>
             </div>
 
             {{-- Content overlay --}}
-            <div class="relative z-10 flex flex-col justify-between h-full p-10">
+            <div class="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
 
-                {{-- Top: slot for page-specific action (e.g. "Already have an account?") --}}
+                {{-- Top: slot for page-specific action (e.g. "Back to login") --}}
                 <div class="flex justify-end">
                     {{ $rightTopAction ?? '' }}
                 </div>
 
-                {{-- Middle: headline + feature list --}}
-                <div class="flex flex-col gap-6">
+                {{-- Bottom: headline + supporting copy --}}
+                <div>
                     {{ $rightContent ?? '' }}
                 </div>
-
-                {{-- Bottom SDG badge removed --}}
 
             </div>
         </div>

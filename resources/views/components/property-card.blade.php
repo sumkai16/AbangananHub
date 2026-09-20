@@ -122,8 +122,8 @@
             </svg>
             {{ $property->address }}
         </p>
-        @if($property->review_count > 0)
-            <div class="flex items-center gap-1 mt-1">
+        <div class="flex items-center gap-1 mt-1">
+            @if($property->review_count > 0)
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24"
                     stroke-width="1" aria-hidden="true">
                     <path
@@ -132,8 +132,15 @@
                 <span
                     class="text-[13px] font-semibold text-[#060D26]">{{ number_format($property->avg_rating, 1) }}</span>
                 <span class="text-[12px] text-[#5B6A8E]">({{ $property->review_count }})</span>
-            </div>
-        @endif
+            @else
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6A8E"
+                    stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+                <span class="text-[12px] text-[#5B6A8E]">No reviews yet</span>
+            @endif
+        </div>
         <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15px] font-extrabold text-[#B35A3D] mt-1.5">
             @if($property->min_rental_fee)
                 ₱{{ number_format($property->min_rental_fee) }}

@@ -16,7 +16,10 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
-        // The hero + "Browse by area" + "Popular places" sections only make
+        // The hero + "Browse by area" + "Popular places" sections are the Home page
+        // (route `home`, `/`) only — /properties (Browse Rentals) is always the
+        // filter bar + grid, so clearing filters or picking "All" stays on Browse
+        // instead of bouncing back to Home. On Home they also only make
         // sense on a clean arrival — once a filter, sort, or page is active
         // the visitor is doing work, not browsing, so the page collapses to
         // the plain filter-bar + grid it has always been. See DESIGN.md §6i.
@@ -24,7 +27,7 @@ class PropertyController extends Controller
         $popularProperties = collect();
         $areas = collect();
 
-        if (!$request->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
+        if ($request->routeIs('home') && ! $request->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
             $heroStats = [
                 'listings' => Property::browsable()->count(),
                 'units' => PropertyUnit::where('availability_status', 'Available')
@@ -38,7 +41,7 @@ class PropertyController extends Controller
                 ->orderByDesc('avg_rating')
                 ->orderByDesc('review_count')
                 ->with(['media', 'landlord', 'amenities', 'units'])
-                ->take(8)
+                ->take(10)
                 ->get();
 
             // A plain grouped count, not ->browsable(): that scope's
@@ -56,7 +59,9 @@ class PropertyController extends Controller
                 ->selectRaw('city_municipality, COUNT(*) as cnt')
                 ->groupBy('city_municipality')
                 ->orderByDesc('cnt')
-                ->take(8)
+                // Wide enough to rotate through; the landing strip shows a
+                // few at a time (see the "Browse by area" block in the view).
+                ->take(20)
                 ->get()
                 ->map(function ($row) {
                     $photo = Property::browsable()
@@ -69,6 +74,7 @@ class PropertyController extends Controller
                         'name' => $row->city_municipality,
                         'count' => $row->cnt,
                         'photo' => $photo,
+                        'url' => route('properties.index', ['location' => $row->city_municipality]),
                     ];
                 })
                 // An area with no representative photo has nothing to show in
@@ -128,6 +134,10 @@ class PropertyController extends Controller
                 'image'         => $property->media->first()?->media_url ?? null,
             ];
         })->values();
+
+        // Remember where the tenant was searching (filters, sort, page included) so a
+        // property page can send them back to exactly that result set.
+        session(['browse_url' => $request->fullUrl()]);
 
         return view('properties.index', compact(
             'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas',
@@ -210,7 +220,9 @@ class PropertyController extends Controller
             ->take(6)
             ->values();
 
-        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited', 'nearbyProperties'));
+        $backUrl = session('browse_url', route('home'));
+
+        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited', 'nearbyProperties', 'backUrl'));
     }
 
     public function edit(Property $property)
