@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Message;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\PropertyUnit;
@@ -38,6 +39,31 @@ class AppServiceProvider extends ServiceProvider
         Payment::observe(PaymentObserver::class);
         PropertyUnit::observe(PropertyUnitObserver::class);
         Reservation::observe(ReservationObserver::class);
+
+        // Header badges, computed once per request. Each layout used to run the
+        // notification count twice (the server-rendered dot plus the Alpine
+        // dropdown's initial value) and the message count inline in a @php block.
+        View::composer(['layouts.app', 'layouts.landlord', 'layouts.admin'], function ($view) {
+            // Memoised on the request, not a static: a static would leak one
+            // user's counts into the next in any long-running process.
+            $attributes = request()->attributes;
+            $counts = $attributes->get('nav_counts');
+
+            if ($counts === null) {
+                $user = auth()->user();
+                $counts = $user ? [
+                    'unreadNotificationCount' => $user->notifications()->where('is_read', false)->count(),
+                    'unreadMessageCount' => Message::whereHas('conversation', fn ($q) => $q
+                            ->where('tenant_id', $user->user_id)->orWhere('landlord_id', $user->user_id))
+                        ->where('sender_id', '!=', $user->user_id)
+                        ->where('is_read', false)
+                        ->count(),
+                ] : ['unreadNotificationCount' => 0, 'unreadMessageCount' => 0];
+                $attributes->set('nav_counts', $counts);
+            }
+
+            $view->with($counts);
+        });
     }
 
     /**

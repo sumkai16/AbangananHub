@@ -139,7 +139,7 @@
                                 class="block shrink-0 snap-start w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)] bg-white border border-[#E2E4EC] rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66]/60 hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                                 <div class="relative h-[110px] bg-[#ECEEF6]">
                                     @if($photo)
-                                        <img src="{{ $photo }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
+                                        <img src="{{ \App\Support\Images::resize($photo, 480) }}" alt="{{ $property->title }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
                                     @endif
                                     @if($property->hasVerifiedDocuments())
                                         <span class="absolute top-2.5 left-2.5 inline-flex items-center gap-0.5 bg-white/95 text-[#060D26] text-[10.5px] font-semibold px-2 py-1 rounded-full">
@@ -475,7 +475,7 @@
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition cursor-pointer">
                 List
             </button>
-            <button type="button" @click="mobileView = 'map'"
+            <button type="button" data-browse-map-tab @click="mobileView = 'map'"
                 :class="mobileView === 'map' ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition cursor-pointer">
                 Map

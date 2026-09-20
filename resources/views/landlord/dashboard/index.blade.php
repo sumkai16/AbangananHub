@@ -227,7 +227,7 @@
                                 class="group flex items-center gap-4 p-4 hover:bg-[#F7F8FC] active:bg-[#ECEEF6] transition-colors duration-200">
                                 <div class="w-14 h-14 rounded-xl bg-[#ECEEF6] overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                                     @if($property['thumbnail'])
-                                        <img src="{{ $property['thumbnail'] }}" alt="{{ $property['title'] }}"
+                                        <img loading="lazy" decoding="async" src="{{ $property['thumbnail'] }}" alt="{{ $property['title'] }}"
                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                     @else
                                         <div class="w-full h-full flex items-center justify-center">

@@ -7,6 +7,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/charts.js',
                 'resources/js/maps/property-map.js',
                 'resources/js/maps/browse-map.js',
                 'resources/js/maps/location-picker.js',

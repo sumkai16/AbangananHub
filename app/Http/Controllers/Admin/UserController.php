@@ -159,6 +159,7 @@ class UserController extends Controller
         // Sync roles: remove old, assign new
         \DB::transaction(function () use ($user, $data, $before, $passwordReset) {
             $user->roles()->delete();
+            $user->unsetRelation('roles');
             foreach ($data['roles'] as $role) {
                 $user->assignRole($role);
             }

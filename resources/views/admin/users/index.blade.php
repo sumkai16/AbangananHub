@@ -94,7 +94,7 @@
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 @if ($user->profile_picture)
-                                                    <img src="{{ $user->profile_picture }}"
+                                                    <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}"
                                                         alt="{{ $user->first_name }}"
                                                         class="w-9 h-9 rounded-full object-cover border border-[#E2E4EC] shrink-0" />
                                                 @else
@@ -239,9 +239,9 @@
 </div>
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    @vite('resources/js/charts.js')
     <script>
-        (function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const ctx = document.getElementById('roleBreakdownChart');
             if (!ctx || typeof Chart === 'undefined') return;
 
@@ -265,7 +265,7 @@
                     },
                 },
             });
-        })();
+        });
     </script>
 @endpush
 @endsection

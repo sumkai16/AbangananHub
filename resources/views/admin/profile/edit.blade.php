@@ -39,7 +39,7 @@
 
                 <div class="relative group mx-auto w-20 h-20 mb-4">
                     @if ($user->profile_picture)
-                        <img src="{{ $user->profile_picture }}" alt="Profile"
+                        <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="Profile"
                              class="w-20 h-20 rounded-2xl object-cover border-2 border-[#E2E4EC]" />
                     @else
                         <div class="w-20 h-20 rounded-2xl bg-[#060D26] flex items-center justify-center border-2 border-[#E2E4EC]">

@@ -198,7 +198,7 @@
                             <div class="flex items-center gap-2.5 rounded-xl bg-[#ECEEF6]/60 p-3">
                                 <div class="w-9 h-9 rounded-lg bg-white overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                                     @if($thumb)
-                                        <img src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
                                     @else
                                         <div class="w-full h-full flex items-center justify-center">
                                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5">
@@ -338,7 +338,7 @@
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-9 h-9 rounded-lg bg-white overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                                                 @if($thumb)
-                                                    <img src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover">
                                                 @else
                                                     <div class="w-full h-full flex items-center justify-center">
                                                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5">

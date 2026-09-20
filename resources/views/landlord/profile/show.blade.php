@@ -159,7 +159,7 @@
                     @if($business)
                         <div class="flex items-start gap-3">
                             @if($business->logo_url)
-                                <img src="{{ $business->logo_url }}" alt="{{ $business->business_name }}" class="w-12 h-12 rounded-xl object-cover shrink-0">
+                                <img loading="lazy" decoding="async" src="{{ $business->logo_url }}" alt="{{ $business->business_name }}" class="w-12 h-12 rounded-xl object-cover shrink-0">
                             @endif
                             <div class="min-w-0">
                                 <p class="text-[14.5px] font-semibold text-[#060D26]">{{ $business->business_name }}</p>
@@ -231,7 +231,7 @@
                                         class="group flex items-center gap-3 sm:gap-4 px-4 py-3 hover:bg-[#F7F8FC] transition-colors duration-200">
                                         <div class="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-xl overflow-hidden bg-[#ECEEF6] shrink-0 ring-1 ring-[#5B6A8E]/10">
                                             @if($thumb)
-                                                <img src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 motion-reduce:transition-none">
+                                                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 motion-reduce:transition-none">
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center" aria-hidden="true">
                                                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5">

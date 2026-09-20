@@ -257,7 +257,7 @@
                                 <span class="text-[11px] text-[#5B6A8E]/70">No photo</span>
                             </div>
                             @if($thumb)
-                                <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" onerror="this.remove()"
+                                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" onerror="this.remove()"
                                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
                             @endif
 
@@ -384,7 +384,7 @@
                                         <div class="flex items-center gap-3">
                                             <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($thumb)
-                                                    <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" class="w-full h-full object-cover">
                                                 @else
                                                     <div class="w-full h-full flex items-center justify-center text-[#5B6A8E]/60">
                                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -438,7 +438,7 @@
                                         @if($tenantName)
                                             <div class="flex items-center gap-2">
                                                 @if($activeRes->tenant->profile_picture)
-                                                    <img src="{{ $activeRes->tenant->profile_picture }}" alt="{{ $tenantName }}"
+                                                    <img loading="lazy" decoding="async" src="{{ $activeRes->tenant->profile_picture }}" alt="{{ $tenantName }}"
                                                         class="w-7 h-7 rounded-full object-cover shrink-0">
                                                 @else
                                                     <div class="w-7 h-7 rounded-full bg-[#ECEEF6] text-[#060D26] text-[10px] font-bold flex items-center justify-center shrink-0">

@@ -26,11 +26,17 @@
         // vary by room and an aggregated list here would just repeat that.
         $buildingAmenities = $property->amenities->pluck('amenity_name')->sort(SORT_NATURAL | SORT_FLAG_CASE)->values();
 
-        $unitsPayload = $approvedUnits->map(function ($unit) use ($property) {
-            $hasActiveReservation = auth()->check() && \App\Models\Reservation::where('unit_id', $unit->unit_id)
-                ->where('tenant_id', auth()->id())
+        // Which of these units the viewer already has a live reservation on — one
+        // query for all of them, not one EXISTS per unit inside the map below.
+        $activeUnitIds = auth()->check()
+            ? array_flip(\App\Models\Reservation::where('tenant_id', auth()->id())
+                ->whereIn('unit_id', $approvedUnits->pluck('unit_id'))
                 ->whereNotIn('rental_status', \App\Models\Reservation::TERMINAL_STATUSES)
-                ->exists();
+                ->pluck('unit_id')->all())
+            : [];
+
+        $unitsPayload = $approvedUnits->map(function ($unit) use ($property, $activeUnitIds) {
+            $hasActiveReservation = isset($activeUnitIds[$unit->unit_id]);
 
             return [
                 'id' => $unit->unit_id,
@@ -389,13 +395,13 @@
                             @php $secondThumbIndex = $mediaCount >= 3 ? 2 : 1; @endphp
                             <button type="button" id="thumb-1" onclick="setHero(1)"
                                 class="group relative block w-full h-full lg:col-span-4 {{ $mediaCount === 2 ? 'row-span-2' : '' }} overflow-hidden rounded-2xl bg-[#E2E4EC] border border-[#ECEEF6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
-                                <img src="{{ $property->media->get(1)->media_url }}" alt="{{ $property->title }} photo 2"
+                                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($property->media->get(1)->media_url, 600) }}" alt="{{ $property->title }} photo 2"
                                     class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                             </button>
                             @if($mediaCount >= 3)
                             <button type="button" id="thumb-2" onclick="setHero({{ $secondThumbIndex }})"
                                 class="group relative block w-full h-full lg:col-span-4 overflow-hidden rounded-2xl bg-[#E2E4EC] border border-[#ECEEF6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
-                                <img src="{{ $property->media->get($secondThumbIndex)->media_url }}" alt="{{ $property->title }} photo {{ $secondThumbIndex + 1 }}"
+                                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($property->media->get($secondThumbIndex)->media_url, 600) }}" alt="{{ $property->title }} photo {{ $secondThumbIndex + 1 }}"
                                     class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                                 {{-- A small corner badge, not a full-image dark
                                      shade — the photo itself stays as visible
@@ -567,7 +573,7 @@
                              — falls back to the plain initials otherwise. --}}
                         <div class="w-12 h-12 shrink-0 rounded-full overflow-hidden {{ $property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url ? 'bg-white ring-1 ring-[#E2E4EC]' : 'bg-[#FF8A66]' }} text-[#060D26] flex items-center justify-center text-[15px] font-bold">
                             @if($property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url)
-                                <img src="{{ $property->landlord->rentalBusiness->logo_url }}" alt="{{ $property->landlord->rentalBusiness->business_name }}"
+                                <img loading="lazy" decoding="async" src="{{ $property->landlord->rentalBusiness->logo_url }}" alt="{{ $property->landlord->rentalBusiness->business_name }}"
                                     class="w-full h-full object-cover">
                             @else
                                 {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
@@ -997,7 +1003,7 @@
                                     @php $unitThumb = $unit->media->firstWhere('media_type', 'Image'); @endphp
                                     <div class="relative aspect-[16/10] bg-[#ECEEF6] overflow-hidden">
                                         @if($unitThumb)
-                                            <img src="{{ $unitThumb->media_url }}" alt="{{ $unit->unit_label }}"
+                                            <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($unitThumb->media_url, 400) }}" alt="{{ $unit->unit_label }}"
                                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out motion-reduce:transition-none">
                                         @else
                                             <div class="w-full h-full flex items-center justify-center">
@@ -1302,7 +1308,7 @@
                             @php $nearbyThumb = $nearby->media->first(); @endphp
                             <div class="relative aspect-[16/10] overflow-hidden bg-[#ECEEF6]">
                                 @if($nearbyThumb)
-                                    <img src="{{ $nearbyThumb->media_url }}" alt="{{ $nearby->title }}"
+                                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($nearbyThumb->media_url, 640) }}" alt="{{ $nearby->title }}"
                                         class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center">
@@ -1608,7 +1614,7 @@
                                 <div class="p-5 space-y-4">
                                     <div class="flex items-center gap-3 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] p-3">
                                         @if($photo = $property->media->firstWhere('media_type', 'Image'))
-                                            <img src="{{ $photo->media_url }}" alt="{{ $property->title }}" class="w-12 h-12 rounded-lg object-cover shrink-0">
+                                            <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($photo->media_url, 160) }}" alt="{{ $property->title }}" class="w-12 h-12 rounded-lg object-cover shrink-0">
                                         @endif
                                         <div class="min-w-0">
                                             <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wide">Selected Property</p>

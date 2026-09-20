@@ -157,7 +157,10 @@ public function tenantRatingsReceived()
 
     public function hasRole(string $role): bool
     {
-        return $this->roles()->where('role', $role)->exists();
+        // Reads the (cached) relation rather than running an EXISTS per call —
+        // the layouts alone ask 7+ times per page, and one users' roles are 1-3 rows.
+        // Writers must call unsetRelation('roles') so this never serves stale data.
+        return $this->roles->contains('role', $role);
     }
 
     /**
@@ -256,6 +259,7 @@ public function tenantRatingsReceived()
     {
         if (!$this->hasRole($role)) {
             $this->roles()->create(['role' => $role]);
+            $this->unsetRelation('roles');
         }
     }
     public function rentalBusiness()

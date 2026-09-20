@@ -32,7 +32,7 @@
                 <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Profile picture</h2>
                 <div class="flex items-center gap-5">
                     @if($user->profile_picture)
-                        <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}"
+                        <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}"
                             class="w-20 h-20 rounded-full object-cover">
                     @else
                         <div
@@ -154,7 +154,7 @@
                     </template>
                     <template x-if="!preview">
                         @if($business && $business->logo_url)
-                            <img src="{{ $business->logo_url }}" alt="{{ $business->business_name ?? 'Logo' }}"
+                            <img loading="lazy" decoding="async" src="{{ $business->logo_url }}" alt="{{ $business->business_name ?? 'Logo' }}"
                                 class="w-16 h-16 rounded-xl object-cover border border-[#E2E4EC]">
                         @else
                             <div

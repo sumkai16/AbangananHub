@@ -66,7 +66,7 @@
                                     <div class="flex items-center gap-3 min-w-0">
                                         <div class="w-11 h-11 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                             @if($hasPhoto)
-                                                <img src="{{ $unit->media->firstWhere('media_type', 'Image')->media_url }}" alt="" class="w-full h-full object-cover">
+                                                <img loading="lazy" decoding="async" src="{{ $unit->media->firstWhere('media_type', 'Image')->media_url }}" alt="" class="w-full h-full object-cover">
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center text-[#EF4444]">
                                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

@@ -91,7 +91,7 @@
                     {{-- Thumbnail --}}
                     <div class="w-full sm:w-[132px] aspect-[4/3] rounded-xl overflow-hidden bg-[#ECEEF6] border border-[#E2E4EC] shrink-0">
                         @if($thumb)
-                            <img src="{{ $thumb }}" alt="{{ $property->title }}" class="w-full h-full object-cover" />
+                            <img loading="lazy" decoding="async" src="{{ $thumb }}" alt="{{ $property->title }}" class="w-full h-full object-cover" />
                         @else
                             <div class="w-full h-full flex items-center justify-center">
                                 <svg class="w-7 h-7 text-[#B35A3D]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">

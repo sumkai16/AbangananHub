@@ -179,7 +179,7 @@
                         <a href="{{ route('landlord.properties.show', $property) }}"
                             class="relative block aspect-[16/9] overflow-hidden bg-[#ECEEF6] shrink-0">
                             @if($thumb)
-                                <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}"
+                                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $property->title }}"
                                     class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
                             @else
                                 <div class="w-full h-full flex flex-col items-center justify-center gap-2">
@@ -331,7 +331,7 @@
                                         <div class="flex items-center gap-3">
                                             <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                                 @if($thumb)
-                                                    <img src="{{ $thumb->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
+                                                    <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
                                                 @else
                                                     <div class="w-full h-full flex items-center justify-center text-[#5B6A8E]/60">
                                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">

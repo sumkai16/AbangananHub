@@ -42,7 +42,7 @@
                 <x-card flush class="p-6 text-center">
                     <div id="sidebar-avatar" class="mx-auto mb-4">
                         @if($user->profile_picture)
-                            <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="w-20 h-20 rounded-2xl object-cover mx-auto ring-4 ring-[#ECEEF6]">
+                            <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="w-20 h-20 rounded-2xl object-cover mx-auto ring-4 ring-[#ECEEF6]">
                         @else
                             <div class="w-20 h-20 rounded-2xl bg-[#060D26] flex items-center justify-center text-white text-[26px] font-black mx-auto ring-4 ring-[#ECEEF6]">
                                 {{ strtoupper(substr($user->first_name, 0, 1)) }}{{ strtoupper(substr($user->last_name, 0, 1)) }}

@@ -23,7 +23,7 @@
             {{-- Avatar --}}
             <div class="shrink-0">
                 @if($user->profile_picture)
-                    <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="w-[72px] h-[72px] sm:w-20 sm:h-20 {{ $avatarRadius }} object-cover ring-4 ring-white/15">
+                    <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="w-[72px] h-[72px] sm:w-20 sm:h-20 {{ $avatarRadius }} object-cover ring-4 ring-white/15">
                 @else
                     <div class="w-[72px] h-[72px] sm:w-20 sm:h-20 {{ $avatarRadius }} bg-white/10 ring-4 ring-white/15 flex items-center justify-center text-white text-[24px] sm:text-[26px] font-bold" aria-hidden="true">
                         {{ $initials }}

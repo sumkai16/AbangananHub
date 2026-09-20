@@ -16,16 +16,7 @@ class ReservationController extends Controller
     {
         $base = Reservation::where('tenant_id', Auth::id());
 
-        $counts = [
-            'all'                       => (clone $base)->count(),
-            'Inquiry'                   => (clone $base)->where('rental_status', 'Inquiry')->count(),
-            'Under Negotiation'         => (clone $base)->where('rental_status', 'Under Negotiation')->count(),
-            'Pending Rental Agreement'  => (clone $base)->where('rental_status', 'Pending Rental Agreement')->count(),
-            'Rental Agreement Signed'   => (clone $base)->where('rental_status', 'Rental Agreement Signed')->count(),
-            'Occupied'                  => (clone $base)->where('rental_status', 'Occupied')->count(),
-            'Cancelled'                 => (clone $base)->where('rental_status', 'Cancelled')->count(),
-            'Rejected'                  => (clone $base)->where('rental_status', 'Rejected')->count(),
-        ];
+        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected']);
 
         $status = $request->query('status', 'all');
         $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Completed', 'Cancelled', 'Rejected'];

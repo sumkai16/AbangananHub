@@ -36,7 +36,13 @@
             <div class="flex transition-transform duration-500 ease-out h-full"
                 :style="`transform: translateX(-${activeSlide * 100}%)`">
                 @foreach($property->media as $media)
-                    <img src="{{ $media->media_url }}" alt="{{ $property->title }}"
+                    {{-- Lazy + resized: a card is ~400px wide, so it never needs the 1200px
+                         original, and offscreen cards/slides shouldn't download at all. --}}
+                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($media->media_url, 640) }}"
+                        @if($srcset = \App\Support\Images::srcset($media->media_url))
+                            srcset="{{ $srcset }}" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        @endif
+                        alt="{{ $property->title }}" loading="lazy" decoding="async" width="640" height="480"
                         class="w-full h-full object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-700 ease-out motion-reduce:group-hover:scale-100">
                 @endforeach
             </div>

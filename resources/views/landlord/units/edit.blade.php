@@ -352,7 +352,7 @@
                             <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
                                 @foreach($existingPhotos as $photo)
                                     <div class="relative aspect-square rounded-lg overflow-hidden bg-[#F7F8FC] ring-1 ring-[#5B6A8E]/15 group">
-                                        <img src="{{ $photo->media_url }}" alt="{{ $photo->caption ?? 'Unit photo' }}" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="{{ $photo->caption ?? 'Unit photo' }}" class="w-full h-full object-cover">
                                         @if($photo->source === 'camera')
                                             <span class="absolute top-1 left-1 rounded-full bg-[#FF8A66] text-[#060D26] px-1.5 py-0.5 text-[9px] font-semibold">Live</span>
                                         @endif

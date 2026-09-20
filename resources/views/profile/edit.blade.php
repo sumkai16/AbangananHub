@@ -42,7 +42,7 @@
                 {{-- Avatar --}}
                 <div class="flex-shrink-0 relative">
                     @if($user->profile_picture)
-                        <img src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}"
+                        <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}"
                             class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-4 ring-white/20">
                     @else
                         <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/15 ring-4 ring-white/20 flex items-center justify-center text-white text-[28px] font-black">
