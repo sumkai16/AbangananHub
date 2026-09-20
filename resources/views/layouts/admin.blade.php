@@ -3,6 +3,7 @@
 <meta name="user-authenticated" content="{{ auth()->check() ? '1' : '0' }}">
 
 <head>
+    @include('partials.theme-init')
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
@@ -472,6 +473,8 @@
 
             {{-- ── USER SECTION (sidebar bottom) ── --}}
             <div class="border-t border-white/[0.06] shrink-0">
+                <x-sidebar-theme-toggle />
+
                 <div class="flex items-center gap-2.5 px-4 py-3">
                     @if(auth()->user()->profile_picture)
                         <img src="{{ auth()->user()->profile_picture }}" alt="{{ auth()->user()->first_name }}"
@@ -519,6 +522,8 @@
                     <h1 class="text-[14px] font-normal text-[#060D26]">@yield('page-title')</h1>
                 @endif
 
+                <div class="flex items-center gap-2">
+                <x-theme-toggle class="w-9 h-9 rounded-xl border border-[#E2E4EC] bg-white text-[#5B6A8E] hover:bg-[#F7F8FC]" />
                 <a href="{{ route('notifications.index') }}"
                     class="relative w-9 h-9 flex items-center justify-center rounded-xl border border-[#E2E4EC] bg-white text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#060D26] transition-all">
                     @if($unread > 0)
@@ -528,6 +533,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                     </svg>
                 </a>
+                </div>
             </div>
 
             <main id="main" class="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">

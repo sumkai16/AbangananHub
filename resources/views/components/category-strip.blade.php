@@ -64,8 +64,10 @@
         $amenityItems[] = ['label' => $name, 'icon' => $icon, 'active' => $active, 'url' => route('properties.index', $query)];
     }
 @endphp
-<nav aria-label="Property type" class="flex items-center gap-2 py-3">
-    <div class="flex items-center gap-2 overflow-x-auto min-w-0 [-ms-overflow-style:none] [scrollbar-width:none]">
+<nav aria-label="Property type" class="flex items-center gap-3 py-3">
+    {{-- pr-8 + the right-edge fade: chips that overflow dissolve before the Saved divider instead of
+         being sliced against it. When everything fits, the padding keeps the last chip clear of the fade. --}}
+    <div class="flex items-center gap-2 overflow-x-auto min-w-0 pr-8 [mask-image:linear-gradient(to_right,#000_calc(100%-40px),transparent)] [-ms-overflow-style:none] [scrollbar-width:none]">
         @foreach($typeItems as $item)
             <a href="{{ $item['url'] }}" @if($item['active']) aria-current="page" @endif
                 class="flex-shrink-0 inline-flex items-center gap-2 h-10 px-4 rounded-full border text-[14px] font-semibold whitespace-nowrap transition-colors duration-200 {{ $item['active'] ? 'bg-[#060D26] border-[#060D26] text-white' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#060D26]/40 hover:text-[#060D26]' }}">

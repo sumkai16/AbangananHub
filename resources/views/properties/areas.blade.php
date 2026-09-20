@@ -1,7 +1,6 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('title', 'All areas — AbangananHub')
-@section('themeable', '1')
 
 @section('content')
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-16 min-h-[60vh]">

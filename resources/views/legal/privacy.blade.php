@@ -1,7 +1,6 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('title', 'Privacy Policy — AbangananHub')
-@section('themeable', '1')
 
 @section('content')
     <x-legal-page

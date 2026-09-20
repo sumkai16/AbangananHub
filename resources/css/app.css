@@ -82,15 +82,22 @@ h1, h2, h3, h4, h5, h6 {
     height: 0;
     width: 0;
 }
-/* ── Dark theme (landing page only) ──────────────────────────────────────────
+/* ── Dark theme (every layout) ───────────────────────────────────────────────
    The views use raw bracket-hex utilities (bg-[#F7F8FC], text-[#060D26] …), so
    instead of sprinkling dark: variants everywhere the palette is remapped here,
-   under html.dark. The class is only ever added on pages that opt in with
-   @section('themeable') (see layouts/app.blade.php), so no other page changes.
-   Coral (#FF8A66) is deliberately untouched — it is the accent in both themes. */
+   under html.dark. The class is added before first paint by partials/theme-init
+   (all four layouts: app, guest, landlord, admin) and flipped by <x-theme-toggle>.
+   Coral (#FF8A66) is deliberately untouched — it is the accent in both themes.
+   When a view introduces a NEW light-surface colour utility, add its remap here. */
 .theme-icon-sun { display: none; }
 html.dark .theme-icon-sun { display: block; }
 html.dark .theme-icon-moon { display: none; }
+.theme-label-dark { display: none; }
+html.dark .theme-label-light { display: none; }
+html.dark .theme-label-dark { display: inline; }
+
+/* Native controls (form fields, scrollbars, date/time inputs, <option> lists) render dark. */
+html.dark { color-scheme: dark; }
 
 html.dark body { background-color: #0A1029; color: #E8ECF8; }
 html.dark .bg-white { background-color: #111A3A; }
@@ -119,6 +126,8 @@ html.dark .bg-\[\#E2E4EC\] { background-color: rgba(255, 255, 255, 0.14); }
 html.dark .bg-\[\#FF8A66\] { color: #060D26; }
 html.dark .peer:checked ~ span { color: #060D26; }
 html.dark .to-white { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
+html.dark .from-\[\#ECEEF6\] { --tw-gradient-from: #1A2448 var(--tw-gradient-from-position); --tw-gradient-to: rgb(26 36 72 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html.dark .to-\[\#F7F8FC\] { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
 html.dark .bg-\[\#FF8A66\] .text-\[\#060D26\] { color: #060D26; }
 
 /* Form controls + placeholders */
@@ -136,12 +145,79 @@ html.dark .shadow-xl,
 html.dark .shadow-2xl { --tw-shadow-color: rgba(0, 0, 0, 0.45); }
 
 /* Photo tiles and the hero keep their own navy overlays — nothing to remap. */
-html.dark .leaflet-container { filter: brightness(0.8) contrast(1.05); }
 
 /* Icons drawn with an inline navy stroke/fill (About feature cards, etc.) vanish on navy. */
 html.dark svg[stroke="#060D26"] { stroke: #9AA6C6; }
 html.dark svg[fill="#060D26"] { fill: #9AA6C6; }
 html.dark .feature-card div[style*="#060D26"] { background: rgba(255, 255, 255, 0.08) !important; }
+
+/* ── Dark theme: gaps the landing-only pass never hit (dashboards, forms, tables) ── */
+
+/* Surfaces — solid, translucent, hover and focus variants of the light palette. */
+html.dark .bg-\[\#F8FAFC\] { background-color: #0A1029; }
+html.dark .bg-white\/90 { background-color: rgba(17, 26, 58, 0.9); }
+html.dark .bg-white\/60 { background-color: rgba(17, 26, 58, 0.6); }
+html.dark .bg-\[\#F7F8FC\]\/70,
+html.dark .bg-\[\#F7F8FC\]\/50 { background-color: rgba(10, 16, 41, 0.6); }
+html.dark .bg-\[\#ECEEF6\]\/70,
+html.dark .bg-\[\#ECEEF6\]\/60,
+html.dark .bg-\[\#ECEEF6\]\/50,
+html.dark .bg-\[\#ECEEF6\]\/40,
+html.dark .bg-\[\#ECEEF6\]\/30 { background-color: rgba(26, 36, 72, 0.6); }
+html.dark .bg-\[\#E2E4EC\]\/60,
+html.dark .bg-\[\#E2E4EC\]\/50,
+html.dark .bg-\[\#E2E4EC\]\/30 { background-color: rgba(255, 255, 255, 0.07); }
+html.dark .bg-\[\#5B6A8E\]\/10 { background-color: rgba(154, 166, 198, 0.14); }
+html.dark .hover\:bg-\[\#ECEEF6\]:hover { background-color: #243060; }
+html.dark .hover\:bg-\[\#E2E4EC\]:hover { background-color: rgba(255, 255, 255, 0.14); }
+html.dark .focus\:bg-white:focus { background-color: #111A3A; }
+
+/* Navy-filled buttons/avatars/dots would vanish on navy cards — lift them. Sidebars, hero
+   sections and footers are non-interactive blocks (div/aside/footer), so they keep the deep navy. */
+html.dark button.bg-\[\#060D26\],
+html.dark a.bg-\[\#060D26\],
+html.dark span.bg-\[\#060D26\] { background-color: #2B3A7A; color: #FFFFFF; }
+html.dark .border-\[\#060D26\] { border-color: #9AA6C6; }
+html.dark .border-\[\#060D26\]\/40,
+html.dark .border-\[\#060D26\]\/25 { border-color: rgba(255, 255, 255, 0.3); }
+
+/* Text — status colours lifted to pass contrast on navy; alpha slate/navy variants. */
+html.dark .text-\[\#DC2626\],
+html.dark .text-\[\#EF4444\] { color: #F87171; }
+html.dark .text-\[\#B45309\] { color: #FBBF24; }
+html.dark .text-\[\#15803D\] { color: #4ADE80; }
+html.dark .text-\[\#5B6A8E\]\/80,
+html.dark .text-\[\#5B6A8E\]\/70,
+html.dark .text-\[\#5B6A8E\]\/60,
+html.dark .text-\[\#5B6A8E\]\/50,
+html.dark .text-\[\#5B6A8E\]\/40 { color: rgba(154, 166, 198, 0.8); }
+html.dark .text-\[\#060D26\]\/80,
+html.dark .text-\[\#060D26\]\/70 { color: rgba(241, 243, 250, 0.8); }
+html.dark .group:hover .group-hover\:text-\[\#B35A3D\] { color: #FF8A66; }
+html.dark .hover\:text-\[\#DC2626\]:hover { color: #F87171; }
+
+/* Borders / rings / dividers */
+html.dark .border-\[\#ECEEF6\],
+html.dark .border-\[\#E2E4EC\]\/70,
+html.dark .border-\[\#5B6A8E\]\/10,
+html.dark .border-\[\#5B6A8E\]\/15,
+html.dark .border-\[\#5B6A8E\]\/25,
+html.dark .border-\[\#5B6A8E\]\/40 { border-color: rgba(255, 255, 255, 0.12); }
+html.dark .ring-\[\#E2E4EC\],
+html.dark .ring-\[\#5B6A8E\]\/10,
+html.dark .ring-\[\#5B6A8E\]\/15,
+html.dark .ring-\[\#5B6A8E\]\/20 { --tw-ring-color: rgba(255, 255, 255, 0.12); }
+html.dark .ring-white { --tw-ring-color: #111A3A; }
+
+/* Gradients that end in a light colour (account-menu header, fade-outs). */
+html.dark .via-white { --tw-gradient-stops: var(--tw-gradient-from), #111A3A var(--tw-gradient-via-position), var(--tw-gradient-to); }
+html.dark .from-\[\#ECEEF6\] { --tw-gradient-from: #1A2448 var(--tw-gradient-from-position); --tw-gradient-to: rgb(26 36 72 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html.dark .to-\[\#F7F8FC\] { --tw-gradient-to: #0A1029 var(--tw-gradient-to-position); }
+
+/* Form fields with no bg-* class fall back to @tailwindcss/forms' white. :where() keeps this
+   below every utility (bg-[#F7F8FC] etc. still win), and checkbox/radio keep their :checked fill. */
+html.dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="submit"]):not([type="button"]), select, textarea) { background-color: #111A3A; border-color: rgba(255, 255, 255, 0.16); }
+html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448; border-color: rgba(255, 255, 255, 0.3); }
 
 /* ── Smooth navigation & interaction ─────────────────────────────────────────
    1. Cross-document view transitions: the browser cross-fades the old and new

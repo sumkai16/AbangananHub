@@ -58,11 +58,25 @@ export function createMap(elementId, centerLat, centerLng, zoom = 15, style = 'v
         if (!cartoKey) {
             console.warn('VITE_CARTO_API_KEY is not set — map tiles will show an "API key required" watermark. See resources/js/maps/map-core.js.');
         }
-        L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png${cartoKey ? `?key=${cartoKey}` : ''}`, {
+        // Same CARTO family in both themes: dark_all in dark mode, voyager otherwise.
+        // Follows the sitewide toggle live (html.dark is flipped by partials/theme-init).
+        const tilesFor = (dark) => L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${dark ? 'dark_all' : 'voyager'}/{z}/{x}/{y}{r}.png${cartoKey ? `?key=${cartoKey}` : ''}`, {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
             maxZoom: 20,
             subdomains: 'abcd',
-        }).addTo(map);
+        });
+        const isDark = () => document.documentElement.classList.contains('dark');
+
+        let dark = isDark();
+        let tiles = tilesFor(dark).addTo(map);
+
+        new MutationObserver(() => {
+            if (isDark() === dark) return;
+            dark = isDark();
+            map.removeLayer(tiles);
+            tiles = tilesFor(dark).addTo(map);
+            tiles.bringToBack();
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }
 
     // Re-enable scroll zoom once the user clicks into the map — standard

@@ -97,7 +97,8 @@ class PropertyController extends Controller
                 'amenities'  => $request->query('amenities', []),
                 'sort'       => $request->query('sort'),
             ])
-            ->paginate(15)
+            // 25 = five full rows on the 5-column desktop grid.
+            ->paginate(25)
             ->withQueryString();
 
         // Filter-panel amenity list — unscoped (not forProperty()), since the

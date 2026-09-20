@@ -1,6 +1,5 @@
 @extends('layouts.app', ['searchBar' => false])
 
-@section('themeable', '1')
 
 @section('content')
     @vite(['resources/js/maps/property-map.js'])

@@ -2,7 +2,6 @@
 
 @section('title', 'About — AbangananHub')
 @section('hide_search')@endsection
-@section('themeable', '1')
 
 @push('scripts')
 <script>

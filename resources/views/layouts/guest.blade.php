@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
+    @include('partials.theme-init')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -14,6 +15,9 @@
 </head>
 
 <body class="font-sans antialiased h-screen overflow-hidden bg-[#F7F8FC]">
+    {{-- Bottom-left of the form panel: the top corners are taken by the back link and the right-panel action. --}}
+    <x-theme-toggle class="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] shadow-sm hover:border-[#FF8A66]" />
+
     <div class="flex h-full">
 
         {{-- Left panel: form --}}

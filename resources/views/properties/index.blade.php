@@ -1,6 +1,5 @@
 @extends('layouts.app', ['searchBar' => empty($heroStats)])
 
-@section('themeable', '1')
 
 {{-- Browse (filter/search view): keep the search + category band pinned under the nav on desktop; the listings are what scrolls. --}}
 @section('sticky_search', '1')
@@ -70,27 +69,20 @@
             @if($areas->count() > 0)
                 {{-- ===== BROWSE BY AREA ===== --}}
                 <div class="mb-14" x-data="{
+                        canPrev: false, canNext: true,
+                        sync() { const el = this.$refs.track; this.canPrev = el.scrollLeft > 4; this.canNext = el.scrollLeft + el.clientWidth < el.scrollWidth - 4; },
                         scrollByPage(dir) { const el = this.$refs.track; el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: 'smooth' }); }
-                    }">
+                    }" x-init="$nextTick(() => sync())" @resize.window.debounce.150ms="sync()">
                     <div class="flex items-end justify-between gap-4 mb-5">
                         <div>
                             <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Browse by neighborhood</h2>
                             <span class="mt-1 block text-[13px] text-[#5B6A8E]">{{ $areas->count() }} {{ Str::plural('area', $areas->count()) }} &middot; {{ $areas->sum('count') }} listings</span>
                         </div>
-                        <div class="hidden sm:flex items-center gap-2 shrink-0">
-                            <button type="button" @click="scrollByPage(-1)" aria-label="Scroll left"
-                                class="w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] flex items-center justify-center transition-colors duration-200 hover:border-[#060D26]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                            </button>
-                            <button type="button" @click="scrollByPage(1)" aria-label="Scroll right"
-                                class="w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] flex items-center justify-center transition-colors duration-200 hover:border-[#060D26]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                            </button>
-                        </div>
                     </div>
                     {{-- Same swipeable scroll-snap row as "Popular places to stay": ~5 tiles visible on
                          desktop, ~1.5 on phones (next tile peeks in), "View all areas" is the last one. --}}
-                    <div x-ref="track" class="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div class="relative">
+                        <div x-ref="track" @scroll.passive="sync()" class="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         @foreach($areas as $area)
                             <a href="{{ $area['url'] }}"
                                 class="relative shrink-0 snap-start w-[62%] sm:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-3rem)/5)] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
@@ -111,28 +103,22 @@
                             :photos="$areas->reverse()->pluck('photo')->all()"
                             class="w-[62%] sm:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-3rem)/5)] h-36 sm:h-40" />
                     </div>
+                        <x-row-arrows />
+                    </div>
                 </div>
             @endif
 
             @if($popularProperties->count() > 0)
                 {{-- ===== POPULAR PLACES TO STAY ===== --}}
                 <div class="mb-14" x-data="{
+                        canPrev: false, canNext: true,
+                        sync() { const el = this.$refs.track; this.canPrev = el.scrollLeft > 4; this.canNext = el.scrollLeft + el.clientWidth < el.scrollWidth - 4; },
                         scrollByPage(dir) { const el = this.$refs.track; el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: 'smooth' }); }
-                    }">
+                    }" x-init="$nextTick(() => sync())" @resize.window.debounce.150ms="sync()">
                     <div class="flex items-end justify-between gap-4 mb-6">
                         <div>
                             <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12px] font-semibold uppercase tracking-[0.08em] text-[#B35A3D]">Highest rated by tenants</p>
                             <h2 class="mt-1.5 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Popular places to stay</h2>
-                        </div>
-                        <div class="hidden sm:flex items-center gap-2 shrink-0">
-                            <button type="button" @click="scrollByPage(-1)" aria-label="Scroll left"
-                                class="w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] flex items-center justify-center transition-colors duration-200 hover:border-[#060D26]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                            </button>
-                            <button type="button" @click="scrollByPage(1)" aria-label="Scroll right"
-                                class="w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] flex items-center justify-center transition-colors duration-200 hover:border-[#060D26]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                            </button>
                         </div>
                     </div>
                     {{-- A different card treatment than the main grid's borderless
@@ -142,7 +128,8 @@
                          rather than a new shared component. --}}
                     {{-- One swipeable row (scroll-snap): ~5 cards visible on desktop, ~1.5 on phones
                          so the next card peeks in as a swipe hint. "View all" is the last item. --}}
-                    <div x-ref="track" class="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div class="relative">
+                        <div x-ref="track" @scroll.passive="sync()" class="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         @foreach($popularProperties as $property)
                             @php
                                 $availableCount = $property->units->where('availability_status', 'Available')->count();
@@ -199,6 +186,8 @@
                             sub="Highest rated by tenants"
                             :photos="$popularProperties->reverse()->map(fn ($p) => $p->media->firstWhere('media_type', 'Image')?->media_url)->all()"
                             class="w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]" />
+                    </div>
+                        <x-row-arrows top="top-[56px]" />
                     </div>
                 </div>
             @endif
