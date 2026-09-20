@@ -78,8 +78,7 @@
         <x-stat-strip :cells="$summary" class="mb-6" />
 
         {{-- Filters --}}
-        <x-card class="mb-6">
-        <form method="GET">
+        <form method="GET" class="mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" width="15" height="15" fill="none"
@@ -167,7 +166,6 @@
                 </div>
             @endif
         </form>
-        </x-card>
 
         {{-- Empty state --}}
         @if($units->isEmpty())
@@ -349,19 +347,20 @@
                 $showType = $groupUnits->contains(fn ($u) => filled($u->unit_type));
             @endphp
             <section>
+            <x-card flush class="!rounded-none">
+                {{-- Property label: a soft tinted bar on top of its table --}}
                 @unless($scopedProperty)
-                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-3 px-1">
-                        <div class="min-w-0">
-                            <h2 class="text-[16px] font-semibold text-[#060D26] truncate">{{ $groupProperty->title }}</h2>
-                            <p class="text-[12.5px] text-[#5B6A8E]">{{ $groupUnits->count() }} {{ Str::plural('unit', $groupUnits->count()) }}@if($groupProperty->address) &middot; {{ $groupProperty->address }}@endif</p>
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 px-5 py-2.5 bg-[#ECEEF6] border-b border-[#E2E4EC] border-l-4 border-l-[#FF8A66]">
+                        <div class="min-w-0 flex items-baseline gap-2">
+                            <h2 class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $groupProperty->title }}</h2>
+                            <span class="text-[11.5px] text-[#5B6A8E] whitespace-nowrap">{{ $groupUnits->count() }} {{ Str::plural('unit', $groupUnits->count()) }}</span>
                         </div>
-                        <div class="flex items-center gap-4 text-[13px] font-semibold">
+                        <div class="flex items-center gap-4 text-[12px] font-semibold">
                             <a href="{{ route('landlord.properties.show', $groupProperty) }}" class="text-[#B35A3D] hover:underline">View property</a>
                             <a href="{{ route('landlord.properties.units.create', $groupProperty) }}" class="text-[#B35A3D] hover:underline">+ Add unit</a>
                         </div>
                     </div>
                 @endunless
-            <x-card flush>
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[980px] text-left">
                         <thead>
@@ -378,7 +377,7 @@
                         <tbody class="divide-y divide-[#E2E4EC]">
                             @foreach($groupUnits as $unit)
                                 @php extract($derived[$unit->unit_id]); @endphp
-                                <trclass="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
+                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
                                     {{-- Unit --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">

@@ -288,8 +288,6 @@
 
             {{-- ── USER SECTION (sidebar bottom) ── --}}
             <div class="border-t border-white/[0.06] shrink-0">
-                <x-sidebar-theme-toggle />
-
                 {{-- View public rentals — switch to the tenant-facing browse view --}}
                 <a href="{{ route('properties.index') }}" :class="sidebarCollapsed ? 'justify-center' : ''"
                     class="group relative flex items-center gap-3 mx-2 mt-2 px-3 py-2.5 rounded-xl text-[14px] font-medium text-white/65 hover:bg-white/[0.06] hover:text-[#FF8A66] transition-colors duration-200">

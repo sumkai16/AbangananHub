@@ -20,13 +20,17 @@
                     <span class="sm:hidden">{{ $greeting }}, {{ auth()->user()->first_name }}!</span>
                     <span class="hidden sm:inline">{{ $greeting }}, {{ $greetingName }}!</span>
                 </h1>
-                <a href="{{ route('properties.create') }}"
-                    class="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 py-2.5 hover:bg-[#E96F4F] transition-colors duration-200">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    List a property
-                </a>
+                <div class="flex items-center gap-2 sm:shrink-0">
+                    {{-- Phones already have the toggle in the top bar --}}
+                    <x-theme-toggle class="hidden lg:flex w-10 h-10 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
+                    <a href="{{ route('properties.create') }}"
+                        class="flex-1 sm:flex-none shrink-0 inline-flex items-center justify-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 py-2.5 hover:bg-[#E96F4F] transition-colors duration-200">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        List a property
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -69,37 +73,6 @@
                 </span>
                 <p class="text-[13.5px] text-[#5B6A8E]"><span class="font-semibold text-[#060D26]">You're all caught up.</span> No overdue rent, key handovers, inquiries or unread messages.</p>
             </div>
-        @else
-            <x-card flush class="mb-6">
-                <div class="flex items-center justify-between gap-2 px-4 sm:px-5 pt-4 pb-3">
-                    <h2 class="font-sans text-[17px] font-semibold text-[#060D26]">Needs your attention</h2>
-                    <span class="text-[12.5px] text-[#5B6A8E]">{{ $actionQueue->count() + $actionQueueOverflow }} open</span>
-                </div>
-            <ul class="divide-y divide-[#5B6A8E]/10 border-t border-[#5B6A8E]/10">
-                @foreach($actionQueue as $item)
-                    <li>
-                        <a href="{{ $item['url'] }}"
-                            class="group flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-[#F7F8FC] active:bg-[#ECEEF6] transition-colors duration-200">
-                            <span class="w-2 h-2 rounded-full shrink-0 {{ $item['level'] === 'danger' ? 'bg-[#EF4444]' : 'bg-[#FBBF24]' }}"></span>
-                            <span class="sr-only">{{ $item['level'] === 'danger' ? 'Urgent:' : 'Needs action:' }}</span>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-[14.5px] font-semibold text-[#060D26] truncate">{{ $item['title'] }}</p>
-                                <p class="text-[12.5px] text-[#5B6A8E] truncate mt-0.5">{{ $item['meta'] }}</p>
-                            </div>
-                            <span class="inline-flex items-center gap-1 shrink-0 text-[13px] font-semibold text-[#B35A3D] group-hover:text-[#060D26] transition-colors duration-200">
-                                <span class="hidden sm:inline">{{ $item['cta'] }}</span>
-                                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                </svg>
-                            </span>
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-            @if($actionQueueOverflow > 0)
-                <p class="border-t border-[#5B6A8E]/10 px-5 py-3 text-center text-[12.5px] text-[#5B6A8E]">and {{ $actionQueueOverflow }} more</p>
-            @endif
-            </x-card>
         @endif
 
         {{-- 3. Money and portfolio side by side: what came in this month, and how the portfolio is doing. --}}
@@ -173,11 +146,13 @@
             </div>
         </div>
 
-        {{-- 4. Properties + Recent activity row --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {{-- 4. Properties · Needs attention · Recent activity. Three equal columns when something needs
+             attention; with nothing to do, properties take the wider two-thirds as before. --}}
+        @php $hasQueue = $actionQueue->isNotEmpty(); @endphp
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
 
             {{-- Properties section --}}
-            <div class="lg:col-span-2">
+            <div class="{{ $hasQueue ? '' : 'lg:col-span-2' }}">
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
                         <h2 class="font-sans text-[17px] font-semibold text-[#060D26]">Your properties</h2>
@@ -245,7 +220,7 @@
                                     </p>
 
                                     {{-- One thin bar per property; the exact split is in the tooltip and on the Units page, not repeated as text. --}}
-                                    <div class="flex h-1.5 rounded-full bg-[#E2E4EC] overflow-hidden mt-2.5 sm:max-w-[260px]" role="img"
+                                    <div class="flex h-1.5 rounded-full bg-[#E2E4EC] overflow-hidden mt-2.5 {{ $hasQueue ? '' : 'sm:max-w-[260px]' }}" role="img"
                                         title="{{ $property['available_units'] }} available, {{ $property['reserved_units'] }} reserved, {{ $property['occupied_units'] }} occupied"
                                         aria-label="{{ $property['available_units'] }} available, {{ $property['reserved_units'] }} reserved, {{ $property['occupied_units'] }} occupied">
                                         @if($property['available_units'] > 0)
@@ -263,7 +238,7 @@
                                     <p class="text-[18px] font-extrabold text-[#060D26] tabular-nums leading-none">{{ $propPct }}%</p>
                                     <p class="text-[12px] text-[#5B6A8E] mt-1">occupied</p>
                                 </div>
-                                <div class="hidden sm:flex w-7 h-7 rounded-full bg-[#ECEEF6] group-hover:bg-[#060D26] items-center justify-center shrink-0 transition-colors duration-200">
+                                <div class="hidden {{ $hasQueue ? '' : 'sm:flex' }} w-7 h-7 rounded-full bg-[#ECEEF6] group-hover:bg-[#060D26] items-center justify-center shrink-0 transition-colors duration-200">
                                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2.5"
                                         class="group-hover:stroke-white transition-colors duration-200">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -280,6 +255,40 @@
                     </x-card>
                 @endif
             </div>
+
+            {{-- Needs your attention --}}
+            @if($hasQueue)
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="font-sans text-[17px] font-semibold text-[#060D26]">Needs your attention</h2>
+                    <span class="text-[12.5px] text-[#5B6A8E]">{{ $actionQueue->count() + $actionQueueOverflow }} open</span>
+                </div>
+                <x-card flush>
+                    <ul class="divide-y divide-[#5B6A8E]/10">
+                        @foreach($actionQueue as $item)
+                            <li>
+                                <a href="{{ $item['url'] }}" title="{{ $item['cta'] }}"
+                                    class="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#F7F8FC] active:bg-[#ECEEF6] transition-colors duration-200">
+                                    <span class="w-2 h-2 rounded-full shrink-0 {{ $item['level'] === 'danger' ? 'bg-[#EF4444]' : 'bg-[#FBBF24]' }}"></span>
+                                    <span class="sr-only">{{ $item['level'] === 'danger' ? 'Urgent:' : 'Needs action:' }}</span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-[14px] font-semibold text-[#060D26] truncate">{{ $item['title'] }}</p>
+                                        <p class="text-[12.5px] text-[#5B6A8E] truncate mt-0.5">{{ $item['meta'] }}</p>
+                                    </div>
+                                    <svg class="shrink-0 text-[#B35A3D] group-hover:text-[#060D26] transition-colors duration-200" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                    </svg>
+                                    <span class="sr-only">{{ $item['cta'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                    @if($actionQueueOverflow > 0)
+                        <p class="border-t border-[#5B6A8E]/10 px-5 py-3 text-center text-[12.5px] text-[#5B6A8E]">and {{ $actionQueueOverflow }} more</p>
+                    @endif
+                </x-card>
+            </div>
+            @endif
 
             {{-- Recent activity --}}
             <div class="lg:col-span-1">
