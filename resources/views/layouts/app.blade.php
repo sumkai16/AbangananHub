@@ -22,7 +22,7 @@
 
 <body class="font-sans bg-[#F7F8FC] text-[#060D26] min-h-screen flex flex-col" x-data="{}">
 
-    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#DA8E77] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#FF8A66] focus:text-[#060D26] focus:font-semibold">Skip to main content</a>
 
     <header id="site-header" x-data="{ mobileNavOpen: false }"
         class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
@@ -36,7 +36,7 @@
                 <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
                     class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
-                    Abanganan<span class="text-[#DA8E77]">Hub</span>
+                    Abanganan<span class="text-[#FF8A66]">Hub</span>
                 </span>
             </a>
 
@@ -65,7 +65,7 @@
 
 
                 <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#A8573F] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#A8573F]' }}">
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
                     Browse Rentals
                 </a>
 
@@ -75,7 +75,7 @@
                 </a>
 
                 <a href="{{ route('about') }}#how-it-works"
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#A8573F] transition-colors duration-200 cursor-pointer">
+                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
                     How it works
                 </a>
             </nav>
@@ -90,8 +90,8 @@
                      phone visitor reaches Browse/Areas/How it works. --}}
                 <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Menu"
                     :aria-expanded="mobileNavOpen ? 'true' : 'false'" aria-haspopup="true" aria-controls="mobile-nav-panel"
-                    :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC]'"
-                    class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/40 cursor-pointer">
+                    :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
+                    class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path x-show="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         <path x-show="mobileNavOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -155,7 +155,7 @@
                                         <a href="{{ $link['route'] }}"
                                             class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors">
                                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#A8573F] transition-colors duration-200" aria-hidden="true">
+                                                stroke-width="1.9" class="text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}" />
                                             </svg>
                                             {{ $link['label'] }}
@@ -175,8 +175,8 @@
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
                         @keydown.escape.window="close()">
                         <button type="button" @click="toggle()" aria-label="Notifications"
-                            :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC]'"
-                            class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/40 cursor-pointer">
+                            :class="open ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
+                            class="relative flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                             <span x-show="unreadCount > 0" x-cloak
                                 class="absolute top-[7px] right-[8px] w-2.5 h-2.5 rounded-full bg-[#060D26] ring-2 ring-white"></span>
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -212,14 +212,14 @@
                         $abgFullName = trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
                         // One shared row style so every item lines up and hovers identically.
                         $menuRow = 'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors';
-                        $menuIcon = 'text-[#5B6A8E] group-hover:text-[#A8573F] transition-colors duration-200 shrink-0';
+                        $menuIcon = 'text-[#5B6A8E] group-hover:text-[#B35A3D] transition-colors duration-200 shrink-0';
                         $menuLabel = 'px-3 pt-2.5 pb-1 text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider';
                     @endphp
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
                             :class="open ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]'"
-                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA8E77]/40 cursor-pointer">
+                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                             @if(auth()->user()->profile_picture)
                                 <img loading="lazy" decoding="async" src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
                                     class="w-9 h-9 rounded-full object-cover shrink-0">
@@ -263,7 +263,7 @@
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-1.5">
                                         <p class="text-[13.5px] font-bold text-[#060D26] truncate">{{ $abgFullName }}</p>
-                                        <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#060D26] ring-1 ring-[#DA8E77]/25">{{ $abgRoleLabel }}</span>
+                                        <span class="shrink-0 inline-flex items-center h-4 px-1.5 rounded-full bg-white text-[9.5px] font-bold uppercase tracking-wide text-[#060D26] ring-1 ring-[#FF8A66]/25">{{ $abgRoleLabel }}</span>
                                     </div>
                                     <p class="text-[12px] text-[#5B6A8E] truncate mt-0.5">{{ auth()->user()->email }}</p>
                                 </div>
@@ -360,7 +360,7 @@
                         </button>
 
                         <button type="button" onclick="openAuthModal('register')"
-                            class="text-[13px] sm:text-[14px] font-bold text-white bg-gradient-to-b from-[#1a2547] to-[#060D26] hover:brightness-110 px-4 sm:px-5 py-2 rounded-full transition-all shadow-md shadow-[#060D26]/25 hover:shadow-lg focus:outline-none whitespace-nowrap no-underline">
+                            class="text-[13px] sm:text-[14px] font-bold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] px-4 sm:px-5 py-2 rounded-full transition-all shadow-sm focus:outline-none whitespace-nowrap no-underline">
                             Sign up
                         </button>
                     </div>
@@ -609,7 +609,7 @@
                             <div class="flex items-center justify-between text-[13px] mb-6">
                                 <label class="flex items-center gap-2 text-[#5B6A8E] cursor-pointer select-none">
                                     <input type="checkbox" name="remember"
-                                        class="w-4 h-4 rounded text-[#A8573F] border-[#E2E4EC] focus:ring-[#DA8E77]">
+                                        class="w-4 h-4 rounded text-[#B35A3D] border-[#E2E4EC] focus:ring-[#FF8A66]">
                                     Remember me
                                 </label>
                                 <a href="#" onclick="openAuthModal('forgot-password'); return false;" class="text-[#060D26] font-semibold hover:underline">Forgot password?</a>

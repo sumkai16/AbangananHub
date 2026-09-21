@@ -89,7 +89,7 @@
                     Edit Property
                 </a>
                 <a href="{{ route('landlord.properties.units.create', $property) }}"
-                   class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200">
+                   class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -206,7 +206,7 @@
                 <div class="flex flex-wrap gap-2 mt-5">
                     @foreach($property->amenities->take(5) as $amenity)
                         <span class="inline-flex items-center gap-1.5 text-xs font-medium text-[#060D26] bg-[#ECEEF6] rounded-full px-3 py-1.5">
-                            <x-amenity-icon :name="$amenity->amenity_name" class="w-2.5 h-2.5 text-[#A8573F]" />
+                            <x-amenity-icon :name="$amenity->amenity_name" class="w-2.5 h-2.5 text-[#B35A3D]" />
                             {{ $amenity->amenity_name }}
                         </span>
                     @endforeach
@@ -454,7 +454,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-semibold text-[#060D26]">Recent Activity</h3>
                     <a href="{{ route('landlord.properties.units.index', $property) }}"
-                       class="text-xs text-[#A8573F] font-medium hover:underline flex items-center gap-1">
+                       class="text-xs text-[#B35A3D] font-medium hover:underline flex items-center gap-1">
                         View All Activity
                         <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
@@ -471,7 +471,7 @@
                         @foreach($recentUnits as $recentUnit)
                             <div class="flex items-start gap-3 p-3 rounded-xl bg-[#ECEEF6]/50">
                                 <div class="w-8 h-8 rounded-full bg-[#ECEEF6] flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#A8573F]">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="text-[#B35A3D]">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25zm9.75-9.75A2.25 2.25 0 0 1 15.75 3.75H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6zm0 9.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25z"/>
                                     </svg>
                                 </div>
@@ -504,7 +504,7 @@
                     <p class="text-sm font-semibold text-[#060D26]">No units added yet</p>
                     <p class="text-xs text-[#5B6A8E] mt-1 mb-4">Add units so tenants can reserve specific spaces.</p>
                     <a href="{{ route('landlord.properties.units.create', $property) }}"
-                       class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-[#DA8E77] text-[#060D26] text-xs font-semibold hover:bg-[#C97A61] transition-all duration-200">
+                       class="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-[#FF8A66] text-[#060D26] text-xs font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
@@ -702,7 +702,7 @@
                     @foreach($property->amenities as $amenity)
                         <x-card flush class="flex items-center gap-3 px-4 py-3">
                             <div class="w-8 h-8 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0">
-                                <x-amenity-icon :name="$amenity->amenity_name" class="w-3.5 h-3.5 text-[#A8573F]" />
+                                <x-amenity-icon :name="$amenity->amenity_name" class="w-3.5 h-3.5 text-[#B35A3D]" />
                             </div>
                             <span class="text-sm font-medium text-[#060D26]">{{ $amenity->amenity_name }}</span>
                         </x-card>
@@ -811,7 +811,7 @@
                                                 class="w-full border border-[#5B6A8E]/20 rounded-xl px-3 py-2 text-sm text-[#060D26] bg-white focus:outline-none focus:ring-2 focus:ring-[#060D26]/20 focus:border-[#060D26] transition-all resize-none">{{ $review->landlord_reply }}</textarea>
                                             <div class="flex items-center gap-2">
                                                 <button type="submit"
-                                                    class="px-4 py-2 rounded-lg bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-xs font-semibold transition-all">
+                                                    class="px-4 py-2 rounded-lg bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-xs font-semibold transition-all">
                                                     Update Reply
                                                 </button>
                                                 <button type="button" x-on:click="editing = false"
@@ -841,7 +841,7 @@
                                                 class="w-full border border-[#5B6A8E]/20 rounded-xl px-3 py-2 text-sm text-[#060D26] bg-white focus:outline-none focus:ring-2 focus:ring-[#060D26]/20 focus:border-[#060D26] transition-all resize-none"></textarea>
                                             <div class="flex items-center gap-2">
                                                 <button type="submit"
-                                                    class="px-4 py-2 rounded-lg bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-xs font-semibold transition-all">
+                                                    class="px-4 py-2 rounded-lg bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-xs font-semibold transition-all">
                                                     Post Reply
                                                 </button>
                                                 <button type="button" x-on:click="showReply = false"

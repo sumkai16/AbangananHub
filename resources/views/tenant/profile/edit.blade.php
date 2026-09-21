@@ -145,7 +145,7 @@
                                 <label for="first_name" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">First name</label>
                                 <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $user->first_name) }}" required
                                     class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
-                                           focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15">
+                                           focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15">
                                 @error('first_name')
                                     <p class="text-[11px] text-[#EF4444] mt-1.5 font-medium">{{ $message }}</p>
                                 @enderror
@@ -154,7 +154,7 @@
                                 <label for="last_name" class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">Last name</label>
                                 <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $user->last_name) }}" required
                                     class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
-                                           focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15">
+                                           focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15">
                                 @error('last_name')
                                     <p class="text-[11px] text-[#EF4444] mt-1.5 font-medium">{{ $message }}</p>
                                 @enderror
@@ -166,7 +166,7 @@
                             <input type="text" name="contact_number" id="contact_number" value="{{ old('contact_number', $user->contact_number) }}"
                                 placeholder="09171234567"
                                 class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
-                                       focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15 placeholder:text-[#5B6A8E]/50">
+                                       focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">
                             @error('contact_number')
                                 <p class="text-[11px] text-[#EF4444] mt-1.5 font-medium">{{ $message }}</p>
                             @enderror
@@ -177,7 +177,7 @@
                             <textarea name="bio" id="bio" rows="4" maxlength="1000" x-on:input="bio = $event.target.value.length"
                                 placeholder="Tell landlords a bit about yourself…"
                                 class="w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 py-2.5 text-sm text-[#060D26] outline-none transition resize-none
-                                       focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/15 placeholder:text-[#5B6A8E]/50">{{ old('bio', $user->bio) }}</textarea>
+                                       focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">{{ old('bio', $user->bio) }}</textarea>
                             <p class="text-[11px] text-[#5B6A8E] mt-1.5 text-right"><span x-text="bio">0</span>/1000</p>
                             @error('bio')
                                 <p class="text-[11px] text-[#EF4444] mt-1.5 font-medium">{{ $message }}</p>
@@ -206,7 +206,7 @@
                         <a href="{{ route('tenant.profile.show') }}"
                             class="px-5 py-2.5 border border-[#E2E4EC] rounded-lg text-[13px] font-semibold text-[#060D26] hover:brightness-95 bg-white transition-all">Cancel</a>
                         <button type="submit"
-                            class="px-6 py-2.5 bg-[#DA8E77] text-[#060D26] rounded-lg text-[13px] font-semibold hover:bg-[#C97A61] transition-all shadow-sm active:scale-[0.98]">Save changes</button>
+                            class="px-6 py-2.5 bg-[#FF8A66] text-[#060D26] rounded-lg text-[13px] font-semibold hover:bg-[#E96F4F] transition-all shadow-sm active:scale-[0.98]">Save changes</button>
                     </div>
                 </form>
             </div>

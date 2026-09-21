@@ -33,7 +33,7 @@
 
                 @if(request('property'))
                     <a href="{{ route('landlord.properties.units.create', request('property')) }}"
-                        class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-sm font-semibold shadow-sm transition-all duration-200">
+                        class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold shadow-sm transition-all duration-200">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
@@ -89,7 +89,7 @@
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="{{ $scopedProperty ? 'Search units by name...' : 'Search units by name or property...' }}" aria-label="Search units"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -114,7 +114,7 @@
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                     <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200 inline-flex items-center gap-1.5">
+                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                         </svg>
@@ -280,7 +280,7 @@
                                 </div>
                                 @unless($scopedProperty)
                                 <a href="{{ route('landlord.properties.show', $unit->property) }}"
-                                    class="text-[12px] text-[#5B6A8E] hover:text-[#A8573F] transition-colors duration-200 mt-0.5 line-clamp-1 flex items-center gap-1 w-fit">
+                                    class="text-[12px] text-[#5B6A8E] hover:text-[#B35A3D] transition-colors duration-200 mt-0.5 line-clamp-1 flex items-center gap-1 w-fit">
                                     <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
@@ -471,7 +471,7 @@
                                                 </svg>
                                             </button>
                                             <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}" aria-label="Edit unit"
-                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#DA8E77] text-[#A8573F] hover:bg-[#ECEEF6] transition-colors duration-200">
+                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#FF8A66] text-[#B35A3D] hover:bg-[#ECEEF6] transition-colors duration-200">
                                                 <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
@@ -604,7 +604,7 @@
                             <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E] mb-1.5">Amenities</p>
                             <div class="flex flex-wrap gap-1.5">
                                 <template x-for="a in modal.amenities" :key="a">
-                                    <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#DA8E77]/20 px-2 py-0.5 text-[11px] text-[#060D26]" x-text="a"></span>
+                                    <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#FF8A66]/20 px-2 py-0.5 text-[11px] text-[#060D26]" x-text="a"></span>
                                 </template>
                             </div>
                         </div>
@@ -615,7 +615,7 @@
                                 View property
                             </a>
                             <a :href="modal.edit_url"
-                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full bg-[#DA8E77] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200">
+                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                                 Edit unit
                             </a>
                         </div>

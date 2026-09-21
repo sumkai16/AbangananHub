@@ -27,7 +27,7 @@
                     Export
                 </a>
                 <a href="{{ route('landlord.tenants.walkIn.create') }}"
-                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                     </svg>
@@ -76,7 +76,7 @@
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search tenants by name or email..." aria-label="Search tenants by name or email"
                         x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition-all duration-200">
+                        class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -90,7 +90,7 @@
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[180px]" />
 
                     <button type="submit"
-                        class="h-11 px-5 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200 inline-flex items-center gap-1.5">
+                        class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                         </svg>
@@ -232,7 +232,7 @@
 
                         <div class="flex items-center gap-2 px-5 pb-5 mt-auto">
                             <a href="{{ route('landlord.tenancies.show', $reservation) }}"
-                                class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#DA8E77] text-[#060D26] text-[12px] font-semibold hover:bg-[#C97A61] transition-all duration-200 cursor-pointer">
+                                class="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-full bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                                 Manage tenancy
                             </a>
 
@@ -384,7 +384,7 @@
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route('landlord.tenancies.show', $reservation) }}"
-                                                class="h-9 px-3.5 flex items-center justify-center rounded-full bg-[#DA8E77] text-[#060D26] text-[12px] font-semibold hover:bg-[#C97A61] transition-all duration-200 cursor-pointer whitespace-nowrap">
+                                                class="h-9 px-3.5 flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer whitespace-nowrap">
                                                 Manage
                                             </a>
 

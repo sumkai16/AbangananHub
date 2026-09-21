@@ -14,17 +14,17 @@
     reads as one on hover.
 --}}
 <div data-property-card="{{ $property->property_id }}"
-    class="group relative cursor-pointer overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-[#FFF7F4] hover:border-[#DA8E77] hover:shadow-[0_12px_28px_rgba(6,13,38,0.12)] motion-reduce:hover:translate-y-0"
+    class="group relative cursor-pointer overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-[#FFF7F4] hover:border-[#FF8A66] hover:shadow-[0_12px_28px_rgba(6,13,38,0.12)] motion-reduce:hover:translate-y-0"
     onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
 
     {{-- IMAGE CAROUSEL --}}
     <div x-data="{ activeSlide: 0, slides: {{ $property->media->count() }} }"
         @mouseenter="$refs.nav.classList.remove('opacity-0')"
         @mouseleave="$refs.nav.classList.add('opacity-0')"
-        class="relative w-full aspect-square overflow-hidden bg-[#ECEEF6] shadow-sm group-hover:shadow-[0_20px_40px_-12px_rgba(6,13,38,0.25)] transition-all duration-500">
+        class="relative w-full aspect-[4/3] overflow-hidden bg-[#ECEEF6]">
 
         @if($property->hasVerifiedDocuments())
-            <span class="absolute top-3 left-3 z-10 inline-flex items-center gap-1 bg-[#DA8E77] text-[#060D26] text-[10.5px] font-bold px-2 py-1 rounded-full shadow-sm">
+            <span class="absolute top-3 left-3 z-10 inline-flex items-center gap-1 bg-[#FF8A66] text-[#060D26] text-[10.5px] font-bold px-2 py-1 rounded-full shadow-sm">
                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -79,7 +79,7 @@
             </div>
         @else
             <div class="w-full h-full flex items-center justify-center bg-[#ECEEF6]">
-                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#A8573F"
+                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#B35A3D"
                     stroke-width="1.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -110,7 +110,7 @@
 
     {{-- TEXT BELOW IMAGE — no card box --}}
     <div class="px-4 pt-3.5 pb-4">
-        <span class="inline-flex mb-1.5 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.05em] text-[#060D26] px-2.5 py-1 rounded-full border border-[#DA8E77]/60 bg-[#DA8E77]/10">
+        <span class="inline-flex mb-1.5 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.05em] text-[#060D26] px-2.5 py-1 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
             {{ $property->property_type }}
         </span>
 
