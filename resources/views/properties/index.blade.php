@@ -13,7 +13,7 @@
          showing (see the searchBar=false above) so there's one search bar,
          not two. ===== --}}
     @if($heroStats)
-        <section id="landing-hero" class="relative min-h-[72vh] sm:min-h-[80vh] flex items-center overflow-hidden"
+        <section id="landing-hero" class="relative min-h-[72vh] sm:min-h-[80vh] flex items-center overflow-x-clip"
             x-data="{ slides: [
                     '{{ asset('images/pexels-photo-10530237.webp') }}',
                     '{{ asset('images/photo-1448630360428-65456885c650.webp') }}'
@@ -28,10 +28,10 @@
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_75%_at_50%_40%,rgba(6,13,38,0.45),rgba(6,13,38,0)_70%)]"></div>
 
             <div class="relative z-10 mx-auto w-full max-w-[900px] px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
-                <p class="inline-flex items-center font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] sm:text-[11.5px] font-bold uppercase tracking-[0.14em] text-white px-3.5 py-1.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
+                <p class="inline-flex items-center font-jakarta text-[10.5px] sm:text-[11.5px] font-bold uppercase tracking-[0.14em] text-white px-3.5 py-1.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
                     Your Next Place Starts Here
                 </p>
-                <h1 class="mt-5 sm:mt-6 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[40px] sm:text-[58px] lg:text-[70px] font-extrabold leading-[1.08] tracking-tight text-white text-balance">
+                <h1 class="mt-5 sm:mt-6 font-jakarta text-[40px] sm:text-[58px] lg:text-[70px] font-extrabold leading-[1.08] tracking-tight text-white text-balance">
                     Find a place to call home
                     <span class="block">in <span class="text-[#FF8A66]">Cebu</span>.</span>
                 </h1>
@@ -43,7 +43,7 @@
                     <x-search-pill variant="hero" />
                 </div>
 
-                <div class="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.06em] text-white">
+                <div class="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-2 font-jakarta text-[10.5px] font-bold uppercase tracking-[0.06em] text-white">
                     <span class="px-3 py-1 rounded-full border border-white/25 bg-[#060D26]/40">{{ $heroStats['units'] }}+ available units</span>
                     <span class="px-3 py-1 rounded-full border border-white/25 bg-[#060D26]/40">Verified landlords</span>
                     <span class="px-3 py-1 rounded-full border border-white/25 bg-[#060D26]/40">Across Cebu</span>
@@ -61,9 +61,11 @@
         <x-section-texture />
     @endif
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: false, filtersOpen: false }"
+        @if(! $heroStats) data-browse-live @endif
         x-effect="window.dispatchEvent(new CustomEvent('browse-map-state', { detail: mapVisible }))"
         @browse-toggle-map.window="mapVisible = !mapVisible; if (mapVisible) $nextTick(() => window.browseMapRefit?.())"
-        @browse-open-filters.window="filtersOpen = true">
+        @browse-open-filters.window="filtersOpen = true"
+        @browse-close-filters.window="filtersOpen = false">
 
         @if($heroStats)
             @if($areas->count() > 0)
@@ -75,7 +77,7 @@
                     }" x-init="$nextTick(() => sync())" @resize.window.debounce.150ms="sync()">
                     <div class="flex items-end justify-between gap-4 mb-5">
                         <div>
-                            <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Browse by neighborhood</h2>
+                            <h2 class="font-jakarta text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Browse by neighborhood</h2>
                             <span class="mt-1 block text-[13px] text-[#5B6A8E]">{{ $areas->count() }} {{ Str::plural('area', $areas->count()) }} &middot; {{ $areas->sum('count') }} listings</span>
                         </div>
                     </div>
@@ -90,8 +92,8 @@
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/90 via-[#060D26]/35 to-transparent"></div>
                                 <div class="absolute bottom-3 left-3 right-3">
-                                    <p class="text-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[14.5px] font-bold leading-tight truncate [text-shadow:0_1px_6px_rgba(6,13,38,0.5)]">{{ $area['name'] }}</p>
-                                    <p class="mt-1 inline-flex font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12px] font-semibold text-white px-2.5 py-0.5 rounded-full border border-white/30 bg-[#060D26]/40">
+                                    <p class="text-white font-jakarta text-[14.5px] font-bold leading-tight truncate [text-shadow:0_1px_6px_rgba(6,13,38,0.5)]">{{ $area['name'] }}</p>
+                                    <p class="mt-1 inline-flex font-jakarta text-[12px] font-semibold text-white px-2.5 py-0.5 rounded-full border border-white/30 bg-[#060D26]/40">
                                         {{ $area['count'] }} {{ Str::plural('listing', $area['count']) }}
                                     </p>
                                 </div>
@@ -117,8 +119,8 @@
                     }" x-init="$nextTick(() => sync())" @resize.window.debounce.150ms="sync()">
                     <div class="flex items-end justify-between gap-4 mb-6">
                         <div>
-                            <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12px] font-semibold uppercase tracking-[0.08em] text-[#B35A3D]">Highest rated by tenants</p>
-                            <h2 class="mt-1.5 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Popular places to stay</h2>
+                            <p class="font-jakarta text-[12px] font-semibold uppercase tracking-[0.08em] text-[#B35A3D]">Highest rated by tenants</p>
+                            <h2 class="mt-1.5 font-jakarta text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Popular places to stay</h2>
                         </div>
                     </div>
                     {{-- A different card treatment than the main grid's borderless
@@ -151,12 +153,12 @@
                                     <p class="text-[11px] text-[#5B6A8E] mb-0.5 truncate">
                                         {{ $property->property_type }} &middot; {{ $property->city_municipality }}
                                     </p>
-                                    <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[14px] font-bold text-[#060D26] truncate mb-2.5">
+                                    <h3 class="font-jakarta text-[14px] font-bold text-[#060D26] truncate mb-2.5">
                                         {{ $property->title }}
                                     </h3>
                                     <div class="flex items-end justify-between gap-2">
                                         <div>
-                                            <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-extrabold text-[#060D26] leading-none">
+                                            <p class="font-jakarta text-[19px] font-extrabold text-[#060D26] leading-none">
                                                 @if($property->min_rental_fee)
                                                     &#8369;{{ number_format($property->min_rental_fee) }}
                                                 @else
@@ -167,7 +169,7 @@
                                         </div>
                                         <div class="text-right shrink-0">
                                             @if($availableCount > 0)
-                                                <p class="inline-block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.04em] text-[#060D26] px-2 py-0.5 rounded-full bg-[#ECEEF6]">
+                                                <p class="inline-block font-jakarta text-[10px] font-bold uppercase tracking-[0.04em] text-[#060D26] px-2 py-0.5 rounded-full bg-[#ECEEF6]">
                                                     {{ $availableCount }} {{ Str::plural('unit', $availableCount) }} free
                                                 </p>
                                             @endif
@@ -193,8 +195,13 @@
             @endif
         @endif
 
-        {{-- ACTIVE FILTERS SUMMARY --}}
-        @if(request()->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities']))
+        @php
+            $hasActiveFilters = collect(array_merge(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities'], \App\Support\BrowseFilters::KEYS))
+                ->contains(fn ($key) => request()->filled($key));
+        @endphp
+        {{-- ACTIVE FILTERS SUMMARY (a live region — see resources/js/browse-live.js) --}}
+        <div id="browse-summary">
+        @if($hasActiveFilters)
             <div class="flex flex-wrap items-center gap-2 mb-6">
                 <span class="text-[13px] text-[#5B6A8E] font-medium">Filtering by:</span>
 
@@ -280,6 +287,30 @@
                     </span>
                 @endif
 
+                @php
+                    $activeBf = \App\Support\BrowseFilters::fromRequest(request());
+                    $factChips = array_filter([
+                        'living'     => $activeBf['living'] ? $activeBf['living'] . ' living' : null,
+                        'for'        => $activeBf['for'] ? 'Suitable for ' . strtolower($activeBf['for']) : null,
+                        'furnishing' => $activeBf['furnishing'],
+                    ]);
+                @endphp
+                @foreach($factChips as $chipKey => $chipLabel)
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#E2E4EC] rounded-full text-[13px] font-semibold">
+                        {{ $chipLabel }}
+                        <a href="{{ request()->fullUrlWithoutQuery([$chipKey, 'page']) }}" class="hover:brightness-95" aria-label="Remove {{ $chipLabel }} filter">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" /></svg>
+                        </a>
+                    </span>
+                @endforeach
+                @foreach($activeBf['rules'] as $ruleKey)
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#E2E4EC] rounded-full text-[13px] font-semibold">
+                        {{ \App\Support\BrowseFilters::RULES[$ruleKey][0] }}
+                        <a href="{{ route('properties.index', array_merge(request()->except(['rules', 'page']), ['rules' => array_values(array_diff($activeBf['rules'], [$ruleKey]))])) }}" class="hover:brightness-95" aria-label="Remove {{ \App\Support\BrowseFilters::RULES[$ruleKey][0] }} filter">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" /></svg>
+                        </a>
+                    </span>
+                @endforeach
                 @foreach($selectedAmenities as $amenity)
                     <span
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
@@ -305,19 +336,22 @@
             </div>
         @endif
 
+        </div>
+
         {{-- ===== ALL LISTINGS — compact header + one toolbar row (type pills left,
              map/filters right). ===== --}}
         @if($heroStats)
         <div class="flex items-end justify-between gap-4 mb-6">
-                <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Every place, ready to view</h2>
+                <h2 class="font-jakarta text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Every place, ready to view</h2>
                 <span class="text-[13px] text-[#5B6A8E] whitespace-nowrap">
                     {{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found
                 </span>
         </div>
         @endif
 
+        <div id="browse-toolbar">
         @php
-            $typePills = ['All' => null, 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House'];
+            $typePills = ['All' => null, 'Apartment' => 'Apartment', 'Condominium' => 'Condominium', 'House' => 'House', 'Boarding House' => 'Boarding House', 'Bedspace' => 'Bedspace'];
             $activeType = request('type');
         @endphp
         <div class="mb-4 flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
@@ -328,24 +362,25 @@
                         @php $isActive = $type === null ? ! $activeType : $activeType === $type; @endphp
                         <a href="{{ $type ? route('properties.index', ['type' => $type]) : route('properties.index') }}"
                             @if($isActive) aria-current="page" @endif
-                            class="flex-shrink-0 h-9 inline-flex items-center px-4 rounded-full border font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#FF8A66] hover:text-[#060D26]' }}">
+                            class="flex-shrink-0 h-9 inline-flex items-center px-4 rounded-full border font-jakarta text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#FF8A66] hover:text-[#060D26]' }}">
                             {{ $label }}
                         </a>
                     @endforeach
                 </div>
             @else
                 <div class="min-w-0">
-                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[20px] font-bold leading-tight text-[#060D26]">{{ request('location') ? 'Rentals in ' . request('location') : 'All listings' }}</h2>
-                    <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">{{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found</p>
+                    <h2 class="font-jakarta text-[20px] font-bold leading-tight text-[#060D26]">{{ request('location') ? 'Rentals in ' . request('location') : 'All listings' }}</h2>
+                    <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]" role="status">{{ $properties->total() }} {{ Str::plural('property', $properties->total()) }} found</p>
                 </div>
             @endif
 
             <div class="flex items-center gap-2">
+                @if($heroStats)
                 {{-- Desktop-only: the mobile List/Map switcher below already
                      covers small screens, where the two never share the screen. --}}
                 <button type="button"
                     @click="mapVisible = !mapVisible; if (mapVisible) $nextTick(() => window.browseMapRefit?.())"
-                    class="hidden lg:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:bg-[#F7F8FC] transition cursor-pointer">
+                    class="hidden lg:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-jakarta text-[12.5px] font-bold shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:bg-[#F7F8FC] transition cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
@@ -353,12 +388,14 @@
                     <span x-text="mapVisible ? 'Hide map' : 'Show map'"></span>
                 </button>
 
+                @endif
+
                 {{-- Visible at every breakpoint (unlike Show map above) —
                      there's no mobile-only substitute for it the way the List/
                      Map switcher below covers Show map on small screens. --}}
-                @php $activeFilterCount = count((array) request('amenities', [])); @endphp
+                @php $activeFilterCount = \App\Support\BrowseFilters::activeCount(request()); @endphp
                 <button type="button" @click="filtersOpen = true"
-                    class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:bg-[#F7F8FC] transition cursor-pointer">
+                    class="{{ $heroStats ? '' : 'lg:hidden ' }}inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] font-jakarta text-[12.5px] font-bold shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:bg-[#F7F8FC] transition cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
@@ -385,14 +422,17 @@
                 'Rules & extras' => 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z',
             ];
             $fallbackCategoryIcon = 'M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z';
-            $initialSelected = count((array) request('amenities', []));
+            $initialSelected = \App\Support\BrowseFilters::activeCount(request());
+            $bf = \App\Support\BrowseFilters::fromRequest(request());
+            // Display-only: the category that's left once the rule-like amenities moved to House rules.
+            $categoryLabels = ['Rules & extras' => 'Nearby'];
         @endphp
         <template x-teleport="body">
             <div x-show="filtersOpen" x-cloak class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-6"
                 x-on:keydown.escape.window="filtersOpen = false">
                 <div class="absolute inset-0 bg-[#060D26]/50" x-on:click="filtersOpen = false"></div>
                 <form method="GET" action="{{ route('properties.index') }}"
-                    x-data="{ selected: {{ $initialSelected }}, count() { this.selected = this.$el.querySelectorAll('input[type=checkbox]:checked').length } }"
+                    x-data="{ selected: {{ $initialSelected }}, count() { this.selected = Array.from(this.$el.querySelectorAll('input[type=checkbox]:checked, input[type=radio]:checked')).filter(i => i.value !== '').length } }"
                     @change="count()"
                     class="relative w-full sm:max-w-6xl max-h-[92vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
                     x-show="filtersOpen" x-transition>
@@ -400,8 +440,8 @@
                     {{-- Header --}}
                     <div class="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-[#E2E4EC] flex-shrink-0">
                         <div>
-                            <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>Refine results</span>
-                            <h3 class="mt-1 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[22px] font-extrabold tracking-tight text-[#060D26]">Filters</h3>
+                            <span class="inline-flex items-center gap-2 font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>Refine results</span>
+                            <h3 class="mt-1 font-jakarta text-[22px] font-extrabold tracking-tight text-[#060D26]">Filters</h3>
                         </div>
                         <button type="button" x-on:click="filtersOpen = false" aria-label="Close"
                             class="w-9 h-9 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] hover:text-[#060D26] hover:border-[#FF8A66] transition-colors cursor-pointer">
@@ -415,7 +455,7 @@
                     <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4 bg-[#F7F8FC]">
                         {{-- Carries location/type/price_min/price_max/sort through untouched —
                              this form only ever sets amenities. --}}
-                        @foreach(request()->except(['amenities', 'verified', 'page']) as $key => $value)
+                        @foreach(request()->except(['amenities', 'verified', 'page', 'living', 'for', 'furnishing', 'rules']) as $key => $value)
                             @if(is_array($value))
                                 @foreach($value as $item)
                                     <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
@@ -425,22 +465,88 @@
                             @endif
                         @endforeach
 
+                        {{-- Property facts. One card of labelled rows (each option set stays on one line) beside the house
+                             rules — the two together span the same five columns as the amenity groups below, so
+                             nothing is stretched to the height of its neighbour. --}}
+                        @php
+                            $factRows = [
+                                ['Living arrangement', 'living', ['' => 'Any'] + array_combine(array_keys(\App\Support\PropertyPolicies::LIVING_ARRANGEMENTS), array_keys(\App\Support\PropertyPolicies::LIVING_ARRANGEMENTS)), $bf['living']],
+                                ['Suitable for', 'for', ['' => 'Anyone', 'Men' => 'Men', 'Women' => 'Women'], $bf['for']],
+                                ['Furnishing', 'furnishing', ['' => 'Any'] + array_combine(\App\Support\BrowseFilters::FURNISHING, \App\Support\BrowseFilters::FURNISHING), $bf['furnishing']],
+                            ];
+                        @endphp
+                        <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
+                            <section class="md:col-span-2 lg:col-span-3 bg-white border border-[#E2E4EC] rounded-2xl p-3.5">
+                                <div class="flex items-center gap-2.5 mb-1">
+                                    <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                                    </span>
+                                    <h4 class="font-jakarta text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">The place</h4>
+                                </div>
+                                <div class="divide-y divide-[#E2E4EC]">
+                                    @foreach($factRows as [$factTitle, $factName, $factOptions, $factSelected])
+                                        <div class="py-3 last:pb-0 sm:flex sm:items-center sm:gap-4">
+                                            <p class="mb-2 sm:mb-0 sm:w-40 shrink-0 text-[12px] font-semibold uppercase tracking-wide text-[#5B6A8E]">{{ $factTitle }}</p>
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach($factOptions as $optValue => $optLabel)
+                                                    <label class="relative cursor-pointer">
+                                                        <input type="radio" name="{{ $factName }}" value="{{ $optValue }}" @checked((string) $factSelected === (string) $optValue) class="peer sr-only">
+                                                        <span class="{{ (string) $optValue === '' ? 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-jakarta text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#060D26]/40 peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#060D26]/25 peer-checked:bg-[#ECEEF6] peer-checked:text-[#060D26] transition-all' : 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-jakarta text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all' }}">{{ $optLabel }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </section>
+
+                            <section class="md:col-span-2 lg:col-span-2 bg-white border border-[#E2E4EC] rounded-2xl p-3.5">
+                                <div class="flex items-center gap-2.5 mb-3">
+                                    <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $categoryIcons['Rules & extras'] }}" /></svg>
+                                    </span>
+                                    <h4 class="font-jakarta text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">House rules</h4>
+                                </div>
+                                <p class="mb-2.5 text-[12px] text-[#5B6A8E]">Show only places that allow…</p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach(\App\Support\BrowseFilters::RULES as $ruleKey => [$ruleLabel])
+                                        <label class="relative cursor-pointer">
+                                            <input type="checkbox" name="rules[]" value="{{ $ruleKey }}" @checked(in_array($ruleKey, $bf['rules'], true)) class="peer sr-only">
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-jakarta text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all">{{ $ruleLabel }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </section>
+                        </div>
                         <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
                             @foreach($amenityGroups as $category => $group)
-                                <section class="bg-white border border-[#E2E4EC] rounded-2xl p-3.5">
-                                    <div class="flex items-center gap-2.5 mb-3">
-                                        <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $categoryIcons[$category] ?? $fallbackCategoryIcon }}" /></svg>
-                                        </span>
-                                        <h4 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">{{ $category }}</h4>
-                                    </div>
-                                    <div class="flex flex-wrap gap-2">
+                                {{-- Phones: each group is an accordion (one long column of ~35 chips is a lot of scrolling in a
+                                     bottom sheet). A group that already holds a chosen amenity starts open, so an active filter is
+                                     never hidden; from `md:` up everything is open and the header is not interactive. --}}
+                                @php $selectedHere = $group->filter(fn ($a) => in_array($a->amenity_id, (array) request('amenities', [])))->count(); @endphp
+                                <section class="bg-white border border-[#E2E4EC] rounded-2xl p-3.5"
+                                    x-data="{ open: {{ $selectedHere > 0 ? 'true' : 'false' }}, n: {{ $selectedHere }} }"
+                                    @change="n = $el.querySelectorAll('input[type=checkbox]:checked').length">
+                                    <h4 class="m-0">
+                                        <button type="button" @click="open = !open" :aria-expanded="open.toString()"
+                                            class="w-full flex items-center gap-2.5 text-left cursor-pointer md:pointer-events-none md:cursor-default">
+                                            <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $categoryIcons[$category] ?? $fallbackCategoryIcon }}" /></svg>
+                                            </span>
+                                            <span class="font-jakarta text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">{{ $categoryLabels[$category] ?? $category }}</span>
+                                            <span class="md:hidden ml-auto flex items-center gap-2">
+                                                <span x-show="n > 0" x-cloak class="min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-[11px] font-bold tabular-nums" x-text="n"></span>
+                                                <svg class="w-4 h-4 text-[#5B6A8E] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                            </span>
+                                        </button>
+                                    </h4>
+                                    <div class="mt-3 flex-wrap gap-2" :class="open ? 'flex' : 'hidden md:flex'" x-cloak>
                                         @foreach($group as $amenity)
                                             <label class="relative cursor-pointer">
                                                 <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
                                                     @checked(in_array($amenity->amenity_id, (array) request('amenities', [])))
                                                     class="peer sr-only">
-                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-jakarta text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all">
                                                     <x-amenity-icon :name="$amenity->name" class="w-3.5 h-3.5" />
                                                     {{ $amenity->name }}
                                                 </span>
@@ -454,19 +560,21 @@
 
                     {{-- Footer --}}
                     <div class="flex items-center gap-4 px-6 py-4 border-t border-[#E2E4EC] bg-white flex-shrink-0">
-                        <a href="{{ route('properties.index', request()->except(['amenities', 'verified', 'page'])) }}"
-                            class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#EF4444] hover:brightness-95">
+                        <a href="{{ route('properties.index', request()->except(['amenities', 'verified', 'page', 'living', 'for', 'furnishing', 'rules'])) }}"
+                            class="font-jakarta text-[13px] font-bold text-[#EF4444] hover:brightness-95">
                             Clear all
                         </a>
-                        <span class="hidden sm:inline font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#5B6A8E]" x-text="selected + ' selected'"></span>
+                        <span class="hidden sm:inline font-jakarta text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#5B6A8E]" x-text="selected + ' selected'"></span>
                         <button type="submit"
-                            class="ml-auto px-6 py-2.5 rounded-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13.5px] font-bold text-[#060D26] bg-[#FF8A66] shadow-[0_8px_20px_rgba(255,138,102,0.35)] hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                            class="ml-auto px-6 py-2.5 rounded-full font-jakarta text-[13.5px] font-bold text-[#060D26] bg-[#FF8A66] shadow-[0_8px_20px_rgba(255,138,102,0.35)] hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                             Apply filters
                         </button>
                     </div>
                 </form>
             </div>
         </template>
+
+        </div>{{-- /#browse-toolbar --}}
 
         {{-- MOBILE LIST/MAP TOGGLE — desktop shows both columns, this is mobile-only --}}
         <div class="flex lg:hidden gap-2 mb-5">
@@ -482,7 +590,6 @@
             </button>
         </div>
 
-        @if($properties->count() > 0)
             {{-- Sept 2026 — cards sized down and the map shrunk to mirror the
                  reference mockup. A 3-column grid + narrow map was tried once
                  before (see git history) and reverted because a fixed-875px
@@ -493,8 +600,10 @@
                  above the width that caused the original truncation. --}}
             <div class="grid grid-cols-1 gap-6" :class="mapVisible ? 'lg:grid-cols-[2fr_3fr]' : 'lg:grid-cols-1'">
 
-                {{-- LIST COLUMN --}}
+                {{-- LIST COLUMN — #browse-list is what a filter change swaps --}}
                 <div :class="mobileView === 'list' ? 'block' : 'hidden'" class="lg:!block">
+                    <div id="browse-list" class="transition-opacity duration-200">
+                    @if($properties->count() > 0)
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6"
                         :class="mapVisible ? 'lg:grid-cols-2' : 'lg:grid-cols-3 xl:grid-cols-5'">
                         {{-- Landing (no filter/sort/page): a two-row teaser — 9 listings plus a
@@ -518,6 +627,20 @@
                             {{ $properties->links() }}
                         </div>
                     @endunless
+                    @else
+            <x-empty-state title="No properties found"
+                message="Try adjusting your filters or search in a different area of Cebu." :href="route('properties.index')"
+                cta="Clear filters">
+                <x-slot name="icon">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                </x-slot>
+            </x-empty-state>
+                    @endif
+                    </div>{{-- /#browse-list --}}
                 </div>
 
                 {{-- MAP COLUMN — mobileView governs it below `lg` (independent
@@ -548,19 +671,6 @@
                 </div>
 
             </div>
-        @else
-            <x-empty-state title="No properties found"
-                message="Try adjusting your filters or search in a different area of Cebu." :href="route('properties.index')"
-                cta="Clear filters">
-                <x-slot name="icon">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-                        aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                </x-slot>
-            </x-empty-state>
-        @endif
 
     </div>
     </div>
@@ -568,12 +678,12 @@
     @if($heroStats)
         {{-- How it works — after the listings, where it reassures rather than blocks the way to them. --}}
         {{-- Slides up into view the first time it scrolls on screen; steps stagger 150ms apart. --}}
-        <section class="relative isolate overflow-hidden bg-white border-t border-[#E2E4EC]" aria-labelledby="how-it-works-title"
+        <section class="relative isolate overflow-hidden bg-white border-t border-[#E2E4EC]" aria-labelledby="how-it-works-title" data-parallax-scope
             x-data="{ shown: false }"
             x-init="if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) { shown = true; return; }
                     const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { shown = true; io.disconnect(); } }, { threshold: 0.25 });
                     io.observe($el);">
-            <x-section-texture compact />
+            <x-section-texture compact parallax />
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
                 <h2 id="how-it-works-title" class="sr-only">How AbangananHub works</h2>
                 <ol class="grid gap-8 sm:grid-cols-3 sm:gap-10">
@@ -585,11 +695,11 @@
                         <li class="transition-all duration-700 ease-out"
                             style="transition-delay: {{ $i * 150 }}ms"
                             :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
-                            <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[32px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">{{ $num }}</span>
+                            <span data-parallax="{{ -6 - $i * 3 }}" class="block font-jakarta text-[32px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">{{ $num }}</span>
                             <span class="mt-2 block h-0.5 rounded-full bg-[#FF8A66] transition-all duration-700 ease-out"
                                 style="transition-delay: {{ $i * 150 + 300 }}ms"
                                 :class="shown ? 'w-8' : 'w-0'" aria-hidden="true"></span>
-                            <h3 class="mt-3 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[16px] font-bold text-[#060D26]">{{ $title }}</h3>
+                            <h3 class="mt-3 font-jakarta text-[16px] font-bold text-[#060D26]">{{ $title }}</h3>
                             <p class="mt-1 text-[14px] leading-relaxed text-[#5B6A8E] max-w-xs">{{ $body }}</p>
                         </li>
                     @endforeach
@@ -614,12 +724,12 @@
                 ['A Verified badge that builds tenant trust', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
             ];
         @endphp
-        <section class="relative isolate overflow-hidden bg-[#ECEEF6]" aria-labelledby="landlord-cta-title">
-            <x-section-texture compact />
+        <section class="relative isolate overflow-hidden bg-[#ECEEF6]" aria-labelledby="landlord-cta-title" data-parallax-scope>
+            <x-section-texture compact parallax />
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 grid gap-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-center lg:gap-16">
                 <div>
-                    <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#B35A3D]">For property owners</p>
-                    <h2 id="landlord-cta-title" class="mt-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] sm:text-[34px] font-extrabold leading-[1.15] tracking-tight text-[#060D26] text-balance">Have a room or unit to rent out?</h2>
+                    <p class="font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#B35A3D]">For property owners</p>
+                    <h2 id="landlord-cta-title" class="mt-2 font-jakarta text-[26px] sm:text-[34px] font-extrabold leading-[1.15] tracking-tight text-[#060D26] text-balance">Have a room or unit to rent out?</h2>
                     <ul class="mt-7 grid gap-3 sm:grid-cols-2">
                         @foreach($ownerPerks as [$perk, $icon])
                             <li class="flex items-center gap-3 rounded-2xl bg-white/70 border border-[#E2E4EC] p-3.5">
@@ -631,7 +741,7 @@
                         @endforeach
                     </ul>
                     <a href="{{ auth()->check() ? route('landlord.verification.create') : route('register') }}"
-                        class="group relative isolate mt-9 w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 py-4 rounded-2xl bg-[#FF8A66] text-[#060D26] text-[17px] font-extrabold font-['Plus_Jakarta_Sans',_Inter,_sans-serif] shadow-[0_14px_32px_rgba(255,138,102,0.55)] transition-all duration-300 hover:bg-[#E96F4F] hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(255,138,102,0.65)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#060D26] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ECEEF6]">
+                        class="group relative isolate mt-9 w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 py-4 rounded-2xl bg-[#FF8A66] text-[#060D26] text-[17px] font-extrabold font-jakarta shadow-[0_14px_32px_rgba(255,138,102,0.55)] transition-all duration-300 hover:bg-[#E96F4F] hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(255,138,102,0.65)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#060D26] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ECEEF6]">
                         {{-- Slow pulsing halo so the button reads as the primary action of the section. --}}
                         <span class="absolute inset-0 -z-10 rounded-2xl bg-[#FF8A66] motion-safe:animate-[owner-cta-pulse_2.4s_ease-out_infinite]" aria-hidden="true"></span>
                         List your property
@@ -652,7 +762,7 @@
                         $litLeft  = [[1,0,0],[0,1,0],[1,0,1]];
                         $litRight = [[0,1,1],[1,0,0],[0,1,0],[1,1,0]];
                     @endphp
-                    <svg viewBox="0 0 260 310" class="absolute left-[43%] bottom-[2%] -translate-x-1/2 h-[90%] w-auto" fill="none">
+                    <svg data-parallax="10" viewBox="0 0 260 310" class="absolute left-[43%] bottom-[2%] -translate-x-1/2 h-[90%] w-auto" fill="none">
                         <defs>
                             <linearGradient id="ow-left" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1C2858"/><stop offset="1" stop-color="#2A3A78"/></linearGradient>
                             <linearGradient id="ow-right" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4356A6"/><stop offset="1" stop-color="#2E3F86"/></linearGradient>
@@ -704,7 +814,7 @@
                     </svg>
 
                     {{-- 3D-style landlord: rounded "clay" shapes with gradients and soft highlights. --}}
-                    <svg viewBox="0 0 110 236" class="absolute bottom-[3%] left-[62%] h-[56%] w-auto" fill="none">
+                    <svg data-parallax="-14" viewBox="0 0 110 236" class="absolute bottom-[3%] left-[62%] h-[56%] w-auto" fill="none">
                         <defs>
                             <radialGradient id="ow-skin" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#FFDCC6"/><stop offset="1" stop-color="#E29A78"/></radialGradient>
                             <linearGradient id="ow-jacket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB094"/><stop offset="1" stop-color="#E2603C"/></linearGradient>
@@ -748,19 +858,19 @@
                         <path d="M49 46c3.5 3.5 8.5 3.5 12 0" stroke="#1B2140" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
 
-                    <div class="absolute top-6 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
+                    <div data-parallax="-14" class="absolute top-6 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
                         <span class="w-8 h-8 rounded-full bg-[#E7F6EC] text-[#1F8A4C] flex items-center justify-center">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $ownerPerks[3][1] }}" /></svg>
                         </span>
                         <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Verified<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Landlord</span></span>
                     </div>
-                    <div class="absolute top-24 right-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
+                    <div data-parallax="-18" class="absolute top-24 right-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
                         <span class="w-8 h-8 rounded-full bg-[#FFE9E1] text-[#B35A3D] flex items-center justify-center">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H19a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14z" /></svg>
                         </span>
                         <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">New inquiry<span class="block text-[10.5px] font-medium text-[#5B6A8E]">A tenant is interested</span></span>
                     </div>
-                    <div class="absolute bottom-10 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_8s_ease-in-out_-4s_infinite]">
+                    <div data-parallax="-12" class="absolute bottom-10 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_8s_ease-in-out_-4s_infinite]">
                         <span class="w-8 h-8 rounded-full bg-[#E8ECFA] text-[#2A3A75] flex items-center justify-center text-[15px] font-extrabold">&#8369;</span>
                         <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Rent received<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Tracked automatically</span></span>
                     </div>
@@ -772,7 +882,7 @@
     @endif
 
     @push('scripts')
-        @vite(['resources/js/maps/browse-map.js'])
+        @vite(['resources/js/maps/browse-map.js', 'resources/js/browse-live.js', 'resources/js/parallax.js'])
         <script>
             (function () {
                 function toggleFavorite(button) {

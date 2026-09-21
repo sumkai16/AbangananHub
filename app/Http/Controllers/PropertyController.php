@@ -29,9 +29,9 @@ class PropertyController extends Controller
         $heroStats = null;
         $popularProperties = collect();
         $areas = collect();
-        $showDiscovery = !$request->hasAny(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page']);
+        $showDiscovery = !$request->hasAny(array_merge(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page'], \App\Support\BrowseFilters::KEYS));
 
-        if ($request->routeIs('home') && ! $request->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
+        if ($request->routeIs('home') && ! $request->hasAny(array_merge(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'], \App\Support\BrowseFilters::KEYS))) {
             $heroStats = [
                 'listings' => Property::browsable()->count(),
                 'units' => PropertyUnit::where('availability_status', 'Available')
@@ -61,7 +61,7 @@ class PropertyController extends Controller
                 'documents:document_id,property_id,document_type,status,expiry_date',
             ])
             ->browsable()
-            ->browseFilters([
+            ->browseFilters(\App\Support\BrowseFilters::fromRequest($request) + [
                 'location'   => $request->query('location'),
                 'type'       => $request->query('type'),
                 'price_min'  => $request->query('price_min'),
@@ -79,7 +79,10 @@ class PropertyController extends Controller
         // Property::scopeBrowseFilters). Grouped to mirror the landlord
         // amenities wizard step, whose own copy anticipated this: "Optional,
         // but tenants filter on these."
-        $amenityGroups = Amenity::orderBy('category')->orderBy('amenity_name')->get()->groupBy('category');
+        // Curfew / Pet Friendly / Visitors Allowed are house rules now, filtered under "House rules" instead.
+        $amenityGroups = Amenity::orderBy('category')->orderBy('amenity_name')->get()
+            ->reject(fn ($a) => in_array($a->amenity_name, \App\Support\BrowseFilters::AMENITIES_REPLACED_BY_RULES, true))
+            ->groupBy('category');
 
         // Names for the "Filtering by:" chip row — the query string only
         // carries amenity_ids, and that row needs the label to display.
@@ -158,8 +161,8 @@ class PropertyController extends Controller
             ->when($limit, fn ($q) => $q->take($limit))
             ->get();
 
-        // One image per city, fetched for all cities at once.
-        $photos = PropertyMedia::query()
+        // Every candidate image per city, fetched for all cities at once.
+        $candidates = PropertyMedia::query()
             ->join('properties', 'properties.property_id', '=', 'property_media.property_id')
             ->whereIn('properties.city_municipality', $areas->pluck('city_municipality'))
             ->where('properties.verification_status', 'Approved')
@@ -172,8 +175,22 @@ class PropertyController extends Controller
             ->orderBy('properties.property_id')
             ->orderBy('property_media.media_id')
             ->get(['properties.city_municipality', 'property_media.media_url'])
-            ->unique('city_municipality')
-            ->pluck('media_url', 'city_municipality');
+            ->groupBy('city_municipality')
+            ->map->pluck('media_url');
+
+        // Each tile takes the first candidate no earlier tile already used, so tiles
+        // don't repeat a photo just because two cities' first listings share one.
+        // A city whose photos are all taken falls back to its first.
+        $used = [];
+        $photos = $areas->mapWithKeys(function ($row) use ($candidates, &$used) {
+            $urls = $candidates[$row->city_municipality] ?? collect();
+            $pick = $urls->first(fn ($u) => ! isset($used[strtok($u, '?')])) ?? $urls->first();
+            if ($pick) {
+                $used[strtok($pick, '?')] = true;
+            }
+
+            return [$row->city_municipality => $pick];
+        });
 
         return $areas
             ->map(fn ($row) => [
@@ -234,9 +251,7 @@ class PropertyController extends Controller
             ->take(6)
             ->values();
 
-        $backUrl = session('browse_url', route('home'));
-
-        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited', 'nearbyProperties', 'backUrl'));
+        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited', 'nearbyProperties'));
     }
 
     public function edit(Property $property)
@@ -274,7 +289,7 @@ class PropertyController extends Controller
                 'title'                          => $validated['title'],
                 'description'                    => $validated['description'],
                 'property_type'                  => $validated['property_type'],
-                'living_arrangement'             => $validated['living_arrangement'] ?? null,
+                ...\App\Support\PropertyPolicies::fromRequest($request),
                 'water_included'                 => $request->boolean('water_included'),
                 'electricity_included'           => $request->boolean('electricity_included'),
                 'internet_included'              => $request->boolean('internet_included'),

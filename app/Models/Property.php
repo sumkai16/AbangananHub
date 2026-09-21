@@ -5,6 +5,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Property extends Model
 {
+    /**
+     * Price stops the search bar's budget slider moves along. Not linear on purpose:
+     * most rents sit low (median ~₱3,000, max ~₱22,000), so the steps are fine there
+     * and coarse above ₱10,000. Position 0 means "no minimum", the last means "no maximum".
+     */
+    public const SEARCH_PRICE_STOPS = [0, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 9000, 10000, 12500, 15000, 17500, 20000, 25000, 30000];
+
     protected $primaryKey = 'property_id';
    protected $fillable = [
     'landlord_id',
@@ -13,6 +20,7 @@ class Property extends Model
     'house_rules',
     'property_type',
     'living_arrangement',
+    'occupancy_preference',
     'water_included',
     'electricity_included',
     'internet_included',
@@ -312,6 +320,31 @@ class Property extends Model
             }
         }
 
+        // Property-level facts (see App\Support\BrowseFilters — values are whitelisted before they get here).
+        if (!empty($filters['living'])) {
+            $query->where('living_arrangement', $filters['living']);
+        }
+
+        if (!empty($filters['for'])) {
+            // A tenant of that gender can take a matching property or one with no preference.
+            $query->whereIn('occupancy_preference', [\App\Support\BrowseFilters::SUITABLE_FOR[$filters['for']], 'No Preference']);
+        }
+
+        if (!empty($filters['furnishing'])) {
+            $query->whereHas('units', fn ($q) => $q->where('availability_status', 'Available')
+                ->where('verification_status', 'Approved')
+                ->where('furnishing_status', $filters['furnishing']));
+        }
+
+        // "Must allow": the property must not carry the restricting rule. A property with no rules at all
+        // (NULL) carries none, so it matches — NOT JSON_CONTAINS(NULL, …) would otherwise drop it.
+        foreach ((array) ($filters['rules'] ?? []) as $ruleKey) {
+            $restriction = \App\Support\BrowseFilters::RULES[$ruleKey][1] ?? null;
+            if ($restriction) {
+                $query->where(fn ($q) => $q->whereNull('house_rules')->orWhereJsonDoesntContain('house_rules', $restriction));
+            }
+        }
+
         match ($filters['sort'] ?? null) {
             'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
             'price_high' => $query->orderByDesc('min_rental_fee'),
@@ -350,5 +383,107 @@ class Property extends Model
             ->isNotEmpty();
 
         return $hasAvailable ? 'Available' : 'Unavailable';
+    }
+    /**
+     * Every area that has something bookable, for the "Where" search box's
+     * suggestion dropdown: each city, and each barangay within it ("Poblacion,
+     * Carcar City"). `value` is what gets typed into the box, and it matches
+     * scopeBrowseFilters' address LIKE because addresses are "Barangay, City, Cebu".
+     *
+     * Cached for ten minutes; a new listing's area shows up in suggestions within that.
+     *
+     * @return list<array{label: string, value: string, sub: string, type: 'city'|'barangay'}>
+     */
+    public static function searchLocations(): array
+    {
+        return \Illuminate\Support\Facades\Cache::remember('search.locations', now()->addMinutes(10), function () {
+            $rows = static::live()
+                ->whereHas('units', fn ($q) => $q->where('availability_status', 'Available')->where('verification_status', 'Approved'))
+                ->selectRaw('city_municipality, barangay, COUNT(*) as cnt')
+                ->groupBy('city_municipality', 'barangay')
+                ->get();
+
+            $count = fn (int $n) => $n.' '.\Illuminate\Support\Str::plural('listing', $n);
+
+            $cities = $rows->groupBy('city_municipality')
+                ->map(fn ($group, $city) => ['label' => $city, 'value' => $city, 'sub' => $count((int) $group->sum('cnt')), 'type' => 'city', 'n' => (int) $group->sum('cnt')])
+                ->sortByDesc('n');
+
+            $barangays = $rows->filter(fn ($r) => filled($r->barangay) && $r->barangay !== $r->city_municipality)
+                ->map(fn ($r) => ['label' => $r->barangay, 'value' => $r->barangay.', '.$r->city_municipality, 'sub' => $r->city_municipality.' · '.$count((int) $r->cnt), 'type' => 'barangay', 'n' => (int) $r->cnt])
+                ->sortByDesc('n');
+
+            return $cities->concat($barangays)->map(fn ($i) => \Illuminate\Support\Arr::except($i, 'n'))->values()->all();
+        });
+    }
+    /**
+     * The quick-pick price ranges in the search bar's Budget popover, each with
+     * how many live listings have an available unit inside it (so a tenant never
+     * picks an empty range). Bounds are inclusive, matching scopeBrowseFilters.
+     * Breaks sit where the Cebu market does: bedspaces and rooms under ₱5,000,
+     * apartments and condos above. Cached for ten minutes.
+     *
+     * @return list<array{label: string, min: int|null, max: int|null, count: int}>
+     */
+    public static function budgetBands(): array
+    {
+        return \Illuminate\Support\Facades\Cache::remember('search.budget_bands', now()->addMinutes(10), function () {
+            return collect([
+                ['Up to ₱3,000', null, 3000],
+                ['₱3,000 – ₱5,000', 3000, 5000],
+                ['₱5,000 – ₱10,000', 5000, 10000],
+                ['₱10,000 – ₱20,000', 10000, 20000],
+                ['₱20,000 & up', 20000, null],
+            ])->map(fn ($b) => [
+                'label' => $b[0],
+                'min' => $b[1],
+                'max' => $b[2],
+                'count' => static::live()->whereHas('units', function ($q) use ($b) {
+                    $q->where('availability_status', 'Available')->where('verification_status', 'Approved');
+                    if ($b[1] !== null) {
+                        $q->where('rental_fee', '>=', $b[1]);
+                    }
+                    if ($b[2] !== null) {
+                        $q->where('rental_fee', '<=', $b[2]);
+                    }
+                })->count(),
+            ])->all();
+        });
+    }
+    /**
+     * How many live listings have an available unit in each step of the budget
+     * slider: one count per gap between SEARCH_PRICE_STOPS (so bar i sits between
+     * slider positions i and i+1). A listing counts once per bar even with several
+     * units in it; anything at or above the top stop lands in the last bar.
+     * Cached for ten minutes.
+     *
+     * @return list<int>
+     */
+    public static function budgetHistogram(): array
+    {
+        return \Illuminate\Support\Facades\Cache::remember('search.budget_histogram', now()->addMinutes(10), function () {
+            $stops = self::SEARCH_PRICE_STOPS;
+            $bins = count($stops) - 1;
+            $seen = array_fill(0, $bins, []);
+
+            PropertyUnit::query()
+                ->where('availability_status', 'Available')
+                ->where('verification_status', 'Approved')
+                ->whereHas('property', fn ($q) => $q->live())
+                ->get(['property_id', 'rental_fee'])
+                ->each(function ($unit) use ($stops, $bins, &$seen) {
+                    $fee = (float) $unit->rental_fee;
+                    $bin = $bins - 1;
+                    for ($i = 0; $i < $bins; $i++) {
+                        if ($fee < $stops[$i + 1]) {
+                            $bin = $i;
+                            break;
+                        }
+                    }
+                    $seen[$bin][$unit->property_id] = true;
+                });
+
+            return array_map('count', $seen);
+        });
     }
 }
