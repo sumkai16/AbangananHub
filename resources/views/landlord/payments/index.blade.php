@@ -249,7 +249,7 @@
                     add.
                 </p>
                 <a href="{{ route('landlord.tenants.walkIn.create') }}"
-                    class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                    class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200 cursor-pointer">
                     Add a walk-in tenant
                 </a>
             </x-card>
@@ -449,7 +449,7 @@
                         </div>
 
                         <a href="{{ route('landlord.tenancies.show', $reservation) }}"
-                            class="mt-3 flex items-center justify-center h-9 rounded-xl border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
+                            class="mt-3 flex items-center justify-center h-9 rounded-xl border border-[#DA8E77] text-[#A8573F] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
                             Open Ledger
                         </a>
                     </x-card>

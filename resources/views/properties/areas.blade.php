@@ -16,7 +16,7 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             @foreach($areas as $area)
                 <a href="{{ route('properties.index', ['location' => $area['name']]) }}"
-                    class="relative h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] bg-[#ECEEF6] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0">
+                    class="relative h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] bg-[#ECEEF6] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#DA8E77] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0">
                     @if($area['photo'])
                         <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     @endif

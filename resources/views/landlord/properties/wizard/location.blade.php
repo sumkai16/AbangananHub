@@ -86,7 +86,7 @@
                         <div>
                             <label for="barangay" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Barangay <span class="text-[#94A3B8] font-normal">(optional)</span></label>
                             <input type="text" id="barangay" name="barangay" value="{{ old('barangay', $property->barangay ?? '') }}" maxlength="100"
-                                class="w-full h-12 px-4 rounded-xl border @error('barangay') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all"
+                                class="w-full h-12 px-4 rounded-xl border @error('barangay') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/25 focus:border-[#DA8E77] transition-all"
                                 placeholder="e.g., Lahug">
                             @error('barangay')<p class="text-xs text-[#EF4444] mt-1.5">{{ $message }}</p>@enderror
                         </div>
@@ -95,7 +95,7 @@
                     <div>
                         <label for="address" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Street / Address</label>
                         <input type="text" id="address" name="address" value="{{ old('address', $property->address ?? '') }}" minlength="10" maxlength="255"
-                            class="w-full h-12 px-4 rounded-xl border @error('address') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/25 focus:border-[#FF8A66] transition-all"
+                            class="w-full h-12 px-4 rounded-xl border @error('address') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/25 focus:border-[#DA8E77] transition-all"
                             placeholder="Pin your location on the map above, or type it manually" required>
                         @error('address')<p class="text-xs text-[#EF4444] mt-1.5">{{ $message }}</p>@enderror
                     </div>
@@ -114,7 +114,7 @@
                             <p class="text-[11.5px] text-[#94A3B8] mb-3">{{ $property->media->count() }} photo(s) already added. Add more below, or manage them from the property page after submitting.</p>
                         @endif
 
-                        <div class="border-2 border-dashed @error('photos') border-[#EF4444]/30 @else border-[#E2E4EC] @enderror hover:border-[#FF8A66] rounded-2xl p-6 bg-[#F7F8FC] text-center transition-colors group">
+                        <div class="border-2 border-dashed @error('photos') border-[#EF4444]/30 @else border-[#E2E4EC] @enderror hover:border-[#DA8E77] rounded-2xl p-6 bg-[#F7F8FC] text-center transition-colors group">
                             <label class="cursor-pointer block">
                                 <div class="w-11 h-11 rounded-xl bg-white shadow-sm border border-[#E2E4EC] flex items-center justify-center mx-auto mb-3 text-[#94A3B8] group-hover:text-[#060D26] transition-all">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -138,7 +138,7 @@
                             Back
                         </a>
                         <button type="submit" :disabled="submitting"
-                            class="ml-auto inline-flex items-center gap-2 px-9 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all duration-150 disabled:opacity-60 disabled:cursor-wait disabled:hover:brightness-100">
+                            class="ml-auto inline-flex items-center gap-2 px-9 py-3 rounded-xl text-sm font-semibold text-[#060D26] bg-[#DA8E77] hover:bg-[#C97A61] transition-all duration-150 disabled:opacity-60 disabled:cursor-wait disabled:hover:brightness-100">
                             <svg x-show="submitting" x-cloak class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -168,7 +168,7 @@
         </div>
         <div id="location-picker-modal-slot" class="flex-1 relative min-h-0"></div>
         <div class="px-5 py-4 border-t border-[#E2E4EC] shrink-0 flex items-center justify-end">
-            <button type="button" id="location-picker-modal-done" class="h-11 px-6 rounded-full bg-[#FF8A66] text-[#060D26] font-bold text-[13.5px] shadow-sm hover:bg-[#E96F4F] transition-all">
+            <button type="button" id="location-picker-modal-done" class="h-11 px-6 rounded-full bg-[#DA8E77] text-[#060D26] font-bold text-[13.5px] shadow-sm hover:bg-[#C97A61] transition-all">
                 Done
             </button>
         </div>

@@ -159,7 +159,7 @@
                         <span class="text-[12px] text-[#5B6A8E]">Emptiest first</span>
                     </div>
                     <a href="{{ route('landlord.properties.index') }}"
-                        class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200">
+                        class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#A8573F] hover:text-[#060D26] transition-colors duration-200">
                         Manage all
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -179,7 +179,7 @@
                         <p class="text-[13px] text-[#5B6A8E] mt-1 mb-4">Approved properties will show up here with live
                             occupancy stats.</p>
                         <a href="{{ route('properties.create') }}"
-                            class="inline-flex items-center gap-1.5 bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 py-2.5 hover:bg-[#E96F4F] transition">
+                            class="inline-flex items-center gap-1.5 bg-[#DA8E77] text-[#060D26] text-[13px] font-semibold rounded-xl px-4 py-2.5 hover:bg-[#C97A61] transition">
                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
@@ -248,7 +248,7 @@
                         @endforeach
                         @if($properties->count() > 5)
                             <a href="{{ route('landlord.properties.index') }}"
-                                class="block text-center py-3 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">
+                                class="block text-center py-3 text-[12.5px] font-semibold text-[#A8573F] hover:text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-150">
                                 and {{ $properties->count() - 5 }} more
                             </a>
                         @endif
@@ -297,7 +297,7 @@
                         <h2 class="font-sans text-[17px] font-semibold text-[#060D26]">Recent activity</h2>
                     </div>
                     <a href="{{ route('landlord.reservations.index') }}"
-                        class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200">
+                        class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#A8573F] hover:text-[#060D26] transition-colors duration-200">
                         View all
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />

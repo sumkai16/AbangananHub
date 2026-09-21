@@ -67,7 +67,7 @@
                             class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                         <button type="submit"
-                            class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
+                            class="h-11 px-5 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200 inline-flex items-center gap-1.5">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                             </svg>
@@ -99,7 +99,7 @@
                         <p class="text-[15px] font-semibold text-[#060D26]">No reviews yet</p>
                         <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-xs">Once tenants complete a stay, their reviews and ratings for your properties will show up here.</p>
                         <a href="{{ route('landlord.properties.index') }}"
-                            class="mt-5 inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                            class="mt-5 inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13px] font-semibold hover:bg-[#C97A61] transition-all duration-200">
                             View your properties
                         </a>
                     </x-card>
@@ -164,7 +164,7 @@
                                         </span>
                                         <button type="button"
                                             @click="replyOpenId = replyOpenId === {{ $review->review_id }} ? null : {{ $review->review_id }}"
-                                            class="text-[12.5px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-150">
+                                            class="text-[12.5px] font-semibold text-[#A8573F] hover:text-[#060D26] transition-colors duration-150">
                                             <span x-text="replyOpenId === {{ $review->review_id }} ? 'Cancel' : 'Reply'"></span>
                                         </button>
                                     @endif
@@ -180,14 +180,14 @@
                                             <input type="hidden" name="review_id" value="{{ $review->review_id }}">
                                             <textarea name="landlord_reply" rows="2" maxlength="1000" required
                                                 placeholder="Write a public reply to this review..."
-                                                class="w-full rounded-xl border border-[#5B6A8E]/25 px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">{{ old('review_id') == $review->review_id ? old('landlord_reply') : '' }}</textarea>
+                                                class="w-full rounded-xl border border-[#5B6A8E]/25 px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">{{ old('review_id') == $review->review_id ? old('landlord_reply') : '' }}</textarea>
                                             @if(old('review_id') == $review->review_id)
                                                 @error('landlord_reply')
                                                     <p class="text-[11.5px] text-[#EF4444]">{{ $message }}</p>
                                                 @enderror
                                             @endif
                                             <button type="submit"
-                                                class="h-9 px-4 rounded-full bg-[#FF8A66] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                                                class="h-9 px-4 rounded-full bg-[#DA8E77] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200">
                                                 Submit Reply
                                             </button>
                                         </form>
@@ -196,7 +196,7 @@
 
                                 {{-- Landlord reply --}}
                                 @if($review->landlord_reply)
-                                    <div class="mt-3 pt-3 border-t border-[#5B6A8E]/10 pl-3 border-l-2 border-l-[#FF8A66]">
+                                    <div class="mt-3 pt-3 border-t border-[#5B6A8E]/10 pl-3 border-l-2 border-l-[#DA8E77]">
                                         <p class="text-[11px] font-semibold text-[#060D26] uppercase tracking-wide">Your reply</p>
                                         <p class="text-[12.5px] text-[#5B6A8E] mt-0.5 leading-relaxed">{{ $review->landlord_reply }}</p>
                                     </div>

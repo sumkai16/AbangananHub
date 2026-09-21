@@ -39,7 +39,7 @@
                     <tr>
                         <td align="center" style="padding-bottom: 32px;">
                             <a href="{{ $resetUrl }}"
-                                style="display: inline-block; background-color: #FF8A66; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 40px; border-radius: 8px;">
+                                style="display: inline-block; background-color: #DA8E77; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 40px; border-radius: 8px;">
                                 Reset password
                             </a>
                         </td>
@@ -48,7 +48,7 @@
                         <td style="padding-bottom: 32px;">
                             <p style="margin: 0; font-size: 12px; color: #94A3B8; line-height: 1.6; text-align: center; word-break: break-all;">
                                 Or copy and paste this link into your browser:<br>
-                                <a href="{{ $resetUrl }}" style="color: #FF8A66;">{{ $resetUrl }}</a>
+                                <a href="{{ $resetUrl }}" style="color: #DA8E77;">{{ $resetUrl }}</a>
                             </p>
                         </td>
                     </tr>

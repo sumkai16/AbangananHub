@@ -237,7 +237,7 @@
 /* Applied to a browse-page property card when its map pin is hovered —
    the reverse direction of the card-hover-highlights-pin behavior. */
 [data-property-card].map-highlighted {
-    outline: 2px solid #FF8A66;
+    outline: 2px solid #DA8E77;
     outline-offset: 4px;
     border-radius: 24px;
 }

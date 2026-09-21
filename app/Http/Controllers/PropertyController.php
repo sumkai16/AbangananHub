@@ -29,6 +29,7 @@ class PropertyController extends Controller
         $heroStats = null;
         $popularProperties = collect();
         $areas = collect();
+        $showDiscovery = !$request->hasAny(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page']);
 
         if ($request->routeIs('home') && ! $request->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
             $heroStats = [
@@ -114,7 +115,7 @@ class PropertyController extends Controller
 
         return view('properties.index', compact(
             'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas',
-            'amenityGroups', 'selectedAmenities'
+            'amenityGroups', 'selectedAmenities', 'showDiscovery'
         ));
     }
 

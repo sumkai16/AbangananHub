@@ -1,4 +1,4 @@
-@extends('layouts.app', ['searchBar' => empty($heroStats)])
+@extends('layouts.app', ['searchBar' => false])
 
 
 {{-- Browse (filter/search view): keep the search + category band pinned under the nav on desktop; the listings are what scrolls. --}}
@@ -39,7 +39,7 @@
                     Verified apartments, rooms, boarding houses, and condos &mdash; all in one place.
                 </p>
 
-                <div class="mt-8 sm:mt-10 flex justify-center">
+                <div class="mt-6 w-full max-w-3xl">
                     <x-search-pill variant="hero" />
                 </div>
 
@@ -65,7 +65,7 @@
         @browse-toggle-map.window="mapVisible = !mapVisible; if (mapVisible) $nextTick(() => window.browseMapRefit?.())"
         @browse-open-filters.window="filtersOpen = true">
 
-        @if($heroStats)
+        @if($showDiscovery)
             @if($areas->count() > 0)
                 {{-- ===== BROWSE BY AREA ===== --}}
                 <div class="mb-14" x-data="{
@@ -200,7 +200,7 @@
 
                 @if(request('location'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -220,7 +220,7 @@
 
                 @if(request('type'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -239,7 +239,7 @@
 
                 @if(request('price_min') || request('price_max'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             class="flex-shrink-0" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -264,7 +264,7 @@
 
                 @if(request('verified'))
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
                             aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -282,7 +282,7 @@
 
                 @foreach($selectedAmenities as $amenity)
                     <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/40 rounded-full text-[13px] font-semibold">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/40 rounded-full text-[13px] font-semibold">
                         {{ $amenity->name }}
                         {{-- Removing one amenity out of amenities[]=1&amenities[]=2 isn't
                              a plain fullUrlWithoutQuery (that drops the whole key) — rebuild
@@ -328,7 +328,7 @@
                         @php $isActive = $type === null ? ! $activeType : $activeType === $type; @endphp
                         <a href="{{ $type ? route('properties.index', ['type' => $type]) : route('properties.index') }}"
                             @if($isActive) aria-current="page" @endif
-                            class="flex-shrink-0 h-9 inline-flex items-center px-4 rounded-full border font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#FF8A66] hover:text-[#060D26]' }}">
+                            class="flex-shrink-0 h-9 inline-flex items-center px-4 rounded-full border font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#DA8E77] hover:text-[#060D26]' }}">
                             {{ $label }}
                         </a>
                     @endforeach
@@ -365,7 +365,7 @@
                     </svg>
                     Filters
                     @if($activeFilterCount > 0)
-                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#FF8A66] text-[#060D26] text-[10px] font-bold">{{ $activeFilterCount }}</span>
+                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#DA8E77] text-[#060D26] text-[10px] font-bold">{{ $activeFilterCount }}</span>
                     @endif
                 </button>
 
@@ -388,33 +388,33 @@
             $initialSelected = count((array) request('amenities', []));
         @endphp
         <template x-teleport="body">
-            <div x-show="filtersOpen" x-cloak class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-6"
+            {{-- ===== FILTERS MODAL — widened + grouped into a responsive grid
+                 (Sept 2026). Was a single fixed-width column (sm:max-w-md)
+                 that stacked every amenity category vertically, forcing a
+                 tall internal scroll even on desktop where there was plenty
+                 of spare horizontal room. sm:grid-cols-2/lg:grid-cols-3 lets
+                 categories sit side by side instead, so most viewports show
+                 the whole filter set without scrolling; max-h + overflow-y
+                 stay on as a safety net for short viewports or a future
+                 amenity category, not as the expected everyday path. ===== --}}
+            <div x-show="filtersOpen" x-cloak class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
                 x-on:keydown.escape.window="filtersOpen = false">
                 <div class="absolute inset-0 bg-[#060D26]/50" x-on:click="filtersOpen = false"></div>
-                <form method="GET" action="{{ route('properties.index') }}"
-                    x-data="{ selected: {{ $initialSelected }}, count() { this.selected = this.$el.querySelectorAll('input[type=checkbox]:checked').length } }"
-                    @change="count()"
-                    class="relative w-full sm:max-w-6xl max-h-[92vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+                <div class="relative w-full sm:max-w-3xl lg:max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl"
                     x-show="filtersOpen" x-transition>
-
-                    {{-- Header --}}
-                    <div class="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-[#E2E4EC] flex-shrink-0">
-                        <div>
-                            <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]"><span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>Refine results</span>
-                            <h3 class="mt-1 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[22px] font-extrabold tracking-tight text-[#060D26]">Filters</h3>
-                        </div>
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E4EC] shrink-0">
+                        <h3 class="font-heading text-[19px] font-bold text-[#060D26]">Filters</h3>
                         <button type="button" x-on:click="filtersOpen = false" aria-label="Close"
-                            class="w-9 h-9 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] hover:text-[#060D26] hover:border-[#FF8A66] transition-colors cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            class="w-8 h-8 flex items-center justify-center rounded-full text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
 
-                    {{-- Body (only this scrolls) --}}
-                    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4 bg-[#F7F8FC]">
-                        {{-- Carries location/type/price_min/price_max/sort through untouched —
-                             this form only ever sets amenities. --}}
+                    <form method="GET" action="{{ route('properties.index') }}" class="flex flex-col min-h-0 flex-1">
+                        {{-- Carries location/type/price_max/sort through untouched —
+                             this form only ever sets amenities/verified. --}}
                         @foreach(request()->except(['amenities', 'verified', 'page']) as $key => $value)
                             @if(is_array($value))
                                 @foreach($value as $item)
@@ -425,30 +425,47 @@
                             @endif
                         @endforeach
 
-                        <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
-                            @foreach($amenityGroups as $category => $group)
-                                <section class="bg-white border border-[#E2E4EC] rounded-2xl p-3.5">
-                                    <div class="flex items-center gap-2.5 mb-3">
-                                        <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $categoryIcons[$category] ?? $fallbackCategoryIcon }}" /></svg>
-                                        </span>
-                                        <h4 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">{{ $category }}</h4>
+                        <div class="px-6 py-5 overflow-y-auto min-h-0">
+                            <label class="flex items-center gap-2.5 text-[14px] font-semibold text-[#060D26] cursor-pointer bg-[#DA8E77]/[0.07] border border-[#DA8E77]/25 rounded-xl px-4 py-3">
+                                <input type="checkbox" name="verified" value="1"
+                                    @checked(request()->boolean('verified'))
+                                    class="w-[18px] h-[18px] rounded-md border-[#DA8E77]/50 text-[#DA8E77] focus:ring-[#DA8E77]/30 focus:ring-offset-0">
+                                Verified listings only
+                            </label>
+
+                            <div class="mt-5 pt-5 border-t border-[#E2E4EC] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
+                                @foreach($amenityGroups as $category => $group)
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <div class="h-px w-3 bg-[#DA8E77]"></div>
+                                            <p class="text-[11px] font-bold uppercase tracking-wider text-[#A8573F]">{{ $category }}</p>
+                                        </div>
+                                        <div class="flex flex-wrap gap-2">
+                                            @foreach($group as $amenity)
+                                                <label class="relative cursor-pointer">
+                                                    <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
+                                                        @checked(in_array($amenity->amenity_id, (array) request('amenities', [])))
+                                                        class="peer sr-only">
+                                                    <span class="inline-flex items-center px-3.5 py-1.5 rounded-full border border-[#E2E4EC] bg-white text-[13px] font-semibold text-[#5B6A8E] peer-checked:border-[#DA8E77] peer-checked:bg-[#DA8E77] peer-checked:text-white transition-all">
+                                                        {{ $amenity->name }}
+                                                    </span>
+                                                </label>
+                                            @endforeach
+                                        </div>
                                     </div>
-                                    <div class="flex flex-wrap gap-2">
-                                        @foreach($group as $amenity)
-                                            <label class="relative cursor-pointer">
-                                                <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
-                                                    @checked(in_array($amenity->amenity_id, (array) request('amenities', [])))
-                                                    class="peer sr-only">
-                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all">
-                                                    <x-amenity-icon :name="$amenity->name" class="w-3.5 h-3.5" />
-                                                    {{ $amenity->name }}
-                                                </span>
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                </section>
-                            @endforeach
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-4 border-t border-[#E2E4EC] flex items-center gap-3 shrink-0 bg-white rounded-b-2xl">
+                            <a href="{{ route('properties.index', request()->except(['amenities', 'verified', 'page'])) }}"
+                                class="text-[13px] font-semibold text-[#EF4444] hover:brightness-95">
+                                Clear
+                            </a>
+                            <button type="submit"
+                                class="ml-auto px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#060D26] hover:brightness-95 transition-all duration-150 cursor-pointer">
+                                Apply filters
+                            </button>
                         </div>
                     </div>
 
@@ -460,7 +477,7 @@
                         </a>
                         <span class="hidden sm:inline font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#5B6A8E]" x-text="selected + ' selected'"></span>
                         <button type="submit"
-                            class="ml-auto px-6 py-2.5 rounded-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13.5px] font-bold text-[#060D26] bg-[#FF8A66] shadow-[0_8px_20px_rgba(255,138,102,0.35)] hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                            class="ml-auto px-6 py-2.5 rounded-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13.5px] font-bold text-[#060D26] bg-[#DA8E77] shadow-[0_8px_20px_rgba(255,138,102,0.35)] hover:bg-[#C97A61] transition-all duration-200 cursor-pointer">
                             Apply filters
                         </button>
                     </div>
@@ -471,7 +488,7 @@
         {{-- MOBILE LIST/MAP TOGGLE — desktop shows both columns, this is mobile-only --}}
         <div class="flex lg:hidden gap-2 mb-5">
             <button type="button" @click="mobileView = 'list'"
-                :class="mobileView === 'list' ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
+                :class="mobileView === 'list' ? 'bg-[#DA8E77] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
                 class="flex-1 py-2 rounded-full text-[13px] font-semibold transition cursor-pointer">
                 List
             </button>

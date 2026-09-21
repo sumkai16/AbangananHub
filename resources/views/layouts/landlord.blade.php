@@ -124,7 +124,7 @@
                         class="w-9 h-9 object-contain shrink-0">
                     <span data-sidebar-label x-show="!sidebarCollapsed"
                         class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
-                        Abanganan<span class="text-[#FF8A66]">Hub</span>
+                        Abanganan<span class="text-[#A8573F]">Hub</span>
                     </span>
                 </a>
 

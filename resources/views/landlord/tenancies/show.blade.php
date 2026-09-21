@@ -20,11 +20,11 @@
             'due'     => ['pill' => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]', 'label' => 'Due'],
             // A month settled before it arrived. Distinct from plain Paid so a
             // landlord can tell rent already banked from rent still to come.
-            'advance' => ['pill' => 'bg-[#ECEEF6] text-[#060D26] border-[#FF8A66]/25', 'label' => 'Paid · Advance'],
+            'advance' => ['pill' => 'bg-[#ECEEF6] text-[#060D26] border-[#DA8E77]/25', 'label' => 'Paid · Advance'],
             // Part-covered by an overpayment. Deliberately NOT the amber
             // Partial pill: nobody is behind on a month that hasn't arrived,
             // and amber here would read as a collection problem.
-            'advance_part' => ['pill' => 'bg-[#F7F8FC] text-[#060D26] border-[#FF8A66]/20', 'label' => 'Advance · part'],
+            'advance_part' => ['pill' => 'bg-[#F7F8FC] text-[#060D26] border-[#DA8E77]/20', 'label' => 'Advance · part'],
         ];
 
         // A future period only exists in the ledger because it was paid into,
@@ -56,7 +56,7 @@
         ];
         $paymentStatusStyle = $paymentStatusStyles[$summary['paymentStatus']] ?? $paymentStatusStyles['upcoming'];
 
-        $inputClass = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition';
+        $inputClass = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition';
         $labelClass = 'block text-[12px] font-semibold text-[#060D26] mb-1.5';
 
         $thumb = $unit?->media->firstWhere('media_type', 'Image');
@@ -461,7 +461,7 @@
                                                     <p class="text-[11px] text-[#5B6A8E] mt-0.5">{{ $voided->void_note }}</p>
                                                 @endif
                                                 @if($voided->replacements->isNotEmpty())
-                                                    <span class="inline-flex items-center h-5 px-2 mt-1 rounded-full border border-[#FF8A66]/25 bg-[#ECEEF6] text-[#060D26] text-[10px] font-bold">
+                                                    <span class="inline-flex items-center h-5 px-2 mt-1 rounded-full border border-[#DA8E77]/25 bg-[#ECEEF6] text-[#060D26] text-[10px] font-bold">
                                                         Corrected
                                                     </span>
                                                 @endif

@@ -70,7 +70,7 @@
 
         <div class="flex items-center gap-3">
             <span class="inline-flex items-center gap-2 {{ $font }} text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>{{ $eyebrow }}
+                <span class="w-1.5 h-1.5 rounded-full bg-[#DA8E77] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>{{ $eyebrow }}
             </span>
             <span class="h-0.5 flex-1 rounded-full bg-gradient-to-r from-[#FF8A66] via-[#FF8A66]/70 to-[#FF8A66]/10" aria-hidden="true"></span>
         </div>
@@ -178,7 +178,7 @@
                     </section>
                 @endforeach
 
-                <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#FF8A66]/60 bg-gradient-to-br from-[#FF8A66]/15 via-[#FF8A66]/5 to-white p-5">
+                <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#DA8E77]/60 bg-gradient-to-br from-[#DA8E77]/15 via-[#DA8E77]/5 to-white p-5">
                     <p class="text-[13.5px] text-[#5B6A8E]">Questions about this page? Reach the AbangananHub team through <span class="font-semibold text-[#060D26]">Report a Problem</span> in your account.</p>
                     <a href="{{ route('home') }}"
                         class="inline-flex items-center gap-2 {{ $font }} text-[13px] font-bold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] px-5 py-2.5 rounded-full shadow-[0_8px_20px_rgba(255,138,102,0.35)] transition-colors duration-200">

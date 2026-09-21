@@ -115,7 +115,7 @@
                 :class="value === val ? 'text-[#060D26] font-semibold bg-[#ECEEF6]/70' : 'text-[#060D26]'">
                 <span x-text="lbl" class="truncate"></span>
                 <svg x-show="value === val" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#B35A3D]" aria-hidden="true">
+                    stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#A8573F]" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
             </button>

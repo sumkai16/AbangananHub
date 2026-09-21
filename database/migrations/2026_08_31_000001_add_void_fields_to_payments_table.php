@@ -11,8 +11,11 @@ return new class extends Migration
     {
         // Raw ALTER: MySQL enums can't be widened through the Blueprint. Same
         // approach as 2026_07_16_112509_update_payment_status_enum and
-        // 2026_07_24_000003_add_manual_recording_to_payments_table.
-        DB::statement("ALTER TABLE payments MODIFY COLUMN status ENUM('Pending', 'Paid', 'Held', 'Released', 'Failed', 'Refunded', 'Voided') NOT NULL DEFAULT 'Pending'");
+        // 2026_07_24_000003_add_manual_recording_to_payments_table. Guarded to
+        // mysql only — SQLite (the test suite's DB) has no enum type to widen.
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE payments MODIFY COLUMN status ENUM('Pending', 'Paid', 'Held', 'Released', 'Failed', 'Refunded', 'Voided') NOT NULL DEFAULT 'Pending'");
+        }
 
         Schema::table('payments', function (Blueprint $table) {
             $table->timestamp('voided_at')->nullable()->after('payout_reference');
@@ -47,6 +50,8 @@ return new class extends Migration
         // otherwise blank or reject them. Dev rollback only; it resurrects
         // money rows, which is the correct behaviour for undoing this migration.
         DB::statement("UPDATE payments SET status = 'Paid' WHERE status = 'Voided'");
-        DB::statement("ALTER TABLE payments MODIFY COLUMN status ENUM('Pending', 'Paid', 'Held', 'Released', 'Failed', 'Refunded') NOT NULL DEFAULT 'Pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE payments MODIFY COLUMN status ENUM('Pending', 'Paid', 'Held', 'Released', 'Failed', 'Refunded') NOT NULL DEFAULT 'Pending'");
+        }
     }
 };

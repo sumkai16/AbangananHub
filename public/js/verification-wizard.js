@@ -309,7 +309,7 @@ function verificationWizard(config) {
         _checkLookStraight(positions) {
             const yaw = this._getYaw(positions);
             if (Math.abs(yaw) < 15) {
-                this.livenessGuideColor = '#C9A84C';
+                this.livenessGuideColor = '#DA8E77';
 
                 // Sample the resting pitch while the head is held straight —
                 // this becomes the baseline the "Look up" step measures against.
@@ -338,7 +338,7 @@ function verificationWizard(config) {
         _checkTurnLeft(positions) {
             const yaw = this._getYaw(positions);
             if (yaw < -20) {
-                this.livenessGuideColor = '#C9A84C';
+                this.livenessGuideColor = '#DA8E77';
                 if (!this._holdStart) this._holdStart = Date.now();
                 else if (Date.now() - this._holdStart > 500) this._completeLivenessStep();
             } else {
@@ -350,7 +350,7 @@ function verificationWizard(config) {
         _checkTurnRight(positions) {
             const yaw = this._getYaw(positions);
             if (yaw > 20) {
-                this.livenessGuideColor = '#C9A84C';
+                this.livenessGuideColor = '#DA8E77';
                 if (!this._holdStart) this._holdStart = Date.now();
                 else if (Date.now() - this._holdStart > 500) this._completeLivenessStep();
             } else {
@@ -374,7 +374,7 @@ function verificationWizard(config) {
             const delta = (pitch - this._pitchBaseline) * PITCH_UP_SIGN;
 
             if (facingForward && delta > PITCH_DELTA) {
-                this.livenessGuideColor = '#C9A84C';
+                this.livenessGuideColor = '#DA8E77';
                 if (!this._holdStart) this._holdStart = Date.now();
                 else if (Date.now() - this._holdStart > 500) this._completeLivenessStep();
             } else {

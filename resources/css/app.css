@@ -20,12 +20,8 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
-}
-
-.font-heading {
-    font-family: 'DM Serif Display', serif;
+h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Montserrat', sans-serif;
 }
 
 [x-cloak] {
@@ -88,7 +84,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-thumb:hover {
-    background-color: #FF8A66;
+    background-color: #DA8E77;
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-button {
@@ -121,14 +117,17 @@ html.dark .bg-\[\#FFF7F4\],
 html.dark .hover\:bg-\[\#FFF7F4\]:hover { background-color: #1A2448; }
 html.dark .hover\:bg-\[\#F7F8FC\]:hover { background-color: #1A2448; }
 html.dark .bg-white\/95 { background-color: rgba(17, 26, 58, 0.95); }
+html.dark .bg-white\/90 { background-color: rgba(17, 26, 58, 0.9); }
+html.dark .bg-white\/70 { background-color: rgba(17, 26, 58, 0.7); }
+html.dark .bg-white\/60 { background-color: rgba(17, 26, 58, 0.6); }
 
 html.dark .text-\[\#060D26\] { color: #F1F3FA; }
 html.dark .text-\[\#5B6A8E\] { color: #9AA6C6; }
 html.dark .text-\[\#94A3B8\] { color: #7C89AD; }
 html.dark .text-\[\#334155\] { color: #C9D1E8; }
-html.dark .text-\[\#B35A3D\] { color: #FF8A66; }
+html.dark .text-\[\#A8573F\] { color: #DA8E77; }
 html.dark .hover\:text-\[\#060D26\]:hover { color: #FFFFFF; }
-html.dark .hover\:text-\[\#B35A3D\]:hover { color: #FF8A66; }
+html.dark .hover\:text-\[\#A8573F\]:hover { color: #DA8E77; }
 
 html.dark .border-\[\#E2E4EC\],
 html.dark .border-\[\#E2E4EC\]\/80 { border-color: rgba(255, 255, 255, 0.12); }
@@ -137,7 +136,7 @@ html.dark .border-\[\#5B6A8E\]\/30 { border-color: rgba(255, 255, 255, 0.14); }
 html.dark .bg-\[\#E2E4EC\] { background-color: rgba(255, 255, 255, 0.14); }
 
 /* Coral-filled chips keep navy text (contrast on coral), even though navy text is remapped. */
-html.dark .bg-\[\#FF8A66\] { color: #060D26; }
+html.dark .bg-\[\#DA8E77\] { color: #060D26; }
 html.dark .peer:checked ~ span { color: #060D26; }
 html.dark .to-white { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
 html.dark .from-\[\#ECEEF6\] { --tw-gradient-from: #1A2448 var(--tw-gradient-from-position); --tw-gradient-to: rgb(26 36 72 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
@@ -279,7 +278,7 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
 /* Thin coral progress bar shown from the moment a navigation starts until the next page paints. */
 #nav-progress {
     position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 10000;
-    background: linear-gradient(90deg, #FF8A66, #FFB59F);
+    background: linear-gradient(90deg, #DA8E77, #FFB59F);
     box-shadow: 0 0 10px rgba(255, 138, 102, 0.6);
     opacity: 0; pointer-events: none;
     transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 200ms ease;

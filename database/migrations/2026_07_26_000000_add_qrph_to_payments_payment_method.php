@@ -11,11 +11,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('GCash','QRPh','Cash','Bank Transfer','Maya','Check','Other') NOT NULL");
+        // MySQL-only enum widening — see 2026_07_16_112509_update_payment_status_enum
+        // for why this is guarded rather than run unconditionally.
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('GCash','QRPh','Cash','Bank Transfer','Maya','Check','Other') NOT NULL");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('GCash','Cash','Bank Transfer','Maya','Check','Other') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('GCash','Cash','Bank Transfer','Maya','Check','Other') NOT NULL");
+        }
     }
 };

@@ -12,7 +12,7 @@
     <div class="text-[16px] font-bold text-[#060D26] mb-2">{{ $title }}</div>
     <div class="text-[14px] text-[#5B6A8E] mb-6">{{ $message }}</div>
     @if($href)
-        <a href="{{ $href }}" class="inline-flex items-center gap-2 px-6 py-3 bg-[#FF8A66] text-[#060D26] rounded-lg text-[15px] font-bold shadow-md hover:bg-[#E96F4F] transition-colors">
+        <a href="{{ $href }}" class="inline-flex items-center gap-2 px-6 py-3 bg-[#DA8E77] text-[#060D26] rounded-lg text-[15px] font-bold shadow-md hover:bg-[#C97A61] transition-colors">
             {{ $cta }}
         </a>
     @endif

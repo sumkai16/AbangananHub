@@ -117,7 +117,7 @@
                                 </label>
                                 <input type="text" id="unit_label" name="unit_label" x-model="unitLabel" required maxlength="100"
                                     placeholder="e.g. Room 101, Bed A"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
                                 @error('unit_label')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -138,7 +138,7 @@
                                 <label for="floor" class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Floor</label>
                                 <input type="text" id="floor" name="floor" x-model="floor" maxlength="50"
                                     placeholder="e.g. 1st Floor"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
                                 @error('floor')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -162,7 +162,7 @@
                                 <input type="number" id="rental_fee" name="rental_fee" x-model="rentalFee" required min="500"
                                     max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     x-on:input="if (!securityDepositTouched) securityDeposit = rentalFee"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
                                 @error('rental_fee')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -175,7 +175,7 @@
                                 <input type="number" id="security_deposit" name="security_deposit" x-model="securityDeposit" required min="0"
                                     max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     x-on:input="securityDepositTouched = true"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
                                 @error('security_deposit')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
@@ -355,7 +355,7 @@
                             </div>
                             <textarea name="description" rows="3" maxlength="300" x-model="description"
                                 placeholder="Add any note or description about this unit..."
-                                class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition resize-none"></textarea>
+                                class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition resize-none"></textarea>
                             @error('description')
                                 <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                             @enderror
@@ -430,7 +430,7 @@
                                     <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E] mb-1.5">Amenities</p>
                                     <div class="flex flex-wrap gap-1.5">
                                         <template x-for="id in amenities" :key="id">
-                                            <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#FF8A66]/20 px-2 py-0.5 text-[11px] text-[#060D26]"
+                                            <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#DA8E77]/20 px-2 py-0.5 text-[11px] text-[#060D26]"
                                                 x-text="amenityNames[id]"></span>
                                         </template>
                                     </div>
@@ -458,9 +458,9 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 @foreach($amenities as $amenity)
                                     <label class="flex items-center gap-2.5 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors duration-150"
-                                        :class="amenities.includes('{{ $amenity->amenity_id }}') ? 'border-[#FF8A66] bg-[#ECEEF6]' : 'border-[#5B6A8E]/25 bg-white hover:border-[#5B6A8E]/40'">
+                                        :class="amenities.includes('{{ $amenity->amenity_id }}') ? 'border-[#DA8E77] bg-[#ECEEF6]' : 'border-[#5B6A8E]/25 bg-white hover:border-[#5B6A8E]/40'">
                                         <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}" x-model="amenities"
-                                            class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#B35A3D] focus:ring-[#FF8A66]/30">
+                                            class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#A8573F] focus:ring-[#DA8E77]/30">
                                         <span class="text-[12.5px] text-[#060D26] leading-tight">{{ $amenity->name }}</span>
                                     </label>
                                 @endforeach
@@ -468,14 +468,14 @@
                                 {{-- Others --}}
                                 <div x-data="{ others: false }" class="contents">
                                     <label class="flex items-center gap-2.5 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors duration-150"
-                                        :class="others ? 'border-[#FF8A66] bg-[#ECEEF6]' : 'border-[#5B6A8E]/25 bg-white hover:border-[#5B6A8E]/40'">
+                                        :class="others ? 'border-[#DA8E77] bg-[#ECEEF6]' : 'border-[#5B6A8E]/25 bg-white hover:border-[#5B6A8E]/40'">
                                         <input type="checkbox" x-model="others"
-                                            class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#B35A3D] focus:ring-[#FF8A66]/30">
+                                            class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#A8573F] focus:ring-[#DA8E77]/30">
                                         <span class="text-[12.5px] text-[#060D26] leading-tight">Others</span>
                                     </label>
                                     <div x-show="others" x-cloak class="col-span-full">
                                         <input type="text" placeholder="Specify other amenity..." aria-label="Specify other amenity"
-                                            class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+                                            class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition">
                                     </div>
                                 </div>
                             </div>

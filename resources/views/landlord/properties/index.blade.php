@@ -343,7 +343,7 @@
                                             </div>
                                             <div class="min-w-0">
                                                 <a href="{{ route('landlord.properties.show', $property) }}"
-                                                    class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#B35A3D] transition-colors duration-200">
+                                                    class="block text-[13px] font-bold text-[#060D26] truncate max-w-[240px] hover:text-[#A8573F] transition-colors duration-200">
                                                     {{ $property->title }}
                                                 </a>
                                                 <p class="text-[11.5px] text-[#5B6A8E] truncate max-w-[240px]">{{ $property->address }}</p>
@@ -385,7 +385,7 @@
                                         <div class="flex items-center justify-end gap-1.5">
                                             @if($property->isDraft())
                                                 <a href="{{ route('properties.wizard.resume', $property) }}"
-                                                    class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 whitespace-nowrap">
+                                                    class="h-8 px-3 inline-flex items-center rounded-lg bg-[#DA8E77] text-[#060D26] text-[12px] font-semibold hover:bg-[#C97A61] transition-all duration-200 whitespace-nowrap">
                                                     Continue Setup
                                                 </a>
                                                 <form method="POST" action="{{ route('properties.destroy', $property) }}"
@@ -403,7 +403,7 @@
                                                 </form>
                                             @else
                                                 <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
+                                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#DA8E77] text-[#A8573F] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 whitespace-nowrap">
                                                     View Units
                                                 </a>
                                                 <a href="{{ route('properties.edit', $property) }}" aria-label="Edit property"

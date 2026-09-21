@@ -25,9 +25,16 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // LEAST() is MySQL/Postgres syntax; SQLite (the test suite's in-memory
+        // DB) has no LEAST() but its scalar min() takes 2+ args and does the
+        // same job — unlike MySQL's MIN(), which is aggregate-only.
+        $leastExpr = DB::getDriverName() === 'sqlite'
+            ? 'MIN(rental_fee, 999999.99)'
+            : 'LEAST(rental_fee, 999999.99)';
+
         DB::table('property_units')
             ->whereNull('security_deposit')
-            ->update(['security_deposit' => DB::raw('LEAST(rental_fee, 999999.99)')]);
+            ->update(['security_deposit' => DB::raw($leastExpr)]);
     }
 
     /**

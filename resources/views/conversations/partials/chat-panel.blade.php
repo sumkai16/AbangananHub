@@ -79,7 +79,7 @@
 
             @if($isLandlord && !$conversation->isResolved())
                 <button type="button" onclick="resolveConversation({{ $conversation->conversation_id }})"
-                    class="inline-flex items-center gap-1.5 h-8 px-3 text-[11px] font-bold text-[#060D26] bg-[#ECEEF6] border border-[#FF8A66]/20 rounded-lg hover:brightness-95 cursor-pointer transition-all duration-200">
+                    class="inline-flex items-center gap-1.5 h-8 px-3 text-[11px] font-bold text-[#060D26] bg-[#ECEEF6] border border-[#DA8E77]/20 rounded-lg hover:brightness-95 cursor-pointer transition-all duration-200">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
@@ -149,7 +149,7 @@
                         <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Due at move-in</p>
                         <p class="text-[12.5px] font-bold text-[#060D26]">&#8369;{{ number_format($stripDue) }}</p>
                     </div>
-                    <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/20 whitespace-nowrap">{{ $stageLabel }}</span>
+                    <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[#060D26] border border-[#DA8E77]/20 whitespace-nowrap">{{ $stageLabel }}</span>
                 </div>
             </div>
 
@@ -174,7 +174,7 @@
                     <div class="flex items-center gap-2">
                         <form action="{{ route('landlord.reservations.advanceNegotiation', $reservation) }}" method="POST" class="flex-1">
                             @csrf @method('PATCH')
-                            <button type="submit" class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
+                            <button type="submit" class="w-full bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                                 Accept &amp; negotiate
                             </button>
@@ -189,14 +189,14 @@
                             @csrf @method('PATCH')
                             <label for="reject_reason_{{ $reservation->reservation_id }}" class="sr-only">Rejection reason (optional)</label>
                             <input id="reject_reason_{{ $reservation->reservation_id }}" name="rejection_reason" placeholder="Reason (optional)"
-                                class="flex-1 text-[12px] border border-[#E2E4EC] rounded-lg px-3 py-2 text-[#060D26] placeholder-[#5B6A8E] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]/10 outline-none">
+                                class="flex-1 text-[12px] border border-[#E2E4EC] rounded-lg px-3 py-2 text-[#060D26] placeholder-[#5B6A8E] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77]/10 outline-none">
                             <button type="submit" class="bg-[#EF4444] hover:brightness-95 text-white text-[12px] font-bold px-4 py-2 rounded-lg cursor-pointer transition-all duration-200">Confirm</button>
                         </form>
                     </div>
 
                 @elseif($rentalStatus === 'Under Negotiation')
                     <div class="flex items-center gap-2">
-                        <button type="button" @click="showTc = !showTc" class="flex-1 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
+                        <button type="button" @click="showTc = !showTc" class="flex-1 bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                             Send agreement
                         </button>
@@ -208,16 +208,16 @@
                     <div x-show="showTc" x-transition x-cloak class="mt-2">
                         <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
                             @csrf @method('PATCH')
-                            <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
+                            <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#DA8E77]/20">
                                 <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
                                     <input type="checkbox" name="accept_tc" required
-                                        class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
+                                        class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#DA8E77] focus:ring-offset-0 transition">
                                     <span class="text-[11px] text-[#060D26] leading-relaxed">
                                         I agree that the tenant's payment will be held by AbangananHub until the tenant confirms move-in. Funds will be released only after tenant verification.
                                     </span>
                                 </label>
                                 <button type="submit"
-                                    class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-lg cursor-pointer transition-all duration-200">
+                                    class="w-full bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-[12px] font-bold py-2 rounded-lg cursor-pointer transition-all duration-200">
                                     Confirm &amp; send agreement
                                 </button>
                             </div>
@@ -228,7 +228,7 @@
                             @csrf @method('PATCH')
                             <label for="reject_reason_neg_{{ $reservation->reservation_id }}" class="sr-only">Rejection reason (optional)</label>
                             <input id="reject_reason_neg_{{ $reservation->reservation_id }}" name="rejection_reason" placeholder="Reason (optional)"
-                                class="flex-1 text-[12px] border border-[#E2E4EC] rounded-lg px-3 py-2 text-[#060D26] placeholder-[#5B6A8E] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66]/10 outline-none">
+                                class="flex-1 text-[12px] border border-[#E2E4EC] rounded-lg px-3 py-2 text-[#060D26] placeholder-[#5B6A8E] focus:border-[#DA8E77] focus:ring-1 focus:ring-[#DA8E77]/10 outline-none">
                             <button type="submit" class="bg-[#EF4444] hover:brightness-95 text-white text-[12px] font-bold px-4 py-2 rounded-lg cursor-pointer transition-all duration-200">Confirm</button>
                         </form>
                     </div>
@@ -301,7 +301,7 @@
                              losing the live chat thread (and its websocket) to
                              navigate away mid-negotiation is the wrong trade. --}}
                         <a href="{{ route('agreements.show', $reservation) }}" target="_blank" rel="noopener"
-                            class="flex-1 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
+                            class="flex-1 bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                             View &amp; sign agreement
                             <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="opacity-60">
@@ -338,7 +338,7 @@
                                 <p class="text-[11px] text-[#5B6A8E]">Confirm move-in to release &#8369;{{ number_format($heldPayment->amount, 2) }} to the landlord.</p>
                             </div>
                             <a href="{{ route('agreements.show', $reservation) }}" target="_blank" rel="noopener"
-                                class="shrink-0 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold px-4 py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center gap-1.5">
+                                class="shrink-0 bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-[12px] font-bold px-4 py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center gap-1.5">
                                 Confirm move-in
                                 <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="opacity-60">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
@@ -349,7 +349,7 @@
                         <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">Your payment is processing — this updates automatically once it clears.</p>
                     @else
                         <a href="{{ route('agreements.show', $reservation) }}" target="_blank" rel="noopener"
-                            class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
+                            class="w-full bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
                             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
                             Proceed to payment
                         </a>
@@ -576,10 +576,10 @@
             <form id="message-form" class="flex items-center gap-2.5">
                 <label for="message-input" class="sr-only">Message {{ $otherParty->first_name }}</label>
                 <input type="text" id="message-input" name="message" required maxlength="2000" autocomplete="off"
-                    class="flex-1 bg-[#F7F8FC] border border-[#E2E4EC] focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#060D26] transition-all duration-200 outline-none placeholder-[#5B6A8E]"
+                    class="flex-1 bg-[#F7F8FC] border border-[#E2E4EC] focus:border-[#DA8E77] focus:bg-white focus:ring-2 focus:ring-[#DA8E77]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#060D26] transition-all duration-200 outline-none placeholder-[#5B6A8E]"
                     placeholder="Message {{ $otherParty->first_name }}...">
                 <button type="submit"
-                    class="bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-[13px] px-4 py-2.5 rounded-xl shadow-sm cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5">
+                    class="bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] font-bold text-[13px] px-4 py-2.5 rounded-xl shadow-sm cursor-pointer transition-all duration-200 inline-flex items-center gap-1.5">
                     <svg class="w-4 h-4 rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                     </svg>

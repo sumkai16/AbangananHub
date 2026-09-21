@@ -16,16 +16,19 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                // Navy/Coral identity (Sept 2026) — DM Serif Display replaces Poppins
-                // for headings and Source Serif 4 for display titles; see DESIGN.md §4.
-                heading: ['"DM Serif Display"', 'Georgia', ...defaultTheme.fontFamily.serif],
-                display: ['"DM Serif Display"', 'Georgia', ...defaultTheme.fontFamily.serif],
+                // Navy/Terracotta identity (Sept 2026) — Montserrat replaces DM
+                // Serif Display for headings/display titles: QA flagged the serif
+                // as reading more editorial-magazine than apartment-listing, and
+                // Montserrat's geometric sans matches the rest of the UI (Inter)
+                // while still standing apart at heading weight. See DESIGN.md §4.
+                heading: ['Montserrat', ...defaultTheme.fontFamily.sans],
+                display: ['Montserrat', ...defaultTheme.fontFamily.sans],
             },
             colors: {
                 brand: {
                     navy: '#060D26',
-                    coral: '#FF8A66',
-                    coralText: '#B35A3D',
+                    gold: '#DA8E77',
+                    goldText: '#A8573F',
                     cream: '#F7F4ED',
                     slate: '#5B6A8E',
                     border: '#E2E4EC',

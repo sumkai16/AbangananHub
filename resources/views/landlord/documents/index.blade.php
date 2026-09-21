@@ -31,7 +31,7 @@
         @endphp
         @if($availableTypes->isNotEmpty() && $documents->isNotEmpty())
             <button type="button" @click="uploadOpen = true"
-                    class="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 shrink-0">
+                    class="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200 shrink-0">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -87,14 +87,14 @@
         {{-- Empty state --}}
         <div class="bg-white border border-[#E2E4EC] rounded-2xl p-14 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
             <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <svg class="w-7 h-7 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
             </div>
             <p class="text-[15px] font-bold text-[#060D26]">No documents on file yet</p>
             <p class="text-[13px] text-[#5B6A8E] mt-1 mb-5 max-w-sm mx-auto">Upload proof of ownership or other legal documents so admins can verify this property.</p>
             <button type="button" @click="uploadOpen = true"
-                    class="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                    class="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -118,7 +118,7 @@
                                     <div class="flex items-center gap-2 shrink-0">
                                         <x-document-status-badge :document="$document" />
                                         <button type="button" @click="open = !open"
-                                                class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-[#FF8A66] text-[#060D26] text-xs font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                                                class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-[#DA8E77] text-[#060D26] text-xs font-semibold hover:bg-[#C97A61] transition-all duration-200">
                                             Upload file
                                         </button>
                                     </div>
@@ -141,7 +141,7 @@
                                         <label class="block text-xs font-medium text-[#5B6A8E] mb-1">Expiry</label>
                                         <input type="date" name="expiry_date" class="w-full text-sm border border-[#E2E4EC] rounded-lg px-3 py-2 bg-white">
                                     </div>
-                                    <button type="submit" class="h-9 px-4 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                                    <button type="submit" class="h-9 px-4 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200">
                                         Upload
                                     </button>
                                 </form>
@@ -197,7 +197,7 @@
 
                                     @if($document->status === 'Rejected')
                                         <button type="button" @click="resubmitting = !resubmitting"
-                                                class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-[#FF8A66] text-[#060D26] text-xs font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                                                class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-[#DA8E77] text-[#060D26] text-xs font-semibold hover:bg-[#C97A61] transition-all duration-200">
                                             Resubmit
                                         </button>
                                     @endif
@@ -230,7 +230,7 @@
                                                 <label class="block text-xs font-medium text-[#5B6A8E] mb-1">Expiry date</label>
                                                 <input type="date" name="expiry_date" value="{{ $document->expiry_date?->format('Y-m-d') }}" class="w-full text-sm border border-[#E2E4EC] rounded-lg px-3 py-2">
                                             </div>
-                                            <button type="submit" class="h-9 px-4 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                                            <button type="submit" class="h-9 px-4 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200">
                                                 Resubmit
                                             </button>
                                         </form>
@@ -294,7 +294,7 @@
             </div>
 
             <div class="pt-2 flex gap-2">
-                <button type="submit" class="flex-1 h-10 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                <button type="submit" class="flex-1 h-10 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200">
                     Upload document
                 </button>
                 <button type="button" @click="uploadOpen = false"

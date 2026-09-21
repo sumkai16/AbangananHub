@@ -36,7 +36,7 @@
         left: 100%;
         width: 100%;
         height: 2px;
-        background: linear-gradient(90deg, #FF8A66 0%, #E2E4EC 100%);
+        background: linear-gradient(90deg, #DA8E77 0%, #E2E4EC 100%);
         transform: translateY(-50%);
     }
 </style>
@@ -68,7 +68,7 @@
 
         <div class="flex flex-wrap justify-center gap-3 mt-8 fade-up" style="transition-delay:.24s">
             <a href="{{ route('properties.index') }}"
-               class="h-11 px-7 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-[14px] rounded-full transition-all shadow-lg shadow-[#FF8A66]/30 flex items-center gap-2">
+               class="h-11 px-7 bg-[#060D26] hover:brightness-95 text-white font-bold text-[14px] rounded-full transition-all shadow-lg shadow-[#DA8E77]/30 flex items-center gap-2">
                 Browse Properties
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
@@ -93,8 +93,8 @@
             ['label' => 'SDG Aligned', 'value' => 'SDG 11', 'icon' => 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064'],
         ] as $stat)
         <div class="stat-card text-center transition-transform duration-300 fade-up">
-            <div class="w-11 h-11 rounded-2xl bg-[#FF8A66]/10 flex items-center justify-center mx-auto mb-3">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="2">
+            <div class="w-11 h-11 rounded-2xl bg-[#DA8E77]/10 flex items-center justify-center mx-auto mb-3">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#DA8E77" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $stat['icon'] }}"/>
                 </svg>
             </div>
@@ -117,7 +117,7 @@
         <div class="grid md:grid-cols-2 gap-6">
 
             <div class="feature-card bg-white rounded-3xl p-8 border border-[#E2E4EC] shadow-sm transition-all duration-300 fade-up">
-                <div class="w-12 h-12 rounded-2xl bg-[#060D26] flex items-center justify-center mb-5 shadow-md shadow-[#FF8A66]/30">
+                <div class="w-12 h-12 rounded-2xl bg-[#060D26] flex items-center justify-center mb-5 shadow-md shadow-[#DA8E77]/30">
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
@@ -352,11 +352,11 @@
 
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach([
-                ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'title'=>'Verified Landlords', 'desc'=>'Every landlord is vetted through a document verification process before their listings go live.', 'color'=>'#FF8A66'],
-                ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title'=>'Smart Search & Filter', 'desc'=>'Find rentals by location, property type (Bedspace, Room, Apartment, House), and maximum budget.', 'color'=>'#FF8A66'],
+                ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'title'=>'Verified Landlords', 'desc'=>'Every landlord is vetted through a document verification process before their listings go live.', 'color'=>'#DA8E77'],
+                ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title'=>'Smart Search & Filter', 'desc'=>'Find rentals by location, property type (Bedspace, Room, Apartment, House), and maximum budget.', 'color'=>'#DA8E77'],
                 ['icon'=>'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 'title'=>'Direct Reservations', 'desc'=>'Tenants can reserve a unit in real time. Landlords approve or reject from their dashboard instantly.', 'color'=>'#060D26'],
                 ['icon'=>'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'title'=>'In-App Messaging', 'desc'=>'Communicate directly between tenant and landlord without sharing personal contact info upfront.', 'color'=>'#060D26'],
-                ['icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', 'title'=>'Saved Listings', 'desc'=>'Bookmark your favourite properties and revisit them any time from your Saved Listings tab.', 'color'=>'#FF8A66'],
+                ['icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', 'title'=>'Saved Listings', 'desc'=>'Bookmark your favourite properties and revisit them any time from your Saved Listings tab.', 'color'=>'#DA8E77'],
                 ['icon'=>'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', 'title'=>'Real-time Notifications', 'desc'=>'Get notified on reservation approvals, rejections, messages, and listing status updates instantly.', 'color'=>'#060D26'],
             ] as $i => $feature)
             <div class="feature-card bg-white rounded-2xl p-6 border border-[#E2E4EC] shadow-sm transition-all duration-300 fade-up" style="transition-delay:{{ $i * 0.07 }}s">
@@ -424,7 +424,7 @@
         </p>
         <div class="flex flex-wrap justify-center gap-3">
             <a href="{{ route('properties.index') }}"
-               class="h-12 px-8 bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-[14.5px] rounded-full transition-all shadow-lg shadow-[#FF8A66]/25 flex items-center gap-2">
+               class="h-12 px-8 bg-[#060D26] hover:brightness-95 text-white font-bold text-[14.5px] rounded-full transition-all shadow-lg shadow-[#DA8E77]/25 flex items-center gap-2">
                 Browse Listings
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>

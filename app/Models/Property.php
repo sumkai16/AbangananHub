@@ -10,6 +10,7 @@ class Property extends Model
     'landlord_id',
     'title',
     'description',
+    'house_rules',
     'property_type',
     'living_arrangement',
     'water_included',
@@ -31,6 +32,7 @@ class Property extends Model
     return [
         'latitude'                      => 'decimal:7',
         'longitude'                     => 'decimal:7',
+        'house_rules'                   => 'array',
         'water_included'                => 'boolean',
         'electricity_included'          => 'boolean',
         'internet_included'             => 'boolean',
