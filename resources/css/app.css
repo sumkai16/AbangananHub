@@ -285,10 +285,3 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
     transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 200ms ease;
 }
 #nav-progress.is-active { width: 85%; opacity: 1; }
-
-/* Browse page: the map column pins under the sticky nav + search band (offset measured in JS into
-   --browse-sticky-top) and fills the rest of the viewport, so only the listings scroll past it. */
-@media (min-width: 1024px) {
-    [data-browse-map-col] { position: sticky; top: var(--map-top); }
-    .browse-map-box { height: calc(100vh - var(--map-top) - 16px); }
-}

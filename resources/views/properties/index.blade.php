@@ -524,9 +524,9 @@
                      of the desktop toggle, which is hidden there); mapVisible
                      governs it at `lg` and up. --}}
                 <div :class="[mobileView === 'map' ? 'block' : 'hidden', mapVisible ? 'lg:!block' : 'lg:!hidden']"
-                    class="lg:sticky lg:self-start" style="--map-top: var(--browse-sticky-top, 240px)" data-browse-map-col>
+                    class="lg:sticky lg:top-[var(--browse-sticky-top,240px)] lg:self-start">
                     <div id="browse-map"
-                        class="browse-map-box w-full h-[400px] lg:min-h-[420px] rounded-2xl overflow-hidden border border-[#FF8A66]">
+                        class="w-full h-[400px] lg:h-[calc(100vh-var(--browse-sticky-top,240px)-16px)] lg:min-h-[420px] rounded-2xl overflow-hidden border border-[#FF8A66]">
                     </div>
                     {{-- The pinned nav + search band is not a fixed height (search pill, category strip and
                          breakpoints all change it), so measure it and pin the map 16px below it. --}}
