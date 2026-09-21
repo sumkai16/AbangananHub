@@ -230,12 +230,12 @@
                         'tenant_contact' => $reservation->tenant->contact_number ?? '—',
                         'property_title' => $reservation->property->title,
                         'unit_label' => $reservation->unit->unit_label ?? 'No unit',
-                        'initials' => strtoupper(substr($reservation->tenant->first_name ?? '?', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1)),
+                        'initials' => mb_strtoupper(mb_substr($reservation->tenant->first_name ?? '?', 0, 1) . mb_substr($reservation->tenant->last_name ?? '', 0, 1)),
                         'status_class' => $statusStyles[$reservation->rental_status] ?? 'bg-[#ECEEF6] text-[#5B6A8E]',
                         'rent' => $reservation->agreed_monthly_rent ? '₱' . number_format($reservation->agreed_monthly_rent, 0) . '/mo' : null,
                         'tenancy_url' => $reservation->rental_status === 'Occupied' ? route('landlord.tenancies.show', $reservation) : null,
                     ];
-                    $initials = strtoupper(substr($reservation->tenant->first_name ?? '?', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1));
+                    $initials = mb_strtoupper(mb_substr($reservation->tenant->first_name ?? '?', 0, 1) . mb_substr($reservation->tenant->last_name ?? '', 0, 1));
                     $moveIn = $reservation->target_move_in_date ?? $reservation->reservation_date;
                     $photo = $reservation->property->media->firstWhere('media_type', 'Image');
                     $derived[$reservation->reservation_id] = compact('modalData', 'initials', 'moveIn', 'photo');
