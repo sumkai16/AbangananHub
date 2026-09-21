@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PropertyUnitResource;
 use App\Models\Property;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ class UnitController extends Controller
             ->get();
 
         return response()->json([
-            'data' => $units,
+            'data' => PropertyUnitResource::collection($units),
             'counts' => [
                 'total'     => $units->count(),
                 'available' => $units->where('availability_status', 'Available')->count(),

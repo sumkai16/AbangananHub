@@ -25,6 +25,8 @@ protected $primaryKey = 'user_id';
         'email',
         'password',
         'contact_number',
+        'gcash_number',
+        'gcash_account_name',
         'profile_picture',
         'account_status',
         'bio',
@@ -33,6 +35,7 @@ protected $primaryKey = 'user_id';
         'created_by_landlord_id',
         'provider',
         'provider_id',
+        'expo_push_token',
     ];
 
     protected $hidden = [
@@ -154,7 +157,10 @@ public function tenantRatingsReceived()
 
     public function hasRole(string $role): bool
     {
-        return $this->roles()->where('role', $role)->exists();
+        // Reads the (cached) relation rather than running an EXISTS per call —
+        // the layouts alone ask 7+ times per page, and one users' roles are 1-3 rows.
+        // Writers must call unsetRelation('roles') so this never serves stale data.
+        return $this->roles->contains('role', $role);
     }
 
     /**
@@ -253,11 +259,22 @@ public function tenantRatingsReceived()
     {
         if (!$this->hasRole($role)) {
             $this->roles()->create(['role' => $role]);
+            $this->unsetRelation('roles');
         }
     }
     public function rentalBusiness()
     {
         return $this->hasOne(RentalBusiness::class, 'landlord_id', 'user_id');
+    }
+
+    /**
+     * Whether this landlord can actually be paid out yet. Both fields are
+     * required — a name with no number (or vice versa) isn't a destination
+     * an admin can safely send money to.
+     */
+    public function hasPayoutDestination(): bool
+    {
+        return filled($this->gcash_number) && filled($this->gcash_account_name);
     }
 
     // ─── Password Reset ──────────────────────────────────────

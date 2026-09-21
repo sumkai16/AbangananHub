@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PropertyResource;
+use App\Http\Resources\ReviewResource;
 use App\Models\Property;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,6 +43,20 @@ class PropertyController extends Controller
 
         $properties = $query->latest()->paginate(9)->withQueryString();
 
+        // units_count / available_units_count / etc. are withCount() aliases,
+        // specific to this list view — merged on top rather than added to the
+        // shared PropertyResource, same as FavoriteController does for
+        // min_rental_fee/availability_status.
+        $properties->getCollection()->transform(fn (Property $p) => array_merge(
+            (new PropertyResource($p))->resolve(),
+            [
+                'units_count'                => $p->units_count,
+                'available_units_count'      => $p->available_units_count,
+                'reserved_units_count'       => $p->reserved_units_count,
+                'occupied_units_count'       => $p->occupied_units_count,
+            ]
+        ));
+
         return response()->json($properties);
     }
 
@@ -69,8 +85,12 @@ class PropertyController extends Controller
         ];
 
         return response()->json([
-            'data' => array_merge($property->toArray(), [
+            'data' => array_merge((new PropertyResource($property))->resolve(), [
                 'unit_stats' => $unitStats,
+                // PropertyResource doesn't carry 'reviews' (most callers don't
+                // load it); restore it here since the original ->toArray()
+                // auto-serialized the eager-loaded relation.
+                'reviews'    => ReviewResource::collection($property->reviews),
             ]),
         ]);
     }

@@ -29,7 +29,7 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <x-stat-card label="Total" :value="$counts['all']" sub="All time">
                 <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#1F2937" stroke-width="2">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                     </svg>
                 </x-slot:icon>
@@ -39,7 +39,7 @@
                 :value="$counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed']"
                 sub="Awaiting action">
                 <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </x-slot:icon>
@@ -63,7 +63,7 @@
         </div>
 
         {{-- Status tabs --}}
-        <div class="flex items-center gap-1 border-b border-[#64748B]/15 mb-5 overflow-x-auto">
+        <div class="flex items-center gap-1 border-b border-[#5B6A8E]/15 mb-5 overflow-x-auto">
             @foreach([
                 'all' => 'All',
                 'Inquiry' => 'Inquiry',
@@ -76,9 +76,9 @@
             ] as $key => $label)
                 <a href="{{ route('reservations.index', $key === 'all' ? [] : ['status' => $key]) }}"
                     class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors duration-150 whitespace-nowrap
-                              {{ $status === $key ? 'border-[#2AA7A1] text-[#1F2937]' : 'border-transparent text-[#64748B] hover:text-[#1F2937]' }}">
+                              {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
                     {{ $label }}
-                    <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#156F8C]' : 'text-[#64748B]' }}">
+                    <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#5B6A8E]' }}">
                         {{ $key === 'all' ? $counts['all'] : $counts[$key] }}
                     </span>
                 </a>
@@ -86,35 +86,162 @@
         </div>
 
         {{-- Table --}}
-        <div class="bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-[0_2px_12px_rgba(15,23,42,0.05)] overflow-hidden flex-1 flex flex-col">
+        <x-card flush class="flex-1 flex flex-col">
             @if($reservations->isEmpty())
                 <div class="flex-1 flex flex-col items-center justify-center py-16 px-6 text-center">
-                    <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
-                        <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
+                    <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
+                        <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                         </svg>
                     </div>
-                    <p class="text-[15px] font-bold text-[#1F2937] mb-1">No reservations
+                    <p class="text-[15px] font-bold text-[#060D26] mb-1">No reservations
                         {{ $status !== 'all' ? 'with this status' : 'yet' }}</p>
-                    <p class="text-[13px] text-[#64748B] mb-5 max-w-xs">Your rental inquiries and reservations will show up here once you contact a landlord.</p>
+                    <p class="text-[13px] text-[#5B6A8E] mb-5 max-w-xs">Your rental inquiries and reservations will show up here once you contact a landlord.</p>
                     @if($status === 'all')
                         <a href="{{ route('properties.index') }}"
-                            class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-white bg-[#2AA7A1] hover:brightness-95 transition-all shadow-sm">
+                            class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all shadow-sm">
                             Browse properties
                         </a>
                     @else
                         <a href="{{ route('reservations.index') }}"
-                            class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-[#1F2937] bg-white ring-1 ring-[#64748B]/15 hover:bg-[#EEF8F8] transition-all">
+                            class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-[#060D26] bg-white ring-1 ring-[#5B6A8E]/15 hover:bg-[#ECEEF6] transition-all">
                             View all reservations
                         </a>
                     @endif
                 </div>
             @else
-                <div class="overflow-x-auto scrollbar-thin-light">
+                {{-- Mobile card list — same data/actions as the table below, stacked for a phone screen --}}
+                <div class="lg:hidden divide-y divide-[#5B6A8E]/10">
+                    @foreach($reservations as $reservation)
+                        @continue(!$reservation->property)
+                        @php
+                            $mStatusStyles = [
+                                'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                'Under Negotiation' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+                                'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
+                                'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
+                                'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                                'Completed' => 'bg-[#FF8A66]/[0.08] text-[#060D26]',
+                                'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
+                                'Cancelled' => 'bg-[#5B6A8E]/10 text-[#5B6A8E]',
+                            ];
+                            $mCanReview = in_array($reservation->rental_status, ['Occupied', 'Completed'], true)
+                                && \App\Models\Review::canReview(auth()->id(), $reservation->property_id);
+                            $mLandlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));
+                            $mModalData = [
+                                'reservation_id' => $reservation->reservation_id,
+                                'reservation_date' => $reservation->reservation_date?->format('M d, Y'),
+                                'duration_of_stay' => $reservation->duration_of_stay,
+                                'occupants_count' => $reservation->occupants_count,
+                                'remarks' => $reservation->remarks,
+                                'rental_status' => $reservation->rental_status,
+                                'landlord_name' => $mLandlordName !== '' ? $mLandlordName : 'Unknown',
+                                'landlord_contact' => $reservation->property->landlord->contact_number ?? '—',
+                                'property_title' => $reservation->property->title,
+                                'unit_label' => $reservation->unit->unit_label ?? 'No unit',
+                                'property_photo' => $reservation->property->media->first()?->media_url,
+                                'is_terminal' => in_array($reservation->rental_status, ['Rejected', 'Cancelled']),
+                                'step_index' => in_array($reservation->rental_status, ['Rejected', 'Cancelled']) ? -1 : array_search($reservation->rental_status, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied']),
+                            ];
+                        @endphp
+                        <div class="p-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
+                                    @if($photo = $reservation->property->media->first())
+                                        <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium text-[#060D26] truncate">{{ $reservation->property->title }}</p>
+                                    <p class="text-[12px] text-[#5B6A8E] truncate">{{ $reservation->unit->unit_label ?? 'No unit' }}</p>
+                                    <span class="inline-flex mt-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold {{ $mStatusStyles[$reservation->rental_status] ?? '' }}">
+                                        {{ $reservation->rental_status }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-3 text-[12px] text-[#5B6A8E]">
+                                <span>Move-in: {{ $reservation->reservation_date?->format('M d, Y') ?? '—' }}</span>
+                                <span>{{ $reservation->duration_of_stay ?? '—' }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-3">
+                                <button @click="openModal({{ Js::from($mModalData) }})"
+                                    class="flex-1 text-center text-[12px] font-semibold text-[#060D26] border border-[#060D26]/25 rounded-lg px-3 py-2">
+                                    View Details
+                                </button>
+                                @if(in_array($reservation->rental_status, ['Inquiry', 'Under Negotiation']))
+                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST">
+                                        @csrf @method('PATCH')
+                                        <button type="submit"
+                                            class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-2">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                    @if($reservation->conversation)
+                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
+                                            Chat
+                                        </a>
+                                    @endif
+                                @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
+                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
+                                        data-confirm="Cancel this reservation?"
+                                        data-confirm-type="warning"
+                                        data-confirm-message="This action cannot be undone."
+                                        data-confirm-button="Cancel reservation"
+                                        data-confirm-cancel="Keep it">
+                                        @csrf @method('PATCH')
+                                        <button type="submit"
+                                            class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-2">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                    @if($reservation->conversation)
+                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
+                                            Chat
+                                        </a>
+                                    @endif
+                                @elseif($reservation->rental_status === 'Occupied')
+                                    <a href="{{ route('tenancy.show', $reservation) }}"
+                                        class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-2">
+                                        Rent
+                                    </a>
+                                    @if($mCanReview)
+                                        <a href="{{ route('properties.show', $reservation->property) }}#reviews"
+                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
+                                            Review
+                                        </a>
+                                    @endif
+                                    @if($reservation->conversation)
+                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
+                                            Chat
+                                        </a>
+                                    @endif
+                                @elseif($reservation->rental_status === 'Completed')
+                                    @if($mCanReview)
+                                        <a href="{{ route('properties.show', $reservation->property) }}#reviews"
+                                            class="flex-1 text-center text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-2">
+                                            Leave a review
+                                        </a>
+                                    @endif
+                                    @if($reservation->conversation)
+                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
+                                            Chat
+                                        </a>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="hidden lg:block overflow-x-auto scrollbar-thin-light">
                 <table class="w-full min-w-[820px] text-left">
                     <thead>
-                        <tr class="bg-[#F7FCFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                        <tr class="bg-[#F7F8FC] text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wider">
                             <th class="px-5 py-3">Property / Unit</th>
                             <th class="px-5 py-3">Landlord</th>
                             <th class="px-5 py-3">Move-in date</th>
@@ -130,13 +257,19 @@
                                 $statusStyles = [
                                     'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
                                     'Under Negotiation' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                                    'Pending Rental Agreement' => 'bg-[#EEF8F8] text-[#156F8C]',
-                                    'Rental Agreement Signed' => 'bg-[#EEF8F8] text-[#156F8C]',
+                                    'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
+                                    'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
                                     'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+                                    'Completed' => 'bg-[#FF8A66]/[0.08] text-[#060D26]',
                                     'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
-                                    'Cancelled' => 'bg-[#64748B]/10 text-[#64748B]',
+                                    'Cancelled' => 'bg-[#5B6A8E]/10 text-[#5B6A8E]',
                                 ];
+                                $canReview = in_array($reservation->rental_status, ['Occupied', 'Completed'], true)
+                                    && \App\Models\Review::canReview(auth()->id(), $reservation->property_id);
                                 $landlordName = trim(($reservation->property->landlord->first_name ?? '') . ' ' . ($reservation->property->landlord->last_name ?? ''));
+                                $journeySteps = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied'];
+                                $isTerminal = in_array($reservation->rental_status, ['Rejected', 'Cancelled']);
+                                $stepIndex = array_search($reservation->rental_status, $journeySteps);
                                 $modalData = [
                                     'reservation_id' => $reservation->reservation_id,
                                     'reservation_date' => $reservation->reservation_date?->format('M d, Y'),
@@ -148,36 +281,39 @@
                                     'landlord_contact' => $reservation->property->landlord->contact_number ?? '—',
                                     'property_title' => $reservation->property->title,
                                     'unit_label' => $reservation->unit->unit_label ?? 'No unit',
+                                    'property_photo' => $reservation->property->media->first()?->media_url,
+                                    'is_terminal' => $isTerminal,
+                                    'step_index' => $isTerminal ? -1 : $stepIndex,
                                 ];
                             @endphp
-                            <tr class="border-t border-[#64748B]/10 hover:bg-[#F7FCFC] transition-colors duration-150">
+                            <tr class="border-t border-[#5B6A8E]/10 hover:bg-[#F7F8FC] transition-colors duration-150">
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="w-10 h-10 rounded-lg bg-[#EEF8F8] overflow-hidden shrink-0">
+                                        <div class="w-10 h-10 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
                                             @if($photo = $reservation->property->media->first())
-                                                <img src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
+                                                <img loading="lazy" decoding="async" src="{{ $photo->media_url }}" alt="" class="w-full h-full object-cover">
                                             @endif
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="text-sm font-medium text-[#1F2937] truncate">
+                                            <p class="text-sm font-medium text-[#060D26] truncate">
                                                 {{ $reservation->property->title }}</p>
-                                            <p class="text-[12px] text-[#64748B] truncate">
+                                            <p class="text-[12px] text-[#5B6A8E] truncate">
                                                 {{ $reservation->unit->unit_label ?? 'No unit' }}</p>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-5 py-4">
-                                    <p class="text-sm font-semibold text-[#1F2937]">
+                                    <p class="text-sm font-semibold text-[#060D26]">
                                         {{ $landlordName !== '' ? $landlordName : 'Unknown' }}
                                     </p>
-                                    <p class="text-[12px] text-[#64748B]">{{ $reservation->property->landlord->contact_number ?? '—' }}</p>
+                                    <p class="text-[12px] text-[#5B6A8E]">{{ $reservation->property->landlord->contact_number ?? '—' }}</p>
                                 </td>
                                 <td class="px-5 py-4">
-                                    <p class="text-sm text-[#1F2937]">{{ $reservation->reservation_date?->format('M d, Y') ?? '—' }}
+                                    <p class="text-sm text-[#060D26]">{{ $reservation->reservation_date?->format('M d, Y') ?? '—' }}
                                     </p>
                                 </td>
                                 <td class="px-5 py-4">
-                                    <p class="text-sm text-[#1F2937]">{{ $reservation->duration_of_stay ?? '—' }}</p>
+                                    <p class="text-sm text-[#060D26]">{{ $reservation->duration_of_stay ?? '—' }}</p>
                                 </td>
                                 <td class="px-5 py-4">
                                     <span
@@ -188,7 +324,7 @@
                                 <td class="px-5 py-4">
                                     <div class="flex items-center justify-end gap-2">
                                         <button @click="openModal({{ Js::from($modalData) }})"
-                                            class="text-[12px] font-semibold text-[#156F8C] hover:underline px-2 py-1.5">
+                                            class="text-[12px] font-semibold text-[#060D26] hover:underline px-2 py-1.5">
                                             View Details
                                         </button>
 
@@ -202,7 +338,7 @@
                                             </form>
                                             @if($reservation->conversation)
                                                 <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                    class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
+                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
                                                     Chat
                                                 </a>
                                             @endif
@@ -221,14 +357,37 @@
                                             </form>
                                             @if($reservation->conversation)
                                                 <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                    class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
+                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
                                                     Chat
                                                 </a>
                                             @endif
                                         @elseif($reservation->rental_status === 'Occupied')
+                                            <a href="{{ route('tenancy.show', $reservation) }}"
+                                                class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-1.5 transition-all duration-150">
+                                                Rent
+                                            </a>
+                                            @if($canReview)
+                                                <a href="{{ route('properties.show', $reservation->property) }}#reviews"
+                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
+                                                    Review
+                                                </a>
+                                            @endif
                                             @if($reservation->conversation)
                                                 <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                    class="text-[12px] font-semibold text-[#1F2937] border border-[#E2E8F0] rounded-lg px-3 py-1.5 hover:bg-[#F7FCFC] transition-all duration-150">
+                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
+                                                    Chat
+                                                </a>
+                                            @endif
+                                        @elseif($reservation->rental_status === 'Completed')
+                                            @if($canReview)
+                                                <a href="{{ route('properties.show', $reservation->property) }}#reviews"
+                                                    class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-1.5 transition-all duration-150">
+                                                    Leave a review
+                                                </a>
+                                            @endif
+                                            @if($reservation->conversation)
+                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
                                                     Chat
                                                 </a>
                                             @endif
@@ -241,7 +400,7 @@
                 </table>
                 </div>
             @endif
-        </div>
+        </x-card>
 
         @if($reservations->hasPages())
             <div class="mt-5">
@@ -250,68 +409,139 @@
         @endif
 
         {{-- Details modal --}}
-        <div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div @click="modalOpen = false" class="absolute inset-0 bg-[#1F2937]/40"></div>
-            <div class="relative bg-white rounded-2xl ring-1 ring-[#64748B]/10 shadow-2xl w-full max-w-md p-6" x-show="modalOpen" x-transition>
-                <div class="flex items-start justify-between mb-5">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                            </svg>
-                        </div>
-                        <h2 class="text-[16px] font-bold text-[#1F2937]">Reservation details</h2>
-                    </div>
-                    <button @click="modalOpen = false" class="w-8 h-8 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#F7FCFC] hover:text-[#1F2937] transition-colors">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
+        <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4" x-data="{
+                journey: ['Inquiry', 'Negotiation', 'Agreement', 'Signed', 'Occupied']
+            }">
+            <div @click="modalOpen = false" class="absolute inset-0 bg-[#060D26]/40 backdrop-blur-sm"></div>
 
-                <template x-if="selected">
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Landlord</span>
-                            <span class="font-semibold text-[#1F2937]" x-text="selected.landlord_name"></span>
+            <template x-if="selected">
+                <div class="relative bg-white rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col"
+                    x-show="modalOpen" x-transition
+                    @keydown.escape.window="modalOpen = false">
+
+                    {{-- Photo banner --}}
+                    <div class="relative h-32 shrink-0 bg-gradient-to-br from-[#060D26] to-[#FF8A66] overflow-hidden">
+                        <template x-if="selected.property_photo">
+                            <img :src="selected.property_photo" alt="" class="w-full h-full object-cover">
+                        </template>
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/70 via-[#060D26]/10 to-transparent"></div>
+                        <button @click="modalOpen = false" class="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/25 transition-colors">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <div class="absolute bottom-0 left-0 right-0 px-5 pb-3">
+                            <p class="text-[15px] font-bold text-white truncate" x-text="selected.property_title"></p>
+                            <p class="text-[12px] text-white/85 truncate" x-text="selected.unit_label"></p>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Contact</span>
-                            <span class="text-[#1F2937]" x-text="selected.landlord_contact"></span>
+                    </div>
+
+                    <div class="overflow-y-auto scrollbar-thin-light px-5 py-5 space-y-5">
+
+                        {{-- Status progress visualization --}}
+                        <template x-if="!selected.is_terminal">
+                            <div>
+                                <div class="flex items-center justify-between mb-2.5">
+                                    <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wider">Reservation journey</p>
+                                    <span class="text-[11px] font-bold text-[#060D26]" x-text="selected.rental_status"></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <template x-for="(step, i) in journey" :key="i">
+                                        <div class="flex items-center flex-1 last:flex-none">
+                                            <div class="flex flex-col items-center gap-1.5 shrink-0">
+                                                <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors duration-300"
+                                                    :class="i < selected.step_index ? 'bg-[#FF8A66] text-[#060D26]' :
+                                                            i === selected.step_index ? 'bg-[#FF8A66] text-[#060D26] ring-4 ring-[#060D26]/15' :
+                                                            'bg-[#F1F5F9] text-[#94A3B8]'">
+                                                    <template x-if="i < selected.step_index">
+                                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="i >= selected.step_index"><span x-text="i + 1"></span></template>
+                                                </div>
+                                                <span class="text-[9px] font-semibold text-center leading-tight w-14"
+                                                    :class="i <= selected.step_index ? 'text-[#060D26]' : 'text-[#94A3B8]'"
+                                                    x-text="step"></span>
+                                            </div>
+                                            <div class="flex-1 h-[2px] mx-0.5 -mt-4 rounded-full transition-colors duration-300"
+                                                x-show="i < journey.length - 1"
+                                                :class="i < selected.step_index ? 'bg-[#060D26]' : 'bg-[#F1F5F9]'"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="selected.is_terminal">
+                            <div class="flex items-center gap-3 rounded-xl px-4 py-3"
+                                :class="selected.rental_status === 'Rejected' ? 'bg-[#EF4444]/[0.07]' : 'bg-[#5B6A8E]/10'">
+                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                    :class="selected.rental_status === 'Rejected' ? 'stroke-[#DC2626]' : 'stroke-[#5B6A8E]'">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <p class="text-[13px] font-bold" :class="selected.rental_status === 'Rejected' ? 'text-[#DC2626]' : 'text-[#5B6A8E]'" x-text="'This reservation was ' + selected.rental_status.toLowerCase()"></p>
+                            </div>
+                        </template>
+
+                        {{-- Landlord --}}
+                        <div class="flex items-center gap-3 rounded-xl ring-1 ring-[#E2E4EC] px-4 py-3">
+                            <div class="w-9 h-9 rounded-full bg-[#ECEEF6] flex items-center justify-center shrink-0 text-[#060D26] font-bold text-[13px]" x-text="selected.landlord_name.charAt(0)"></div>
+                            <div class="min-w-0">
+                                <p class="text-[13px] font-semibold text-[#060D26] truncate" x-text="selected.landlord_name"></p>
+                                <p class="text-[12px] text-[#5B6A8E]" x-text="selected.landlord_contact"></p>
+                            </div>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Property</span>
-                            <span class="text-[#1F2937]" x-text="selected.property_title"></span>
+
+                        {{-- Info grid --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="rounded-xl bg-[#F7F8FC] px-3.5 py-3">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                    </svg>
+                                    <span class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wide">Move-in</span>
+                                </div>
+                                <p class="text-[13px] font-semibold text-[#060D26]" x-text="selected.reservation_date || '—'"></p>
+                            </div>
+                            <div class="rounded-xl bg-[#F7F8FC] px-3.5 py-3">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wide">Duration</span>
+                                </div>
+                                <p class="text-[13px] font-semibold text-[#060D26]" x-text="selected.duration_of_stay || '—'"></p>
+                            </div>
+                            <div class="rounded-xl bg-[#F7F8FC] px-3.5 py-3">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                    </svg>
+                                    <span class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wide">Occupants</span>
+                                </div>
+                                <p class="text-[13px] font-semibold text-[#060D26]" x-text="selected.occupants_count || '—'"></p>
+                            </div>
+                            <div class="rounded-xl bg-[#F7F8FC] px-3.5 py-3">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</span>
+                                </div>
+                                <p class="text-[13px] font-semibold text-[#060D26]" x-text="selected.rental_status"></p>
+                            </div>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Unit</span>
-                            <span class="text-[#1F2937]" x-text="selected.unit_label"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Move-in date</span>
-                            <span class="text-[#1F2937]" x-text="selected.reservation_date"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Duration of stay</span>
-                            <span class="text-[#1F2937]" x-text="selected.duration_of_stay || '—'"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[#64748B]">Occupants</span>
-                            <span class="text-[#1F2937]" x-text="selected.occupants_count || '—'"></span>
-                        </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-[#E2E8F0]">
-                            <span class="text-[#64748B]">Status</span>
-                            <span class="font-bold text-[#1F2937]" x-text="selected.rental_status"></span>
-                        </div>
+
                         <template x-if="selected.remarks">
-                            <div class="pt-3 border-t border-[#E2E8F0]">
-                                <p class="text-[#64748B] mb-1">Your remarks</p>
-                                <p class="text-[#1F2937]" x-text="selected.remarks"></p>
+                            <div class="pt-4 border-t border-[#E2E4EC]">
+                                <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide mb-1.5">Your remarks</p>
+                                <p class="text-[13px] text-[#060D26] leading-relaxed" x-text="selected.remarks"></p>
                             </div>
                         </template>
                     </div>
-                </template>
-            </div>
+                </div>
+            </template>
         </div>
     </div>
 @endsection

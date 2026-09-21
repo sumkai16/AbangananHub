@@ -8,14 +8,16 @@
             </svg>
         </div>
         <div>
-            <h2 class="text-[15px] font-semibold text-[#1F2937]">Danger zone</h2>
-            <p class="mt-0.5 text-sm text-[#64748B]">Permanently delete your account and all associated data.</p>
+            <h2 class="text-[15px] font-normal text-[#060D26]">Danger zone</h2>
+            <p class="mt-0.5 text-sm text-[#5B6A8E]">Permanently delete your account and all associated data.</p>
         </div>
     </div>
 
     <div class="flex items-start justify-between gap-6 flex-wrap">
-        <p class="max-w-sm text-sm text-[#64748B]">
-            Once your account is deleted, all of your data will be permanently removed. This action cannot be undone.
+        <p class="max-w-sm text-sm text-[#5B6A8E]">
+            Deleting your account permanently removes your reservations, payment and rent history, conversations,
+            and reviews. This cannot be undone. If you have an occupied tenancy, listed properties, or written
+            reviews, you'll need to resolve those first.
         </p>
         <button type="button"
             class="inline-flex shrink-0 h-9 items-center rounded-lg border border-[#EF4444]/25 bg-white px-4 text-[13px] font-semibold text-[#DC2626] transition hover:bg-[#EF4444]/[0.07] active:scale-[0.98]"
@@ -29,17 +31,20 @@
             @csrf
             @method('delete')
 
-            <h2 class="text-base font-semibold text-[#1F2937]">Delete your account?</h2>
-            <p class="mt-1.5 text-sm text-[#64748B]">Enter your password to confirm. This cannot be undone.</p>
+            <h2 class="text-base font-normal text-[#060D26]">Delete your account?</h2>
+            <p class="mt-1.5 text-sm text-[#5B6A8E]">
+                Enter your password to confirm. This cannot be undone. If you have an active tenancy, listed
+                property, or written reviews on record, deletion will be blocked and we'll tell you why.
+            </p>
 
             <div class="mt-5">
                 <label for="password"
-                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#64748B]">
+                    class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-[#5B6A8E]">
                     Password
                 </label>
                 <input id="password" name="password" type="password" placeholder="Your current password" required
-                    class="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#E2E8F0]/30 px-3.5 text-sm text-[#1F2937] outline-none transition
-                           focus:border-[#EF4444] focus:bg-white focus:ring-2 focus:ring-[#EF4444]/20 placeholder:text-[#64748B]/50">
+                    class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+                           focus:border-[#EF4444] focus:bg-white focus:ring-2 focus:ring-[#EF4444]/20 placeholder:text-[#5B6A8E]/50">
                 @if($errors->userDeletion->get('password'))
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">
                         {{ $errors->userDeletion->get('password')[0] }}
@@ -49,7 +54,7 @@
 
             <div class="mt-6 flex justify-end gap-2.5">
                 <button type="button"
-                    class="h-9 rounded-lg border border-[#E2E8F0] bg-white px-4 text-[13px] font-semibold text-[#64748B] transition hover:bg-[#EEF8F8]"
+                    class="h-9 rounded-lg border border-[#E2E4EC] bg-white px-4 text-[13px] font-semibold text-[#5B6A8E] transition hover:bg-[#ECEEF6]"
                     x-on:click="$dispatch('close')">
                     Cancel
                 </button>

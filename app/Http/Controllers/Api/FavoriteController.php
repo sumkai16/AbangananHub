@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PropertyResource;
 use App\Models\Favorite;
 use App\Models\Property;
 use Illuminate\Http\JsonResponse;
@@ -30,7 +31,7 @@ class FavoriteController extends Controller
                 return [
                     'favorite_id' => $favorite->favorite_id,
                     'created_at'  => $favorite->created_at,
-                    'property'    => array_merge($property->toArray(), [
+                    'property'    => array_merge((new PropertyResource($property))->resolve(), [
                         'min_rental_fee'      => $property->min_rental_fee,
                         'availability_status' => $property->availability_status,
                     ]),

@@ -18,6 +18,9 @@ function init() {
     const addressInput = document.getElementById('address');
     const latInput = document.getElementById('latitude');
     const lngInput = document.getElementById('longitude');
+    const cebuWarning = document.getElementById('location-picker-cebu-warning');
+    const lguPicker = document.getElementById('city-municipality-picker');
+    const lguList = lguPicker ? JSON.parse(lguPicker.dataset.lgus || '[]') : [];
 
     const oldLat = parseFloat(latInput?.value);
     const oldLng = parseFloat(lngInput?.value);
@@ -61,6 +64,37 @@ function init() {
         if (latLngLine) latLngLine.textContent = `Lat ${lat.toFixed(5)} · Lng ${lng.toFixed(5)}`;
     }
 
+    // Best-effort match of the reverse-geocoded locality against the Cebu
+    // LGU dropdown — Nominatim's city/town/municipality field doesn't always
+    // carry the "City" suffix our list uses, so this tries an exact match
+    // first and falls back to a loose "starts with" comparison.
+    function matchLgu(name) {
+        if (!name) return null;
+        const exact = lguList.find((lgu) => lgu.toLowerCase() === name.toLowerCase());
+        if (exact) return exact;
+        return lguList.find((lgu) => lgu.toLowerCase().startsWith(name.toLowerCase())
+            || name.toLowerCase().startsWith(lgu.toLowerCase().replace(' city', ''))) ?? null;
+    }
+
+    function applyLocality(address) {
+        if (!address) return;
+
+        const cityGuess = address.city ?? address.town ?? address.municipality ?? null;
+        const matched = matchLgu(cityGuess);
+
+        if (matched && lguPicker) {
+            const root = lguPicker.querySelector('[x-data]');
+            if (root && window.Alpine) {
+                window.Alpine.$data(root).value = matched;
+            }
+        }
+
+        const province = (address.state ?? address.province ?? '').toLowerCase();
+        if (cebuWarning) {
+            cebuWarning.classList.toggle('hidden', province.includes('cebu'));
+        }
+    }
+
     async function reverseGeocode(lat, lng) {
         movePin(lat, lng);
         updateCoordFields(lat, lng);
@@ -75,6 +109,7 @@ function init() {
             if (data.display_name) {
                 if (addressLine) addressLine.textContent = data.display_name;
                 if (addressInput) addressInput.value = data.display_name.slice(0, 255);
+                applyLocality(data.address);
             } else {
                 if (addressLine) addressLine.textContent = 'Address not found — you can type it in below.';
             }

@@ -37,7 +37,10 @@ class PropertyController extends Controller
         }
 
         if ($status = $request->input('status')) {
-            $query->where('verification_status', $status);
+            // A Draft's verification_status is 'Pending' by default (the
+            // column default, not a real submission) — filtering the
+            // Pending bucket must not pull unsubmitted drafts into it.
+            $query->where('verification_status', $status)->submitted();
         }
 
         if ($type = $request->input('type')) {
@@ -46,7 +49,22 @@ class PropertyController extends Controller
 
         $properties = $query->latest()->paginate(9)->withQueryString();
 
-        return view('landlord.properties.index', compact('properties'));
+        // Account-wide totals for the summary cards — deliberately unfiltered
+        // by the search/status/type toolbar above, since "how many units do
+        // I have total" shouldn't change just because the list below is
+        // narrowed to one property type.
+        $totalUnitsCount = \App\Models\PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))->count();
+        $stats = [
+            'properties' => Property::where('landlord_id', $landlordId)->count(),
+            'units'      => $totalUnitsCount,
+            'occupied'   => \App\Models\PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))
+                ->where('availability_status', 'Occupied')->count(),
+            'available'  => \App\Models\PropertyUnit::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId))
+                ->where('availability_status', 'Available')->count(),
+        ];
+        $stats['occupancyRate'] = $totalUnitsCount > 0 ? round($stats['occupied'] / $totalUnitsCount * 100) : 0;
+
+        return view('landlord.properties.index', compact('properties', 'stats'));
     }
 
     public function show(Property $property)
@@ -59,6 +77,7 @@ class PropertyController extends Controller
             'units' => fn($q) => $q->orderBy('unit_label'),
             'units.media',
             'reviews' => fn($q) => $q->with('tenant')->latest()->take(20),
+            'documents',
         ]);
 
         $unitStats = [

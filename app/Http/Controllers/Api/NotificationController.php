@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\NotificationResource;
 use App\Models\Notification;
 use App\Models\Review;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -38,6 +39,7 @@ class NotificationController extends Controller
         }
 
         $notifications = $query->paginate(20)->withQueryString();
+        $notifications->getCollection()->transform(fn (Notification $n) => (new NotificationResource($n))->resolve());
 
         $unreadCount = $request->user()->notifications()
             ->where('type', '!=', 'message')
@@ -55,7 +57,7 @@ class NotificationController extends Controller
 
         $notification->markAsRead();
 
-        return response()->json(['data' => $notification]);
+        return response()->json(['data' => new NotificationResource($notification)]);
     }
 
     public function markAllRead(Request $request): JsonResponse

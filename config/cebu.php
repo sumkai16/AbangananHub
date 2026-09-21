@@ -1,0 +1,72 @@
+<?php
+
+// AbangananHub only operates within Cebu province. `lgus` is the allow-list
+// used on property forms; `bounds` is a loose sanity box around the pinned
+// coordinates (not a precision fence — the dropdown is the real locality
+// check). The box must reach 124.60 E to cover the Camotes group.
+return [
+
+    'lgus' => [
+        'Cebu City',
+        'Lapu-Lapu City',
+        'Mandaue City',
+        'Talisay City',
+        'Toledo City',
+        'Danao City',
+        'Carcar City',
+        'Naga City',
+        'Bogo City',
+        'Alcantara',
+        'Alcoy',
+        'Alegria',
+        'Aloguinsan',
+        'Argao',
+        'Asturias',
+        'Badian',
+        'Balamban',
+        'Bantayan',
+        'Barili',
+        'Boljoon',
+        'Borbon',
+        'Carmen',
+        'Catmon',
+        'Compostela',
+        'Consolacion',
+        'Cordova',
+        'Daanbantayan',
+        'Dalaguete',
+        'Dumanjug',
+        'Ginatilan',
+        'Liloan',
+        'Madridejos',
+        'Malabuyoc',
+        'Medellin',
+        'Minglanilla',
+        'Moalboal',
+        'Oslob',
+        'Pilar',
+        'Pinamungajan',
+        'Poro',
+        'Ronda',
+        'Samboan',
+        'San Fernando',
+        'San Francisco',
+        'San Remigio',
+        'Santa Fe',
+        'Santander',
+        'Sibonga',
+        'Sogod',
+        'Tabogon',
+        'Tabuelan',
+        'Tuburan',
+        'Tudela',
+    ],
+
+    'bounds' => [
+        'min_lat' => 9.30,
+        'max_lat' => 11.40,
+        'min_lng' => 123.15,
+        'max_lng' => 124.60,
+    ],
+
+];

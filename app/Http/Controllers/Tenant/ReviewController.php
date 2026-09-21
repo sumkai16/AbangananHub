@@ -26,7 +26,7 @@ class ReviewController extends Controller
         $tenantId = Auth::id();
 
         if (!Review::canReview($tenantId, $property->property_id)) {
-            return back()->with('error', 'You can only review properties where you have an active rental.');
+            return back()->with('error', 'You can only review a property once you\'ve moved in.');
         }
 
         $review = Review::create([

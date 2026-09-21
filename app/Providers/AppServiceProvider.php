@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Message;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\PropertyUnit;
@@ -39,30 +40,29 @@ class AppServiceProvider extends ServiceProvider
         PropertyUnit::observe(PropertyUnitObserver::class);
         Reservation::observe(ReservationObserver::class);
 
-        // The header's Areas menu is derived from live listings, so it can never
-        // link somewhere with nothing in it. A composer rather than a variable
-        // every controller has to remember to pass — the header renders on every
-        // public page, and one that forgot would drop the menu silently.
-        View::composer('layouts.app', function ($view) {
-            $view->with('navAreas', Cache::remember('nav_areas', now()->addMinutes(10), function () {
-                return Property::query()
-                    ->where('verification_status', 'Approved')
-                    ->whereHas('units', fn($q) => $q->where('availability_status', 'Available')
-                        ->where('verification_status', 'Approved'))
-                    ->pluck('address')
-                    ->map(function ($address) {
-                        // Addresses are free text shaped "Barangay, City, Cebu";
-                        // the city is the second-to-last comma segment. Anything
-                        // not in that shape contributes no area rather than a
-                        // wrong one — the listing is still browsable either way.
-                        $parts = array_values(array_filter(array_map('trim', explode(',', $address))));
-                        return count($parts) >= 2 ? $parts[count($parts) - 2] : null;
-                    })
-                    ->filter()
-                    ->countBy()
-                    ->sortDesc()
-                    ->take(6);
-            }));
+        // Header badges, computed once per request. Each layout used to run the
+        // notification count twice (the server-rendered dot plus the Alpine
+        // dropdown's initial value) and the message count inline in a @php block.
+        View::composer(['layouts.app', 'layouts.landlord', 'layouts.admin'], function ($view) {
+            // Memoised on the request, not a static: a static would leak one
+            // user's counts into the next in any long-running process.
+            $attributes = request()->attributes;
+            $counts = $attributes->get('nav_counts');
+
+            if ($counts === null) {
+                $user = auth()->user();
+                $counts = $user ? [
+                    'unreadNotificationCount' => $user->notifications()->where('is_read', false)->count(),
+                    'unreadMessageCount' => Message::whereHas('conversation', fn ($q) => $q
+                            ->where('tenant_id', $user->user_id)->orWhere('landlord_id', $user->user_id))
+                        ->where('sender_id', '!=', $user->user_id)
+                        ->where('is_read', false)
+                        ->count(),
+                ] : ['unreadNotificationCount' => 0, 'unreadMessageCount' => 0];
+                $attributes->set('nav_counts', $counts);
+            }
+
+            $view->with($counts);
         });
     }
 

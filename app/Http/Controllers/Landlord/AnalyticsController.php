@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\OccupancyActivity;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Services\OccupancyRateCalculator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -46,7 +48,10 @@ class AnalyticsController extends Controller
         $availableUnits = $units->where('availability_status', 'Available')->count();
         $maintenanceUnits = $units->where('availability_status', 'Maintenance')->count();
 
-        $revenue = $this->revenueBetween($propertyIds, $from, $to);
+        // One grouped query for the window; the headline total and every
+        // per-property figure below are read out of it.
+        $revenueByPropertyId = $this->revenueByProperty($propertyIds, $from, $to);
+        $revenue = (float) $revenueByPropertyId->sum();
         $activeReservations = $this->activeReservationCount($propertyIds);
 
         // Previous window of equal length, for the month-over-month deltas.
@@ -77,23 +82,23 @@ class AnalyticsController extends Controller
         $occupancyBreakdown = [
             ['label' => 'Occupied',    'count' => $occupiedUnits,    'color' => '#22C55E'],
             ['label' => 'Reserved',    'count' => $reservedUnits,    'color' => '#FBBF24'],
-            ['label' => 'Available',   'count' => $availableUnits,   'color' => '#2AA7A1'],
+            ['label' => 'Available',   'count' => $availableUnits,   'color' => '#C9A84C'],
             ['label' => 'Maintenance', 'count' => $maintenanceUnits, 'color' => '#94A3B8'],
         ];
 
         // ── Revenue over the last 6 months (line) ────────────
-        $revenueTrend = collect(range(5, 0))->map(function ($monthsAgo) use ($propertyIds) {
+        $monthlyRevenue = $this->monthlyRevenue($propertyIds, 6);
+        $revenueTrend = collect(range(5, 0))->map(function ($monthsAgo) use ($monthlyRevenue) {
             $start = now()->startOfMonth()->subMonths($monthsAgo);
-            $end = (clone $start)->endOfMonth();
 
             return [
                 'label' => $start->format('M'),
-                'value' => $this->revenueBetween($propertyIds, $start, $end),
+                'value' => $monthlyRevenue[$start->format('Y-m')] ?? 0.0,
             ];
         })->values();
 
         // ── Per-property revenue + occupancy ─────────────────
-        $perProperty = $properties->map(function (Property $property) use ($units, $from, $to) {
+        $perProperty = $properties->map(function (Property $property) use ($units, $revenueByPropertyId) {
             $propertyUnits = $units->where('property_id', $property->property_id);
             $total = $propertyUnits->count();
             $occupied = $propertyUnits->where('availability_status', 'Occupied')->count();
@@ -106,7 +111,7 @@ class AnalyticsController extends Controller
                 'reserved'    => $propertyUnits->where('availability_status', 'Reserved')->count(),
                 'available'   => $propertyUnits->where('availability_status', 'Available')->count(),
                 'rate'        => $total > 0 ? round(($occupied / $total) * 100, 1) : 0.0,
-                'revenue'     => $this->revenueBetween(collect([$property->property_id]), $from, $to),
+                'revenue'     => (float) ($revenueByPropertyId[$property->property_id] ?? 0),
             ];
         })->sortByDesc('revenue')->values();
 
@@ -130,6 +135,52 @@ class AnalyticsController extends Controller
             ['label' => 'Rejected',    'count' => (int) ($statusCounts['Rejected'] ?? 0),  'color' => '#EF4444'],
         ];
 
+        // ── Vacancy Watch (point-in-time, not range-filtered) ──
+        // Moved here when landlord/occupancy was deleted: it duplicated this
+        // page's occupancy numbers, but nothing here answered "which empty
+        // units are costing me money, and how much". No extra query — $units
+        // is already loaded in full above.
+        $vacantUnits = $units->where('availability_status', 'Available')->values();
+
+        // A unit that has never been let has no vacated_at, so it has been empty
+        // since it was created — a longer, more urgent vacancy than a recently
+        // ended tenancy, not an absent one.
+        $vacancy = [
+            'count'     => $vacantUnits->count(),
+            'idle_rent' => (float) $vacantUnits->sum('rental_fee'),
+            'units'     => $vacantUnits
+                ->map(function (PropertyUnit $unit) use ($properties) {
+                    $since = $unit->vacated_at ?? $unit->created_at;
+
+                    return [
+                        'label'     => $unit->unit_label,
+                        'property'  => $properties->firstWhere('property_id', $unit->property_id)?->title,
+                        'days'      => $since ? (int) $since->startOfDay()->diffInDays(now()->startOfDay()) : null,
+                        'rent'      => (float) $unit->rental_fee,
+                        'never_let' => $unit->vacated_at === null,
+                        'edit_url'  => route('landlord.properties.units.edit', [$unit->property_id, $unit->unit_id]),
+                    ];
+                })
+                ->sortByDesc('days')
+                ->take(5)
+                ->values(),
+        ];
+
+        // ── Recent Activity (point-in-time) ──────────────────
+        // The only web reader of occupancy_activities. Without it that table
+        // would be write-only, which is a state this codebase already carries
+        // once (occupancy_snapshots) and should not carry twice by accident.
+        $recentActivities = OccupancyActivity::with([
+            'unit:unit_id,unit_label',
+            'property:property_id,title',
+            'actor:user_id,first_name,last_name',
+            'tenant:user_id,first_name,last_name',
+        ])
+            ->where('landlord_id', $landlordId)
+            ->latest('activity_id')
+            ->limit(8)
+            ->get();
+
         return view('landlord.analytics.index', [
             'from'                 => $from,
             'to'                   => $to,
@@ -141,6 +192,8 @@ class AnalyticsController extends Controller
             'topSlices'            => $topSlices,
             'othersTotal'          => $othersTotal,
             'reservationBreakdown' => $reservationBreakdown,
+            'vacancy'              => $vacancy,
+            'recentActivities'     => $recentActivities,
         ]);
     }
 
@@ -151,11 +204,12 @@ class AnalyticsController extends Controller
         $landlordId = Auth::id();
         $properties = Property::where('landlord_id', $landlordId)->orderBy('title')->get();
         $units = PropertyUnit::whereIn('property_id', $properties->pluck('property_id'))->get();
+        $revenueByPropertyId = $this->revenueByProperty($properties->pluck('property_id'), $from, $to);
 
         $filename = 'analytics-' . $from->format('Y-m-d') . '-to-' . $to->format('Y-m-d') . '.csv';
 
         // Streamed, matching the existing export pattern (OccupancyController).
-        return response()->streamDownload(function () use ($properties, $units, $from, $to) {
+        return response()->streamDownload(function () use ($properties, $units, $revenueByPropertyId) {
             $out = fopen('php://output', 'w');
             fputcsv($out, ['Property', 'Total Units', 'Occupied', 'Reserved', 'Available', 'Occupancy Rate (%)', 'Revenue (PHP)']);
 
@@ -171,7 +225,7 @@ class AnalyticsController extends Controller
                     $propertyUnits->where('availability_status', 'Reserved')->count(),
                     $propertyUnits->where('availability_status', 'Available')->count(),
                     $total > 0 ? round(($occupied / $total) * 100, 1) : 0,
-                    number_format($this->revenueBetween(collect([$property->property_id]), $from, $to), 2, '.', ''),
+                    number_format((float) ($revenueByPropertyId[$property->property_id] ?? 0), 2, '.', ''),
                 ]);
             }
 
@@ -187,10 +241,40 @@ class AnalyticsController extends Controller
      */
     private function revenueBetween($propertyIds, Carbon $from, Carbon $to): float
     {
-        return (float) Payment::whereIn('status', self::EARNED_STATUSES)
-            ->whereBetween('paid_at', [$from, $to])
-            ->whereHas('reservation', fn ($q) => $q->whereIn('property_id', $propertyIds))
-            ->sum('amount');
+        return (float) $this->revenueByProperty($propertyIds, $from, $to)->sum();
+    }
+
+    /**
+     * Earned revenue per property in one grouped query — property_id => total.
+     * Properties with no earnings in the window are simply absent.
+     */
+    private function revenueByProperty($propertyIds, Carbon $from, Carbon $to): Collection
+    {
+        return Payment::query()
+            ->join('reservations', 'reservations.reservation_id', '=', 'payments.reservation_id')
+            ->whereIn('payments.status', self::EARNED_STATUSES)
+            ->whereBetween('payments.paid_at', [$from, $to])
+            ->whereIn('reservations.property_id', $propertyIds)
+            ->groupBy('reservations.property_id')
+            ->selectRaw('reservations.property_id, SUM(payments.amount) as total')
+            ->pluck('total', 'property_id')
+            ->map(fn ($total) => (float) $total);
+    }
+
+    /** Earned revenue per calendar month for the trailing N months — 'Y-m' => total. */
+    private function monthlyRevenue($propertyIds, int $months): Collection
+    {
+        $from = now()->startOfMonth()->subMonths($months - 1);
+
+        return Payment::query()
+            ->join('reservations', 'reservations.reservation_id', '=', 'payments.reservation_id')
+            ->whereIn('payments.status', self::EARNED_STATUSES)
+            ->whereBetween('payments.paid_at', [$from, now()->endOfMonth()])
+            ->whereIn('reservations.property_id', $propertyIds)
+            ->groupByRaw("DATE_FORMAT(payments.paid_at, '%Y-%m')")
+            ->selectRaw("DATE_FORMAT(payments.paid_at, '%Y-%m') as ym, SUM(payments.amount) as total")
+            ->pluck('total', 'ym')
+            ->map(fn ($total) => (float) $total);
     }
 
     private function activeReservationCount($propertyIds): int

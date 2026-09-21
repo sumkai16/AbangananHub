@@ -29,8 +29,9 @@ class PropertyUnitController extends Controller
     public function create(Property $property)
     {
         $this->authorizeProperty($property);
-        $amenities = Amenity::orderBy('amenity_name')->get();
-        return view('landlord.units.create', compact('property', 'amenities'));
+        $amenities = Amenity::forUnit()->orderBy('amenity_name')->get();
+        $fromWizard = request()->query('from') === 'wizard';
+        return view('landlord.units.create', compact('property', 'amenities', 'fromWizard'));
     }
 
     public function store(Request $request, Property $property)
@@ -41,8 +42,18 @@ class PropertyUnitController extends Controller
             'unit_label'          => 'required|string|max:100',
             'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
+            'bedrooms'            => 'nullable|integer|min:0|max:20',
+            'bathrooms'           => 'nullable|integer|min:0|max:20',
+            'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
+            'bathroom_type'       => 'nullable|in:Private bathroom,Shared bathroom',
+            'furnishing_status'   => 'nullable|in:Furnished,Semi-furnished,Unfurnished',
+            'kitchen_type'        => 'nullable|in:Private kitchen,Shared kitchen,No kitchen',
+            'pets_allowed'        => 'nullable|boolean',
+            'smoking_allowed'     => 'nullable|boolean',
+            'visitors_allowed'    => 'nullable|boolean',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
-            'security_deposit'    => 'nullable|numeric|min:0|max:999999.99',
+            // Every monthly rental carries a deposit — no longer optional.
+            'security_deposit'    => 'required|numeric|min:0|max:999999.99',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
@@ -67,18 +78,26 @@ class PropertyUnitController extends Controller
             ]);
         }
 
-        $liveCount = collect($sources)->filter(fn ($s) => $s === 'camera')->count();
-        if ($liveCount < 3) {
-            throw ValidationException::withMessages([
-                'photos' => 'At least 3 live (camera-captured) photos are required. Uploaded photos count as extras.',
-            ]);
-        }
+        // Live capture is offered but no longer required — a landlord may
+        // submit any mix of camera and uploaded photos, including all-upload.
+        // The only remaining floor is "photos" => 'min:3' above, unrelated to
+        // source. See ARCHITECTURE.md's "Unit Photos — Live Capture" section.
 
         DB::transaction(function () use ($validated, $request, $property, $photos, $sources, $captions) {
             $unit = $property->units()->create([
                 'unit_label'          => $validated['unit_label'],
                 'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
+                'bedrooms'            => $validated['bedrooms'] ?? null,
+                'bathrooms'           => $validated['bathrooms'] ?? null,
+                'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
+                'is_furnished'        => match ($validated['furnishing_status'] ?? null) { null => null, 'Unfurnished' => false, default => true },
+                'bathroom_type'       => $validated['bathroom_type'] ?? null,
+                'furnishing_status'   => $validated['furnishing_status'] ?? null,
+                'kitchen_type'        => $validated['kitchen_type'] ?? null,
+                'pets_allowed'        => $request->has('pets_allowed') ? $validated['pets_allowed'] : null,
+                'smoking_allowed'     => $request->has('smoking_allowed') ? $validated['smoking_allowed'] : null,
+                'visitors_allowed'    => $request->has('visitors_allowed') ? $validated['visitors_allowed'] : null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],
@@ -117,8 +136,11 @@ class PropertyUnitController extends Controller
             }
         });
 
-        return redirect()
-            ->route('landlord.properties.units.index', $property)
+        return redirect(
+                $request->input('from') === 'wizard'
+                    ? route('properties.wizard.units', $property)
+                    : route('landlord.properties.units.index', $property)
+            )
             ->with('success', 'Unit submitted for admin review.');
     }
 
@@ -131,8 +153,9 @@ class PropertyUnitController extends Controller
         }
 
         $unit->load('media', 'amenities');
-        $amenities = Amenity::orderBy('amenity_name')->get();
-        return view('landlord.units.edit', compact('property', 'unit', 'amenities'));
+        $amenities = Amenity::forUnit()->orderBy('amenity_name')->get();
+        $fromWizard = request()->query('from') === 'wizard';
+        return view('landlord.units.edit', compact('property', 'unit', 'amenities', 'fromWizard'));
     }
 
     public function update(Request $request, Property $property, PropertyUnit $unit)
@@ -147,7 +170,19 @@ class PropertyUnitController extends Controller
             'unit_label'          => 'required|string|max:100',
             'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
+            'bedrooms'            => 'nullable|integer|min:0|max:20',
+            'bathrooms'           => 'nullable|integer|min:0|max:20',
+            'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
+            'bathroom_type'       => 'nullable|in:Private bathroom,Shared bathroom',
+            'furnishing_status'   => 'nullable|in:Furnished,Semi-furnished,Unfurnished',
+            'kitchen_type'        => 'nullable|in:Private kitchen,Shared kitchen,No kitchen',
+            'pets_allowed'        => 'nullable|boolean',
+            'smoking_allowed'     => 'nullable|boolean',
+            'visitors_allowed'    => 'nullable|boolean',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
+            // Optional here only — unlike store(), which still requires it on
+            // every new unit. A unit that genuinely charges no deposit needs a
+            // way to say so after creation; see SCHEMA.md.
             'security_deposit'    => 'nullable|numeric|min:0|max:999999.99',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
@@ -156,6 +191,10 @@ class PropertyUnitController extends Controller
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'nullable|array|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo_sources'       => 'nullable|array',
+            'photo_sources.*'     => 'in:camera,upload',
+            'photo_captions'      => 'nullable|array',
+            'photo_captions.*'    => 'nullable|string|max:150',
             'video'               => 'nullable|file|mimes:mp4,mov,avi,webm|max:102400',
         ]);
 
@@ -166,18 +205,48 @@ class PropertyUnitController extends Controller
                 ->withErrors(['availability_status' => 'This unit has an active reservation — manage its status through the reservation instead of editing it manually.']);
         }
 
+        $photos = $request->file('photos', []);
+        $sources = $request->input('photo_sources', []);
+        $captions = $request->input('photo_captions', []);
+
+        // Same alignment contract store() enforces — the capture UI keeps
+        // photos[]/photo_sources[]/photo_captions[] in one shared iteration
+        // order (see the partial's syncInput()/render()), so a mismatch here
+        // means the client-side state genuinely desynced, not just "no camera
+        // photos this time."
+        if (count($sources) !== count($photos)) {
+            throw ValidationException::withMessages([
+                'photos' => 'Photo data is out of sync — please re-add your photos and try again.',
+            ]);
+        }
+
         $materialChanged = $unit->rental_fee != $validated['rental_fee']
             || $unit->occupancy_limit != $validated['occupancy_limit']
             || $request->hasFile('photos')
             || $request->hasFile('video');
 
-        DB::transaction(function () use ($validated, $request, $property, $unit, $materialChanged) {
+        DB::transaction(function () use ($validated, $request, $property, $unit, $materialChanged, $photos, $sources, $captions) {
             $unit->update([
                 'unit_label'          => $validated['unit_label'],
                 'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
+                'bedrooms'            => $validated['bedrooms'] ?? null,
+                'bathrooms'           => $validated['bathrooms'] ?? null,
+                'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
+                'is_furnished'        => match ($validated['furnishing_status'] ?? null) { null => null, 'Unfurnished' => false, default => true },
+                'bathroom_type'       => $validated['bathroom_type'] ?? null,
+                'furnishing_status'   => $validated['furnishing_status'] ?? null,
+                'kitchen_type'        => $validated['kitchen_type'] ?? null,
+                'pets_allowed'        => $request->has('pets_allowed') ? $validated['pets_allowed'] : null,
+                'smoking_allowed'     => $request->has('smoking_allowed') ? $validated['smoking_allowed'] : null,
+                'visitors_allowed'    => $request->has('visitors_allowed') ? $validated['visitors_allowed'] : null,
                 'rental_fee'          => $validated['rental_fee'],
-                'security_deposit'    => $validated['security_deposit'] ?? null,
+                // array_key_exists, not ?? — the field is nullable now, and a
+                // submit that omits the key entirely (rather than sending an
+                // empty value) must leave the existing deposit untouched, not
+                // silently null it (ARCHITECTURE.md documents this exact
+                // shape once already, for this same edit page).
+                'security_deposit'    => array_key_exists('security_deposit', $validated) ? $validated['security_deposit'] : $unit->security_deposit,
                 'occupancy_limit'     => $validated['occupancy_limit'],
                 'availability_status' => $validated['availability_status'],
                 'description'         => $validated['description'] ?? null,
@@ -186,18 +255,17 @@ class PropertyUnitController extends Controller
 
             $unit->amenities()->sync($validated['amenities'] ?? []);
 
-            if ($request->hasFile('photos')) {
-                foreach ($request->file('photos') as $photo) {
-                    $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                        'folder'        => 'abanganan/units',
-                        'resource_type' => 'image',
-                    ]);
-                    $unit->media()->create([
-                        'media_type' => 'Image',
-                        'media_url'  => $result['secure_url'],
-                        'source'     => 'upload',
-                    ]);
-                }
+            foreach ($photos as $i => $photo) {
+                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
+                    'folder'        => 'abanganan/units',
+                    'resource_type' => 'image',
+                ]);
+                $unit->media()->create([
+                    'media_type' => 'Image',
+                    'media_url'  => $result['secure_url'],
+                    'source'     => ($sources[$i] ?? 'upload') === 'camera' ? 'camera' : 'upload',
+                    'caption'    => $captions[$i] ?? null,
+                ]);
             }
 
             if ($request->hasFile('video')) {
@@ -213,8 +281,11 @@ class PropertyUnitController extends Controller
             }
         });
 
-        return redirect()
-            ->route('landlord.properties.units.index', $property)
+        return redirect(
+                $request->input('from') === 'wizard'
+                    ? route('properties.wizard.units', $property)
+                    : route('landlord.properties.units.index', $property)
+            )
             ->with('success', $materialChanged ? 'Unit updated and resubmitted for review.' : 'Unit updated.');
     }
 
@@ -262,12 +333,16 @@ class PropertyUnitController extends Controller
             abort(404);
         }
 
+        $photo = $unit->media()->where('media_id', $media)->firstOrFail();
+
+        // Live vs. upload no longer matters here — C1 (Sept 2026) dropped the
+        // camera-specific floor along with the requirement itself. The only
+        // remaining rule is the original one: a unit needs at least 3 photos
+        // of any kind.
         $existingImages = $unit->media()->where('media_type', 'Image')->count();
         if ($existingImages <= 3) {
             return back()->withErrors(['photos' => 'A unit needs at least 3 photos — upload replacements before removing.']);
         }
-
-        $photo = $unit->media()->where('media_id', $media)->firstOrFail();
 
         if ($photo->media_url) {
             try {

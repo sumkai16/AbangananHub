@@ -20,8 +20,11 @@ class TenantRatingController extends Controller
             abort(403);
         }
 
-        if ($reservation->rental_status !== 'Occupied') {
-            return back()->with('error', 'You can only rate tenants for occupied rentals.');
+        // A landlord should still be able to rate a tenant after the tenancy
+        // ends — requiring 'Occupied' exactly closed the window the instant
+        // Reservation::endTenancy() flipped the status to 'Completed'.
+        if (! in_array($reservation->rental_status, ['Occupied', 'Completed'], true)) {
+            return back()->with('error', 'You can only rate tenants for occupied or completed rentals.');
         }
 
         if ($reservation->tenantRating) {
@@ -42,8 +45,11 @@ class TenantRatingController extends Controller
             abort(403);
         }
 
-        if ($reservation->rental_status !== 'Occupied') {
-            return back()->with('error', 'You can only rate tenants for occupied rentals.');
+        // A landlord should still be able to rate a tenant after the tenancy
+        // ends — requiring 'Occupied' exactly closed the window the instant
+        // Reservation::endTenancy() flipped the status to 'Completed'.
+        if (! in_array($reservation->rental_status, ['Occupied', 'Completed'], true)) {
+            return back()->with('error', 'You can only rate tenants for occupied or completed rentals.');
         }
 
         if ($reservation->tenantRating) {

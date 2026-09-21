@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Landlord\UpdatePropertyRequest;
+use App\Models\Amenity;
 use App\Models\Favorite;
 use App\Models\Property;
+use App\Models\PropertyMedia;
 use App\Models\PropertyUnit;
+use App\Support\Images;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,51 +19,70 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Property::with(['media', 'landlord', 'amenities', 'units'])
-            ->where('verification_status', 'Approved')
-            ->whereHas('units', function ($q) {
-                $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved');
-            });
+        // The hero + "Browse by area" + "Popular places" sections are the Home page
+        // (route `home`, `/`) only — /properties (Browse Rentals) is always the
+        // filter bar + grid, so clearing filters or picking "All" stays on Browse
+        // instead of bouncing back to Home. On Home they also only make
+        // sense on a clean arrival — once a filter, sort, or page is active
+        // the visitor is doing work, not browsing, so the page collapses to
+        // the plain filter-bar + grid it has always been. See DESIGN.md §6i.
+        $heroStats = null;
+        $popularProperties = collect();
+        $areas = collect();
 
-        if ($request->filled('location')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('address', 'like', '%' . $request->location . '%')
-                  ->orWhere('title', 'like', '%' . $request->location . '%');
-            });
-        }
-        if ($request->filled('type')) {
-            $query->where('property_type', $request->type);
-        }
-        if ($request->filled('price_max')) {
-            $query->whereHas('units', function ($q) use ($request) {
-                $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved')
-                  ->where('rental_fee', '<=', $request->price_max);
-            });
-        }
-        if ($request->boolean('verified')) {
-            $query->whereHas('landlord.rentalBusiness');
+        if ($request->routeIs('home') && ! $request->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
+            $heroStats = [
+                'listings' => Property::browsable()->count(),
+                'units' => PropertyUnit::where('availability_status', 'Available')
+                    ->where('verification_status', 'Approved')
+                    ->whereHas('property', fn ($q) => $q->live())
+                    ->count(),
+            ];
+
+            $popularProperties = Property::browsable()
+                ->having('review_count', '>=', 2)
+                ->orderByDesc('avg_rating')
+                ->orderByDesc('review_count')
+                // documents: the card's Verified badge calls hasVerifiedDocuments(),
+                // which runs one EXISTS per card unless the relation is loaded.
+                ->with(['media', 'landlord', 'amenities', 'units',
+                    'documents:document_id,property_id,document_type,status,expiry_date'])
+                ->take(10)
+                ->get();
+
+            // Wide enough to rotate through; the landing strip shows a few at a
+            // time (see the "Browse by area" block in the view).
+            $areas = $this->areaTiles(20);
         }
 
-        $query->withMin(['units as min_rental_fee' => function ($q) {
-            $q->where('availability_status', 'Available')
-              ->where('verification_status', 'Approved');
-        }], 'rental_fee');
-        $query->withAvg(['reviews as avg_rating' => function ($q) {
-            $q->where('is_hidden', false);
-        }], 'rating');
+        $properties = Property::with([
+                'media', 'landlord', 'amenities', 'units',
+                'documents:document_id,property_id,document_type,status,expiry_date',
+            ])
+            ->browsable()
+            ->browseFilters([
+                'location'   => $request->query('location'),
+                'type'       => $request->query('type'),
+                'price_min'  => $request->query('price_min'),
+                'price_max'  => $request->query('price_max'),
+                'verified'   => $request->boolean('verified'),
+                'amenities'  => $request->query('amenities', []),
+                'sort'       => $request->query('sort'),
+            ])
+            // 25 = five full rows on the 5-column desktop grid.
+            ->paginate(25)
+            ->withQueryString();
 
-        $query->withCount(['reviews as review_count' => function ($q) {
-            $q->where('is_hidden', false);
-        }]);
-        match ($request->query('sort')) {
-            'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
-            'price_high' => $query->orderByDesc('min_rental_fee'),
-            default      => $query->latest('created_at'),
-        };
+        // Filter-panel amenity list — unscoped (not forProperty()), since the
+        // "Must have" filter itself matches unit-level amenities too (see
+        // Property::scopeBrowseFilters). Grouped to mirror the landlord
+        // amenities wizard step, whose own copy anticipated this: "Optional,
+        // but tenants filter on these."
+        $amenityGroups = Amenity::orderBy('category')->orderBy('amenity_name')->get()->groupBy('category');
 
-        $properties = $query->paginate(12)->withQueryString();
+        // Names for the "Filtering by:" chip row — the query string only
+        // carries amenity_ids, and that row needs the label to display.
+        $selectedAmenities = Amenity::whereIn('amenity_id', $request->query('amenities', []))->get();
 
         $favoritedIds = [];
         if (auth()->check()) {
@@ -80,38 +104,100 @@ class PropertyController extends Controller
                 'rental_fee'    => $minFee,
                 'url'           => route('properties.show', $property->property_id),
                 'property_type' => $property->property_type,
-                'image'         => $property->media->first()?->media_url ?? null,
+                'image'         => Images::resize($property->media->first()?->media_url, 480),
             ];
         })->values();
 
-        // The hero's trust strip states live totals, not the whole-platform
-        // pitch — quoting an aspirational "2,400+ listings" on a page showing
-        // 13 is the one claim a tenant can check instantly. Only computed when
-        // the full hero renders (clean page 1); the compact band shows none.
-        $heroStats = null;
-        if (! $request->hasAny(['location', 'type', 'price_max', 'verified', 'sort']) && $request->integer('page', 1) <= 1) {
-            $availableUnits = fn($q) => $q->where('availability_status', 'Available')
-                ->where('verification_status', 'Approved');
+        // Remember where the tenant was searching (filters, sort, page included) so a
+        // property page can send them back to exactly that result set.
+        session(['browse_url' => $request->fullUrl()]);
 
-            $heroStats = [
-                'listings' => Property::where('verification_status', 'Approved')
-                    ->whereHas('units', $availableUnits)->count(),
-                'units'    => PropertyUnit::where('availability_status', 'Available')
-                    ->where('verification_status', 'Approved')->count(),
-            ];
-        }
+        return view('properties.index', compact(
+            'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas',
+            'amenityGroups', 'selectedAmenities'
+        ));
+    }
 
-        return view('properties.index', compact('properties', 'favoritedIds', 'mapProperties', 'heroStats'));
+    /**
+     * Every area with live, bookable listings — the destination of the
+     * landing page's "All areas" tile. Same grouped-count shape as the
+     * landing teaser's $areas, minus the take(8) cap.
+     */
+    public function areas()
+    {
+        $areas = $this->areaTiles();
+
+        return view('properties.areas', compact('areas'));
+    }
+
+    /**
+     * "Browse by area" tiles: every city with live, bookable listings, its
+     * listing count, and one representative photo.
+     *
+     * Three queries however many areas there are. This used to run a full
+     * browsable() query (with three aggregate subselects) per area just to
+     * borrow one photo — 40+ queries on a 20-area landing page.
+     *
+     * A plain grouped count, not ->browsable(): that scope's
+     * withMin/withAvg/withCount subqueries add implicit columns to the SELECT
+     * list, which MySQL's ONLY_FULL_GROUP_BY mode then rejects against a GROUP
+     * BY on a single column. The visibility + has-available-unit filters are
+     * replicated instead, and the aggregate columns this doesn't need skipped.
+     */
+    private function areaTiles(?int $limit = null): Collection
+    {
+        $bookable = fn ($q) => $q->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved');
+
+        $areas = Property::live()
+            ->whereHas('units', $bookable)
+            ->selectRaw('city_municipality, COUNT(*) as cnt')
+            ->groupBy('city_municipality')
+            ->orderByDesc('cnt')
+            ->when($limit, fn ($q) => $q->take($limit))
+            ->get();
+
+        // One image per city, fetched for all cities at once.
+        $photos = PropertyMedia::query()
+            ->join('properties', 'properties.property_id', '=', 'property_media.property_id')
+            ->whereIn('properties.city_municipality', $areas->pluck('city_municipality'))
+            ->where('properties.verification_status', 'Approved')
+            ->where('properties.publication_status', 'Published')
+            ->whereExists(fn ($q) => $q->selectRaw('1')->from('property_units')
+                ->whereColumn('property_units.property_id', 'properties.property_id')
+                ->where('property_units.availability_status', 'Available')
+                ->where('property_units.verification_status', 'Approved'))
+            ->where('property_media.media_type', 'Image')
+            ->orderBy('properties.property_id')
+            ->orderBy('property_media.media_id')
+            ->get(['properties.city_municipality', 'property_media.media_url'])
+            ->unique('city_municipality')
+            ->pluck('media_url', 'city_municipality');
+
+        return $areas
+            ->map(fn ($row) => [
+                'name' => $row->city_municipality,
+                'count' => $row->cnt,
+                'photo' => Images::resize($photos[$row->city_municipality] ?? null, 800),
+                'url' => route('properties.index', ['location' => $row->city_municipality]),
+            ])
+            // An area with no representative photo has nothing to show in a
+            // photo tile — skip it rather than render a broken image.
+            ->filter(fn ($area) => $area['photo'] !== null)
+            ->values();
     }
 
     public function show(Property $property)
     {
-        if ($property->verification_status !== 'Approved') {
+        if (! $property->isLive()) {
             abort(404);
         }
 
-        // No 'amenities' here: the page derives them from units.amenities.
-        $property->load(['media', 'landlord.rentalBusiness', 'units.amenities', 'units.media']);
+        // documents: status/expiry only for the badge — file_path never reaches a renter's browser.
+        $property->load([
+            'media', 'amenities', 'landlord.rentalBusiness', 'units.amenities', 'units.media',
+            'documents:document_id,property_id,document_type,status,expiry_date',
+        ]);
 
         $reviews = $property->reviews()
             ->with('tenant')
@@ -130,57 +216,26 @@ class PropertyController extends Controller
             ->where('property_id', $property->property_id)
             ->exists();
 
-        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited'));
-    }
+        // "Nearby" is barangay/city matching, not a geo radius — this platform
+        // is Cebu-scoped and address text match is sufficient (ARCHITECTURE.md).
+        // browsable() (not just approved()) so a Draft/Unpublished/Suspended
+        // listing can never leak in through this block. units eager-loaded:
+        // getMinRentalFeeAttribute() reads it unguarded and preventLazyLoading
+        // throws in dev otherwise.
+        $nearbyProperties = Property::browsable()
+            ->where('property_id', '!=', $property->property_id)
+            ->where('city_municipality', $property->city_municipality)
+            ->with(['media', 'units'])
+            ->latest('created_at')
+            ->take(12)
+            ->get()
+            ->sortByDesc(fn ($p) => $p->barangay === $property->barangay)
+            ->take(6)
+            ->values();
 
-    public function create()
-    {
-        return view('landlord.properties.create');
-    }
+        $backUrl = session('browse_url', route('home'));
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title'         => 'required|string|min:10|max:150',
-            'description'   => 'required|string|min:20|max:3000',
-            'property_type' => 'required|in:Bedspace,Room,Apartment,House',
-            'address'       => 'required|string|min:10|max:255',
-            'latitude'      => 'nullable|numeric|between:-90,90',
-            'longitude'     => 'nullable|numeric|between:-180,180',
-            'photos'        => 'required|array|min:1|max:10',
-            'photos.*'      => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-        ]);
-
-        $property = null;
-
-        DB::transaction(function () use ($validated, $request, &$property) {
-            $property = new Property();
-            $property->landlord_id         = Auth::user()->user_id;
-            $property->title               = $validated['title'];
-            $property->description         = $validated['description'];
-            $property->property_type       = $validated['property_type'];
-            $property->address             = $validated['address'];
-            $property->latitude            = $validated['latitude'] ?? 10.3157;
-            $property->longitude           = $validated['longitude'] ?? 123.8854;
-            $property->verification_status = 'Pending';
-            $property->save();
-
-            foreach ($request->file('photos') as $photo) {
-                $result = cloudinary()->uploadApi()->upload($photo->getRealPath(), [
-                    'folder'        => 'abanganan/properties',
-                    'resource_type' => 'image',
-                ]);
-                $property->media()->create([
-                    'media_type'           => 'Image',
-                    'media_url'            => $result['secure_url'],
-                    'cloudinary_public_id' => $result['public_id'],
-                ]);
-            }
-        });
-
-        return redirect()
-            ->route('landlord.properties.units.index', $property)
-            ->with('success', 'Property listed! Add units below — they\'re needed before the listing goes live.');
+        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited', 'nearbyProperties', 'backUrl'));
     }
 
     public function edit(Property $property)
@@ -189,47 +244,46 @@ class PropertyController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $property->load('media');
-        return view('landlord.properties.edit', compact('property'));
+        // A Draft isn't submitted yet — it's edited through the wizard it
+        // was created in, not this single-page form (which assumes a
+        // property that already has everything the form doesn't collect,
+        // like units and documents).
+        if ($property->isDraft()) {
+            return redirect()->route('properties.wizard.resume', $property);
+        }
+
+        $property->load('media', 'amenities');
+        $amenities = Amenity::forProperty()->orderBy('category')->orderBy('amenity_name')->get();
+
+        return view('landlord.properties.edit', compact('property', 'amenities'));
     }
 
-    public function update(Request $request, Property $property)
+    public function update(UpdatePropertyRequest $request, Property $property)
     {
         if ($property->landlord_id !== Auth::user()->user_id) {
             abort(403, 'Unauthorized action.');
         }
 
-        $existingPhotoCount = $property->media()->count();
-
-        $validated = $request->validate([
-            'title'         => 'required|string|min:10|max:150',
-            'description'   => 'required|string|min:20|max:3000',
-            'property_type' => 'required|in:Bedspace,Room,Apartment,House',
-            'address'       => 'required|string|min:10|max:255',
-            'latitude'      => 'nullable|numeric|between:-90,90',
-            'longitude'     => 'nullable|numeric|between:-180,180',
-            'photos' => [
-                'nullable',
-                'array',
-                function ($attribute, $value, $fail) use ($existingPhotoCount) {
-                    if ($existingPhotoCount + count($value) > 10) {
-                        $fail('A property can have at most 10 photos total. Remove some before adding more.');
-                    }
-                },
-            ],
-            'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($validated, $request, $property) {
             $photosAdded = $request->hasFile('photos');
 
             $property->fill([
-                'title'         => $validated['title'],
-                'description'   => $validated['description'],
-                'property_type' => $validated['property_type'],
-                'address'       => $validated['address'],
-                'latitude'      => $validated['latitude'] ?? $property->latitude,
-                'longitude'     => $validated['longitude'] ?? $property->longitude,
+                'title'                          => $validated['title'],
+                'description'                    => $validated['description'],
+                'property_type'                  => $validated['property_type'],
+                'living_arrangement'             => $validated['living_arrangement'] ?? null,
+                'water_included'                 => $request->boolean('water_included'),
+                'electricity_included'           => $request->boolean('electricity_included'),
+                'internet_included'              => $request->boolean('internet_included'),
+                'association_fees_included'      => $request->boolean('association_fees_included'),
+                'utilities_separately_metered'   => $request->boolean('utilities_separately_metered'),
+                'address'                        => $validated['address'],
+                'city_municipality'              => $validated['city_municipality'],
+                'barangay'                       => $validated['barangay'] ?? null,
+                'latitude'                       => $validated['latitude'],
+                'longitude'                      => $validated['longitude'],
             ]);
 
             $detailsChanged = $property->isDirty();
@@ -239,6 +293,8 @@ class PropertyController extends Controller
             }
 
             $property->save();
+
+            $property->amenities()->sync($validated['amenities'] ?? []);
 
             if ($photosAdded) {
                 foreach ($request->file('photos') as $photo) {
@@ -258,11 +314,48 @@ class PropertyController extends Controller
         return redirect()->route('landlord.properties.index')->with('success', 'Property updated. It\'s back in the approval queue.');
     }
 
+    /**
+     * Landlord-controlled visibility toggle. Deliberately narrow: only
+     * Published <-> Unpublished. A Suspended listing was taken down by
+     * admin moderation (Admin\ReportController) and must stay hidden until
+     * an admin lifts it (Admin\ListingController::unsuspend) — allowing this
+     * endpoint to publish out of Suspended would make that moderation action
+     * meaningless. Draft has no producer yet (the property wizard will set
+     * it), so it isn't reachable here either.
+     */
+    public function publish(Property $property)
+    {
+        if ($property->landlord_id !== Auth::user()->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        abort_if($property->publication_status !== 'Unpublished', 409, 'This listing cannot be published from its current state.');
+
+        $property->update(['publication_status' => 'Published']);
+
+        return back()->with('success', "'{$property->title}' is visible to tenants again.");
+    }
+
+    public function unpublish(Property $property)
+    {
+        if ($property->landlord_id !== Auth::user()->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        abort_if($property->publication_status !== 'Published', 409, 'This listing cannot be unpublished from its current state.');
+
+        $property->update(['publication_status' => 'Unpublished']);
+
+        return back()->with('success', "'{$property->title}' has been hidden from tenants. You can publish it again anytime.");
+    }
+
     public function destroy(Property $property)
     {
         if ($property->landlord_id !== Auth::user()->user_id) {
             abort(403, 'Unauthorized action.');
         }
+
+        $wasDraft = $property->isDraft();
 
         foreach ($property->media as $media) {
             if ($media->cloudinary_public_id) {
@@ -272,7 +365,9 @@ class PropertyController extends Controller
         }
 
         $property->delete();
-        return redirect()->route('landlord.properties.index')->with('success', 'Property removed successfully.');
+
+        return redirect()->route('landlord.properties.index')
+            ->with('success', $wasDraft ? 'Draft deleted.' : 'Property removed successfully.');
     }
 
     public function destroyMedia(Property $property, int $media)

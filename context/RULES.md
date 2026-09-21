@@ -53,7 +53,9 @@ Reference implementations: `Admin\VerificationController::approve/reject`, `Admi
 
 **Self-action guards on admin-management screens.** An admin editing their own account through the same form used to manage other admins can strip their own Admin role or suspend themselves with no recovery path. `UserController::update`/`updateStatus` now reject role/status changes where the target is `auth()->id()`. Any future "admin manages other admin-like records" screen needs the same self-target check.
 
-**Hard deletes on `User` cascade** — every FK from `properties`, `reservations`, `payments`, `reviews`, `conversations`/`messages`, `reports`, `favorites`, `notifications`, and `tenant_ratings` back to `users.user_id` is `onDelete('cascade')` (see SCHEMA.md). `UserController::destroy` blocks the hard delete once a user has properties, reservations, or reviews on record, and directs the admin to suspend instead — suspension is reversible, a cascading delete is not. Don't reintroduce an unconditional `$user->delete()`.
+**Hard deletes on `User` cascade** — every FK from `properties`, `reservations`, `payments`, `reviews`, `conversations`/`messages`, `reports`, `favorites`, `notifications`, and `tenant_ratings` back to `users.user_id` is `onDelete('cascade')` (see SCHEMA.md). `Admin\UserController::destroy` blocks the hard delete once a user has properties, reservations, or reviews on record, and directs the admin to suspend instead — suspension is reversible, a cascading delete is not. Don't reintroduce an unconditional `$user->delete()`.
+
+**Both delete paths are guarded as of Aug 20 2026.** The self-service path (`ProfileController::destroy`, reachable by any role via the shared `profile.edit` settings page) had this guard missing entirely until then — it was a bare `$user->delete()` with only a password check, found while addressing tester feedback, not by a review pass looking for it. It now blocks on the same shape of check (`activeObligation()`: a live/non-terminal reservation, outstanding rent on an Occupied tenancy, owned properties, or written reviews) and names the specific blocker in the flash-modal error rather than refusing generically. If a third delete path is ever added (a mobile API endpoint, say — none exists yet), it needs the same guard; there is no DB-level backstop for any of them.
 
 ## Model Rules
 - Every model with a custom PK: `protected $primaryKey = 'column_name';` — mandatory, no exceptions
@@ -87,6 +89,14 @@ Every controller / request-path change gets a two-front check before it's done �
 
 **Performance**
 - Eager-load every relation the view touches, **including nested `->a->b` access in Blade** — a `with(['property.landlord'])` in the controller, not a lazy load in a `@foreach`. `Model::preventLazyLoading` (on in local/dev) will throw if you miss one; watch Debugbar query counts (>25/page = investigate).
+- **Measure before optimising, and measure the right thing (Sept 21 2026).** The "fast at home, 2-5 s at school" report was *not* the database — every page spent 5-30 ms there. It was ~4.4 MB of eager 1200px photos, Debugbar HTML, render-blocking Google Fonts and CDN Chart.js. Check payload (DevTools → Network on a throttled connection) before touching queries. Baseline harness: `php artisan test --filter=PerformanceBaseline` (query count + DB ms + repeated-query shapes per route). Compare **query counts**, not milliseconds — ms is noisy. See `plans/performance-optimization.md`.
+- **Never query inside a loop or a Blade `@foreach`/`->map()`.** Fetch once up front and look up by key (`array_flip` of ids, `pluck('x','id')`). Per-item `EXISTS`/`COUNT`/photo lookups were the N+1s found: area tiles (40 queries), analytics revenue (22), per-card `hasVerifiedDocuments()` (10), per-unit reservation check.
+- **Tab / status counts = one grouped query**, never one `COUNT` per tab — `Reservation::statusCounts($base, $statuses)`.
+- **Roles are cached on the model.** `User::hasRole()` reads the loaded `roles` relation (one query per request, not one per call). Any code that writes roles must `$user->unsetRelation('roles')` afterwards (`assignRole()` already does).
+- **Images:** every `<img>` of a listing photo gets `loading="lazy" decoding="async"` and a right-sized URL via `App\Support\Images::resize($url, $width)` (Unsplash `?w=` / Cloudinary `/upload/` aware); cards also get `srcset`. Only the above-the-fold hero image may be eager. Never ship an uncompressed photo in `public/images` (`auth-bg.jpg` was 3 MB; use the `-1600`/`-256` variants).
+- **No third-party render-blocking assets.** Fonts are self-hosted via `@fontsource` in `resources/css/app.css`; Chart.js is bundled (`resources/js/charts.js`, `@vite('resources/js/charts.js')`), not loaded from a CDN. The browse map (`browse-map.js`) only imports Leaflet when the map is opened.
+- **`DEBUGBAR_ENABLED=false`** in `.env` by default (flip to `true` only while profiling) — it adds ~100 KB to every page.
+- Add composite indexes for any new visibility/status filter (`2026_09_21_000000_add_performance_indexes.php` lists the current ones); FK columns alone are not enough.
 - Keep broadcasts / mail / outbound HTTP out of the synchronous request path where it matters (see Broadcasting — `ShouldBroadcastNow` is a deliberate capstone tradeoff, not a pattern to extend to slow calls).
 - Local dev is IPv4-only on Windows: `127.0.0.1` never `localhost` in `.env` and the browser; OPcache stays enabled in `php.ini`; if pages go slow/unstyled, `ls public/hot` and delete a stale one.
 
@@ -110,8 +120,37 @@ Blade tokenises a template with `token_get_all()` **before** it strips comments 
 ## `route()` on a nullable relation (found and fixed July 25 2026)
 `route('conversations.show', $reservation->conversation)` 500s with `UrlGenerationException: Missing required parameter` whenever `$reservation->conversation` is `null` — a reservation doesn't get a conversation until messaging actually starts, so this is a normal, expected state, not an edge case. Every view that links to a model's optional relation via `route()` must guard it first: `@if($reservation->conversation) <a href="{{ route('conversations.show', $reservation->conversation) }}">…</a> @endif`. This had already been done correctly in `landlord/tenancies/show.blade.php` and `landlord/tenants/index.blade.php`, but was missing in `landlord/reservations/index.blade.php` (both grid and table views) and `tenant/reservations/index.blade.php` (three status branches) — it only surfaced once a landlord with an unmessaged reservation loaded the page. **Before wiring a `route()` call to a relation, check whether that relation can be null; if it can, wrap the link, not just the icon or the label.**
 
+## Never nest a `<form>` inside another `<form>` (data-destroying bug found and fixed Sept 2026)
+A per-item delete action (photo, document, etc.) rendered as its own `<form method="POST">
+@method('DELETE')</form>` **inside** a page's main edit/update `<form>` is invalid HTML, and browsers
+don't fail loudly about it. They still create the inner `<form>` as its own DOM node — so it looks
+fine in devtools, `document.forms` lists it separately, and clicking *that* form's own button works
+correctly in isolation — but submitting the **outer** form also picks up the inner form's hidden
+fields into the outer submission's body. If the inner form spoofs a different HTTP method
+(`@method('DELETE')` while the outer is `@method('PUT')`), the submitted body ends up with **two**
+`_method` fields; PHP keeps the *last* one, so the outer save silently becomes a delete request.
+When update and destroy share one RESTful URL (any `Route::resource`), that delete lands on the
+*same* resource the edit form was supposed to save — deleting it outright.
+
+This was caught once in `landlord/properties/edit.blade.php` (photo delete inside the property edit
+form) and documented only in an inline comment there — then reintroduced independently in
+`landlord/units/edit.blade.php` when the same "delete an existing photo" feature was built for units,
+because the fix wasn't written down anywhere a second implementation would find it. It shipped,
+passed code review, and deleted a real unit before a landlord caught it by accident.
+
+**The fix, and the only correct pattern:** render the per-item delete `<form>` as a **standalone
+sibling**, not a descendant — declared anywhere outside the main form (immediately before it is
+fine), given a unique `id="delete-x-{id}"`. The visible delete button stays exactly where it
+belongs in the markup (inside the item it deletes, inside the main form) as a bare
+`<button type="submit" form="delete-x-{id}">` — the `form=""` attribute is what lets a button submit
+a form it isn't a descendant of. `data-confirm-*` attributes belong on the standalone form (that's
+what `modal-confirm.js` reads), not the button.
+
+**Before adding any "delete this row/photo/item" control to a page that already has a big
+edit/update form wrapping the page content, check this section — don't nest, use `form="id"`.**
+
 ## View Composers
-Data the **layout** needs on every page goes in a `View::composer('layouts.app', …)` in `AppServiceProvider::boot`, not a variable each controller passes. The header renders everywhere; a controller that forgot would drop the feature silently on that page only. Cache anything that hits the DB (`Cache::remember`, 10 min is fine for nav-level data) — the layout renders on *every* request, so an uncached query there is a site-wide cost. Current composer: `navAreas` for the header's Areas menu.
+Data the **layout** needs on every page goes in a `View::composer('layouts.app', …)` in `AppServiceProvider::boot`, not a variable each controller passes. The header renders everywhere; a controller that forgot would drop the feature silently on that page only. Cache anything that hits the DB (`Cache::remember`, 10 min is fine for nav-level data) — the layout renders on *every* request, so an uncached query there is a site-wide cost. Current composer: header badge counts (`$unreadNotificationCount`, `$unreadMessageCount`) for `layouts.app|landlord|admin`, memoised on the request so each layout renders them from one query each instead of re-counting inline.
 
 ## Storage
 - Filter `unit_media`/`property_media` to `media_type === 'Image'` before rendering in `<img>` — the table also holds Video rows, which render as broken images otherwise (applies to galleries, thumbnails, and JS payloads)
@@ -129,9 +168,14 @@ The move-in escrow is the only place in the app where money moves with no human 
 - **Fail in the direction that does not move money.** Where a boundary is ambiguous, prefer the branch that defers a payout by a day over the one that pays early.
 - **A field that records a human's assertion must never be written by a timer.** `tenant_confirmed_move_in_at` stays null on auto-expiry and on admin release; conflating "confirmed" with "timed out" would poison occupancy reporting and destroy the evidence a disputed payout is argued from.
 - **Carbon 3 `diffInDays()` returns a float** (`4.0000000001157`, not `4`). Cast it, and `round()` rather than truncate wherever the result feeds a strict comparison.
-- Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`.
+- **One collection event that covers several obligations is several rows, not one lump.** A walk-in landlord types a single figure at the door; `App\Support\MoveInPaymentBreakdown` splits it into a `Deposit` row plus one `Monthly` row per month it reaches, all sharing the same `payment_method`, `paid_at`, `reference_no` and `recorded_by` so they stay readable as one event rather than several payments. The lump version of this shipped for months and was a real defect: `RentLedger` only settles a period from a `Monthly` row carrying a `billing_period`, so a tenant who paid rent and deposit on day one still read **Overdue for their own move-in month**. **Before writing a payment row, ask which ledger period it is supposed to settle** — if the answer is "one of them" but the row can't say which, the row is wrong.
+- **Never invent a split when backfilling money.** The pre-existing lump `Initial` rows were deliberately left untouched: nothing in them records how much was rent versus deposit, and a migration guessing the proportion would write amounts nobody asserted onto the one table a dispute is argued from. A wrong-looking old row beats a plausible fabricated one.
+- **A validation rule that refuses to record what actually happened is not a control.** The move-in form warns when the collected amount is short of rent + deposit; it does not block. Walk-in exists to write down an arrangement made offline, so a landlord blocked from entering ₱3,000 enters ₱4,000 instead and the ledger becomes fiction. Blocking rules on a *record-what-happened* surface push falsification; blocking rules on a *do-something-now* surface (escrow release, payout) are correct. Know which kind of surface you are on.
+- Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Concerns\RecordsMoveInPayments`.
 
 ## Testing
+- **DO NOT run the full `php artisan test` / `phpunit` against the dev database.** `phpunit.xml` has the sqlite override commented out, and the Breeze tests in `tests/Feature/Auth/*` + `ProfileTest` use `RefreshDatabase`, which **wipes the MySQL `abanganan_hub` data** (seeded properties, users, reviews). Run only `--filter=PerformanceBaseline` (read-only GETs). To make the suite safe, uncomment the sqlite `DB_CONNECTION`/`DB_DATABASE` lines in `phpunit.xml` first.
+- To verify a fixture-dependent change, insert rows inside `DB::beginTransaction()` … `DB::rollBack()` in a throwaway test and delete the file afterwards.
 - Manual testing for capstone scope (no automated test suite)
 - **Axcee tests manually.** When a feature needs verifying, build the fixtures that put the app into each state plus a checklist of what to look at — not a test suite. `escrow:scenarios` is the pattern: additive, tagged, `--clean` teardown, prints login credentials and expected appearance per state.
 - **Time-based features need backdated fixtures.** Anything measured in days cannot be observed by using the app; `Carbon::setTestNow()` does not reach a separate `php artisan` process, so backdate the data instead.
@@ -140,6 +184,38 @@ The move-in escrow is the only place in the app where money moves with no human 
 - Critical path: `migrate:fresh --seed` + `route:list` is the standard checkpoint before any view work
 - Verify tinker results before proceeding with controller logic
 - PowerShell: compound tinker `--execute` with `$` variables unreliable — use interactive tinker or pipe workaround
+
+## Secrets & Deployment (established Aug 22 2026)
+Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize beyond one deploy:
+
+- **Never put a real credential in a tracked file.** `.env` is gitignored and has never been
+  committed (verified). Everything else — `plans/`, `context/`, `docs/`, `README.md` — **is**
+  tracked, so a credential pasted into any of them is permanent once pushed. This rule exists
+  because it was broken immediately: the first draft of the deploy runbook copied the working
+  `.env` as a "template", carrying the live `REVERB_APP_SECRET` and Cloudinary cloud name into
+  `plans/`. Caught before commit. **Write env templates with blank values, always** — copying a
+  working config is exactly how secrets escape.
+- **Production secrets reach the server by `scp` or SSH paste, never through the repo.**
+- **`VITE_*` values are compiled into the JS bundle at `npm run build`, as literals.** Changing one
+  needs a **rebuild** — `config:clear` does nothing, and the local bundle demonstrably carries
+  `wsHost:"127.0.0.1"` baked in. The three Reverb host variables have three different consumers and
+  must be set independently in production (`REVERB_SERVER_*` = daemon bind, `REVERB_*` = PHP app →
+  daemon, `VITE_REVERB_*` = browser → Nginx). Local `.env` interpolates them together, which is
+  right for Windows dev and wrong on a server; the failure is silent, client-side, and leaves
+  nothing in `laravel.log`.
+- **`config:cache` / `route:cache` are production-only.** Correct on the server, banned in dev (see
+  Laravel Conventions above) — don't let the deploy script's habits leak back into local work, or
+  vice versa.
+- **Deploy commands run on the VPS, not the dev machine.** Anything in the runbook touching `apt`,
+  `ufw`, `supervisorctl`, `certbot`, `crontab`, `chown www-data`, or `/var/www/` belongs to the
+  server. Check the shell prompt before pasting: `PS C:\…>` is the dev box, `root@srv…#` is the VPS.
+- **HTTPS is functionally required, not just good practice.** `getUserMedia` only runs in a secure
+  context, so landlord ID verification and the ≥3 live unit captures are dead over plain HTTP — and
+  Let's Encrypt will not issue a certificate for a bare IP. No domain → no cert → two headline
+  modules don't work.
+- **A route prefixed by one role's middleware isn't safe to link from another role's view** — the
+  same lesson the admin document-preview routes already encode. Re-check this when wiring anything
+  new across roles in production.
 
 ## Git Discipline
 - Commit message format: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)
@@ -169,7 +245,8 @@ Audit immediately on paste for:
 - Modal animation standard: enter 300ms on `ease-[cubic-bezier(0.34,1.56,0.64,1)]` (slight overshoot so the panel lands with a bounce), `opacity-0 scale-95 translate-y-4` → full; leave 200ms `ease-in` reverse; backdrop fades with `backdrop-blur-sm`. Always guard the movement with `motion-reduce:` variants (`motion-reduce:scale-100 motion-reduce:translate-y-0`, or `motion-reduce:transform-none` on JS-driven panels) so reduced-motion users still get the fade but no movement.
 - Alpine modals use the two-flag pattern (`modal` = data, `show` = visibility) so leave transitions actually play (`x-if` alone doesn't animate). A child element with its own `x-transition:enter` needs a matching `leave` too, or it vanishes instantly while the parent is still fading out.
 - Modals toggled by plain `classList` (not Alpine) need two extra things or the animation silently never fires: a double `requestAnimationFrame` before removing the start classes — otherwise the display and opacity changes batch into one style recalculation — and a guarded `setTimeout` that defers re-adding `hidden` until the leave transition finishes. Guard it with a stored timer id so reopening mid-close doesn't hide the modal afterwards.
-- One global modal serves all four notification types — confirm, success, warning, error. Trigger it with `window.dispatchEvent(new CustomEvent('show-modal', { detail: { type, title, message, confirmText, cancelText, onConfirm } }))`. Pass `onConfirm` only for genuine confirmations: the Cancel button renders off that callback's presence, so plain notifications get a single OK button. Forms opt in declaratively via `data-confirm` (see `public/js/modal-confirm.js`).
+- One global component (`x-confirm-modal`) serves all four notification types — confirm, success, warning, error. Trigger it with `window.dispatchEvent(new CustomEvent('show-modal', { detail: { type, title, message, confirmText, cancelText, onConfirm } }))`. Pass `onConfirm` only for genuine confirmations: the Cancel button renders off that callback's presence, so plain notifications get a single OK button. Forms opt in declaratively via `data-confirm` (see `public/js/modal-confirm.js`).
+- **Routing is by `onConfirm`, not by `type` (Aug 28 2026).** Anything with `onConfirm` — a real decision, however it's styled (e.g. a red `type="error"` "Remove this document?" confirm) — renders as the centered, blocking backdrop dialog, unchanged. A pure notification (`onConfirm` absent) with `type` `success`/`warning` instead renders as a non-blocking, auto-dismissing toast (top-right, 5s countdown bar, dismissible early via ✕) — forcing a click to dismiss "Amenities saved." was pure friction. `error` notifications stay blocking regardless — the one message worth making sure someone actually reads. Don't add a third rendering path for a new type; extend the `isToast` condition in `confirm-modal.blade.php` instead.
 - **A bare `<button type="submit">` on a consequential, hard-to-reverse action is a defect, not a style choice.** `landlord/reservations/index.blade.php`'s "Mark keys turned over" button (July 22, 2026) started a 7-day auto-release-of-deposit countdown on a single unconfirmed click, with no `data-confirm` at all — found while investigating an unrelated meeting-notes request, not by a review pass looking for it. When touching any form that changes money, a role, or a status a user can't trivially undo, check whether it already has `data-confirm` before assuming it does.
 - Don't build one-off modal components. `login-modal`, `register-modal` and `success-modal` were deleted in July 2026 after being found unrendered anywhere; the auth modal in `layouts/app.blade.php` and `x-confirm-modal` are the only two.
 - Unit detail presentation is one shared pattern (photo top, status pill, teal rent, capacity/deposit tiles, amenity chips) across: unit create/edit Live Preview, occupancy modal, landlord units-page modal, tenant slideout. Reuse it for any new unit surface.
@@ -192,7 +269,7 @@ Audit immediately on paste for:
 
 **Layout**
 - [ ] No content hidden behind fixed nav
-- [ ] Responsive at 375 / 768 / 1024 / 1440px, no horizontal scroll
+- [ ] Responsive at 375 / 768 / 1024 / 1440px, no horizontal scroll — for Tenant/Landlord pages, 375px is the primary target designed first, not a squeeze-down of the desktop layout (DESIGN.md §0b). Admin stays desktop-oriented.
 - [ ] Correct page container for the context (DESIGN.md §5) — and it carries `mx-auto`
 - [ ] `[x-cloak] { display: none; }` in global CSS
 

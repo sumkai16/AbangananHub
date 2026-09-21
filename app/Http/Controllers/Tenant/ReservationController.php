@@ -16,16 +16,7 @@ class ReservationController extends Controller
     {
         $base = Reservation::where('tenant_id', Auth::id());
 
-        $counts = [
-            'all'                       => (clone $base)->count(),
-            'Inquiry'                   => (clone $base)->where('rental_status', 'Inquiry')->count(),
-            'Under Negotiation'         => (clone $base)->where('rental_status', 'Under Negotiation')->count(),
-            'Pending Rental Agreement'  => (clone $base)->where('rental_status', 'Pending Rental Agreement')->count(),
-            'Rental Agreement Signed'   => (clone $base)->where('rental_status', 'Rental Agreement Signed')->count(),
-            'Occupied'                  => (clone $base)->where('rental_status', 'Occupied')->count(),
-            'Cancelled'                 => (clone $base)->where('rental_status', 'Cancelled')->count(),
-            'Rejected'                  => (clone $base)->where('rental_status', 'Rejected')->count(),
-        ];
+        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected']);
 
         $status = $request->query('status', 'all');
         $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Completed', 'Cancelled', 'Rejected'];
@@ -60,7 +51,7 @@ public function store(StoreReservationRequest $request)
             return back()->withInput()->with('error', 'You cannot inquire on your own listing.');
         }
 
-        if ($property->verification_status !== 'Approved') {
+        if (! $property->isLive()) {
             return back()->withInput()->with('error', 'This property is not currently available for inquiries.');
         }
 
@@ -107,13 +98,14 @@ public function store(StoreReservationRequest $request)
             'target_move_out_date' => $request->target_move_out_date,
         ]);
 
-        // Send optional first message
-        if ($request->filled('message')) {
-            $conversation->messages()->create([
-                'sender_id' => Auth::id(),
-                'message'   => $request->message,
-            ]);
-        }
+        // First message is always the inquiry summary card — it carries the
+        // move-in/rent details the tenant just reviewed in the modal, so it's
+        // worth showing even when they left the note blank.
+        $conversation->messages()->create([
+            'sender_id'           => Auth::id(),
+            'message'             => $request->message ?? '',
+            'is_inquiry_summary'  => true,
+        ]);
 
         return redirect()->route('conversations.show', $conversation)
             ->with('success', 'Inquiry started — discuss the details with your landlord.');

@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests\Landlord;
 
+use App\Models\PropertyUnit;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 class StoreWalkInTenantRequest extends FormRequest
@@ -38,19 +41,92 @@ class StoreWalkInTenantRequest extends FormRequest
 
             'unit_id'              => ['required', 'integer', 'exists:property_units,unit_id'],
             'move_in_date'         => ['required', 'date', 'before_or_equal:' . now()->addYear()->toDateString()],
+            // 'after' alone only rejects a move-out on or before move-in — a
+            // one-day "stay" would still pass. The platform is monthly-only
+            // (see StoreReservationRequest), so a walk-in can't record a
+            // shorter tenancy than the inquiry flow allows; the minimum-gap
+            // check lives in withValidator() below since it needs move_in_date.
             'move_out_date'        => ['nullable', 'date', 'after:move_in_date'],
             'occupants_count'      => ['nullable', 'integer', 'min:1', 'max:20'],
             'agreed_monthly_rent'  => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             'rent_due_day'         => ['nullable', 'integer', 'min:1', 'max:28'],
             'notes'                => ['nullable', 'string', 'max:1000'],
 
-            // Optional move-in money (deposit, advance) collected at the door.
-            'initial_amount'       => ['nullable', 'numeric', 'min:1', 'max:1000000'],
-            'initial_type'         => ['required_with:initial_amount', 'nullable', Rule::in(['Initial', 'Deposit'])],
+            // Move-in money collected at the door. There is no "what was it
+            // for" field: MoveInPaymentBreakdown allocates the amount across
+            // deposit, first-month rent and advance rent, so asking the
+            // landlord to also label the lump would be the same question
+            // twice with two answers free to disagree.
+            //
+            // Required once the move-in date has already arrived (today or
+            // earlier) — a tenant who has moved in has, by definition, had a
+            // move-in money conversation with the landlord, and this app has
+            // no way to collect it later. A *future* move-in date leaves it
+            // optional: nothing has been collected yet to record. This does
+            // not reopen the separate "short payment warns, doesn't block"
+            // decision below (ARCHITECTURE.md) — any amount > 0 still
+            // satisfies this rule; only recording nothing at all is blocked.
+            'initial_amount'       => [
+                Rule::requiredIf(fn () => $this->filled('move_in_date')
+                    && Carbon::parse($this->input('move_in_date'))->lte(Carbon::today())),
+                'nullable', 'numeric', 'min:1', 'max:1000000',
+            ],
             'payment_method'       => ['required_with:initial_amount', 'nullable', Rule::in(['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'])],
             'payment_date'         => ['nullable', 'date', 'before_or_equal:today'],
-            'reference_no'         => ['nullable', 'string', 'max:255'],
+            // Cash has no reference to give; every other method produces one,
+            // and it is the only evidence the payment happened, so it is
+            // required there. prepareForValidation() nulls it for Cash so a
+            // stale value from a method switch can't be stored.
+            'reference_no'         => [
+                Rule::requiredIf(fn () => $this->filled('initial_amount')
+                    && $this->input('payment_method') !== 'Cash'),
+                'nullable', 'string', 'max:255',
+            ],
         ];
+    }
+
+    /**
+     * occupants_count has no fixed ceiling of its own — it must not exceed
+     * whichever unit the tenant is moving into. Done here rather than as a
+     * closure rule because it needs a second field (unit_id) to look up.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $occupants = $this->input('occupants_count');
+            $unitId = $this->input('unit_id');
+
+            if ($occupants === null || $unitId === null) {
+                return;
+            }
+
+            $limit = PropertyUnit::where('unit_id', $unitId)->value('occupancy_limit');
+
+            if ($limit !== null && (int) $occupants > (int) $limit) {
+                $validator->errors()->add(
+                    'occupants_count',
+                    "This unit allows up to {$limit} occupant" . ($limit == 1 ? '' : 's') . '.'
+                );
+            }
+        });
+
+        $validator->after(function (Validator $validator) {
+            $moveIn = $this->input('move_in_date');
+            $moveOut = $this->input('move_out_date');
+
+            if (! $moveIn || ! $moveOut) {
+                return;
+            }
+
+            $minimumMoveOut = Carbon::parse($moveIn)->addMonthNoOverflow();
+
+            if (Carbon::parse($moveOut)->lt($minimumMoveOut)) {
+                $validator->errors()->add(
+                    'move_out_date',
+                    'A tenancy runs at least one month — pick a move-out date on or after ' . $minimumMoveOut->format('M j, Y') . '.'
+                );
+            }
+        });
     }
 
     public function messages(): array
@@ -64,9 +140,10 @@ class StoreWalkInTenantRequest extends FormRequest
             'move_in_date.required'           => 'Enter the date the tenant moved in.',
             'move_out_date.after'             => 'The move-out date must be after the move-in date.',
             'rent_due_day.max'                => 'Pick a due day between 1 and 28 so it exists in every month.',
-            'initial_type.required_with'      => 'Choose what the initial payment was for.',
+            'initial_amount.required'         => 'Record the payment collected at move-in — a tenant moving in today or earlier must have a payment on file.',
             'payment_method.required_with'    => 'Choose how the initial payment was made.',
             'payment_date.before_or_equal'    => 'A payment cannot be recorded for a future date.',
+            'reference_no.required'           => 'Enter the reference number for this payment, or switch the method to Cash.',
         ];
     }
 
@@ -81,6 +158,13 @@ class StoreWalkInTenantRequest extends FormRequest
             if ($this->input($field) === '') {
                 $this->merge([$field => null]);
             }
+        }
+
+        // The reference field is hidden for Cash rather than removed, so a
+        // landlord who typed a GCash reference and then switched to Cash would
+        // otherwise store a reference for a payment that cannot have one.
+        if ($this->input('payment_method') === 'Cash') {
+            $this->merge(['reference_no' => null]);
         }
     }
 }

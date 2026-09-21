@@ -29,6 +29,7 @@ class AuditLog extends Model
      */
     public const DESTRUCTIVE_ACTIONS = [
         'payment.release',
+        'payment.void',
         'user.delete',
         'user.status_change',
         'reservation.force_cancel',
@@ -46,6 +47,10 @@ class AuditLog extends Model
         'unit.approve'              => 'Unit approved',
         'unit.reject'               => 'Unit rejected',
         'payment.release'           => 'Payment released',
+        // The first landlord-side action to write into this table — every
+        // other row here is an admin action. See admin/audit-logs/index for
+        // the "Admin" → "Actor" column rename this implied.
+        'payment.void'              => 'Payment voided',
         'user.create'               => 'User created',
         'user.update'               => 'User updated',
         'user.status_change'        => 'User status changed',

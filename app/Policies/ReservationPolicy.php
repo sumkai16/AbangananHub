@@ -75,14 +75,48 @@ class ReservationPolicy
     }
 
     /**
-     * Recording a payment writes a money row that nothing in the app can
-     * reverse, so it is owner-only and refuses once the tenancy is over —
-     * a closed ledger should not gain new entries.
+     * The tenant on this tenancy can open their own read-only rent ledger.
+     *
+     * Same shape as viewTenancy but scoped to the tenant instead of the
+     * landlord — deliberately not restricted to Occupied, for the same reason:
+     * a tenant should still be able to read what they paid after move-out.
+     */
+    public function viewOwnTenancy(User $user, Reservation $reservation): bool
+    {
+        return $reservation->tenant_id === $user->user_id;
+    }
+
+    /**
+     * A tenant may pay rent online only while the tenancy is actually running
+     * — there is nothing to bill against once it has ended.
+     */
+    public function payRent(User $user, Reservation $reservation): bool
+    {
+        return $reservation->tenant_id === $user->user_id
+            && $reservation->rental_status === 'Occupied';
+    }
+
+    /**
+     * Recording a payment writes a money row that only a void can undo,
+     * never a delete, so it is owner-only and refuses once the tenancy is
+     * over — a closed ledger should not gain new entries.
      */
     public function recordPayment(User $user, Reservation $reservation): bool
     {
         return $this->viewTenancy($user, $reservation)
             && $reservation->rental_status === 'Occupied';
+    }
+
+    /**
+     * Voiding removes a wrong entry rather than adding a new one, so —
+     * unlike recordPayment — it is deliberately NOT restricted to
+     * 'Occupied'. A wrong figure in a closed ledger is still a wrong
+     * financial record, and the landlord who owns the property is the only
+     * person who can say so.
+     */
+    public function voidPayment(User $user, Reservation $reservation): bool
+    {
+        return $this->viewTenancy($user, $reservation);
     }
 
     /**

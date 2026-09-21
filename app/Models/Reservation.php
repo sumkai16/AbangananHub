@@ -119,6 +119,9 @@ public function confirmMoveIn(): bool
         // null for both, so it cannot carry that distinction on its own.
         'released_by'    => null,
         'release_reason' => 'tenant_confirmed',
+        // The money is now owed to the landlord — see
+        // docs/specs/2026-07-26-landlord-payout-design.md.
+        'payout_status'  => 'Pending Payout',
     ]);
 
     $this->releasedPayment = $heldPayment;
@@ -394,10 +397,67 @@ public ?Payment $releasedPayment = null;
         // lands just under the integer, and ProcessMoveInDeadlines compares
         // this value with a strict in_array([...], true) — silently
         // skipping a reminder. round() first, then cast.
+        return $this->wholeDaysUntil($this->move_in_deadline_at);
+    }
+
+    private function wholeDaysUntil(Carbon $at): int
+    {
+        // why: Carbon 3's diffInDays() returns a float and can carry
+        // floating-point noise — see daysUntilMoveInDeadline() above.
         return (int) round(now()->startOfDay()->diffInDays(
-            $this->move_in_deadline_at->copy()->startOfDay(),
+            $at->copy()->startOfDay(),
             false
         ));
+    }
+
+    /**
+     * The whole live-clock state in one answer, for any client that has to
+     * render a countdown.
+     *
+     * There is one deadline column and two clocks, and deciding which is
+     * running is not a lookup — it depends on turnover, on a dispute, and (for
+     * Clock 1 before the first nightly backfill) on a value that is computed
+     * rather than stored. `_move-in-clock.blade.php` derived all of that
+     * inline; the mobile client would have had to derive it again, and two
+     * clients disagreeing about which escrow clock is live is exactly the
+     * failure worth spending a method to avoid.
+     *
+     * Returns null when no clock is running — a clock exists only while money
+     * is held, which is the same condition `chat-panel.blade.php` uses to
+     * decide whether to render the partial at all.
+     */
+    public function moveInClockState(): ?array
+    {
+        if ($this->rental_status !== 'Rental Agreement Signed') {
+            return null;
+        }
+
+        // Use the eager-loaded collection when there is one: this is called
+        // per row on the reservations list, and heldPayment() would issue a
+        // query each time.
+        $held = $this->relationLoaded('payments')
+            ? $this->payments->firstWhere('status', 'Held')
+            : $this->heldPayment();
+
+        if (! $held) {
+            return null;
+        }
+
+        $onTurnoverClock = $this->isTurnoverClock();
+        $disputed = $this->move_in_disputed_at !== null;
+
+        // Within Clock 1 the computed value covers the window before the
+        // nightly backfill has written move_in_deadline_at.
+        $deadlineAt = $onTurnoverClock
+            ? ($this->move_in_deadline_at ?? $this->computeTurnoverDeadline())
+            : $this->move_in_deadline_at;
+
+        return [
+            'active_clock'   => $onTurnoverClock ? 'turnover' : 'confirmation',
+            'deadline_at'    => $deadlineAt,
+            'days_remaining' => $disputed || ! $deadlineAt ? null : $this->wholeDaysUntil($deadlineAt),
+            'disputed'       => $disputed,
+        ];
     }
 
     // ─── Relationships ───────────────────────────────────────
@@ -512,6 +572,33 @@ public ?Payment $releasedPayment = null;
         $start = $this->target_move_in_date ?? $this->reservation_date;
 
         return $start ? Carbon::parse($start) : null;
+    }
+
+    /**
+     * Derives the duration label from the move-in/move-out pair instead of
+     * the underlying duration_of_stay column.
+     *
+     * duration_of_stay is a legacy free-text column nothing in the live app
+     * writes anymore — only ReservationSeeder and BuildsEscrowFixtures still
+     * populate it, for dev fixtures. An accessor of the same name takes
+     * precedence over the raw attribute, so every existing read site (tenant
+     * and landlord reservation lists, admin detail, ReservationResource)
+     * keeps working unchanged, now driven by real dates instead of free text.
+     */
+    public function getDurationOfStayAttribute(): ?string
+    {
+        if (! $this->target_move_in_date) {
+            return null;
+        }
+
+        if (! $this->target_move_out_date) {
+            return 'Open-ended';
+        }
+
+        // Carbon 3's diffInMonths() returns a float — round it (RULES.md).
+        $months = (int) round($this->target_move_in_date->diffInMonths($this->target_move_out_date));
+
+        return $months === 1 ? '1 month' : "{$months} months";
     }
 
     /**
@@ -662,5 +749,29 @@ public ?Payment $releasedPayment = null;
         // transition ever sees it — they get a fresh render from their own
         // POST, while the other side's thread stays stale until reload.
         MessageSent::dispatch($message);
+    }
+
+    /**
+     * Per-status tab counts for a reservation list, in ONE grouped query.
+     *
+     * Returns ['all' => n, '<status>' => n, ...] with every requested status
+     * present (0 when none). Replaces one COUNT per tab — 8 identical queries
+     * per page load on both the landlord and tenant reservation lists.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $base  already scoped/filtered, not yet ordered
+     */
+    public static function statusCounts($base, array $statuses): array
+    {
+        $byStatus = (clone $base)
+            ->selectRaw('rental_status, COUNT(*) as aggregate')
+            ->groupBy('rental_status')
+            ->pluck('aggregate', 'rental_status');
+
+        $counts = ['all' => (int) $byStatus->sum()];
+        foreach ($statuses as $status) {
+            $counts[$status] = (int) ($byStatus[$status] ?? 0);
+        }
+
+        return $counts;
     }
 }

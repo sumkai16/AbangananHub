@@ -3,6 +3,39 @@
 ## 0. The three defaults to actively avoid
 None of the three AI-default looks apply. AbangananHub uses a teal-forward identity with flat, structured cards — distinct from cream/serif, dark-mode acid, and broadsheet layouts. The risk to watch since the July 2026 flattening is a *fourth* default: generic admin-template Tailwind. What keeps it off that: the locked teal palette, color used only for status, and dense purpose-built data views rather than boxes of evenly-spaced widgets.
 
+## 0b. Device priority: mobile-first for Tenant + Landlord, desktop-oriented for Admin (Aug 20 2026)
+The main goal here is not the PC/desktop view — real usage skews toward a phone in hand. Tenants
+browse and reserve on the go; landlords check listings, tenants, and rent between other things
+during the day. **Design and build Tenant and Landlord surfaces mobile-first**: start every new
+page or component at 375px and scale up from there, not the reverse. **Admin is the deliberate
+exception** — a single administrator working from a desktop, so `resources/views/admin/**` stays a
+desktop-oriented dense dashboard (data tables, wide multi-column layouts, CSV exports); don't force
+admin screens through a mobile-first pass.
+
+What this changes in practice:
+- New Tenant/Landlord components get their layout, spacing, and interaction pattern validated at
+  375px **before** the desktop/`lg:` variant is added — not designed at desktop width and then
+  squeezed down afterward.
+- Prefer patterns already proven here over inventing new ones: the sticky bottom bar + two-step
+  teleported modal on `properties/show`'s mobile inquiry flow, the `mobileNavOpen` hamburger panel
+  on the public header (`layouts/app.blade.php`), the collapsing sidebar + backdrop on
+  `layouts/landlord.blade.php`, and — new Aug 20 2026 — **table → stacked card list** below `lg`
+  for any data table on a Tenant/Landlord page (`tenant/reservations/index.blade.php`,
+  `tenant/tenancy/show.blade.php`): render the existing `<table>` wrapped `hidden lg:block`, and a
+  second `lg:hidden` block that `@foreach`s the same collection into cards carrying the same data
+  and actions. A horizontal-scroll table is an acceptable *fallback*, never the mobile-first design.
+- Any element whose visibility/position depends on Alpine state needs `x-cloak` — not just ones
+  using `x-show`. `layouts/admin.blade.php`/`landlord.blade.php`'s sidebar `<aside>` sets its mobile
+  off-screen position via a `:class` binding, which doesn't apply until Alpine finishes
+  initializing; without `x-cloak` it flashes on-screen first on every load. Found and fixed Aug 20
+  2026 — see ARCHITECTURE.md.
+- §11's "Responsive at 375/768/1024/1440px" checklist line is not just a regression check for these
+  two shells — 375px is the primary target, the wider breakpoints are the enhancement, not the
+  baseline.
+- When a Tenant/Landlord page reads as "desktop app squeezed onto a phone" (see §0's warning about
+  generic admin-template drift), that's the signal to redesign the mobile layout on its own terms
+  rather than just hiding/stacking the desktop one.
+
 ## 1. Reference / Inspiration
 - Airbnb (June 2026) — card layout, image-is-the-card pattern, browse grid, clean listing detail pages
 - Analyst prototype (July 2026, `prototype/*.png`) — the current reference: flat white cards, tinted stat tiles with circular icon badges, underline tabs, dense avatar/thumbnail tables, dark sidebar shells
@@ -15,40 +48,105 @@ None of the three AI-default looks apply. AbangananHub uses a teal-forward ident
 
 ## 3. Color Palette
 
+**Navy/Coral identity (Sept 2026).** Replaced the Navy/Gold system below wholesale — see §29 for why
+and what it superseded (Navy/Gold itself replaced Ocean Teal — see the changelog entry after §14 for
+that earlier move). Every hex in this table is current; gold (`#C9A84C`/`#8a6e1e`) and the Ocean Teal
+values now both live only in §10's banned-hex list.
+
 | Role | Hex | Usage |
 |---|---|---|
-| Primary (Deep Ocean Blue) | `#156F8C` | Navigation bar, headings, key interface elements |
-| Secondary (Ocean Teal) | `#2AA7A1` | Primary buttons, icons, active states — fills/borders/backgrounds only, **never foreground text on white** (fails WCAG AA, ~2.9:1) |
-| Accent (Aqua) | `#69D2C6` | Badges, highlights — fills only, **never foreground text on white** (fails WCAG AA, ~2.2:1) |
-| CTA (Soft Coral) | `#FF8A65` | CTA buttons: Search, Book Now, List Property |
-| Background (Ice White) | `#F7FCFC` | Main page background |
-| Section Background (Mist Blue) | `#EEF8F8` | Distinguishes content sections |
+| Primary (Deep Navy) | `#060D26` | Navigation bar, headings, structural UI, secondary-button text/border |
+| Accent (Coral) | `#FF8A66` | CTA/primary-button fills, active/selected states, borders, rings, badges, decorative fills, hover-state fills, large text on a **dark** ground — **never foreground text on a light ground at any size** (fails WCAG AA, ~2.31:1) |
+| Accent text (Deep Coral) | `#B35A3D` | The text-safe coral — small labels, icons, links, checkmarks, highlighted words in headings, display prices, on a **light**/white background (~4.72:1) |
+| CTA | `#FF8A66` fill / `#060D26` text | CTA and primary buttons: Search, Book Now, List Property, form submits — one shared treatment (`<x-primary-button>`), coral fill with navy text (~8.6:1 contrast) |
+| Background (Ice White) | `#F7F8FC` | Main page background |
+| Section Background (Mist) | `#ECEEF6` | Distinguishes content sections |
 | Surface/Card (White) | `#FFFFFF` | Property cards, forms, panels |
-| Text primary (Charcoal) | `#1F2937` | Headings and essential content |
-| Text muted (Slate Gray) | `#64748B` | Descriptions, labels, supporting info |
-| Borders (Soft Gray) | `#E2E8F0` | Subtle separation between components |
+| Text primary | `#060D26` | Headings and essential content |
+| Text muted (Slate) | `#5B6A8E` | Descriptions, labels, supporting info |
+| Borders | `#E2E4EC` | Subtle separation between components |
 | Success (Emerald Green) | `#22C55E` | Successful actions, verified statuses |
 | Warning (Amber) | `#FBBF24` | Notifications, cautionary messages |
 | Error (Red) | `#EF4444` | Validation errors, failed actions, critical alerts |
-| Footer background | `#0F172A` | Accepted palette exception — footer, and the `<x-date-picker>` popover panel (§6h-bis) |
+| Footer background | `#060D26` | Same token as Primary — footer and nav share one navy |
 
 Rules:
-- One accent color for CTAs (`#FF8A65`) — everything else neutral or teal-family.
-- `#2AA7A1` and `#69D2C6` are restricted to fills, borders, and backgrounds. Never as foreground text on white.
-- Hover states: `hover:brightness-95` only. No hardcoded darker hex values.
+- One CTA treatment (`#FF8A66` coral fill + `#060D26` navy text) — everything else neutral, or coral only at the specific touch-points listed above. Target hierarchy is roughly 70% white / 25% navy / 5% coral by visual weight — coral marks attention points, it is never a page or section background.
+- `#FF8A66` is restricted to fills, borders, rings, backgrounds, and large text **on a dark (navy) ground**. Never as foreground text on a light ground, at any size — use `#B35A3D` there instead. **Exception: logotype.** The "Hub" accent letter in the `AbangananHub` wordmark stays bright `#FF8A66` even on the white navbar — WCAG 1.4.3 exempts logotype text from contrast requirements.
+- Ledger/table price columns (rent ledger, payment history, receipts, admin financial tables) stay navy `#060D26`, not coral — coral marks the one prominent display price per page (property card, property detail hero), not every repeated figure in a dense financial list.
+- **Interaction system (Sept 2026, see §30):** coral-filled buttons (`bg-[#FF8A66]`) hover to a
+  named darker coral `hover:bg-[#E96F4F]` — not `brightness-95` — since a specific hex reads as more
+  deliberate for the app's one CTA-style fill. Everything else neutral (white/outline buttons, badges,
+  icon-only utility buttons not part of the coral/navy system) keeps `hover:brightness-95`, still with
+  no other hardcoded darker hex. Navy text/icon/border elements that are genuinely interactive
+  (nav links, outline-button borders, dropdown-menu icons) transition to `#FF8A66` on hover — this
+  does not extend to plain navy body text/headings that merely happen to sit near a link. Active
+  navigation (top navbar, admin/landlord sidebar) marks itself with coral — text color for the pill
+  nav, a `border-l-[3px] border-[#FF8A66]` accent for the sidebar (kept navy-filled otherwise, so a
+  dense sidebar doesn't read as coral-heavy). All hover/focus/active transitions target 200–300ms
+  (`duration-200`/`duration-300`), not the old ad hoc 150ms.
 - No custom CSS class systems (`abg-*`), no inline `<style>` blocks — pure Tailwind only.
+- **`tailwind.config.js`'s `colors.brand.*` reflects these tokens but is not referenced by any view** — every view still uses raw bracket-hex classes (`bg-[#060D26]`), matching the old system's own pattern. Migrating views onto the named tokens is a separate, not-yet-done refactor; don't assume `bg-brand-navy` exists anywhere in `resources/views`.
 
 ## 4. Typography
-- **Page-title font: Source Serif 4** (`font-display`) — added July 2026. **Large page titles only**: the property detail `<h1>` today, home and about when they're redesigned. Not card headings, not section labels, not `<h3>`s — those stay on Poppins. The scope is the whole point: a serif used everywhere stops being a signal and becomes a third font tax.
-  - **Why not Playfair Display**, the obvious pick: §0 names the high-contrast-serif look as an AI default to avoid, and Playfair is the face that look is made of. Source Serif 4 is screen-first, shares Inter's vertical proportions so the two sit together without one reading oversized, and lands *institutional* rather than *fashion-editorial* — which is what §2's "trustworthy, not startup-trendy" asks for.
-  - **The `ital` axis was missing until July 24 2026.** The Google Fonts URL requested `opsz,wght` only, so any `italic` on `font-display` rendered as a browser-synthesized oblique — a slanted upright, not the drawn italic, which is obvious at hero sizes. The browse hero sets one accent word in italic, so all four layouts now request `ital,opsz,wght@0,…;1,…`. **Adding a style to a variable font means adding its axis to the URL** — the class alone will silently fake it.
-  - Loaded in **all four** layouts even though only `layouts/app` uses it today. Google Fonts serves all three families in one request and browsers defer the file until a glyph needs it, so the cost is nil — and it avoids re-creating the bug documented below, where a utility existed app-wide but the font was only linked in two shells.
-- Display/heading font: **Poppins** (`font-heading`) — card titles, section headings, UI labels
-- Body font: **Inter** (`font-sans`, Google Fonts, loaded in base layout)
+**Serif-as-default reverted, app-wide (Sept 2026).** The "every heading" widening described below
+lasted one pass: `resources/css/app.css` had `h1, h2, h3, h4, h5, h6, .font-heading { font-family:
+'DM Serif Display' }`, which put the serif on *every* heading tag app-wide whether or not a page
+ever opted into it via a class — Axcee flagged it as reading "too elegant" for working screens
+(landlord dashboard greeting, then its section labels, then `<x-page-header>`'s "My Properties"
+title), and checking confirmed the pattern was universal, not page-specific: 84 files render a bare
+`<h1>`/`<h2>`/`<h3>` and virtually none of them ever added `.font-heading` explicitly — the serif
+was leaking onto all of them from the tag selector, not a deliberate per-page choice. The one place
+that already looked right was the marketing/hero headings (`about.blade.php`, the browse hero in
+`properties/index.blade.php`, `properties/show.blade.php`'s title) — all three hardcode their own
+`font-['Plus_Jakarta_Sans',_Inter,_sans-serif]` override and were never touched by the tag rule, so
+this fix doesn't affect them.
+
+**Current rule:** `h1`–`h6` inherit `body`'s Inter, with a base `font-weight: 600` (headings still
+need to look heavier than body text; explicit Tailwind weight classes like `font-bold` still win
+via specificity over the plain element rule, same mechanic as the July 2026 font-pipeline bug
+below). `.font-heading`/`.font-display` remain defined as DM Serif Display **utility classes** —
+available to opt into deliberately, not applied by default to anything. The two shared heading
+components, `<x-page-header>` and `<x-section-header>`, were bumped from `font-normal` to
+`font-semibold` alongside this — they were tuned for the serif's single 400 weight, and Inter at
+400 read visibly thinner once the family changed.
+
+**What this doesn't touch:** the ~30 individual pages with a hand-rolled `<h1 class="font-normal">`
+title (not routed through `<x-page-header>`) haven't been individually re-weighted — they'll now
+render Inter at whatever weight they already specified, which may read a little light on some
+pages. Fix opportunistically if one looks visibly thin, rather than as a blind sweep.
+
+**Historical, superseded by the above:** the Navy/Gold identity (Sept 2026) had widened DM Serif
+Display's scope from "large page titles only" to every heading, reversing the July 2026 "third font
+tax" restraint argument kept further below for that reasoning's own sake. That widening is what
+introduced the app.css tag-selector rule this entry reverts.
+
+- **Heading/display font, when deliberately opted into via `.font-heading`/`.font-display`:** DM
+  Serif Display. **Ships a 400 weight only**: any `font-bold`/`font-semibold`/`font-extrabold`/
+  `font-black` alongside it browser-synthesizes a fake bold — lean on size/color for hierarchy
+  instead if a future page opts in.
+  - **Money/ledger exception:** peso figures in a table or list column (rent ledger, payments,
+    receipts) stay on Inter with `tabular-nums` — a serif's proportional figures would misalign a
+    column of amounts.
+  - The `ital` axis lesson from the Source Serif 4 era still applies to any future variable-font swap:
+    request the axis explicitly in the Google Fonts URL (`DM+Serif+Display:ital@0;1`) or `italic`
+    renders as a browser-synthesized oblique instead of the drawn italic.
+  - Loaded in **all four** layouts, same reasoning as before: one request, browsers defer until a
+    glyph needs it, and it avoids re-creating the two-shells-missing-a-link-tag bug documented below.
+- Body font: **Inter** (`font-sans`, Google Fonts, loaded in base layout) — now requests weight 300 too, for light body copy the new identity uses on photography.
 - Type scale: 12 / 14 / 16 / 20 / 24 / 32 / 48 (maps to Tailwind `text-xs` through `text-5xl`)
-- Weight rules: Poppins 600–700 for headings, Inter 400 for body, Inter 500 for labels/buttons
+- Weight rules: DM Serif Display headings at `font-normal` (see above), Inter 400 for body, Inter 500 for labels/buttons
 - Line-height: 1.5–1.75 for body text
 - Line length: 65–75 characters max (`max-w-prose` or equivalent)
+
+**Historical: the "third font tax" argument for restraint (superseded above, kept for context).**
+Source Serif 4 was originally scoped to large page titles only — not card headings, not section
+labels, not `<h3>`s — because a serif used everywhere stops being a signal and becomes a third font.
+Also historical: why not Playfair Display, the obvious serif pick — §0 names the high-contrast-serif
+look as an AI default to avoid, and Playfair is the face that look is made of; Source Serif 4 was
+chosen as screen-first and *institutional* rather than *fashion-editorial*. DM Serif Display was
+picked for the new identity for the opposite reason Source Serif 4 was picked for the old one: it *is*
+closer to that editorial-serif signal, which is now the point rather than the risk.
 
 **Font pipeline bug — found and fixed July 21, 2026.** "Body font is Inter" was true in `resources/css/app.css` (`body { font-family: 'Inter' }`) but false in practice on two of the four shells. Two independent defects stacked:
 1. `tailwind.config.js` had `fontFamily.sans` mapped to `Figtree` — a leftover from the Laravel Breeze scaffold, never updated when the app moved to Poppins/Inter. Every layout puts `class="font-sans"` directly on `<body>`, and a Tailwind utility class (specificity 0-1-0) beats the plain `body {}` element rule (0-0-1) — so `.font-sans` silently won, and the app rendered in Figtree, not Inter.
@@ -128,6 +226,7 @@ Page-title headers are **never wrapped in a card** — they sit bare on the page
 - Title: `text-2xl font-bold text-[#1F2937]` (charcoal — not ocean-blue)
 - Subtitle: `text-sm text-[#64748B]`
 - Index pages may prefix the title with an icon box (`w-11 h-11 rounded-xl bg-[#1F2937]`); the title styling stays the same.
+- Exception: `conversations/index` (Inquiries/Messages) merges its header into the same card as the split panel below it — see §6g-bis.
 - `#156F8C` is reserved for nav/section accents, not page titles.
 - Exception: `profile/show`'s name lives in the avatar hero banner (an identity card, not a page header).
 
@@ -148,16 +247,16 @@ The page went flat first (July 2026) and became the pattern the rest of the app 
 - **Price follows the unit picked in the rail**, so there is one source of truth. A hero price range plus a picker elsewhere is two numbers that can disagree about what the form is submitting.
 - **One CTA; the form lives in a modal** (`inquireOpen`), teleported to body because the editorial column sits in a sticky/overflow context that would clip a dialog rendered inside it. Desktop only — below `lg` the existing sticky bottom bar and two-step sheet already cover it, so there is one form per breakpoint, not two.
 - Unit picker rows: radio + thumb + label/meta, price stacked over an Available badge on the right; >4 units collapse behind a "View all units (N)" button (`moreUnits` Alpine flag).
-- Amenities render as a labelled two/three-column grid in their own section, guarded by `@if(count > 0)` — the 64px icon squares were a compact *preview* near the top of the old layout and read badly at section scale with truncated captions.
-- **The list is derived from the property's approved units, not from `property_amenities`** (July 24 2026). That pivot has **zero rows and no landlord-facing form** — amenities are only ever attached per unit, by `Landlord\PropertyUnitController`. So the section existed and rendered nothing on every listing in the app, silently, because the `@if(count > 0)` guard was doing its job on an empty relation. The view unions `$approvedUnits`' amenities beside where `$approvedUnits` is already computed (the controller has no such filter, and duplicating "which units count" in two places is how the two drift). Rejected wiring up `property_amenities` with a picker on the property form: it gives one fact a second home that a landlord must keep in sync by hand, the same failure the `"Paid (held)" is derived` entry in ARCHITECTURE's log warns about.
+- Amenities render as **two separate sections**, each a labelled two/three-column grid, each guarded by `@if(count > 0)` — the 64px icon squares were a compact *preview* near the top of the old layout and read badly at section scale with truncated captions.
+- **Building amenities** (August 2026) — `$property->amenities`, building-wide features (Wi-Fi, CCTV, parking, security) a landlord attaches to the property itself via `PropertyController::store()`/`update()`. Supersedes the July 24 2026 entry below: `property_amenities` is no longer empty or unwired — a migration promoted every unit-attached amenity whose `amenities.scope` is `property` up to the property that owns the unit (dedup'd across units of the same property), and the property create/edit forms now write to it directly (`amenities[]` synced in the same transaction as the rest of the form). The "one fact, one home" objection that killed this the first time no longer applies: building and room amenities are now scoped as genuinely separate concepts (`amenities.scope`: property/unit/both), not the same fact duplicated.
+- **Room amenities** (renamed from "What this place offers" when a building-amenities section is also present) — still derived from the property's approved units' `unit_amenities`, not from the property record, because these vary by room (AC, private bathroom) and *should* be asked per unit.
   - Multi-unit properties get a subtitle ("Across N units. Select a unit to see exactly what it includes") and an amenity present in only *some* units carries a `Some units` pill, so the list can't imply the whole property has what one room does.
   - **The pill is suppressed when no amenity is universal.** A tag on every row distinguishes nothing, and the subtitle already carries the disclaimer — `$tagPartialAmenities` gates it. Worth knowing when testing: the seeder gives each unit 4 *random* amenities, so every multi-unit property in dev data hits exactly that degenerate case and shows no pills. Real listings share Wi-Fi/CCTV/parking across units and will show them. Force the mixed case in a rolled-back transaction to see it.
-- Mobile (<lg): a teleported sticky bottom bar (selected unit + coral Inquire button) opens a two-step bottom-sheet modal (Select a Unit → Message Landlord) sharing `selectedUnit` state with the desktop rail.
+- Mobile (<lg): a teleported sticky bottom bar (selected unit + coral Contact button) opens a two-step bottom-sheet modal (Select a Unit → Message Landlord) sharing `selectedUnit` state with the desktop rail.
 - Prototype's blue accents are always rendered in the locked Ocean Teal/Deep Ocean Blue palette; CTA stays coral `#FF8A65`.
 
-- **Inquiry and Reserve are a real distinction, not decoration.** `mode` posts as a hidden input and `StoreReservationRequest` validates `in:inquiry,reserve`. **Inquiry collects only a unit and an optional message**; **Reserve** adds move-in (required) and move-out (optional). Both still land at `rental_status = 'Inquiry'`, so the landlord's accept step is unchanged — naming a date is what signals firmer intent. Defaults to Inquiry, and the mobile sheet carries the same toggle.
-  - `target_move_in_date` is `required_if:mode,reserve|nullable`, and `prepareForValidation()` nulls both dates on an inquiry — otherwise a date typed under the Reserve tab and then abandoned still posts, attaching a commitment the tenant backed out of.
-  - This is what stopped a guessed date from driving escrow escalation; see ARCHITECTURE's Clock 1 notes.
+- **Inquiry and Reserve were collapsed into one "Contact Landlord" action (August 2026).** The two-mode toggle (`mode: inquiry|reserve`, `StoreReservationRequest` validating `in:inquiry,reserve`) always produced the identical outcome — every submission landed on `rental_status = 'Inquiry'` and redirected to the same conversation, because the landlord's accept step never read `mode` at all. The only thing the toggle actually gated was whether a move-in date was required, but nothing in the resulting UI (the status pill always read "Inquiry") confirmed the distinction had happened — testers flagged this as "what's the difference?" and they were right: there wasn't one visible. Now there's a single button; move-in date and a duration select (`duration_months`, 1/3/6/12/open-ended) are always-present optional fields, and the server derives `target_move_out_date` from the pair rather than trusting a client-posted date (`StoreReservationRequest::prepareForValidation()`). A guessed date still can't drive escrow escalation — Clock 1 only starts once a landlord acts on a real reservation, not from this form.
+  - The deposit total is now shown alongside rent in this same sheet (`selected.depositRaw`), since `security_deposit` is required on every unit — the tenant sees full move-in cost before contacting anyone.
 - **No "Message landlord" card.** It posted to `conversations.store` and produced a thread with *no reservation attached* — no stage stepper, no actions, a dead end indistinguishable from Inquiry. Inquiry is the single way to open a conversation from a listing. The route survives for the landlord profile page.
 - **Report this listing opens a modal**, not `/reports?property_id=N`. That page redirects to itself on success, which from here would discard the selected unit and scroll position for a fire-and-forget action. `ReportController::store()` returns JSON only when the request expects it, so the standalone page keeps its redirect and both entry points share one validated action.
 - **Location is a compact utility card**: header (address + segmented travel-mode control), full-bleed map, summary bar (distance, per-mode estimate, directions CTA). The mode control lives in the header and is always visible, so the choice is made *before* deciding to share your location.
@@ -165,6 +264,29 @@ The page went flat first (July 2026) and became the pattern the rest of the app 
 **A second Blade tokeniser trap, same family (July 24 2026): never write a literal PHP open tag inside a Blade comment.** Blade splits templates with `token_get_all()`, which runs *before* comments are stripped — so `{{-- ... <?php ... --}}` opens a real PHP token block, and every directive after it in the file silently stops compiling. The symptom is markup vanishing with **no error**: a `<nav>` rendered its opening tag and nothing else, while the page still returned 200. If a block of Blade disappears from the output but the page doesn't error, grep the file for `<?php` before suspecting your conditionals. (The inline `@php(...)` form caused the same class of breakage in `layouts/app` and was replaced with the `@php ... @endphp` block — that one at least failed loudly, with `unexpected token "else"` pointing at an unrelated line 300 lines away.)
 
 **Trap that bit during the rebuild:** `Landlord@if($x) · Verified Host @endif` renders the directive as *literal text* and orphans the `@endif` — Blade's `\B@` regex does not match an `@` preceded by a word character. Build the sentence in PHP instead. This is the second time it has appeared (see `chat-panel`'s `$occupiedNote`); if a page dies with "unexpected token endif", grep for `@if` with no whitespace before it.
+
+**Gallery, contact card and a nearby band added (Sept 2026).** Four changes inside the same split-immersive shell — the media rail / editorial column architecture above is unchanged:
+- **Bento gallery** *(superseded — see below).* The media rail's hero-plus-5-thumbnail-strip became a 1-big-2-small `grid-cols-3 grid-rows-2` bento (big tile spans 2×2, two small tiles fill the remaining column, degrading to big-only at 1 photo and big-plus-one at 2). The big tile keeps `id="hero-img"` and the small tiles keep `id="thumb-{i}"` — everything the gallery's `@push('scripts')` IIFE does (`setHero`/`shiftHero`/`openLightboxAtHero`, arrows, "Show all photos", the Verified Property popover) works unchanged. One real JS fix was needed: the active-thumb highlight used to compare a `querySelectorAll` NodeList's *loop position* to the photo index, which only worked because thumbs 0–4 were always rendered contiguously. The bento renders a non-contiguous subset (thumb-1 and thumb-2, skipping thumb-0 since it would just repeat the big tile's own photo), so the highlight now reads the index off each element's own id instead.
+- **Grouped contact card.** Price, the deposit line, the landlord row, the Contact Landlord CTA + favourite, and the response-time note now sit inside one `<x-card>` directly under the title/meta row — previously six ungrouped sibling blocks with no panel around them, the only bordered surface on the page being the location card further down. This reorders the section from price → description → fact tiles → CTA → landlord row to price+deposit → landlord row → CTA → description → fact tiles; the reorder is the point, not a side effect.
+- **Deposit line under price.** `$unitsPayload` already carried `deposit`/`depositRaw` null-preserving — a one-line Alpine addition renders "+ ₱X security deposit" or, when the selected unit has none, an explicit **"No security deposit required"** (never ₱0, never blank).
+- **Amenity icons.** Building amenities and the unit slideout (Room amenities existed at the time but was later removed, §20a) render a name-keyed icon (`<x-amenity-icon>` / `AmenityIcons::path()`) instead of one generic checkmark repeated for every amenity. Selection checkboxes and compact chip lists elsewhere are deliberately unchanged — icons belong on amenity *lists*, not on controls.
+- **Nearby rentals band**, full-bleed under both columns (still inside the page's Alpine root, so the mobile sticky-bar padding already clears it): up to 6 properties in the same `city_municipality`, same barangay sorted first, using `<x-section-header>`'s existing title/sub/"View all" pattern and the sibling-card markup already established on the landlord profile page (`landlord/profile/show.blade.php`) rather than the browse page's heavier per-card-Alpine carousel card. Omitted entirely, not padded with other cities, when none exist.
+- **The two-column split became `flex`, not `grid` (Sept 2026), so the media rail stays sticky for the whole page instead of detaching near the bottom.** With CSS Grid, a sticky item's containing block is its grid *cell*, and a grid cell is always stretched to the row's height — the tallest sibling's height — regardless of `items-start` (that only aligns the item's own box within the cell, it doesn't shrink the cell). So the rail's sticky range was bounded by the *editorial column's* height, and once scroll neared the bottom of that (much taller) column, the rail ran out of room and detached, sliding up off-screen — a jarring "catch-up" motion on a long listing. Flexbox with `items-start` does not stretch an item's own box to the line height, so the rail's containing block became its own (short, already `max-h-[calc(100vh-3rem)]`-capped) height, and it now stays pinned at `top-6` for the entire scroll. **Deliberate trade-off, decided with Axcee over the catch-up motion:** the rail can now sit on top of the Nearby Rentals band and the footer near the very bottom of a long page, rather than yielding to them. `lg:col-span-5`/`lg:col-span-7` became `lg:basis-5/12`/`lg:basis-7/12` with `lg:shrink-0` on both (flex-basis needs the shrink lock or a wide word can compress the split); `grid-cols-1` became `flex flex-col` so mobile stacking is unchanged.
+
+**Bento gallery reverted to a single wide hero (Sept 9 2026).** By this point the page had already become the `flex flex-col` top-to-bottom flow described above, so the "media rail" the bento was built for no longer existed — the gallery rendered full page width (up to the page's `max-w-[1400px]`), and the bento's `aspect-[4/3]` grid stood roughly **1050px tall**, pushing the price card, description and everything else off the fold. `properties/show.blade.php`'s gallery is now one `aspect-[21/9]` image (~570–650px tall depending on viewport), no side thumbnail tiles. Browsing the rest of the set is unchanged — the same prev/next arrows call `shiftHero()`, "Show all photos" still opens the lightbox via `openLightboxAtHero()` — only the always-visible `thumb-{i}` tiles are gone; the JS's per-thumb highlight loop (`querySelectorAll('[id^="thumb-"]')`) was dead code with no thumbs left to match, so it was removed rather than left inert. The empty-state placeholder (no photos uploaded) was changed from `aspect-[16/9]` to the same `aspect-[21/9]` so both states of the same slot share one ratio.
+
+**Bento gallery reinstated + contact card made sticky across the whole listing (Sept 2026).** Axcee asked for a reference listing layout: a big-plus-two-small gallery, and the price/host card pinned in view until Nearby Rentals. Both prior patterns above already existed in this file's history, just never at the same time in this configuration:
+- **Gallery**: the exact `grid-cols-3 grid-rows-2 gap-2 aspect-[4/3]` bento from the entry above (big tile `col-span-2 row-span-2`, `id="thumb-1"`/`id="thumb-2"` for the small tiles) is back — but now scoped to the 7/12 left column instead of the full page width, so the "~1050px tall" problem that got it reverted doesn't recur (at ~760px column width, aspect-[4/3] stands ~570px). No JS changed; `setHero`/`shiftHero`/`openLightboxAtHero` are the same generic functions. The per-thumb active-highlight logic mentioned above was never reintroduced (only 2 fixed thumbs now, not a 5-thumb strip, and the reference layout doesn't call for it) — the thumbs simply swap the hero photo when clicked.
+- **Contact card sticky range**: this required going back to a two-column split for the *entire* listing, not just the hero row — the row that pairs gallery+details with the contact card used to close right after "Property details", with Description onward stacked full-width below it, so there was nothing tall enough for the card to stick against. Description → Reviews (Subunits, Utilities, Amenities, House rules, Location, Reviews) now live nested inside the same left column, in a second grid row below gallery+details.
+- **This is Grid, not the flex the entry above deliberately switched to** — and for the opposite reason. That flex change was chosen *so a sticky rail would never detach* (accepting overlap with Nearby Rentals/the footer near the bottom of a long page). Here the goal is the reverse: the card should detach right where the content ends, not overlap Nearby Rentals. Grid's own behavior — a sticky item's containing block is its cell, which is always stretched to the row's height regardless of `items-start` — is exactly the graceful-stop mechanic wanted this time. Structure: `lg:grid lg:grid-cols-12 lg:items-start`, gallery+details `lg:col-span-7 lg:row-start-1`, the Description-through-Reviews wrapper `lg:col-span-7 lg:row-start-2`, and the card `lg:col-span-5 lg:row-span-2 lg:sticky lg:top-6` — the `row-span-2` is what makes its cell span both rows, so it stays pinned through all of it and stops exactly when row 2 ends, right before Nearby Rentals (a sibling outside this grid, unaffected).
+- **Mobile is unchanged.** The three grid children keep the same DOM order they always had (gallery+details, then card, then everything else), so a plain `flex flex-col` below `lg` reproduces today's stacking with no reorder classes needed. The existing `lg:hidden` fixed bottom bar + two-step sheet remains the actual mobile contact path either way.
+- **Incidental fix**: Subunits' grid dropped `xl:grid-cols-4` (sized for the old full-~1336px-width layout) down to capping at `lg:grid-cols-3`, since the section now lives in a ~760px column where 4 columns would run ~180px each.
+
+**Gallery pulled back out of the grid to full page width, badges/title/location moved below it (Sept 2026, same day).** The version above still confined the bento to the 7/12 left column, paired with Property details in the same block — matching the page's own established convention, but not what the reference layout actually showed: photos spanning the full width first, then the listing's name/etc. directly underneath, *then* the two-column details/contact split begins. Changed to match: the gallery (and its aspect-ratio math from the entry above — 21/9, not 4/3, still keyed to full page width) now renders between the breadcrumb and the grid, outside both columns; badges/title/h1/location moved from the top of the page to directly below the gallery. The grid itself is unchanged mechanically (still `lg:grid-cols-12`, still `row-span-2 lg:sticky lg:top-6` on the card) — its left column's row 1 now holds only the Property details card instead of gallery+details, which shortens row 1 but doesn't change the sticky math (the card's cell still spans row 1 + row 2, i.e. Property details through Reviews).
+
+**Badges/title/location moved once more — into row 1 of the grid's left column, not above the grid (Sept 2026, same day).** The version above put badges/title/location in their own full-width block between the gallery and the grid, so the card's row 1 started only once that whole block ended — visually, the sticky card began below the property name instead of level with it. Corrected per reference: badges/title/location are now the first children inside the left column's `lg:row-start-1` div, directly above the Property details card, so the card (right column, same `row-start-1`) starts flush with the "Verified" badge row. Dropped the leading `mt-6` that used to sit on the card's white surface — it existed to match a taller offset from an earlier layout and would have pushed the card 24px below the badges now that they share a row start.
+
+**A third Blade tokeniser trap, same family (Aug 21 2026): Alpine's `@error` shorthand collides with Blade's own `@error(...)` directive.** Blade reserves `@error('field') ... @enderror` for validation messages and scans for it regardless of context — writing `<img @error="failed = true">` as the Alpine `x-on:error` shorthand parses as the start of a `@error` block with no matching `@enderror`, breaking compilation for the whole file with `ParseError: unexpected end of file` (not a Blade-specific error message, so it's not obviously a Blade problem from the trace alone). Fix: spell it out as `x-on:error="..."` instead of `@error="..."` whenever the DOM event is `error` — the shorthand is the one Alpine event name that can never safely use `@`. `@click`, `@input`, etc. are fine; only `error` collides.
 
 ## 6f. Multi-step wizard layout (landlord verification) — July 2026
 The verification flow (`landlord/verification/create`) is the pattern for any multi-step task.
@@ -189,22 +311,34 @@ The control carries only an `aria-label`; the visible instruction lives in the h
 
 **Signature: capture brackets** (`<x-capture-brackets />`). Four teal L-shapes on the camera surface, replacing the thin white rectangle that used to float in the feed. Colour is a real state signal, so it only changes where the page actually knows: the selfie ring drives off `livenessGuideColor` (teal → green), while ID framing stays teal because nothing detects whether an ID is lined up — **don't fake a "ready" state the code can't detect.** The shutter overlaps the surface bottom edge (`-mt-6 relative z-10` + a lifted shadow) where a camera puts it, instead of orphaned below the card.
 
+**Second adopter: the property creation wizard (`landlord/properties/wizard/*`, Aug 2026).** Shipped first as its own thing — a horizontal top stepper with every step wrapped in a flat white card — which was exactly the pattern this section already documents as wrong, rebuilt one level deeper. Converted to this section's shape wholesale: same rail markup and states (`components/property-wizard-stepper.blade.php`, adapted from `verification/_stepper`), same eyebrow+heading+`max-w-md` supporting line, same footer bar (`mt-7 pt-5 border-t border-[#E2E8F0]`, ghost Back left, primary `ml-auto`, `disabled:hover:brightness-100`), no cards on step content. **One structural difference, not a style deviation:** this wizard is server-rendered and multi-page (Draft persists to a real `Property` row from Step 2 onward, so a landlord can close the tab and resume days later), where verification is a single Alpine component with all five phases in one file, `step` as reactive client state. The rail here computes done/current/upcoming from the `$current` step key passed into the component per page load — there is no shared Alpine state across full page navigations to read from. Numbering is earned the same way §6f already argues: property setup genuinely is a fixed six-step sequence.
+
+**Reachability became data-driven, not position-driven (Aug 28 2026).** An optional `$checklist` prop (`PropertyWizardController::buildChecklist()`) lets a step be checked and clickable — forward or back — once its own data is actually complete, instead of "have I scrolled past this step's position." Clicking back to fix Amenities no longer un-checks Documents/Units if they were already done. The step being viewed always shows the teal current state, never a checkmark, even when its own data happens to already satisfy the checklist. See ARCHITECTURE.md's decision log.
+
 ## 6g. Read-then-act pages (rental agreement) — July 2026
 `agreements/show` is a document you must read and then act on. It shipped as `max-w-3xl mx-auto` with the sign controls as the last thing on the page, so on a 1920 screen it was a 768px strip with ~1,150px of dead margin **and** the tenant had to scroll past the whole contract to reach the checkboxes. The action was below the fold on the one page where the action matters most.
 
 Now `max-w-[1200px] mx-auto` split `lg:grid-cols-[minmax(0,1fr)_400px]`: the document keeps its 768px reading measure (deliberately — a contract wants a reading column, unlike the wizard's capture surfaces) and a **sticky action rail** takes the space that was empty. The rail is the same device §6c uses for create/edit forms and §6e for the property sidebar, so this is the established pattern, not a new one.
 
-- The rail leads with an **at-a-glance panel** — rent, property, target move-in, deposit, reference — then the state-dependent controls. Restating the figures beside the controls means the money isn't off-screen at the moment of signing. It doesn't replace reading the document; it stops the commitment being invisible.
+- The rail leads with an **at-a-glance panel** — rent, property, target move-in, lease term, deposit, reference — then the state-dependent controls. Restating the figures beside the controls means the money isn't off-screen at the moment of signing. It doesn't replace reading the document; it stops the commitment being invisible. Rent here (and in the document body's "Rental Fee" row) is `Reservation::monthlyRent()` — the negotiated `agreed_monthly_rent` when the parties set one, falling back to the unit's list price otherwise — not always the unit's list price. Lease term (`Reservation::duration_of_stay` — "N months" or "Open-ended") only appears when a move-in date was ever set (Aug 2026).
 - All five mutually exclusive states live in the rail (sign, pay, escrow held + move-in clocks, processing, occupied). Each is a self-contained white panel; the disputed-move-in modal still teleports to body.
 - **Print needs explicit handling.** The grid carries `print:block` and the rail `print:hidden` — otherwise the document prints squeezed into a grid column whose sibling no longer exists.
 - The agreement body lost its `border + rounded-xl + bg-[#F7FCFC]` wrapper. It's the document text, so it sits directly on the sheet; boxing it inside the card that already frames it was a third nested border carrying no meaning. The parties block and signature block keep their insets — those are data, not prose.
 
 ## 6g-bis. The chat panel is a fixed-height flex column — mind what you put in it
-`conversations/partials/chat-panel` is `flex flex-col h-full`: header, stepper, action bar, message list (`flex-1 overflow-y-auto`), composer. **The action bar is `flex-shrink-0`**, so anything tall placed in it takes the space from the messages and then overflows the panel — and because the clipping container has no scroll of its own, a tall action's buttons become unreachable rather than merely cramped. Two rules came out of that:
+`conversations/partials/chat-panel` is `flex flex-col h-full`: header, sticky terms strip + progress bar, action bar, message list (`flex-1 overflow-y-auto`), composer. **The action bar is `flex-shrink-0`**, so anything tall placed in it takes the space from the messages and then overflows the panel — and because the clipping container has no scroll of its own, a tall action's buttons become unreachable rather than merely cramped. Two rules came out of that:
 - **The bar carries `max-h-[55%] overflow-y-auto`.** A ceiling means no future action, however tall, can crush the thread — reading it is why anyone opened the screen.
 - **Anything approaching full-panel height belongs in a teleported modal, not the bar.** The handover picker (~600px) is `x-teleport="body"` with a scrolling backdrop; it escapes the flex column entirely, and mobile gets a full-width sheet for free. Actions that are a row of buttons stay inline.
 
 Long-lived cards in the bar are collapsible with a chevron in their header (`expanded`), defaulting open only when something is genuinely waiting on this viewer.
+
+**Sticky terms strip + slim progress bar (Aug 2026).** The old circle-node stepper carried only the stage; property, unit, and the rent/deposit/due-at-move-in breakdown lived behind the collapsible "Details" toggle, so a landlord opening a fresh inquiry saw a bare name and two buttons until they clicked something. Both now sit in one always-visible strip directly under the header — thumbnail, property/unit, then Monthly rent / Security deposit / Due at move-in as label-over-value columns, plus a stage pill on the right (same `Inquiry`/`Negotiation`/`Agreement`/`Signed`/`Paid`/`Occupied` labels the conversation-list sidebar already uses). Below it, `_stage-stepper.blade.php` is a single filled bar (`bg-[#E2E8F0]` track, `bg-[#2AA7A1]` fill, width = `(currentStageIndex + 1) / 6 * 100%`) with six uppercase labels underneath — no more circle nodes. Both render only for `$reservation && !$isTerminal`; the terminal (Cancelled/Rejected/Completed) state keeps its existing red banner unchanged. Because the strip now always carries the property/rent context, the "Details" toggle went back to defaulting collapsed for every role and stage — it holds only move-in/move-out dates and the original remarks now, not the property card (which would otherwise duplicate the strip).
+
+**Inquiry-summary card in the thread.** The first message on a reservation's conversation (`Message.is_inquiry_summary`) renders as a small white card — property thumbnail, dates when set, the same rent/deposit/due breakdown as the strip, and the tenant's note in quotes if they typed one — instead of a plain text bubble. It always sits on the **left with the tenant's avatar**, regardless of which party is viewing (it reads as something the tenant sent, not as "your own message" when the tenant is the viewer) — this is a deliberate exception to the normal self/other bubble alignment rule elsewhere in the same loop.
+
+**Trap:** `chat-panel` is fetched by AJAX and swapped into `#chat-panel-wrapper` (`inboxApp()` in `conversations/index.blade.php`) — clicking a conversation row never touches the browser URL by itself. `loadConversation()` now calls `history.replaceState` to stamp `?active={id}` onto the address bar for exactly this reason: without it, a plain-form action inside the panel (Accept & negotiate, Reject, Send agreement — all real POSTs that `return back()`) or `resolveConversation()`'s `window.location.reload()` lands back on a bare `/conversations` with no `active` param, and the panel comes back to the empty "Select a conversation" state even though the action itself succeeded. Any future action that navigates away from the AJAX-loaded panel needs the URL to already be in sync, not fixed up after the fact.
+
+**Inbox shell header — documented exception to §6b.** `conversations/index.blade.php`'s header (icon, "Inquiries"/"Messages" title, subtitle, property filter) is merged into the *same* rounded card as the tabs and split panel below it — one border, one shadow, a `border-b` divider between header and tabs, not two stacked floating cards. §6b's "page-title headers are never wrapped in a card" holds everywhere else; this page is the one deliberate exception, because the header and the split panel read as one inbox surface, not a title sitting above unrelated content. The icon box still uses the standard index-page convention (`w-11 h-11 rounded-xl bg-[#1F2937]`, §6b) rather than a bespoke gradient square.
 
 ## 6h. Date/time picking — `<x-datetime-picker>` (July 2026)
 `<input type="datetime-local">` is not usable here. Browsers render it as an unstyleable segmented control (`07 / 23 / 2026, --:-- --`) that ignores every token in this file, and — the reason that actually matters — it cannot show where the escalation deadline falls, which is the only fact that makes one handover slot better than another.
@@ -258,14 +392,14 @@ The sticky public header (`layouts/app.blade.php`, `z-[100]`, see §5) carries t
 ## 6k. Auth modal — split panel (redesigned July 25 2026)
 The guest auth dialog (`#auth-modal` in `layouts/app.blade.php`, `z-[9999]`, see §5) was a single centred white card; it is now a **two-column split panel** inside one `rounded-[24px] overflow-hidden` container (`max-w-3xl`, `flex-col md:flex-row`).
 
-- **Left brand panel (`md:w-[42%]`, hidden below `md`).** A teal gradient (`bg-gradient-to-br from-[#0E3A3A] via-[#155E6E] to-[#2AA7A1]`) with two soft blurred white blobs (`bg-white/10 blur-2xl`, `bg-white/5 blur-3xl`) as ambient depth, a rounded-square home glyph (`bg-white/15 backdrop-blur`), a contextual title + subtitle, and `© {{ date('Y') }} AbangananHub` pinned to the bottom. It carries the welcome/branding that each form view used to repeat, so the form side stays lean. The navy-ish `#0E3A3A` gradient stop is a deep-teal, not the footer navy `#0F172A` (§palette exception applies to the footer only).
+- **Left brand panel (`md:w-[42%]`, hidden below `md`).** Solid navy (`bg-[#060D26]`) with two soft blurred white blobs (`bg-white/10 blur-2xl`, `bg-white/5 blur-3xl`) as ambient depth, a rounded-square home glyph (`bg-white/15 backdrop-blur`), a contextual title + subtitle, and `© {{ date('Y') }} AbangananHub` pinned to the bottom. It carries the welcome/branding that each form view used to repeat, so the form side stays lean. **Was a teal gradient (`from-[#0E3A3A] via-[#155E6E] to-[#2AA7A1]`) until Sept 2026's navy/gold reskin** — flattened to the same solid `#060D26` every other dark surface in the app uses (sidebar, footer, page-header icon boxes), rather than inventing a new gradient; the white blur blobs already carry the depth cue on their own.
 - **Copy swaps per view, not the DOM.** `#auth-side-title` / `#auth-side-subtitle` are set by a `sideCopy` map in `openAuthModal(mode)` — login → "Welcome back", register → "Join us", forgot → "Reset password", sent → "Check your inbox". The left panel is one shared shell; only the two text nodes change, so there is no duplicated markup per mode.
 - **Right form panel (`md:w-[58%]`).** White, `overflow-y-auto` with the hidden-scrollbar recipe, holds the four swapped views (`login`/`register`/`forgot-password`/`forgot-password-sent`) and the single shared `#modal-error-bag`. Close ✕ sits top-right of *this* panel. Headings are terse per the prototype — **Login** / **Create Account** — with a one-line subtitle, dropping the per-view logo lockup and repeated copyright footer.
-- **Primary buttons are the gradient, not the flat fill.** Auth CTAs use `bg-gradient-to-r from-[#2AA7A1] to-[#156F8C]` with `hover:brightness-105` (the one place a teal→deep-teal gradient button is standard; the rest of the app uses the flat `#2AA7A1` fill per §7). Register keeps **Contact Number** and **Confirm Password** — the prototype omits them but the controller requires them; the visual match doesn't override backend validation.
+- **Primary buttons are the flat navy fill, not a gradient (Sept 2026).** Auth CTAs are `bg-[#060D26]` with `#F7F4ED` cream text, same as every other primary button in the app per §7 — no exception any more. **Was `bg-gradient-to-r from-[#2AA7A1] to-[#156F8C]`** (a deliberate one-off gradient exception) through the Ocean Teal era; the Sept 2026 reskin's first pass reworded this to a gold→navy gradient (`from-[#C9A84C] to-[#060D26]`) with `text-white` and missed that white-on-gold fails contrast at the gradient's start — found and fixed correcting this entry, not caught by the automated substitution pass. Register keeps **Contact Number** and **Confirm Password** — the prototype omits them but the controller requires them; the visual match doesn't override backend validation.
 - All AJAX wiring, routes, field `name`s, `handleAuthSubmit`/`handleForgotPasswordSubmit`, and the open/close rAF animation are unchanged — this was a markup/style reskin only.
 - **Vertical centering was clipping the card, not just cramping it (found and fixed July 25 2026).** `justify-center` on a `min-h-screen flex` column centers by clipping evenly from both ends once content is taller than the viewport — at 1366×738 the register card (six fields + banner + callout + footer) overflowed and the logo *and* the copyright line were both cropped off-screen simultaneously, with no visible top/bottom margin. That reads as "the form is huge" even though no single field grew — the whole card was just filling the viewport edge-to-edge with its middle showing. Fixed by dropping `justify-center` for plain top alignment (`items-center px-4 py-10 lg:py-14`, no `justify-center`) on all four standalone pages: short content still looks centered via the padding, tall content scrolls from a visible top instead of clipping both ends.
 - **Card scales in three tiers, not two (July 25 2026).** All four standalone forms previously jumped straight from a mobile-width card to one fixed `max-w-md`/`max-w-lg` at every screen ≥ that width — nothing distinguished a 768px tablet from a 1920px desktop, and a forced `lg:h-screen lg:overflow-hidden` on login/forgot/reset caused the same vertical cramming register had (see below). Now: card padding is `p-6 lg:p-8` and width steps `max-w-sm sm:max-w-md` (login/forgot/reset — single/paired fields don't need to grow further) or `max-w-sm sm:max-w-md lg:max-w-lg` (register — six fields benefit from the extra room only once there's a real desktop viewport). Headings step `text-lg sm:text-xl`. The `lg:h-screen`/`overflow-hidden` no-scroll box is gone from all four pages — each is a plain `min-h-screen` flex-center with natural scroll, matching the register fix already made.
-- **Standalone pages brought onto the same system (same pass).** The full-page `auth/{login,register,forgot-password,reset-password}.blade.php` keep their existing placement — form on the left half, marketing on the right half of `layouts/guest.blade.php` — but were realigned to this identity: (1) the right marketing panel's **glassmorphism was retired** (§6) — the `bg-[#0F172A]/25 backdrop-blur-lg` container and `bg-[#0F172A]/45 backdrop-blur-sm` feature cards became a plain `max-w-xl` block with solid `bg-[#0E3A3A]/70` cards (opaque enough to read as flat cards, but letting the photo texture show through), and the photo overlay went from slate `#1F2937` to a teal `from-[#0E3A3A]/95 via-[#124F5C]/88 to-[#156F8C]/70` gradient matching the modal brand panel; (2) every form **input** was unified to the modal recipe (`rounded-xl`, `px-4 py-2.5`, `text-[14px] text-[#1F2937]`, `placeholder-[#94A3B8]`, `focus:ring-2 focus:ring-[#2AA7A1]/20`) — replacing the older `rounded-lg`/`text-xs`/`ring-4`/`text-[#156F8C]` variant; (3) every submit **button** uses the same gradient CTA. Backend actions, field names, and validation untouched.
+- **Standalone pages brought onto the same system (same pass).** The full-page `auth/{login,register,forgot-password,reset-password}.blade.php` keep their existing placement — form on the left half, marketing on the right half of `layouts/guest.blade.php` — but were realigned to this identity: (1) the right marketing panel's **glassmorphism was retired** (§6) — the `bg-[#0F172A]/25 backdrop-blur-lg` container and `bg-[#0F172A]/45 backdrop-blur-sm` feature cards became a plain `max-w-xl` block with solid feature cards over a photo, and the photo overlay went from slate `#1F2937` to a two-stop navy vignette; (2) every form **input** was unified to the modal recipe (`rounded-xl`, `px-4 py-2.5`, `text-[14px]`, `placeholder-[#94A3B8]`, `focus:ring-2`); (3) every submit **button** matches the modal's flat CTA. Backend actions, field names, and validation untouched. **Navy/gold reskin (Sept 2026):** the feature cards and photo overlay were a teal gradient (`bg-[#0E3A3A]/70` cards, `from-[#0E3A3A]/95 via-[#124F5C]/88 to-[#156F8C]/70` overlay) matching the pre-reskin modal panel; both are now pure navy (`bg-[#060D26]/70` cards, `from-[#060D26]/55 to-[#060D26]/82` overlay per the reference mockup's own flat vignette formula) — found as a residual teal patch the bulk substitution pass missed (its hex, `#0E3A3A`/`#124F5C`, wasn't a top-level DESIGN.md palette token, so it wasn't in the automated grep's search list) and fixed manually after visual review.
 
 ## 6l. Part-to-whole status mix — where the breakdown belongs (`landlord/occupancy`, July 26 2026)
 The occupancy page's right rail held a **donut** with a centre percentage and a legend. It was replaced by a full-width **"Portfolio Mix" band** — a stacked Available/Reserved/Occupied/Maintenance bar with its own legend — and then **the band was deleted too**. Both moves are worth recording, because the second one undoes a mistake the first one made.
@@ -273,9 +407,9 @@ The occupancy page's right rail held a **donut** with a centre percentage and a 
 - **Why the donut went.** Four categories summing to a known total is a part-to-whole comparison, and length is easier to judge than angle. Its centre number (the occupancy rate) was also already a `<x-stat-card>` in the rail directly above it.
 - **Why the band that replaced it went.** Its legend read `20 (67%) · 3 (10%) · 7 (23%)` — **the same counts and the same percentages as the stat cards immediately above, each of which already draws its own `h-1.5` share bar.** That is the same number stated three times, costing a full row of vertical space. The donut's flaw was restating *one* figure; the band restated *all of them*. **A summary panel is redundant when the stat rail above it already carries every number it holds** — check the rail before adding one.
 - **What replaced both:** a sixth `<x-stat-card>` for Maintenance (the one count the band alone had carried), so the rail is the single home for portfolio-level numbers. `lg:grid-cols-6`, with Occupancy Rate spanning full width on the two smaller breakpoints.
-- **Mix lives per-property, where the rail can't reach.** Each property row in Unit Status Overview keeps an `h-2 w-24` stacked bar. That is genuinely new information — the rail is portfolio-wide and says nothing about how any one property is doing — which is exactly the test the deleted band failed. Segments carry `title` + `aria-label` (a stacked bar is otherwise colour-only), and **zero-count segments are skipped, not rendered at 0% width**, since a zero-width div beside a `gap-px` sibling still draws a hairline that reads as a trace amount.
-- **Status filter chips tint to their own status when active** (`bg-[#22C55E]/[0.12] text-[#15803D] border-[#22C55E]/45` and siblings) instead of all turning charcoal `#1F2937`. §3 reserves colour for status; four chips that go the same dark grey on select throw that signal away. The neutral "All" chip keeps the charcoal fill, since it has no status of its own.
-- Recent Activity moved into the right rail below the trend chart and became a **timeline** — a `w-px` `#E2E8F0` rule behind the status dots, stopped short of the last dot's centre so it doesn't dangle past the final entry.
+- **Mix lived per-property, where the rail can't reach.** Each property row in Unit Status Overview carried an `h-2 w-24` stacked bar — genuinely new information, since the rail is portfolio-wide and says nothing about how any one property is doing, which is exactly the test the deleted band failed. **That whole panel was removed Aug 30 2026 — see §6o**; per-property counts now live only on the `landlord/properties` index. The bar's own rules are recorded here because they apply to any stacked bar: segments carry `title` + `aria-label` (a stacked bar is otherwise colour-only), and **zero-count segments are skipped, not rendered at 0% width**, since a zero-width div beside a `gap-px` sibling still draws a hairline that reads as a trace amount.
+- **Status filter chips tinted to their own status when active** (`bg-[#22C55E]/[0.12] text-[#15803D] border-[#22C55E]/45` and siblings) instead of all turning charcoal `#1F2937`. §3 reserves colour for status; four chips that go the same dark grey on select throw that signal away. The neutral "All" chip kept the charcoal fill, since it has no status of its own. The chips went with the panel in §6o — the rule stands wherever status chips reappear.
+- Recent Activity is a **timeline** — a `w-px` `#E2E8F0` rule behind the status dots, stopped short of the last dot's centre so it doesn't dangle past the final entry.
 
 **The Occupancy Trend chart was removed — the panel is now Vacancy Watch.** The trend plotted 30 days of occupancy rate from `occupancy_snapshots`. It looked like insight and wasn't: it answered *what was my occupancy three weeks ago*, which the landlord already lived through and cannot change, and it assumed an audience that reads trend lines. Most landlords on this platform run a handful of properties and open this page to find out what needs doing.
 
@@ -287,25 +421,95 @@ The occupancy page's right rail held a **donut** with a centre percentage and a 
 - **The page no longer loads Chart.js.** The trend was its only chart, so the CDN `<script>` went with it and the view dropped a ~200KB third-party bundle. **When removing the last chart from a page, check the `@push('scripts')` block** — an orphaned CDN tag is invisible in review and costs every visit.
 - The nightly `occupancy:snapshot` command still runs and still writes history nobody reads. That is deliberate — see the decision log in ARCHITECTURE.md.
 
+## 6m. Low-ceiling management pages get one column, not a dashboard grid (`landlord/documents`, Aug 2026)
+`property_documents` caps at **7 rows per property** — one per `PropertyDocument::TYPES`, no more can ever exist. The first build gave the page a `max-w-[1400px]` two-column layout (main content + a 300px sidebar) to "use the available width," the same instinct that's right on `landlord/properties/show` or the admin catalogue. It was wrong here: with the realistic 1-3 documents most properties will ever have, a single card sat alone in a wide grid cell with a dead gap beside it, and the sidebar ran out of content (a property mini-card, a status tally, a privacy note) before the page did.
+
+- **Check the content's real ceiling before choosing a layout width, not just its current row count.** A table or list that can grow unboundedly earns width and a multi-column treatment; one with a small structural cap (an enum of finite types, a fixed set of steps) reads as broken the moment the layout is wider than the content will ever be.
+- **A sidebar that exists to fill width is the same defect as an empty page, wearing a border.** Both cards cut here duplicated content already on the page rather than adding real information — "Back to property" repeated the breadcrumb, and the privacy note repeated the header subtitle's own sentence verbatim. Test a sidebar module against "does this say something the page doesn't already say," not "does this look like it belongs in a rail."
+- **A summary strip only earns its place once there's something to summarize.** The status counts (Verified/Pending/Rejected/Awaiting-upload) render as a compact dot-and-count inline row, and only once `$documents->count() > 1` — at exactly one document, that document's own status badge already carries the same information, so the strip would just restate it (same principle as §6l's part-to-whole redundancy check).
+
+**The upload flow is a right-side slide-over, not an inline always-open form.** The original layout rendered the full upload form (type select, file input, two more fields, submit) permanently at the bottom of the page — findable only after scrolling past every existing document, and taking up the same vertical weight whether or not the landlord came to upload. It's now a "+ Upload a document" trigger in the header that opens `w-full max-w-md` panel sliding in from the right (`translate-x-full` → `translate-x-0`, backdrop click or Escape to dismiss) — the craft-floor default against modals for a task that "needs neither interruption nor protected focus" was deliberately overridden here per explicit user direction, and works because the panel doesn't block reading the existing document list behind the backdrop, it just gets out of the way instantly on close. Same trigger-then-panel shape now also gates each individual "requested by admin" card's upload form and each rejected document's resubmit form (both were previously always-open too), keeping the list scannable regardless of how many documents are mid-fix at once.
+
+**Same trigger-then-reveal reasoning reapplied to the property wizard's Documents step** (Aug 2026, `landlord/properties/wizard/documents.blade.php`): first pass rendered all 7 `PropertyDocument::TYPES` as identical always-open upload boxes, so the 2 that are actually required (Proof of Ownership, Tax Declaration) carried no more visual weight than the 5 a landlord will usually never touch. Split instead: required types stay permanently visible with their own compact dropzone (see §7's single-click upload entry); the 5 optional types collapse behind one "Add another document" trigger that reveals an inline type-picker + upload form — a lighter, non-slide-over version of this section's panel since it already lives inside a wizard step's own content column, not a full management page.
+
+## 6n. Status colour is a claim about obligation, not about arithmetic (rent ledger, Aug 29 2026)
+
+The rent ledger's period pills (`landlord/tenancies/show`, `tenant/tenancy/show`) key off
+`RentLedger`'s per-period `status`, and every pill was chosen for a month that had already arrived:
+amber `Partial`, red `Overdue`, a red balance figure. Once advance rent landed, the ledger's window
+began reaching into **future** months — and every one of those signals inverted its meaning. A month
+someone paid for *early* rendered amber with a red balance, which reads as "this tenant is behind"
+about a month nobody has reached.
+
+- **Branch on `is_future` before choosing a colour or a verb.** Three separate surfaces got this
+  wrong in one pass — the pill, the balance figure's red, and the record-payment modal's
+  "₱1,000 left" — because each independently assumed a non-zero balance meant a debt.
+- Future periods use the teal family, never the amber/red tiers: fully covered is
+  `Paid · Advance` (`bg-[#EEF8F8] text-[#156F8C] border-[#2AA7A1]/25`), part-covered is
+  `Advance · part` on the quieter `bg-[#F7FCFC]` ground. Both read as credit, which is what they are.
+- The same rule governs wording, not just colour: "₱1,000 left" became "₱1,000 of this month still
+  open", because the first phrasing is a demand and the second is a statement of fact.
+- **A default that lands on a future row is its own bug.** The record-payment modal fell back to
+  `$periods->last()`, which on a prepaid tenancy is the furthest *future* month — pre-selecting a
+  month already settled and inviting a duplicate payment against it. Any "most relevant row"
+  fallback on a ledger needs to exclude what hasn't happened yet.
+
+Generalises past rent: whenever a list gains rows that sit ahead of "now", re-check every colour,
+badge, default and sentence that was written when every row was in the past.
+
+## 6o. One list, one owner — Units vs Occupancy (Aug 30 2026)
+Three landlord surfaces rendered unit rows. `Occupancy`'s "Unit Status Overview" was a near-exact duplicate of the `Units` page: same rows, same status chips, same tenant column, same per-unit edit link, and a **separately maintained copy of the same unit detail modal**. ~258 lines of Blade + Alpine, plus a `$unitStatusOverview` payload in the controller, for a list that already existed one nav item away.
+
+- **The redundancy test from §6l applies to whole panels, not just summary strips.** A panel is redundant when another *page* already owns its content, not only when the rail above it does. Ask "who owns this list?" before building a second view of it.
+- **The split is by verb: `Units` manages, `Occupancy` monitors.** Units answers *what is this unit and what does it rent for* (search, filters, rent, edit, delete, CSV). Occupancy answers *how is the portfolio doing* (rate, Vacancy Watch, activity). Neither needs the other's job. `Properties → show → Units` stays as the single-property tab — it can't replace Units, because it can't answer a question about a unit whose property you don't remember.
+- **A stat tile is the right hand-off.** Each of the five status tiles is now an `<x-stat-card :href>` into `landlord.units.index` with the matching `?status=`, carrying the active `?property=` through so the two pages agree. Occupancy still answers "which units are occupied?" — it just links to the page that owns the list instead of redrawing it. The Occupancy Rate tile stays a plain `div`: no list corresponds to it.
+- **Deleting a panel means deleting what fed it.** The controller's `$units` eager-loaded `media` and `amenities` solely to fill the removed modal — two extra queries plus every unit's media rows and amenity pivot, on every page view. **Check the eager loads when you delete a view; they don't announce themselves.** Same for `$statusStyles`, which shed its now-unused `text` and `chip` keys.
+- **The breadcrumb was half the problem.** `landlord/units` opened with a `Properties › Units` crumb while the sidebar listed Units as a sibling of Properties. A page that claims a parent the nav doesn't give it reads as a duplicate entry even when it isn't. **A top-level page gets no breadcrumb.**
+- **Match the tiles across a hand-off.** Units showed four stat cards and silently omitted Maintenance, though its filter dropdown offered it — so Occupancy's Maintenance tile would have landed on a page with no matching tile. Units is now `lg:grid-cols-5` with a grey Maintenance card, same `#64748B`/`#94A3B8` pair Occupancy uses.
+- Layout after the cut: the page's `lg:grid-cols-5` split (3 + 2) became `lg:grid-cols-2`, with Vacancy Watch and Recent Activity as direct grid children — side by side on desktop, stacked at 375px.
+
+## 6p. The page that had nothing left — `landlord/occupancy` deleted (Aug 30 2026)
+§6o moved the unit list off Occupancy onto Units. What remained was six stat tiles, Vacancy Watch and a Recent Activity timeline — and the tiles restated `landlord/analytics`' Occupancy Overview donut and occupancy-rate card exactly. **Two thirds of a page duplicating a page one nav item away is the §6l redundancy test again, at page scale.** The page was deleted and its two non-duplicate panels moved into Analytics.
+
+- **Strip a page down far enough and check whether anything is left.** The honest read after §6o was that Occupancy had become a wrapper around two panels. That is a merge, not a page. **When a refactor removes a page's main content, re-ask whether the page still earns a nav slot** — the instinct is to leave the shell standing because deleting feels bigger than editing.
+- **Delete the page, keep the panels that answer something nothing else does.** Vacancy Watch names a cost and a next step (idle rent in pesos, longest-empty units, edit link each); Analytics had no equivalent. Recent Activity was the only web reader of `occupancy_activities` — dropping it would have made that table write-only, which this codebase already carries once deliberately (`occupancy_snapshots`) and should not carry twice by accident. **Check what reads a table before deleting its only reader.**
+- **The range-mismatch objection did not survive checking.** Analytics has a range selector, and the moved panels are point-in-time — but `$occupancyBreakdown` and `$perProperty['rate']` were *already* point-in-time, reading current `availability_status` with no date filter, while only revenue and reservations honour the range. The page already mixed both clocks. **Verify a suspected inconsistency exists before designing around it.**
+- **Mixed clocks on one page must be labelled.** Both moved panels carry an "As of today" chip, because the page footer reads "Showing data for &lt;range&gt;" and that sentence must not appear to cover them. The pre-existing occupancy panels inherit the same ambiguity and should get the same chip if they are ever touched.
+- **A deleted page's inbound links need somewhere to go, not just removal.** "Occupancy by Property" lost a "View All" that pointed at the dead page. The public footer's "Occupancy Monitoring" became "Analytics & Occupancy" pointing at the surviving page rather than dropping to two items — a footer list that loses a third of its rows reads as an oversight.
+- Accepted loss: Occupancy's `?property=` filter. Analytics has none, so both panels are portfolio-wide. For "which of my units has been empty longest" that is the better default anyway — it is a portfolio question, and scoping it to one property hides the worst case.
+
+## 6q. Rent & Payments — month-scoped cards, capped ledger tables, and voiding a payment (Aug 30–31 2026)
+`landlord/payments` moved from reporting all-time collections to the current billing cycle: four `<x-stat-card>`s (Due This Month, Collected This Month, Total Unpaid, Overdue) above a table sorted worst-first, with a five-member status-pill family (`overdue` red, `partial` amber, `upcoming` slate, `paid` green, `paid_ahead` teal — `paid_ahead` deliberately stays in the teal/credit family per §6n, never amber or red, since a future month covered in advance is credit, not debt). One `$paymentStyles`/`$paymentStatusStyles` map per page drives both the dot and the pill text color so the sort/filter values and the rendered color can never drift apart — same discipline as the period-status map in §6n.
+
+- **A table that can grow past a screenful caps at 6 rows with a "Show all N" expand**, reusing §6e's unit-picker pattern (`x-show` gated on `$loop->index`, one flag flips it open, the flag itself hides the button once expanded). Applied to all three transaction tables on the tenancy ledger page (`landlord/tenancies/show`) — Rent payments, Deposits & other payments, Voided entries — each with its own `x-data="{ moreRows: false }"` scope on the `<x-card>` rather than a shared one, since the three tables have independent row counts and no reason to expand together.
+- **Voiding introduces the app's first solid-fill destructive button** (`bg-[#DC2626] text-white`, void-payment-modal's submit). Every prior destructive action (End tenancy, Delete) used the ghost/outline family (`border-[#EF4444]/30 text-[#DC2626] hover:bg-[#EF4444]/[0.06]`) — reserve the solid fill for an action that is both destructive *and* the sole purpose of the dialog it lives in, the way this modal's only job is voiding. An outline button inside a single-purpose confirmation dialog under-signals; a solid red button on a page full of other actions over-signals. Don't reach for the solid fill outside a dedicated confirm modal.
+- **The void modal is a rebuild of `record-payment-modal`'s shell**, not a new pattern: same two-flag Alpine (`show` for the leave transition), same `x-teleport="body"`, same enter/leave timing curves. When a form's only job is confirming a destructive choice with a required reason, this is the modal to copy — not `x-confirm-modal` (§ Modals & Overlays in RULES.md), which is for a plain yes/no and can't hold a reason select or a conditional note field.
+- **A checkbox that becomes mandatory under some condition renders as a locked badge, not a disabled checkbox.** The walk-in "Record one now" toggle (`landlord/tenants/walk-in/create`) becomes a non-interactive coral "Required" pill once the move-in date is today or earlier, paired with a short explanatory banner in the same red family as the void notice above. A `disabled`-but-checked checkbox would still look optional at a glance; removing the control entirely and stating the requirement in words does not.
+
 ## 7. Components
 - Border radius default: `rounded-2xl` (standard), `rounded-3xl` (hero sections only)
-- Shadow style: `shadow-[0_1px_3px_rgba(15,23,42,0.06)]` on cards — a hairline lift, not a drop shadow. `shadow-lg` is reserved for floating UI (dropdowns, modals, tooltips) that must read as detached from the page. Property cards use the image-is-the-card pattern (no shadow wrapper).
-- Button rules: `cursor-pointer` on all clickable elements; hover via `hover:brightness-95`, never layout-shifting scale. CTA buttons use `#FF8A65`. Standard buttons use `#2AA7A1` fill.
+- Shadow style: `shadow-[0_1px_3px_rgba(6,13,38,0.06)]` on cards — a hairline lift, not a drop shadow. `shadow-lg` is reserved for floating UI (dropdowns, modals, tooltips) that must read as detached from the page. Property cards use the image-is-the-card pattern (no shadow wrapper).
+- Button rules: `cursor-pointer` on all clickable elements; hover via `hover:brightness-95`, never layout-shifting scale. CTA and standard buttons share one treatment: `#060D26` navy fill with `#F7F4ED` cream text (Sept 2026 — the old system split these into coral CTA vs teal standard; the new identity uses one navy fill everywhere).
 - Input/form rules: every input has a real `<label for>`, not placeholder-as-label
-- **Search input recipe (standardized July 22, 2026):** every text search field — landlord Properties/Tenants/Units/Reservations, Conversations, Favorites, plus the pre-existing admin index pages — now shares one class string: `h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200`, with a `w-4 h-4`/`15×15` search icon in `text-[#94A3B8]` at `left-3.5`. Before this pass there were 4 different combinations in the wild (`border-[#64748B]/25` vs `border-[#E2E8F0]`, `focus:ring-1` vs `ring-2`, `h-10` vs `h-11` vs `py-2.5`, icon color `#64748B` vs `#94A3B8`). The one exception is the narrow conversation-sidebar search (`conversations/index.blade.php`), which keeps a smaller `text-[12px]`/`py-2` footprint for its tight column width but uses the same border/ring/icon colors. When adding a new search field, copy this recipe rather than approximating it.
-- **`<x-search-pill variant="header|hero">`** — the Where/Type/Budget form. Rendered by the sticky header on every public page *and* by the browse hero; `variant` changes only scale and max-width, never the fields. It was inline in `layouts/app` until July 24 2026, when the hero needed it too — copying it would have made two copies of a form whose three field names the controller reads. It now also **preserves its own values** (searching "Labangon" used to clear the box) and carries `verified`/`sort` through as hidden inputs so a search can't silently drop them. Below `sm` both variants use identical tight metrics — the hero's larger padding does not fit three fields on a phone.
+- **Search input recipe (standardized July 22, 2026; hexes updated Sept 2026):** every text search field — landlord Properties/Tenants/Units/Reservations, Conversations, Favorites, plus the pre-existing admin index pages — now shares one class string: `h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200`, with a `w-4 h-4`/`15×15` search icon in `text-[#94A3B8]` at `left-3.5`. Before the July 2026 pass there were 4 different combinations in the wild (`border-[#64748B]/25` vs `border-[#E2E8F0]`, `focus:ring-1` vs `ring-2`, `h-10` vs `h-11` vs `py-2.5`, icon color `#64748B` vs `#94A3B8` — those hexes are pre-Sept-2026 history, see §10 for their current-palette equivalents). The one exception is the narrow conversation-sidebar search (`conversations/index.blade.php`), which keeps a smaller `text-[12px]`/`py-2` footprint for its tight column width but uses the same border/ring/icon colors. When adding a new search field, copy this recipe rather than approximating it.
+- **`<x-search-pill variant="header|hero">`** — the Where/Type/Budget form. Rendered by the sticky header on every public page *and* by the browse hero; `variant` changes only scale and max-width, never the fields. It was inline in `layouts/app` until July 24 2026, when the hero needed it too — copying it would have made two copies of a form whose field names the controller reads. It now also **preserves its own values** (searching "Labangon" used to clear the box) and carries `verified`/`sort` through as hidden inputs so a search can't silently drop them. Below `sm` both variants use identical tight metrics — the hero's larger padding does not fit the fields on a phone.
+  - **Budget is a min–max range (Sept 2026), not a single "Max" field.** Two `price_min`/`price_max` number inputs share the one "Budget" label, separated by an en dash. `Property::scopeBrowseFilters()` applies each bound independently (`rental_fee >= price_min` / `<= price_max`, either optional) in the same `whereHas('units', ...)` query, and both the web `PropertyController` and the API `PropertyController` (used by the map view) pass `price_min` through identically to `price_max` — they read the same scope, so a filter added to one and not the other silently drifts between list and map results. The active-filter chip on `properties/index.blade.php` shows `₱min–₱max` when both are set, or `Min ₱x`/`Max ₱x` alone, and its ✕ clears both query params via `fullUrlWithoutQuery(['price_min', 'price_max'])`.
 - **`<x-category-strip>`** — the property-type quick filters, centred from `md` up (`justify-start` below it, because the row scrolls on narrow screens and centring overflowing content pins the first item off the left edge where it can't be scrolled back to). Takes **no props**: both placements render identically, and it briefly carried a `variant` that changed only the justification before the browse strip was centred to match the header. Active state is derived from `request()` server-side. The old inline markup carried `category-link` + `data-type` hooks for JS **that was never written**, so the strip never showed which filter was on; clicking Bedspace looked identical to browsing everything. The state is already in the URL, so it never needed JS.
 - Icon set: Heroicons (outline/stroke), inline SVG only. **No emojis anywhere, ever.** Unicode checkmarks (✓) acceptable as plain text only.
 - Touch targets: minimum 44x44px on interactive elements
-- Card spec: `<x-card>` → `bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.06)]` (see §6)
-- **Stat cards — unified on `<x-stat-card>` (July 26, 2026).** Before this pass every index page had hand-copied its own variant (clickable pill+dot, full-tint background, icon-top-left, no icon at all, inline icon+label row) — six divergent families across admin/landlord/tenant, plus an unused `<x-stat-card>` that matched none of them. Now every KPI card in the app is `resources/views/components/stat-card.blade.php`: white card, uppercase `#64748B` label + optional 8×8 tinted icon box top-right (`w-8 h-8 rounded-lg`, `icon-bg` prop), `text-2xl font-extrabold` value in `value-color`, optional `h-1.5` progress bar (`percent`/`bar-color` props) + muted sub-caption. Pass `href` to make a card clickable (renders `<a>` instead of `<div>`, e.g. filter-shortcut cards). Omit `percent` entirely for counts that aren't a share of a total (reviews, complaints, reservations by stage).
-- **Page headers — unified on `<x-page-header>` (same pass).** The icon-box + title/subtitle + right-side actions pattern (§6b) was also hand-copied with drift (missing icon box, badge instead of actions, smaller title). `resources/views/components/page-header.blade.php` takes `title`/`subtitle` props plus optional `<x-slot:icon>` (11×11 dark `bg-[#1F2937]` box, svg `stroke="white"`) and `<x-slot:actions>` (right-aligned buttons/controls). Use it for every index-page header instead of retyping the header block.
+- Card spec: `<x-card>` → `bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)]` (see §6)
+- **Stat cards — unified on `<x-stat-card>` (July 26, 2026).** Before this pass every index page had hand-copied its own variant (clickable pill+dot, full-tint background, icon-top-left, no icon at all, inline icon+label row) — six divergent families across admin/landlord/tenant, plus an unused `<x-stat-card>` that matched none of them. Now every KPI card in the app is `resources/views/components/stat-card.blade.php`: white card, uppercase `#5B6A8E` label + optional 8×8 tinted icon box top-right (`w-8 h-8 rounded-lg`, `icon-bg` prop), `text-2xl font-extrabold` value in `value-color` (a bare `<span>`, not a heading tag or `.font-heading`/`.font-display` class — stays on Inter, not the DM Serif Display swap, so real bold applies cleanly with no synthesis), optional `h-1.5` progress bar (`percent`/`bar-color` props) + muted sub-caption. Pass `href` to make a card clickable (renders `<a>` instead of `<div>`, e.g. filter-shortcut cards). Omit `percent` entirely for counts that aren't a share of a total (reviews, complaints, reservations by stage).
+- **Page headers — unified on `<x-page-header>` (same pass).** The icon-box + title/subtitle + right-side actions pattern (§6b) was also hand-copied with drift (missing icon box, badge instead of actions, smaller title). `resources/views/components/page-header.blade.php` takes `title`/`subtitle` props plus optional `<x-slot:icon>` (11×11 dark `bg-[#060D26]` box, svg `stroke="white"`) and `<x-slot:actions>` (right-aligned buttons/controls). Use it for every index-page header instead of retyping the header block.
 - Status color mapping — fixed across the app: Available `#22C55E`, Reserved `#FBBF24`, Occupied `#EF4444`, Maintenance `#94A3B8`. Text-on-white variants darken to `#15803D` / `#B45309` / `#DC2626` for contrast. Never use raw Tailwind `emerald-*`/`amber-*`/`red-*`/`slate-*` utilities — always the token hexes.
 - **Chart.js color parity (bug found and fixed July 21, 2026):** the migration audit greps in §11b only catch raw color utilities in Blade — they can't see hex literals inside a `<script>` block's Chart.js config, so two dashboard charts drifted from the token palette independently of the CSS migration. `admin/dashboard.blade.php`'s line-chart legend swatches (`bg-[#22C55E]`, `bg-[#FBBF24]`) didn't match the actual `borderColor` values Chart.js was rendering (`#10b981`, `#f59e0b` — a different green/amber entirely), and its fill `backgroundColor` was a leftover `rgba(40,108,210,...)`, a blue with no token behind it at all. The user-distribution donut (dashboard) and the role-breakdown donut (`admin/users/index.blade.php`) both used raw `#a855f7` purple for "Admins" — the exact anti-pattern §10 bans in CSS, just written as a JS color literal instead — and that purple didn't even match its own HTML legend dot, which was reusing the Tenant teal. Fixed: every Chart.js `borderColor`/`backgroundColor`/dataset color is now the literal token hex, matched 1:1 against the Blade-side legend swatch it corresponds to; Admins now render as `#69D2C6` (aqua accent) instead of purple. **When auditing charts for palette compliance, read the `<script>` block too — hex literals in JS are invisible to a Blade-only grep.**
-- **Deadline banners** (move-in escrow, July 22 2026) — a countdown is only ever shown to the party who can miss it. On Clock 1 the tenant sees a calm "Payment secured" note with **no** number, because a countdown there implies a deadline they can act on and the deadline is the landlord's; on Clock 2 they get a live day count that escalates from amber to red at ≤1 day, and after expiry states plainly that the deposit will be released rather than pretending the window is still open. Escalation is by tint only — never by size, motion, or an added icon. `agreements/show.blade.php` was converted from raw `amber-*`/`red-*`/`sky-*` Tailwind utilities to the token hexes (`#FBBF24`/`#EF4444`/`#EEF8F8`+`#156F8C`) on July 22, 2026, matching the rest of the app. **Still pending:** `admin/reservations/index.blade.php` has not had the same pass yet — check it before assuming the whole escrow surface is token-clean.
+- **Deadline banners** (move-in escrow, July 22 2026) — a countdown is only ever shown to the party who can miss it. On Clock 1 the tenant sees a calm "Payment secured" note with **no** number, because a countdown there implies a deadline they can act on and the deadline is the landlord's; on Clock 2 they get a live day count that escalates from amber to red at ≤1 day, and after expiry states plainly that the deposit will be released rather than pretending the window is still open. Escalation is by tint only — never by size, motion, or an added icon. `agreements/show.blade.php` was converted from raw `amber-*`/`red-*`/`sky-*` Tailwind utilities to the token hexes (`#FBBF24`/`#EF4444`/`#EEF8F8`+`#156F8C`) on July 22, 2026, matching the rest of the app. `admin/reservations/index.blade.php` has since had the same pass (confirmed Aug 2026: zero raw Tailwind color utilities remain) — the whole escrow surface is token-clean.
 - **Landlord move-in turnover confirmation (July 22, 2026)** — "Mark keys turned over" (`landlord/reservations/index.blade.php`, both the table row and card view) starts Clock 2 and is effectively irreversible from the landlord's side, but shipped as a bare `<button type="submit">` with zero warning. Now gated behind the standard `data-confirm` → `x-confirm-modal` flow (see `public/js/modal-confirm.js`), with the message reading the live `config('rentals.move_in_confirmation_days')` value rather than a hardcoded day count, so the copy can't drift from the actual deadline logic in `Reservation::markKeysTurnedOver()`.
 - **"Needs review" tab** (admin index pages) — a queue filter that layers on top of the status tabs rather than being a status itself, so it must explicitly suppress the active state on every status tab or two tabs highlight at once (see `admin/reservations/index`'s `$disputedActive` guard). Carries a red count pill only when the queue is non-empty; an empty queue shows no badge, not a zero.
-- **Notification modal** (`x-confirm-modal`) — one global component covering four types, distinguished only by the icon ring and the confirm button fill: confirm (teal `#2AA7A1`, question mark), success (emerald `#22C55E`, check), warning (amber `#FBBF24`, triangle), error (red `#EF4444`, x-circle). Soft icon ring on a tinted circle, centered title over muted message, `max-w-[370px]` white `rounded-2xl` panel. Renders a single OK button unless an `onConfirm` callback is supplied, which turns it into a two-button confirmation. Every post-redirect flash message in the app surfaces here — there are no inline flash banners.
+- **Notification modal** (`x-confirm-modal`) — one global component covering four types, distinguished only by the icon ring and the confirm button fill: confirm (navy `#060D26`, question mark), success (emerald `#22C55E`, check), warning (amber `#FBBF24`, triangle), error (red `#EF4444`, x-circle). Soft icon ring on a tinted circle, centered title over muted message, `max-w-[370px]` white `rounded-2xl` panel. Renders a single OK button unless an `onConfirm` callback is supplied, which turns it into a two-button confirmation. Every post-redirect flash message in the app surfaces here — there are no inline flash banners.
+  - **Split into two renderings (Aug 28 2026):** any dispatch carrying `onConfirm` — a real decision — still renders as this blocking backdrop dialog. A pure `success`/`warning` notification (no `onConfirm`) instead renders as a **toast** — `fixed top-20 right-5`, `w-[calc(100vw-2.5rem)] max-w-[360px]` (same responsive-width trick as `partials/message-notifications`' chat toast), white card, small tinted icon circle, a `h-1` progress bar (green/amber) that shrinks over a 5s `setTimeout` via a double-`requestAnimationFrame`'d width transition, dismissible early via a `w-11 h-11` (44px touch target) ✕. `top-20` was checked against the app's actual header heights, not guessed: the public header is `h-[64px]`, the admin/landlord mobile bar is 60px, neither varies by breakpoint, so one offset clears both. `error` notifications keep the blocking treatment on purpose.
+- **`<x-document-preview :preview-url :is-pdf :alt :height="'h-64'">`** (Aug 2026) — the inline document viewer used everywhere a `property_documents` file is shown (landlord documents page, admin document review). Renders an `<iframe>` for PDFs or an `<img>` for scans at the given height, plus an always-visible "Expand" button (top-right corner overlay, not hover-only — an iframe swallows click events, so the trigger can't be "click the preview itself") that opens a `z-[999]` fullscreen lightbox with the same content at full size, closable by an × button, backdrop click, or Escape. `height` takes a Tailwind height class (`h-48`, `h-64`, `h-[28rem]`) and is combined with a `max-` prefix for the `<img>` case so images never force scroll.
+- **`<x-document-status-badge :document>`** (Aug 2026) — the status pill for a `PropertyDocument`: reads `Requested` from `$document->isRequested()` (a row with no `file_path` yet) ahead of the stored `status`, otherwise `$document->display_status` (which folds in the derived `Expired` state — see ARCHITECTURE.md). Colors: Verified emerald, Rejected red, Expired slate, Requested blue `#3B82F6`/`#2563EB`, Pending amber (the default case) — the same status-tint family used everywhere else in the app, just with a `Requested`/`Expired` pair added for the two states that don't exist on any other model.
+- **Compact single-click upload dropzone** (`landlord/properties/wizard/partials/document-row.blade.php`, Aug 2026) — the recipe for "a file needs to go here" fields with no separate submit step, where the property/unit photo dropzones' full-height centered stack (§7 above, `p-6` + big icon + heading) is too tall to repeat once per row. `flex items-center gap-3 px-3.5 py-3 rounded-xl border-2 border-dashed border-[#E2E4EC] hover:border-[#C9A84C] bg-[#F7F8FC]` wrapping a small icon square + "Click to upload" text, with the actual `<input type="file" class="hidden">` firing `onchange="this.form.requestSubmit()"` instead of a separate Upload button. Cuts a required-document upload from three clicks (browse, pick, click Upload) to two. Reserve the explicit-button version for a deliberate, occasional action where the user is also choosing something else first (e.g. picking a document *type* before the file, as the wizard's optional-document panel still does) — auto-submit only where the single action is unambiguous.
 
 ## 8. Motion
 - Standard transition: `transition-all duration-200 ease-in-out` (200ms)
@@ -317,10 +521,10 @@ The occupancy page's right rail held a **donut** with a centre percentage and a 
 
 ## 9. Accessibility
 Target: **WCAG 2.2 Level AA.** Swept across all ~110 Blade views in July 2026.
-- Minimum contrast ratio: 4.5:1 for normal text (why `#2AA7A1` and `#69D2C6` are banned as foreground text on white)
+- Minimum contrast ratio: 4.5:1 for normal text (why `#C9A84C` is banned as small foreground text on a light ground — use `#8a6e1e` there, see §3)
 - Focus state: visible focus ring on every interactive element
 - Keyboard nav: tab order matches visual order
-- Skip-to-main-content link as the first focusable element in every layout, targeting `id="main"` on `<main>`. Styled `sr-only focus:not-sr-only` so it only appears on keyboard focus, then as a teal pill pinned top-left.
+- Skip-to-main-content link as the first focusable element in every layout, targeting `id="main"` on `<main>`. Styled `sr-only focus:not-sr-only` so it only appears on keyboard focus, then as a navy pill pinned top-left.
 - Alt text on meaningful images, `aria-label` on icon-only buttons
 - Every form input needs a programmatic name — a `<label for>`/`id` pair, an enclosing `<label>`, or `aria-label` for placeholder-only search fields. A visible label that isn't wired to its input is a silent failure: it looks right and is invisible to screen readers.
 - `[x-cloak] { display: none; }` in global CSS to prevent Alpine flash-of-unstyled-content
@@ -336,16 +540,18 @@ Target: **WCAG 2.2 Level AA.** Swept across all ~110 Blade views in July 2026.
 - No explicit `x-init="init()"` — Alpine.js v3 auto-invokes `init()`
 - **No raw Tailwind color utilities** (`bg-gray-50`, `text-red-600`, `border-emerald-200`, `ring-indigo-500`, …). Always the token hexes. All ~1,100 uses were migrated in July 2026; a new one is drift.
 - Joseph audit items: watch for `#1A1A2E` (wrong palette — 0 remain as of July 2026), unresolved git merge conflict markers, `<x-app-layout>` instead of `@extends`
-- Off-palette tints that keep reappearing and are always wrong: `#EEF2F5` (use `#EEF8F8`), `#1A1A2E` (use `#1F2937`)
+- Off-palette tints that keep reappearing and are always wrong: `#EEF2F5` (use `#ECEEF6`), `#1A1A2E` (use `#060D26`)
+- **The entire Ocean Teal system is now off-palette (Sept 2026) — a bulk-substituted codebase, so a reappearance almost certainly means new/pasted code, not a missed spot.** Any of `#156F8C`, `#2AA7A1`, `#69D2C6`, `#FF8A65`, `#1F2937`, `#64748B`, `#E2E8F0`, `#F7FCFC`, `#EEF8F8`, `#0F172A` in a diff is drift — see §3 for the new-hex equivalents. `#2AA7A1` is the one that needs judgment on discovery, not a blind swap: it split into two roles in the new system (solid fills → `#060D26` navy, everything else — borders/rings/tints/active-state accents — → `#C9A84C` gold, and small foreground text specifically → `#8a6e1e`). Check any `<script>`/`@push('scripts')` block too — Chart.js and other JS color literals are invisible to a Blade-only grep (see §7's Chart.js parity entry and the PHP-side `AnalyticsController` donut-color arrays, which carried the same drift risk and needed the identical fix).
 
 ## 11. Self-Critique Checklist
 - [ ] Is hierarchy carried by structure and spacing rather than by color or effects?
-- [ ] Is color doing only one job — signalling status — with everything else neutral or teal?
+- [ ] Is color doing only one job — signalling status — with everything else neutral or gold?
 - [ ] Responsive at 375px, 768px, 1024px, 1440px — no horizontal scroll
 - [ ] Cards use `<x-card>` (or its exact class string), not an ad-hoc shadow/border combination
 - [ ] No `backdrop-blur` except a modal backdrop or a panel over photography (§6); no raw `emerald-*`/`amber-*`/`red-*`/`slate-*` utilities
 - [ ] Content doesn't hide behind fixed nav
-- [ ] Page background is `#F7FCFC` — no gradient, no `bg-fixed`
+- [ ] Page background is `#F7F8FC` — no gradient, no `bg-fixed`
+- [ ] No `#C9A84C` as small foreground text on a light ground — `#8a6e1e` there instead (§3)
 
 ## 11b. Migration audit (the greps that prove a page is converted)
 Run from `resources/views`. Every one of these must return zero — they are the exact defect classes the July 2026 conversion produced or exposed:
@@ -356,6 +562,8 @@ grep -rhoE '\b(bg|text|border|ring)-(emerald|amber|red|slate|green|gray|blue|ind
 grep -rnoE '\[#[0-9A-Fa-f]{6}\](/\[0\.[0-9]+\])?[0-9]' . --include='*.blade.php'   # malformed classes
 grep -rn '1A1A2E\|EEF2F5' . --include='*.blade.php'                          # off-palette
 grep -rhoE '\[#[0-9A-Fa-f]{6}\]/[0-9]+' . --include='*.blade.php' | grep -oE '/[0-9]+$' | sort -u
+grep -rnE '#(156F8C|2AA7A1|69D2C6|FF8A65|1F2937|64748B|E2E8F0|F7FCFC|EEF8F8|0F172A)' . --include='*.blade.php'  # Ocean Teal (Sept 2026, see §10)
+grep -rnE 'rgba\([0-9]+, [0-9]+, [0-9]+,' . --include='*.blade.php'          # space-after-comma breaks a Tailwind bracket class (Sept 2026, see §15)
 ```
 
 **The fourth grep catches out-of-scale opacity modifiers, and it found a live one (July 2026).** `bg-[#EF4444]/8` appeared in four places — three warning banners on `agreements/show` and one bubble in `admin/conversations/show`. `8` is **not** in Tailwind's default opacity scale (0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100), so no class was generated and every one of those panels rendered with a fully transparent background — red text and a border floating on white. Confirmed by grepping the built CSS: `EF4444\]\/10`, `\/25`, `\/30`, `\/5` are all emitted, `\/8` is not.
@@ -367,13 +575,13 @@ This is the same failure mode as the sed incident above and is *not* caught by t
 Order any future bulk substitution slash-opacity-variants first, then `\b`-anchored bases, so `-50` can never match inside `-500`.
 
 ## 12. Admin panel index-page pattern (established July 2026)
-Applies to the admin review/moderation queues: Landlord Verifications, Property Verifications, Unit Approvals, Payments, Reports, Reviews, Conversations.
+Applies to the admin review/moderation queues: Landlord Verifications, Property Verifications, Unit Approvals, Payments, Reports, Reviews, Conversations, and (Aug 2026) Property Documents (`admin/documents/index.blade.php` → `admin/documents/show.blade.php`) — the last one shipped directly against this pattern rather than being migrated onto it later, having learned from the Catalogue → Properties → show page's original document-review block that a review queue belongs at the Verification & Approvals level, not nested inside an unrelated index's detail page.
 - Container: `max-w-[1600px] mx-auto` — the work-area width from §5. Previously mixed (`max-w-5xl`, `max-w-[1400px]`, `max-w-[1600px]`), then briefly over-corrected to `max-w-7xl` without `mx-auto`, which stranded ~320px of dead space on the right at 1920px.
 - Header row: title + subtitle on the left; an optional "N awaiting review" coral/amber pill on the right when a pending count > 0.
-- Stat summary: a `grid grid-cols-2 sm:grid-cols-4` (or fewer columns if fewer statuses) row of glass cards above the tabs, one per status plus a Total. Each card: small dot + uppercase label, then a large bold count in a status-tinted color (amber/emerald/red/teal family), clickable to that filter. Active filter gets `ring-2 ring-[#2AA7A1]`.
+- Stat summary: a `grid grid-cols-2 sm:grid-cols-4` (or fewer columns if fewer statuses) row of glass cards above the tabs, one per status plus a Total. Each card: small dot + uppercase label, then a large bold count in a status-tinted color (amber/emerald/red/gold family), clickable to that filter. Active filter gets `ring-2 ring-[#C9A84C]`.
 - Tabs: existing pill-tab pattern, now with a live count suffix per tab (`text-[11px]` in a muted tone).
-- List body: dense multi-column tables were replaced with a single-card, `divide-y divide-[#E2E8F0]` row-list where each row is one full-row `<a>` (avatar/thumb, key fields with `text-[11px] uppercase text-[#94A3B8]` micro-labels, status badge, trailing chevron that shifts right on hover). Kept as a genuine `<table>` only where a page needs a row-level form action inline (Payments' Release button, Property Verifications' Approve/Reject — no detail page to link to yet).
-- Empty states: icon in an `bg-[#EEF8F8]` circle with `text-[#2AA7A1]` icon (not gray), bold title + muted subtitle.
+- List body: dense multi-column tables were replaced with a single-card, `divide-y divide-[#E2E4EC]` row-list where each row is one full-row `<a>` (avatar/thumb, key fields with `text-[11px] uppercase text-[#94A3B8]` micro-labels, status badge, trailing chevron that shifts right on hover). Kept as a genuine `<table>` only where a page needs a row-level form action inline (Payments' Release button, Property Verifications' Approve/Reject — no detail page to link to yet).
+- Empty states: icon in an `bg-[#ECEEF6]` circle with `text-[#8a6e1e]` icon (not gray), bold title + muted subtitle.
 - Fixed straggling off-palette classes across these views: banned `#1A1A2E`, raw Tailwind `gray-*`/`blue-*`/`amber-*`/`emerald-*`/`slate-*` utilities were swapped for the DESIGN.md token set (`#1F2937`, `#64748B`, `#94A3B8`, `#E2E8F0`, `#F7FCFC`, `#EEF8F8`, plus the status colors `#FBBF24`/`#22C55E`/`#EF4444`/`#156F8C`/`#2AA7A1`).
 - New controller convention for these pages: alongside the paginated/filtered query, also compute a `$counts` array (one query per status, cheap at current scale) and pass it to the view for the stat cards + tab badges. See `Admin\VerificationController`, `Admin\PropertyUnitController`, `Admin\ListingController`, `Admin\PaymentController`, `Admin\ReportController` for the pattern.
 
@@ -389,3 +597,500 @@ Native `<select>` can be styled up to its closed trigger, but the open options l
 - `onSelect="raw js"` — navigate-away dropdowns instead of posting; takes priority over `autosubmit`.
 
 **Known exemption:** the header variant of `search-pill.blade.php` keeps its native `<select>` — that pill sits inside an `overflow-hidden` collapse wrapper (`#header-search-expanded`) that would clip the styled panel's open state. Only the hero variant (no overflow-hidden ancestor) got converted. **This is the pattern to check before converting any other dropdown:** if a `<select>`'s container or a near ancestor has `overflow-hidden`, leave it native rather than shipping a dropdown that opens invisibly-clipped.
+
+## 14. "Verified Property" badge — a claim that explains itself (Aug 21 2026)
+The badge (`properties/show.blade.php` hero, `properties/index.blade.php` cards) previously shipped as a bare `<span>Verified Property</span>` — a strong trust claim with zero explanation of what was actually verified, on a page whose baseline `verification_status = Approved` gate every visible listing already clears. A tenant had no way to tell this badge apart from "the listing itself was allowed to exist."
+- **Show page:** the badge is now a click-to-open trigger (`x-data="{ open: false }"` + `@click.outside`), not a `<button @click>` reaching for a teleported/fixed-position popover — the popover is a plain `absolute top-full` panel, kept inside the same `x-data` div as its trigger so click-outside naturally excludes the trigger itself (no ref-guard or `x-teleport` needed). It's positioned **outside** the image gallery's `overflow-hidden rounded-3xl` frame via a new non-clipping wrapper `<div class="relative">` around that frame — same clipping-container lesson as §13's `<x-styled-select>` exemption, just solved by moving the popover out rather than leaving the trigger unstyled.
+- **Browse cards:** a smaller static "Verified" pill, no popover — the card is already a full-card link to the show page where the explanation lives, so a second interactive element nested inside the card's own `onclick` navigation would just compete with it.
+- **The standard it certifies** is documented in ARCHITECTURE.md (`PropertyDocument::OWNERSHIP_TYPES`) — copy anywhere this badge is explained should stay in sync with that, not restate a looser definition.
+
+**Regression caught (Aug 2026):** the property-documents feature's two document-type pickers (landlord upload panel, admin "request a document") both shipped as plain `<select>` in the first pass — this rule is easy to forget mid-feature when a native `<select>` is the reflexive default. Converted on the next pass; checked the exemption condition first since the landlord one sits inside a scrollable (`overflow-y-auto`) slide-over panel, but the field is first in a short form well under viewport height, so the panel never actually scrolls and the open dropdown never gets clipped.
+
+## 15. Navy/Gold visual identity — app-wide reskin (Sept 2026)
+
+The Ocean Teal system (§3's old table, §4's Poppins/Source-Serif-4 pair) was replaced app-wide —
+Tenant, Landlord, and Admin all moved together, not just the public/tenant surfaces a reference
+mockup covered. Colors and fonts only: every layout, component, and feature from the sections above
+stays exactly as documented, just re-skinned. Full record: `plans/navy-gold-redesign.md`.
+
+- **New palette:** `#060D26` deep navy (was `#156F8C`/`#1F2937`/`#FF8A65`/`#0F172A` — four old roles
+  collapsed into one), `#C9A84C` gold (was `#69D2C6`, and `#2AA7A1` where it wasn't a solid fill),
+  `#8a6e1e` dark gold (the new text-safe accent, no prior equivalent — see §3), `#5B6A8E` slate,
+  `#E2E4EC` border, `#F7F8FC` background, `#ECEEF6` mist, `#F7F4ED` cream (new — CTA/primary-button
+  text, no prior equivalent). Semantic status colors (`#22C55E`/`#FBBF24`/`#EF4444`/`#94A3B8` and their
+  darkened text variants) are untouched — they were never part of the brand identity.
+- **`#2AA7A1` needed judgment, not a find/replace, and was the single biggest risk in the job.** It
+  played two roles in the old system that split apart in the new one: a solid fill with no opacity
+  suffix (a primary button) became `#060D26` navy with `#F7F4ED` cream text; everything else — borders,
+  rings, focus states, tinted backgrounds, active-state accents — became `#C9A84C` gold; small
+  text-sized foreground uses (labels, icons, checkbox fills) became `#8a6e1e` dark gold specifically
+  for contrast (plain gold is ~2.28:1 on white, fails AA even at large-text size). A blind substitution
+  here would have turned every primary button gold and broken checkbox/link contrast across the app —
+  both mistakes were caught and fixed only by explicitly auditing every `text-[#2AA7A1]`/small-fill
+  usage after the bulk pass, not by the bulk pass itself.
+- **Typography went from three families to two.** Poppins is gone; Source Serif 4 became DM Serif
+  Display, with its scope deliberately widened from "large page titles only" to every heading — see
+  §4's full entry, including the money-column exception (peso figures stay Inter/`tabular-nums`) and
+  the DM-Serif-Display-ships-400-weight-only trap (`font-bold`/`font-extrabold` on a heading tag now
+  fake-bolds; headings dropped to `font-normal`).
+- **Scale: ~6,300 hex literals across ~135 Blade views, plus JS (Leaflet map markers/popups, the
+  liveness-capture guide color) and PHP (two `AnalyticsController` donut-chart color arrays).** The
+  palette lives as raw bracket-hex Tailwind classes everywhere, not named tokens — `tailwind.config.js`
+  defines a `colors.brand.*` set matching the new palette, but (same as the old system) no view
+  references it; a future token-migration is a separate, not-yet-done refactor.
+- **§11b's bulk-substitution warning proved itself right again — a new failure mode of the same
+  family, caught only by re-running the audit greps rather than trusting any pass's own self-report.**
+  Several editors independently converting `rgba(15,23,42,…)`/`rgba(6,13,38,…)` shadow values wrote
+  the replacement as `rgba(6, 13, 38,…)` — spaces after the first two commas. That's valid CSS inside a
+  plain stylesheet, but inside a Tailwind arbitrary-value bracket (`shadow-[0_1px_3px_rgba(6, 13,
+  38,0.06)]`) the space breaks the class entirely — the exact "produced a malformed class, not merely
+  left an old one" failure §11b's sed incident describes, just from careless spacing instead of prefix
+  collision. It reached **70 sites across dozens of files** before the final repo-wide grep sweep
+  caught it (`rgba\([0-9]+, [0-9]+, [0-9]+,` — not one of the four greps below until this entry added
+  it). Fixed by removing the spaces; the four listed greps plus this rgba-spacing check are now the
+  standing verification set for any future bulk color substitution. A related, unrelated-cause, pre-existing
+  bug was found and fixed in the same pass: `layouts/guest.blade.php`'s auth-photo gradient used
+  `/88` opacity, which isn't on Tailwind's default scale (nearest valid value is `/85`) — present since
+  the gradient was written, not introduced by this reskin, but only visible once someone actually ran
+  the off-scale-opacity grep from §11b end to end.
+- **A new failure mode was found doing this at bulk-script scale: encoding.** A naive `File.ReadAllText`
+  without an explicit encoding argument mis-detects UTF-8 files with no BOM (the .NET Framework default
+  falls back to the system ANSI codepage), which would have silently corrupted every peso sign (₱),
+  em dash, and arrow glyph on write. Caught by cross-checking a `Select-String`-built file list against
+  a `grep`-built one before running anything — 13 files vanished from the PowerShell list specifically
+  because they contained non-ASCII characters, which pointed straight at the encoding bug. Fixed by
+  forcing `[System.Text.Encoding]::UTF8` on every read; any future bulk text-substitution pass over
+  this codebase needs the same explicit-encoding discipline, in either direction.
+- **Glassmorphism was not reintroduced**, despite the reference mockup's translucent, blurred sticky
+  header — the July 2026 retirement (§6) and its `backdrop-filter` containing-block hazard (RULES.md)
+  stand. Headers stay flat and opaque.
+- **Known pre-existing documentation gap, found while scoping this (not fixed, out of scope):** §6i
+  describes a browse-page hero — full-bleed gradient, italic accent word, live trust-strip counts,
+  `$heroStats`-driven collapse — that does not exist in `properties/index.blade.php` or
+  `PropertyController@index`. `<x-search-pill variant="hero">` is fully built and unused. This predates
+  the reskin and is the same "documented intent, not shipped code" failure §5 already warns about
+  twice; correcting §6i or building the hero are separate decisions for Axcee. **(Since resolved —
+  the browse-page hero, area cards, and popular-places section landed in a later commit; this note is
+  kept as-is as a historical record rather than edited after the fact.)**
+
+## 16. Browse page — bigger area cards, 5-column grid when the map is hidden (Sept 9 2026)
+
+Two independent sizing tweaks to `properties/index.blade.php`, both requested after seeing the page
+live rather than planned up front:
+
+- **"Browse by area" cards sized up.** `w-28 h-20` (112×80) felt too small next to the rest of the
+  page's scale → `w-40 h-28` (160×112), label text `text-[12px]` → `text-[13.5px]`. Still the only
+  use site for this exact card shape (distinct from the "Popular places to stay" card below it and
+  from anything in `x-property-card`), so still inlined rather than extracted into a component.
+- **Property grid: 5 columns instead of 4 when the map is hidden.** The list column's grid was
+  `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, gaining `xl:grid-cols-4` only when `mapVisible` is
+  `false` (map toggled off, list column spans the full `max-w-[1400px]` width). Changed that override
+  to `xl:grid-cols-5`. At 1400px with `lg:px-8` padding and `gap-6`, that's ~248px per card — inside
+  the safe range the "Popular places to stay" section already proves out at `lg:grid-cols-5` (its
+  cards run ~230–260px depending on breakpoint; see §15's neighboring section for that grid). The
+  `mapVisible: true` path (`lg:grid-cols-3` + sticky map column) is untouched — this only changes the
+  no-map state.
+- Both changes are pure Tailwind class edits with no new component or JS; the "no new class = no
+  rebuild needed" assumption bit once already this session (see the aspect-[21/9] rebuild note above)
+  — remember `npm run build` after any of `w-40`, `h-28`, `text-[13.5px]`, or `xl:grid-cols-5`, none of
+  which existed in the compiled CSS before this change.
+
+## 17. Property show page — gallery paired with the contact card, not stacked (Sept 9 2026)
+
+§16 above shrank the gallery's *height* by dropping the bento; this pairs it with the contact card so
+it's also narrower, matching the reference mockup's side-by-side hero + price card composition instead
+of a full-width image with the card further down the page.
+
+- **New row order:** Image gallery (`lg:basis-7/12`) + Contact card (`lg:basis-5/12`) share one
+  `lg:flex lg:flex-row gap-8 items-start` row at the top, reusing the exact wrapper classes the old
+  "Property details + Contact card" row used. Property details is no longer paired with the contact
+  card *(this part superseded within the hour — see §18: it briefly moved to a full-width block below
+  the row, then moved again into the left column below the image once that left a visible gap)*.
+- **The gallery's `aspect-[21/9]` (§15) was left alone** — narrowing the column already does the
+  "size down the image" work on its own (7/12 of ~1336px usable width ≈ 750px, vs. the previous full
+  1336px), and 21/9 at that narrower width lands close to the reference mockup's own hero proportions,
+  so no ratio change was needed, only the container.
+- **Property details' stat grid widened** *(also superseded by §18)* from a fixed `grid-cols-2` (sized
+  for the old ~58%-width column) to `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5` for the brief full-page-
+  width version — otherwise its 5 stat tiles (Type/Living arrangement/Capacity/Landlord/Available)
+  would render as a few oversized, sparse cells rather than filling the row.
+- Mobile is unaffected: the row's wrapper only turns into a flex row at `lg:`, so below that
+  breakpoint the gallery and contact card still stack full-width in document order exactly as before,
+  confirmed at a 390px viewport.
+
+## 18. Property details moved back into the gallery column, to fill the gap it left (Sept 9 2026)
+
+§17's full-width Property details block (below the gallery+contact row) left the left column looking
+unbalanced: the gallery is much shorter than the contact card beside it (price + landlord row +
+inquiry form + phone reveal all add up), so there was a large visible empty gap in the left column
+under the image before Property details picked back up at full width below both columns. Axcee pointed
+at exactly that gap and asked to use the space.
+
+- **Property details is back inside `lg:basis-7/12`**, directly below the gallery (`mt-6` on the
+  `<x-card>`), instead of a standalone full-width block after the row closes. Fills the gap; the left
+  and right columns now end close to the same height instead of the left one stopping short.
+- **Stat grid reverted to plain `grid-cols-2 gap-3`** (no `sm:`/`lg:` variants) — back to what it was
+  before §17 widened it for the full-page-width version, since the column is narrow again (~750px on
+  desktop, full width on mobile below `lg:`, both already proven at 2 columns pre-§17).
+- Net effect versus §17: same content, same column pairing philosophy (gallery+contact card share the
+  top row), just Property details riding along in the gallery's column rather than breaking out to
+  full width — the full-width version lived for all of one round-trip before this reverted it.
+
+## 19. Three small property-show fixes: favorite-button overflow, subunit card size, amenity columns (Sept 9 2026)
+
+- **Favorite (heart) button was overflowing the contact card's right edge.** It was sized with
+  `h-full aspect-square` sitting beside the `flex-1` Send Inquiry button inside a `flex items-stretch`
+  row with no explicit height of its own — deriving the button's *width* from `aspect-ratio` against a
+  height that only resolves via cross-axis stretch is exactly the kind of indeterminate-height case
+  flexbox/aspect-ratio interaction handles inconsistently, and it was rendering wider than the space
+  `flex-1` left for it, pushing past the card boundary (worst on the mobile-width card, where the ask
+  originated). Fixed with an explicit `w-14 shrink-0` instead of `aspect-square`, keeping `h-full` so
+  it still self-stretches to match Send Inquiry's height — removes the ambiguous computation instead
+  of working around its symptom. **Lesson for any future icon-button-beside-a-flex-1-button pairing:
+  give the icon button an explicit fixed width; don't derive it from `aspect-square` + a stretched
+  height.**
+- **Subunit cards sized down.** `grid-cols-1 sm:grid-cols-2` on a full-page-width section (not paired
+  with the contact card — see §17/§18, Subunits stayed full-width) meant 2 cards per row at ~660px
+  each. Now `sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4` — up to 4 per row (~320px each at full
+  1400px width), all existing content (thumbnail, status badge, selection ring, label, specs, price)
+  still fits comfortably at that width, nothing removed or restyled.
+- **Amenity-family sections down to a flat 2 columns** *(the item-grid part of this bullet stands;
+  the "2 columns" ask itself was misread — see §20, which puts Building/Room amenities side by side
+  as two sections instead)*. `Utilities & included charges`, `Building amenities`, and `Room
+  amenities` all shared `grid-cols-2 sm:grid-cols-3 gap-3` (2 cols mobile, 3 cols `sm:` and up) —
+  changed to a flat `grid-cols-2 gap-3` (mobile unchanged, desktop 3→2) so they
+  now match `House rules` right below them, which was already 2 columns at every breakpoint. Mobile
+  was deliberately left alone even though `House rules` is `grid-cols-1 sm:grid-cols-2` (1 col on
+  mobile) — matching that too would have doubled these three sections' mobile row count, which wasn't
+  asked for and isn't what the reference screenshot showed; only the desktop column count changed.
+
+## 20. Building amenities + Room amenities as a side-by-side row, not stacked sections (Sept 9 2026)
+
+Clarification of §19's amenity fix — "2 columns" meant the two *sections* side by side in one row,
+not (only) the item grid inside each section. Both are now true at once: two sections in a row, each
+still with its own 2-column item list from §19.
+
+- **Wrapped both `<section>`s in one `lg:grid lg:grid-cols-2 lg:gap-x-10` container**, added around
+  the existing `@if($buildingAmenities...)` / `@if($offeredAmenities...)` blocks without touching
+  either section's own markup. Each section keeps its own `mt-10 pt-8 border-t` — with both in the
+  same grid row, that renders as one shared-looking divider line above the pair on desktop.
+- **Below `lg:`, unaffected** — the wrapper is a plain block (grid only applies at `lg:` and up), so
+  the two sections stack full-width in document order exactly as before, confirmed at a 390px
+  viewport.
+- **If only one of the two exists** (e.g. no building-level amenities on a single-unit listing), grid
+  auto-placement leaves the second column empty rather than stretching the lone section across the
+  full row — an acceptable edge case not worth a `lg:col-span-2` conditional for.
+
+## 20a. Room amenities section removed as redundant (Sept 2026)
+
+Axcee flagged it as duplicating information already on the page: each unit card already previews
+its own amenities (up to 3 + a `+N` overflow chip) and the unit slideout lists a selected unit's
+full amenity set. The aggregated "Room amenities" / "What this place offers" section (§20, §6e) just
+repeated that same per-unit data one level up, with a "Some units" pill standing in for what the
+per-unit views already show directly.
+
+- **Removed** the `@if($offeredAmenities...)` section and the `$amenityUnitCounts` /
+  `$offeredAmenities` / `$tagPartialAmenities` `@php` block that fed it — nothing else in the file
+  referenced them.
+- **The §20 side-by-side wrapper (`lg:grid lg:grid-cols-2`) went with it.** With only Building
+  amenities left, `Building amenities` is back to being a single full-width `<section>`, same as
+  before §20 — no wrapper needed for one column.
+- **Building amenities is unaffected** and keeps its own `mt-10 pt-8 border-t` section as before.
+
+## 21. Favorite (heart) button moved onto the hero photo, off the contact card (Sept 9 2026)
+
+§19 fixed the heart button overflowing the contact card by giving it an explicit `w-14` instead of
+`aspect-square h-full`. This goes further and removes it from that row entirely, onto the gallery
+image's top-right corner instead — Axcee asked where a better spot would be; recommended this over
+his own suggestion (top-right of the price) because the corner was already free (Verified badge
+top-left, "Show all photos" bottom-right), it's the convention on Airbnb/Booking.com/Zillow, and it
+fully decouples favoriting from whatever width the price/CTA text needs that day — permanently
+removing the failure mode rather than just tolerating a fixed width next to it.
+
+- **Markup and Alpine scope moved as a unit** from the contact card's "PRIMARY ACTION" row into the
+  gallery's inner `overflow-hidden` frame, as its own `absolute top-3 right-3 z-20` div — same
+  `x-data` (`fav`, `busy`, `toggleFav()`) and `favorites.toggle` POST, untouched.
+- **Restyled to match the image's other floating controls** (prev/next arrows): `w-10 h-10
+  rounded-full bg-white/90 shadow-sm`, not the card's `rounded-xl border border-[#E2E4EC] bg-white`.
+  Icon color logic (`#EF4444` filled when favorited, `#5B6A8E` outline otherwise) is unchanged.
+- **Same visibility condition, reassembled explicitly** since it's no longer nested inside the
+  `@else` branch of the login/owner/tenant check: was `@if(auth()->user()->hasRole('Tenant'))` implicitly
+  gated by that `@else` (auth()->check() && !$isOwner); now `@if(auth()->check() && ! $isOwner &&
+  auth()->user()->hasRole('Tenant'))` spells out all three conditions at the new site.
+- **Contact card's "PRIMARY ACTION" row is back to a single full-width button** in every branch (login
+  CTA / owner notice / Send Inquiry) — the `flex items-stretch gap-3` wrapper was left as-is since it's
+  harmless with one child, not worth a follow-up cleanup pass.
+- Verified logged in as the seeded tenant (`axcee@abangananhub.com`): toggle works (`POST
+  /favorites/{id}/toggle`, heart fills red), and checked both 1440px and 390px — no collision with the
+  prev/next arrows at any width.
+
+## 22. Description moved above Subunits, matching the reference mockup's order (Sept 9 2026)
+
+`$property->description` ("About this property") was rendering *after* the full "Subunits in this
+property" grid — Axcee asked whether it was part of Property details (it isn't, it's the property's
+own free-text field) and pointed at the reference mockup, which puts the description right after the
+stat tiles/property details and before the unit list.
+
+- **Moved the whole description block** (the `Str::limit`/`Read more`/`descExpanded` toggle, all
+  unchanged) from after the Subunits `@if($approvedUnits->count() > 0) ... @endif` block to right
+  after the gallery+contact-card row closes, before the "Subunits in this property" comment. New
+  order: gallery+contact card → Property details → **description** → Subunits → Utilities/amenities →
+  House rules → map → Reviews.
+- **Dropped the block's own `mt-6`** — it's now a direct sibling in the page's top-level `flex
+  flex-col gap-8`, which already spaces siblings 2rem apart (matching how the Subunits section right
+  below it also carries no top-margin class of its own).
+- Confirmed the same order holds at both 1440px and 390px — the block was never breakpoint-gated to
+  begin with, so this was purely a document-order move, nothing conditional to get wrong.
+
+## 23. Browse page — "Filters" panel: amenities + verified-only (Sept 9 2026)
+
+Full plan/rationale in `plans/browse-filters-amenities-verified.md`. A reference mockup showed an
+always-expanded filter bar (Property Type / Unit Type / Must Have) with a "Filters" button next to
+Search; Axcee didn't want a button there and asked for a better spot. Landed on a **"Filters"
+button in the results toolbar** (next to "Show map"), opening a panel that reuses the exact
+bottom-sheet/modal shell already established for the `properties/show` inquiry flow
+(`x-teleport="body"` → `items-end sm:items-center` overlay → `rounded-t-2xl sm:rounded-2xl` panel).
+
+- **Scope was cut down from the mockup, not copied 1:1** — checking the mockup's categories against
+  the real schema mattered: Property Type is already a single-select control in the main search
+  pill, so the panel doesn't duplicate it as chips; Unit Type has no real data anywhere
+  (`property_units.unit_type` exists but nothing ever sets it) and was dropped. What's left —
+  **Amenities** (grouped by category, multi-select toggle pills, AND semantics) plus **"Verified
+  listings only"** — was the one dimension with real data and, for `verified`, a filter that was
+  already fully wired server-side with **zero UI control anywhere** to turn it on before this.
+- **`Property::scopeBrowseFilters()`** gained an `amenities` branch: for each selected amenity ID,
+  a property matches only if it has that amenity itself (`property_amenities`) *or* one of its
+  units does (`unit_amenities`) — same "building or room, doesn't matter" treatment the show page
+  already gives amenities. **Hit a real bug building this**: the `units.amenities` nested
+  `whereHas` joins both `amenities.amenity_id` and `unit_amenities.amenity_id` into one result set,
+  so a bare `where('amenity_id', ...)` throws `SQLSTATE[23000]: ... Column 'amenity_id' ... is
+  ambiguous` — only surfaced by actually clicking through the built filter in-browser, not from
+  reading the query. Fixed by qualifying it as `amenities.amenity_id`. Verified the fix against real
+  seeded counts via tinker (`Property::browseFilters(['amenities' => [2]])->count()` matched the
+  in-browser result exactly) before trusting it.
+- **Toggle-pill chips reuse an existing pattern**, not a new one: the `peer sr-only` checkbox +
+  `peer-checked:`-styled `<span>` already established in `admin/users/create.blade.php` (role
+  selection pills) — same mechanism, navy fill instead of that page's gold/green.
+- **The Sort form's hidden-input carry-through had a latent bug this surfaced**: `request()->except([...])`
+  can return an array value (`amenities[]`), and the existing `@foreach(... as $key => $value)
+  <input value="{{ $value }}">` loop would try to stringify that array the moment any amenity filter
+  was active — "Array to string conversion". Fixed in both places that carry filters forward (the
+  Sort form and the new panel's own hidden inputs): array values now emit one `name="{{ $key
+  }}[]"` hidden input per item instead of one input with an array value.
+- **Per-chip amenity removal needed its own href**, not `fullUrlWithoutQuery` (that drops the whole
+  `amenities` key) — rebuilds the route with that one ID subtracted from the array:
+  `array_diff((array) request('amenities', []), [$amenity->amenity_id])`.
+- **Filters button shows an active-count badge** (`count($amenities) + ($verified ? 1 : 0)`) and,
+  unlike "Show map" (`hidden lg:inline-flex` — the mobile List/Map switcher covers that job below
+  `lg:`), is visible at every breakpoint, since there's no mobile substitute for it.
+- Verified end-to-end in-browser at 1440px and 390px: opening the panel, selecting amenities across
+  multiple categories, applying, confirming the URL/result count/chip row/badge all agree, removing
+  one chip without disturbing the others, and confirming `location`/`type`/`price_max`/`sort` all
+  survive a round trip through the panel untouched.
+
+## 24. Property details restyled from a divided row-list to a row of stat tiles (Sept 2026)
+
+Axcee pointed at a reference screenshot (bordered white tiles, bold value on top, muted label
+underneath, side by side in one row) and asked for Property details to be arranged that way instead
+of the `dt`/`dd` divided-row-list from §17/§18 — same 4 data points, different layout only.
+
+- **Same fields, same values** — Property type, Living arrangement (conditional), Number of units,
+  Security deposit, still computed by the identical `array_filter([...])` list. Only the markup around
+  each `[$label, $value]` pair changed, from a `<dl><dt>/<dd></dl>` row to a standalone bordered tile
+  (`rounded-xl border border-[#E2E4EC] bg-white`, bold value centered on top, `text-[12px]` muted
+  label below).
+- **`<x-card flush>` wrapper dropped** — it existed to give the `divide-y` list a shared outer border;
+  each tile now carries its own border, so the wrapper had nothing left to do.
+- **`grid grid-cols-2 sm:grid-cols-4`**, not a flat `grid-cols-4` — at 375px (tenant pages are
+  mobile-first, DESIGN.md §0b) 4 tiles across would squeeze "Living arrangement"'s value against 3
+  neighbors; 2 columns on mobile, 4 from `sm:` up matches the reference at desktop width without
+  crowding the phone layout.
+
+## 25. Utilities and House rules rows get a per-field icon, not a bare checkmark/X (Sept 2026)
+
+Both sections previously drew the exact same generic check (included/allowed) or X (not included/not
+allowed) glyph for every row — the icon carried only status, never told you at a glance which line was
+water vs. internet vs. association fees. Gave each field its own glyph, keeping status on the icon's
+*color* (gold = included/allowed, gray/red = not) exactly as before, so nothing about the status
+signal changed, only the shape underneath it.
+
+- **Reused `App\Support\AmenityIcons::path()` where the concept already has a glyph there** —
+  `water_included`/`electricity_included`/`internet_included` draw the same droplet/bolt/Wi-Fi paths
+  as `Submeter (Water)`/`Submeter (Electricity)`/`Wi-Fi` in Building/Room amenities, and
+  `pets_allowed`/`visitors_allowed` reuse `Pet Friendly`'s paw and `Visitors Allowed`'s door. Same
+  glyph, same meaning, wherever it shows up on the page.
+- **Three fields aren't amenities, so they got one-off paths defined inline** in the same `@php` block
+  that already lists each field (not a new support class, for three paths used on one page):
+  `association_fees_included` (banknote + coin), `utilities_separately_metered` (meter dial + needle),
+  `smoking_allowed` (cigarette + smoke wisp).
+- **`$utilityFields`/`$policyFields` each gained an icon element** (3rd/4th tuple slot) instead of the
+  view branching on `@if($included)`/`@if($rule['allowed'])` to pick between two fixed SVGs — one
+  `<svg>` per row now, `d="{{ $icon }}"`, with only the `class` (text color) still conditional on
+  status.
+
+## 26. Contact card landlord row — verified checkmark + "Owner · Listed since", plus a clearable selected-unit chip (Sept 2026)
+
+Axcee pointed at a reference screenshot: landlord name gets a small verified checkmark inline (not a
+separate badge), the subtitle reads "Owner · Listed since {year}" instead of "Landlord"/"Landlord ·
+Verified Host", and a pale chip below the row shows which unit is currently selected with an ✕ to
+clear it.
+
+- **Verified checkmark reuses the same checkmark-circle path** already used for the "Verified
+  listing" badge and the gallery's "Verified Property" popover, gated on the same
+  `$property->hasVerifiedDocuments()` check — one meaning, one glyph, three places on the page.
+- **`$hostLine` ("Landlord" / "Landlord · Verified Host") is gone**, replaced with a fixed "Owner ·
+  Listed since {{ $property->created_at->format('Y') }}" — the property's own listing year, not the
+  landlord's account age (no "member since" field exists on the user for this yet).
+- **New selected-unit chip** (`x-show="selected"`, so it's absent until a unit is picked): a
+  `bg-[#C9A84C]/10 border-[#C9A84C]/30` pill with the same checkmark glyph, `Unit: {{ selected.label
+  }}`, and an ✕ button. The ✕ sets `selectedUnit = null` directly rather than calling
+  `selectUnit(id)` — that function only ever *sets* a unit (and only an available one), it has no
+  path for clearing the selection back to none.
+
+## 27. "Show phone number" made visible to guests too, not just logged-in tenants (Sept 2026)
+
+Was gated on `auth()->check() && !$isOwner && contact_number` — a guest viewing the listing saw no
+phone button at all, only "Log in to contact landlord" as the primary CTA. Axcee pointed at the
+logged-in card (Send Inquiry + Show phone number stacked) and asked for the same thing while logged
+out.
+
+- **Condition dropped to `!$isOwner && contact_number`** — `$isOwner` is only ever true for an
+  authenticated landlord viewing their own listing, so `!$isOwner` alone already excludes both "not
+  logged in" and "logged in as someone else's tenant" is fine; no `auth()->check()` needed on top.
+- **Guest tap opens the login modal instead of revealing the number** — `@auth` branches the
+  button's handler: `x-on:click="phoneRevealed = !phoneRevealed"` (Alpine toggle) when logged in,
+  `onclick="openAuthModal('login')"` (same call the CTA button already uses) when not. The raw
+  `contact_number` never reaches the guest's HTML either way — only the label text differs
+  (`Show phone number` static vs. the reveal-toggle spans), so there's no leak through view-source.
+
+## 28. Unit cards — "View this unit" reveals on hover, and clicking the card opens it directly (Sept 2026)
+
+Two rounds on the same cards. First: the "View this unit" button (full-width, inside the card below
+the amenity chips) was tied to `x-show="selectedUnit === id"` — visible only after a click, permanent
+once clicked, with a visible gap reserved under unselected cards. Axcee wanted it to preview on
+**hover** instead, disappearing again when you move away, with no dead space when hidden. Second:
+after that landed, he pointed out the card itself still only *selected* a unit on click — you had to
+click once to select, then a second time on the now-revealed button to actually see the unit's
+details — and asked for one click on the card to do both.
+
+- **Hover reveal, not a permanent state**: originally built as a pure-CSS collapse (`max-h-0
+  group-hover:max-h-16 overflow-hidden`, `group` on the card wrapper) — *reverted within the same
+  round* (still Sept 2026) after Axcee reported both cards showing the button permanently regardless
+  of hover. Replaced with an explicit Alpine flag instead of chasing the CSS: `x-data="{ hovering:
+  false }"` plus `x-on:mouseenter`/`x-on:mouseleave` on the card wrapper, and the button's wrapper is
+  `x-show="hovering || selectedUnit === id"`. Unambiguous either way — `x-show` toggles `display`
+  directly rather than depending on a `group-hover` + `!important` max-height combination correctly
+  out-ranking the base `max-h-0` rule, which is what likely wasn't holding up in practice.
+- **Selection still forces it open** (`hovering || selectedUnit === id`) — hover has no equivalent on
+  a touchscreen, so a mobile tap (which calls `selectUnit`) still needs some way to reach the button
+  without a mouse.
+- **The unselected hover border changed from slate to gold** (`hover:border-[#5B6A8E]/40` static CSS
+  → `hovering` folded into the same `:class` ternary as `selectedUnit === id`) so hovering previews
+  the exact same gold border+ring the card gets once actually selected, driven by the same flag as
+  the button reveal instead of a separate, unrelated CSS-only hover tint.
+- **Clicking the card now calls both `selectUnit(id)` and `openSlideout(id)`** in the same handler —
+  one click selects the unit (drives the contact card's price/deposit/chip) *and* opens its details
+  slideout, rather than select-then-click-View being two separate steps. The hover-revealed button
+  still calls `openSlideout(id)` on its own and remains as a visible affordance, it's just no longer
+  the *only* path in.
+
+## 29. Navy/Coral visual identity — accent reskin (Sept 2026)
+
+Axcee asked for the accent swapped from gold to coral, "throughout the entire UI," with a roughly
+70% white / 25% navy / 5% coral hierarchy — coral reserved for CTAs, active states, highlighted
+words, prices, icons, badges, decorative lines, and hover states, not a wholesale recolor. Colors
+only — every layout, component, and feature from the sections above stays exactly as documented,
+just re-hued. Full record: `plans/navy-coral-rebrand.md`.
+
+- **New palette:** `#FF8A66` coral (was `#C9A84C` gold), `#B35A3D` deep coral (was `#8a6e1e` dark
+  gold — the text-safe twin, re-derived rather than reused: computed contrast against white is
+  ~4.72:1, comparable to dark-gold's ~4.85:1). Navy `#060D26`, white, and the semantic status colors
+  are untouched.
+- **Two judgment calls, not a find/replace:**
+  - **Role split.** Every occurrence of the old gold hexes was categorized by role before swapping:
+    fill/border/ring/background/decorative uses → bright coral; foreground text/icon/link uses on a
+    light background → deep coral (mirrors the gold/dark-gold split exactly, just re-hued). ~20 sites
+    needed a manual exception to this default — large text on a *dark* ground (the four auth-page
+    headings, the footer/sidebar wordmark, an about-page dark-section heading) correctly takes bright
+    coral instead of deep, since the light/dark rule — not the small/large-text rule — decides which
+    variant applies. A stray SVG icon stroke and a data-viz progress-ring segment needed the same
+    per-site check rather than a blanket hex swap. **One of these was misjudged from reading the code
+    alone and only caught by an actual screenshot:** the homepage hero's italic "Cebu" was assumed
+    light-background text (deep coral) since nothing in its own markup said otherwise, but the `<h1>`
+    sits over a photo with a `from-[#060D26]/25 to-[#060D26]/80` dark gradient scrim
+    (`properties/index.blade.php`'s hero `<section>`) — a dark ground, so it needed bright coral like
+    the rest of that list. A text-role exception call should be checked against a render, not just the
+    enclosing component's own class string.
+  - **CTA buttons changed fill, not just accent color.** Primary buttons (`<x-primary-button>`, and
+    every hand-rolled button matching its `bg-[#060D26] text-white`-family pattern — confirmed by
+    grepping the co-occurring pair, then manually excluding avatar/initials circles and chat message
+    bubbles that share the same navy-fill-plus-white-text signature but aren't buttons) moved from
+    navy fill/cream text to coral fill/navy text (~8.6:1 contrast). This is the single biggest visual
+    change in the pass and was a deliberate reading of "coral for action, navy for structure" — not
+    implied by a literal hex substitution, since CTAs were never gold to begin with.
+  - **Prices** were also never gold, so the bulk substitution didn't touch them either — added by hand
+    to the one prominent display price per page (property card, property detail hero), explicitly
+    leaving ledger/table price columns navy (see §3's new rule) to avoid coral noise in dense
+    financial lists.
+- **Scale: ~635 hex literals across ~110 Blade views plus `app.css`, `maps.css`, and two map JS
+  files**, all raw bracket-hex/inline-style, no named tokens referenced by any view (same as every
+  prior reskin) — `tailwind.config.js`'s `colors.brand.*` keys were renamed (`gold`→`coral`,
+  `goldText`→`coralText`) to match, still unreferenced.
+- **Verification greps for any future pass over this palette:** `grep -ri "C9A84C\|8a6e1e" resources/`
+  should return nothing outside this file's own historical record; also check for the rgba
+  equivalent (`201,\s*168,\s*76`) separately, since Chart.js configs and box-shadow values carry the
+  same color as decimal triples, not hex, and won't match a hex-only grep.
+
+## 30. Consistent hover/focus/active interaction system (Sept 2026)
+
+Axcee asked for a systematic hover/interaction layer on top of §29's navy/coral palette — named hex
+values per surface, not ad hoc darkening, and a single transition-timing standard. §3's rule entry
+has the short version; this section has the reasoning and what it touched.
+
+- **Coral buttons darken to a named hex on hover, not `brightness-95`.** `#FF8A66` → `hover:bg-[#E96F4F]`
+  on every coral-filled button — `<x-primary-button>` and the ~153 hand-rolled sites from §29's CTA
+  migration (found by the same co-occurrence grep: `bg-[#FF8A66]` + the old `hover:brightness-95` on
+  one line). **First pass over-corrected:** the file list came from `grep -l` (file contains a
+  matching line *somewhere*), but the fix ran as a whole-file `sed`, so it also rewrote unrelated
+  `hover:brightness-95` uses in the same files — approve/reject buttons, white outline buttons,
+  icon-only nav arrows, mist-pill utility buttons — anything sharing a file with a real coral button.
+  56 sites across ~15 files were wrongly touched. Caught by re-deriving the check as a line-level
+  co-occurrence grep (`grep -n "hover:bg-\[#E96F4F\]"` filtered by NOT containing `bg-[#FF8A66]` on
+  that same line) and reverting exactly those lines back to `brightness-95`. **The lesson: a file-level
+  grep only proves a file is a candidate — the mutation itself still needs to be line-scoped, the same
+  discipline §29's CTA migration already used for its own list but this follow-up pass initially
+  skipped.**
+- **Navy elements that are genuinely interactive hover to `#FF8A66`** — top navbar links (text color,
+  not just the existing bg-tint pill), the areas-dropdown items, sidebar-adjacent dropdown-menu icons
+  (`$menuIcon` in `layouts/app.blade.php`, reused by every account/admin dropdown row), and the
+  hamburger/notification icon buttons. Plain navy body text and headings are unaffected — only actual
+  links/icon-buttons got this treatment, not a blanket navy→coral text sweep (~2,200 navy text sites
+  exist app-wide; touching all of them was out of scope for this pass).
+- **Secondary/outline button** (`<x-secondary-button>`) had no coral-adjacent hover at all before —
+  white bg, navy border/text, hover only tinted the bg gray. Now hovers to `border-[#FF8A66]
+  text-[#FF8A66]`, keeping the white fill (it's still the *secondary* action, so it doesn't pick up a
+  filled treatment).
+- **Active navigation gets a coral indicator, not a recolor.** Top navbar (pill-style): the active
+  item's text turns `#FF8A66` on an unchanged mist pill background. Admin/landlord sidebar
+  (dark-filled, tab-like): adding a `border-l-[3px]` reserved on every item (`border-transparent` when
+  inactive) meant the active item's `border-[#FF8A66]` accent costs zero layout shift, and the item
+  keeps its navy fill — a dense 15–20-item sidebar going fully coral on its active row would have
+  overrun the coral budget §29 established (~5% of visual weight); a 3px accent line stays well inside
+  it. Sidebar item hover also moved from a brightness-only `text-white/90` to `text-[#FF8A66]`.
+- **Property cards gained a hover surface that doesn't exist at rest.** §6's "image-is-the-card, no
+  white box" rule is unchanged — cards are still bare image+text on the page background normally. The
+  hover spec (`#FFF7F4` tint, `#FF8A66` border, soft navy shadow, `-4px` lift) needed an actual
+  boxed surface to show that tint against, so `property-card.blade.php`'s wrapper gained a permanent
+  `rounded-2xl border border-transparent bg-transparent p-2` — invisible at rest, so the resting look
+  is unchanged — that only becomes a visible white-tinted card on `:hover`. The `-4px` lift
+  (`hover:-translate-y-1`) already existed pre-this-pass; only the tint/border/shadow were added.
+- **Search inputs already had a coral focus ring** from §29's role-split (every text input/select/date
+  picker's `focus:border-[#FF8A66] focus:ring-[#FF8A66]`) — nothing to redo there. The one gap: the
+  hero/header search *pill* (`search-pill.blade.php`) deliberately strips focus rings off its three
+  individual borderless fields (one shared pill boundary, not three separately-ringed inputs), so it
+  had no focus feedback at all. Added `focus-within:border-[#FF8A66] focus-within:ring-4
+  focus-within:ring-[#FF8A66]/10` to the pill's own `<form>` so focusing any field glows the whole pill.
+- **Transition timing standardized to 200–300ms** on every component this pass touched — several
+  buttons and the admin sidebar were still on a 150ms holdover from before the Sept 2026 reskins.
+  Not swept app-wide; components outside this pass's scope may still carry 150ms until they're next
+  touched.

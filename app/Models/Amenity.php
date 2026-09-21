@@ -7,8 +7,22 @@ class Amenity extends Model
 {
     protected $fillable = [
         'amenity_name',
+        'scope',
+        'category',
     ];
 protected $primaryKey = 'amenity_id';
+
+    // ─── Query scopes ────────────────────────────────────────
+
+    public function scopeForProperty($query)
+    {
+        return $query->whereIn('scope', ['property', 'both']);
+    }
+
+    public function scopeForUnit($query)
+    {
+        return $query->whereIn('scope', ['unit', 'both']);
+    }
 
     // ─── Accessors ───────────────────────────────────────────
 

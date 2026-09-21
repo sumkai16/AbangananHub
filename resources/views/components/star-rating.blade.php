@@ -24,23 +24,23 @@
             aria-label="Rated {{ number_format($value, 1) }} out of 5{{ $count !== null ? ' from ' . $count . ' ' . \Illuminate\Support\Str::plural('rating', $count) : '' }}">
             @for($i = 1; $i <= 5; $i++)
                 <svg width="{{ $px }}" height="{{ $px }}" viewBox="0 0 24 24"
-                    fill="{{ $i <= $filled ? '#FBBF24' : '#E2E8F0' }}" stroke="none" aria-hidden="true">
+                    fill="{{ $i <= $filled ? '#FBBF24' : '#E2E4EC' }}" stroke="none" aria-hidden="true">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
             @endfor
         </span>
         @if($showValue)
-            <span class="{{ $valueClass }} font-bold text-[#1F2937]">{{ number_format($value, 1) }}</span>
+            <span class="{{ $valueClass }} font-bold text-[#060D26]">{{ number_format($value, 1) }}</span>
         @endif
         @if($count !== null)
-            <span class="{{ $countClass }} text-[#64748B]">({{ $count }})</span>
+            <span class="{{ $countClass }} text-[#5B6A8E]">({{ $count }})</span>
         @endif
     </span>
 @else
     <span {{ $attributes->merge(['class' => 'inline-flex items-center gap-1.5']) }}>
         <span class="inline-flex gap-0.5" aria-hidden="true">
             @for($i = 1; $i <= 5; $i++)
-                <svg width="{{ $px }}" height="{{ $px }}" viewBox="0 0 24 24" fill="#E2E8F0" stroke="none">
+                <svg width="{{ $px }}" height="{{ $px }}" viewBox="0 0 24 24" fill="#E2E4EC" stroke="none">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
             @endfor

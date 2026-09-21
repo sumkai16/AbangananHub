@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 
 class StoreReservationRequest extends FormRequest
 {
@@ -15,12 +16,17 @@ class StoreReservationRequest extends FormRequest
     {
         return [
             'unit_id'              => 'required|integer|exists:property_units,unit_id',
-            // An inquiry is a question, not a commitment — the tenant is asking
-            // before they know whether they want the unit, so demanding a
-            // move-in date is asking them to guess. Reserving is the point at
-            // which naming a date means something.
-            'mode'                 => 'required|in:inquiry,reserve',
-            'target_move_in_date'  => 'required_if:mode,reserve|nullable|date|after_or_equal:today|before_or_equal:' . now()->addYear()->toDateString(),
+            // Contacting a landlord is a single action now — the old
+            // Inquiry/Reserve toggle produced the same rental_status either
+            // way, so the two-mode form was explaining a distinction that
+            // didn't exist. A move-in date is optional either way: a tenant
+            // still asking questions hasn't necessarily settled on one.
+            'target_move_in_date'  => 'nullable|date|after_or_equal:today|before_or_equal:' . now()->addYear()->toDateString(),
+            // The app is monthly-only end to end (rent, the ledger, every
+            // price label) — duration is expressed in months, not a
+            // free-picked move-out date, so a tenant can't accidentally
+            // request a two-day stay. Null means open-ended.
+            'duration_months'      => 'nullable|integer|in:1,3,6,12',
             'target_move_out_date' => 'nullable|date|after:target_move_in_date',
             'message'              => 'nullable|string|max:300',
         ];
@@ -31,29 +37,29 @@ class StoreReservationRequest extends FormRequest
         return [
             'unit_id.required'                    => 'Please select a unit before sending your inquiry.',
             'unit_id.exists'                      => 'That unit no longer exists.',
-            'mode.required'                       => 'Choose whether you are inquiring or reserving.',
-            'mode.in'                             => 'Choose whether you are inquiring or reserving.',
-            'target_move_in_date.required_if'     => 'Please choose your target move-in date to reserve.',
             'target_move_in_date.after_or_equal'  => 'Your move-in date cannot be in the past.',
             'target_move_in_date.before_or_equal' => 'Please choose a move-in date within the next year.',
-            'target_move_out_date.after'          => 'Your move-out date must be after your move-in date.',
+            'duration_months.in'                  => 'Please choose a valid stay length.',
             'message.max'                         => 'Your message cannot be longer than 300 characters.',
         ];
     }
 
     /**
-     * Dates typed while the Reserve tab was open then abandoned for Inquiry
-     * would otherwise still post, silently attaching a commitment the tenant
-     * backed out of — and re-arming the Clock 1 basis this change exists to
-     * stop relying on.
+     * target_move_out_date is derived server-side from move-in + duration,
+     * never taken from the client directly — the form no longer renders a
+     * move-out picker, only a duration select. Recomputing it here (rather
+     * than trusting whatever the client posts) is what keeps a tampered or
+     * stale move-out value from reaching the reservation.
      */
     protected function prepareForValidation(): void
     {
-        if ($this->input('mode') === 'inquiry') {
-            $this->merge([
-                'target_move_in_date'  => null,
-                'target_move_out_date' => null,
-            ]);
-        }
+        $moveIn = $this->input('target_move_in_date');
+        $months = $this->input('duration_months');
+
+        $moveOut = ($moveIn && $months)
+            ? Carbon::parse($moveIn)->addMonthsNoOverflow((int) $months)->toDateString()
+            : null;
+
+        $this->merge(['target_move_out_date' => $moveOut]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SendMessageRequest;
+use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use Illuminate\Http\JsonResponse;
 
@@ -31,13 +32,11 @@ class MessageController extends Controller
         broadcast(new MessageSent($message))->toOthers();
 
         return response()->json([
-            'data' => [
-                'message_id'  => $message->message_id,
-                'sender_id'   => $message->sender_id,
+            'data' => array_merge((new MessageResource($message))->resolve(), [
+                // Kept for existing clients that read this flattened shape
+                // rather than sender.first_name/last_name.
                 'sender_name' => $message->sender->first_name . ' ' . $message->sender->last_name,
-                'message'     => $message->message,
-                'sent_at'     => $message->sent_at->toIso8601String(),
-            ],
+            ]),
         ], 201);
     }
 }

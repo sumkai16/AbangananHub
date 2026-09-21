@@ -79,10 +79,14 @@ class ProcessRentReminders extends Command
      */
     private function remindFor(Reservation $reservation, Carbon $today): bool
     {
-        // periods() is oldest-first, so the first unpaid one is the oldest debt.
+        // unsettledPeriods() is oldest-first, so the first one is the oldest
+        // debt. It is used in preference to periods() because it already drops
+        // future months: a tenant who paid rent in advance must never be
+        // reminded about a month they settled before it arrived, and a partly
+        // covered future month must not pull the reminder forward either.
         $target = RentLedger::for($reservation)
-            ->periods()
-            ->firstWhere(fn ($p) => $p['status'] !== 'paid');
+            ->unsettledPeriods()
+            ->first();
 
         if (! $target) {
             return false;

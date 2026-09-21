@@ -50,20 +50,36 @@ protected function handleCheckoutPaid(array $resource): void
 
     $paymentIntentId = $resource['attributes']['payment_intent']['id'] ?? null;
     $paymongoPaymentId = $resource['attributes']['payments'][0]['id'] ?? null;
+    $paymentMethod = Payment::resolvePaymongoMethod(
+        $resource['attributes']['payment_method_used']
+            ?? $resource['attributes']['payments'][0]['attributes']['source']['type'] ?? null
+    ) ?? $payment->payment_method;
+
+    // Monthly rent settles straight to the landlord — there is no handover
+    // left to protect once a tenant already occupies the unit, unlike the
+    // Initial payment which stays escrowed until move-in is confirmed.
+    $isRent = $payment->payment_type === 'Monthly';
 
     $payment->update([
-        'status' => 'Held',
+        'status' => $isRent ? 'Paid' : 'Held',
+        'payment_method' => $paymentMethod,
         'paymongo_payment_intent_id' => $paymentIntentId,
         'paymongo_payment_id' => $paymongoPaymentId,
         'paid_at' => now(),
+        // Rent settles straight to the landlord with no escrow step, so it is
+        // payout-eligible the moment it's paid. The initial payment isn't —
+        // it only becomes payout-eligible once escrow releases it.
+        'payout_status' => $isRent ? 'Pending Payout' : null,
     ]);
 
     // The broadcast and both notifications are raised by PaymentObserver off
-    // the status change above — the tenant sitting on the agreement page's
-    // "Payment Processing" spinner is waiting for exactly that.
-    $payment->reservation?->postSystemMessage(
-        $payment->reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.'
-    );
+    // the status change above — the tenant sitting on the agreement/ledger
+    // page's "Payment Processing" spinner is waiting for exactly that.
+    $message = $isRent
+        ? $payment->reservation->tenant->name . ' paid rent for ' . ($payment->billing_period?->format('M Y') ?? 'this period') . ' online.'
+        : $payment->reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.';
+
+    $payment->reservation?->postSystemMessage($message);
 }
 
     protected function verifySignature(string $payload, string $signatureHeader): bool

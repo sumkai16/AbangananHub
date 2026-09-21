@@ -12,7 +12,10 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\Landlord\PropertyUnitController;
 use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
+use App\Http\Controllers\Landlord\PropertyWizardController;
+use App\Http\Controllers\Landlord\PropertyDocumentController as LandlordPropertyDocumentController;
 use App\Http\Controllers\Admin\PropertyUnitController as AdminPropertyUnitController;
+use App\Http\Controllers\Admin\PropertyDocumentController as AdminPropertyDocumentController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -28,10 +31,14 @@ use App\Http\Controllers\Tenant\AgreementController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\PayMongoWebhookController;
 use App\Http\Controllers\Admin\ReportAnalyticsController;
+use App\Http\Controllers\Auth\WebviewLoginController;
 
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
+Route::get('/areas', [PropertyController::class, 'areas'])->name('properties.areas');
 Route::get('/about', fn() => view('about'))->name('about');
+Route::view('/privacy', 'legal.privacy')->name('privacy');
+Route::view('/terms', 'legal.terms')->name('terms');
 
 // Global Authenticated Routes Group
 Route::middleware('auth')->group(function () {
@@ -68,8 +75,30 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
     // Landlord-only routes (property create/edit/delete — no prefix, uses /properties URIs)
     Route::middleware('landlord')->group(function () {
-        Route::resource('properties', PropertyController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('properties', PropertyController::class)->only(['edit', 'update', 'destroy']);
         Route::delete('/properties/{property}/media/{media}', [PropertyController::class, 'destroyMedia'])->name('properties.media.destroy');
+        Route::post('/properties/{property}/publish', [PropertyController::class, 'publish'])->name('properties.publish');
+        Route::post('/properties/{property}/unpublish', [PropertyController::class, 'unpublish'])->name('properties.unpublish');
+
+        // Property creation wizard — Info -> Location -> Amenities -> Documents -> Units -> Review.
+        // A real Draft row is created once Location (step 2) is saved; steps
+        // 3-6 operate on that row. See plans/property-creation-wizard.md.
+        Route::get('/properties/create', [PropertyWizardController::class, 'createInfo'])->name('properties.create');
+        Route::post('/properties/wizard/info', [PropertyWizardController::class, 'storeInfo'])->name('properties.wizard.info.store');
+        Route::get('/properties/wizard/location', [PropertyWizardController::class, 'createLocation'])->name('properties.wizard.location.create');
+        Route::post('/properties/wizard/location', [PropertyWizardController::class, 'storeLocation'])->name('properties.wizard.location.store');
+
+        Route::get('/properties/{property}/wizard', [PropertyWizardController::class, 'resume'])->name('properties.wizard.resume');
+        Route::get('/properties/{property}/wizard/info', [PropertyWizardController::class, 'editInfo'])->name('properties.wizard.info.edit');
+        Route::put('/properties/{property}/wizard/info', [PropertyWizardController::class, 'updateInfo'])->name('properties.wizard.info.update');
+        Route::get('/properties/{property}/wizard/location', [PropertyWizardController::class, 'editLocation'])->name('properties.wizard.location.edit');
+        Route::put('/properties/{property}/wizard/location', [PropertyWizardController::class, 'updateLocation'])->name('properties.wizard.location.update');
+        Route::get('/properties/{property}/wizard/amenities', [PropertyWizardController::class, 'amenities'])->name('properties.wizard.amenities');
+        Route::post('/properties/{property}/wizard/amenities', [PropertyWizardController::class, 'storeAmenities'])->name('properties.wizard.amenities.store');
+        Route::get('/properties/{property}/wizard/documents', [PropertyWizardController::class, 'documents'])->name('properties.wizard.documents');
+        Route::get('/properties/{property}/wizard/units', [PropertyWizardController::class, 'units'])->name('properties.wizard.units');
+        Route::get('/properties/{property}/wizard/review', [PropertyWizardController::class, 'review'])->name('properties.wizard.review');
+        Route::post('/properties/{property}/wizard/submit', [PropertyWizardController::class, 'submit'])->name('properties.wizard.submit');
     });
 
     // Tenant-accessible routes
@@ -87,8 +116,18 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/reservations/{reservation}/pay', [PaymentController::class, 'createCheckoutSession'])->name('payments.checkout');
         Route::get('/reservations/{reservation}/payment-success', [PaymentController::class, 'success'])->name('payments.success');
         Route::post('/reservations/{reservation}/confirm-move-in', [AgreementController::class, 'confirmMoveIn'])->name('agreements.confirmMoveIn');
+        // confirmMoveIn is a state-changing POST-only action, but a reload/bookmark/
+        // back-forward navigation to this URL lands here as GET — send it to the
+        // agreement page instead of surfacing a raw 405.
+        Route::get('/reservations/{reservation}/confirm-move-in', fn (\App\Models\Reservation $reservation) => redirect()->route('agreements.show', $reservation));
         Route::post('/reservations/{reservation}/dispute-move-in', [AgreementController::class, 'disputeMoveIn'])->name('agreements.disputeMoveIn');
-        
+
+        // A tenant's own tenancy and rent ledger — read-only except for the
+        // one earliest unsettled period, which can be paid online via GCash.
+        Route::get('/tenancy/{reservation}', [App\Http\Controllers\Tenant\TenancyController::class, 'show'])->name('tenancy.show');
+        Route::post('/tenancy/{reservation}/pay-rent', [PaymentController::class, 'createRentCheckoutSession'])->name('payments.rentCheckout');
+        Route::get('/tenancy/{reservation}/rent-success', [PaymentController::class, 'rentSuccess'])->name('payments.rent.success');
+
         Route::post('/reviews', [\App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
 
         // Reports
@@ -123,9 +162,13 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::resource('properties.units', PropertyUnitController::class);
         Route::delete('/properties/{property}/units/{unit}/media/{media}', [PropertyUnitController::class, 'destroyMedia'])->name('properties.units.media.destroy');
 
-        // Occupancy monitoring
-        Route::get('/occupancy', [App\Http\Controllers\Landlord\OccupancyController::class, 'index'])->name('occupancy.index');
-        Route::get('/occupancy/export', [App\Http\Controllers\Landlord\OccupancyController::class, 'export'])->name('occupancy.export');
+        // Property verification documents (proof of ownership, tax dec, permits — private disk, policy-gated)
+        Route::get('/properties/{property}/documents', [LandlordPropertyDocumentController::class, 'index'])->name('properties.documents.index');
+        Route::post('/properties/{property}/documents', [LandlordPropertyDocumentController::class, 'store'])->name('properties.documents.store');
+        Route::post('/properties/{property}/documents/{document}/replace', [LandlordPropertyDocumentController::class, 'replace'])->name('properties.documents.replace');
+        Route::delete('/properties/{property}/documents/{document}', [LandlordPropertyDocumentController::class, 'destroy'])->name('properties.documents.destroy');
+        Route::get('/properties/{property}/documents/{document}/preview', [LandlordPropertyDocumentController::class, 'preview'])->name('properties.documents.preview');
+        Route::get('/properties/{property}/documents/{document}/download', [LandlordPropertyDocumentController::class, 'download'])->name('properties.documents.download');
 
 
         Route::patch('/reviews/{review}/reply', [\App\Http\Controllers\Landlord\ReviewController::class, 'reply'])->name('reviews.reply');
@@ -162,6 +205,13 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/payments/export', [App\Http\Controllers\Landlord\PaymentController::class, 'export'])->name('payments.export');
         Route::post('/tenancies/{reservation}/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/{payment}/receipt', [App\Http\Controllers\Landlord\PaymentController::class, 'receipt'])->name('payments.receipt');
+        // Strikes a recorded payment from the ledger without deleting it — POST,
+        // not DELETE, since nothing is removed. See context/RULES.md → Money-Moving Code.
+        Route::post('/payments/{payment}/void', [App\Http\Controllers\Landlord\PaymentController::class, 'void'])->name('payments.void');
+
+        // A landlord's own view of what AbangananHub owes them and has paid
+        // out. See docs/specs/2026-07-26-landlord-payout-design.md.
+        Route::get('/payouts', [App\Http\Controllers\Landlord\PayoutController::class, 'index'])->name('payouts.index');
 
         // Reviews
         Route::get('/reviews', [App\Http\Controllers\Landlord\ReviewController::class, 'index'])->name('reviews.index');
@@ -185,11 +235,18 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/listings/approval', [ListingController::class, 'approval'])->name('listings.approval');
         Route::post('/listings/{property_id}/approve', [ListingController::class, 'approve'])->name('listings.approve');
         Route::post('/listings/{property_id}/reject', [ListingController::class, 'reject'])->name('listings.reject');
+        Route::post('/listings/{property_id}/unsuspend', [ListingController::class, 'unsuspend'])->name('listings.unsuspend');
 
         Route::get('/verifications', [AdminVerificationController::class, 'index'])->name('verifications.index');
         Route::get('/verifications/{verification}', [AdminVerificationController::class, 'show'])->name('verifications.show');
         Route::post('/verifications/{verification}/approve', [AdminVerificationController::class, 'approve'])->name('verifications.approve');
         Route::post('/verifications/{verification}/reject', [AdminVerificationController::class, 'reject'])->name('verifications.reject');
+
+        // Property verification documents — cross-property queue, mirrors Landlord Verifications.
+        Route::get('/documents', [AdminPropertyDocumentController::class, 'index'])->name('documents.index');
+        Route::get('/documents/{document}', [AdminPropertyDocumentController::class, 'show'])->name('documents.show');
+        Route::get('/documents/{document}/preview', [AdminPropertyDocumentController::class, 'preview'])->name('documents.preview');
+        Route::get('/documents/{document}/download', [AdminPropertyDocumentController::class, 'download'])->name('documents.download');
 
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
@@ -216,6 +273,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::post('/properties/{property}/units/{unit}/approve', [AdminPropertyUnitController::class, 'approve'])->name('units.approve');
         Route::post('/properties/{property}/units/{unit}/reject', [AdminPropertyUnitController::class, 'reject'])->name('units.reject');
 
+        // Property verification documents — review lands on the catalogue "show" page.
+        Route::post('/properties/{property}/documents/request', [AdminPropertyDocumentController::class, 'request'])->name('properties.documents.request');
+        Route::post('/properties/{property}/documents/{document}/verify', [AdminPropertyDocumentController::class, 'verify'])->name('properties.documents.verify');
+        Route::post('/properties/{property}/documents/{document}/reject', [AdminPropertyDocumentController::class, 'reject'])->name('properties.documents.reject');
+
         // Property & unit catalogues — full inventory across all statuses,
         // distinct from the approval queues above.
         Route::get('/catalogue/properties/export', [PropertyCatalogueController::class, 'export'])->name('catalogue.properties.export');
@@ -230,6 +292,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
 
         Route::get('/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
         Route::post('/payments/{payment}/release', [App\Http\Controllers\Admin\PaymentController::class, 'release'])->name('payments.release');
+
+        // Landlord payouts — manual GCash transfer queue, see
+        // docs/specs/2026-07-26-landlord-payout-design.md
+        Route::get('/payouts', [App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
+        Route::post('/payouts/{user}/mark-paid-out', [App\Http\Controllers\Admin\PayoutController::class, 'markPaidOut'])->name('payouts.markPaidOut');
 
         // Profile
         Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
@@ -270,4 +337,9 @@ Route::get('/properties', [PropertyController::class, 'index'])->name('propertie
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 // PayMongo webhook — no auth, CSRF excluded in bootstrap/app.php
 Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
+
+// Bridges a mobile WebView (Bearer token, no session) into a logged-in web
+// session — see Api\AuthController::webviewTicket. Outside the auth
+// middleware on purpose: the WebView has no session to require yet.
+Route::get('/auth/webview-login/{ticket}', WebviewLoginController::class)->name('auth.webviewLogin');
 require __DIR__.'/auth.php';

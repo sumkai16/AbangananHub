@@ -17,6 +17,10 @@
                 'id'    => $unit->unit_id,
                 'label' => $unit->unit_label,
                 'rent'  => (float) $unit->rental_fee,
+                // Drives the required-move-in figure client-side. Required at
+                // the application layer on every unit since Aug 2026 and
+                // backfilled, so the ?? 0 is a guard, not a supported state.
+                'deposit' => (float) ($unit->security_deposit ?? 0),
                 'cap'   => $unit->occupancy_limit,
                 'photo' => optional($unit->media->firstWhere('media_type', 'Image'))->media_url
                     ?? optional($property->media->firstWhere('media_type', 'Image'))->media_url,
@@ -29,8 +33,8 @@
             'contact' => $tenant->contact_number ?: ($tenant->email ?: 'No contact on file'),
         ])->values();
 
-        $inputClass = 'h-11 w-full rounded-xl border border-[#64748B]/30 px-3.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition';
-        $labelClass = 'block text-[12px] font-semibold text-[#1F2937] mb-1.5';
+        $inputClass = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition';
+        $labelClass = 'block text-[12px] font-semibold text-[#060D26] mb-1.5';
         $errorClass = 'text-[11.5px] text-[#EF4444] mt-1';
 
         $existingTenantOptions = $existingTenants->mapWithKeys(fn ($tenant) => [
@@ -39,15 +43,6 @@
         ])->all();
 
         $dueDayOptions = collect(range(1, 28))->mapWithKeys(fn ($d) => [(string) $d => (string) $d])->all();
-
-        $occupantsOptions = collect(range(1, 20))
-            ->mapWithKeys(fn ($i) => [(string) $i => $i . ' ' . ($i === 1 ? 'person' : 'persons')])
-            ->all();
-
-        $initialTypeOptions = [
-            'Initial' => 'Initial payment (deposit + advance)',
-            'Deposit' => 'Security deposit only',
-        ];
 
         $paymentMethodOptions = array_combine(
             ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'],
@@ -58,24 +53,24 @@
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
         {{-- Breadcrumb --}}
-        <div class="flex flex-wrap items-center gap-1.5 text-sm text-[#64748B] mb-2">
+        <div class="flex flex-wrap items-center gap-1.5 text-sm text-[#5B6A8E] mb-2">
             <a href="{{ route('landlord.tenants.index') }}"
-                class="hover:text-[#1F2937] transition-colors duration-200">My Tenants</a>
+                class="hover:text-[#060D26] transition-colors duration-200">My Tenants</a>
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
-            <span class="text-[#1F2937] font-medium">Add Walk-in Tenant</span>
+            <span class="text-[#060D26] font-medium">Add Walk-in Tenant</span>
         </div>
 
         {{-- Header --}}
         <div class="mb-6">
-            <h1 class="text-2xl font-bold text-[#1F2937] leading-tight">Add Walk-in Tenant</h1>
-            <p class="text-sm text-[#64748B] mt-1">
+            <h1 class="text-2xl font-normal text-[#060D26] leading-tight">Add Walk-in Tenant</h1>
+            <p class="text-sm text-[#5B6A8E] mt-1">
                 Record a tenant who arranged the rental with you directly. The unit is marked occupied straight away — there is no
                 inquiry, agreement or online payment step.
             </p>
             @if($scopedPropertyId && $properties->isNotEmpty())
-                <p class="text-[12.5px] text-[#156F8C] font-medium mt-1.5">
+                <p class="text-[12.5px] text-[#060D26] font-medium mt-1.5">
                     Showing units from <strong>{{ $properties->first()->title }}</strong> only —
                     <a href="{{ route('landlord.tenants.walkIn.create') }}" class="underline hover:no-underline">show all properties</a>
                 </p>
@@ -98,25 +93,25 @@
 
         @if($properties->isEmpty())
             <x-card class="flex flex-col items-center justify-center py-12 px-6 text-center">
-                <div class="w-14 h-14 rounded-2xl bg-[#EEF8F8] flex items-center justify-center mb-4">
-                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="1.5">
+                <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] flex items-center justify-center mb-4">
+                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
                     </svg>
                 </div>
-                <p class="text-[14px] font-semibold text-[#1F2937]">No available units</p>
-                <p class="text-[13px] text-[#64748B] mt-1 max-w-md">
+                <p class="text-[14px] font-semibold text-[#060D26]">No available units</p>
+                <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-md">
                     A walk-in tenant needs an admin-approved unit that is currently vacant and has no active reservation against it.
                 </p>
                 <a href="{{ route('landlord.units.index') }}"
-                    class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#1F2937] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                    class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                     Go to my units
                 </a>
             </x-card>
         @else
             <form method="POST" action="{{ route('landlord.tenants.walkIn.store') }}"
                 data-confirm="Add walk-in tenant?"
-                data-confirm-message="The unit will be marked Occupied straight away and will stop appearing to tenants browsing the site."
+                :data-confirm-message="confirmMessage"
                 data-confirm-button="Add tenant"
                 x-data="{
                     mode: @js(old('existing_tenant_id') ? 'existing' : 'new'),
@@ -125,10 +120,16 @@
                     lastName: @js(old('last_name', '')),
                     unitId: @js(old('unit_id', '')),
                     moveIn: @js(old('move_in_date', now()->toDateString())),
+                    occupants: @js(old('occupants_count', '')),
                     rent: @js(old('agreed_monthly_rent', '')),
                     dueDay: @js(old('rent_due_day', '')),
                     hasPayment: @js((bool) old('initial_amount')),
                     initialAmount: @js(old('initial_amount', '')),
+                    paymentMethod: @js(old('payment_method', 'Cash')),
+                    // Server's 'today', not the browser's — a landlord in a
+                    // different timezone must see the same boundary the
+                    // validator on submit will actually enforce.
+                    todayStr: @js(now()->toDateString()),
                     galleryProperties: @js($galleryProperties),
                     existingTenants: @js($existingOptions),
                     // Arriving scoped to one property (from that property's
@@ -137,7 +138,38 @@
                     // making the landlord click Choose a unit first.
                     pickerOpen: @js((bool) ($scopedPropertyId && $properties->isNotEmpty())),
                     unitSearch: '',
+                    occupantsPickerOpen: false,
 
+                    init() {
+                        // A unit switch can invalidate a previously-picked
+                        // occupant count (e.g. 5 chosen against a 6-cap unit,
+                        // then switched to a 2-cap one) — the dropdown itself
+                        // no longer offers 5, so the stale value has to go too.
+                        this.$watch('unitId', () => {
+                            const cap = this.unit ? this.unit.cap : null;
+                            if (cap && this.occupants && parseInt(this.occupants) > cap) {
+                                this.occupants = '';
+                            }
+                        });
+                        // Moving the date to today-or-earlier turns payment
+                        // recording from optional to required — force the
+                        // section open rather than leaving a landlord to
+                        // discover the requirement only after Submit bounces.
+                        this.$watch('moveIn', () => {
+                            if (this.paymentRequired) this.hasPayment = true;
+                        });
+                        if (this.paymentRequired) this.hasPayment = true;
+                    },
+                    // A move-in date already reached — today or earlier —
+                    // means the money conversation has already happened, so
+                    // this app has no later moment to record it in.
+                    get paymentRequired() {
+                        return !!this.moveIn && this.moveIn <= this.todayStr;
+                    },
+                    get occupantsOptions() {
+                        const cap = this.unit ? this.unit.cap : 20;
+                        return Array.from({ length: cap }, (_, i) => i + 1);
+                    },
                     openPicker() { this.unitSearch = ''; this.pickerOpen = true; },
                     // Selecting is the whole action — no separate confirm step.
                     pick(id) { this.unitId = String(id); this.pickerOpen = false; },
@@ -180,6 +212,86 @@
                     peso(value) {
                         return '₱' + (value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     },
+
+                    /*
+                     | Move-in money, allocated.
+                     |
+                     | This mirrors App\Support\MoveInPaymentBreakdown so the
+                     | landlord sees the split before committing to it. The
+                     | server allocates again from the posted amount and its own
+                     | figures — this is display, never the source of truth, and
+                     | nothing here is posted as a computed field.
+                     */
+                    round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; },
+                    get depositDue() { return this.unit ? this.unit.deposit : 0; },
+                    get requiredMoveIn() { return this.round2(this.effectiveRent + this.depositDue); },
+                    get received() {
+                        const v = parseFloat(this.initialAmount);
+                        return isNaN(v) || v < 0 ? 0 : v;
+                    },
+                    get shortfall() { return this.round2(Math.max(0, this.requiredMoveIn - this.received)); },
+                    get isShort() { return this.received > 0 && this.shortfall > 0; },
+                    /* Deposit first, then rent month by month — same order and
+                       reasoning as the PHP class. */
+                    get allocation() {
+                        let left = this.received;
+                        const deposit = Math.min(left, this.depositDue);
+                        left = this.round2(left - deposit);
+
+                        const rentPerMonth = this.effectiveRent;
+                        const slices = [];
+
+                        if (left > 0 && rentPerMonth <= 0) {
+                            slices.push(left);
+                            left = 0;
+                        } else {
+                            while (left > 0 && slices.length < 60) {
+                                const slice = this.round2(Math.min(left, rentPerMonth));
+                                slices.push(slice);
+                                left = this.round2(left - slice);
+                            }
+                        }
+
+                        return {
+                            deposit,
+                            rent: slices[0] ?? 0,
+                            advance: this.round2(slices.slice(1).reduce((a, b) => a + b, 0)),
+                            advanceMonths: slices.slice(1).map((amount, i) => ({
+                                label: this.monthLabel(i + 1),
+                                amount,
+                            })),
+                        };
+                    },
+                    /* Offset months from the move-in month. Built from the date
+                       parts rather than new Date(iso), which is parsed as UTC
+                       and lands on the previous month for anyone west of
+                       Greenwich (DESIGN.md 6h). */
+                    monthLabel(offset) {
+                        if (!this.moveIn) return '';
+                        const [y, m] = this.moveIn.split('-').map(Number);
+                        const d = new Date(y, (m - 1) + offset, 1);
+                        return d.toLocaleDateString('en-PH', { month: 'short', year: 'numeric' });
+                    },
+                    get advanceMonthsLabel() {
+                        const months = this.allocation.advanceMonths;
+                        if (months.length === 0) return '';
+                        if (months.length <= 3) return months.map(m => m.label.split(' ')[0]).join(', ');
+                        return months.length + ' months';
+                    },
+                    get needsReference() { return this.paymentMethod !== 'Cash'; },
+                    /* Appended to the confirm dialog so the shortfall is stated
+                       on the last screen before the write, not only mid-form.
+                       modal-confirm.js reads dataset at submit time, so this
+                       binding is live. */
+                    get confirmMessage() {
+                        const base = 'The unit will be marked Occupied straight away and will stop appearing to tenants browsing the site.';
+                        if (this.hasPayment && this.isShort) {
+                            return base + ' The ' + this.peso(this.received) + ' recorded is '
+                                + this.peso(this.shortfall) + ' short of the ' + this.peso(this.requiredMoveIn)
+                                + ' move-in total, so the move-in month will show a remaining balance.';
+                        }
+                        return base;
+                    },
                     get summaryName() {
                         if (this.mode === 'existing') return this.tenantName || 'Not selected';
                         return (this.firstName + ' ' + this.lastName).trim() || 'Not entered';
@@ -195,27 +307,27 @@
                         {{-- Tenant details --}}
                         <x-card>
                             <div class="flex items-center gap-3 mb-5">
-                                <div class="w-9 h-9 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                                <div class="w-9 h-9 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h2 class="text-[15px] font-bold text-[#1F2937]">Tenant details</h2>
-                                    <p class="text-[12px] text-[#64748B]">Who is moving in.</p>
+                                    <h2 class="text-[15px] font-normal text-[#060D26]">Tenant details</h2>
+                                    <p class="text-[12px] text-[#5B6A8E]">Who is moving in.</p>
                                 </div>
                             </div>
 
                             @if($existingTenants->isNotEmpty())
-                                <div class="flex gap-2 mb-5 p-1 rounded-xl bg-[#F7FCFC] border border-[#E2E8F0]">
+                                <div class="flex gap-2 mb-5 p-1 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC]">
                                     <button type="button" @click="mode = 'new'; existingTenantId = ''"
-                                        :class="mode === 'new' ? 'bg-white text-[#1F2937] shadow-[0_1px_3px_rgba(15,23,42,0.06)]' : 'text-[#64748B] hover:text-[#1F2937]'"
+                                        :class="mode === 'new' ? 'bg-white text-[#060D26] shadow-[0_1px_3px_rgba(6,13,38,0.06)]' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                                         class="flex-1 h-9 rounded-lg text-[13px] font-semibold transition-all duration-200 cursor-pointer">
                                         New tenant
                                     </button>
                                     <button type="button" @click="mode = 'existing'"
-                                        :class="mode === 'existing' ? 'bg-white text-[#1F2937] shadow-[0_1px_3px_rgba(15,23,42,0.06)]' : 'text-[#64748B] hover:text-[#1F2937]'"
+                                        :class="mode === 'existing' ? 'bg-white text-[#060D26] shadow-[0_1px_3px_rgba(6,13,38,0.06)]' : 'text-[#5B6A8E] hover:text-[#060D26]'"
                                         class="flex-1 h-9 rounded-lg text-[13px] font-semibold transition-all duration-200 cursor-pointer">
                                         Someone I've recorded before
                                     </button>
@@ -228,7 +340,7 @@
                                     <x-styled-select name="existing_tenant_id" x-model="existingTenantId"
                                         :options="$existingTenantOptions" :selected="old('existing_tenant_id', '')"
                                         placeholder="Select a tenant…" class="{{ $inputClass }} bg-white" />
-                                    <p class="text-[11.5px] text-[#64748B] mt-1.5">
+                                    <p class="text-[11.5px] text-[#5B6A8E] mt-1.5">
                                         Reuses the person you already recorded instead of creating a duplicate.
                                     </p>
                                     @error('existing_tenant_id')
@@ -272,7 +384,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label for="email" class="{{ $labelClass }}">Email <span class="text-[#64748B] font-normal">(optional)</span></label>
+                                        <label for="email" class="{{ $labelClass }}">Email <span class="text-[#5B6A8E] font-normal">(optional)</span></label>
                                         <input type="email" id="email" name="email" value="{{ old('email') }}" maxlength="255"
                                             placeholder="e.g. juan@email.com" class="{{ $inputClass }}">
                                         @error('email')
@@ -281,13 +393,13 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-4 flex items-start gap-2.5 rounded-xl bg-[#EEF8F8]/60 border border-[#2AA7A1]/20 px-3.5 py-3">
-                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2"
+                                <div class="mt-4 flex items-start gap-2.5 rounded-xl bg-[#ECEEF6]/60 border border-[#FF8A66]/20 px-3.5 py-3">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2"
                                         class="shrink-0 mt-0.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                                     </svg>
-                                    <p class="text-[12px] text-[#156F8C] leading-relaxed">
+                                    <p class="text-[12px] text-[#060D26] leading-relaxed">
                                         At least one of contact number or email is required. This creates a record only — the tenant
                                         gets no login, and everywhere they appear they are labelled <strong>Walk-in</strong> because
                                         their identity has not been verified by AbangananHub.
@@ -299,15 +411,15 @@
                         {{-- Unit and terms --}}
                         <x-card>
                             <div class="flex items-center gap-3 mb-5">
-                                <div class="w-9 h-9 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                                <div class="w-9 h-9 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h2 class="text-[15px] font-bold text-[#1F2937]">Unit &amp; terms</h2>
-                                    <p class="text-[12px] text-[#64748B]">Only approved, vacant units are listed.</p>
+                                    <h2 class="text-[15px] font-normal text-[#060D26]">Unit &amp; terms</h2>
+                                    <p class="text-[12px] text-[#5B6A8E]">Only approved, vacant units are listed.</p>
                                 </div>
                             </div>
 
@@ -324,16 +436,16 @@
 
                                 {{-- Empty state --}}
                                 <button type="button" x-show="!unit" @click="openPicker()"
-                                    class="w-full flex items-center gap-3 rounded-xl border border-dashed border-[#64748B]/40 bg-[#F7FCFC] px-4 py-3.5 text-left hover:border-[#2AA7A1]/60 hover:bg-[#EEF8F8]/40 transition-all duration-200 cursor-pointer">
-                                    <span class="w-9 h-9 rounded-lg bg-white ring-1 ring-[#64748B]/10 flex items-center justify-center shrink-0">
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                                    class="w-full flex items-center gap-3 rounded-xl border border-dashed border-[#5B6A8E]/40 bg-[#F7F8FC] px-4 py-3.5 text-left hover:border-[#FF8A66]/60 hover:bg-[#ECEEF6]/40 transition-all duration-200 cursor-pointer">
+                                    <span class="w-9 h-9 rounded-lg bg-white ring-1 ring-[#5B6A8E]/10 flex items-center justify-center shrink-0">
+                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
                                         </svg>
                                     </span>
                                     <span class="flex-1 min-w-0">
-                                        <span class="block text-[13.5px] font-semibold text-[#1F2937]">Choose a unit</span>
-                                        <span class="block text-[12px] text-[#64748B]">Browse your available units by photo</span>
+                                        <span class="block text-[13.5px] font-semibold text-[#060D26]">Choose a unit</span>
+                                        <span class="block text-[12px] text-[#5B6A8E]">Browse your available units by photo</span>
                                     </span>
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="2" class="shrink-0">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -342,8 +454,8 @@
 
                                 {{-- Selected state --}}
                                 <div x-show="unit" x-cloak
-                                    class="flex items-center gap-3 rounded-xl border border-[#2AA7A1]/30 bg-[#EEF8F8]/40 p-2.5">
-                                    <div class="w-14 h-14 rounded-lg bg-white overflow-hidden shrink-0 ring-1 ring-[#64748B]/10">
+                                    class="flex items-center gap-3 rounded-xl border border-[#FF8A66]/30 bg-[#ECEEF6]/40 p-2.5">
+                                    <div class="w-14 h-14 rounded-lg bg-white overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                                         <template x-if="unit && unit.photo">
                                             <img :src="unit ? unit.photo : ''" :alt="unit ? unit.label : ''" class="w-full h-full object-cover">
                                         </template>
@@ -357,15 +469,15 @@
                                         </template>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <p class="text-[13.5px] font-bold text-[#1F2937] truncate" x-text="unit ? unit.label : ''"></p>
-                                        <p class="text-[11.5px] text-[#64748B] truncate" x-text="selectedProperty ? selectedProperty.title : ''"></p>
+                                        <p class="text-[13.5px] font-bold text-[#060D26] truncate" x-text="unit ? unit.label : ''"></p>
+                                        <p class="text-[11.5px] text-[#5B6A8E] truncate" x-text="selectedProperty ? selectedProperty.title : ''"></p>
                                         <div class="flex items-center gap-2.5 mt-0.5">
-                                            <span class="text-[12.5px] font-bold text-[#2AA7A1]" x-text="unit ? '₱' + unit.rent.toLocaleString('en-PH') : ''"></span>
-                                            <span class="text-[11px] text-[#64748B]" x-show="unit && unit.cap" x-text="unit ? unit.cap + ' pax' : ''"></span>
+                                            <span class="text-[12.5px] font-bold text-[#B35A3D]" x-text="unit ? '₱' + unit.rent.toLocaleString('en-PH') : ''"></span>
+                                            <span class="text-[11px] text-[#5B6A8E]" x-show="unit && unit.cap" x-text="unit ? unit.cap + ' pax' : ''"></span>
                                         </div>
                                     </div>
                                     <button type="button" @click="openPicker()"
-                                        class="h-9 px-4 shrink-0 rounded-full border border-[#2AA7A1] text-[#2AA7A1] text-[12px] font-semibold hover:bg-white transition-colors duration-200 cursor-pointer">
+                                        class="h-9 px-4 shrink-0 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-white transition-colors duration-200 cursor-pointer">
                                         Change
                                     </button>
                                 </div>
@@ -388,11 +500,11 @@
                                 </div>
                                 <div>
                                     <label for="move_out_date" class="{{ $labelClass }}">
-                                        Move-out date <span class="text-[#64748B] font-normal">(optional)</span>
+                                        Move-out date <span class="text-[#5B6A8E] font-normal">(optional)</span>
                                     </label>
                                     <x-date-picker name="move_out_date" id="move_out_date" placeholder="Move-out date"
                                         value="{{ old('move_out_date') }}" min-expr="moveIn" />
-                                    <p class="text-[11.5px] text-[#64748B] mt-1.5">Leave blank for an open-ended stay.</p>
+                                    <p class="text-[11.5px] text-[#5B6A8E] mt-1.5">Leave blank for an open-ended stay.</p>
                                     @error('move_out_date')
                                         <p class="{{ $errorClass }}">{{ $message }}</p>
                                     @enderror
@@ -405,7 +517,7 @@
                                     <input type="number" id="agreed_monthly_rent" name="agreed_monthly_rent" x-model="rent"
                                         min="0" max="1000000" step="0.01" :placeholder="unit ? unit.rent : 'Unit rate'"
                                         class="{{ $inputClass }}">
-                                    <p class="text-[11.5px] text-[#64748B] mt-1.5">Blank uses the unit's listed rate.</p>
+                                    <p class="text-[11.5px] text-[#5B6A8E] mt-1.5">Blank uses the unit's listed rate.</p>
                                     @error('agreed_monthly_rent')
                                         <p class="{{ $errorClass }}">{{ $message }}</p>
                                     @enderror
@@ -421,9 +533,39 @@
                                 </div>
                                 <div>
                                     <label for="occupants_count" class="{{ $labelClass }}">Occupants</label>
-                                    <x-styled-select name="occupants_count" :options="$occupantsOptions"
-                                        :selected="old('occupants_count', '')" placeholder="Not specified"
-                                        class="{{ $inputClass }} bg-white" />
+                                    {{-- Not x-styled-select: its option list is baked in at
+                                    render time and can't react to which unit is picked, but
+                                    this field's valid range depends on unit.cap. Same visual
+                                    language, driven by the occupantsOptions getter instead. --}}
+                                    <div class="relative" @click.outside="occupantsPickerOpen = false">
+                                        <input type="hidden" name="occupants_count" :value="occupants">
+                                        <button type="button" id="occupants_count" @click="occupantsPickerOpen = !occupantsPickerOpen"
+                                            :aria-expanded="occupantsPickerOpen" aria-haspopup="listbox"
+                                            class="{{ $inputClass }} bg-white flex items-center justify-between gap-2 cursor-pointer">
+                                            <span x-text="occupants ? (occupants + ' ' + (parseInt(occupants) === 1 ? 'person' : 'persons')) : 'Not specified'" class="truncate"></span>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                                class="flex-shrink-0 text-[#5B6A8E] transition-transform duration-200" :class="occupantsPickerOpen ? 'rotate-180' : ''" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                        <div x-show="occupantsPickerOpen" x-transition
+                                            role="listbox"
+                                            class="absolute z-30 mt-2 min-w-full w-max max-h-[280px] overflow-y-auto bg-white rounded-xl border border-[#E2E4EC] shadow-[0_12px_32px_rgba(6,13,38,0.14)] py-1.5"
+                                            style="display: none;">
+                                            <template x-for="n in occupantsOptions" :key="n">
+                                                <button type="button" @click="occupants = String(n); occupantsPickerOpen = false" role="option" :aria-selected="String(occupants) === String(n)"
+                                                    class="w-full flex items-center justify-between gap-3 text-left px-4 py-2.5 text-[13.5px] font-medium transition-colors cursor-pointer hover:bg-[#ECEEF6]"
+                                                    :class="String(occupants) === String(n) ? 'text-[#060D26] font-semibold bg-[#ECEEF6]/70' : 'text-[#060D26]'">
+                                                    <span x-text="n + ' ' + (n === 1 ? 'person' : 'persons')" class="truncate"></span>
+                                                    <svg x-show="String(occupants) === String(n)" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#B35A3D]" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11.5px] text-[#5B6A8E] mt-1.5" x-show="unit" x-text="unit ? ('Capped at ' + unit.cap + ' for this unit.') : ''"></p>
                                     @error('occupants_count')
                                         <p class="{{ $errorClass }}">{{ $message }}</p>
                                     @enderror
@@ -431,10 +573,10 @@
                             </div>
 
                             <div class="mt-4">
-                                <label for="notes" class="{{ $labelClass }}">Notes <span class="text-[#64748B] font-normal">(optional)</span></label>
+                                <label for="notes" class="{{ $labelClass }}">Notes <span class="text-[#5B6A8E] font-normal">(optional)</span></label>
                                 <textarea id="notes" name="notes" rows="2" maxlength="1000"
                                     placeholder="Anything worth remembering about this arrangement…"
-                                    class="w-full rounded-xl border border-[#64748B]/30 px-3.5 py-2.5 text-[13.5px] text-[#1F2937] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/30 transition resize-y">{{ old('notes') }}</textarea>
+                                    class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition resize-y">{{ old('notes') }}</textarea>
                                 @error('notes')
                                     <p class="{{ $errorClass }}">{{ $message }}</p>
                                 @enderror
@@ -445,46 +587,141 @@
                         <x-card>
                             <div class="flex items-start justify-between gap-4 mb-1">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-xl bg-[#EEF8F8] flex items-center justify-center shrink-0">
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#156F8C" stroke-width="2">
+                                    <div class="w-9 h-9 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
                                         </svg>
                                     </div>
                                     <div>
-                                        <h2 class="text-[15px] font-bold text-[#1F2937]">Initial payment</h2>
-                                        <p class="text-[12px] text-[#64748B]">Deposit or advance collected at move-in.</p>
+                                        <h2 class="text-[15px] font-normal text-[#060D26]">Initial payment</h2>
+                                        <p class="text-[12px] text-[#5B6A8E]">Rent, deposit and any advance collected at move-in.</p>
                                     </div>
                                 </div>
-                                <label for="has_payment" class="flex items-center gap-2 cursor-pointer shrink-0 pt-1">
+                                {{-- A future move-in leaves this optional — nothing has
+                                     been collected yet to record. Once the date is today
+                                     or earlier it stops being a choice: see
+                                     StoreWalkInTenantRequest for the rule this mirrors. --}}
+                                <label for="has_payment" class="flex items-center gap-2 cursor-pointer shrink-0 pt-1"
+                                    x-show="!paymentRequired">
                                     <input type="checkbox" id="has_payment" x-model="hasPayment"
-                                        class="w-4 h-4 rounded border-[#64748B]/40 text-[#2AA7A1] focus:ring-[#2AA7A1]/30 cursor-pointer">
-                                    <span class="text-[12.5px] font-semibold text-[#1F2937]">Record one now</span>
+                                        class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#B35A3D] focus:ring-[#FF8A66]/30 cursor-pointer">
+                                    <span class="text-[12.5px] font-semibold text-[#060D26]">Record one now</span>
                                 </label>
+                                <span x-show="paymentRequired" x-cloak
+                                    class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#EF4444]/30 bg-[#EF4444]/[0.06] text-[#DC2626] text-[11px] font-bold shrink-0">
+                                    Required
+                                </span>
                             </div>
 
-                            <div x-show="hasPayment" x-cloak class="mt-5">
+                            <div x-show="paymentRequired" x-cloak
+                                class="mt-4 flex items-start gap-2.5 rounded-xl bg-[#EF4444]/[0.05] border border-[#EF4444]/20 px-3.5 py-3">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2"
+                                    class="shrink-0 mt-0.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                </svg>
+                                <p class="text-[12px] text-[#DC2626] leading-relaxed">
+                                    This tenant's move-in date is today or earlier, so a payment must be recorded before
+                                    you can add them. If nothing has actually been collected yet, wait until it has —
+                                    or set a move-in date the tenant hasn't reached, if that's closer to what happened.
+                                </p>
+                            </div>
+
+                            <div x-show="hasPayment || paymentRequired" x-cloak class="mt-5">
+
+                                {{-- What the tenant owes to move in. Shown before the
+                                     amount field so the landlord is entering a number
+                                     against a stated target rather than guessing. --}}
+                                <div x-show="unit" x-cloak
+                                    class="mb-4 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] px-4 py-3.5">
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2.5">
+                                        Required move-in payment
+                                    </p>
+                                    <div class="space-y-1.5 text-[13px]">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-[#5B6A8E]">Monthly rent</span>
+                                            <span class="text-[#060D26] tabular-nums" x-text="peso(effectiveRent)"></span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-[#5B6A8E]">Security deposit</span>
+                                            <span class="text-[#060D26] tabular-nums" x-text="peso(depositDue)"></span>
+                                        </div>
+                                        <div class="h-px bg-[#E2E4EC] my-2"></div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="font-semibold text-[#060D26]">Total due at move-in</span>
+                                            <span class="font-bold text-[#060D26] tabular-nums text-[14px]"
+                                                x-text="peso(requiredMoveIn)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="grid sm:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <label for="initial_amount" class="{{ $labelClass }}">
-                                            Amount (₱) <span class="text-[#EF4444]">*</span>
+                                            Amount received (₱) <span class="text-[#EF4444]">*</span>
                                         </label>
                                         <input type="number" id="initial_amount" name="initial_amount" x-model="initialAmount"
-                                            min="1" max="1000000" step="0.01" placeholder="e.g. 9000" class="{{ $inputClass }}">
+                                            min="1" max="1000000" step="0.01" :placeholder="unit ? requiredMoveIn : 'e.g. 9000'"
+                                            :required="paymentRequired" class="{{ $inputClass }}">
+                                        <p class="text-[11.5px] text-[#5B6A8E] mt-1.5">
+                                            Anything above the total due is recorded as advance rent.
+                                        </p>
                                         @error('initial_amount')
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <div>
-                                        <label for="initial_type" class="{{ $labelClass }}">
-                                            What it was for <span class="text-[#EF4444]">*</span>
-                                        </label>
-                                        <x-styled-select name="initial_type" :options="$initialTypeOptions"
-                                            :selected="old('initial_type', 'Initial')" class="{{ $inputClass }} bg-white" />
-                                        @error('initial_type')
-                                            <p class="{{ $errorClass }}">{{ $message }}</p>
-                                        @enderror
+
+                                    {{-- Live allocation of whatever was typed. Mirrors
+                                         MoveInPaymentBreakdown; the server allocates
+                                         again from its own figures on submit. --}}
+                                    <div x-show="received > 0" x-cloak
+                                        class="rounded-xl border border-[#FF8A66]/25 bg-[#ECEEF6]/50 px-4 py-3.5">
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-[#060D26] mb-2.5">
+                                            Recorded as
+                                        </p>
+                                        <div class="space-y-1.5 text-[13px]">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <span class="text-[#5B6A8E]">
+                                                    Rent — <span x-text="monthLabel(0)"></span>
+                                                </span>
+                                                <span class="text-[#060D26] tabular-nums" x-text="peso(allocation.rent)"></span>
+                                            </div>
+                                            <div class="flex items-center justify-between gap-3">
+                                                <span class="text-[#5B6A8E]">Security deposit</span>
+                                                <span class="text-[#060D26] tabular-nums" x-text="peso(allocation.deposit)"></span>
+                                            </div>
+                                            <div class="flex items-center justify-between gap-3" x-show="allocation.advance > 0">
+                                                <span class="text-[#5B6A8E]">
+                                                    Advance rent <span class="text-[#94A3B8]" x-text="'(' + advanceMonthsLabel + ')'"></span>
+                                                </span>
+                                                <span class="text-[#060D26] tabular-nums" x-text="peso(allocation.advance)"></span>
+                                            </div>
+                                            <div class="h-px bg-[#FF8A66]/20 my-2"></div>
+                                            <div class="flex items-center justify-between gap-3">
+                                                <span class="font-semibold text-[#060D26]">Total received</span>
+                                                <span class="font-bold text-[#060D26] tabular-nums" x-text="peso(received)"></span>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+
+                                {{-- Short payments are warned about, never blocked: a
+                                     walk-in records what already happened offline, and
+                                     a landlord who cannot enter the truth enters a
+                                     convenient fiction instead. --}}
+                                <div x-show="isShort" x-cloak
+                                    class="mb-4 flex items-start gap-2.5 rounded-xl bg-[#FBBF24]/[0.08] border border-[#FBBF24]/25 px-3.5 py-3">
+                                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2"
+                                        class="shrink-0 mt-0.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                    </svg>
+                                    <p class="text-[12px] text-[#B45309] leading-relaxed">
+                                        Short by <strong x-text="peso(shortfall)"></strong> of the
+                                        <span x-text="peso(requiredMoveIn)"></span> move-in total. You can still record this —
+                                        <span x-text="monthLabel(0)"></span> will show the remaining balance until it is settled.
+                                    </p>
                                 </div>
 
                                 <div class="grid sm:grid-cols-3 gap-4">
@@ -492,7 +729,8 @@
                                         <label for="payment_method" class="{{ $labelClass }}">
                                             Method <span class="text-[#EF4444]">*</span>
                                         </label>
-                                        <x-styled-select name="payment_method" :options="$paymentMethodOptions"
+                                        <x-styled-select name="payment_method" x-model="paymentMethod"
+                                            :options="$paymentMethodOptions"
                                             :selected="old('payment_method', 'Cash')" class="{{ $inputClass }} bg-white" />
                                         @error('payment_method')
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
@@ -507,19 +745,25 @@
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <div>
-                                        <label for="reference_no" class="{{ $labelClass }}">Reference no.</label>
+                                    {{-- Cash has no reference to give. Hidden rather than
+                                         disabled, and the request nulls it server-side so
+                                         a value typed before switching to Cash can't be
+                                         stored against a payment that cannot have one. --}}
+                                    <div x-show="needsReference" x-cloak>
+                                        <label for="reference_no" class="{{ $labelClass }}">
+                                            Reference no. <span class="text-[#EF4444]">*</span>
+                                        </label>
                                         <input type="text" id="reference_no" name="reference_no" value="{{ old('reference_no') }}"
-                                            maxlength="255" placeholder="OR / GCash ref" class="{{ $inputClass }}">
+                                            maxlength="255" :placeholder="paymentMethod + ' ref no.'" class="{{ $inputClass }}">
                                         @error('reference_no')
                                             <p class="{{ $errorClass }}">{{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
 
-                                <p class="text-[11.5px] text-[#64748B] mt-4 leading-relaxed">
+                                <p class="text-[11.5px] text-[#5B6A8E] mt-4 leading-relaxed">
                                     Recorded as money you have already received — it is not held in escrow and nothing is released to
-                                    you by AbangananHub. Monthly rent is recorded later from the tenancy page.
+                                    you by AbangananHub. Later months' rent is recorded from the tenancy page.
                                 </p>
                             </div>
                         </x-card>
@@ -532,39 +776,59 @@
 
                             <div class="space-y-3.5 text-[13px]">
                                 <div class="flex items-start justify-between gap-3">
-                                    <span class="text-[#64748B]">Tenant</span>
-                                    <span class="font-semibold text-[#1F2937] text-right" x-text="summaryName"></span>
+                                    <span class="text-[#5B6A8E]">Tenant</span>
+                                    <span class="font-semibold text-[#060D26] text-right" x-text="summaryName"></span>
                                 </div>
                                 <div class="flex items-start justify-between gap-3">
-                                    <span class="text-[#64748B]">Unit</span>
-                                    <span class="font-semibold text-[#1F2937] text-right">
+                                    <span class="text-[#5B6A8E]">Unit</span>
+                                    <span class="font-semibold text-[#060D26] text-right">
                                         <span x-text="unit ? unit.label : 'Not selected'"></span>
                                         <span x-show="selectedProperty" x-cloak
-                                            class="block text-[11px] font-normal text-[#64748B]"
+                                            class="block text-[11px] font-normal text-[#5B6A8E]"
                                             x-text="selectedProperty ? selectedProperty.title : ''"></span>
                                     </span>
                                 </div>
                                 <div class="flex items-start justify-between gap-3">
-                                    <span class="text-[#64748B]">Move-in</span>
-                                    <span class="font-semibold text-[#1F2937] text-right" x-text="moveIn || '—'"></span>
+                                    <span class="text-[#5B6A8E]">Move-in</span>
+                                    <span class="font-semibold text-[#060D26] text-right" x-text="moveIn || '—'"></span>
                                 </div>
 
-                                <div class="h-px bg-[#E2E8F0]"></div>
+                                <div class="h-px bg-[#E2E4EC]"></div>
 
                                 <div class="flex items-start justify-between gap-3">
-                                    <span class="text-[#64748B]">Monthly rent</span>
-                                    <span class="font-bold text-[#2AA7A1] text-right" x-text="peso(effectiveRent)"></span>
+                                    <span class="text-[#5B6A8E]">Monthly rent</span>
+                                    <span class="font-bold text-[#B35A3D] text-right" x-text="peso(effectiveRent)"></span>
                                 </div>
                                 <div class="flex items-start justify-between gap-3">
-                                    <span class="text-[#64748B]">Rent due</span>
-                                    <span class="font-semibold text-[#1F2937] text-right"
+                                    <span class="text-[#5B6A8E]">Rent due</span>
+                                    <span class="font-semibold text-[#060D26] text-right"
                                         x-text="'Day ' + effectiveDueDay + ' of each month'"></span>
                                 </div>
-                                <template x-if="hasPayment && parseFloat(initialAmount) > 0">
-                                    <div class="flex items-start justify-between gap-3">
-                                        <span class="text-[#64748B]">Collected now</span>
-                                        <span class="font-semibold text-[#1F2937] text-right"
-                                            x-text="peso(parseFloat(initialAmount))"></span>
+                                <template x-if="hasPayment && received > 0">
+                                    <div class="space-y-3.5">
+                                        <div class="h-px bg-[#E2E4EC]"></div>
+                                        <div class="flex items-start justify-between gap-3">
+                                            <span class="text-[#5B6A8E]">Collected now</span>
+                                            <span class="font-semibold text-[#060D26] text-right" x-text="peso(received)"></span>
+                                        </div>
+                                        <div class="pl-3 space-y-1.5 text-[12px] border-l-2 border-[#E2E4EC]">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <span class="text-[#94A3B8]">Rent — <span x-text="monthLabel(0)"></span></span>
+                                                <span class="text-[#5B6A8E] tabular-nums" x-text="peso(allocation.rent)"></span>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-3">
+                                                <span class="text-[#94A3B8]">Security deposit</span>
+                                                <span class="text-[#5B6A8E] tabular-nums" x-text="peso(allocation.deposit)"></span>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-3" x-show="allocation.advance > 0">
+                                                <span class="text-[#94A3B8]">Advance rent</span>
+                                                <span class="text-[#5B6A8E] tabular-nums" x-text="peso(allocation.advance)"></span>
+                                            </div>
+                                        </div>
+                                        <p x-show="isShort" x-cloak class="text-[11.5px] text-[#B45309] leading-relaxed">
+                                            Short by <strong x-text="peso(shortfall)"></strong> — recorded anyway, with the balance
+                                            carried on <span x-text="monthLabel(0)"></span>.
+                                        </p>
                                     </div>
                                 </template>
                             </div>
@@ -582,11 +846,11 @@
                             </div>
 
                             <button type="submit"
-                                class="mt-5 w-full h-11 rounded-full bg-[#1F2937] text-white text-sm font-semibold hover:brightness-95 transition-all duration-200 cursor-pointer">
+                                class="mt-5 w-full h-11 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                                 Add tenant &amp; occupy unit
                             </button>
                             <a href="{{ route('landlord.tenants.index') }}"
-                                class="mt-2.5 w-full h-11 flex items-center justify-center rounded-full border border-[#E2E8F0] text-[#64748B] text-sm font-semibold hover:bg-[#F7FCFC] hover:text-[#1F2937] transition-all duration-200 cursor-pointer">
+                                class="mt-2.5 w-full h-11 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] text-sm font-semibold hover:bg-[#F7F8FC] hover:text-[#060D26] transition-all duration-200 cursor-pointer">
                                 Cancel
                             </a>
                         </x-card>
@@ -607,7 +871,7 @@
                             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
                             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
                             x-transition:leave-end="opacity-0" @click="pickerOpen = false"
-                            class="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-sm"></div>
+                            class="absolute inset-0 bg-[#060D26]/40 backdrop-blur-sm"></div>
 
                         {{-- Panel --}}
                         <div x-show="pickerOpen"
@@ -617,17 +881,17 @@
                             x-transition:leave="transition ease-in duration-200"
                             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                             x-transition:leave-end="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0"
-                            class="relative w-full max-w-3xl max-h-[85vh] flex flex-col bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
+                            class="relative w-full max-w-3xl max-h-[85vh] flex flex-col bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_20px_60px_rgba(6,13,38,0.18)]">
 
                             {{-- Header + search --}}
-                            <div class="px-6 pt-6 pb-4 border-b border-[#E2E8F0]">
+                            <div class="px-6 pt-6 pb-4 border-b border-[#E2E4EC]">
                                 <div class="flex items-start justify-between gap-4 mb-4">
                                     <div>
-                                        <h2 id="unit-picker-title" class="text-[17px] font-bold text-[#1F2937]">Choose a unit</h2>
-                                        <p class="text-[12.5px] text-[#64748B] mt-0.5">Only approved, currently vacant units are shown.</p>
+                                        <h2 id="unit-picker-title" class="text-[17px] font-normal text-[#060D26]">Choose a unit</h2>
+                                        <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">Only approved, currently vacant units are shown.</p>
                                     </div>
                                     <button type="button" @click="pickerOpen = false" aria-label="Close"
-                                        class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[#64748B] hover:bg-[#F7FCFC] hover:text-[#1F2937] transition-colors duration-200 cursor-pointer">
+                                        class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                                         </svg>
@@ -642,7 +906,7 @@
                                     <label for="unit-search" class="sr-only">Search units</label>
                                     <input type="text" id="unit-search" x-model="unitSearch"
                                         placeholder="Search by unit or property…"
-                                        class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E8F0] bg-[#F7FCFC] text-[#1F2937] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/20 focus:border-[#2AA7A1] focus:bg-white transition-all duration-200">
+                                        class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                                 </div>
                             </div>
 
@@ -651,7 +915,7 @@
                                 <template x-for="property in filteredProperties" :key="property.id">
                                     <div>
                                         <div class="flex items-baseline gap-2 mb-2.5">
-                                            <p class="text-[12.5px] font-bold text-[#1F2937]" x-text="property.title"></p>
+                                            <p class="text-[12.5px] font-bold text-[#060D26]" x-text="property.title"></p>
                                             <span class="text-[11px] text-[#94A3B8]"
                                                 x-text="property.units.length + (property.units.length === 1 ? ' unit' : ' units')"></span>
                                         </div>
@@ -660,18 +924,18 @@
                                             <template x-for="u in property.units" :key="u.id">
                                                 <button type="button" @click="pick(u.id)"
                                                     :class="String(unitId) === String(u.id)
-                                                        ? 'border-[#2AA7A1] ring-2 ring-[#2AA7A1]/30'
-                                                        : 'border-[#E2E8F0] hover:border-[#2AA7A1]/50 hover:shadow-[0_4px_16px_rgba(15,23,42,0.08)]'"
-                                                    class="group relative text-left rounded-xl border overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2AA7A1]/40">
+                                                        ? 'border-[#FF8A66] ring-2 ring-[#FF8A66]/30'
+                                                        : 'border-[#E2E4EC] hover:border-[#FF8A66]/50 hover:shadow-[0_4px_16px_rgba(6,13,38,0.08)]'"
+                                                    class="group relative text-left rounded-xl border overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/40">
 
                                                     <span x-show="String(unitId) === String(u.id)" x-cloak
-                                                        class="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-[#2AA7A1] flex items-center justify-center shadow">
+                                                        class="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-[#060D26] flex items-center justify-center shadow">
                                                         <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                                         </svg>
                                                     </span>
 
-                                                    <div class="aspect-[4/3] bg-[#F7FCFC] overflow-hidden">
+                                                    <div class="aspect-[4/3] bg-[#F7F8FC] overflow-hidden">
                                                         <template x-if="u.photo">
                                                             <img :src="u.photo" :alt="u.label" class="w-full h-full object-cover">
                                                         </template>
@@ -686,11 +950,11 @@
                                                     </div>
 
                                                     <div class="p-2.5">
-                                                        <p class="text-[12.5px] font-bold text-[#1F2937] truncate" x-text="u.label"></p>
+                                                        <p class="text-[12.5px] font-bold text-[#060D26] truncate" x-text="u.label"></p>
                                                         <div class="flex items-center justify-between gap-2 mt-1">
-                                                            <span class="text-[12.5px] font-bold text-[#2AA7A1]"
+                                                            <span class="text-[12.5px] font-bold text-[#B35A3D]"
                                                                 x-text="'₱' + u.rent.toLocaleString('en-PH')"></span>
-                                                            <span class="inline-flex items-center gap-1 text-[11px] text-[#64748B]" x-show="u.cap">
+                                                            <span class="inline-flex items-center gap-1 text-[11px] text-[#5B6A8E]" x-show="u.cap">
                                                                 <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                                         d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
@@ -707,8 +971,8 @@
 
                                 {{-- No search matches --}}
                                 <div x-show="filteredProperties.length === 0" x-cloak class="py-10 text-center">
-                                    <p class="text-[13.5px] font-semibold text-[#1F2937]">No units match "<span x-text="unitSearch"></span>"</p>
-                                    <p class="text-[12.5px] text-[#64748B] mt-1">Try a different unit label or property name.</p>
+                                    <p class="text-[13.5px] font-semibold text-[#060D26]">No units match "<span x-text="unitSearch"></span>"</p>
+                                    <p class="text-[12.5px] text-[#5B6A8E] mt-1">Try a different unit label or property name.</p>
                                 </div>
                             </div>
                         </div>

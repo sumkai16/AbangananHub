@@ -287,6 +287,7 @@ class ProcessMoveInDeadlines extends Command
                         'released_at' => now(),
                         'released_by' => null,
                         'release_reason' => 'auto_expiry',
+                        'payout_status' => 'Pending Payout',
                     ]);
 
                     if ($locked->unit) {

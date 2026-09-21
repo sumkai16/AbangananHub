@@ -10,20 +10,32 @@ class Property extends Model
     'landlord_id',
     'title',
     'description',
-    'house_rules',
     'property_type',
+    'living_arrangement',
+    'water_included',
+    'electricity_included',
+    'internet_included',
+    'association_fees_included',
+    'utilities_separately_metered',
     'address',
+    'city_municipality',
+    'barangay',
     'latitude',
     'longitude',
     'verification_status',
+    'publication_status',
 ];
 
     protected function casts(): array
 {
     return [
-        'latitude'    => 'decimal:7',
-        'longitude'   => 'decimal:7',
-        'house_rules' => 'array',
+        'latitude'                      => 'decimal:7',
+        'longitude'                     => 'decimal:7',
+        'water_included'                => 'boolean',
+        'electricity_included'          => 'boolean',
+        'internet_included'             => 'boolean',
+        'association_fees_included'     => 'boolean',
+        'utilities_separately_metered'  => 'boolean',
     ];
 }
 
@@ -73,6 +85,11 @@ class Property extends Model
         return $this->hasMany(Report::class, 'property_id', 'property_id');
     }
 
+    public function documents()
+    {
+        return $this->hasMany(PropertyDocument::class, 'property_id', 'property_id');
+    }
+
     // ─── Status Helpers ──────────────────────────────────────
 
     public function isApproved(): bool
@@ -90,6 +107,96 @@ class Property extends Model
         return $this->verification_status === 'Rejected';
     }
 
+    public function isSuspended(): bool
+    {
+        return $this->publication_status === 'Suspended';
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->publication_status === 'Draft';
+    }
+
+    /**
+     * Which wizard step an in-progress Draft should resume at, derived from
+     * what the row actually has rather than a stored pointer — a stored
+     * `current_step` column would drift the moment something is edited
+     * outside the wizard. A property row only exists once Location (step 2)
+     * is saved, so that step is never a resume target.
+     */
+    public function resumeWizardStep(): string
+    {
+        if ($this->amenities()->count() === 0) {
+            return 'amenities';
+        }
+
+        if ($this->documents()->count() === 0) {
+            return 'documents';
+        }
+
+        if ($this->units()->count() === 0) {
+            return 'units';
+        }
+
+        return 'review';
+    }
+
+    /**
+     * The public "Verified Property" badge's single source of truth — a
+     * property is only badge-worthy once its ownership document (Proof of
+     * Ownership, or Authorization/SPA for a non-owner landlord) is currently
+     * verified, not merely because the listing itself was approved, nor
+     * because some other unrelated document type (a permit, a tax
+     * declaration) happens to be on file. See PropertyDocument::OWNERSHIP_TYPES.
+     *
+     * Checks the already-loaded `documents` relation when available (index
+     * page, one query for N cards via with('documents')) instead of issuing
+     * a fresh query per property.
+     */
+    public function hasVerifiedDocuments(): bool
+    {
+        if ($this->relationLoaded('documents')) {
+            return $this->documents->contains(
+                fn ($document) => $document->status === 'Verified'
+                    && (! $document->expiry_date || ! $document->expiry_date->isPast())
+                    && in_array($document->document_type, PropertyDocument::OWNERSHIP_TYPES, true)
+            );
+        }
+
+        return $this->documents()
+            ->currentlyValid()
+            ->whereIn('document_type', PropertyDocument::OWNERSHIP_TYPES)
+            ->exists();
+    }
+
+    /**
+     * Query-side twin of hasVerifiedDocuments(), for filtering a set of
+     * properties (the browse page's "Verified" tab) rather than checking one.
+     */
+    public function scopeVerified($query)
+    {
+        return $query->whereHas('documents', function ($q) {
+            $q->currentlyValid()->whereIn('document_type', PropertyDocument::OWNERSHIP_TYPES);
+        });
+    }
+
+    /**
+     * "Is this listing publicly viewable at all" — the single source of
+     * truth for the property-page 404 gate and the tenant reservation gate.
+     * Deliberately does NOT require an available unit (the public page
+     * renders fine with none); that stricter condition is scopeBrowsable().
+     *
+     * Two independent facts, both required: verification_status answers "is
+     * this legitimate" (admin's call), publication_status answers "should it
+     * be live right now" (landlord's call day-to-day, admin's call when
+     * Suspended). Neither implies the other.
+     */
+    public function isLive(): bool
+    {
+        return $this->verification_status === 'Approved'
+            && $this->publication_status === 'Published';
+    }
+
     // ─── Scopes ──────────────────────────────────────────────
 
     public function scopeApproved($query)
@@ -98,7 +205,32 @@ class Property extends Model
     }
 
     /**
-     * Base tenant-facing browse query: approved properties that have at
+     * Excludes in-progress wizard Drafts. Every admin-facing query over all
+     * properties (the approval queue and its counts, the catalogue) must
+     * route through this rather than hand-checking publication_status, so a
+     * half-built listing never surfaces where an admin would mistake it for
+     * something actually awaiting review.
+     */
+    public function scopeSubmitted($query)
+    {
+        return $query->where('publication_status', '!=', 'Draft');
+    }
+
+    /**
+     * Query equivalent of isLive() — every tenant-facing visibility check
+     * (browse, the Areas header menu, gates) must route through this scope
+     * or isLive() rather than comparing verification_status directly, so a
+     * future visibility rule only needs to change in one place.
+     */
+    public function scopeLive($query)
+    {
+        return $query
+            ->where('verification_status', 'Approved')
+            ->where('publication_status', 'Published');
+    }
+
+    /**
+     * Base tenant-facing browse query: live properties that have at
      * least one available, approved unit, plus the aggregate columns the
      * listing UIs rely on (min_rental_fee, avg_rating, review_count).
      * Shared by the web PropertyController query and the API.
@@ -106,7 +238,7 @@ class Property extends Model
     public function scopeBrowsable($query)
     {
         return $query
-            ->where('verification_status', 'Approved')
+            ->live()
             ->whereHas('units', function ($q) {
                 $q->where('availability_status', 'Available')
                   ->where('verification_status', 'Approved');
@@ -124,8 +256,8 @@ class Property extends Model
     }
 
     /**
-     * Apply tenant browse filters (location, type, price_max, verified)
-     * and sorting (newest | price_low | price_high).
+     * Apply tenant browse filters (location, type, price_min/price_max, verified, amenities)
+     * and sorting (newest | price_low | price_high | top_rated).
      */
     public function scopeBrowseFilters($query, array $filters)
     {
@@ -141,22 +273,47 @@ class Property extends Model
             $query->where('property_type', $filters['type']);
         }
 
-        if (!empty($filters['price_max'])) {
-            $priceMax = $filters['price_max'];
-            $query->whereHas('units', function ($q) use ($priceMax) {
+        if (!empty($filters['price_min']) || !empty($filters['price_max'])) {
+            $priceMin = $filters['price_min'] ?? null;
+            $priceMax = $filters['price_max'] ?? null;
+            $query->whereHas('units', function ($q) use ($priceMin, $priceMax) {
                 $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved')
-                  ->where('rental_fee', '<=', $priceMax);
+                  ->where('verification_status', 'Approved');
+
+                if (!empty($priceMin)) {
+                    $q->where('rental_fee', '>=', $priceMin);
+                }
+                if (!empty($priceMax)) {
+                    $q->where('rental_fee', '<=', $priceMax);
+                }
             });
         }
 
         if (!empty($filters['verified'])) {
-            $query->whereHas('landlord.rentalBusiness');
+            $query->verified();
+        }
+
+        // "Must have" — AND semantics: a property matches only once every
+        // selected amenity is present, on the property itself OR on any of
+        // its units (a tenant filtering "Wi-Fi" doesn't care which level it's
+        // assigned at — same treatment the show page gives Building/Room
+        // amenities as one combined offering).
+        if (!empty($filters['amenities'])) {
+            foreach ($filters['amenities'] as $amenityId) {
+                $query->where(function ($q) use ($amenityId) {
+                    // Qualified column: the units.amenities join pulls in
+                    // both amenities.amenity_id and unit_amenities.amenity_id,
+                    // so a bare "amenity_id" is ambiguous to MySQL.
+                    $q->whereHas('amenities', fn ($aq) => $aq->where('amenities.amenity_id', $amenityId))
+                      ->orWhereHas('units.amenities', fn ($aq) => $aq->where('amenities.amenity_id', $amenityId));
+                });
+            }
         }
 
         match ($filters['sort'] ?? null) {
             'price_low'  => $query->orderBy('min_rental_fee', 'asc'),
             'price_high' => $query->orderByDesc('min_rental_fee'),
+            'top_rated'  => $query->orderByDesc('avg_rating')->orderByDesc('review_count'),
             default      => $query->latest('created_at'),
         };
 

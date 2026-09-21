@@ -2,21 +2,29 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
+    @include('partials.theme-init')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'AbangananHub') }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,600;1,8..60,700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased h-screen overflow-hidden bg-[#F7FCFC]">
+<body class="font-sans antialiased h-screen overflow-hidden bg-[#F7F8FC]">
+    {{-- Bottom-left of the form panel: the top corners are taken by the back link and the right-panel action. --}}
+    <x-theme-toggle class="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] shadow-sm hover:border-[#FF8A66]" />
+
     <div class="flex h-full">
 
         {{-- Left panel: form --}}
         <div class="w-full md:w-1/2 h-full overflow-y-auto bg-white flex flex-col">
+            {{-- Optional back button, pinned top-left of the form panel (pages opt in via the `backLink` slot). --}}
+            @isset($backLink)
+                <div class="px-4 sm:px-6 pt-5 shrink-0">
+                    {{ $backLink }}
+                </div>
+            @endisset
             {{ $slot }}
         </div>
         {{-- Right panel: image + marketing --}}
@@ -24,25 +32,23 @@
 
             {{-- Background image with darker overlay --}}
             <div class="absolute inset-0">
-                <img src="{{ asset('images/auth-bg.jpg') }}" class="w-full h-full object-cover" alt="" />
-                {{-- Teal-family gradient overlay — matches the auth modal brand panel (§6k) --}}
-                <div class="absolute inset-0 bg-gradient-to-br from-[#0E3A3A]/95 via-[#124F5C]/88 to-[#156F8C]/70"></div>
+                <img src="{{ asset('images/auth-bg-1600.jpg') }}" class="w-full h-full object-cover" alt="" />
+                {{-- Photo shows through at the top; navy builds toward the bottom where the copy sits --}}
+                <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/95 via-[#060D26]/70 to-[#060D26]/15"></div>
             </div>
 
             {{-- Content overlay --}}
-            <div class="relative z-10 flex flex-col justify-between h-full p-10">
+            <div class="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
 
-                {{-- Top: slot for page-specific action (e.g. "Already have an account?") --}}
+                {{-- Top: slot for page-specific action (e.g. "Back to login") --}}
                 <div class="flex justify-end">
                     {{ $rightTopAction ?? '' }}
                 </div>
 
-                {{-- Middle: headline + feature list --}}
-                <div class="flex flex-col gap-6">
+                {{-- Bottom: headline + supporting copy --}}
+                <div>
                     {{ $rightContent ?? '' }}
                 </div>
-
-                {{-- Bottom SDG badge removed --}}
 
             </div>
         </div>

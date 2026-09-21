@@ -14,6 +14,8 @@
 | email | VARCHAR(255) | UNIQUE, NOT NULL | |
 | password | VARCHAR(255) | NOT NULL | Hashed via Breeze |
 | contact_number | VARCHAR(20) | NULLABLE | |
+| gcash_number | VARCHAR(20) | NULLABLE | Added July 26 2026 — a landlord's payout destination. `User::hasPayoutDestination()` requires this and `gcash_account_name` both set before the admin payouts queue will let a payout be recorded |
+| gcash_account_name | VARCHAR(255) | NULLABLE | Added July 26 2026 — name on the GCash account, so an admin can verify before sending |
 | profile_picture | VARCHAR(255) | NULLABLE | Cloudinary URL |
 | account_status | ENUM('active','suspended','inactive') | DEFAULT 'active' | Normalized to lowercase July 21, 2026 — was `ENUM('Active','Suspended')` with no `inactive` member, which silently didn't match the lowercase values the Users admin UI had been writing/reading (see RULES.md → Concurrency & State Transitions and migration `2026_07_21_000001_normalize_users_account_status`) |
 | email | VARCHAR(255) | UNIQUE, **NULLABLE** | Was NOT NULL until July 24 2026; made nullable for walk-in tenants who often have only a phone number. MySQL allows many NULLs under a UNIQUE index, so real addresses stay unique. Anything rendering an avatar/name must use `?: '—'`, not assume a value |
@@ -50,14 +52,37 @@ Social login accounts (Google/Facebook, added July 25 2026) also get a random un
 | submitted_at | TIMESTAMP | | |
 
 ### rental_businesses
+**Corrected July 27 2026 — this table was missing four real columns
+(`description`, `logo_url`, `logo_public_id`, `contact_number`,
+`business_address`) and had the wrong name for one (`business_logo` doesn't
+exist; the real column is `logo_url`).**
+
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | business_id | BIGINT UNSIGNED | PK | `$primaryKey = 'business_id'` |
-| landlord_id | FK → users.user_id | NOT NULL | |
-| business_name | VARCHAR(255) | NOT NULL | |
-| business_logo | VARCHAR(255) | NULLABLE | Cloudinary URL |
+| landlord_id | FK → users.user_id | NOT NULL, UNIQUE | one business per landlord |
+| business_name | VARCHAR(255) | NULLABLE | made nullable July 27 2026 — see note below |
+| description | TEXT | NULLABLE | |
+| logo_url | VARCHAR(255) | NULLABLE | Cloudinary secure_url |
+| logo_public_id | VARCHAR(255) | NULLABLE | Cloudinary public_id, needed to `destroy()` the old logo on replace |
+| contact_number | VARCHAR(255) | NULLABLE | made nullable July 27 2026 |
+| business_address | VARCHAR(255) | NULLABLE | made nullable July 27 2026 |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
+
+**`business_name`, `contact_number` and `business_address` were `NOT NULL`
+with no default until `2026_07_27_000002_make_rental_businesses_columns_nullable`,**
+even though `Landlord\ProfileController@update` (and its API mirror,
+`Api\Landlord\ProfileController@update`) validate all three as `nullable`
+and only write whatever was actually submitted. A blank text input reaches
+the controller as an empty string, which `ConvertEmptyStringsToNull` turns
+into `null` before validation runs — so a landlord's **first** profile save
+crashed with `SQLSTATE[HY000] 1364` the moment any one of the three was left
+blank. Same shape as the `property_units` bug above: validation promised
+optional, the schema never agreed. Found via the mobile API's landlord
+profile probe, but it was reachable from the web form the whole time.
+
+**Backfilled Aug 21 2026** (`2026_08_21_000000_backfill_rental_business_for_approved_landlords`) — `Admin\VerificationController::approve()` has always created this row alongside the role grant, but at least one Approved landlord in this dataset predated that pairing and had no row at all. Every "Verified Host" check reads `landlord.rentalBusiness` existence, so that landlord's properties were invisible to all of them. See ARCHITECTURE.md.
 
 ### properties
 **Verified against `2026_..._create_properties_table.php` July 26 2026 — the row below was wrong for
@@ -72,14 +97,62 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | landlord_id | FK → users.user_id | NOT NULL | |
 | title | VARCHAR(255) | NOT NULL | |
 | description | TEXT | NULLABLE | |
-| house_rules | JSON | NULLABLE | cast to `array` |
 | property_type | ENUM('Bedspace','Room','Apartment','House') | NOT NULL | |
+| living_arrangement | ENUM('Private','Shared','Mixed','Female only','Male only','Couples allowed','Family-friendly') | NULLABLE | Added Sept 2026, optional — most useful for bedspace/boarding-house listings; an apartment/house listing can leave it unset |
+| water_included | BOOLEAN | NULLABLE | Added Sept 2026. NULL means the landlord hasn't answered utilities at all (predates this field); `false` is an explicit "not included", shown as such on the tenant-facing property page |
+| electricity_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
+| internet_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
+| association_fees_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
+| utilities_separately_metered | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
 | address | VARCHAR(255) | NOT NULL | Text-searched for browse |
-| latitude | DECIMAL(10,7) | NOT NULL | `parseFloat()` client-side |
+| city_municipality | VARCHAR(100) | NOT NULL | Added Aug 2026 — must be one of `config('cebu.lgus')`, enforced by `StorePropertyRequest`/`UpdatePropertyRequest`. Backfilled from `address`'s second-to-last comma segment |
+| barangay | VARCHAR(100) | NULLABLE | Added Aug 2026 |
+| latitude | DECIMAL(10,7) | NOT NULL | `parseFloat()` client-side. Bounded to Cebu (`App\Rules\WithinCebu`, `config('cebu.bounds')`) since Aug 2026 — no more silent fallback to a hardcoded downtown point when omitted; a pin is required |
 | longitude | DECIMAL(10,7) | NOT NULL | |
-| verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | Admin approval |
+| verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | Admin's verdict on legitimacy. **No longer the sole gate on tenant visibility** — see `publication_status` below and `Property::isLive()`/`scopeLive()` |
+| publication_status | ENUM('Draft','Published','Unpublished','Suspended') | DEFAULT 'Published' | Added Aug 2026. Orthogonal to `verification_status`: this answers "should it be live right now", not "is it legitimate". `Draft` is written by `Landlord\PropertyWizardController::storeLocation()` (Aug 2026 — the property creation wizard's Step 2) and cleared to `Published` by `submit()` once the landlord finishes all six steps; `Property::scopeSubmitted()` excludes `Draft` rows from every admin- and landlord-facing listing query, since a Draft's `verification_status` defaults to `Pending` and would otherwise look like a real submission awaiting review. `Suspended` is admin-only, set by `Admin\ReportController`'s "delist property" report action and lifted only by `Admin\ListingController::unsuspend()` — a landlord's own publish/unpublish toggle (`PropertyController::publish()`/`unpublish()`) explicitly refuses to touch a `Suspended` row. Neither `PropertyController::update()` nor its API twin ever writes this column, so an edit-triggered reset of `verification_status` to `Pending` (and a subsequent re-approval) leaves a suspension untouched — the bug this column was added to fix: the delist action used to reuse `verification_status = 'Rejected'`, which the next edit-and-reapprove cycle silently undid |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
+
+**Visibility funnels through one place**: `Property::isLive()` (single-row) and `scopeLive()`/`scopeBrowsable()` (query) are the only sanctioned checks for "can a tenant see this" — `verification_status = 'Approved' AND publication_status = 'Published'`, `scopeBrowsable()` additionally requiring an available approved unit. Before Aug 2026 this predicate was hand-copied in three places (`Property::scopeBrowsable()`, web `PropertyController::index()`, and the `navAreas` header composer in `AppServiceProvider`); all three now call the scope.
+
+### property_documents
+Added Aug 2026 — proof of ownership, tax declarations, and permits, one per property. The second
+upload path (after `landlord_verifications`) to use the **private** disk (`storage/app/private`)
+rather than Cloudinary: these are sensitive legal documents that must never get a public Cloudinary
+URL, so they're served only through policy-gated controller routes
+(`Landlord\PropertyDocumentController::preview/download`, `PropertyDocumentPolicy@view`), mirroring
+`landlord_verifications`/`VerificationController` exactly. **`Admin\PropertyDocumentController` gained
+its own `preview`/`download` pair Aug 21 2026** — the landlord routes sit under `EnsureLandlord`
+middleware, which 403s an Admin before the (Admin-aware) policy ever runs; reusing them from an admin
+view rendered a dead `<img>`. Route path prefix and Gate/Policy allow-list are two independent checks —
+don't assume a route is safely linkable from another role just because the policy underneath it is.
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| document_id | BIGINT UNSIGNED | PK | `$primaryKey = 'document_id'` |
+| property_id | FK → properties.property_id | NOT NULL, cascade | |
+| document_type | VARCHAR(100) | NOT NULL | Validated against `PropertyDocument::TYPES`. Only `PropertyDocument::OWNERSHIP_TYPES` ('Proof of Ownership', 'Authorization / Special Power of Attorney') count toward `Property::hasVerifiedDocuments()`/`scopeVerified()` — the other 5 types (permits, tax dec, etc.) don't prove ownership and don't earn the "Verified Property" badge alone (Aug 21 2026) |
+| file_path | VARCHAR(255) | NULLABLE | **NULL = admin-requested, not yet uploaded** — a "requested" document is a row with no file, not a fifth status |
+| file_name | VARCHAR(255) | NULLABLE | Landlord's original filename |
+| document_number | VARCHAR(100) | NULLABLE | TCT no., tax dec no., permit no. |
+| status | ENUM('Pending','Verified','Rejected') | DEFAULT 'Pending' | **`Expired` is deliberately not a stored member** — see below |
+| rejection_reason | TEXT | NULLABLE | Required by `RejectPropertyDocumentRequest` when rejecting |
+| expiry_date | DATE | NULLABLE | Permits expire; titles don't |
+| verified_by | FK → users.user_id | NULLABLE, set null | |
+| verified_at | TIMESTAMP | NULLABLE | |
+| requested_by | FK → users.user_id | NULLABLE, set null | Set when an admin requests the document |
+| created_at / updated_at | TIMESTAMP | | |
+
+Index on `(property_id, status)`. `Expired` is computed on read (`PropertyDocument::isExpired()` /
+`getDisplayStatusAttribute()`) from `status = 'Verified' AND expiry_date < today` rather than stored —
+the same lesson as `publication_status` (see `properties` above): a nightly job maintaining a stored
+`Expired` state can drift, so nothing maintains it. `Property::hasVerifiedDocuments()`
+(`scopeCurrentlyValid()`) is the single source of truth behind the public "Verified Property" badge on
+`properties/show.blade.php` — the badge is no longer unconditional decoration on every approved
+listing with photos, it requires an actual currently-valid verified document. Documents never gate
+property approval itself; the admin uses judgment, with the "request a document" action
+(`requested_by`) as the lever for a specific missing one.
 
 ### property_units
 | Column | Type | Constraints | Notes |
@@ -87,11 +160,21 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | unit_id | BIGINT UNSIGNED | PK | `$primaryKey = 'unit_id'` |
 | property_id | FK → properties.property_id | NOT NULL | |
 | unit_label | VARCHAR(100) | NOT NULL | e.g. "Room A", "Bed 3" — column is `unit_label`, not `unit_name` |
-| ~~unit_type~~ | — | **DOES NOT EXIST** | Verified absent July 24 2026 — see the note below the table |
-| ~~floor~~ | — | **DOES NOT EXIST** | Verified absent July 24 2026 |
+| unit_type | VARCHAR(50) | NULLABLE | Added July 27 2026 — see the note below the table |
+| floor | VARCHAR(50) | NULLABLE | Added July 27 2026 |
+| bedrooms | TINYINT UNSIGNED | NULLABLE | Added Aug 2026 for the property wizard's unit form. Nullable because every pre-existing unit predates it |
+| bathrooms | TINYINT UNSIGNED | NULLABLE | Added Aug 2026, same migration as `bedrooms` |
+| floor_area_sqm | DECIMAL(6,2) | NULLABLE | Added Aug 28 2026. Optional, like `bedrooms`/`bathrooms` — NULL means the landlord never recorded it, and no backfill invents one. Validated `nullable\|numeric\|min:1\|max:9999.99` in both `Landlord\PropertyUnitController` and its API twin. **Never render the raw column** — the `decimal:2` cast makes `24` into `"24.00"`; every display site uses the `PropertyUnit::floor_area_label` accessor, which formats it as `24 sqm` / `24.5 sqm` and returns null when unset. "sqm" over the m² symbol to match how PH real estate listings write it |
+| is_furnished | BOOLEAN | NULLABLE | Added Aug 2026. `PropertyUnit` casts it `boolean`; NULL means "not answered" (pre-existing unit), not "unfurnished" — don't treat a null the same as `false` in any consumer |
+| bathroom_type | ENUM('Private bathroom','Shared bathroom') | NULLABLE | Added Sept 2026 — distinct from `bathrooms` (a count); this answers private-vs-shared access, not how many |
+| furnishing_status | ENUM('Furnished','Semi-furnished','Unfurnished') | NULLABLE | Added Sept 2026, alongside `is_furnished`. `is_furnished` (boolean, two-state) is kept for backward compatibility but the create/edit forms now capture this three-state field instead — new consumers should read `furnishing_status`, not `is_furnished` |
+| kitchen_type | ENUM('Private kitchen','Shared kitchen','No kitchen') | NULLABLE | Added Sept 2026 |
+| pets_allowed | BOOLEAN | NULLABLE | Added Sept 2026. NULL means "not answered", same convention as `is_furnished` |
+| smoking_allowed | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
+| visitors_allowed | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
 | description | TEXT | NULLABLE | |
 | rental_fee | DECIMAL(10,2) | NOT NULL | |
-| ~~security_deposit~~ | — | **DOES NOT EXIST** | Verified absent July 24 2026 |
+| security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026. Required at the **application layer** on unit *creation* since Aug 20 2026 — every new unit must state a deposit, enforced in `Landlord\PropertyUnitController::store()`/`Api\Landlord\UnitWriteController::store()`. `2026_08_20_000000_backfill_security_deposit_on_property_units` set every then-NULL row to one month's rent so no pre-existing listing shows blank. **Optional on edit since Sept 2026** (`PropertyUnitController::update()` only) — a unit that genuinely charges no deposit can clear it; a submit that omits the field entirely leaves the existing value untouched rather than nulling it (guarded with `array_key_exists`, not `??`). Every display site treats null as "no deposit" explicitly (e.g. "No security deposit required" on the property page), never as ₱0 |
 | occupancy_limit | INT | NULLABLE | |
 | availability_status | ENUM('Available','Reserved','Occupied','Maintenance') | DEFAULT 'Available' | Maintenance added for unit form |
 | vacated_at | TIMESTAMP | NULLABLE | Occupancy tracking |
@@ -100,9 +183,11 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 
-**`unit_type`, `floor` and `security_deposit` are not columns — this table documented them for months and they were never created** (resolved July 24 2026). The cause is a **misnamed migration**: `2026_07_18_022220_add_unit_type_floor_deposit_description_to_property_units` promises all four in its filename, but its body contains a single `ALTER TABLE ... MODIFY COLUMN availability_status` adding the `Maintenance` enum member and nothing else. It is recorded in `migrations` as run (batch 1), so `migrate` reports nothing outstanding and `migrate:fresh` reproduces the gap exactly.
+**`unit_type`, `floor` and `security_deposit` were missing for months and were finally created July 27 2026** by `2026_07_27_000000_add_unit_type_floor_security_deposit_to_property_units`. The original cause was a **misnamed migration**: `2026_07_18_022220_add_unit_type_floor_deposit_description_to_property_units` promises all four in its filename, but its body contains a single `ALTER TABLE ... MODIFY COLUMN availability_status` adding the `Maintenance` enum member and nothing else. It was recorded in `migrations` as run (batch 1), so `migrate` reported nothing outstanding and `migrate:fresh` reproduced the gap exactly — which is why a *new* migration was needed rather than a re-run.
 
-Consequences, all live: `PropertyUnit::$fillable` declares all three, `Landlord\PropertyUnitController::store()/update()` validate and write them, so **creating a unit throws `SQLSTATE[42S22] Unknown column 'unit_type'`** (see ARCHITECTURE.md). Reads fail silently instead — a missing attribute returns null — so `agreements/show` has a "Security deposit" row that can never render, `OccupancyController` reports null deposits, the units CSV exports blanks, and `properties/show`'s unit payload sends `deposit: null` to the cost breakdown. Existing units came from seeders, which is why nothing looked broken.
+Until then: `PropertyUnit::$fillable` declared all three and `Landlord\PropertyUnitController::store()/update()` validated and wrote them, so **creating a unit threw `SQLSTATE[42S22] Unknown column 'unit_type'`**. Reads failed silently instead — a missing attribute returns null — so `agreements/show`'s "Security deposit" row could never render, `OccupancyController` reported null deposits, the units CSV exported blanks, and `properties/show`'s unit payload sent `deposit: null` to the cost breakdown. All of those now carry real values for units created after the fix; units that predate it (seeder rows) have NULL in the three columns, which every consumer already handles.
+
+Column sizes were taken from the validation the controllers were already enforcing (`string|max:50` ×2, `numeric|max:999999.99`), not chosen fresh.
 
 **Do not trust a migration by its filename.** This one was cross-checked against `Schema::hasColumn` before this entry was written; the previous version of this table was written from the filename alone and was wrong for months.
 
@@ -121,7 +206,7 @@ Consequences, all live: `PropertyUnit::$fillable` declares all three, `Landlord\
 | unit_id | FK → property_units.unit_id | NOT NULL | onDelete cascade |
 | media_type | ENUM('Image','Video') | NOT NULL | Filter to 'Image' for image galleries — videos must not render in `<img>` |
 | media_url | VARCHAR(255) | NOT NULL | Cloudinary URL — output as-is |
-| source | ENUM('camera','upload') | DEFAULT 'upload' | 'camera' = live in-browser capture; ≥3 camera photos required on unit create |
+| source | ENUM('camera','upload') | DEFAULT 'upload' | 'camera' = live in-browser capture, purely informational (shown as a "Live" badge) — landlord's free choice since Sept 2026, no longer a required minimum. Unit still needs ≥3 photos total, any source |
 | caption | VARCHAR(150) | NULLABLE | Optional per-photo caption, shown to tenants |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
@@ -131,6 +216,8 @@ Consequences, all live: `PropertyUnit::$fillable` declares all three, `Landlord\
 |---|---|---|---|
 | amenity_id | BIGINT UNSIGNED | PK | `$primaryKey = 'amenity_id'` |
 | amenity_name | VARCHAR(255) | NOT NULL | |
+| scope | ENUM('property','unit','both') | DEFAULT 'both' | Added Aug 2026. Display filter only — `Amenity::forProperty()`/`forUnit()` scopes, each also returning `both`. Not enforced in validation, so a later reclassification never breaks previously-saved data |
+| category | VARCHAR(50) | NULLABLE | Added Aug 2026. Groups the checkbox UI on both the property and unit forms — `AmenitySeeder` is the source of truth |
 
 ### property_amenities (pivot)
 | Column | Type | Constraints | Notes |
@@ -138,7 +225,7 @@ Consequences, all live: `PropertyUnit::$fillable` declares all three, `Landlord\
 | property_id | FK → properties.property_id | | Composite key |
 | amenity_id | FK → amenities.amenity_id | | `belongsToMany` needs all 4 args |
 
-**Empty, and nothing writes to it** (confirmed July 24 2026 — 0 rows vs 130 in `unit_amenities`). Amenities were a property-level concept before the multi-unit model; no landlord form has ever attached one to a property. `properties/show` derives its amenity list from `units.amenities` instead (DESIGN.md §6e), so the `Property::amenities()` relation is now unused by every view — don't eager-load it, and don't read it expecting data.
+**No longer empty (as of Aug 2026).** Was 0 rows/no landlord-facing form through July 2026 (see the superseded note this replaces). `PropertyController::store()`/`update()` now sync `amenities[]` here directly, restricted by the form to `scope = property` amenities. A one-time migration (`promote_building_amenities_to_properties`) seeded it by moving every `scope = property` row already sitting in `unit_amenities` up to the unit's property (deduped per property) and deleting the unit-side row — so existing landlords' building-level tags (Water Dispenser, 24/7 Security, CCTV, etc.) didn't just vanish when the two concepts split. `properties/show` now renders this as its own "Building amenities" section, separate from the per-unit list (DESIGN.md §6e). `Property::amenities()` is safe to eager-load again.
 
 ### unit_amenities (pivot)
 | Column | Type | Constraints | Notes |
@@ -156,7 +243,7 @@ Consequences, all live: `PropertyUnit::$fillable` declares all three, `Landlord\
 | reservation_date | DATE | NOT NULL | |
 | target_move_in_date | DATE | NULLABLE | Negotiated. Clock 1 derives from it — see below |
 | target_move_out_date | DATE | NULLABLE | |
-| duration_of_stay | VARCHAR | NULLABLE | |
+| duration_of_stay | VARCHAR | NULLABLE | **Dead as of Aug 20 2026.** Nothing in the live app writes to this column anymore — `Reservation::getDurationOfStayAttribute()` is an Eloquent accessor of the same name that shadows it, deriving "6 months" / "Open-ended" from `target_move_in_date`/`target_move_out_date` instead. Every read site (`ReservationResource`, tenant/landlord reservation lists, admin detail) keeps working unchanged since accessors take precedence over the raw attribute. Only dev fixtures (`ReservationSeeder`, `BuildsEscrowFixtures`) still touch the raw column, and even those now set dates rather than free text |
 | agreed_monthly_rent | DECIMAL(10,2) | NULLABLE | Rent negotiated for this tenancy; the ledger's "expected". Falls back to `unit->rental_fee` via `Reservation::monthlyRent()`. Added July 24 2026 for walk-ins whose door rent differs from the listed price |
 | rent_due_day | TINYINT UNSIGNED | NULLABLE | Day of month rent falls due (1–28). Falls back to the move-in day via `Reservation::rentDueDay()`, clamped to 28 so it exists in February |
 | occupants_count | INT | NULLABLE | |
@@ -191,17 +278,22 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | tenant_id | FK → users.user_id | NOT NULL | |
 | landlord_id | FK → users.user_id | NOT NULL | |
 | property_id | FK → properties.property_id | NOT NULL | |
+| unit_id | FK → property_units.unit_id | NULLABLE, `nullOnDelete` | Updated in place if the tenant inquires on a different unit within the same live thread |
+| status | STRING | default `'Open'` | `Open` \| `Resolved` \| `Cancelled` |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 
 ### messages
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
-| message_id | BIGINT UNSIGNED | PK | `$primaryKey = 'message_id'` |
+| message_id | BIGINT UNSIGNED | PK | `$primaryKey = 'message_id'`, `$timestamps = false` |
 | conversation_id | FK → conversations.conversation_id | NOT NULL | |
-| sender_id | FK → users.user_id | NOT NULL | |
+| sender_id | FK → users.user_id | NULLABLE | Null only for `is_system` narration rows (`Reservation::postSystemMessage()`) |
 | message | TEXT | NOT NULL | |
-| sent_at | TIMESTAMP | | |
+| is_system | BOOLEAN | default `false` | Status-narration bubble (centered divider), no sender shown |
+| is_inquiry_summary | BOOLEAN | default `false` | Aug 2026 — the first message on a reservation's conversation; renders as the property/rent/dates card in the thread instead of a plain bubble. Always created (not conditional on the tenant typing a note) by both the web and API `Tenant\ReservationController::store()` |
+| is_read | BOOLEAN | default `false` | |
+| sent_at | TIMESTAMP | `useCurrent()` | Set in `Message::booted()`, not by the DB default, so it can be backdated by fixtures |
 
 ### favorites
 | Column | Type | Constraints | Notes |
@@ -266,11 +358,11 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | payment_type | ENUM('Initial','Monthly','Deposit','Utility','Other') | NOT NULL | Widened July 24 2026. **`Monthly` went live** with the rent ledger — it and `billing_period` were in the schema from day one and had never been written by any code until then |
 | billing_period | DATE | NULLABLE | The month a `Monthly` payment settles. The rent ledger derives its periods and matches payments to a month on this — required for `Monthly`, null otherwise |
 | amount | DECIMAL(10,2) | NOT NULL | Serializes as a **string** — `parseFloat()` client-side |
-| payment_method | ENUM('GCash','Cash','Bank Transfer','Maya','Check','Other') | NOT NULL | Widened July 24 2026 — was `ENUM('GCash')` only. Escrow still uses GCash; the rest are for landlord-recorded offline payments |
+| payment_method | ENUM('GCash','QRPh','Cash','Bank Transfer','Maya','Check','Other') | NOT NULL | Widened July 24 2026 (offline methods) and July 26 2026 (QRPh online). Escrow uses GCash/QRPh via PayMongo; the rest are for landlord-recorded offline payments |
 | paymongo_payment_intent_id | VARCHAR | NULLABLE, UNIQUE | |
 | paymongo_payment_id | VARCHAR | NULLABLE | |
 | paymongo_checkout_session_id | VARCHAR | NULLABLE, UNIQUE | |
-| status | ENUM('Pending','Paid','Held','Released','Failed','Refunded') | DEFAULT 'Pending' | `Held` = escrow. **`Paid` went live July 24 2026** — a landlord-recorded offline payment (rent ledger), money already received, never escrowed. It counts as revenue (`AnalyticsController::EARNED_STATUSES = ['Paid','Held','Released']`) and can never be released (`Admin\PaymentController::release` refuses anything not `Held`). **No code writes `Refunded`** — there is no refund action |
+| status | ENUM('Pending','Paid','Held','Released','Failed','Refunded','Voided') | DEFAULT 'Pending' | `Held` = escrow. **`Paid` went live July 24 2026** — a landlord-recorded offline payment (rent ledger), money already received, never escrowed. It counts as revenue (`AnalyticsController::EARNED_STATUSES = ['Paid','Held','Released']`) and can never be released (`Admin\PaymentController::release` refuses anything not `Held`). **No code writes `Refunded`** — there is no refund action. **`Voided`** (Aug 31 2026) is a landlord striking their own wrongly-entered row — the original stays on record with a reason, actor and timestamp, never deleted. It is deliberately absent from `RentLedger::SETTLED_STATUSES` and `AnalyticsController::EARNED_STATUSES` **by design, not by an added guard**: both were already whitelists, so the new member falls out of every settlement/revenue calculation with zero changes to either class. See `Landlord\PaymentController::void()` and `plans/void-correct-payments.md` |
 | paid_at | TIMESTAMP | NULLABLE | Clock 1 falls back to this when there is no target move-in date |
 | released_at | TIMESTAMP | NULLABLE | |
 | released_by | BIGINT UNSIGNED | NULLABLE | Admin user id, or null when the platform released it |
@@ -278,8 +370,41 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | recorded_by | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who typed this payment in. **Null = platform-settled (PayMongo); non-null = landlord-asserted.** The only field that distinguishes the two — same role `release_reason` plays for releases. Drives the "Recorded by landlord" badge on the admin payments screen. Added July 24 2026 |
 | reference_no | VARCHAR | NULLABLE | OR number / GCash reference for a recorded payment |
 | payment_notes | TEXT | NULLABLE | Free-text note on a recorded payment |
+| payout_status | ENUM('Pending Payout','Paid Out') | NULLABLE | Added July 26 2026. Null = not payout-eligible (most rows — `Pending`/`Held`/`Failed`, or landlord-recorded offline payments, which need no platform payout). Set to `Pending Payout` the instant a payment becomes money owed to a landlord (initial payment `Released`, or `Paid` monthly rent), by every code path that writes those statuses. See `docs/specs/2026-07-26-landlord-payout-design.md` |
+| paid_out_at | TIMESTAMP | NULLABLE | When an admin recorded the manual GCash transfer as sent |
+| paid_out_by | FK → users.user_id | NULLABLE, nullOnDelete | Admin who recorded the payout |
+| payout_reference | VARCHAR | NULLABLE | The GCash transaction reference the admin typed in after sending |
+| voided_at | TIMESTAMP | NULLABLE | Added Aug 31 2026. Null = never voided |
+| voided_by | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who struck this entry |
+| void_reason | ENUM('wrong_amount','wrong_month','wrong_tenancy','duplicate','not_received','other') | NULLABLE | Named cause, not free text — same role `release_reason` plays for releases: the field a disputed ledger is argued from later |
+| void_note | VARCHAR(255) | NULLABLE | Required only when `void_reason = 'other'` |
+| replaces_payment_id | FK → payments.payment_id | NULLABLE, nullOnDelete | Set on the **new** row a "void and correct" flow writes, pointing back at the voided one — never the reverse, since one voided row can be replaced by several rows when `RentPaymentAllocator` splits the correction across months |
 
-Index `payments_reservation_period_index` on `(reservation_id, billing_period)` — the rent ledger's per-period lookup.
+Index `payments_reservation_period_index` on `(reservation_id, billing_period)` — the rent ledger's per-period lookup. Index on `payout_status` for the admin payouts queue.
+
+**Advance rent has no column and no enum member of its own (Aug 29 2026).** Rent paid ahead is
+stored as ordinary `Monthly` rows whose `billing_period` is a *future* month — the same shape
+`RentLedger` already reads, so a prepaid month settles through the identical code path as any other.
+A single `Advance`-typed row was considered and rejected: with no `billing_period` it would fall into
+`RentLedger::otherCharges()` and settle nothing, which is exactly the bug that made a walk-in
+tenant's move-in month read Overdue the day after they paid for it. **Do not add an `Advance` member
+to `payment_type`.**
+
+Consequently `RentLedger`'s period window reaches forward past the current month, but **only over
+months that already carry a payment**, and every period carries `is_future`. `summary()` excludes
+future periods from `outstanding`, `overdueCount`, `overdueAmount` and `nextDue`, and
+`unsettledPeriods()` drops them too — otherwise an overpayment that isn't a whole multiple of the
+rent would report the tenant as in arrears on a month nobody has reached yet. Anything new reading a
+period must decide what `is_future` means for it rather than treating every row as money owed.
+
+**Walk-in move-in money is written as several rows, not one (Aug 29 2026).** `Landlord\WalkInTenantController`
+and its API twin share `Concerns\RecordsMoveInPayments`, which runs `App\Support\MoveInPaymentBreakdown`
+over the single amount the landlord typed: deposit first, then rent month by month from the move-in
+month forward. All rows carry the same `payment_method`, `paid_at`, `reference_no` and `recorded_by` —
+they are one collection event split by purpose, and must never render as though the tenant paid
+several separate times. Rows written before this change are single `Initial` rows and were
+deliberately **not** backfilled: nothing in them records how much was rent versus deposit, so any
+split would be invented data on a money table.
 
 **The rent ledger has no schedule table.** A billing period is derived: a month between move-in and move-out, settled by a `Monthly` payment whose `billing_period` falls in it (`App\Services\RentLedger`). Editing rent, due day or move-out date can't leave stale rows because there are none — `payments` is the only stored fact. Serves walk-in and platform tenancies identically; the escrow only ever covered the initial payment.
 
@@ -400,6 +525,7 @@ changed key, inside the same transaction as the writes.
 - rental_businesses → properties (1:many)
 - users → properties (1:many — via landlord_id)
 - properties → property_units (1:many — units are the atomic rentable thing)
+- properties → property_documents (1:many — verification documents, admin-only)
 - properties → property_media (1:many)
 - property_units → unit_media (1:many)
 - properties ↔ amenities (many:many via property_amenities)
@@ -447,6 +573,9 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_vacated_at_to_property_units_table | Occupancy tracking | Track when a unit was vacated | July 2026 |
 | add_unit_type_floor_deposit_description_to_property_units | **Misnamed — adds none of those columns.** Body is one `ALTER TABLE property_units MODIFY COLUMN availability_status` adding the `Maintenance` member | Filename describes an intent that was never written; see the note under `property_units` | July 2026 |
 | add_caption_to_unit_media_table | Photo captions | Optional per-photo caption shown to tenants | July 2026 |
+| add_unit_type_floor_security_deposit_to_property_units | Actually adds the three columns the July 18 filename promised | Unit creation was throwing `SQLSTATE[42S22]`; sizes match the validation the controllers already enforced | July 27 2026 |
+| add_expo_push_token_to_users_table | Device push registration | Mobile client push notifications | July 27 2026 |
+| make_rental_businesses_columns_nullable | `business_name`/`contact_number`/`business_address` NOT NULL → nullable | Matches validation that was already `nullable`; fixes an `SQLSTATE[HY000] 1364` crash on a landlord's first profile save with any field left blank | July 27 2026 |
 | create_occupancy_snapshots_table | Daily occupancy history | Fed the occupancy trend chart; write-only since the chart's removal July 26 2026 — kept because the history can't be rebuilt later | July 2026 |
 | create_occupancy_activities_table | Unit status-change log | Feeds Recent Activities feed | July 2026 |
 | add_link_to_notifications_table | Per-notification destination URL | Notifications had no target except a conversation; every non-message type dead-ended at the index | July 2026 |
@@ -454,7 +583,17 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_rent_terms_to_reservations_table | `agreed_monthly_rent`, `rent_due_day` | Rent ledger inputs; both nullable with fallbacks | July 24 2026 |
 | add_manual_recording_to_payments_table | Widened `payment_method` + `payment_type` enums (raw `ALTER`); added `recorded_by`, `reference_no`, `payment_notes` + `(reservation_id, billing_period)` index | Landlord-recorded offline rent; the escrow only ever covered the initial payment | July 24 2026 |
 | create_rent_reminders_table | Idempotency guard for the nightly rent-reminder command | Reminders need a persisted per-milestone guard so a missed/double run can't gap or spam | July 24 2026 |
+| add_locality_to_properties_table | `city_municipality` (NOT NULL, backfilled), `barangay` (nullable); repointed the 8 escrow/walk-in fixture rows off their placeholder Butuan City coordinate first | Cebu-only validation needed a structured locality, not just free-text `address` | Aug 2026 |
+| add_scope_and_category_to_amenities_table | `scope` ENUM('property','unit','both') DEFAULT 'both', `category` VARCHAR(50) nullable | Property-level and unit-level amenities needed to be distinguishable | Aug 2026 |
+| promote_building_amenities_to_properties | Moves every `unit_amenities` row whose amenity is `scope = 'property'` up to `property_amenities` (deduped per property), deletes the unit-side row. Invokes `AmenitySeeder` itself first so `scope` is populated before it reads it. **`down()` is a no-op** — collapsing several units' tags onto one property is lossy, not reversible | Without this, `property_amenities` would launch empty and ~half of `unit_amenities`'s 130 rows (the building-level ones landlords had already entered) would go from attached-but-invisible to silently dropped on the next unit edit | Aug 2026 |
+| add_publication_status_to_properties_table | `publication_status` ENUM('Draft','Published','Unpublished','Suspended') DEFAULT 'Published'. Every existing row backfills to `Published` — publication was never a concept before this column | Split "is this legitimate" from "should it be live right now", closing a real hole: the admin report flow's "delist property" action reused `verification_status = 'Rejected'`, which the next landlord edit + admin re-approval cycle silently undid | Aug 2026 |
+| create_property_documents_table | Proof of ownership / tax declaration / permits per property, private-disk file storage, admin verify/reject/request workflow | Admins were approving listings on the landlord's word alone — nothing proved the right to rent out *this* property. Second upload path (after `landlord_verifications`) off the public Cloudinary flow | Aug 2026 |
+| add_room_details_to_property_units | `bedrooms`, `bathrooms` (TINYINT UNSIGNED, nullable), `is_furnished` (BOOLEAN, nullable) | The property creation wizard's unit step asks for these; nothing on `property_units` captured them before | Aug 2026 |
+| add_floor_area_to_property_units_table | `floor_area_sqm` DECIMAL(6,2) nullable | Tenants compare unit size when choosing between similarly-priced rooms, and nothing captured it. `properties/show` had already been rendering `$unit->size` in four places against a column that never existed — this gives those dead slots real data. See ARCHITECTURE.md | Aug 28 2026 |
+| add_void_fields_to_payments_table | `status` enum widened with `Voided`; adds `voided_at`, `voided_by`, `void_reason`, `void_note`, `replaces_payment_id` | Landlords had no way to correct a wrongly-entered payment except a raw DB edit — no audit trail, no UI. See ARCHITECTURE.md and `plans/void-correct-payments.md` | Aug 31 2026 |
+| drop_house_rules_from_properties_table | Drops `properties.house_rules` (JSON) | No landlord-facing form ever wrote it — only `PropertySeeder` did, so every real row was NULL and the tenant page's "House rules" section could never appear outside dev data. Rules are now carried by the `property_units` policy booleans (`pets_allowed`, `smoking_allowed`, `visitors_allowed`) and the "Rules & extras" amenity category, both collected by real forms and filterable. `properties/show` rebuilds the House rules section from those booleans, collapsed across the approved units and tagged "Varies by unit" where units disagree | Sept 12 2026 |
 
 ### Seeders
-- `AmenitySeeder` — 33 common amenities (idempotent via `firstOrCreate` on unique `amenity_name`); runs before `PropertySeeder` in `DatabaseSeeder`. The amenities table is otherwise empty.
+- `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.
+- `PropertySeeder` — draws amenities from **per-property-type pools** rather than at random across the whole table (Sept 2026), so a bedspace can no longer be tagged "Private Kitchen". It also fills `living_arrangement`, the five utility flags, and the unit-level `bathroom_type`/`kitchen_type`/`furnishing_status` + `pets_allowed`/`smoking_allowed`/`visitors_allowed` from the same type profile, with per-listing overrides where a listing's own description pins a different answer (the female-only and male-only bedspaces, the two "fully furnished" listings). Every 7th unit is left with all policies NULL on purpose so the "landlord never answered" path stays visible in dev data. Pool names are checked against `amenities` at run time and the seeder throws rather than silently attaching nothing if one drifts.
 - `Amenity` model exposes a `name` accessor aliasing `amenity_name` (views use `$amenity->name`).

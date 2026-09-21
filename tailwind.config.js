@@ -3,6 +3,9 @@ import forms from '@tailwindcss/forms';
 
 /** @type {import('tailwindcss').Config} */
 export default {
+    // Follows html.dark (set by partials/theme-init) rather than the OS setting, so stray dark: variants match the toggle.
+    darkMode: 'class',
+
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
@@ -13,19 +16,22 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                heading: ['Poppins', ...defaultTheme.fontFamily.sans],
-                // Large page titles only — see DESIGN.md §4. Not for card
-                // headings or section labels; those stay on font-heading.
-                display: ['"Source Serif 4"', 'Georgia', ...defaultTheme.fontFamily.serif],
+                // Navy/Coral identity (Sept 2026) — DM Serif Display replaces Poppins
+                // for headings and Source Serif 4 for display titles; see DESIGN.md §4.
+                heading: ['"DM Serif Display"', 'Georgia', ...defaultTheme.fontFamily.serif],
+                display: ['"DM Serif Display"', 'Georgia', ...defaultTheme.fontFamily.serif],
             },
             colors: {
                 brand: {
-                    primary: '#156F8C',
-                    secondary: '#2AA7A1',
-                    cta: '#FF8A65',
-                    dark: '#0F172A',
-                    slate: '#1F2937',
-                    muted: '#64748B',
+                    navy: '#060D26',
+                    coral: '#FF8A66',
+                    coralText: '#B35A3D',
+                    cream: '#F7F4ED',
+                    slate: '#5B6A8E',
+                    border: '#E2E4EC',
+                    bg: '#F7F8FC',
+                    mist: '#ECEEF6',
+                    footer: '#060D26',
                 },
             },
         },

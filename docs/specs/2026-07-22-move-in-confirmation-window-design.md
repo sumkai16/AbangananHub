@@ -1,7 +1,21 @@
 # Move-In Confirmation Window (Escrow Deadlines)
 
 **Date:** 2026-07-22
-**Status:** Approved design, pending implementation plan
+**Status:** Phase 1 shipped. Phase 2 (automatic Clock 1 refund) still deferred — see Open risks.
+
+Two things have drifted from this document since it was written, both deliberate:
+
+- **Handover scheduling was added on top of turnover.** A landlord can propose a
+  handover slot, which extends Clock 1 up to `handover_max_extension_days` past the
+  *original* deadline. The one-timestamp model below still describes the assertion
+  itself; scheduling sits in front of it. See `HandoverController`.
+- **The deadline numbers are now admin-editable** through system settings, not
+  config-file-only. "No settings UI" in *Explicitly out of scope* refers to
+  *per-landlord negotiable* lengths — that is still out of scope, and still for the
+  reason given there.
+
+Implemented by `config/rentals.php`, migration `2026_07_22_000001_add_move_in_deadline_fields.php`,
+`ProcessMoveInDeadlines` (nightly, `routes/console.php`), and `_move-in-clock.blade.php`.
 
 ## Problem
 
