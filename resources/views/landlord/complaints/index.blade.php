@@ -52,7 +52,7 @@
                             class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
 
                         <button type="submit"
-                            class="h-11 px-5 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200 inline-flex items-center gap-1.5">
+                            class="h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                             </svg>
@@ -70,7 +70,7 @@
                         @endif
 
                         <a href="{{ route('reports.create') }}"
-                            class="ml-auto h-11 px-5 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200 inline-flex items-center gap-1.5">
+                            class="ml-auto h-11 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 inline-flex items-center gap-1.5">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
@@ -91,7 +91,7 @@
                         <p class="text-[15px] font-semibold text-[#060D26]">No reports filed</p>
                         <p class="text-[13px] text-[#5B6A8E] mt-1 max-w-xs">Reports you submit against listings or users will be tracked here, from filing to resolution.</p>
                         <a href="{{ route('reports.create') }}"
-                            class="mt-5 inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#DA8E77] text-[#060D26] text-[13px] font-semibold hover:bg-[#C97A61] transition-all duration-200">
+                            class="mt-5 inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
