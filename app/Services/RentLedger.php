@@ -179,6 +179,11 @@ class RentLedger
 
         $monthlyCollected = (float) $periods->sum('paid');
         $otherCollected = (float) $this->otherCharges()->sum(fn (Payment $p) => (float) $p->amount);
+        // The security deposit on its own: it is held, not earned, and is
+        // returned at move-out, so it must not read as rent income.
+        $depositCollected = (float) $this->otherCharges()
+            ->where('payment_type', 'Deposit')
+            ->sum(fn (Payment $p) => (float) $p->amount);
 
         // The current calendar month's own row, if this tenancy is billed at
         // all this month — absent for a tenancy that starts later or already
@@ -197,6 +202,7 @@ class RentLedger
             'collected'        => round($monthlyCollected + $otherCollected, 2),
             'monthlyCollected' => round($monthlyCollected, 2),
             'otherCollected'   => round($otherCollected, 2),
+            'depositCollected' => round($depositCollected, 2),
             'outstanding'      => round((float) $billed->sum(fn ($p) => max(0, $p['balance'])), 2),
             'overdueCount'     => $overdue->count(),
             'overdueAmount'    => round((float) $overdue->sum(fn ($p) => max(0, $p['balance'])), 2),

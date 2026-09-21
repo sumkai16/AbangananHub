@@ -54,7 +54,7 @@
     @endif
 
     {{-- ===== BROWSE ===== --}}
-    <div class="relative isolate overflow-hidden">
+    <div class="relative isolate overflow-clip">
     @if($heroStats)
         {{-- Background texture for the wide side margins on the landing page: soft colour glows, a dot
              grid, diagonal hairlines and flowing curves. Purely decorative, low contrast, behind content. --}}
@@ -524,10 +524,26 @@
                      of the desktop toggle, which is hidden there); mapVisible
                      governs it at `lg` and up. --}}
                 <div :class="[mobileView === 'map' ? 'block' : 'hidden', mapVisible ? 'lg:!block' : 'lg:!hidden']"
-                    class="lg:sticky lg:top-[240px] lg:self-start">
+                    class="lg:sticky lg:self-start" style="--map-top: var(--browse-sticky-top, 240px)" data-browse-map-col>
                     <div id="browse-map"
-                        class="w-full h-[400px] lg:h-[calc(100vh-256px)] lg:min-h-[420px] rounded-2xl overflow-hidden border border-[#FF8A66]">
+                        class="browse-map-box w-full h-[400px] lg:min-h-[420px] rounded-2xl overflow-hidden border border-[#FF8A66]">
                     </div>
+                    {{-- The pinned nav + search band is not a fixed height (search pill, category strip and
+                         breakpoints all change it), so measure it and pin the map 16px below it. --}}
+                    <script>
+                        (() => {
+                            const set = () => {
+                                const nav = document.querySelector('header');
+                                const band = document.getElementById('header-search-expanded');
+                                const top = (nav ? nav.offsetHeight : 64) + (band ? band.offsetHeight : 0) + 16;
+                                document.documentElement.style.setProperty('--browse-sticky-top', top + 'px');
+                                window.browseMapRefit?.();
+                            };
+                            set();
+                            window.addEventListener('resize', set);
+                            window.addEventListener('load', set);
+                        })();
+                    </script>
                     <script type="application/json" id="browse-map-data">{!! json_encode($mapProperties) !!}</script>
                 </div>
 

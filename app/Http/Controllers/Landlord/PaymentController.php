@@ -86,7 +86,7 @@ class PaymentController extends Controller
         // status filter both have to happen after the ledger runs. A landlord
         // portfolio is tens of tenancies, not thousands — the alternative is
         // materialising the schedule into a table that can go stale.
-        $rows = $query->get()
+        $allRows = $query->get()
             ->map(function (Reservation $reservation) {
                 $ledger = RentLedger::for($reservation);
                 $summary = $ledger->summary();
@@ -96,7 +96,14 @@ class PaymentController extends Controller
                     'summary'       => $summary,
                     'paymentStatus' => $summary['paymentStatus'],
                 ];
-            })
+            });
+
+        // The status dropdown offers only what actually occurs, taken before
+        // the status filter runs so picking one never hides the others.
+        $usedStatuses = $allRows->pluck('paymentStatus')->unique()->values()->all();
+        $hasDueThisMonth = $allRows->contains(fn ($row) => $row['summary']['dueThisMonth'] > 0);
+
+        $rows = $allRows
             ->when(
                 $statusFilter === 'due_this_month',
                 fn ($rows) => $rows->filter(fn ($row) => $row['summary']['dueThisMonth'] > 0),
@@ -134,13 +141,111 @@ class PaymentController extends Controller
             ? (int) round($totals['collectedThisMonth'] / $totals['dueThisMonth'] * 100)
             : null;
 
+        $view = $request->query('view') === 'calendar' ? 'calendar' : 'list';
+
         return view('landlord.payments.index', [
             'rows'         => $rows,
             'properties'   => $properties,
             'totals'       => $totals,
             'statusFilter' => $statusFilter,
             'propertyId'   => $propertyId,
+            'usedStatuses' => $usedStatuses,
+            'hasDueThisMonth' => $hasDueThisMonth,
+            'view'         => $view,
+            'calendar'    => $view === 'calendar'
+                ? $this->buildCalendar($rows, $this->parseMonth($request->query('month')))
+                : null,
         ]);
+    }
+
+    /** `?month=2026-09` → first of that month; anything else falls back to this month. */
+    private function parseMonth(mixed $value): Carbon
+    {
+        if (is_string($value) && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value)) {
+            return Carbon::createFromFormat('!Y-m', $value);
+        }
+
+        return now()->startOfMonth();
+    }
+
+    /**
+     * Rent due dates for one month, keyed by 'Y-m-d'.
+     *
+     * A month the ledger has already billed (or that was prepaid into) comes
+     * straight from RentLedger::periods(), so the calendar can never disagree
+     * with the table. A later month has no ledger row yet — RentLedger stops at
+     * the current month on purpose — so an occupied tenancy still inside its
+     * term is projected as an upcoming due date; that projection is the whole
+     * point of looking ahead on a calendar.
+     */
+    private function buildCalendar($rows, Carbon $month): array
+    {
+        $days = [];
+        $expected = 0.0;
+        $collected = 0.0;
+
+        foreach ($rows as $row) {
+            /** @var Reservation $reservation */
+            $reservation = $row['reservation'];
+            $period = RentLedger::for($reservation)->periods()
+                ->first(fn ($p) => $p['period']->isSameMonth($month));
+
+            if ($period) {
+                $status = match (true) {
+                    $period['is_future'] => $period['status'] === 'paid' ? 'paid_ahead' : 'upcoming',
+                    $period['status'] === 'due' => 'upcoming',
+                    default => $period['status'],
+                };
+                $dueOn = $period['due_on'];
+                $entryExpected = $period['expected'];
+                $entryPaid = $period['paid'];
+            } else {
+                $start = $reservation->tenancyStartDate();
+                $end = $reservation->target_move_out_date;
+
+                if (
+                    $reservation->rental_status !== 'Occupied'
+                    || ! $start
+                    || $month->lte(now()->startOfMonth())
+                    || $month->lt($start->copy()->startOfMonth())
+                    || ($end && $month->gt($end->copy()->startOfMonth()))
+                ) {
+                    continue;
+                }
+
+                $status = 'upcoming';
+                $dueOn = $month->copy()->day($reservation->rentDueDay());
+                $entryExpected = $reservation->monthlyRent();
+                $entryPaid = 0.0;
+            }
+
+            $tenant = $reservation->tenant;
+            $days[$dueOn->format('Y-m-d')][] = [
+                'name'     => trim(($tenant->first_name ?? '') . ' ' . ($tenant->last_name ?? '')) ?: 'Unknown',
+                'unit'     => $reservation->unit->unit_label ?? '—',
+                'property' => $reservation->property->title ?? '',
+                'expected' => $entryExpected,
+                'paid'     => $entryPaid,
+                'balance'  => max(0, round($entryExpected - $entryPaid, 2)),
+                'status'   => $status,
+                'url'      => route('landlord.tenancies.show', $reservation),
+            ];
+
+            $expected += $entryExpected;
+            $collected += $entryPaid;
+        }
+
+        foreach ($days as &$entries) {
+            usort($entries, fn ($a, $b) => (self::STATUS_ORDER[$a['status']] ?? 99) <=> (self::STATUS_ORDER[$b['status']] ?? 99));
+        }
+        unset($entries);
+
+        return [
+            'month'     => $month,
+            'days'      => $days,
+            'expected'  => round($expected, 2),
+            'collected' => round($collected, 2),
+        ];
     }
 
     /**

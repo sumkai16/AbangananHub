@@ -230,6 +230,10 @@
                         'tenant_contact' => $reservation->tenant->contact_number ?? '—',
                         'property_title' => $reservation->property->title,
                         'unit_label' => $reservation->unit->unit_label ?? 'No unit',
+                        'initials' => strtoupper(substr($reservation->tenant->first_name ?? '?', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1)),
+                        'status_class' => $statusStyles[$reservation->rental_status] ?? 'bg-[#ECEEF6] text-[#5B6A8E]',
+                        'rent' => $reservation->agreed_monthly_rent ? '₱' . number_format($reservation->agreed_monthly_rent, 0) . '/mo' : null,
+                        'tenancy_url' => $reservation->rental_status === 'Occupied' ? route('landlord.tenancies.show', $reservation) : null,
                     ];
                     $initials = strtoupper(substr($reservation->tenant->first_name ?? '?', 0, 1) . substr($reservation->tenant->last_name ?? '', 0, 1));
                     $moveIn = $reservation->target_move_in_date ?? $reservation->reservation_date;
@@ -610,60 +614,86 @@
 
         {{-- Details modal --}}
         <template x-teleport="body">
-            <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                <div @click="modalOpen = false" class="absolute inset-0 bg-black/40"></div>
-                <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6" x-show="modalOpen" x-transition>
-                    <div class="flex items-start justify-between mb-4">
-                        <h2 class="text-lg font-normal text-[#060D26]">Reservation details</h2>
-                        <button @click="modalOpen = false" aria-label="Close" class="text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">
-                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-
+            <div x-show="modalOpen" x-cloak @keydown.escape.window="modalOpen = false"
+                class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-4">
+                <div @click="modalOpen = false" class="absolute inset-0 bg-[#060D26]/50"></div>
+                <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto"
+                    role="dialog" aria-modal="true" aria-label="Reservation details" x-show="modalOpen" x-transition>
                     <template x-if="selected">
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-[#5B6A8E]">Tenant</span>
-                                <span class="font-semibold text-[#060D26]" x-text="selected.tenant_name"></span>
+                        <div>
+                            {{-- Who: identity + status --}}
+                            <div class="flex items-start gap-3.5 p-5 sm:p-6 border-b border-[#E2E4EC]">
+                                <div class="h-12 w-12 shrink-0 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[14px] font-semibold"
+                                    x-text="selected.initials"></div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[16px] font-semibold text-[#060D26] truncate" x-text="selected.tenant_name"></p>
+                                    <a :href="'tel:' + selected.tenant_contact"
+                                        class="text-[13px] text-[#5B6A8E] hover:text-[#060D26] transition-colors duration-200"
+                                        x-text="selected.tenant_contact"></a>
+                                    <div class="mt-2">
+                                        <span class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                                            :class="selected.status_class" x-text="selected.rental_status"></span>
+                                    </div>
+                                </div>
+                                <button @click="modalOpen = false" aria-label="Close"
+                                    class="h-9 w-9 -mr-1.5 -mt-1.5 flex items-center justify-center rounded-lg text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
+                                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-[#5B6A8E]">Contact</span>
-                                <span class="text-[#060D26]" x-text="selected.tenant_contact"></span>
+
+                            <div class="p-5 sm:p-6 space-y-5">
+                                {{-- Where --}}
+                                <div>
+                                    <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Place</p>
+                                    <p class="mt-1 text-[14px] font-semibold text-[#060D26]" x-text="selected.property_title"></p>
+                                    <p class="text-[13px] text-[#5B6A8E]" x-text="selected.unit_label"></p>
+                                </div>
+
+                                {{-- When: the stay as a range, facts beneath --}}
+                                <div>
+                                    <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Stay</p>
+                                    <div class="mt-2 grid grid-cols-2 gap-3">
+                                        <div class="rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] px-3.5 py-3">
+                                            <p class="text-[11px] text-[#5B6A8E]">Move-in</p>
+                                            <p class="text-[13.5px] font-semibold text-[#060D26]" x-text="selected.move_in || selected.reservation_date || '—'"></p>
+                                        </div>
+                                        <div class="rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] px-3.5 py-3">
+                                            <p class="text-[11px] text-[#5B6A8E]">Move-out</p>
+                                            <p class="text-[13.5px] font-semibold text-[#060D26]" x-text="selected.move_out || '—'"></p>
+                                        </div>
+                                    </div>
+                                    <dl class="mt-3 grid grid-cols-3 gap-3 text-[13px]">
+                                        <div>
+                                            <dt class="text-[11px] text-[#5B6A8E]">Duration</dt>
+                                            <dd class="font-medium text-[#060D26]" x-text="selected.duration_of_stay || '—'"></dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-[11px] text-[#5B6A8E]">Occupants</dt>
+                                            <dd class="font-medium text-[#060D26]" x-text="selected.occupants_count || '—'"></dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-[11px] text-[#5B6A8E]">Rent</dt>
+                                            <dd class="font-medium text-[#060D26]" x-text="selected.rent || '—'"></dd>
+                                        </div>
+                                    </dl>
+                                </div>
+
+                                <template x-if="selected.remarks">
+                                    <div>
+                                        <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant's remarks</p>
+                                        <p class="mt-1 text-[13.5px] leading-relaxed text-[#060D26]" x-text="selected.remarks"></p>
+                                    </div>
+                                </template>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-[#5B6A8E]">Property</span>
-                                <span class="text-[#060D26]" x-text="selected.property_title"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-[#5B6A8E]">Unit</span>
-                                <span class="text-[#060D26]" x-text="selected.unit_label"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-[#5B6A8E]">Target move-in</span>
-                                <span class="text-[#060D26]" x-text="selected.move_in || selected.reservation_date || '—'"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-[#5B6A8E]">Target move-out</span>
-                                <span class="text-[#060D26]" x-text="selected.move_out || '—'"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-[#5B6A8E]">Duration of stay</span>
-                                <span class="text-[#060D26]" x-text="selected.duration_of_stay || '—'"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-[#5B6A8E]">Occupants</span>
-                                <span class="text-[#060D26]" x-text="selected.occupants_count || '—'"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-[#5B6A8E]">Status</span>
-                                <span class="font-semibold text-[#060D26]" x-text="selected.rental_status"></span>
-                            </div>
-                            <template x-if="selected.remarks">
-                                <div class="pt-2 border-t border-[#5B6A8E]/15">
-                                    <p class="text-[#5B6A8E] mb-1">Tenant's remarks</p>
-                                    <p class="text-[#060D26]" x-text="selected.remarks"></p>
+
+                            <template x-if="selected.tenancy_url">
+                                <div class="px-5 sm:px-6 pb-5 sm:pb-6">
+                                    <a :href="selected.tenancy_url"
+                                        class="flex h-10 w-full items-center justify-center rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] focus:outline-none focus:ring-2 focus:ring-[#FF8A66] focus:ring-offset-2 transition-colors duration-200">
+                                        View tenancy &amp; payments
+                                    </a>
                                 </div>
                             </template>
                         </div>
