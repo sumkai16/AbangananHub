@@ -71,6 +71,41 @@ class TenantSeeder extends Seeder
             'advance' => 0, 'current' => 'unpaid',
             'bio' => 'Junior accountant, just moved to the city for work. Early sleeper, keeps the place clean.',
         ],
+        [
+            'first_name' => 'Marvin', 'last_name' => 'Lapaz', 'email' => 'marvin@abangananhub.com',
+            'contact' => '09171230006', 'months_in' => 5, 'occupants' => 1, 'due_day' => 1,
+            'pay_offsets' => [0, 0, 1, 0, 0], 'cash_every' => 0, 'methods' => ['Maya'],
+            'advance' => 0, 'current' => 'paid',
+            'bio' => 'Machine operator at a Mactan factory, day shift. Rides a motorcycle and needs a safe place to park it.',
+        ],
+        [
+            'first_name' => 'Ella Mae', 'last_name' => 'Gimenez', 'email' => 'ellamae@abangananhub.com',
+            'contact' => '09171230007', 'months_in' => 8, 'occupants' => 1, 'due_day' => 10,
+            'pay_offsets' => [0, 3, 6, 0, 2, 0, 8, 1], 'cash_every' => 4, 'methods' => ['GCash', 'QRPh'],
+            'advance' => 0, 'current' => 'unpaid',
+            'bio' => 'Public school teacher, first posting in Cebu province. Often pays a few days late when payday is delayed.',
+        ],
+        [
+            'first_name' => 'Ronaldo', 'last_name' => 'Tabada', 'email' => 'ronaldo@abangananhub.com',
+            'contact' => '09171230008', 'months_in' => 12, 'occupants' => 4, 'due_day' => 5,
+            'pay_offsets' => [0, 0, -1, 0, 1, 0, 0, -2, 0, 0, 1, 0], 'cash_every' => 6, 'methods' => ['Bank Transfer', 'GCash'],
+            'advance' => 0, 'current' => 'paid',
+            'bio' => 'Port worker renting with his wife and two kids. A year in, no missed months.',
+        ],
+        [
+            'first_name' => 'Precious', 'last_name' => 'Dacillo', 'email' => 'precious@abangananhub.com',
+            'contact' => '09171230009', 'months_in' => 3, 'occupants' => 1, 'due_day' => 1,
+            'pay_offsets' => [-1, 0, 0], 'cash_every' => 0, 'methods' => ['GCash'],
+            'advance' => 2, 'current' => 'paid',
+            'bio' => 'Remote UX writer who pays several months ahead. Works from the room, needs steady Wi-Fi.',
+        ],
+        [
+            'first_name' => 'Nathaniel', 'last_name' => 'Quiñones', 'email' => 'nathaniel@abangananhub.com',
+            'contact' => '09171230010', 'months_in' => 6, 'occupants' => 2, 'due_day' => 20,
+            'pay_offsets' => [0, 1, 0, 4, 0, 2], 'cash_every' => 0, 'methods' => ['Maya', 'GCash'],
+            'advance' => 0, 'current' => 'partial',
+            'bio' => 'Sous chef at a Mactan resort, rooming with his sister. Irregular hours, always calls ahead.',
+        ],
     ];
 
     public function run(): void
