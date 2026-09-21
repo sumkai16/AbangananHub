@@ -57,7 +57,7 @@
             About AbangananHub
         </div>
 
-        <h1 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[36px] sm:text-[52px] font-extrabold leading-[1.1] tracking-tight mb-5 fade-up" style="transition-delay:.08s">
+        <h1 class="font-jakarta text-[36px] sm:text-[52px] font-extrabold leading-[1.1] tracking-tight mb-5 fade-up" style="transition-delay:.08s">
             Renting in Cebu,<br class="hidden sm:block"> <span class="text-[#060D26]">done right.</span>
         </h1>
 
@@ -110,8 +110,8 @@
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-            <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]">Our Purpose</span>
-            <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[30px] sm:text-[36px] font-extrabold text-[#060D26] mt-2 tracking-tight">Mission & Vision</h2>
+            <span class="font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]">Our Purpose</span>
+            <h2 class="font-jakarta text-[30px] sm:text-[36px] font-extrabold text-[#060D26] mt-2 tracking-tight">Mission & Vision</h2>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
@@ -122,7 +122,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                 </div>
-                <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold text-[#060D26] mb-3">Our Mission</h3>
+                <h3 class="font-jakarta text-[19px] font-bold text-[#060D26] mb-3">Our Mission</h3>
                 <p class="text-[14.5px] text-[#5B6A8E] leading-relaxed">
                     To provide a safe, transparent, and efficient platform where tenants in Cebu can discover
                     verified rental properties and connect directly with trusted landlords — eliminating
@@ -137,7 +137,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
                 </div>
-                <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[19px] font-bold text-[#060D26] mb-3">Our Vision</h3>
+                <h3 class="font-jakarta text-[19px] font-bold text-[#060D26] mb-3">Our Vision</h3>
                 <p class="text-[14.5px] text-[#5B6A8E] leading-relaxed">
                     To become Cebu's most trusted rental ecosystem — where every tenant finds a home they
                     can rely on, every landlord grows a reputable portfolio, and the entire process is
@@ -254,10 +254,10 @@
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="mb-10 fade-up">
-            <span class="inline-flex items-center gap-2 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5B6A8E]">
+            <span class="inline-flex items-center gap-2 font-jakarta text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5B6A8E]">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A66] shadow-[0_0_0_3px_rgba(255,138,102,0.25)]"></span>How to use AbangananHub
             </span>
-            <h2 class="mt-3 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] sm:text-[36px] font-bold leading-[1.15] text-[#060D26]">
+            <h2 class="mt-3 font-jakarta text-[28px] sm:text-[36px] font-bold leading-[1.15] text-[#060D26]">
                 Step by step,
                 <span class="block text-[#5B6A8E]">start to move-in.</span>
             </h2>
@@ -302,8 +302,8 @@
 
                                 <div class="rounded-2xl border border-[#E2E4EC] bg-white p-5 sm:p-6 transition-all duration-700 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0 hover:border-[#FF8A66]/60 hover:shadow-[0_12px_28px_rgba(6,13,38,0.08)]"
                                     :class="revealed['{{ $key }}-{{ $i }}'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-                                    <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12px] font-semibold uppercase tracking-[0.08em] text-[#B35A3D] tabular-nums">Step {{ $i + 1 }} of {{ $count }}</p>
-                                    <h3 class="mt-1 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[18px] sm:text-[20px] font-bold leading-snug text-[#060D26]">{{ $step['title'] }}</h3>
+                                    <p class="font-jakarta text-[12px] font-semibold uppercase tracking-[0.08em] text-[#B35A3D] tabular-nums">Step {{ $i + 1 }} of {{ $count }}</p>
+                                    <h3 class="mt-1 font-jakarta text-[18px] sm:text-[20px] font-bold leading-snug text-[#060D26]">{{ $step['title'] }}</h3>
                                     <p class="mt-2 text-[14px] text-[#5B6A8E] leading-relaxed max-w-[60ch]">{{ $step['desc'] }}</p>
 
                                     <div class="mt-4 grid gap-2.5 sm:grid-cols-2">
@@ -332,7 +332,7 @@
                 ['Stuck at any step?', 'Use Report a Problem in your account and the AbangananHub team will look into it.'],
             ] as [$tipTitle, $tipBody])
                 <div class="rounded-2xl border border-[#E2E4EC] bg-[#F7F8FC] p-5">
-                    <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[16px] font-semibold text-[#060D26]">{{ $tipTitle }}</h3>
+                    <h3 class="font-jakarta text-[16px] font-semibold text-[#060D26]">{{ $tipTitle }}</h3>
                     <p class="mt-1.5 text-[14px] leading-relaxed text-[#5B6A8E]">{{ $tipBody }}</p>
                 </div>
             @endforeach
@@ -346,14 +346,14 @@
     <div class="max-w-5xl mx-auto px-6">
 
         <div class="text-center mb-14 fade-up">
-            <span class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]">Platform Features</span>
-            <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[30px] sm:text-[36px] font-extrabold text-[#060D26] mt-2 tracking-tight">Built for Trust & Transparency</h2>
+            <span class="font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#5B6A8E]">Platform Features</span>
+            <h2 class="font-jakarta text-[30px] sm:text-[36px] font-extrabold text-[#060D26] mt-2 tracking-tight">Built for Trust & Transparency</h2>
         </div>
 
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach([
                 ['icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'title'=>'Verified Landlords', 'desc'=>'Every landlord is vetted through a document verification process before their listings go live.', 'color'=>'#FF8A66'],
-                ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title'=>'Smart Search & Filter', 'desc'=>'Find rentals by location, property type (Bedspace, Room, Apartment, House), and maximum budget.', 'color'=>'#FF8A66'],
+                ['icon'=>'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title'=>'Smart Search & Filter', 'desc'=>'Find rentals by location, property type (Apartment, Condominium, House, Boarding House, Bedspace), and maximum budget.', 'color'=>'#FF8A66'],
                 ['icon'=>'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 'title'=>'Direct Reservations', 'desc'=>'Tenants can reserve a unit in real time. Landlords approve or reject from their dashboard instantly.', 'color'=>'#060D26'],
                 ['icon'=>'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'title'=>'In-App Messaging', 'desc'=>'Communicate directly between tenant and landlord without sharing personal contact info upfront.', 'color'=>'#060D26'],
                 ['icon'=>'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', 'title'=>'Saved Listings', 'desc'=>'Bookmark your favourite properties and revisit them any time from your Saved Listings tab.', 'color'=>'#FF8A66'],
@@ -365,7 +365,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $feature['icon'] }}"/>
                     </svg>
                 </div>
-                <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15px] font-bold text-[#060D26] mb-1.5">{{ $feature['title'] }}</h3>
+                <h3 class="font-jakarta text-[15px] font-bold text-[#060D26] mb-1.5">{{ $feature['title'] }}</h3>
                 <p class="text-[13px] text-[#5B6A8E] leading-relaxed">{{ $feature['desc'] }}</p>
             </div>
             @endforeach
@@ -385,7 +385,7 @@
                     <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest mb-5">
                         UN Sustainable Development Goal
                     </div>
-                    <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] sm:text-[32px] font-extrabold leading-tight mb-4">
+                    <h2 class="font-jakarta text-[26px] sm:text-[32px] font-extrabold leading-tight mb-4">
                         Aligned with <span class="text-[#FF8A66]">SDG 11</span>
                     </h2>
                     <p class="text-[14.5px] text-white/75 leading-relaxed">
@@ -416,7 +416,7 @@
 {{-- ── CTA ──────────────────────────────────────────────────────────────────── --}}
 <section class="bg-[#F7F8FC] py-20">
     <div class="max-w-2xl mx-auto px-6 text-center fade-up">
-        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] sm:text-[34px] font-extrabold text-[#060D26] tracking-tight mb-4">
+        <h2 class="font-jakarta text-[28px] sm:text-[34px] font-extrabold text-[#060D26] tracking-tight mb-4">
             Ready to find your next home?
         </h2>
         <p class="text-[15px] text-[#5B6A8E] mb-8 leading-relaxed">

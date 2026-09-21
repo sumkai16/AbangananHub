@@ -55,15 +55,19 @@ class PropertyWizardController extends Controller
     {
         $old = session('property_wizard.info', []);
 
-        return view('landlord.properties.wizard.info', ['property' => null, 'formValues' => $old]);
+        // The session keeps house_rules as one compiled list; the form wants presets and custom text apart.
+        $split = \App\Support\PropertyPolicies::splitRules($old['house_rules'] ?? null);
+        $formValues = array_merge($old, ['house_rules' => $split['presets'], 'custom_house_rules' => $split['custom']]);
+
+        return view('landlord.properties.wizard.info', ['property' => null, 'formValues' => $formValues]);
     }
 
     public function storeInfo(Request $request)
     {
         $validated = $request->validate([
             'title'                          => ['required', 'string', 'min:10', 'max:150'],
-            'property_type'                  => ['required', 'in:Bedspace,Room,Apartment,House'],
-            'living_arrangement'             => ['nullable', 'in:Private,Shared,Mixed,Female only,Male only,Couples allowed,Family-friendly'],
+            'property_type'                  => ['required', 'in:Apartment,Condominium,House,Boarding House,Bedspace'],
+            ...\App\Support\PropertyPolicies::rules(),
             'water_included'                 => ['nullable', 'boolean'],
             'electricity_included'           => ['nullable', 'boolean'],
             'internet_included'              => ['nullable', 'boolean'],
@@ -82,6 +86,9 @@ class PropertyWizardController extends Controller
             $validated[$utilityField] = $request->boolean($utilityField);
         }
 
+        unset($validated['custom_house_rules']);
+        $validated = array_merge($validated, \App\Support\PropertyPolicies::fromRequest($request));
+
         session(['property_wizard.info' => $validated]);
 
         return redirect()->route('properties.wizard.location.create');
@@ -95,7 +102,7 @@ class PropertyWizardController extends Controller
         $formValues = [
             'title'                          => $property->title,
             'property_type'                  => $property->property_type,
-            'living_arrangement'             => $property->living_arrangement,
+            ...\App\Support\PropertyPolicies::formValues($property),
             'water_included'                 => $property->water_included,
             'electricity_included'           => $property->electricity_included,
             'internet_included'              => $property->internet_included,
@@ -118,8 +125,8 @@ class PropertyWizardController extends Controller
 
         $validated = $request->validate([
             'title'               => ['required', 'string', 'min:10', 'max:150'],
-            'property_type'       => ['required', 'in:Bedspace,Room,Apartment,House'],
-            'living_arrangement'  => ['nullable', 'in:Private,Shared,Mixed,Female only,Male only,Couples allowed,Family-friendly'],
+            'property_type'       => ['required', 'in:Apartment,Condominium,House,Boarding House,Bedspace'],
+            ...\App\Support\PropertyPolicies::rules(),
             'description'         => ['required', 'string', 'min:20', 'max:3000'],
             'number_of_units'     => ['required', 'integer', 'min:1', 'max:100'],
         ]);
@@ -127,7 +134,7 @@ class PropertyWizardController extends Controller
         $property->update([
             'title'                          => $validated['title'],
             'property_type'                  => $validated['property_type'],
-            'living_arrangement'             => $validated['living_arrangement'] ?? null,
+            ...\App\Support\PropertyPolicies::fromRequest($request),
             'water_included'                 => $request->boolean('water_included'),
             'electricity_included'           => $request->boolean('electricity_included'),
             'internet_included'              => $request->boolean('internet_included'),
@@ -192,7 +199,9 @@ class PropertyWizardController extends Controller
             $property->title               = $info['title'];
             $property->description         = $info['description'];
             $property->property_type       = $info['property_type'];
-            $property->living_arrangement  = $info['living_arrangement'] ?? null;
+            $property->living_arrangement  = $info['living_arrangement'];
+            $property->occupancy_preference = $info['occupancy_preference'];
+            $property->house_rules         = $info['house_rules'] ?? [];
             $property->water_included               = $info['water_included'] ?? false;
             $property->electricity_included         = $info['electricity_included'] ?? false;
             $property->internet_included             = $info['internet_included'] ?? false;

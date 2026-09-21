@@ -97,9 +97,10 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | landlord_id | FK → users.user_id | NOT NULL | |
 | title | VARCHAR(255) | NOT NULL | |
 | description | TEXT | NULLABLE | |
-| house_rules | JSON | NULLABLE | cast to `array` |
-| property_type | ENUM('Bedspace','Room','Apartment','House') | NOT NULL | |
-| living_arrangement | ENUM('Private','Shared','Mixed','Female only','Male only','Couples allowed','Family-friendly') | NULLABLE | Added Sept 2026, optional — most useful for bedspace/boarding-house listings; an apartment/house listing can leave it unset |
+| house_rules | JSON | NULLABLE | cast to `array`. Since Sept 23 2026 a flat list of strings: the preset labels the landlord ticked in `App\Support\PropertyPolicies::HOUSE_RULES` (No Smoking, No Pets, No Parties / Events, Quiet Hours, Curfew, No Overnight Guests, Visitors Allowed) followed by each custom line they typed. Anything not in the preset list is a custom rule. Set in the add-property wizard and the property edit page; every unit inherits it |
+| property_type | ENUM('Apartment','Condominium','House','Boarding House','Bedspace') | NOT NULL | `Room` retired and renamed `Boarding House` Sept 22 2026 (`2026_09_22_000001_replace_room_with_boarding_house_property_type` renames existing rows; a single room is a *unit* inside a property, not a property type). `Condominium` added Sept 22 2026 (`2026_09_22_000000_add_condominium_to_properties_property_type`) — condos have association dues, elevators and amenity decks that renters filter on separately from apartments |
+| living_arrangement | ENUM('Private','Shared','Mixed') | NULLABLE | Required by every property form since Sept 23 2026 (`PropertyPolicies::rules()`); the column stays nullable only for legacy rows. The old 'Female only' / 'Male only' values moved to `occupancy_preference`; 'Couples allowed' / 'Family-friendly' had no equivalent and were reset to NULL by `2026_09_23_000000_add_occupancy_preference_to_properties_table` |
+| occupancy_preference | ENUM('No Preference','Men Only','Women Only') | NOT NULL, default 'No Preference' | Added Sept 23 2026. Who the landlord prefers to rent to; required in every property form. Existing rows default to No Preference (or Men/Women Only when they carried the old gender arrangement) |
 | water_included | BOOLEAN | NULLABLE | Added Sept 2026. NULL means the landlord hasn't answered utilities at all (predates this field); `false` is an explicit "not included", shown as such on the tenant-facing property page |
 | electricity_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
 | internet_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
@@ -161,18 +162,18 @@ property approval itself; the admin uses judgment, with the "request a document"
 | unit_id | BIGINT UNSIGNED | PK | `$primaryKey = 'unit_id'` |
 | property_id | FK → properties.property_id | NOT NULL | |
 | unit_label | VARCHAR(100) | NOT NULL | e.g. "Room A", "Bed 3" — column is `unit_label`, not `unit_name` |
-| unit_type | VARCHAR(50) | NULLABLE | Added July 27 2026 — see the note below the table |
+| unit_type | VARCHAR(50) | NULLABLE | **No longer written or read (Sept 23 2026)** — removed from the unit forms, API, CSV export and every display. The column is left in place so no data is destroyed; drop it in a later migration if it's confirmed unused |
 | floor | VARCHAR(50) | NULLABLE | Added July 27 2026 |
 | bedrooms | TINYINT UNSIGNED | NULLABLE | Added Aug 2026 for the property wizard's unit form. Nullable because every pre-existing unit predates it |
 | bathrooms | TINYINT UNSIGNED | NULLABLE | Added Aug 2026, same migration as `bedrooms` |
 | floor_area_sqm | DECIMAL(6,2) | NULLABLE | Added Aug 28 2026. Optional, like `bedrooms`/`bathrooms` — NULL means the landlord never recorded it, and no backfill invents one. Validated `nullable\|numeric\|min:1\|max:9999.99` in both `Landlord\PropertyUnitController` and its API twin. **Never render the raw column** — the `decimal:2` cast makes `24` into `"24.00"`; every display site uses the `PropertyUnit::floor_area_label` accessor, which formats it as `24 sqm` / `24.5 sqm` and returns null when unset. "sqm" over the m² symbol to match how PH real estate listings write it |
 | is_furnished | BOOLEAN | NULLABLE | Added Aug 2026. `PropertyUnit` casts it `boolean`; NULL means "not answered" (pre-existing unit), not "unfurnished" — don't treat a null the same as `false` in any consumer |
-| bathroom_type | ENUM('Private bathroom','Shared bathroom') | NULLABLE | Added Sept 2026 — distinct from `bathrooms` (a count); this answers private-vs-shared access, not how many |
+| bathroom_type | ENUM('Private bathroom','Shared bathroom') | NULLABLE | **No longer written or read (Sept 23 2026)** — the unit amenities (Private/Shared Bathroom, Private Kitchen) already say this and are what tenants see and filter on. Column left in place; existing values are ignored |
 | furnishing_status | ENUM('Furnished','Semi-furnished','Unfurnished') | NULLABLE | Added Sept 2026, alongside `is_furnished`. `is_furnished` (boolean, two-state) is kept for backward compatibility but the create/edit forms now capture this three-state field instead — new consumers should read `furnishing_status`, not `is_furnished` |
-| kitchen_type | ENUM('Private kitchen','Shared kitchen','No kitchen') | NULLABLE | Added Sept 2026 |
-| pets_allowed | BOOLEAN | NULLABLE | Added Sept 2026. NULL means "not answered", same convention as `is_furnished` |
-| smoking_allowed | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
-| visitors_allowed | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
+| kitchen_type | ENUM('Private kitchen','Shared kitchen','No kitchen') | NULLABLE | **No longer written or read (Sept 23 2026)** — the unit amenities (Private/Shared Bathroom, Private Kitchen) already say this and are what tenants see and filter on. Column left in place; existing values are ignored |
+| pets_allowed | BOOLEAN | NULLABLE | **No longer written or read (Sept 23 2026)** — house rules are chosen once per property (`properties.house_rules`), not per unit. Column left in place; existing values are ignored |
+| smoking_allowed | BOOLEAN | NULLABLE | **No longer written or read (Sept 23 2026)** — house rules are chosen once per property (`properties.house_rules`), not per unit. Column left in place; existing values are ignored |
+| visitors_allowed | BOOLEAN | NULLABLE | **No longer written or read (Sept 23 2026)** — house rules are chosen once per property (`properties.house_rules`), not per unit. Column left in place; existing values are ignored |
 | description | TEXT | NULLABLE | |
 | rental_fee | DECIMAL(10,2) | NOT NULL | |
 | security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026. Required at the **application layer** on unit *creation* since Aug 20 2026 — every new unit must state a deposit, enforced in `Landlord\PropertyUnitController::store()`/`Api\Landlord\UnitWriteController::store()`. `2026_08_20_000000_backfill_security_deposit_on_property_units` set every then-NULL row to one month's rent so no pre-existing listing shows blank. **Optional on edit since Sept 2026** (`PropertyUnitController::update()` only) — a unit that genuinely charges no deposit can clear it; a submit that omits the field entirely leaves the existing value untouched rather than nulling it (guarded with `array_key_exists`, not `??`). Every display site treats null as "no deposit" explicitly (e.g. "No security deposit required" on the property page), never as ₱0 |

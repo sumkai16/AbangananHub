@@ -36,10 +36,11 @@
 
                 @php
                     $typeTiles = [
-                        'Bedspace'  => ['A bed in a shared room', 'M3 7h18M3 7v10m0-10V5m18 2v10m0-10V5M3 17h18M6 12h12M5 5h14'],
-                        'Room'      => ['One private room', 'M3 21h18M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4'],
                         'Apartment' => ['A whole apartment unit', 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'],
+                        'Condominium' => ['A condo unit in a tower', 'M8 21V4a1 1 0 011-1h6a1 1 0 011 1v17M4 21V10a1 1 0 011-1h3M20 21V12a1 1 0 00-1-1h-3M3 21h18M11 7h2m-2 4h2m-2 4h2'],
                         'House'     => ['A whole house', 'M3 21h18M3 10.5L12 3l9 7.5M5 21V10.5M19 21V10.5M9 21v-6h6v6'],
+                        'Boarding House' => ['A building with rooms to rent', 'M4 21h16M7 21V4a1 1 0 011-1h8a1 1 0 011 1v17M14 12h.01'],
+                        'Bedspace'  => ['A bed in a shared room', 'M3 7h18M3 7v10m0-10V5m18 2v10m0-10V5M3 17h18M6 12h12M5 5h14'],
                     ];
                     $utilities = [
                         ['water_included', 'Water', 'Included in rent'],
@@ -79,7 +80,7 @@
 
                         <fieldset>
                             <legend class="text-[13px] font-semibold text-[#060D26] mb-2">Property type</legend>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 @foreach($typeTiles as $type => [$hint, $icon])
                                     <label class="cursor-pointer" title="{{ $hint }}">
                                         <input type="radio" name="property_type" value="{{ $type }}" class="peer sr-only" required @checked($selectedType === $type)>
@@ -98,15 +99,6 @@
                         </fieldset>
 
                         <div class="grid sm:grid-cols-2 gap-x-4 gap-y-5">
-
-                            <div>
-                            <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Living arrangement <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
-                            <x-styled-select name="living_arrangement" :options="['Private' => 'Private', 'Shared' => 'Shared', 'Mixed' => 'Mixed', 'Female only' => 'Female only', 'Male only' => 'Male only', 'Couples allowed' => 'Couples allowed', 'Family-friendly' => 'Family-friendly']"
-                                :selected="old('living_arrangement', $formValues['living_arrangement'] ?? '')" placeholder="Not specified"
-                                class="w-full h-11 px-4 rounded-xl border {{ $errors->has('living_arrangement') ? 'border-[#EF4444]/40' : 'border-[#E2E4EC]' }} text-[14px] text-[#060D26]" />
-                            <p class="text-[11.5px] text-[#5B6A8E] mt-1.5">Useful for bedspace or boarding-house listings.</p>
-                            @error('living_arrangement')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
-                        </div>
 
                         <div>
                             <label for="number_of_units" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Number of units</label>
@@ -151,6 +143,9 @@
                         </fieldset>
                     </x-card>
 
+                    {{-- Who it's for + house rules --}}
+                    <x-property-policy-fields :values="$formValues" />
+
                     {{-- Description + unit count --}}
                     <x-card class="space-y-5 !p-4 sm:!p-5">
                         <div>
@@ -161,7 +156,7 @@
                             </div>
                             <textarea id="description" name="description" rows="4" x-model="description" minlength="20" maxlength="3000"
                                 class="{{ $inputBase }} p-4 leading-relaxed @error('description') border-[#EF4444]/40 @else border-[#E2E4EC] @enderror"
-                                placeholder="Describe the space, nearby landmarks, house rules, payment terms..." required></textarea>
+                                placeholder="Describe the space, nearby landmarks, payment terms..." required></textarea>
                             @error('description')<p class="text-xs text-[#DC2626] mt-1.5">{{ $message }}</p>@enderror
                         </div>                    </x-card>
 

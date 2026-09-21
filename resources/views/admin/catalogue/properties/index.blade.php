@@ -16,7 +16,7 @@
         'no-units'   => 'No units',
         'stale'      => 'Listed 90+ days ago',
     ];
-    $typeOptions = ['' => 'All Types', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House'];
+    $typeOptions = ['' => 'All Types', 'Apartment' => 'Apartment', 'Condominium' => 'Condominium', 'House' => 'House', 'Boarding House' => 'Boarding House', 'Bedspace' => 'Bedspace'];
     $sortOptions = [
         'newest'     => 'Newest first',
         'oldest'     => 'Oldest first',
@@ -273,7 +273,7 @@
                     <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach($properties as $property)
                             @php extract($derived[$property->property_id]); @endphp
-                            <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
+                            <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">
