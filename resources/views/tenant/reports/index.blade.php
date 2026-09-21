@@ -64,7 +64,7 @@
                             </thead>
                             <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach($reports as $report)
-                                    <tr class="hover:bg-[#F7F8FC] transition">
+                                    <tr class="hover:bg-[#ECEEF6] transition">
                                         <td class="px-5 py-3.5 text-[13px] text-[#060D26]">
                                             @if($report->property)
                                                 {{ $report->property->title }}

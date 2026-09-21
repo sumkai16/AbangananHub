@@ -77,7 +77,7 @@
                         <tbody class="divide-y divide-[#E2E4EC] bg-white">
                             @foreach ($pending as $payment)
                                 @php $tenant = $payment->reservation?->tenant; @endphp
-                                <tr class="transition-colors duration-150 hover:bg-[#F8FAFC]">
+                                <tr class="transition-colors duration-150 hover:bg-[#ECEEF6]">
                                     <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->reservation?->unit?->unit_label ?? '—' }}</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payment_type }}</td>
@@ -117,7 +117,7 @@
                         <tbody class="divide-y divide-[#E2E4EC] bg-white">
                             @foreach ($paidOut as $payment)
                                 @php $tenant = $payment->reservation?->tenant; @endphp
-                                <tr class="transition-colors duration-150 hover:bg-[#F8FAFC]">
+                                <tr class="transition-colors duration-150 hover:bg-[#ECEEF6]">
                                     <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
                                     <td class="px-5 py-3 text-[13px] font-semibold text-[#060D26] sm:px-6">₱{{ number_format($payment->amount, 2) }}</td>
                                     <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payout_reference }}</td>

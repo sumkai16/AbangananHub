@@ -226,7 +226,16 @@
                 </div>
 
                 {{-- Rent ledger --}}
-                <x-card flush>
+                @php
+                    // Latest 6 periods by default; an older Overdue/Partial one is never hidden —
+                    // an unpaid month is exactly what this table is for.
+                    $ledgerCap = 6;
+                    $ledgerTotal = $periods->count();
+                    $isCollapsed = fn (array $period, int $i) => $i < $ledgerTotal - $ledgerCap
+                        && ($period['is_future'] || ! in_array($period['status'], ['overdue', 'partial'], true));
+                    $hiddenPeriods = $periods->filter(fn ($period, $i) => $isCollapsed($period, $i))->count();
+                @endphp
+                <x-card flush x-data="{ moreRows: false }">
                     <div class="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">
                         <div>
                             <h2 class="text-[16px] font-semibold text-[#060D26]">Rent ledger</h2>
@@ -239,6 +248,12 @@
                                 </p>
                             @endif
                         </div>
+                        @if($hiddenPeriods > 0)
+                            <button type="button" @click="moreRows = !moreRows" :aria-expanded="moreRows"
+                                class="h-9 px-3.5 rounded-lg border border-[#E2E4EC] text-[12.5px] font-semibold text-[#060D26] hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
+                                <span x-text="moreRows ? 'Show latest only' : 'Show all {{ $ledgerTotal }} periods'"></span>
+                            </button>
+                        @endif
                     </div>
 
                     @if($periods->isEmpty())
@@ -263,10 +278,21 @@
                                 </thead>
                                 <tbody class="divide-y divide-[#E2E4EC]">
                                     @foreach($periods as $period)
-                                        @php $style = $periodStyleFor($period); @endphp
-                                        <tr class="hover:bg-[#F7F8FC] transition-colors duration-150">
+                                        @php
+                                            $style = $periodStyleFor($period);
+                                            $detail = \App\Services\RentLedger::periodPayload($period);
+                                            $detail['pill'] = $style['pill'];
+                                            $detail['status_label'] = $style['label'];
+                                            $detail['payments'] = array_map(
+                                                fn ($pay) => $pay['can_void'] ? $pay + ['void_action' => route('landlord.payments.void', $pay['id'])] : $pay,
+                                                $detail['payments']
+                                            );
+                                        @endphp
+                                        <tr class="hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer"
+                                            @if($isCollapsed($period, $loop->index)) x-show="moreRows" x-cloak @endif
+                                            @click="$dispatch('open-period-detail', {{ Js::from($detail) }})">
                                             <td class="px-5 sm:px-6 py-3.5">
-                                                <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $period['label'] }}</p>
+                                                <button type="button" aria-haspopup="dialog" class="text-left text-[13.5px] font-semibold text-[#060D26] cursor-pointer focus-visible:underline">{{ $period['label'] }}</button>
                                             </td>
                                             <td class="px-4 py-3.5 text-[13px] text-[#5B6A8E] whitespace-nowrap">
                                                 {{ $period['due_on']->format('M d, Y') }}
@@ -283,9 +309,14 @@
                                                 ₱{{ number_format(max(0, $period['balance']), 2) }}
                                             </td>
                                             <td class="px-5 sm:px-6 py-3.5">
-                                                <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $style['pill'] }}">
-                                                    {{ $style['label'] }}
-                                                </span>
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $style['pill'] }}">
+                                                        {{ $style['label'] }}
+                                                    </span>
+                                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-[#94A3B8]" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                                    </svg>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -379,7 +410,7 @@
                                                 ? (optional($txn->billing_period)->format('M Y') ?? '—') . ' Rent'
                                                 : $txn->payment_type;
                                         @endphp
-                                        <tr class="hover:bg-[#F7F8FC] transition-colors duration-150"
+                                        <tr class="hover:bg-[#ECEEF6] transition-colors duration-200"
                                             @if($loop->index >= 6) x-show="moreRows" x-cloak @endif>
                                             <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#060D26] whitespace-nowrap">
                                                 {{ optional($txn->paid_at)->format('M d, Y') ?? '—' }}
@@ -444,7 +475,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-[#E2E4EC]">
                                     @foreach($voidedTransactions as $voided)
-                                        <tr @if($loop->index >= 6) x-show="moreRows" x-cloak @endif>
+                                        <tr class="hover:bg-[#ECEEF6] transition-colors duration-200" @if($loop->index >= 6) x-show="moreRows" x-cloak @endif>
                                             <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#5B6A8E] whitespace-nowrap">
                                                 {{ optional($voided->paid_at)->format('M d, Y') ?? '—' }}
                                             </td>
@@ -604,6 +635,7 @@
     {{-- Void payment modal — unlike the record-payment modal above, this is
          NOT gated on $isActive: voiding a wrong entry on an ended tenancy is
          still fixing a wrong financial record (ReservationPolicy::voidPayment). --}}
+    <x-rent-period-modal />
     @include('landlord.tenancies.partials.void-payment-modal')
 
     <script src="{{ asset('js/date-picker.js') }}"></script>

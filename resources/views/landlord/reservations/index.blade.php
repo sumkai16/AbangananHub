@@ -44,45 +44,17 @@
             </div>
         @endif
 
-        {{-- Summary cards --}}
+        {{-- Summary strip --}}
         @php
             $inProgressCount = $counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'];
             $rejectedCount = $counts['Rejected'] + $counts['Cancelled'];
         @endphp
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            <x-stat-card label="Total" :value="$counts['all']" sub="All time">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="In Progress" :value="$inProgressCount" value-color="#FF8A66" sub="Awaiting action">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Occupied" :value="$counts['Occupied']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="All time">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-
-            <x-stat-card label="Rejected / Cancelled" :value="$rejectedCount" value-color="#DC2626" icon-bg="rgba(239,68,68,0.07)" sub="All time">
-                <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                </x-slot:icon>
-            </x-stat-card>
-        </div>
+        <x-stat-strip class="mb-4" :cells="[
+            ['label' => 'Total', 'value' => $counts['all']],
+            ['label' => 'In progress', 'value' => $inProgressCount, 'note' => 'Awaiting action', 'dot' => '#FBBF24'],
+            ['label' => 'Occupied', 'value' => $counts['Occupied'], 'dot' => '#22C55E'],
+            ['label' => 'Rejected / cancelled', 'value' => $rejectedCount, 'dot' => '#EF4444'],
+        ]" />
 
         {{-- Search + filters --}}
         <form method="GET" action="{{ route('landlord.reservations.index') }}"
@@ -108,24 +80,49 @@
                     @php
                         $reservationsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                     @endphp
-                    <x-styled-select name="property" id="filter-property" :options="$reservationsPropertyOptions" :selected="(string) request('property', '')"
+                    <x-styled-select name="property" id="filter-property" :options="$reservationsPropertyOptions" :selected="(string) request('property', '')" autosubmit
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26] max-w-[200px]" />
                 </div>
-                <div>
-                    <label for="filter-from" class="sr-only">Requested from</label>
-                    <x-date-picker name="from" id="filter-from" value="{{ request('from') }}"
-                        class="w-full lg:w-36" />
-                </div>
-                <div>
-                    <label for="filter-to" class="sr-only">Requested until</label>
-                    <x-date-picker name="to" id="filter-to" value="{{ request('to') }}"
-                        class="w-full lg:w-36" />
+                {{-- Requested-date range: one control instead of two always-visible boxes --}}
+                <div class="relative"
+                    x-data="{
+                        rangeOpen: false,
+                        from: @js(request('from')),
+                        to: @js(request('to')),
+                        fmt(iso) {
+                            if (!iso) return 'Any';
+                            const [y, m, d] = iso.split('-').map(Number);
+                            const sameYear = y === new Date().getFullYear();
+                            return new Date(y, m - 1, d).toLocaleDateString('en-US', sameYear
+                                ? { month: 'short', day: 'numeric' }
+                                : { month: 'short', day: 'numeric', year: 'numeric' });
+                        },
+                        get label() { return (this.from || this.to) ? this.fmt(this.from) + ' – ' + this.fmt(this.to) : 'Requested date'; },
+                    }"
+                    @click.outside="rangeOpen = false" @keydown.escape.window="rangeOpen = false">
+                    <button type="button" @click="rangeOpen = !rangeOpen" :aria-expanded="rangeOpen" aria-haspopup="dialog"
+                        class="h-11 lg:h-10 w-full lg:w-auto lg:min-w-[190px] px-3.5 inline-flex items-center gap-2 rounded-xl border bg-[#F7F8FC] text-[13.5px] transition-colors duration-200 cursor-pointer hover:border-[#060D26]/40"
+                        :class="(from || to) ? 'border-[#060D26]/40 text-[#060D26] font-semibold' : 'border-[#5B6A8E]/25 text-[#060D26]'">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="2" aria-hidden="true" class="shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                        </svg>
+                        <span x-text="label" class="truncate"></span>
+                    </button>
+                    <div x-show="rangeOpen" x-cloak
+                        class="absolute right-0 z-30 mt-2 w-[300px] max-w-[calc(100vw-2rem)] rounded-xl bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/5 space-y-3">
+                        <div>
+                            <label for="filter-from" class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">Requested from</label>
+                            <x-date-picker name="from" id="filter-from" value="{{ request('from') }}" x-model="from" max-expr="to"
+                                x-init="$watch('date', () => $nextTick(() => $el.closest('form').requestSubmit()))" />
+                        </div>
+                        <div>
+                            <label for="filter-to" class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">Requested until</label>
+                            <x-date-picker name="to" id="filter-to" value="{{ request('to') }}" x-model="to" min-expr="from"
+                                x-init="$watch('date', () => $nextTick(() => $el.closest('form').requestSubmit()))" />
+                        </div>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="submit"
-                        class="h-10 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200">
-                        Filter
-                    </button>
                     @if(request()->hasAny(['search', 'property', 'from', 'to']))
                         <a href="{{ route('landlord.reservations.index', $status === 'all' ? [] : ['status' => $status]) }}"
                             class="h-10 px-3 inline-flex items-center rounded-xl text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#F7F8FC] transition-all duration-200">
@@ -178,9 +175,10 @@
                     class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
                         {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                     {{ $label }}
-                    <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">
-                        {{ $key === 'all' ? $counts['all'] : $counts[$key] }}
-                    </span>
+                    @php $tabCount = $key === 'all' ? $counts['all'] : $counts[$key]; @endphp
+                    @if($tabCount > 0)
+                        <span class="ml-1 text-[11px] {{ $status === $key ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $tabCount }}</span>
+                    @endif
                 </a>
             @endforeach
         </div>
@@ -243,13 +241,12 @@
             @endphp
             <div x-show="view === 'table'" class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[980px] text-left">
+                    <table class="w-full min-w-[900px] text-left">
                         <thead>
                             <tr class="border-b border-[#E2E4EC]">
                                 <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant</th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Property / Unit</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Target Move In</th>
-                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Target Move Out</th>
+                                <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Stay <span class="normal-case font-medium tracking-normal">(move in → out)</span></th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Requested On</th>
                                 <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide text-right">Actions</th>
@@ -259,7 +256,7 @@
                             @foreach($reservations as $reservation)
                                 @continue(!$reservation->property)
                                 @php extract($derived[$reservation->reservation_id]); @endphp
-                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
+                                <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                     {{-- Tenant --}}
                                     <td class="px-5 py-4">
                                         <div class="flex items-center gap-3">
@@ -289,26 +286,20 @@
                                                 @endif
                                             </div>
                                             <div class="min-w-0">
-                                                <p class="text-[13px] font-semibold text-[#060D26] truncate max-w-[160px]">{{ $reservation->property->title }}</p>
+                                                <p class="text-[13px] font-semibold text-[#060D26] truncate max-w-[260px]">{{ $reservation->property->title }}</p>
                                                 <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->unit->unit_label ?? 'No unit' }}</p>
                                             </div>
                                         </div>
                                     </td>
 
-                                    {{-- Move in --}}
+                                    {{-- Stay: move in → move out (or the requested duration when no end date) --}}
                                     <td class="px-4 py-4">
-                                        <p class="text-[13px] text-[#060D26] font-medium whitespace-nowrap">{{ $moveIn?->format('M d, Y') ?? '—' }}</p>
-                                        <p class="text-[11.5px] text-[#5B6A8E]">{{ $moveIn?->format('l') }}</p>
-                                    </td>
-
-                                    {{-- Move out --}}
-                                    <td class="px-4 py-4">
-                                        @if($reservation->target_move_out_date)
-                                            <p class="text-[13px] text-[#060D26] font-medium whitespace-nowrap">{{ $reservation->target_move_out_date->format('M d, Y') }}</p>
-                                            <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->target_move_out_date->format('l') }}</p>
-                                        @else
-                                            <p class="text-[13px] text-[#060D26] font-medium whitespace-nowrap">{{ $reservation->duration_of_stay ?? '—' }}</p>
-                                            <p class="text-[11.5px] text-[#5B6A8E]">Duration</p>
+                                        <p class="text-[13px] text-[#060D26] font-medium whitespace-nowrap">
+                                            {{ $moveIn?->format('M d, Y') ?? '—' }}
+                                            @if($reservation->target_move_out_date)<span class="text-[#5B6A8E]">&rarr;</span> {{ $reservation->target_move_out_date->format('M d, Y') }}@endif
+                                        </p>
+                                        @if(! $reservation->target_move_out_date && $reservation->duration_of_stay)
+                                            <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->duration_of_stay }}</p>
                                         @endif
                                     </td>
 
@@ -322,14 +313,14 @@
                                     {{-- Requested on --}}
                                     <td class="px-4 py-4">
                                         <p class="text-[13px] text-[#060D26] font-medium whitespace-nowrap">{{ $reservation->created_at->format('M d, Y') }}</p>
-                                        <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->created_at->format('h:i A') }} &middot; {{ $reservation->created_at->diffForHumans() }}</p>
+                                        <p class="text-[11.5px] text-[#5B6A8E]">{{ $reservation->created_at->diffForHumans() }}</p>
                                     </td>
 
                                     {{-- Actions --}}
                                     <td class="px-5 py-4">
                                         <div class="flex items-center justify-end gap-1.5 flex-wrap">
                                             <button @click="openModal({{ Js::from($modalData) }})"
-                                                class="h-8 px-3 inline-flex items-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] text-[12px] font-semibold hover:bg-[#ECEEF6] cursor-pointer transition-colors duration-200 whitespace-nowrap">
+                                                class="h-8 px-3 inline-flex items-center rounded-lg bg-[#ECEEF6] text-[#060D26] text-[12px] font-semibold hover:bg-[#E2E4EC] cursor-pointer transition-colors duration-200 whitespace-nowrap">
                                                 Details
                                             </button>
 
@@ -403,7 +394,7 @@
                                                     </span>
                                                 @else
                                                     <a href="{{ route('landlord.reservations.rateTenant', $reservation) }}"
-                                                        class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 whitespace-nowrap">
+                                                        class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66]/15 text-[#B35A3D] text-[12px] font-semibold hover:bg-[#FF8A66]/25 transition-colors duration-200 whitespace-nowrap">
                                                         Rate Tenant
                                                     </a>
                                                 @endif
@@ -503,7 +494,7 @@
                             {{-- Actions --}}
                             <div class="flex items-center gap-1.5 flex-wrap pt-1 mt-auto border-t border-[#E2E4EC] -mx-4 px-4 pt-3">
                                 <button @click="openModal({{ Js::from($modalData) }})"
-                                    class="h-8 px-3 inline-flex items-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] text-[12px] font-semibold hover:bg-[#ECEEF6] cursor-pointer transition-colors duration-200 whitespace-nowrap">
+                                    class="h-8 px-3 inline-flex items-center rounded-lg bg-[#ECEEF6] text-[#060D26] text-[12px] font-semibold hover:bg-[#E2E4EC] cursor-pointer transition-colors duration-200 whitespace-nowrap">
                                     Details
                                 </button>
 
@@ -577,7 +568,7 @@
                                         </span>
                                     @else
                                         <a href="{{ route('landlord.reservations.rateTenant', $reservation) }}"
-                                            class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] transition-all duration-200 whitespace-nowrap">
+                                            class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66]/15 text-[#B35A3D] text-[12px] font-semibold hover:bg-[#FF8A66]/25 transition-colors duration-200 whitespace-nowrap">
                                             Rate Tenant
                                         </a>
                                     @endif

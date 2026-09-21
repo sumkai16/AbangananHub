@@ -309,7 +309,7 @@
                                             ? 'This tenant’s account is inactive'
                                             : ($outstanding <= 0 ? 'No outstanding rent to remind about' : ''));
                                 @endphp
-                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
+                                <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                     {{-- Tenant --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">

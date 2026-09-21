@@ -286,7 +286,7 @@
                                     'step_index' => $isTerminal ? -1 : $stepIndex,
                                 ];
                             @endphp
-                            <tr class="border-t border-[#5B6A8E]/10 hover:bg-[#F7F8FC] transition-colors duration-150">
+                            <tr class="border-t border-[#5B6A8E]/10 hover:bg-[#ECEEF6] transition-colors duration-150">
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-2.5">
                                         <div class="w-10 h-10 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">

@@ -90,7 +90,7 @@
                                             default     => 'bg-[#F7F8FC] text-[#5B6A8E] border-[#E2E4EC]',
                                         };
                                     @endphp
-                                    <tr class="hover:bg-[#F7F8FC] transition-colors">
+                                    <tr class="hover:bg-[#ECEEF6] transition-colors">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
                                                 @if ($user->profile_picture)

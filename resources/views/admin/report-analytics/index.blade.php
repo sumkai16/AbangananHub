@@ -76,8 +76,9 @@
                         <div class="mb-2">
                             <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full
                                 @if($tb['type'] === 'Bedspace') bg-[#ECEEF6] text-[#060D26]
-                                @elseif($tb['type'] === 'Room') bg-[#22C55E]/[0.07] text-[#15803D]
+                                @elseif($tb['type'] === 'Boarding House') bg-[#22C55E]/[0.07] text-[#15803D]
                                 @elseif($tb['type'] === 'Apartment') bg-[#FBBF24]/[0.10] text-[#B45309]
+                                @elseif($tb['type'] === 'Condominium') bg-[#5B6A8E]/[0.12] text-[#5B6A8E]
                                 @else bg-[#EF4444]/[0.07] text-[#DC2626]
                                 @endif">{{ $tb['type'] }}</span>
                         </div>
@@ -107,7 +108,7 @@
             <form method="GET" action="{{ route('admin.report-analytics.index') }}" class="flex items-center gap-2" id="propFilterForm">
                 <input type="hidden" name="section" value="properties">
                 @php
-                    $propTypeOptions = ['' => 'All types'] + array_combine(['Bedspace', 'Room', 'Apartment', 'House'], ['Bedspace', 'Room', 'Apartment', 'House']);
+                    $propTypeOptions = ['' => 'All types'] + array_combine(['Apartment', 'Condominium', 'House', 'Boarding House', 'Bedspace'], ['Apartment', 'Condominium', 'House', 'Boarding House', 'Bedspace']);
                     $propStatusOptions = ['' => 'All statuses'] + array_combine(['Approved', 'Pending', 'Rejected'], ['Approved', 'Pending', 'Rejected']);
                 @endphp
                 <x-styled-select name="type" :options="$propTypeOptions" :selected="$typeFilter" :autosubmit="true"
@@ -139,7 +140,7 @@
                             $pOccupied = $property->occupied_units_count;
                             $pRate = $pTotal > 0 ? round(($pOccupied / $pTotal) * 100, 1) : 0;
                         @endphp
-                        <tr class="hover:bg-[#F7F8FC] transition-colors">
+                        <tr class="hover:bg-[#ECEEF6] transition-colors">
                             <td class="px-4 py-2.5 font-medium text-[#060D26]">{{ $property->title }}</td>
                             <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $property->property_type }}</td>
                             <td class="px-4 py-2.5">
@@ -208,8 +209,9 @@
                         <div class="mb-2">
                             <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full
                                 @if($tb['type'] === 'Bedspace') bg-[#ECEEF6] text-[#060D26]
-                                @elseif($tb['type'] === 'Room') bg-[#22C55E]/[0.07] text-[#15803D]
+                                @elseif($tb['type'] === 'Boarding House') bg-[#22C55E]/[0.07] text-[#15803D]
                                 @elseif($tb['type'] === 'Apartment') bg-[#FBBF24]/[0.10] text-[#B45309]
+                                @elseif($tb['type'] === 'Condominium') bg-[#5B6A8E]/[0.12] text-[#5B6A8E]
                                 @else bg-[#EF4444]/[0.07] text-[#DC2626]
                                 @endif">{{ $tb['type'] }}</span>
                         </div>
@@ -260,7 +262,7 @@
                 </thead>
                 <tbody class="divide-y divide-[#E2E4EC]">
                     @forelse($reservations as $reservation)
-                        <tr class="hover:bg-[#F7F8FC] transition-colors">
+                        <tr class="hover:bg-[#ECEEF6] transition-colors">
                             <td class="px-4 py-2.5 font-medium text-[#060D26]">{{ $reservation->tenant->first_name ?? '' }} {{ $reservation->tenant->last_name ?? '' }}</td>
                             <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $reservation->property->title ?? '—' }}</td>
                             <td class="px-4 py-2.5 text-[#060D26]">{{ $reservation->unit->unit_label ?? '—' }}</td>
@@ -378,7 +380,7 @@
                 <tbody class="divide-y divide-[#E2E4EC]">
                     @forelse($users as $user)
                         @php $userRole = $user->roles->first()?->role; @endphp
-                        <tr class="hover:bg-[#F7F8FC] transition-colors">
+                        <tr class="hover:bg-[#ECEEF6] transition-colors">
                             <td class="px-4 py-2.5 font-medium text-[#060D26]">{{ $user->first_name }} {{ $user->last_name }}</td>
                             <td class="px-4 py-2.5 text-[#5B6A8E]">{{ $user->email }}</td>
                             <td class="px-4 py-2.5">

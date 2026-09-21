@@ -184,7 +184,7 @@
                             </thead>
                             <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach($pendingVerificationList as $v)
-                                    <tr class="hover:bg-[#F7F8FC] transition-colors">
+                                    <tr class="hover:bg-[#ECEEF6] transition-colors">
                                         <td class="px-6 py-3.5">
                                             <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $v->user->first_name }}
                                                 {{ $v->user->last_name }}</p>
@@ -247,7 +247,7 @@
                             </thead>
                             <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach($pendingListingList as $p)
-                                    <tr class="hover:bg-[#F7F8FC] transition-colors">
+                                    <tr class="hover:bg-[#ECEEF6] transition-colors">
                                         <td class="px-6 py-3.5">
                                             <p class="text-[13.5px] font-semibold text-[#060D26] truncate max-w-[180px]">
                                                 {{ $p->title ?? 'Untitled' }}</p>
@@ -311,7 +311,7 @@
                             </thead>
                             <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach($pendingUnitList as $u)
-                                    <tr class="hover:bg-[#F7F8FC] transition-colors">
+                                    <tr class="hover:bg-[#ECEEF6] transition-colors">
                                         <td class="px-6 py-3.5 text-[13.5px] font-semibold text-[#060D26]">
                                             {{ $u->unit_label ?? '—' }}</td>
                                         <td class="px-6 py-3.5 text-[13px] text-[#5B6A8E] truncate max-w-[180px]">

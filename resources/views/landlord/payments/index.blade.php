@@ -360,7 +360,7 @@
                         <tbody class="divide-y divide-[#E2E4EC]">
                             @foreach($displayRows as $item)
                                 @php $reservation = $item['reservation']; $summary = $item['summary']; @endphp
-                                <tr class="hover:bg-[#F7F8FC] transition-colors duration-150 {{ $item['style']['label'] === 'Overdue' ? 'shadow-[inset_3px_0_0_#DC2626]' : '' }}">
+                                <tr class="hover:bg-[#ECEEF6] transition-colors duration-150 {{ $item['style']['label'] === 'Overdue' ? 'shadow-[inset_3px_0_0_#DC2626]' : '' }}">
                                     <td class="px-5 sm:px-6 py-4">
                                         <div class="flex items-center gap-3">
                                             <div
