@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
+    private const FIRST_PAGE_SIZE = 6;
+    private const MORE_PAGE_SIZE = 12;
+
     /**
      * Landlord views their own profile.
      */
@@ -36,7 +39,43 @@ class ProfileController extends Controller
             return redirect()->route('landlord.profile.me');
         }
 
-        // Enforce visibility
+        $this->ensureVisible($user);
+
+        return $this->showProfile($user, false);
+    }
+
+    /**
+     * Next page of a landlord's approved properties, as rendered rows, for the
+     * profile's "Show more" button. Same visibility rules as the profile itself.
+     */
+    public function properties(User $user, Request $request)
+    {
+        if (!$user->hasRole('Landlord')) {
+            abort(404);
+        }
+
+        if (!(Auth::check() && Auth::id() === $user->user_id)) {
+            $this->ensureVisible($user);
+        }
+
+        $offset = max(0, (int) $request->query('offset', 0));
+        $total = $this->approvedProperties($user)->count();
+
+        $rows = $this->approvedProperties($user)
+            ->with(['media', 'units'])
+            ->latest('created_at')
+            ->skip($offset)
+            ->take(self::MORE_PAGE_SIZE)
+            ->get();
+
+        return response()->json([
+            'html' => $rows->map(fn ($p) => view('landlord.profile._property-card', ['property' => $p])->render())->implode(''),
+            'remaining' => max(0, $total - $offset - $rows->count()),
+        ]);
+    }
+
+    private function ensureVisible(User $user): void
+    {
         $visibility = $user->profile_visibility ?? 'private';
 
         if ($visibility === 'private') {
@@ -46,8 +85,11 @@ class ProfileController extends Controller
         if ($visibility === 'landlords_only' && (!Auth::check() || !Auth::user()->hasRole('Landlord'))) {
             abort(404);
         }
+    }
 
-        return $this->showProfile($user, false);
+    private function approvedProperties(User $user)
+    {
+        return $user->properties()->where('verification_status', 'Approved');
     }
 
     /**
@@ -58,19 +100,30 @@ class ProfileController extends Controller
         $business = $user->rentalBusiness;
         $verification = $user->verificationApplication;
 
-        $properties = $user->properties()
-            ->where('verification_status', 'Approved')
+        $propertyIds = $this->approvedProperties($user)->pluck('property_id');
+        $propertyCount = $propertyIds->count();
+
+        $properties = $this->approvedProperties($user)
             ->with(['media', 'units'])
             ->latest('created_at')
+            ->take(self::FIRST_PAGE_SIZE)
             ->get();
-
-        $propertyIds = $properties->pluck('property_id');
 
         // Unit stats
         $units = PropertyUnit::whereIn('property_id', $propertyIds)->get();
         $totalUnits = $units->count();
         $occupiedUnits = $units->where('availability_status', 'Occupied')->count();
         $availableUnits = $units->where('availability_status', 'Available')->count();
+
+        // At-a-glance listing facts for the Details tab. Rent range is over currently available units (what a tenant could actually take);
+        // areas and types are grouped in SQL so a big portfolio stays cheap.
+        $availableFees = $units->where('availability_status', 'Available')->pluck('rental_fee')->filter();
+        $propertySummary = [
+            'rentLow' => $availableFees->min(),
+            'rentHigh' => $availableFees->max(),
+            'areas' => $this->approvedProperties($user)->whereNotNull('city_municipality')->distinct()->orderBy('city_municipality')->pluck('city_municipality'),
+            'types' => $this->approvedProperties($user)->selectRaw('property_type, COUNT(*) as c')->groupBy('property_type')->orderByDesc('c')->pluck('c', 'property_type'),
+        ];
 
         // Reviews received on this landlord's properties
         $reviews = Review::whereIn('property_id', $propertyIds)
@@ -96,6 +149,8 @@ class ProfileController extends Controller
             'business' => $business,
             'verification' => $verification,
             'properties' => $properties,
+            'propertyCount' => $propertyCount,
+            'propertySummary' => $propertySummary,
             'totalUnits' => $totalUnits,
             'occupiedUnits' => $occupiedUnits,
             'availableUnits' => $availableUnits,

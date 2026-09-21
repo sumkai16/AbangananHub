@@ -140,6 +140,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     });
     // Public landlord profile (visibility-gated in controller)
     Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');
+    Route::get('/landlord/{user}/profile/properties', [App\Http\Controllers\Landlord\ProfileController::class, 'properties'])->name('landlord.profile.properties');
 
 
     // Landlord-specific prefix routes
