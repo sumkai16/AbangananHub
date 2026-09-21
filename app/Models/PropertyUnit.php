@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class PropertyUnit extends Model
 {
@@ -11,18 +13,12 @@ class PropertyUnit extends Model
  protected $fillable = [
     'property_id',
     'unit_label',
-    'unit_type',
     'floor',
     'bedrooms',
     'bathrooms',
     'floor_area_sqm',
     'is_furnished',
-    'bathroom_type',
     'furnishing_status',
-    'kitchen_type',
-    'pets_allowed',
-    'smoking_allowed',
-    'visitors_allowed',
     'description',
     'rental_fee',
     'security_deposit',
@@ -39,9 +35,6 @@ class PropertyUnit extends Model
             'rental_fee'        => 'decimal:2',
             'floor_area_sqm'    => 'decimal:2',
             'is_furnished'      => 'boolean',
-            'pets_allowed'      => 'boolean',
-            'smoking_allowed'   => 'boolean',
-            'visitors_allowed'  => 'boolean',
             'vacated_at'        => 'datetime',
         ];
     }
@@ -126,5 +119,47 @@ public function scopeMaintenance($query)
     public function scopeOccupied($query)
     {
         return $query->where('availability_status', 'Occupied');
+    }
+    /**
+     * The label/value rows the unit detail views (landlord modal and public panel)
+     * list under the price. Only rows that have a value, in display order.
+     * Bathroom count and type are one row ("1 shared bath") and the bedroom
+     * count its own, so nothing is stated twice.
+     *
+     * @return list<array{0: string, 1: string}>
+     */
+    public function specRows(): array
+    {
+        $bathroom = null;
+        if ($this->bathrooms !== null) {
+            $kind = $this->bathroom_type ? Str::lower(Str::before($this->bathroom_type, ' ')).' ' : '';
+            $bathroom = $this->bathrooms.' '.$kind.Str::plural('bath', $this->bathrooms);
+        } elseif ($this->bathroom_type) {
+            $bathroom = $this->bathroom_type;
+        }
+
+        return collect([
+            ['Capacity', $this->occupancy_limit ? $this->occupancy_limit.' '.($this->occupancy_limit == 1 ? 'person' : 'people') : null],
+            ['Security deposit', $this->security_deposit !== null ? '₱'.number_format($this->security_deposit, 0) : 'No deposit'],
+            ['Floor area', $this->floor_area_label],
+            ['Furnishing', $this->furnishing_status],
+            ['Bedrooms', $this->bedrooms === null ? null : ($this->bedrooms == 0 ? 'Studio' : (string) $this->bedrooms)],
+            ['Bathroom', $bathroom],
+            ['Kitchen', $this->kitchen_type],
+        ])->filter(fn ($row) => filled($row[1]))->values()->all();
+    }
+
+    /**
+     * Amenities minus the ones that only restate a spec row above
+     * ("Shared Bathroom" next to a "Bathroom: 1 shared bath" row).
+     */
+    public function amenitiesBeyondSpecs(): Collection
+    {
+        $skip = array_merge(
+            $this->bathroom_type || $this->bathrooms !== null ? ['Private Bathroom', 'Shared Bathroom'] : [],
+            $this->kitchen_type ? ['Private Kitchen', 'Shared Kitchen'] : [],
+        );
+
+        return $this->amenities->reject(fn ($a) => in_array($a->amenity_name, $skip, true))->values();
     }
 }

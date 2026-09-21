@@ -222,10 +222,17 @@
                         'deposit'      => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,
                         'capacity'     => $unit->occupancy_limit,
                         'floorArea'    => $unit->floor_area_label,
-                        'type'         => $unit->unit_type,
                         'floor'        => $unit->floor,
+                        'furnishing'   => $unit->furnishing_status,
+                        // Only rows that have a value: the modal renders exactly this list, so no row is ever hidden.
+                        'facts'        => array_merge($tenantName ? [['Tenant', $tenantName]] : [], $unit->specRows()),
+                        'description'  => $unit->description,
+                        'photos'       => $unit->media->where('media_type', 'Image')->pluck('media_url')->take(5)->values(),
                         'tenant'       => $tenantName,
-                        'amenities'    => $unit->amenities->pluck('amenity_name')->values(),
+                        'amenities'    => $unit->amenitiesBeyondSpecs()->map(fn ($a) => [
+                            'name' => $a->amenity_name,
+                            'icon' => \App\Support\AmenityIcons::path($a->amenity_name),
+                        ])->values(),
                         'property_url' => route('landlord.properties.show', $unit->property),
                         'edit_url'     => route('landlord.properties.units.edit', [$unit->property, $unit]),
                     ];
@@ -322,11 +329,11 @@
                                     data-confirm-message="The unit will be permanently removed. This cannot be undone."
                                     data-confirm-button="Remove unit">
                                     @csrf @method('DELETE')
-                                    <button type="submit"
-                                        class="h-9 w-9 flex items-center justify-center rounded-full text-[#5B6A8E] hover:text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
-                                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <button type="submit" aria-label="Delete unit" title="Delete unit"
+                                        class="h-9 w-9 flex items-center justify-center rounded-full text-[#5B6A8E] hover:text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors duration-200 cursor-pointer">
+                                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79" />
+                                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                         </svg>
                                     </button>
                                 </form>
@@ -343,8 +350,6 @@
             @foreach($units->groupBy('property_id') as $groupUnits)
             @php
                 $groupProperty = $groupUnits->first()->property;
-                // A column that is "—" on every row is noise: only show Type when some unit here has one.
-                $showType = $groupUnits->contains(fn ($u) => filled($u->unit_type));
             @endphp
             <section>
             <x-card flush class="!rounded-none">
@@ -366,7 +371,6 @@
                         <thead>
                             <tr class="border-b border-[#E2E4EC]">
                                 <th class="px-5 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Unit</th>
-                                @if($showType)<th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Type</th>@endif
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Monthly Rent</th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Status</th>
                                 <th class="px-4 py-3.5 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Tenant</th>
@@ -377,7 +381,8 @@
                         <tbody class="divide-y divide-[#E2E4EC]">
                             @foreach($groupUnits as $unit)
                                 @php extract($derived[$unit->unit_id]); @endphp
-                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
+                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200 cursor-pointer"
+                                    x-on:click="if (! $event.target.closest('a, button, form, input') && ! window.getSelection().toString()) $el.querySelector('[data-view-unit]').click()">
                                     {{-- Unit --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">
@@ -404,19 +409,6 @@
                                             </div>
                                         </div>
                                     </td>
-
-                                    {{-- Type --}}
-                                    @if($showType)
-                                    <td class="px-4 py-3.5">
-                                        @if($unit->unit_type)
-                                            <span class="inline-flex px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[#060D26] text-[11px] font-semibold whitespace-nowrap">
-                                                {{ $unit->unit_type }}
-                                            </span>
-                                        @else
-                                            <span class="text-[12px] text-[#5B6A8E]">—</span>
-                                        @endif
-                                    </td>
-                                    @endif
 
                                     {{-- Rent --}}
                                     <td class="px-4 py-3.5">
@@ -463,32 +455,32 @@
                                     {{-- Actions --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center justify-end gap-1.5">
-                                            <button type="button" x-on:click="openModal(@js($unitPayload))" aria-label="View unit"
-                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:bg-[#ECEEF6] cursor-pointer transition-colors duration-200">
-                                                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <button type="button" x-on:click="openModal(@js($unitPayload))" aria-label="View unit" title="View unit" data-view-unit
+                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:border-[#FF8A66] hover:text-[#B35A3D] hover:bg-[#ECEEF6] cursor-pointer transition-colors duration-200">
+                                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                                 </svg>
                                             </button>
-                                            <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}" aria-label="Edit unit"
-                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#FF8A66] text-[#B35A3D] hover:bg-[#ECEEF6] transition-colors duration-200">
-                                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <a href="{{ route('landlord.properties.units.edit', [$unit->property, $unit]) }}" aria-label="Edit unit" title="Edit unit"
+                                                class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#5B6A8E]/25 text-[#060D26] hover:border-[#FF8A66] hover:text-[#B35A3D] hover:bg-[#ECEEF6] transition-colors duration-200">
+                                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931z" />
                                                 </svg>
                                             </a>
-                                            <form method="POST"
+                                            <form method="POST" class="ml-1.5"
                                                 action="{{ route('landlord.properties.units.destroy', [$unit->property, $unit]) }}"
                                                 data-confirm="Remove {{ $unit->unit_label }}?"
                                                 data-confirm-type="error"
                                                 data-confirm-message="The unit will be permanently removed. This cannot be undone."
                                                 data-confirm-button="Remove unit">
                                                 @csrf @method('DELETE')
-                                                <button type="submit" aria-label="Delete unit"
+                                                <button type="submit" aria-label="Delete unit" title="Delete unit"
                                                     class="h-8 w-8 flex items-center justify-center rounded-lg border border-[#EF4444]/25 text-[#DC2626] hover:bg-[#EF4444]/[0.07] cursor-pointer transition-colors duration-200">
-                                                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79" />
+                                                            d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                                     </svg>
                                                 </button>
                                             </form>
@@ -520,7 +512,7 @@
             <div x-show="modal" x-cloak>
             <template x-if="modal">
             <div class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm motion-reduce:transition-none" x-on:click="closeModal()"
+                <div class="absolute inset-0 bg-[#060D26]/40 backdrop-blur-sm motion-reduce:transition-none" x-on:click="closeModal()"
                     x-show="show"
                     x-transition:enter="transition-opacity ease-out duration-250"
                     x-transition:enter-start="opacity-0"
@@ -528,7 +520,8 @@
                     x-transition:leave="transition-opacity ease-in duration-200"
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"></div>
-                <div class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden motion-reduce:transition-none"
+                <div class="relative w-full max-w-md md:max-w-3xl max-h-[calc(100dvh-2rem)] overflow-y-auto md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] bg-white rounded-2xl border border-[#E2E4EC] shadow-[0_4px_24px_rgba(0,0,0,0.12)] motion-reduce:transition-none"
+                    role="dialog" aria-modal="true" aria-labelledby="unit-modal-title"
                     x-show="show"
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 translate-y-4 scale-95"
@@ -537,89 +530,96 @@
                     x-transition:leave-start="opacity-100 scale-100"
                     x-transition:leave-end="opacity-0 translate-y-4 scale-95">
 
-                    {{-- Image area --}}
-                    <div class="relative aspect-[4/3] bg-[#ECEEF6] border-b border-[#E2E4EC]/70">
+                    <button type="button" x-on:click="closeModal()" aria-label="Close"
+                        class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/90 hover:bg-white border border-[#E2E4EC] flex items-center justify-center text-[#060D26] transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+
+                    {{-- Photo panel: fills the full height of the details beside it on desktop. --}}
+                    <div class="relative aspect-[16/10] md:aspect-auto md:min-h-[380px] bg-[#ECEEF6] border-b md:border-b-0 md:border-r border-[#E2E4EC]">
                         <template x-if="modal.photo">
-                            <img :src="modal.photo" :alt="modal.label" class="w-full h-full object-cover">
+                            <img :src="modal.photo" :alt="modal.label" class="absolute inset-0 w-full h-full object-cover">
                         </template>
                         <template x-if="!modal.photo">
-                            <div class="w-full h-full flex flex-col items-center justify-center text-[#5B6A8E]">
-                                <svg width="34" height="34" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-[#5B6A8E]">
+                                <svg width="34" height="34" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                 </svg>
-                                <p class="text-[11px] mt-1.5">No photos on this unit</p>
+                                <p class="text-[12px] mt-1.5">No photos on this unit</p>
                             </div>
                         </template>
-                        <button type="button" x-on:click="closeModal()" aria-label="Close"
-                            class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:brightness-95 flex items-center justify-center text-[#060D26] shadow-sm transition-all cursor-pointer">
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
 
+                        {{-- Thumbnails: only when the unit has more than one photo. --}}
+                        <div x-show="modal.photos && modal.photos.length > 1" x-cloak class="absolute bottom-3 left-3 right-3 flex gap-2 overflow-x-auto">
+                            <template x-for="(p, i) in (modal.photos || [])" :key="p">
+                                <button type="button" x-on:click="modal.photo = p" :aria-label="'Show photo ' + (i + 1)"
+                                    :class="modal.photo === p ? 'ring-2 ring-[#FF8A66]' : 'ring-1 ring-white/70 opacity-90 hover:opacity-100'"
+                                    class="h-11 w-14 shrink-0 overflow-hidden rounded-lg bg-[#ECEEF6] shadow-sm transition-opacity duration-200 cursor-pointer">
+                                    <img :src="p" alt="" class="h-full w-full object-cover">
+                                </button>
+                            </template>
+                        </div>
+                    </div>
                     {{-- Body --}}
-                    <div class="p-5 space-y-3">
-                        <div class="flex items-start justify-between gap-3">
+                    <div class="p-5 sm:p-6 space-y-5">
+                        <div class="flex items-start justify-between gap-3 md:pr-10">
                             <div class="min-w-0">
-                                <p class="text-[15px] font-bold text-[#060D26] truncate" x-text="modal.label"></p>
-                                <p class="text-[12px] text-[#5B6A8E] mt-0.5 truncate" x-text="modal.property"></p>
-                                <p class="text-[12px] text-[#5B6A8E] mt-0.5" x-show="modal.type || modal.floor"
-                                    x-text="[modal.type, modal.floor].filter(Boolean).join(' · ')"></p>
+                                <h2 id="unit-modal-title" class="text-[18px] font-semibold leading-tight text-[#060D26] truncate" x-text="modal.label"></h2>
+                                <p class="mt-1 text-[13px] text-[#5B6A8E] line-clamp-2" x-text="[modal.property, modal.floor].filter(Boolean).join(' · ')"></p>
                             </div>
-                            <span class="shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+                            <span class="shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-semibold"
                                 :class="modal.styles.tile + ' ' + modal.styles.text">
                                 <span class="w-1.5 h-1.5 rounded-full" :class="modal.styles.dot"></span>
                                 <span x-text="modal.status"></span>
                             </span>
                         </div>
 
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-[20px] font-bold text-[#060D26]" x-text="peso(modal.rent) || '₱—'"></span>
-                            <span class="text-[12px] text-[#5B6A8E]">/ month</span>
-                        </div>
+                        <p class="flex items-baseline gap-1.5">
+                            <span class="text-[26px] font-semibold leading-none tabular-nums text-[#060D26]" x-text="peso(modal.rent) || '₱—'"></span>
+                            <span class="text-[13px] text-[#5B6A8E]">/ month</span>
+                        </p>
 
-                        <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2" x-show="modal.tenant">
-                            <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Tenant</p>
-                            <p class="text-[13px] font-semibold text-[#060D26] mt-0.5" x-text="modal.tenant"></p>
-                        </div>
+                        <p x-show="modal.description" x-cloak class="text-[13px] leading-relaxed text-[#5B6A8E] line-clamp-3" x-text="modal.description"></p>
 
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2">
-                                <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Capacity</p>
-                                <p class="text-[13px] font-semibold text-[#060D26] mt-0.5"
-                                    x-text="modal.capacity ? modal.capacity + (modal.capacity == 1 ? ' person' : ' persons') : '—'"></p>
-                            </div>
-                            <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2">
-                                <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Deposit</p>
-                                <p class="text-[13px] font-semibold text-[#060D26] mt-0.5" x-text="peso(modal.deposit) || '—'"></p>
-                            </div>
-                            <div class="rounded-lg bg-[#F7F8FC] border border-[#E2E4EC] px-3 py-2" x-show="modal.floorArea">
-                                <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E]">Floor area</p>
-                                <p class="text-[13px] font-semibold text-[#060D26] mt-0.5" x-text="modal.floorArea"></p>
-                            </div>
-                        </div>
+                        {{-- One list instead of a tile grid: any number of facts lines up, so a missing floor
+                             area or furnishing can't strand an orphan tile. --}}
+                        <dl class="rounded-xl border border-[#E2E4EC] text-[13px] [&>div~div]:border-t [&>div~div]:border-[#E2E4EC]">
+                            <template x-for="row in modal.facts" :key="row[0]">
+                                <div class="flex items-center justify-between gap-4 px-4 py-2.5">
+                                    <dt class="text-[#5B6A8E]" x-text="row[0]"></dt>
+                                    <dd class="font-semibold text-[#060D26] text-right tabular-nums" x-text="row[1]"></dd>
+                                </div>
+                            </template>
+                        </dl>
 
-                        <div x-show="modal.amenities && modal.amenities.length" class="pt-1">
-                            <p class="text-[10px] uppercase tracking-wide text-[#5B6A8E] mb-1.5">Amenities</p>
-                            <div class="flex flex-wrap gap-1.5">
-                                <template x-for="a in modal.amenities" :key="a">
-                                    <span class="inline-flex items-center rounded-full bg-[#ECEEF6] border border-[#FF8A66]/20 px-2 py-0.5 text-[11px] text-[#060D26]" x-text="a"></span>
+                        <div x-show="modal.amenities && modal.amenities.length">
+                            <h3 class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">Unit amenities</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="a in modal.amenities" :key="a.name">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-[#E2E4EC] bg-[#ECEEF6] px-2.5 py-1 text-[12px] font-medium text-[#060D26]">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" :d="a.icon" />
+                                        </svg>
+                                        <span x-text="a.name"></span>
+                                    </span>
                                 </template>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2.5 pt-1">
+                        <div class="flex items-center gap-3 pt-1">
                             <a :href="modal.property_url"
-                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
+                                class="flex-1 h-11 inline-flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#060D26] text-[13px] font-semibold hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200">
                                 View property
                             </a>
                             <a :href="modal.edit_url"
-                                class="flex-1 h-10 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
+                                class="flex-1 h-11 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-colors duration-200">
                                 Edit unit
                             </a>
                         </div>
                     </div>
+
                 </div>
             </div>
             </template>
