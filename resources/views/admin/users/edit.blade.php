@@ -16,7 +16,7 @@
     <x-card flush>
         <div class="px-7 py-5 border-b border-[#E2E4EC] flex items-center gap-4">
             @php $initials = strtoupper(substr($user->first_name ?? '', 0, 1)) . strtoupper(substr($user->last_name ?? '', 0, 1)); @endphp
-            <div class="w-10 h-10 rounded-2xl bg-[#DA8E77]/10 flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 rounded-2xl bg-[#FF8A66]/10 flex items-center justify-center shrink-0">
                 <span class="text-[#060D26] text-[14px] font-extrabold">{{ $initials }}</span>
             </div>
             <div>
@@ -34,13 +34,13 @@
                 <div>
                     <label for="first_name" class="block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1.5">First Name <span class="text-[#DC2626]">*</span></label>
                     <input type="text" id="first_name" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
-                        class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('first_name') ? 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]' : 'border-[#E2E4EC] bg-[#F7F8FC]' }} focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
+                        class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('first_name') ? 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]' : 'border-[#E2E4EC] bg-[#F7F8FC]' }} focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
                     @error('first_name')<p class="text-[11px] text-[#DC2626] mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="last_name" class="block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1.5">Last Name <span class="text-[#DC2626]">*</span></label>
                     <input type="text" id="last_name" name="last_name" value="{{ old('last_name', $user->last_name) }}" required
-                        class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('last_name') ? 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]' : 'border-[#E2E4EC] bg-[#F7F8FC]' }} focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
+                        class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('last_name') ? 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]' : 'border-[#E2E4EC] bg-[#F7F8FC]' }} focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
                     @error('last_name')<p class="text-[11px] text-[#DC2626] mt-1">{{ $message }}</p>@enderror
                 </div>
             </div>
@@ -49,7 +49,7 @@
             <div>
                 <label for="email" class="block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1.5">Email Address <span class="text-[#DC2626]">*</span></label>
                 <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required
-                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('email') ? 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]' : 'border-[#E2E4EC] bg-[#F7F8FC]' }} focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
+                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('email') ? 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]' : 'border-[#E2E4EC] bg-[#F7F8FC]' }} focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
                 @error('email')<p class="text-[11px] text-[#DC2626] mt-1">{{ $message }}</p>@enderror
             </div>
 
@@ -57,7 +57,7 @@
             <div>
                 <label for="contact_number" class="block text-[11px] font-bold uppercase tracking-widest text-[#94A3B8] mb-1.5">Contact Number</label>
                 <input type="text" id="contact_number" name="contact_number" value="{{ old('contact_number', $user->contact_number) }}"
-                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
+                    class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
                 @error('contact_number')<p class="text-[11px] text-[#DC2626] mt-1">{{ $message }}</p>@enderror
             </div>
 
@@ -67,12 +67,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <input type="password" name="password" placeholder="New password" aria-label="New password"
-                            class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('password') ? 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]' : 'border-[#E2E4EC] bg-white' }} focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
+                            class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border {{ $errors->has('password') ? 'border-[#EF4444]/35 bg-[#EF4444]/[0.07]' : 'border-[#E2E4EC] bg-white' }} focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
                         @error('password')<p class="text-[11px] text-[#DC2626] mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <input type="password" name="password_confirmation" placeholder="Confirm new password" aria-label="Confirm new password"
-                            class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-white focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
+                            class="w-full h-10 px-3.5 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
                     </div>
                 </div>
             </div>
@@ -85,8 +85,8 @@
                     @foreach (['Admin', 'Landlord', 'Tenant'] as $roleOption)
                         @php
                             $colors = [
-                                'Admin'    => 'peer-checked:border-[#DA8E77] peer-checked:bg-[#ECEEF6] peer-checked:text-[#060D26]',
-                                'Landlord' => 'peer-checked:border-[#DA8E77] peer-checked:bg-[#ECEEF6] peer-checked:text-[#060D26]',
+                                'Admin'    => 'peer-checked:border-[#FF8A66] peer-checked:bg-[#ECEEF6] peer-checked:text-[#060D26]',
+                                'Landlord' => 'peer-checked:border-[#FF8A66] peer-checked:bg-[#ECEEF6] peer-checked:text-[#060D26]',
                                 'Tenant'   => 'peer-checked:border-[#22C55E] peer-checked:bg-[#22C55E]/[0.07] peer-checked:text-[#15803D]',
                             ];
                         @endphp
@@ -119,7 +119,7 @@
                     Cancel
                 </a>
                 <button type="submit"
-                    class="h-10 px-6 text-[13.5px] font-bold bg-[#DA8E77] text-[#060D26] rounded-xl hover:bg-[#C97A61] transition-colors shadow-sm">
+                    class="h-10 px-6 text-[13.5px] font-bold bg-[#FF8A66] text-[#060D26] rounded-xl hover:bg-[#E96F4F] transition-colors shadow-sm">
                     Save Changes
                 </button>
             </div>

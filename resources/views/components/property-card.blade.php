@@ -110,11 +110,11 @@
 
     {{-- TEXT BELOW IMAGE — no card box --}}
     <div class="px-4 pt-3.5 pb-4">
-        <span class="inline-flex mb-1.5 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[10px] font-bold uppercase tracking-[0.05em] text-[#060D26] px-2.5 py-1 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
+        <span class="inline-flex mb-1.5 font-jakarta text-[10px] font-bold uppercase tracking-[0.05em] text-[#060D26] px-2.5 py-1 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
             {{ $property->property_type }}
         </span>
 
-        <h3 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1">
+        <h3 class="font-jakarta text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1">
             {{ $property->title }}
         </h3>
 
@@ -147,7 +147,7 @@
                 <span class="text-[12px] text-[#5B6A8E]">No reviews yet</span>
             @endif
         </div>
-        <p class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[15px] font-extrabold text-[#B35A3D] mt-1.5">
+        <p class="font-jakarta text-[15px] font-extrabold text-[#B35A3D] mt-1.5">
             @if($property->min_rental_fee)
                 ₱{{ number_format($property->min_rental_fee) }}
                 <span class="text-[13px] font-normal text-[#5B6A8E]">/month</span>

@@ -1,42 +1,65 @@
 import { createMap, createPricePin, createClusterGroup, fitToMarkers } from './map-core.js';
 
+// Cebu, roughly — only used until the first fit, and when a search has no results at all.
+const DEFAULT_CENTER = [10.3157, 123.8854];
+const DEFAULT_ZOOM = 11;
+
+let map = null;
+let clusterGroup = null;
+let markers = new Map(); // property_id -> marker
+let fitList = [];
+
 export function init() {
     const container = document.getElementById('browse-map');
-    const dataEl = document.getElementById('browse-map-data');
-    if (!container || !dataEl) return;
+    if (!container || map) return;
 
-    let properties = [];
-    try {
-        properties = JSON.parse(dataEl.textContent);
-    } catch (err) {
-        console.error('Browse map: could not parse property data', err);
-        return;
-    }
-
-    // latitude/longitude come from a decimal DB column, which Eloquent
-    // serializes as strings — coerce before handing them to Leaflet.
-    const valid = properties
-        .map(p => ({ ...p, latitude: parseFloat(p.latitude), longitude: parseFloat(p.longitude) }))
-        .filter(p => !Number.isNaN(p.latitude) && !Number.isNaN(p.longitude));
-
-    if (valid.length === 0) {
-        container.innerHTML = '<p class="text-[12px] text-[#5B6A8E] p-4">No locations available for the current results.</p>';
-        return;
-    }
-
-    const center = valid[0];
-    const map = createMap('browse-map', center.latitude, center.longitude, 13);
+    map = createMap('browse-map', DEFAULT_CENTER[0], DEFAULT_CENTER[1], DEFAULT_ZOOM);
     // Exposed so the desktop "Hide/Show map" toggle (properties/index.blade.php)
     // can call invalidateSize() after un-hiding the container — Leaflet
     // measures its container at init time, and a display:none ancestor at
     // that point means tiles render into a 0x0 box and stay that way until
     // told to remeasure.
     window.browseMap = map;
-    const clusterGroup = createClusterGroup();
+    clusterGroup = createClusterGroup();
     map.addLayer(clusterGroup);
 
-    const markers = new Map(); // property_id -> marker
-    const fitList = [];
+    // The map is built while its container is display:none (0x0), so the first
+    // fit is meaningless. The Show-map toggle calls this after un-hiding it.
+    window.browseMapRefit = () => {
+        map.invalidateSize();
+        fitToMarkers(map, fitList);
+    };
+    // Called by browse-live.js when the filters change in place, so the pins follow the
+    // list without the map being torn down (and without the visitor leaving the map view).
+    window.browseMapUpdate = update;
+
+    update(readInitialData());
+}
+
+function readInitialData() {
+    const dataEl = document.getElementById('browse-map-data');
+    if (!dataEl) return [];
+    try {
+        return JSON.parse(dataEl.textContent);
+    } catch (err) {
+        console.error('Browse map: could not parse property data', err);
+        return [];
+    }
+}
+
+/** Replace every pin with the given properties and re-fit the view. */
+function update(properties) {
+    if (!map) return;
+
+    clusterGroup.clearLayers();
+    markers = new Map();
+    fitList = [];
+
+    // latitude/longitude come from a decimal DB column, which Eloquent
+    // serializes as strings — coerce before handing them to Leaflet.
+    const valid = (properties || [])
+        .map(p => ({ ...p, latitude: parseFloat(p.latitude), longitude: parseFloat(p.longitude) }))
+        .filter(p => !Number.isNaN(p.latitude) && !Number.isNaN(p.longitude));
 
     valid.forEach(p => {
         const priceLabel = `₱${Number(p.rental_fee).toLocaleString()}`;
@@ -68,13 +91,10 @@ export function init() {
         fitList.push(marker);
     });
 
+    // The container may still be hidden (map never opened on this view) — then this is a no-op
+    // and the Show-map toggle's browseMapRefit() does the real fit.
+    map.invalidateSize();
     fitToMarkers(map, fitList);
-    // The map is built while its container is display:none (0x0), so that first
-    // fit is meaningless. The Show-map toggle calls this after un-hiding it.
-    window.browseMapRefit = () => {
-        map.invalidateSize();
-        fitToMarkers(map, fitList);
-    };
     wireListSync(markers);
 }
 
@@ -112,4 +132,3 @@ function wireListSync(markers) {
         });
     });
 }
-

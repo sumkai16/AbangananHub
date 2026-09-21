@@ -16,19 +16,21 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                // Marketing / public-page headings (DESIGN.md §4). One name instead of an arbitrary family class on every heading.
+                jakarta: ['"Plus Jakarta Sans"', 'Inter', ...defaultTheme.fontFamily.sans],
                 // Navy/Terracotta identity (Sept 2026) — Montserrat replaces DM
                 // Serif Display for headings/display titles: QA flagged the serif
                 // as reading more editorial-magazine than apartment-listing, and
                 // Montserrat's geometric sans matches the rest of the UI (Inter)
                 // while still standing apart at heading weight. See DESIGN.md §4.
-                heading: ['Montserrat', ...defaultTheme.fontFamily.sans],
-                display: ['Montserrat', ...defaultTheme.fontFamily.sans],
+                heading: ['"DM Serif Display"', ...defaultTheme.fontFamily.serif],
+                display: ['"DM Serif Display"', ...defaultTheme.fontFamily.serif],
             },
             colors: {
                 brand: {
                     navy: '#060D26',
-                    gold: '#DA8E77',
-                    goldText: '#A8573F',
+                    gold: '#FF8A66',
+                    goldText: '#B35A3D',
                     cream: '#F7F4ED',
                     slate: '#5B6A8E',
                     border: '#E2E4EC',

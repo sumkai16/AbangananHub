@@ -10,10 +10,9 @@ class PropertyUnitResource extends ApiResource
             'unit_id'              => $this->attr('unit_id'),
             'property_id'          => $this->attr('property_id'),
             'unit_label'           => $this->attr('unit_label'),
-            // unit_type/floor/security_deposit are $fillable but no migration
+            // floor/security_deposit are $fillable but no migration
             // defines the columns yet (ARCHITECTURE.md "KNOWN BUG", July 2026)
             // — attr() correctly returns MISSING for them until that lands.
-            'unit_type'            => $this->attr('unit_type'),
             'floor'                => $this->attr('floor'),
             'floor_area_sqm'       => $this->attr('floor_area_sqm'),
             'description'          => $this->attr('description'),

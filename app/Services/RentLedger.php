@@ -118,6 +118,30 @@ class RentLedger
     }
 
     /**
+     * A period reduced to what the ledger's detail modal shows — the month's
+     * figures plus the individual payments behind them. Plain scalars only, so
+     * it can be embedded straight into an Alpine event payload.
+     */
+    public static function periodPayload(array $period): array
+    {
+        return [
+            'label'     => $period['label'],
+            'due_on'    => $period['due_on']->format('M d, Y'),
+            'expected'  => (float) $period['expected'],
+            'paid'      => (float) $period['paid'],
+            'balance'   => max(0, (float) $period['balance']),
+            'is_future' => (bool) $period['is_future'],
+            'payments'  => $period['payments']->map(fn (Payment $p) => [
+                'id'        => $p->payment_id,
+                'date'      => optional($p->paid_at)->format('M d, Y') ?? '—',
+                'amount'    => (float) $p->amount,
+                'method'    => $p->payment_method ?: ($p->isManuallyRecorded() ? 'Recorded manually' : 'Online'),
+                'reference' => $p->reference_no,
+                'can_void'  => $p->canBeVoided(),
+            ])->values()->all(),
+        ];
+    }
+    /**
      * Deposits, the initial payment, utilities and one-offs — money that
      * belongs to the tenancy but not to any single month, so it would silently
      * inflate a period's "paid" column if it were folded in.

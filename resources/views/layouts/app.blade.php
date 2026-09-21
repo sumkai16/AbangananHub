@@ -445,7 +445,7 @@
     @if(($searchBar ?? true) && !View::hasSection('hide_search'))
         <div id="header-search-expanded" class="{{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
             <div class="bg-[#060D26]">
-                <div class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-4">
+                <div id="browse-search-pill" class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-4">
                     <x-search-pill variant="header" />
                 </div>
             </div>
@@ -552,7 +552,7 @@
                     <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 via-[#060D26]/45 to-[#060D26]/90"></div>
 
                     <div class="relative z-10">
-                        <h3 id="auth-side-title" class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
+                        <h3 id="auth-side-title" class="font-jakarta text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
                         <p id="auth-side-subtitle" class="text-white/75 text-[13px] mt-3 leading-relaxed max-w-[17rem]">
                             Pick up where you left off.
                         </p>
@@ -575,19 +575,19 @@
 
                     {{-- Login View --}}
                     <div id="login-form-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Log in</h2>
+                        <h2 class="font-jakarta text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Log in</h2>
 
                         <form id="ajax-login-form" onsubmit="handleAuthSubmit(event, '{{ route('login') }}')">
                             @csrf
                             <div class="mb-4">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
                                 <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="username"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-email"></span>
                             </div>
 
                             <div class="mb-4">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <div class="relative">
                                     <input type="password" name="password" id="modal-login-password" required placeholder="Your password" aria-label="Password" autocomplete="current-password"
                                         class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
@@ -616,7 +616,7 @@
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
+                                class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                                 Log in
                             </button>
                         </form>
@@ -631,20 +631,20 @@
 
                     {{-- Register View --}}
                     <div id="register-form-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Create your account</h2>
+                        <h2 class="font-jakarta text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Create your account</h2>
 
                         <form id="ajax-register-form" onsubmit="handleAuthSubmit(event, '{{ route('register') }}')">
                             @csrf
                             <div class="grid grid-cols-2 gap-3 mb-3">
                                 <div>
-                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">First name</label>
+                                    <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">First name</label>
                                     <input type="text" name="first_name" required placeholder="Maria" aria-label="First name" autocomplete="given-name"
                                         class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-first_name"></span>
                                 </div>
                                 <div>
-                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Last name</label>
+                                    <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Last name</label>
                                     <input type="text" name="last_name" required placeholder="Santos" aria-label="Last name" autocomplete="family-name"
                                         class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
@@ -653,7 +653,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact number</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact number</label>
                                 <input type="tel" name="contact_number" required placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
@@ -661,14 +661,14 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
                                 <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="email"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-email"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <div class="relative">
                                     <input type="password" name="password" id="modal-register-password" autocomplete="new-password" required placeholder="At least 8 characters" aria-label="Password"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all pr-11">
@@ -680,7 +680,7 @@
                             </div>
 
                             <div class="mb-5">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
                                 <div class="relative">
                                     <input type="password" name="password_confirmation" id="modal-register-password-confirm" autocomplete="new-password" required placeholder="Repeat your password" aria-label="Confirm password"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all pr-11">
@@ -690,7 +690,7 @@
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
+                                class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                                 Sign Up
                             </button>
                         </form>
@@ -705,20 +705,20 @@
 
                     {{-- Forgot Password View --}}
                     <div id="forgot-password-form-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Forgot your password?</h2>
+                        <h2 class="font-jakarta text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Forgot your password?</h2>
                         <p class="text-[13.5px] text-[#5B6A8E] mt-1.5 mb-6">No problem. We'll email you a reset link.</p>
 
                         <form id="ajax-forgot-password-form" onsubmit="handleForgotPasswordSubmit(event, '{{ route('password.email') }}')">
                             @csrf
                             <div class="mb-5">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
                                 <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="email"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-forgot-password-email"></span>
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
+                                class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                                 Email Password Reset Link
                             </button>
                         </form>
@@ -731,13 +731,13 @@
 
                     {{-- Forgot Password: Email Sent View --}}
                     <div id="forgot-password-sent-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Check your email</h2>
+                        <h2 class="font-jakarta text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Check your email</h2>
                         <p id="forgot-password-sent-message" class="text-sm text-[#5B6A8E] mt-1 mb-6 leading-relaxed">
                             We've emailed you a link to reset your password. It'll expire in 60 minutes.
                         </p>
 
                         <button type="button" onclick="openAuthModal('login')"
-                            class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
+                            class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                             Back to login
                         </button>
                     </div>

@@ -31,7 +31,6 @@ class UnitWriteController extends Controller
 
         $validated = $request->validate([
             'unit_label'          => 'required|string|max:100',
-            'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
             'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
@@ -40,7 +39,7 @@ class UnitWriteController extends Controller
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
-            'amenities'           => 'nullable|array',
+            'amenities'           => ['nullable', 'array', \App\Models\Amenity::exclusiveRule()],
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'required|array|min:3|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -64,7 +63,6 @@ class UnitWriteController extends Controller
         $unit = DB::transaction(function () use ($validated, $property, $photos, $sources, $captions, $request) {
             $unit = $property->units()->create([
                 'unit_label'          => $validated['unit_label'],
-                'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
@@ -117,7 +115,6 @@ class UnitWriteController extends Controller
 
         $validated = $request->validate([
             'unit_label'          => 'required|string|max:100',
-            'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
             'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
@@ -126,7 +123,7 @@ class UnitWriteController extends Controller
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
-            'amenities'           => 'nullable|array',
+            'amenities'           => ['nullable', 'array', \App\Models\Amenity::exclusiveRule()],
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'nullable|array|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -148,7 +145,6 @@ class UnitWriteController extends Controller
         DB::transaction(function () use ($validated, $request, $unit, $materialChanged) {
             $unit->update([
                 'unit_label'          => $validated['unit_label'],
-                'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],

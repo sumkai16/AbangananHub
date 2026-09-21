@@ -40,24 +40,18 @@ class PropertyUnitController extends Controller
 
         $validated = $request->validate([
             'unit_label'          => 'required|string|max:100',
-            'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
             'bedrooms'            => 'nullable|integer|min:0|max:20',
             'bathrooms'           => 'nullable|integer|min:0|max:20',
             'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
-            'bathroom_type'       => 'nullable|in:Private bathroom,Shared bathroom',
             'furnishing_status'   => 'nullable|in:Furnished,Semi-furnished,Unfurnished',
-            'kitchen_type'        => 'nullable|in:Private kitchen,Shared kitchen,No kitchen',
-            'pets_allowed'        => 'nullable|boolean',
-            'smoking_allowed'     => 'nullable|boolean',
-            'visitors_allowed'    => 'nullable|boolean',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Every monthly rental carries a deposit — no longer optional.
             'security_deposit'    => 'required|numeric|min:0|max:999999.99',
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
-            'amenities'           => 'nullable|array',
+            'amenities'           => ['nullable', 'array', \App\Models\Amenity::exclusiveRule()],
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'required|array|min:3|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -86,18 +80,12 @@ class PropertyUnitController extends Controller
         DB::transaction(function () use ($validated, $request, $property, $photos, $sources, $captions) {
             $unit = $property->units()->create([
                 'unit_label'          => $validated['unit_label'],
-                'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
                 'bedrooms'            => $validated['bedrooms'] ?? null,
                 'bathrooms'           => $validated['bathrooms'] ?? null,
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'is_furnished'        => match ($validated['furnishing_status'] ?? null) { null => null, 'Unfurnished' => false, default => true },
-                'bathroom_type'       => $validated['bathroom_type'] ?? null,
                 'furnishing_status'   => $validated['furnishing_status'] ?? null,
-                'kitchen_type'        => $validated['kitchen_type'] ?? null,
-                'pets_allowed'        => $request->has('pets_allowed') ? $validated['pets_allowed'] : null,
-                'smoking_allowed'     => $request->has('smoking_allowed') ? $validated['smoking_allowed'] : null,
-                'visitors_allowed'    => $request->has('visitors_allowed') ? $validated['visitors_allowed'] : null,
                 'rental_fee'          => $validated['rental_fee'],
                 'security_deposit'    => $validated['security_deposit'] ?? null,
                 'occupancy_limit'     => $validated['occupancy_limit'],
@@ -168,17 +156,11 @@ class PropertyUnitController extends Controller
 
         $validated = $request->validate([
             'unit_label'          => 'required|string|max:100',
-            'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
             'bedrooms'            => 'nullable|integer|min:0|max:20',
             'bathrooms'           => 'nullable|integer|min:0|max:20',
             'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
-            'bathroom_type'       => 'nullable|in:Private bathroom,Shared bathroom',
             'furnishing_status'   => 'nullable|in:Furnished,Semi-furnished,Unfurnished',
-            'kitchen_type'        => 'nullable|in:Private kitchen,Shared kitchen,No kitchen',
-            'pets_allowed'        => 'nullable|boolean',
-            'smoking_allowed'     => 'nullable|boolean',
-            'visitors_allowed'    => 'nullable|boolean',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
             // Optional here only — unlike store(), which still requires it on
             // every new unit. A unit that genuinely charges no deposit needs a
@@ -187,7 +169,7 @@ class PropertyUnitController extends Controller
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
-            'amenities'           => 'nullable|array',
+            'amenities'           => ['nullable', 'array', \App\Models\Amenity::exclusiveRule()],
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'nullable|array|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -228,18 +210,12 @@ class PropertyUnitController extends Controller
         DB::transaction(function () use ($validated, $request, $property, $unit, $materialChanged, $photos, $sources, $captions) {
             $unit->update([
                 'unit_label'          => $validated['unit_label'],
-                'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
                 'bedrooms'            => $validated['bedrooms'] ?? null,
                 'bathrooms'           => $validated['bathrooms'] ?? null,
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'is_furnished'        => match ($validated['furnishing_status'] ?? null) { null => null, 'Unfurnished' => false, default => true },
-                'bathroom_type'       => $validated['bathroom_type'] ?? null,
                 'furnishing_status'   => $validated['furnishing_status'] ?? null,
-                'kitchen_type'        => $validated['kitchen_type'] ?? null,
-                'pets_allowed'        => $request->has('pets_allowed') ? $validated['pets_allowed'] : null,
-                'smoking_allowed'     => $request->has('smoking_allowed') ? $validated['smoking_allowed'] : null,
-                'visitors_allowed'    => $request->has('visitors_allowed') ? $validated['visitors_allowed'] : null,
                 'rental_fee'          => $validated['rental_fee'],
                 // array_key_exists, not ?? — the field is nullable now, and a
                 // submit that omits the key entirely (rather than sending an

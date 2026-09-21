@@ -2,6 +2,12 @@
 
 return [
     /*
+     * Version tag for the Terms & Conditions / Privacy Policy. The property page remembers a visitor's
+     * "I agree" tick on their device against this value — change it whenever the legal text changes and
+     * everyone is asked once more.
+     */
+    'terms_version' => '2026-09',
+    /*
      * Clock 2 — days the tenant has to confirm move-in after keys are turned over.
      * Expiry releases the held deposit to the landlord.
      */

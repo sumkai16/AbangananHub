@@ -16,7 +16,7 @@
     counterpart so reduced-motion readers get the finished page with no movement.
 --}}
 @php
-    $font = "font-['Plus_Jakarta_Sans',_Inter,_sans-serif]";
+    $font = "font-jakarta";
 
     // Rough read time from the same data that renders the body.
     $words = collect($sections)->sum(fn ($s) => str_word_count($s['title'])

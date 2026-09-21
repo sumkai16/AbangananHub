@@ -55,17 +55,10 @@ values now both live only in §10's banned-hex list.
 
 | Role | Hex | Usage |
 |---|---|---|
-<<<<<<< HEAD
-| Primary (Deep Navy) | `#060D26` | Navigation bar, headings, primary button fills, key interface elements |
-| Accent (Gold) | `#DA8E77` | Active states, borders, rings, fills, backgrounds, large display text on dark — **never small foreground text on light** (fails WCAG AA, ~2.28:1) |
-| Accent text (Dark Gold) | `#A8573F` | The text-safe gold — small labels, icons, checkbox fills, links, display prices on a light background (~4.85:1) |
-| CTA | `#060D26` | CTA buttons: Search, Book Now, List Property — same navy fill as every other primary button, with `#F7F4ED` cream text |
-=======
 | Primary (Deep Navy) | `#060D26` | Navigation bar, headings, structural UI, secondary-button text/border |
 | Accent (Coral) | `#FF8A66` | CTA/primary-button fills, active/selected states, borders, rings, badges, decorative fills, hover-state fills, large text on a **dark** ground — **never foreground text on a light ground at any size** (fails WCAG AA, ~2.31:1) |
 | Accent text (Deep Coral) | `#B35A3D` | The text-safe coral — small labels, icons, links, checkmarks, highlighted words in headings, display prices, on a **light**/white background (~4.72:1) |
 | CTA | `#FF8A66` fill / `#060D26` text | CTA and primary buttons: Search, Book Now, List Property, form submits — one shared treatment (`<x-primary-button>`), coral fill with navy text (~8.6:1 contrast) |
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 | Background (Ice White) | `#F7F8FC` | Main page background |
 | Section Background (Mist) | `#ECEEF6` | Distinguishes content sections |
 | Surface/Card (White) | `#FFFFFF` | Property cards, forms, panels |
@@ -78,11 +71,6 @@ values now both live only in §10's banned-hex list.
 | Footer background | `#060D26` | Same token as Primary — footer and nav share one navy |
 
 Rules:
-<<<<<<< HEAD
-- One CTA treatment (`#060D26` navy + `#F7F4ED` cream text) — everything else neutral or gold-family.
-- `#DA8E77` is restricted to fills, borders, rings, and backgrounds, or large text on a dark ground. Never as small foreground text on a light ground — use `#A8573F` there instead.
-- Hover states: `hover:brightness-95` only. No hardcoded darker hex values.
-=======
 - One CTA treatment (`#FF8A66` coral fill + `#060D26` navy text) — everything else neutral, or coral only at the specific touch-points listed above. Target hierarchy is roughly 70% white / 25% navy / 5% coral by visual weight — coral marks attention points, it is never a page or section background.
 - `#FF8A66` is restricted to fills, borders, rings, backgrounds, and large text **on a dark (navy) ground**. Never as foreground text on a light ground, at any size — use `#B35A3D` there instead. **Exception: logotype.** The "Hub" accent letter in the `AbangananHub` wordmark stays bright `#FF8A66` even on the white navbar — WCAG 1.4.3 exempts logotype text from contrast requirements.
 - Ledger/table price columns (rent ledger, payment history, receipts, admin financial tables) stay navy `#060D26`, not coral — coral marks the one prominent display price per page (property card, property detail hero), not every repeated figure in a dense financial list.
@@ -97,7 +85,6 @@ Rules:
   nav, a `border-l-[3px] border-[#FF8A66]` accent for the sidebar (kept navy-filled otherwise, so a
   dense sidebar doesn't read as coral-heavy). All hover/focus/active transitions target 200–300ms
   (`duration-200`/`duration-300`), not the old ad hoc 150ms.
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 - No custom CSS class systems (`abg-*`), no inline `<style>` blocks — pure Tailwind only.
 - **`tailwind.config.js`'s `colors.brand.*` reflects these tokens but is not referenced by any view** — every view still uses raw bracket-hex classes (`bg-[#060D26]`), matching the old system's own pattern. Migrating views onto the named tokens is a separate, not-yet-done refactor; don't assume `bg-brand-navy` exists anywhere in `resources/views`.
 
@@ -504,14 +491,9 @@ Three landlord surfaces rendered unit rows. `Occupancy`'s "Unit Status Overview"
 - Shadow style: `shadow-[0_1px_3px_rgba(6,13,38,0.06)]` on cards — a hairline lift, not a drop shadow. `shadow-lg` is reserved for floating UI (dropdowns, modals, tooltips) that must read as detached from the page. Property cards use the image-is-the-card pattern (no shadow wrapper).
 - Button rules: `cursor-pointer` on all clickable elements; hover via `hover:brightness-95`, never layout-shifting scale. CTA and standard buttons share one treatment: `#060D26` navy fill with `#F7F4ED` cream text (Sept 2026 — the old system split these into coral CTA vs teal standard; the new identity uses one navy fill everywhere).
 - Input/form rules: every input has a real `<label for>`, not placeholder-as-label
-<<<<<<< HEAD
-- **Search input recipe (standardized July 22, 2026; hexes updated Sept 2026):** every text search field — landlord Properties/Tenants/Units/Reservations, Conversations, Favorites, plus the pre-existing admin index pages — now shares one class string: `h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition-all duration-200`, with a `w-4 h-4`/`15×15` search icon in `text-[#94A3B8]` at `left-3.5`. Before the July 2026 pass there were 4 different combinations in the wild (`border-[#64748B]/25` vs `border-[#E2E8F0]`, `focus:ring-1` vs `ring-2`, `h-10` vs `h-11` vs `py-2.5`, icon color `#64748B` vs `#94A3B8` — those hexes are pre-Sept-2026 history, see §10 for their current-palette equivalents). The one exception is the narrow conversation-sidebar search (`conversations/index.blade.php`), which keeps a smaller `text-[12px]`/`py-2` footprint for its tight column width but uses the same border/ring/icon colors. When adding a new search field, copy this recipe rather than approximating it.
-- **`<x-search-pill variant="header|hero">`** — the Where/Type/Budget form. Rendered by the sticky header on every public page *and* by the browse hero; `variant` changes only scale and max-width, never the fields. It was inline in `layouts/app` until July 24 2026, when the hero needed it too — copying it would have made two copies of a form whose three field names the controller reads. It now also **preserves its own values** (searching "Labangon" used to clear the box) and carries `verified`/`sort` through as hidden inputs so a search can't silently drop them. Below `sm` both variants use identical tight metrics — the hero's larger padding does not fit three fields on a phone.
-=======
 - **Search input recipe (standardized July 22, 2026; hexes updated Sept 2026):** every text search field — landlord Properties/Tenants/Units/Reservations, Conversations, Favorites, plus the pre-existing admin index pages — now shares one class string: `h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/20 focus:border-[#C9A84C] focus:bg-white transition-all duration-200`, with a `w-4 h-4`/`15×15` search icon in `text-[#94A3B8]` at `left-3.5`. Before the July 2026 pass there were 4 different combinations in the wild (`border-[#64748B]/25` vs `border-[#E2E8F0]`, `focus:ring-1` vs `ring-2`, `h-10` vs `h-11` vs `py-2.5`, icon color `#64748B` vs `#94A3B8` — those hexes are pre-Sept-2026 history, see §10 for their current-palette equivalents). The one exception is the narrow conversation-sidebar search (`conversations/index.blade.php`), which keeps a smaller `text-[12px]`/`py-2` footprint for its tight column width but uses the same border/ring/icon colors. When adding a new search field, copy this recipe rather than approximating it.
 - **`<x-search-pill variant="header|hero">`** — the Where/Type/Budget form. Rendered by the sticky header on every public page *and* by the browse hero; `variant` changes only scale and max-width, never the fields. It was inline in `layouts/app` until July 24 2026, when the hero needed it too — copying it would have made two copies of a form whose field names the controller reads. It now also **preserves its own values** (searching "Labangon" used to clear the box) and carries `verified`/`sort` through as hidden inputs so a search can't silently drop them. Below `sm` both variants use identical tight metrics — the hero's larger padding does not fit the fields on a phone.
   - **Budget is a min–max range (Sept 2026), not a single "Max" field.** Two `price_min`/`price_max` number inputs share the one "Budget" label, separated by an en dash. `Property::scopeBrowseFilters()` applies each bound independently (`rental_fee >= price_min` / `<= price_max`, either optional) in the same `whereHas('units', ...)` query, and both the web `PropertyController` and the API `PropertyController` (used by the map view) pass `price_min` through identically to `price_max` — they read the same scope, so a filter added to one and not the other silently drifts between list and map results. The active-filter chip on `properties/index.blade.php` shows `₱min–₱max` when both are set, or `Min ₱x`/`Max ₱x` alone, and its ✕ clears both query params via `fullUrlWithoutQuery(['price_min', 'price_max'])`.
->>>>>>> 092fb1454a20ae889717d4d8b1bee67f9c0c8eaa
 - **`<x-category-strip>`** — the property-type quick filters, centred from `md` up (`justify-start` below it, because the row scrolls on narrow screens and centring overflowing content pins the first item off the left edge where it can't be scrolled back to). Takes **no props**: both placements render identically, and it briefly carried a `variant` that changed only the justification before the browse strip was centred to match the header. Active state is derived from `request()` server-side. The old inline markup carried `category-link` + `data-type` hooks for JS **that was never written**, so the strip never showed which filter was on; clicking Bedspace looked identical to browsing everything. The state is already in the URL, so it never needed JS.
 - Icon set: Heroicons (outline/stroke), inline SVG only. **No emojis anywhere, ever.** Unicode checkmarks (✓) acceptable as plain text only.
 - Touch targets: minimum 44x44px on interactive elements

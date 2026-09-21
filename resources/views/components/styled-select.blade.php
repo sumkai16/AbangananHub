@@ -89,7 +89,7 @@
 
     <button type="button" x-ref="trigger" @click="open = !open" :aria-expanded="open" @disabled($disabled)
         aria-haspopup="listbox"
-        :class="invalid ? 'ring-2 ring-red-400 border-red-400' : ''"
+        :class="invalid ? 'ring-2 ring-[#EF4444]/40 border-[#EF4444]' : ''"
         {{ $attributes->class(['flex items-center justify-between gap-2 transition-shadow', $disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer']) }}>
         <span x-text="label" class="truncate"></span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -115,7 +115,7 @@
                 :class="value === val ? 'text-[#060D26] font-semibold bg-[#ECEEF6]/70' : 'text-[#060D26]'">
                 <span x-text="lbl" class="truncate"></span>
                 <svg x-show="value === val" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#A8573F]" aria-hidden="true">
+                    stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#B35A3D]" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
             </button>

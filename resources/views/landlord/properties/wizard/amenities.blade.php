@@ -31,8 +31,8 @@
 
             <div class="min-w-0">
                 <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#B35A3D]">Step 3 of 6</p>
-                <h1 class="mt-1.5 text-2xl font-semibold tracking-tight text-[#060D26]">What does the building offer?</h1>
-                <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Shared, building-wide amenities — not what's inside a specific unit. Optional, but tenants filter on these.</p>
+                <h1 class="mt-1.5 text-2xl font-semibold tracking-tight text-[#060D26]">What does the property offer?</h1>
+                <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Amenities shared across the whole property — not what's inside a specific unit. Optional, but tenants filter on these.</p>
 
                 @php $selected = collect(old('amenities', $property->amenities->pluck('amenity_id')->all()))->map(fn ($id) => (int) $id); @endphp
 

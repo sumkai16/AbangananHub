@@ -69,7 +69,6 @@ class OccupancyController extends Controller
                     'label'     => $unit->unit_label,
                     'status'    => $unit->availability_status,
                     'tenant'    => $this->tenantNameFor($unit),
-                    'type'      => $unit->unit_type,
                     'floor'     => $unit->floor,
                     'rent'      => (float) $unit->rental_fee,
                     'deposit'   => $unit->security_deposit !== null ? (float) $unit->security_deposit : null,

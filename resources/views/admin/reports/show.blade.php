@@ -80,7 +80,7 @@
                                 class="text-[#EF4444]">*</span></label>
                         <textarea name="admin_notes" rows="3" maxlength="1000" required
                             placeholder="Describe what you found after reviewing this report"
-                            class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition"></textarea>
+                            class="w-full rounded-xl border border-[#E2E4EC] px-3.5 py-2.5 text-[13px] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition"></textarea>
                         @error('admin_notes')
                             <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
                         @enderror
@@ -106,7 +106,7 @@
                     </div>
 
                     <button type="submit"
-                        class="inline-flex items-center gap-2 h-11 px-6 rounded-full bg-[#DA8E77] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#C97A61] transition-all duration-200">
+                        class="inline-flex items-center gap-2 h-11 px-6 rounded-full bg-[#FF8A66] text-[#060D26] text-[13.5px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />

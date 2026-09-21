@@ -10,6 +10,8 @@ export default defineConfig({
                 'resources/js/charts.js',
                 'resources/js/maps/property-map.js',
                 'resources/js/maps/browse-map.js',
+                'resources/js/browse-live.js',
+                'resources/js/parallax.js',
                 'resources/js/maps/location-picker.js',
             ],
             refresh: true,

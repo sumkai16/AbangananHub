@@ -36,6 +36,7 @@ class PropertyWriteController extends Controller
             $property->title               = $validated['title'];
             $property->description         = $validated['description'];
             $property->property_type       = $validated['property_type'];
+            $property->fill(\App\Support\PropertyPolicies::fromRequest($request));
             $property->address             = $validated['address'];
             $property->city_municipality   = $validated['city_municipality'];
             $property->barangay            = $validated['barangay'] ?? null;
@@ -75,6 +76,7 @@ class PropertyWriteController extends Controller
                 'title'             => $validated['title'],
                 'description'       => $validated['description'],
                 'property_type'     => $validated['property_type'],
+                ...\App\Support\PropertyPolicies::fromRequest($request),
                 'address'           => $validated['address'],
                 'city_municipality' => $validated['city_municipality'],
                 'barangay'          => $validated['barangay'] ?? null,

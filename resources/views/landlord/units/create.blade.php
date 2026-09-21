@@ -51,6 +51,7 @@
                 'Maintenance' => ['dot' => '#5B6A8E', 'text' => 'Temporarily unavailable'],
             ];
             $amenityNameMap = $amenities->pluck('amenity_name', 'amenity_id')->toArray();
+            $exclusiveAmenityIds = $amenities->whereIn('amenity_name', \App\Models\Amenity::EXCLUSIVE_UNIT_AMENITIES)->pluck('amenity_id')->map(fn ($id) => (string) $id)->values();
             $preselectedAmenities = collect(old('amenities', []))->map(fn ($id) => (string) $id)->all();
         @endphp
 
@@ -58,7 +59,6 @@
             x-on:submit="submitting = true"
             x-data="{
                 unitLabel: @js(old('unit_label', '')),
-                unitType: @js(old('unit_type', '')),
                 floor: @js(old('floor', '')),
                 rentalFee: @js(old('rental_fee', '')),
                 securityDeposit: @js(old('security_deposit', '')),
@@ -74,6 +74,12 @@
                 status: @js(old('availability_status', 'Available')),
                 description: @js(old('description', '')),
                 amenities: @js($preselectedAmenities),
+                exclusiveAmenities: @js($exclusiveAmenityIds),
+                pickExclusive(id) {
+                    id = String(id);
+                    if (!this.amenities.includes(id) || !this.exclusiveAmenities.includes(id)) return;
+                    this.amenities = this.amenities.filter(a => a === id || !this.exclusiveAmenities.includes(String(a)));
+                },
                 amenityNames: @js($amenityNameMap),
                 statusMeta: @js($statusMeta),
                 submitting: false,
@@ -119,17 +125,6 @@
                                     placeholder="e.g. Room 101, Bed A"
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
                                 @error('unit_label')
-                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Unit Type</label>
-                                <x-styled-select name="unit_type" x-model="unitType"
-                                    :options="array_combine(['Bedspace', 'Room', 'Apartment', 'Studio', 'Dormitory'], ['Bedspace', 'Room', 'Apartment', 'Studio', 'Dormitory'])"
-                                    :selected="old('unit_type', '')" placeholder="Select type"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3 text-[13.5px] text-[#060D26] bg-white" />
-                                @error('unit_type')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -273,16 +268,6 @@
                         {{-- Unit/room features --}}
                         <div class="grid sm:grid-cols-3 gap-4 mb-4">
                             <div>
-                                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Bathroom</label>
-                                <x-styled-select name="bathroom_type"
-                                    :options="['Private bathroom' => 'Private bathroom', 'Shared bathroom' => 'Shared bathroom']"
-                                    :selected="old('bathroom_type', '')" placeholder="Not specified"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3 text-[13.5px] text-[#060D26] bg-white" />
-                                @error('bathroom_type')
-                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
                                 <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Furnishing</label>
                                 <x-styled-select name="furnishing_status"
                                     :options="['Furnished' => 'Furnished', 'Semi-furnished' => 'Semi-furnished', 'Unfurnished' => 'Unfurnished']"
@@ -292,51 +277,6 @@
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            <div>
-                                <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">Kitchen</label>
-                                <x-styled-select name="kitchen_type"
-                                    :options="['Private kitchen' => 'Private kitchen', 'Shared kitchen' => 'Shared kitchen', 'No kitchen' => 'No kitchen']"
-                                    :selected="old('kitchen_type', '')" placeholder="Not specified"
-                                    class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3 text-[13.5px] text-[#060D26] bg-white" />
-                                @error('kitchen_type')
-                                    <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-
-                    </x-card>
-
-                    <x-card>
-                        <div class="mb-5">
-                            <h2 class="text-[15px] font-semibold text-[#060D26]">House rules</h2>
-                            <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">Tenants filter on these, so answer what you can.</p>
-                        </div>
-
-                        {{-- Unit policies --}}
-                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
-                            @foreach ([
-                                ['pets_allowed', 'Pets allowed?'],
-                                ['smoking_allowed', 'Smoking allowed?'],
-                                ['visitors_allowed', 'Visitors allowed?'],
-                            ] as [$field, $label])
-                                <div>
-                                    <label class="block text-[12px] font-semibold text-[#060D26] mb-1.5">{{ $label }}</label>
-                                    @php $fieldOld = old($field); @endphp
-                                    <div class="flex items-center gap-2">
-                                        <label class="cursor-pointer">
-<input type="radio" name="{{ $field }}" value="1" @checked((string) $fieldOld === '1') class="peer sr-only">
-<span class="inline-flex h-10 min-w-[64px] items-center justify-center rounded-full border border-[#E2E4EC] bg-white px-4 text-[13px] font-semibold text-[#5B6A8E] transition-colors duration-200 hover:border-[#060D26]/40 peer-checked:border-[#060D26] peer-checked:bg-[#060D26] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66] peer-focus-visible:ring-offset-2">Yes</span>
-</label>
-                                        <label class="cursor-pointer">
-<input type="radio" name="{{ $field }}" value="0" @checked((string) $fieldOld === '0') class="peer sr-only">
-<span class="inline-flex h-10 min-w-[64px] items-center justify-center rounded-full border border-[#E2E4EC] bg-white px-4 text-[13px] font-semibold text-[#5B6A8E] transition-colors duration-200 hover:border-[#060D26]/40 peer-checked:border-[#060D26] peer-checked:bg-[#060D26] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66] peer-focus-visible:ring-offset-2">No</span>
-</label>
-                                    </div>
-                                    @error($field)
-                                        <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            @endforeach
                         </div>
 
                     </x-card>
@@ -391,7 +331,7 @@
                                             x-text="unitLabel || 'Unit name'"
                                             :class="unitLabel ? '' : 'text-[#5B6A8E] font-semibold italic'"></p>
                                         <p class="text-[12px] text-[#5B6A8E] mt-0.5">
-                                            <span x-text="unitType || 'Type not set'"></span><template x-if="floor"><span> · <span x-text="floor"></span></span></template>
+                                            <span x-text="floor || 'Floor not set'"></span>
                                         </p>
                                     </div>
                                     {{-- Status pill --}}
@@ -459,7 +399,7 @@
                                 @foreach($amenities as $amenity)
                                     <label class="flex items-center gap-2.5 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors duration-150"
                                         :class="amenities.includes('{{ $amenity->amenity_id }}') ? 'border-[#FF8A66] bg-[#ECEEF6]' : 'border-[#5B6A8E]/25 bg-white hover:border-[#5B6A8E]/40'">
-                                        <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}" x-model="amenities"
+                                        <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}" x-model="amenities" @change="pickExclusive('{{ $amenity->amenity_id }}')"
                                             class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#B35A3D] focus:ring-[#FF8A66]/30">
                                         <span class="text-[12.5px] text-[#060D26] leading-tight">{{ $amenity->name }}</span>
                                     </label>

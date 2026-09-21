@@ -22,7 +22,7 @@
             <span class="text-[#060D26] font-bold text-[17px] tracking-tight">AbangananHub</span>
         </a>
 
-        <h2 class="mt-10 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Welcome back</h2>
+        <h2 class="mt-10 font-jakarta text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Welcome back</h2>
         <p class="mt-1.5 text-[15px] text-[#5B6A8E]">Log in to continue to AbangananHub.</p>
 
         {{-- Session alerts --}}
@@ -39,14 +39,14 @@
             @csrf
 
             <div>
-                <label for="email" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                <label for="email" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">Email address</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="you@example.com"
                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
             </div>
 
             <div>
                 <div class="flex items-center justify-between mb-1.5">
-                    <label for="password" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26]">Password</label>
+                    <label for="password" class="block font-jakarta text-[13px] font-bold text-[#060D26]">Password</label>
                     @if (Route::has('password.request'))
                         <a href="{{ route('password.request') }}" class="text-[13px] font-semibold text-[#060D26] hover:text-[#B35A3D] hover:underline transition-colors">Forgot password?</a>
                     @endif
@@ -69,7 +69,7 @@
                 Keep me logged in
             </label>
 
-            <button type="submit" class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3.5 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+            <button type="submit" class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3.5 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                 Log in
             </button>
         </form>
