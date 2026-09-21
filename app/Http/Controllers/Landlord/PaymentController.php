@@ -31,6 +31,20 @@ use Illuminate\Validation\Rule;
  */
 class PaymentController extends Controller
 {
+    /**
+     * One map so the dot colour, the pill and the sort/filter values can never
+     * drift apart. `paid_ahead` deliberately stays in the navy family —
+     * DESIGN.md §6n: a future month covered in advance is credit, not debt,
+     * and must never read amber or red.
+     */
+    private const STATUS_STYLES = [
+        'overdue'    => ['dot' => 'bg-[#DC2626]', 'text' => 'text-[#DC2626]', 'label' => 'Overdue'],
+        'partial'    => ['dot' => 'bg-[#B45309]', 'text' => 'text-[#B45309]', 'label' => 'Partial'],
+        'upcoming'   => ['dot' => 'bg-[#94A3B8]', 'text' => 'text-[#5B6A8E]', 'label' => 'Upcoming'],
+        'paid'       => ['dot' => 'bg-[#15803D]', 'text' => 'text-[#15803D]', 'label' => 'Paid'],
+        'paid_ahead' => ['dot' => 'bg-[#060D26]', 'text' => 'text-[#060D26]', 'label' => 'Paid Ahead'],
+    ];
+
     private const METHODS = ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'];
     private const TYPES = ['Monthly', 'Deposit', 'Initial', 'Utility', 'Other'];
 
@@ -142,8 +156,20 @@ class PaymentController extends Controller
             : null;
 
         $view = $request->query('view') === 'calendar' ? 'calendar' : 'list';
+        $calendar = $view === 'calendar'
+            ? $this->buildCalendar($rows, $this->parseMonth($request->query('month')))
+            : null;
+
+        // Month navigation fetches just the calendar so the page doesn't reload.
+        if ($calendar && $request->ajax()) {
+            return view('landlord.payments._calendar', [
+                'calendar'      => $calendar,
+                'paymentStyles' => self::STATUS_STYLES,
+            ]);
+        }
 
         return view('landlord.payments.index', [
+            'paymentStyles' => self::STATUS_STYLES,
             'rows'         => $rows,
             'properties'   => $properties,
             'totals'       => $totals,
@@ -152,9 +178,7 @@ class PaymentController extends Controller
             'usedStatuses' => $usedStatuses,
             'hasDueThisMonth' => $hasDueThisMonth,
             'view'         => $view,
-            'calendar'    => $view === 'calendar'
-                ? $this->buildCalendar($rows, $this->parseMonth($request->query('month')))
-                : null,
+            'calendar'    => $calendar,
         ]);
     }
 
