@@ -403,7 +403,7 @@
                 </div>
             </div>
 
-            <main id="main" class="flex-1 overflow-x-hidden">
+            <main id="main" class="flex-1 overflow-x-clip">
                 @yield('content')
             </main>
         </div>

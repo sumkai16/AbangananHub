@@ -25,10 +25,18 @@
         {{-- 1. Greeting row --}}
         <div class="mb-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h1 class="min-w-0 font-sans text-[20px] sm:text-[22px] font-semibold text-[#060D26] truncate">
-                    <span class="sm:hidden">{{ $greeting }}, {{ auth()->user()->first_name }}!</span>
-                    <span class="hidden sm:inline">{{ $greeting }}, {{ $greetingName }}!</span>
-                </h1>
+                <div class="flex items-center gap-3.5 min-w-0">
+                    {{-- Same icon tile as the other landlord page headers (x-page-header) --}}
+                    <div class="w-11 h-11 rounded-xl bg-[#060D26] flex items-center justify-center shrink-0">
+                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                        </svg>
+                    </div>
+                    <h1 class="min-w-0 font-sans text-[20px] sm:text-[22px] font-semibold text-[#060D26] truncate">
+                        <span class="sm:hidden">{{ $greeting }}, {{ auth()->user()->first_name }}!</span>
+                        <span class="hidden sm:inline">{{ $greeting }}, {{ $greetingName }}!</span>
+                    </h1>
+                </div>
                 <div class="flex items-center gap-2 sm:shrink-0">
                     {{-- Phones already have the toggle in the top bar --}}
                     <x-theme-toggle class="hidden lg:flex w-10 h-10 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />

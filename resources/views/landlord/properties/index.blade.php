@@ -7,11 +7,14 @@
         }">
 
         {{-- Header --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div class="min-w-0">
-                <h1 class="text-[22px] sm:text-[26px] font-semibold text-[#060D26] tracking-tight">My Properties</h1>
-                <p class="text-[14px] text-[#5B6A8E] mt-0.5">Manage and monitor your rental properties on AbangananHub.</p>
-            </div>
+        <x-page-header title="My Properties" subtitle="Manage and monitor your rental properties on AbangananHub.">
+            <x-slot:icon>
+                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" />
+                </svg>
+            </x-slot:icon>
+            <x-slot:actions>
             <a href="{{ route('properties.create') }}"
                 class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[14px] font-semibold transition-colors duration-200 shrink-0">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
@@ -19,7 +22,8 @@
                 </svg>
                 Add New Property
             </a>
-        </div>
+            </x-slot:actions>
+        </x-page-header>
 
         {{-- Summary strip — account-wide totals, not affected by the filter toolbar below --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-px mb-6 overflow-hidden rounded-2xl border border-[#E2E4EC] bg-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
@@ -68,7 +72,7 @@
                 <div class="flex flex-wrap items-center gap-2.5">
                     @php
                         $listStatusOptions = ['' => 'All Status', 'Approved' => 'Approved', 'Pending' => 'Pending', 'Rejected' => 'Rejected'];
-                        $listTypeOptions = ['' => 'All Types', 'Bedspace' => 'Bedspace', 'Room' => 'Room', 'Apartment' => 'Apartment', 'House' => 'House for Rent'];
+                        $listTypeOptions = ['' => 'All Types', 'Apartment' => 'Apartment', 'Condominium' => 'Condominium', 'House' => 'House for Rent', 'Boarding House' => 'Boarding House', 'Bedspace' => 'Bedspace'];
                     @endphp
                     <x-styled-select name="status" :options="$listStatusOptions" :selected="request('status', '')" autosubmit
                         class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />
@@ -325,7 +329,7 @@
                         <tbody class="divide-y divide-[#E2E4EC]">
                             @foreach($properties as $property)
                                 @php extract($derived[$property->property_id]); @endphp
-                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
+                                <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                     {{-- Property --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">
