@@ -11,6 +11,10 @@
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+// Overall strength: multiplies every data-parallax value. The per-layer numbers set the depth *relationships* (which
+// layers are near, which are far); this one turns the whole effect up or down.
+const GAIN = 2;
+
 function init() {
     if (reduced.matches || !('IntersectionObserver' in window)) return;
 
@@ -41,7 +45,7 @@ function init() {
             const travel = vh / 2 + rect.height / 2;
             const progress = Math.max(-1, Math.min(1, (vh / 2 - (rect.top + rect.height / 2)) / travel));
             section.layers.forEach(({ el, strength }) => {
-                el.style.translate = `0 ${(progress * strength * damp).toFixed(1)}px`;
+                el.style.translate = `0 ${(progress * strength * GAIN * damp).toFixed(1)}px`;
             });
         });
     }

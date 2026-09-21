@@ -695,7 +695,7 @@
                         <li class="transition-all duration-700 ease-out"
                             style="transition-delay: {{ $i * 150 }}ms"
                             :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
-                            <span data-parallax="{{ -6 - $i * 3 }}" class="block font-jakarta text-[32px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">{{ $num }}</span>
+                            <span data-parallax="{{ -3 - $i * 1.5 }}" class="block font-jakarta text-[32px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">{{ $num }}</span>
                             <span class="mt-2 block h-0.5 rounded-full bg-[#FF8A66] transition-all duration-700 ease-out"
                                 style="transition-delay: {{ $i * 150 + 300 }}ms"
                                 :class="shown ? 'w-8' : 'w-0'" aria-hidden="true"></span>
@@ -762,7 +762,7 @@
                         $litLeft  = [[1,0,0],[0,1,0],[1,0,1]];
                         $litRight = [[0,1,1],[1,0,0],[0,1,0],[1,1,0]];
                     @endphp
-                    <svg data-parallax="10" viewBox="0 0 260 310" class="absolute left-[43%] bottom-[2%] -translate-x-1/2 h-[90%] w-auto" fill="none">
+                    <svg data-parallax="6" viewBox="0 0 260 310" class="absolute left-[43%] bottom-[2%] -translate-x-1/2 h-[90%] w-auto" fill="none">
                         <defs>
                             <linearGradient id="ow-left" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1C2858"/><stop offset="1" stop-color="#2A3A78"/></linearGradient>
                             <linearGradient id="ow-right" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4356A6"/><stop offset="1" stop-color="#2E3F86"/></linearGradient>
@@ -814,7 +814,7 @@
                     </svg>
 
                     {{-- 3D-style landlord: rounded "clay" shapes with gradients and soft highlights. --}}
-                    <svg data-parallax="-14" viewBox="0 0 110 236" class="absolute bottom-[3%] left-[62%] h-[56%] w-auto" fill="none">
+                    <svg data-parallax="-8" viewBox="0 0 110 236" class="absolute bottom-[3%] left-[62%] h-[56%] w-auto" fill="none">
                         <defs>
                             <radialGradient id="ow-skin" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#FFDCC6"/><stop offset="1" stop-color="#E29A78"/></radialGradient>
                             <linearGradient id="ow-jacket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB094"/><stop offset="1" stop-color="#E2603C"/></linearGradient>
@@ -858,13 +858,13 @@
                         <path d="M49 46c3.5 3.5 8.5 3.5 12 0" stroke="#1B2140" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
 
-                    <div data-parallax="-14" class="absolute top-6 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
+                    <div data-parallax="-10" class="absolute top-6 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
                         <span class="w-8 h-8 rounded-full bg-[#E7F6EC] text-[#1F8A4C] flex items-center justify-center">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $ownerPerks[3][1] }}" /></svg>
                         </span>
                         <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Verified<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Landlord</span></span>
                     </div>
-                    <div data-parallax="-18" class="absolute top-24 right-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
+                    <div data-parallax="-16" class="absolute top-24 right-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
                         <span class="w-8 h-8 rounded-full bg-[#FFE9E1] text-[#B35A3D] flex items-center justify-center">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H19a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14z" /></svg>
                         </span>
