@@ -3,7 +3,6 @@
     @php
         $hasPayout = $isOwner && $user->hasPayoutDestination();
         $isVerified = $verification && $verification->verification_status === 'Approved';
-        $initials = mb_strtoupper(mb_substr($user->first_name, 0, 1) . mb_substr($user->last_name, 0, 1));
         $subtitle = ($business?->business_name ? $business->business_name . ' · ' : 'Independent landlord · ') . 'Member since ' . $user->created_at->format('F Y');
         $visibilityLabels = [
             'public' => ['Public', 'Anyone can view this page'],
@@ -14,69 +13,48 @@
         $tabs = ['details' => 'Details', 'properties' => 'Properties', 'reviews' => 'Reviews'];
         $starPath = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
     @endphp
-    @php $wrap = auth()->user()->shellContainerClass($isOwner) . ' mx-auto px-4 sm:px-6 lg:px-8'; @endphp
     <div class="min-h-[calc(100vh-72px)] pb-10" x-data="{
                 tab: @js(array_keys($tabs)).includes(location.hash.slice(1)) ? location.hash.slice(1) : 'details',
                 go(t) { this.tab = t; history.replaceState(null, '', '#' + t); }
             }">
 
-            {{-- Banner: full-bleed, edge to edge; the coral glow is the one decorative flourish, kept to a corner so the page stays calm. --}}
-            <div class="relative h-32 sm:h-44 overflow-hidden bg-[#060D26]">
-                <div class="pointer-events-none absolute -top-20 right-0 sm:right-[6%] h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(255,138,102,0.35),transparent_70%)]" aria-hidden="true"></div>
-                <div class="{{ $wrap }} relative h-full">\n                <div class="absolute top-4 sm:top-6 right-4 sm:right-6 lg:right-8 flex items-center gap-2">
-                    @if($isOwner)
-                        <a href="{{ route('landlord.profile.edit') }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white text-[13px] font-semibold text-[#060D26] hover:brightness-95 transition duration-200">
+        <x-profile-banner :user="$user" :subtitle="$subtitle" :container="auth()->user()->shellContainerClass($isOwner)">
+            <x-slot:badges>
+                <span class="rounded-full bg-[#ECEEF6] px-2.5 py-1 text-[11.5px] font-semibold text-[#060D26]">Landlord</span>
+                @if($isVerified)
+                    <span class="inline-flex items-center gap-1 rounded-full bg-[#15803D] px-2.5 py-1 text-[11.5px] font-semibold text-white">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Verified
+                    </span>
+                @endif
+            </x-slot:badges>
+            <x-slot:actions>
+                @if($isOwner)
+                    <a href="{{ route('landlord.profile.edit') }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white text-[13px] font-semibold text-[#060D26] hover:brightness-95 transition duration-200">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg>
+                        Edit profile
+                    </a>
+                @else
+                    @auth
+                        <a href="{{ route('conversations.store') }}?landlord_id={{ $user->user_id }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-colors duration-200">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                             </svg>
-                            Edit profile
+                            Message
                         </a>
-                    @else
-                        @auth
-                            <a href="{{ route('conversations.store') }}?landlord_id={{ $user->user_id }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-colors duration-200">
-                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                                </svg>
-                                Message
-                            </a>
-                            <a href="{{ route('reports.create', ['user_id' => $user->user_id]) }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-[13px] font-semibold text-white transition-colors duration-200">
-                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
-                                </svg>
-                                Report
-                            </a>
-                        @endauth
-                    @endif
-                </div>
-                </div>
-            </div>
-
-            <div class="{{ $wrap }}">
-            {{-- Identity: the avatar straddles the banner edge; the name block starts below it so text never lands on navy. --}}
-            <div class="flex flex-col sm:flex-row sm:gap-5">
-                <div class="relative z-10 -mt-10 sm:-mt-12 shrink-0">
-                    @if($user->profile_picture)
-                        <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover ring-4 ring-[#F7F8FC] bg-[#060D26]">
-                    @else
-                        <div class="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-[#060D26] ring-4 ring-[#F7F8FC] flex items-center justify-center text-[26px] sm:text-[30px] font-bold text-white" aria-hidden="true">{{ $initials }}</div>
-                    @endif
-                </div>
-                <div class="mt-3 sm:mt-4 min-w-0">
-                    <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                        <h1 class="text-[22px] sm:text-[24px] font-bold tracking-tight leading-tight text-[#060D26]">{{ $user->first_name }} {{ $user->last_name }}</h1>
-                        <span class="rounded-full bg-[#ECEEF6] px-2.5 py-1 text-[11.5px] font-semibold text-[#060D26]">Landlord</span>
-                        @if($isVerified)
-                            <span class="inline-flex items-center gap-1 rounded-full bg-[#15803D] px-2.5 py-1 text-[11.5px] font-semibold text-white">
-                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Verified
-                            </span>
-                        @endif
-                    </div>
-                    <p class="mt-1 text-[13.5px] text-[#5B6A8E]">{{ $subtitle }}</p>
-                </div>
-            </div>
+                        <a href="{{ route('reports.create', ['user_id' => $user->user_id]) }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-[13px] font-semibold text-white transition-colors duration-200">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                            </svg>
+                            Report
+                        </a>
+                    @endauth
+                @endif
+            </x-slot:actions>
 
             {{-- Tabs --}}
             <div class="mt-5 border-b border-[#E2E4EC]">
@@ -430,6 +408,6 @@
                   </x-card>
                 </div>
             </div>
-            </div>
+        </x-profile-banner>
     </div>
 @endsection

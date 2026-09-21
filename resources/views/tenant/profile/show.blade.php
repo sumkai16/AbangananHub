@@ -3,16 +3,32 @@
 @section('hide_search', true)
 
 @section('content')
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-14 min-h-[calc(100vh-72px)]">
-
-
-        {{-- Hero profile card --}}
-        <x-profile-hero :user="$user" avatarShape="square">
+    @php
+        $liveReservations = $activeReservations->filter(fn ($r) => $r->property)->values();
+        $liveReviews = $reviews->filter(fn ($r) => $r->property)->values();
+        $tabs = ['overview' => 'Overview', 'reservations' => 'Reservations', 'reviews' => 'Reviews'];
+        $subtitle = implode(' · ', array_filter([$user->email, $user->contact_number, 'Member since ' . $user->created_at->format('F Y')]));
+        $starPath = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
+        $statusColors = [
+            'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
+            'Under Negotiation' => 'bg-[#ECEEF6] text-[#060D26]',
+            'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
+            'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
+            'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
+        ];
+        $ctaClass = 'inline-flex h-10 items-center gap-1.5 px-4 rounded-xl bg-[#FF8A66] text-[13px] font-semibold text-[#060D26] hover:bg-[#E96F4F] transition-colors duration-200';
+        $houseIcon = 'M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z';
+    @endphp
+    <div class="min-h-[calc(100vh-72px)] pb-10" x-data="{
+            tab: @js(array_keys($tabs)).includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview',
+            go(t) { this.tab = t; history.replaceState(null, '', '#' + t); }
+        }">
+        <x-profile-banner :user="$user" :subtitle="$subtitle" avatar-shape="square">
             <x-slot:badges>
-                <span class="bg-black/15 text-white text-[11px] font-medium px-2.5 py-1 rounded-full">Tenant</span>
+                <span class="rounded-full bg-[#ECEEF6] px-2.5 py-1 text-[11.5px] font-semibold text-[#060D26]">Tenant</span>
                 @if($user->hasRole('Landlord'))
-                    <span class="bg-white text-[#060D26] text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <span class="inline-flex items-center gap-1 rounded-full bg-[#15803D] px-2.5 py-1 text-[11.5px] font-semibold text-white">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Verified landlord
@@ -20,184 +36,235 @@
                 @endif
             </x-slot:badges>
             <x-slot:actions>
-                <a href="{{ route('tenant.profile.edit') }}" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-white/90 text-[13px] font-semibold text-[#060D26] transition-all duration-200">
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <a href="{{ route('tenant.profile.edit') }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white text-[13px] font-semibold text-[#060D26] hover:brightness-95 transition duration-200">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                     </svg>
                     Edit profile
                 </a>
             </x-slot:actions>
-        </x-profile-hero>
 
-        {{-- Stats row --}}
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            {{-- Rating as a tenant — what landlords rated this tenant. --}}
-            <x-card flush class="p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Rating as tenant</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                    </div>
+            {{-- Tabs --}}
+            <div class="mt-5 border-b border-[#E2E4EC]">
+                <div role="tablist" aria-label="Profile sections" class="flex gap-6 overflow-x-auto">
+                    @foreach($tabs as $key => $label)
+                        <button type="button" role="tab" id="tab-{{ $key }}" aria-controls="panel-{{ $key }}"
+                            :aria-selected="tab === '{{ $key }}'" @click="go('{{ $key }}')"
+                            :class="tab === '{{ $key }}' ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]'"
+                            class="whitespace-nowrap border-b-2 pb-3 text-[13.5px] font-bold transition-colors duration-200 cursor-pointer">{{ $label }}</button>
+                    @endforeach
                 </div>
-                @if($tenantRating['avg'] !== null)
-                    <span class="text-xl font-extrabold text-[#060D26]">{{ number_format($tenantRating['avg'], 1) }}</span>
-                    <span class="text-[12px] text-[#5B6A8E] font-normal ml-1">from {{ $tenantRating['count'] }} {{ Str::plural('landlord', $tenantRating['count']) }}</span>
-                @else
-                    <span class="text-xl font-extrabold text-[#94A3B8]">—</span>
-                    <span class="text-[12px] text-[#5B6A8E] font-normal ml-1">No ratings yet</span>
-                @endif
-            </x-card>
-            <x-card flush class="p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Saved</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75c-1.5-3.5-6-4-8.25-1.5-2.25 2.5-1.5 6 1.5 8.5L12 20l6.75-6.25c3-2.5 3.75-6 1.5-8.5-2.25-2.5-6.75-2-8.25 1.5z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-xl font-extrabold text-[#060D26]">{{ $favoritesCount }}</span>
-                <span class="text-[12px] text-[#5B6A8E] font-normal ml-1">{{ Str::plural('listing', $favoritesCount) }}</span>
-            </x-card>
-            <x-card flush class="p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Reviews</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-xl font-extrabold text-[#060D26]">{{ $reviews->count() }}</span>
-                <span class="text-[12px] text-[#5B6A8E] font-normal ml-1">written</span>
-            </x-card>
-            <x-card flush class="p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Reservations</span>
-                    <div class="w-7 h-7 rounded-lg bg-[#ECEEF6] flex items-center justify-center shrink-0">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                        </svg>
-                    </div>
-                </div>
-                <span class="text-xl font-extrabold text-[#060D26]">{{ $activeReservations->count() }}</span>
-                <span class="text-[12px] text-[#5B6A8E] font-normal ml-1">active</span>
-            </x-card>
-        </div>
+            </div>
 
-        {{-- Two-column: Reservations + Reviews --}}
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="py-6">
 
-            {{-- Active reservations --}}
-            <x-card flush class="p-5">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-9 h-9 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
-                        </svg>
-                    </div>
-                    <h2 class="text-[15px] font-normal text-[#060D26] flex-1">Active reservations</h2>
-                    <a href="{{ route('reservations.index') }}" class="text-[12px] font-semibold text-[#060D26] hover:underline">View all</a>
-                </div>
+                {{-- ── Overview ── --}}
+                <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" x-show="tab === 'overview'" x-cloak class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+                    <div class="lg:col-span-2 space-y-5">
 
-                @forelse($activeReservations as $reservation)
-                    @continue(!$reservation->property)
-                    <a href="{{ route('reservations.index') }}"
-                        class="group flex gap-3 items-center rounded-xl p-2.5 -mx-2.5 hover:bg-[#F7F8FC] transition-colors {{ !$loop->first ? 'mt-1.5' : '' }}">
-                        @php $thumb = $reservation->property->media->first(); @endphp
-                        @if($thumb)
-                            <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="w-16 h-14 rounded-lg object-cover flex-shrink-0">
-                        @else
-                            <div class="w-16 h-14 rounded-lg bg-[#ECEEF6] flex items-center justify-center flex-shrink-0">
-                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#B35A3D" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
-                                </svg>
+                        {{-- Numbers: how landlords rate them leads on navy. --}}
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="rounded-2xl bg-[#060D26] p-4 text-white">
+                                <p class="text-[12px] font-semibold text-white/70">Rating as tenant</p>
+                                @if($tenantRating['avg'] !== null)
+                                    <p class="mt-2 flex items-baseline gap-1.5">
+                                        <span class="text-[26px] font-extrabold leading-none tabular-nums">{{ number_format($tenantRating['avg'], 1) }}</span>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#FBBF24" aria-hidden="true"><path d="{{ $starPath }}" /></svg>
+                                    </p>
+                                    <p class="mt-2 text-[12px] text-white/65">From {{ $tenantRating['count'] }} {{ Str::plural('landlord', $tenantRating['count']) }}</p>
+                                @else
+                                    <p class="mt-2 text-[26px] font-extrabold leading-none text-white/60">&mdash;</p>
+                                    <p class="mt-2 text-[12px] text-white/65">No ratings yet</p>
+                                @endif
                             </div>
-                        @endif
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[13px] font-semibold text-[#060D26] truncate">{{ $reservation->property->title }}</p>
-                            <div class="mt-1.5">
-                                @php
-                                    $statusColors = [
-                                        'Inquiry' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
-                                        'Under Negotiation' => 'bg-[#ECEEF6] text-[#060D26]',
-                                        'Pending Rental Agreement' => 'bg-[#ECEEF6] text-[#060D26]',
-                                        'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
-                                        'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
-                                    ];
-                                    $color = $statusColors[$reservation->rental_status] ?? 'bg-[#F7F8FC] text-[#5B6A8E]';
-                                @endphp
-                                <span class="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full {{ $color }}">{{ $reservation->rental_status }}</span>
+                            <a href="{{ route('favorites.index') }}" class="group rounded-2xl border border-[#E2E4EC] bg-white p-4 hover:border-[#5B6A8E]/40 transition-colors duration-200">
+                                <p class="text-[12px] font-semibold text-[#5B6A8E]">Saved</p>
+                                <p class="mt-2 text-[26px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $favoritesCount }}</p>
+                                <p class="mt-2 text-[12px] text-[#5B6A8E] group-hover:text-[#060D26] transition-colors duration-200">{{ Str::plural('Listing', $favoritesCount) }} saved</p>
+                            </a>
+                            <div class="rounded-2xl border border-[#E2E4EC] bg-white p-4">
+                                <p class="text-[12px] font-semibold text-[#5B6A8E]">Reviews</p>
+                                <p class="mt-2 text-[26px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $reviews->count() }}</p>
+                                <p class="mt-2 text-[12px] text-[#5B6A8E]">Written by you</p>
+                            </div>
+                            <div class="rounded-2xl border border-[#E2E4EC] bg-white p-4">
+                                <p class="text-[12px] font-semibold text-[#5B6A8E]">Reservations</p>
+                                <p class="mt-2 text-[26px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $activeReservations->count() }}</p>
+                                <p class="mt-2 text-[12px] text-[#5B6A8E]">Active now</p>
                             </div>
                         </div>
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.8" class="shrink-0 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                        </svg>
-                    </a>
-                @empty
-                    <div class="py-9 text-center">
-                        <div class="w-11 h-11 rounded-xl bg-[#ECEEF6] flex items-center justify-center mx-auto mb-3">
-                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
-                            </svg>
-                        </div>
-                        <p class="text-[13px] text-[#5B6A8E] mb-3">No active reservations yet</p>
-                        <a href="{{ route('properties.index') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[12.5px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] transition-all">
-                            Browse properties
-                        </a>
-                    </div>
-                @endforelse
-            </x-card>
 
-            {{-- Recent reviews --}}
-            <x-card flush class="p-5">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-9 h-9 rounded-xl bg-[#FBBF24]/[0.10] flex items-center justify-center shrink-0">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
+                        {{-- About + contact --}}
+                        <x-card class="space-y-6">
+                            <div>
+                                <p class="text-[12px] font-semibold text-[#5B6A8E] mb-1.5">About</p>
+                                @if($user->bio)
+                                    <p class="text-[14px] leading-relaxed text-[#060D26] whitespace-pre-line">{{ $user->bio }}</p>
+                                @else
+                                    <p class="text-[14px] text-[#5B6A8E]">No bio yet. <a href="{{ route('tenant.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Tell landlords a bit about yourself.</a></p>
+                                @endif
+                            </div>
+                            <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-5 border-t border-[#E2E4EC] pt-6">
+                                <div class="min-w-0">
+                                    <dt class="text-[12px] font-semibold text-[#5B6A8E]">Email</dt>
+                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26] truncate" title="{{ $user->email }}">
+                                        <a href="mailto:{{ $user->email }}" class="hover:text-[#B35A3D] hover:underline">{{ $user->email }}</a>
+                                    </dd>
+                                    <p class="text-[12px] text-[#5B6A8E]">{{ $user->email_verified_at ? 'Email verified' : 'Email not verified' }}</p>
+                                </div>
+                                <div class="min-w-0">
+                                    <dt class="text-[12px] font-semibold text-[#5B6A8E]">Contact number</dt>
+                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26]">
+                                        @if($user->contact_number)
+                                            <a href="tel:{{ preg_replace('/[^\d+]/', '', $user->contact_number) }}" class="hover:text-[#B35A3D] hover:underline">{{ $user->contact_number }}</a>
+                                        @else
+                                            <span class="font-normal text-[#5B6A8E]">Not provided</span>
+                                        @endif
+                                    </dd>
+                                </div>
+                                <div class="min-w-0">
+                                    <dt class="text-[12px] font-semibold text-[#5B6A8E]">Member since</dt>
+                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26]">{{ $user->created_at->format('F Y') }}</dd>
+                                </div>
+                            </dl>
+                        </x-card>
                     </div>
-                    <h2 class="text-[15px] font-normal text-[#060D26]">Reviews you've written</h2>
+
+                    {{-- Right rail: glanceable summaries that hand off to their full tabs. --}}
+                    <aside class="space-y-5">
+                        <x-card>
+                            <div class="flex items-center justify-between gap-2">
+                                <h2 class="text-[16px] font-semibold text-[#060D26]">Active reservations</h2>
+                                @if($liveReservations->count())
+                                    <button type="button" @click="go('reservations')" class="text-[13px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">View all</button>
+                                @endif
+                            </div>
+                            @forelse($liveReservations->take(3) as $reservation)
+                                @php $thumb = $reservation->property->media->first(); @endphp
+                                <a href="{{ route('reservations.index') }}" class="group mt-3 flex items-center gap-3 rounded-xl p-2 -mx-2 hover:bg-[#F7F8FC] transition-colors duration-200">
+                                    <div class="h-12 w-14 shrink-0 overflow-hidden rounded-lg bg-[#ECEEF6]">
+                                        @if($thumb)
+                                            <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="h-full w-full object-cover">
+                                        @endif
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-[13.5px] font-semibold text-[#060D26] truncate group-hover:text-[#B35A3D] transition-colors duration-200">{{ $reservation->property->title }}</p>
+                                        <span class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium {{ $statusColors[$reservation->rental_status] ?? 'bg-[#F7F8FC] text-[#5B6A8E]' }}">{{ $reservation->rental_status }}</span>
+                                    </div>
+                                </a>
+                            @empty
+                                <p class="mt-3 text-[13.5px] text-[#5B6A8E]">No active reservations yet.</p>
+                                <a href="{{ route('properties.index') }}" class="{{ $ctaClass }} mt-3">Browse properties</a>
+                            @endforelse
+                        </x-card>
+
+                        <x-card>
+                            <div class="flex items-center justify-between gap-2">
+                                <h2 class="text-[16px] font-semibold text-[#060D26]">Your reviews</h2>
+                                @if($liveReviews->count())
+                                    <button type="button" @click="go('reviews')" class="text-[13px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">See all</button>
+                                @endif
+                            </div>
+                            @if($liveReviews->count())
+                                @php $latest = $liveReviews->first(); @endphp
+                                <figure class="mt-4 rounded-xl bg-[#F7F8FC] p-3.5">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <a href="{{ route('properties.show', $latest->property) }}" class="text-[13px] font-semibold text-[#060D26] hover:underline truncate">{{ $latest->property->title }}</a>
+                                        <div class="flex gap-0.5 shrink-0" aria-label="{{ $latest->rating }} out of 5 stars">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="{{ $i <= $latest->rating ? '#FBBF24' : '#E2E4EC' }}" aria-hidden="true"><path d="{{ $starPath }}" /></svg>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    <blockquote class="mt-2 text-[13px] leading-relaxed text-[#5B6A8E] line-clamp-3">{{ $latest->review_comment }}</blockquote>
+                                    <figcaption class="mt-2 text-[12px] text-[#5B6A8E]">{{ $latest->created_at->format('M d, Y') }}</figcaption>
+                                </figure>
+                            @else
+                                <p class="mt-3 text-[13.5px] text-[#5B6A8E]">No reviews written yet.</p>
+                                <p class="mt-1 text-[12.5px] text-[#5B6A8E]">Reviews appear here once you've completed a stay.</p>
+                            @endif
+                        </x-card>
+                    </aside>
                 </div>
 
-                @forelse($reviews as $review)
-                    @continue(!$review->property)
-                    <div class="py-3 {{ !$loop->first ? 'border-t border-[#5B6A8E]/10' : '' }}">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <a href="{{ route('properties.show', $review->property) }}"
-                                class="text-[13px] font-semibold text-[#060D26] hover:text-[#060D26] transition-colors truncate">{{ $review->property->title }}</a>
-                            <div class="flex gap-0.5 flex-shrink-0 ml-2">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="{{ $i <= $review->rating ? '#FBBF24' : '#E2E4EC' }}" stroke="none">
-                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                    </svg>
-                                @endfor
-                            </div>
-                        </div>
-                        <p class="text-[13px] text-[#5B6A8E] leading-relaxed line-clamp-2">{{ $review->review_comment }}</p>
-                        @if($review->landlord_reply)
-                            <div class="mt-2 pl-3 border-l-2 border-[#FF8A66]/30">
-                                <p class="text-[11px] font-semibold text-[#060D26]">Landlord reply</p>
-                                <p class="text-[12px] text-[#5B6A8E] leading-relaxed mt-0.5">{{ $review->landlord_reply }}</p>
-                            </div>
-                        @endif
-                        <p class="text-[11px] text-[#5B6A8E]/70 mt-1.5">{{ $review->created_at->format('M d, Y') }}</p>
+                {{-- ── Reservations ── --}}
+                <div id="panel-reservations" role="tabpanel" aria-labelledby="tab-reservations" x-show="tab === 'reservations'" x-cloak>
+                    <div class="flex items-baseline justify-between mb-4">
+                        <h2 class="text-[16px] font-semibold text-[#060D26]">Active reservations</h2>
+                        <a href="{{ route('reservations.index') }}" class="text-[13px] font-semibold text-[#B35A3D] hover:text-[#060D26] transition-colors duration-200">Manage reservations</a>
                     </div>
-                @empty
-                    <div class="py-9 text-center">
-                        <div class="w-11 h-11 rounded-xl bg-[#FBBF24]/[0.10] flex items-center justify-center mx-auto mb-3">
-                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#F59E0B" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                            </svg>
+                    @if($liveReservations->count())
+                        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                            @foreach($liveReservations as $reservation)
+                                @php $thumb = $reservation->property->media->first(); @endphp
+                                <li>
+                                    <a href="{{ route('reservations.index') }}" class="group block h-full overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white hover:border-[#5B6A8E]/40 transition-colors duration-200">
+                                        <div class="h-36 overflow-hidden bg-[#ECEEF6]">
+                                            @if($thumb)
+                                                <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="" class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300 motion-reduce:transition-none">
+                                            @else
+                                                <div class="h-full w-full flex items-center justify-center" aria-hidden="true">
+                                                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#5B6A8E" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $houseIcon }}" /></svg>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="p-3.5">
+                                            <p class="text-[14px] font-bold text-[#060D26] truncate group-hover:text-[#B35A3D] transition-colors duration-200">{{ $reservation->property->title }}</p>
+                                            <p class="mt-0.5 text-[12.5px] text-[#5B6A8E] truncate">{{ $reservation->property->property_type }} &middot; {{ $reservation->property->city_municipality }}</p>
+                                            <div class="mt-2 flex items-center justify-between gap-2">
+                                                <span class="rounded-full px-2 py-0.5 text-[11px] font-medium {{ $statusColors[$reservation->rental_status] ?? 'bg-[#F7F8FC] text-[#5B6A8E]' }}">{{ $reservation->rental_status }}</span>
+                                                @if($reservation->agreed_monthly_rent)
+                                                    <span class="text-[13px] font-bold text-[#060D26] tabular-nums">&#8369;{{ number_format($reservation->agreed_monthly_rent) }}<span class="text-[11.5px] font-normal text-[#5B6A8E]">/mo</span></span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="rounded-2xl border border-[#E2E4EC] bg-white py-10 text-center">
+                            <p class="text-[14px] font-semibold text-[#060D26]">No active reservations yet</p>
+                            <p class="mt-1 text-[13px] text-[#5B6A8E]">Find a place and send an inquiry to get started.</p>
+                            <a href="{{ route('properties.index') }}" class="{{ $ctaClass }} mt-4">Browse properties</a>
                         </div>
-                        <p class="text-[13px] text-[#5B6A8E]">No reviews written yet</p>
-                        <p class="text-[11.5px] text-[#5B6A8E]/80 mt-1">Reviews appear here once you've completed a stay.</p>
-                    </div>
-                @endforelse
-            </x-card>
-        </div>
+                    @endif
+                </div>
 
+                {{-- ── Reviews ── --}}
+                <div id="panel-reviews" role="tabpanel" aria-labelledby="tab-reviews" x-show="tab === 'reviews'" x-cloak>
+                    <x-card>
+                        <h2 class="text-[16px] font-semibold text-[#060D26] mb-2">Reviews you've written</h2>
+                        <div class="divide-y divide-[#5B6A8E]/10">
+                            @forelse($liveReviews as $review)
+                                <div class="py-4">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <a href="{{ route('properties.show', $review->property) }}" class="text-[14px] font-semibold text-[#060D26] hover:underline truncate">{{ $review->property->title }}</a>
+                                        <div class="flex gap-0.5 shrink-0" aria-label="{{ $review->rating }} out of 5 stars">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="{{ $i <= $review->rating ? '#FBBF24' : '#E2E4EC' }}" aria-hidden="true"><path d="{{ $starPath }}" /></svg>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    <p class="text-[13.5px] text-[#5B6A8E] leading-relaxed">{{ $review->review_comment }}</p>
+                                    @if($review->landlord_reply)
+                                        <div class="mt-2.5 pl-3 border-l-2 border-[#FF8A66]/40">
+                                            <p class="text-[12px] font-semibold text-[#060D26]">Landlord reply</p>
+                                            <p class="mt-0.5 text-[13px] text-[#5B6A8E] leading-relaxed">{{ $review->landlord_reply }}</p>
+                                        </div>
+                                    @endif
+                                    <p class="mt-2 text-[12px] text-[#5B6A8E]">{{ $review->created_at->format('M d, Y') }}</p>
+                                </div>
+                            @empty
+                                <div class="py-8 text-center">
+                                    <p class="text-[14px] font-semibold text-[#060D26]">No reviews written yet</p>
+                                    <p class="mt-1 text-[13px] text-[#5B6A8E]">Reviews appear here once you've completed a stay.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </x-card>
+                </div>
+            </div>
+        </x-profile-banner>
     </div>
 @endsection
