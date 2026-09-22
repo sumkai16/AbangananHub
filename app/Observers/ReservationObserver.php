@@ -6,6 +6,8 @@ use App\Events\HandoverScheduleUpdated;
 use App\Events\ReservationStatusUpdated;
 use App\Models\Notification;
 use App\Models\Reservation;
+use Illuminate\Broadcasting\BroadcastException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Broadcasts every rental_status transition and raises the matching
@@ -54,17 +56,17 @@ class ReservationObserver
         // future, can change the slot without the other party's open panel
         // being told.
         if ($reservation->wasChanged(['handover_at', 'handover_confirmed_at'])) {
-            HandoverScheduleUpdated::dispatch($reservation);
+            $this->broadcastQuietly(fn () => HandoverScheduleUpdated::dispatch($reservation));
         }
 
         if (! $reservation->wasChanged('rental_status')) {
             return;
         }
 
-        ReservationStatusUpdated::dispatch(
+        $this->broadcastQuietly(fn () => ReservationStatusUpdated::dispatch(
             $reservation,
             $reservation->getOriginal('rental_status'),
-        );
+        ));
 
         $this->notifyTransition($reservation);
     }
@@ -137,5 +139,26 @@ class ReservationObserver
     private function threadLink(Reservation $reservation): string
     {
         return route('conversations.index', ['active' => $reservation->conversation_id]);
+    }
+
+    /**
+     * Both events here implement ShouldBroadcastNow, so they reach out to
+     * Reverb synchronously from inside whatever transaction triggered the
+     * save() (e.g. AgreementController::sign()). A stopped/unreachable
+     * Reverb throws BroadcastException here, which would otherwise abort
+     * and roll back the entire caller action just because nobody's
+     * listening for the live update — the rental_status row is already
+     * written and is the change of record; the broadcast is a nice-to-have
+     * real-time nudge on top of it. Same pattern as Notification::notify().
+     */
+    private function broadcastQuietly(\Closure $dispatch): void
+    {
+        try {
+            $dispatch();
+        } catch (BroadcastException $e) {
+            Log::warning('Reservation event broadcast failed, continuing without it', [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

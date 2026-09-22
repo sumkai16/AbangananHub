@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Events\MessageSent;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class Reservation extends Model
 {
@@ -745,10 +747,22 @@ public ?Payment $releasedPayment = null;
             'is_read' => true,
         ]);
 
-        // Without this the row exists but only the party who triggered the
-        // transition ever sees it — they get a fresh render from their own
-        // POST, while the other side's thread stays stale until reload.
-        MessageSent::dispatch($message);
+        // MessageSent implements ShouldBroadcastNow, so this reaches out to
+        // Reverb synchronously, inline in whatever transaction the caller is
+        // in (e.g. AgreementController::sign()). A stopped/unreachable Reverb
+        // throws BroadcastException here, which would otherwise abort and
+        // roll back the entire caller action just because nobody's listening
+        // for the live update — the message row above is already written and
+        // is the message of record; the broadcast is a nice-to-have real-time
+        // nudge on top of it. Same pattern as Notification::notify().
+        try {
+            MessageSent::dispatch($message);
+        } catch (BroadcastException $e) {
+            Log::warning('Message broadcast failed, continuing without it', [
+                'message_id' => $message->message_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
