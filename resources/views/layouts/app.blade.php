@@ -339,7 +339,8 @@
                             <div class="h-px bg-[#E2E4EC] mx-2 my-1.5"></div>
 
                             {{-- Sign out --}}
-                            <form action="{{ route('logout') }}" method="POST">
+                            <form action="{{ route('logout') }}" method="POST"
+                                data-confirm="Sign out?" data-confirm-message="You'll need to log in again to continue." data-confirm-button="Sign out">
                                 @csrf
                                 <button type="submit"
                                     class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#EF4444] hover:bg-[#EF4444]/[0.07] transition-colors cursor-pointer">
@@ -546,12 +547,39 @@
             <div class="bg-white rounded-[24px] shadow-2xl max-w-[820px] w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
                 id="auth-modal-content" role="dialog" aria-modal="true" aria-label="Log in or create an account">
 
-                {{-- Left brand panel (split) — photo + navy overlay, same language as the landing hero --}}
+                {{-- Left brand panel (split) — photo + navy overlay, same language as the landing hero.
+                     Floating trust chips + glyph + heading/subtitle form one shared shell (§6k) — only
+                     the two text nodes swap per view via the sideCopy map in openAuthModal(). --}}
                 <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-[#060D26] p-8 flex-col justify-end text-white">
-                    <img src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover">
+                    {{-- Not lazy: this img sits inside a display:none ancestor until the modal opens, so
+                         native lazy-loading can't compute intersection until then — it would only start
+                         fetching on open, popping the photo in after the panel is already visible. --}}
+                    <img src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 via-[#060D26]/45 to-[#060D26]/90"></div>
 
+                    {{-- Floating trust chips — same recipe as the landlord CTA figure on
+                         properties/index.blade.php (white rounded-2xl chip, tinted icon circle,
+                         motion-safe float via the global `owner-float` keyframe in app.css). Real
+                         platform claims already used elsewhere, not invented stats. --}}
+                    <div class="absolute top-6 left-6 z-10 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
+                        <span class="w-8 h-8 rounded-full bg-[#E7F6EC] text-[#1F8A4C] flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        </span>
+                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Verified<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Landlords only</span></span>
+                    </div>
+                    <div class="absolute top-[6.75rem] right-6 z-10 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
+                        <span class="w-8 h-8 rounded-full bg-[#FFE9E1] text-[#B35A3D] flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        </span>
+                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Deposits<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Escrow-protected</span></span>
+                    </div>
+
                     <div class="relative z-10">
+                        <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-4">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                        </div>
                         <h3 id="auth-side-title" class="font-jakarta text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
                         <p id="auth-side-subtitle" class="text-white/75 text-[13px] mt-3 leading-relaxed max-w-[17rem]">
                             Pick up where you left off.

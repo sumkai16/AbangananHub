@@ -14,7 +14,8 @@
             </div>
         </form>
 
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}"
+            data-confirm="Sign out?" data-confirm-message="You'll need to log in again to continue." data-confirm-button="Sign out">
             @csrf
 
             <button type="submit" class="underline text-sm text-[#5B6A8E] hover:text-[#060D26] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF8A66]">

@@ -678,12 +678,12 @@
     @if($heroStats)
         {{-- How it works — after the listings, where it reassures rather than blocks the way to them. --}}
         {{-- Slides up into view the first time it scrolls on screen; steps stagger 150ms apart. --}}
-        <section class="relative isolate overflow-hidden bg-white border-t border-[#E2E4EC]" aria-labelledby="how-it-works-title" data-parallax-scope
+        <section class="relative isolate overflow-hidden bg-white border-t border-[#E2E4EC]" aria-labelledby="how-it-works-title"
             x-data="{ shown: false }"
             x-init="if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) { shown = true; return; }
                     const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { shown = true; io.disconnect(); } }, { threshold: 0.25 });
                     io.observe($el);">
-            <x-section-texture compact parallax />
+            <x-section-texture compact />
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
                 <h2 id="how-it-works-title" class="sr-only">How AbangananHub works</h2>
                 <ol class="grid gap-8 sm:grid-cols-3 sm:gap-10">
@@ -695,7 +695,7 @@
                         <li class="transition-all duration-700 ease-out"
                             style="transition-delay: {{ $i * 150 }}ms"
                             :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
-                            <span data-parallax="{{ -6 - $i * 3 }}" class="block font-jakarta text-[32px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">{{ $num }}</span>
+                            <span class="font-jakarta text-[32px] font-extrabold leading-none tracking-tight text-[#060D26] tabular-nums">{{ $num }}</span>
                             <span class="mt-2 block h-0.5 rounded-full bg-[#FF8A66] transition-all duration-700 ease-out"
                                 style="transition-delay: {{ $i * 150 + 300 }}ms"
                                 :class="shown ? 'w-8' : 'w-0'" aria-hidden="true"></span>
@@ -724,8 +724,8 @@
                 ['A Verified badge that builds tenant trust', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
             ];
         @endphp
-        <section class="relative isolate overflow-hidden bg-[#ECEEF6]" aria-labelledby="landlord-cta-title" data-parallax-scope>
-            <x-section-texture compact parallax />
+        <section class="relative isolate overflow-hidden bg-[#ECEEF6]" aria-labelledby="landlord-cta-title">
+            <x-section-texture compact />
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 grid gap-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-center lg:gap-16">
                 <div>
                     <p class="font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#B35A3D]">For property owners</p>
@@ -762,7 +762,7 @@
                         $litLeft  = [[1,0,0],[0,1,0],[1,0,1]];
                         $litRight = [[0,1,1],[1,0,0],[0,1,0],[1,1,0]];
                     @endphp
-                    <svg data-parallax="10" viewBox="0 0 260 310" class="absolute left-[43%] bottom-[2%] -translate-x-1/2 h-[90%] w-auto" fill="none">
+                    <svg viewBox="0 0 260 310" class="absolute left-[43%] bottom-[2%] -translate-x-1/2 h-[90%] w-auto" fill="none">
                         <defs>
                             <linearGradient id="ow-left" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1C2858"/><stop offset="1" stop-color="#2A3A78"/></linearGradient>
                             <linearGradient id="ow-right" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4356A6"/><stop offset="1" stop-color="#2E3F86"/></linearGradient>
@@ -814,7 +814,7 @@
                     </svg>
 
                     {{-- 3D-style landlord: rounded "clay" shapes with gradients and soft highlights. --}}
-                    <svg data-parallax="-14" viewBox="0 0 110 236" class="absolute bottom-[3%] left-[62%] h-[56%] w-auto" fill="none">
+                    <svg viewBox="0 0 110 236" class="absolute bottom-[3%] left-[62%] h-[56%] w-auto" fill="none">
                         <defs>
                             <radialGradient id="ow-skin" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#FFDCC6"/><stop offset="1" stop-color="#E29A78"/></radialGradient>
                             <linearGradient id="ow-jacket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB094"/><stop offset="1" stop-color="#E2603C"/></linearGradient>
@@ -858,31 +858,32 @@
                         <path d="M49 46c3.5 3.5 8.5 3.5 12 0" stroke="#1B2140" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
 
-                    <div data-parallax="-14" class="absolute top-6 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
+                    <div class="absolute top-6 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
                         <span class="w-8 h-8 rounded-full bg-[#E7F6EC] text-[#1F8A4C] flex items-center justify-center">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $ownerPerks[3][1] }}" /></svg>
                         </span>
                         <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Verified<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Landlord</span></span>
                     </div>
-                    <div data-parallax="-18" class="absolute top-24 right-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
+                    <div class="absolute top-24 right-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
                         <span class="w-8 h-8 rounded-full bg-[#FFE9E1] text-[#B35A3D] flex items-center justify-center">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H19a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14z" /></svg>
                         </span>
                         <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">New inquiry<span class="block text-[10.5px] font-medium text-[#5B6A8E]">A tenant is interested</span></span>
                     </div>
-                    <div data-parallax="-12" class="absolute bottom-10 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_8s_ease-in-out_-4s_infinite]">
+                    <div class="absolute bottom-10 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_8s_ease-in-out_-4s_infinite]">
                         <span class="w-8 h-8 rounded-full bg-[#E8ECFA] text-[#2A3A75] flex items-center justify-center text-[15px] font-extrabold">&#8369;</span>
                         <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Rent received<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Tracked automatically</span></span>
                     </div>
                 </div>
-                <style>@keyframes owner-cta-pulse { 0% { opacity: .55; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.14, 1.35); } }
-                @keyframes owner-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }</style>
+                {{-- owner-float now lives in resources/css/app.css (global) so the auth modal's
+                     brand panel can reuse the same chip-float animation. --}}
+                <style>@keyframes owner-cta-pulse { 0% { opacity: .55; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.14, 1.35); } }</style>
             </div>
         </section>
     @endif
 
     @push('scripts')
-        @vite(['resources/js/maps/browse-map.js', 'resources/js/browse-live.js', 'resources/js/parallax.js'])
+        @vite(['resources/js/maps/browse-map.js', 'resources/js/browse-live.js'])
         <script>
             (function () {
                 function toggleFavorite(button) {

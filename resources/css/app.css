@@ -246,6 +246,10 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
 @keyframes page-fade-out { to { opacity: 0; } }
 @keyframes page-fade-in { from { opacity: 0; transform: translateY(6px); } }
 
+/* Gentle float for small white trust/status chips over a photo or dark ground
+   (auth modal brand panel, landlord CTA figure on properties/index). */
+@keyframes owner-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
 ::view-transition-old(root) { animation: 140ms ease-in both page-fade-out; }
 ::view-transition-new(root) { animation: 260ms ease-out both page-fade-in; }
 #site-header { view-transition-name: site-header; }

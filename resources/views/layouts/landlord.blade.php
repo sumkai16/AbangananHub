@@ -320,7 +320,8 @@
                             {{ auth()->user()->last_name }}</span>
                         <span class="block text-[12px] text-white/50">Landlord</span>
                     </span>
-                    <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                    <form action="{{ route('logout') }}" method="POST" class="shrink-0"
+                        data-confirm="Sign out?" data-confirm-message="You'll need to log in again to continue." data-confirm-button="Sign out">
                         @csrf
                         <button type="submit" title="Sign out" aria-label="Sign out"
                             class="group/so relative w-10 h-10 flex items-center justify-center rounded-lg text-white/30 hover:text-[#DC2626] hover:bg-white/[0.06] transition-colors">

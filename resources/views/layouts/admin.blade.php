@@ -485,7 +485,8 @@
                         <span class="block text-[12px] font-semibold text-white truncate">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
                         <span class="block text-[10px] text-white/40">Administrator</span>
                     </span>
-                    <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                    <form action="{{ route('logout') }}" method="POST" class="shrink-0"
+                        data-confirm="Sign out?" data-confirm-message="You'll need to log in again to continue." data-confirm-button="Sign out">
                         @csrf
                         <button type="submit" title="Sign out"
                             class="group/so relative w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-[#DC2626] hover:bg-white/[0.06] transition-colors">
