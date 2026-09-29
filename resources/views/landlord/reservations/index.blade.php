@@ -135,7 +135,7 @@
                 <div class="flex items-center gap-0.5 h-10 p-1 rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] ml-auto">
                     <button type="button" x-on:click="setView('table')" aria-label="Table view"
                         :class="view === 'table' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
-                        class="h-8 w-8 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                        class="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
@@ -239,7 +239,11 @@
                     $derived[$reservation->reservation_id] = compact('modalData', 'initials', 'moveIn', 'photo');
                 }
             @endphp
-            <div x-show="view === 'table'" class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] overflow-hidden">
+            {{-- max-lg:!hidden guards against 'table' being the default (or a
+                 stale localStorage) preference on a phone — !important beats
+                 Alpine's inline x-show style at that breakpoint, so mobile
+                 always gets the card grid below regardless of stored view. --}}
+            <div x-show="view === 'table'" class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] overflow-hidden max-lg:!hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[900px] text-left">
                         <thead>
@@ -431,8 +435,11 @@
                 </div>
             </div>
 
-            {{-- Card view --}}
-            <div x-show="view === 'grid'" x-cloak>
+            {{-- Card view — max-lg:!block forces this on for phones regardless
+                 of the stored 'view' preference (see the table block above).
+                 No x-cloak here: this must paint immediately on mobile, not
+                 wait for Alpine's init to remove a cloak attribute. --}}
+            <div x-show="view === 'grid'" class="max-lg:!block">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach($reservations as $reservation)
                         @continue(!$reservation->property)

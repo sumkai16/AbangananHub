@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Landlord;
 
+use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
 use Illuminate\Http\Request;
@@ -9,12 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PropertyController extends Controller
 {
-    private function authorizeProperty(Property $property): void
-    {
-        if ($property->landlord_id !== Auth::user()->user_id) {
-            abort(403);
-        }
-    }
+    use AuthorizesPropertyOwnership;
 
     public function index(Request $request)
     {

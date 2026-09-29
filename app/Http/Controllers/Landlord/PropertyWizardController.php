@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Landlord;
 
+use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use App\Models\Property;
@@ -24,14 +25,9 @@ use Illuminate\Validation\ValidationException;
  */
 class PropertyWizardController extends Controller
 {
-    private const REQUIRED_DOCUMENT_TYPES = ['Proof of Ownership', 'Tax Declaration', 'Business Permit'];
+    use AuthorizesPropertyOwnership;
 
-    private function authorizeProperty(Property $property): void
-    {
-        if ($property->landlord_id !== Auth::user()->user_id) {
-            abort(403);
-        }
-    }
+    private const REQUIRED_DOCUMENT_TYPES = ['Proof of Ownership', 'Tax Declaration', 'Business Permit'];
 
     /**
      * The wizard only ever edits a Draft. Once submitted, changes go

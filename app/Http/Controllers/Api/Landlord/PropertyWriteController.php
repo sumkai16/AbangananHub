@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Landlord;
 
+use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\StorePropertyRequest;
 use App\Http\Requests\Landlord\UpdatePropertyRequest;
@@ -19,10 +20,7 @@ use Illuminate\Support\Facades\DB;
  */
 class PropertyWriteController extends Controller
 {
-    private function authorizeProperty(Property $property): void
-    {
-        abort_if($property->landlord_id !== auth()->id(), 403);
-    }
+    use AuthorizesPropertyOwnership;
 
     public function store(StorePropertyRequest $request): JsonResponse
     {

@@ -2,23 +2,19 @@
 
 namespace App\Http\Controllers\Landlord;
 
+use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class PropertyUnitController extends Controller
 {
-    private function authorizeProperty(Property $property): void
-    {
-        if ($property->landlord_id !== Auth::user()->user_id) {
-            abort(403);
-        }
-    }
+    use AuthorizesPropertyOwnership;
 
     public function index(Property $property)
     {
@@ -287,7 +283,11 @@ class PropertyUnitController extends Controller
                     $publicId = pathinfo(parse_url($media->media_url, PHP_URL_PATH), PATHINFO_FILENAME);
                     cloudinary()->uploadApi()->destroy('abanganan/units/' . $publicId);
                 } catch (\Exception $e) {
-                    // Log but don't block deletion
+                    Log::warning('Cloudinary media delete failed', [
+                        'media_id' => $media->media_id,
+                        'media_url' => $media->media_url,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
             $media->delete();
@@ -325,7 +325,11 @@ class PropertyUnitController extends Controller
                 $publicId = pathinfo(parse_url($photo->media_url, PHP_URL_PATH), PATHINFO_FILENAME);
                 cloudinary()->uploadApi()->destroy('abanganan/units/' . $publicId);
             } catch (\Exception $e) {
-                // Log but don't block deletion
+                Log::warning('Cloudinary media delete failed', [
+                    'media_id' => $photo->media_id,
+                    'media_url' => $photo->media_url,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
         $photo->delete();

@@ -63,7 +63,22 @@
                     <p class="text-[13px] text-[#5B6A8E]">Nothing pending — you're all caught up.</p>
                 </div>
             @else
-                <div class="overflow-x-auto scrollbar-thin-light">
+                {{-- Mobile card list — same data as the table below, stacked for a phone screen --}}
+                <div class="lg:hidden divide-y divide-[#E2E4EC]">
+                    @foreach ($pending as $payment)
+                        @php $tenant = $payment->reservation?->tenant; @endphp
+                        <div class="px-5 py-3.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="text-[13.5px] font-semibold text-[#060D26] truncate">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
+                                <p class="text-[13.5px] font-semibold text-[#060D26] shrink-0">₱{{ number_format($payment->amount, 2) }}</p>
+                            </div>
+                            <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $payment->reservation?->unit?->unit_label ?? '—' }} · {{ $payment->payment_type }}</p>
+                            <p class="mt-0.5 text-[11.5px] text-[#94A3B8]">Settled {{ ($payment->released_at ?? $payment->paid_at)?->format('M d, Y') ?? '—' }}</p>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="hidden lg:block overflow-x-auto scrollbar-thin-light">
                     <table class="min-w-full">
                         <thead>
                             <tr class="bg-[#F8FAFC] text-left">
@@ -104,7 +119,22 @@
                     <p class="text-[13px] text-[#5B6A8E]">No payouts recorded yet.</p>
                 </div>
             @else
-                <div class="overflow-x-auto scrollbar-thin-light">
+                {{-- Mobile card list — same data as the table below, stacked for a phone screen --}}
+                <div class="lg:hidden divide-y divide-[#E2E4EC]">
+                    @foreach ($paidOut as $payment)
+                        @php $tenant = $payment->reservation?->tenant; @endphp
+                        <div class="px-5 py-3.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="text-[13.5px] font-semibold text-[#060D26] truncate">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
+                                <p class="text-[13.5px] font-semibold text-[#060D26] shrink-0">₱{{ number_format($payment->amount, 2) }}</p>
+                            </div>
+                            <p class="mt-0.5 text-[12px] text-[#5B6A8E]">Ref: {{ $payment->payout_reference }}</p>
+                            <p class="mt-0.5 text-[11.5px] text-[#94A3B8]">Paid out {{ $payment->paid_out_at?->format('M d, Y') }}</p>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="hidden lg:block overflow-x-auto scrollbar-thin-light">
                     <table class="min-w-full">
                         <thead>
                             <tr class="bg-[#F8FAFC] text-left">

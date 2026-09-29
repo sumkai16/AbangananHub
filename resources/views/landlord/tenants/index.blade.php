@@ -119,7 +119,7 @@
                         </button>
                         <button type="button" x-on:click="setView('table')" aria-label="Table view"
                             :class="view === 'table' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
-                            class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                            class="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
@@ -277,8 +277,14 @@
                 @endforeach
             </div>
 
-            {{-- Table view --}}
-            <x-card flush x-show="view === 'table'" x-cloak>
+            {{-- Table view — max-lg:hidden guards against a stale 'table'
+                 preference from localStorage: without it, a landlord who once
+                 switched to table view on desktop would get the horizontal-
+                 scroll table on their phone too, with no way back to cards
+                 short of clearing storage. Grid view has no such gap (it's
+                 already the default and works at every width), so this is
+                 the one place the toggle needed a floor. --}}
+            <x-card flush x-show="view === 'table'" x-cloak class="max-lg:hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[820px] text-left">
                         <thead>
