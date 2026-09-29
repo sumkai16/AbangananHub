@@ -186,6 +186,12 @@
                                             Walk-in
                                         </span>
                                     @endif
+                                    @if($reservation->leaseStatus() === 'missing')
+                                        <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold shrink-0"
+                                            title="No signed lease on file — upload it from the tenancy page">
+                                            Lease missing
+                                        </span>
+                                    @endif
                                 </div>
                                 <p class="text-[12px] text-[#5B6A8E] truncate">{{ $reservation->tenant->email ?: 'No email' }}</p>
                             </div>
@@ -325,6 +331,12 @@
                                                         <span class="inline-flex items-center h-4 px-1.5 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[9.5px] font-bold shrink-0"
                                                             title="Added by you — identity not verified by AbangananHub">
                                                             Walk-in
+                                                        </span>
+                                                    @endif
+                                                    @if($reservation->leaseStatus() === 'missing')
+                                                        <span class="inline-flex items-center h-4 px-1.5 rounded-full border border-[#E2E4EC] text-[#5B6A8E] text-[9.5px] font-bold shrink-0"
+                                                            title="No signed lease on file — upload it from the tenancy page">
+                                                            No lease
                                                         </span>
                                                     @endif
                                                 </div>

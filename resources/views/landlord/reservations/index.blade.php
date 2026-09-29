@@ -38,6 +38,8 @@
             </x-slot:actions>
         </x-page-header>
 
+        @include('landlord.reservations._section-tabs', ['active' => 'requests', 'pendingViewings' => $pendingViewings])
+
         @if($errors->any())
             <div class="mb-6 bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ $errors->first() }}

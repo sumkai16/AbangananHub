@@ -449,6 +449,12 @@
                                 // sees the system message arrive while the strip
                                 // that lets them answer it stays stale.
                                 this.refreshPanel();
+                            })
+                            .listen('.ViewingScheduleUpdated', () => {
+                                // And once more for viewings: requesting,
+                                // confirming or rescheduling one touches no
+                                // reservation or payment status either.
+                                this.refreshPanel();
                             });
                     },
 

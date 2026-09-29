@@ -151,6 +151,26 @@ Clock 2 releases only once the deadline **day** has fully passed, not the deadli
 
 **Phase 1 limitation:** Clock 1 expiry escalates to a human rather than auto-refunding, because PayMongo's programmatic refund support is unverified. The admin queue therefore drains only via release-to-landlord; there is **no refund action anywhere in the app**. What can honestly be promised a tenant today is "an admin will review it", not "you get your money back". See `docs/specs/2026-07-22-move-in-confirmation-window-design.md`.
 
+### Formal Lease (Sept 28 2026)
+One lease for both ways a tenancy is born. See `plans/formal-lease-agreement.md`.
+- **Content:** `App\Support\LeaseTerms` builds the terms (parties, premises, term, rent + due day, deposit, utilities, house rules, occupants, `lease_notice_days`, extra terms); `leases/_document.blade.php` renders the clauses. Template text, not legal advice — the footer says so.
+- **Frozen at issue:** `reservations.lease_snapshot`, written in `Reservation::advanceToPendingAgreement()` (online) and `WalkInTenantController::store` (walk-in). Before this, `agreements/show` read live property/unit data, so a landlord editing house rules after signing silently changed a signed contract. Rows without a snapshot still render live.
+- **Online:** unchanged order — agreement → e-sign → payment; the tenant now signs the full lease.
+- **Walk-in:** the form's new Lease step sits before Initial payment: upload the signed copy now, or "Upload later" (tenancy + tenants list show *Lease missing*). The landlord prints the lease from `landlord/tenancies/{id}/lease` (blank signature lines), and uploads from the tenancy page. No stored Pending status — a walk-in is landlord-asserted, so a pending state would only be the landlord approving themselves, and it would block recording tenants who already live there.
+- **Files:** private `local` disk; stored before the DB transaction and deleted again if it throws, so a refused walk-in leaves no orphan.
+- **Access:** `viewLease` (tenant or the property's landlord) / `manageLease` (landlord). `viewAgreement` stays tenant-only — it's the signing page.
+
+### Unit Viewings (Sept 2026)
+Additive — never touches `rental_status`, payments or escrow. See `plans/unit-viewing-scheduling.md`.
+- **Online:** in `Under Negotiation` / `Pending Rental Agreement` the tenant requests a slot from the chat card (`conversations/partials/_viewing-card`). Rescheduling is symmetric like the handover: whoever proposes the current time is `proposed_by`, the other party confirms or declines. `App\Http\Controllers\ViewingController` owns every online action; the landlord's Viewings tab posts to the same routes.
+- **Offline:** `Landlord\ViewingController` logs a visit arranged by phone or in person — visitor name/phone, no account, no reservation, saved Confirmed. Only the landlord edits or cancels it; there's nobody to message or notify.
+- **Where the landlord sees them:** a Viewings tab on the Reservations page (`/landlord/reservations/viewings`) — month calendar, one list filtered by the tapped day, block/unblock a day.
+- **Rules live in one place:** `ViewingRequest::slotProblem()` (future, ≤ `viewing_max_days_ahead`, on the hour, inside the landlord's weekly hours, not a blocked day) is checked by every write path.
+- **Weekly hours** (`landlord_viewing_hours`, "Viewing hours" on the Viewings tab): which weekdays and from/until when. Unset = every day on the config default. Changing them never touches viewings already booked. Offline viewings skip them (`slotProblem(..., weeklyHours: false)`) — the landlord arranged those directly.
+- **Open vs active:** *active* = Pending/Confirmed; *open* = active and still ahead. One open viewing per reservation, so a past viewing doesn't stop the tenant asking for a second look.
+- **Live refresh:** `ViewingScheduleUpdated` on the conversation channel, dispatched after commit via `ViewingRequest::broadcastUpdate()` (guarded — a stopped Reverb can't fail the action). Fourth instance of the "scheduling moves no status" event shape, after payment settling and handover.
+- **Reservation ends → viewings cancelled** in `ReservationObserver::cancelViewingsIfEnded()`, hooked on the save like every other status side effect.
+
 ### Post-Auth Destination
 Every auth entry point — login, registration, social login, both `VerifyEmailController` paths, the verification prompt, verification resend, and password confirm — resolves its redirect through `User::homeRoute()`: Admin → `admin.dashboard`, Landlord → `landlord.dashboard`, everyone else → `properties.index`.
 **There is no tenant dashboard and no bare `dashboard` route** — only `admin.dashboard` and `landlord.dashboard` exist. Adding a role means adding its home to `homeRoute()`; every auth entry point then follows automatically.

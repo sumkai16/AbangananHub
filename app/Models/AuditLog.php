@@ -30,6 +30,8 @@ class AuditLog extends Model
     public const DESTRUCTIVE_ACTIONS = [
         'payment.release',
         'payment.void',
+        'deposit_charge.create',
+        'deposit_charge.void',
         'user.delete',
         'user.status_change',
         'reservation.force_cancel',
@@ -51,6 +53,8 @@ class AuditLog extends Model
         // other row here is an admin action. See admin/audit-logs/index for
         // the "Admin" → "Actor" column rename this implied.
         'payment.void'              => 'Payment voided',
+        'deposit_charge.create'     => 'Deposit charge recorded',
+        'deposit_charge.void'       => 'Deposit charge voided',
         'user.create'               => 'User created',
         'user.update'               => 'User updated',
         'user.status_change'        => 'User status changed',

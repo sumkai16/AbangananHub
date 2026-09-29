@@ -4,9 +4,10 @@
     @php
         $landlord = $reservation->property->landlord;
         $tenant = $reservation->tenant;
-        // Stable, human-quotable identifier. A contract people are asked to
-        // sign needs something to reference it by in a dispute or a message.
-        $agreementRef = 'AGR-' . $reservation->created_at->format('Y') . '-' . str_pad($reservation->reservation_id, 5, '0', STR_PAD_LEFT);
+        // Frozen when the landlord sent the agreement, so what the tenant
+        // signed can't change when the property is edited later.
+        $terms = \App\Support\LeaseTerms::for($reservation);
+        $agreementRef = $terms['reference'];
         $heldPayment = $reservation->payments->where('status', 'Held')->first();
         $hasPayment = $reservation->payments->whereIn('status', ['Pending', 'Held', 'Paid', 'Released'])->isNotEmpty();
         $processingPayment = $hasPayment && !$heldPayment && !$reservation->isOccupied();
@@ -39,9 +40,9 @@
 
         {{-- Page header — bare on the background per DESIGN.md §6b --}}
         <div class="mb-6">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h1 class="text-2xl font-normal text-[#060D26]">Rental Agreement</h1>
-                <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider">{{ $agreementRef }}</p>
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5">
+                <h1 class="font-heading font-normal text-[32px] text-[#060D26]">Lease Agreement</h1>
+                <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums border border-[#E2E4EC] rounded-full px-2.5 py-1">{{ $agreementRef }}</p>
             </div>
             <p class="text-sm text-[#5B6A8E] mt-1 print:hidden">Please read the terms below carefully before signing.</p>
         </div>
@@ -53,98 +54,8 @@
         {{-- flush: the card's default p-5 sm:p-6 would collide with the wider
              padding this document wants, and with print:p-0. --}}
         <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0">
-
-            {{-- ===== Parties ===== --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
-                    <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">Landlord</p>
-                    <p class="text-[14px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
-                    <p class="text-[11.5px] text-[#5B6A8E] mt-0.5 break-words">{{ $landlord->email }}</p>
-                    @if($landlord->contact_number)
-                        <p class="text-[11.5px] text-[#5B6A8E]">{{ $landlord->contact_number }}</p>
-                    @endif
-                </div>
-                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
-                    <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">Tenant</p>
-                    <p class="text-[14px] font-bold text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
-                    <p class="text-[11.5px] text-[#5B6A8E] mt-0.5 break-words">{{ $tenant->email }}</p>
-                    @if($tenant->contact_number)
-                        <p class="text-[11.5px] text-[#5B6A8E]">{{ $tenant->contact_number }}</p>
-                    @endif
-                </div>
-            </div>
-
-            {{-- ===== The agreement body =====
-                 No border or tint: this is the document text itself, so it sits
-                 directly on the sheet. Boxing it inside the card that already
-                 frames it was a third nested border for no added meaning. --}}
-            <div class="text-[#060D26] leading-relaxed">
-                <p class="text-[13.5px] leading-relaxed">
-                    This Rental Agreement is entered into between
-                    <strong>{{ $landlord->first_name }} {{ $landlord->last_name }}</strong> ("Landlord")
-                    and <strong>{{ $tenant->first_name }} {{ $tenant->last_name }}</strong> ("Tenant"),
-                    concerning the rental of the property located at:
-                </p>
-
-                <p class="font-bold text-[#060D26] text-[14px] mt-3">{{ $reservation->property->address }}</p>
-                <p class="text-[12px] text-[#5B6A8E] mt-0.5">
-                    {{ $reservation->property->title }} &middot; {{ $reservation->unit->unit_label }}
-                </p>
-
-                <dl class="mt-5 divide-y divide-[#E2E4EC] border-t border-[#E2E4EC]">
-                    <div class="flex items-baseline justify-between gap-4 py-2.5">
-                        <dt class="text-[13px] text-[#5B6A8E]">Rental Fee</dt>
-                        <dd class="text-[13px] font-bold text-[#060D26] text-right">&#8369;{{ number_format($reservation->monthlyRent(), 2) }} / month</dd>
-                    </div>
-                    @if($reservation->unit->security_deposit)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Security Deposit</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
-                        </div>
-                    @endif
-                    <div class="flex items-baseline justify-between gap-4 py-2.5">
-                        <dt class="text-[13px] text-[#5B6A8E]">Reservation Date</dt>
-                        <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->reservation_date->format('F j, Y') }}</dd>
-                    </div>
-                    @if($reservation->target_move_in_date)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Target Move-In</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->target_move_in_date->format('F j, Y') }}</dd>
-                        </div>
-                    @endif
-                    @if($reservation->target_move_out_date)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Target Move-Out</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->target_move_out_date->format('F j, Y') }}</dd>
-                        </div>
-                    @endif
-                    @if($reservation->duration_of_stay)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Lease Term</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->duration_of_stay }}</dd>
-                        </div>
-                    @endif
-                    @if($reservation->occupants_count)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Occupants</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->occupants_count }}</dd>
-                        </div>
-                    @endif
-                </dl>
-
-                @if($reservation->agreement_terms_notes)
-                    <div class="mt-5 pt-4 border-t border-[#E2E4EC]">
-                        <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">Additional Terms</p>
-                        <p class="whitespace-pre-wrap text-[13px] text-[#060D26] leading-relaxed">{{ $reservation->agreement_terms_notes }}</p>
-                    </div>
-                @endif
-
-                <p class="text-[11.5px] text-[#5B6A8E] leading-relaxed mt-5 pt-4 border-t border-[#E2E4EC]">
-                    By signing this agreement, both parties acknowledge the terms above as the basis for this rental
-                    arrangement. AbangananHub facilitates this agreement as a record-keeping tool between Landlord and
-                    Tenant and is not a party to, nor liable for, the terms herein.
-                </p>
-            </div>
+            {{-- ===== The lease — frozen terms, see App\Support\LeaseTerms ===== --}}
+            @include('leases._document', ['terms' => $terms])
 
             {{-- ===== Signature block — the evidentiary record ===== --}}
             @if($reservation->agreed_at || $reservation->landlord_tc_accepted_at)
@@ -192,30 +103,28 @@
             <div class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 mb-4">
                 <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider">At a glance</p>
                 <p class="mt-2 text-2xl font-bold tracking-tight text-[#060D26]">
-                    &#8369;{{ number_format($reservation->monthlyRent(), 2) }}
+                    &#8369;{{ number_format($terms['monthly_rent'], 2) }}
                     <span class="text-sm font-medium text-[#5B6A8E]">/ month</span>
                 </p>
                 <dl class="mt-4 space-y-2 text-[13px]">
                     <div class="flex items-baseline justify-between gap-3">
-                        <dt class="text-[#5B6A8E]">Property</dt>
-                        <dd class="font-medium text-[#060D26] text-right truncate">{{ $reservation->unit->unit_label }}</dd>
+                        <dt class="text-[#5B6A8E]">Unit</dt>
+                        <dd class="font-medium text-[#060D26] text-right truncate">{{ $terms['unit'] ?? $terms['property']['title'] }}</dd>
                     </div>
-                    @if($reservation->target_move_in_date)
+                    @if($terms['start'])
                         <div class="flex items-baseline justify-between gap-3">
-                            <dt class="text-[#5B6A8E]">Target move-in</dt>
-                            <dd class="font-medium text-[#060D26]">{{ $reservation->target_move_in_date->format('M j, Y') }}</dd>
+                            <dt class="text-[#5B6A8E]">Starts</dt>
+                            <dd class="font-medium text-[#060D26]">{{ \Illuminate\Support\Carbon::parse($terms['start'])->format('M j, Y') }}</dd>
                         </div>
                     @endif
-                    @if($reservation->duration_of_stay)
-                        <div class="flex items-baseline justify-between gap-3">
-                            <dt class="text-[#5B6A8E]">Lease term</dt>
-                            <dd class="font-medium text-[#060D26]">{{ $reservation->duration_of_stay }}</dd>
-                        </div>
-                    @endif
-                    @if($reservation->unit->security_deposit)
+                    <div class="flex items-baseline justify-between gap-3">
+                        <dt class="text-[#5B6A8E]">Ends</dt>
+                        <dd class="font-medium text-[#060D26]">{{ $terms['end'] ? \Illuminate\Support\Carbon::parse($terms['end'])->format('M j, Y') : 'Month-to-month' }}</dd>
+                    </div>
+                    @if($terms['deposit'])
                         <div class="flex items-baseline justify-between gap-3">
                             <dt class="text-[#5B6A8E]">Security deposit</dt>
-                            <dd class="font-medium text-[#060D26]">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
+                            <dd class="font-medium text-[#060D26]">&#8369;{{ number_format($terms['deposit'], 2) }}</dd>
                         </div>
                     @endif
                     <div class="flex items-baseline justify-between gap-3">

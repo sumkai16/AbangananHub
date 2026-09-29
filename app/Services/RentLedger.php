@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\DepositCharge;
 use App\Models\Payment;
 use App\Models\Reservation;
 use Illuminate\Support\Carbon;
@@ -45,6 +46,7 @@ class RentLedger
     private const SETTLED_STATUSES = ['Paid', 'Held', 'Released'];
 
     private Collection $payments;
+    private Collection $depositCharges;
 
     public function __construct(private Reservation $reservation)
     {
@@ -54,6 +56,10 @@ class RentLedger
         $this->payments = $reservation->relationLoaded('payments')
             ? $reservation->payments
             : $reservation->payments()->get();
+
+        $this->depositCharges = $reservation->relationLoaded('depositCharges')
+            ? $reservation->depositCharges
+            : $reservation->depositCharges()->get();
     }
 
     public static function for(Reservation $reservation): self
@@ -209,6 +215,13 @@ class RentLedger
             ->where('payment_type', 'Deposit')
             ->sum(fn (Payment $p) => (float) $p->amount);
 
+        // Claims a landlord has made against the held deposit (damage,
+        // cleaning, etc.) — a voided charge no longer counts against it.
+        $depositCharged = (float) $this->depositCharges
+            ->reject(fn (DepositCharge $c) => $c->isVoided())
+            ->sum(fn (DepositCharge $c) => (float) $c->amount);
+        $depositRemaining = max(0, $depositCollected - $depositCharged);
+
         // The current calendar month's own row, if this tenancy is billed at
         // all this month — absent for a tenancy that starts later or already
         // ended before this month arrived.
@@ -227,6 +240,8 @@ class RentLedger
             'monthlyCollected' => round($monthlyCollected, 2),
             'otherCollected'   => round($otherCollected, 2),
             'depositCollected' => round($depositCollected, 2),
+            'depositCharged'   => round($depositCharged, 2),
+            'depositRemaining' => round($depositRemaining, 2),
             'outstanding'      => round((float) $billed->sum(fn ($p) => max(0, $p['balance'])), 2),
             'overdueCount'     => $overdue->count(),
             'overdueAmount'    => round((float) $overdue->sum(fn ($p) => max(0, $p['balance'])), 2),

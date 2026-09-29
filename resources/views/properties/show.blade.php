@@ -1,4 +1,4 @@
-@extends('layouts.app', ['searchBar' => false])
+@extends('layouts.app', ['searchBar' => false, 'backNav' => ['route' => 'properties.index', 'label' => 'Back to listing']])
 
 
 @section('content')
@@ -207,21 +207,38 @@
              editorial content, then Nearby Rentals. --}}
         <div class="flex flex-col gap-8">
 
-            {{-- ===== HEADER — breadcrumb only. Badges/title/location moved
-                 below the gallery (Sept 2026) to match the reference layout:
-                 photos first, full width, then the listing's name/etc. right
-                 underneath, at the top of the left grid column (level with
-                 the sticky contact card, not sitting above the whole grid).
-                 ===== --}}
-            <div>
-                <nav class="flex items-center gap-1.5 text-[13px] font-semibold text-[#5B6A8E]" aria-label="Breadcrumb">
-                    <a href="{{ url('/') }}" class="hover:text-[#060D26] transition-colors">Home</a>
-                    <span aria-hidden="true">·</span>
-                    <a href="{{ route('properties.index') }}" class="hover:text-[#060D26] transition-colors">Properties</a>
-                    <span aria-hidden="true">·</span>
-                    <span class="text-[#060D26] truncate max-w-[220px]">{{ $property->title }}</span>
-                </nav>
-            </div>
+            {{-- ===== HEADER — mobile/tablet-only back link (Sept 2026).
+                 Desktop gets its back link in the sticky header itself now
+                 (`backNav` on the @extends call above — see
+                 layouts/app.blade.php's nav row), with the logo moved to
+                 centre there, so this copy would duplicate it above `xl`.
+                 That header switch is pinned to `xl`, not the usual `lg`,
+                 because at `lg` the logged-in right-actions cluster (theme
+                 toggle + Become a Landlord/dashboard pill + notifications +
+                 avatar) is wide enough to collide with a dead-centred logo —
+                 see the `$mobileBp` comment in the layout. Below `xl` the
+                 header stays in its normal logo+hamburger form, so this is
+                 the only back link a phone/tablet visitor gets — same
+                 previous-URL-if-it's-the-index logic as the header's version.
+                 -mb-4 pulls the gallery up to a 16px gap (vs the column's
+                 gap-8) so the row reads as attached to the listing below it,
+                 not floating evenly between the navbar and the photos. ===== --}}
+            @php
+                $indexUrl = route('properties.index');
+                $previousUrl = url()->previous();
+                $backUrl = parse_url($previousUrl, PHP_URL_PATH) === parse_url($indexUrl, PHP_URL_PATH)
+                    ? $previousUrl
+                    : $indexUrl;
+            @endphp
+            <nav class="xl:hidden -mb-4 flex items-center text-[13px] font-semibold" aria-label="Listing navigation">
+                <a href="{{ $backUrl }}"
+                   class="inline-flex items-center gap-2 min-h-[44px] -my-3 text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+                    </svg>
+                    Back to listing
+                </a>
+            </nav>
 
             {{-- ===== IMAGE GALLERY — bento (1 big + up to 2 small), full page
                  width (Sept 2026). Sits above the two-column grid, not inside
@@ -634,22 +651,8 @@
                         </div>
                     </div>
 
-                    {{-- ===== LEGAL CONSENT — contacting the landlord (inquiry, login-to-contact, phone reveal),
-                         gates the button below, so it comes first. ===== --}}
-                    @unless($isOwner)
-                        <label class="mt-4 flex items-start gap-2.5 cursor-pointer text-[12px] leading-snug text-[#5B6A8E]">
-                            <input type="checkbox" x-model="agreed"
-                                class="mt-0.5 h-4 w-4 shrink-0 rounded border-[#C9CEDD] text-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/40 cursor-pointer">
-                            <span>I agree to the
-                                <a href="{{ route('terms') }}" target="_blank" rel="noopener" class="font-semibold text-[#060D26] underline underline-offset-2 hover:text-[#B35A3D]">Terms and Conditions</a>
-                                and
-                                <a href="{{ route('privacy') }}" target="_blank" rel="noopener" class="font-semibold text-[#060D26] underline underline-offset-2 hover:text-[#B35A3D]">Privacy Policy</a>.
-                                <span x-show="agreed" x-cloak class="block mt-0.5 text-[12px] text-[#5B6A8E]">Remembered on this device. Untick to forget it.</span></span>
-                        </label>
-                    @endunless
-
                     {{-- ===== PRIMARY ACTION ===== --}}
-                    <div class="mt-3 flex items-stretch gap-3">
+                    <div class="mt-4 flex items-stretch gap-3">
                         @if(!auth()->check())
                             <button type="button" onclick="openAuthModal('login')"
                                 :disabled="!agreed"
@@ -670,6 +673,20 @@
                             </button>
                         @endif
                     </div>
+
+                    {{-- ===== LEGAL CONSENT — contacting the landlord (inquiry, login-to-contact, phone reveal),
+                         gates the button above and the phone reveal below. ===== --}}
+                    @unless($isOwner)
+                        <label class="mt-3 flex items-start gap-2.5 cursor-pointer text-[12px] leading-snug text-[#5B6A8E]">
+                            <input type="checkbox" x-model="agreed"
+                                class="mt-0.5 h-4 w-4 shrink-0 rounded border-[#C9CEDD] text-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/40 cursor-pointer">
+                            <span>I agree to the
+                                <a href="{{ route('terms') }}" target="_blank" rel="noopener" class="font-semibold text-[#060D26] underline underline-offset-2 hover:text-[#B35A3D]">Terms and Conditions</a>
+                                and
+                                <a href="{{ route('privacy') }}" target="_blank" rel="noopener" class="font-semibold text-[#060D26] underline underline-offset-2 hover:text-[#B35A3D]">Privacy Policy</a>.
+                                <span x-show="agreed" x-cloak class="block mt-0.5 text-[12px] text-[#5B6A8E]">Remembered on this device. Untick to forget it.</span></span>
+                        </label>
+                    @endunless
 
                     {{-- ===== SHOW PHONE NUMBER — only rendered when the
                          landlord has one on file; contact_number is nullable

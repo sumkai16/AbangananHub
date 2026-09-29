@@ -210,7 +210,7 @@
                     $extraCharges = round($summary['otherCollected'] - $summary['depositCollected'], 2);
                     $tiles = [
                         ['label' => 'Rent collected',    'value' => $summary['monthlyCollected'], 'tone' => 'text-[#060D26]', 'sub' => $extraCharges > 0 ? '+ ₱' . number_format($extraCharges, 2) . ' other charges' : 'Rent payments recorded'],
-                        ['label' => 'Security deposit',  'value' => $summary['depositCollected'], 'tone' => 'text-[#060D26]', 'sub' => $summary['depositCollected'] > 0 ? 'Held, refundable at move-out' : 'No deposit recorded'],
+                        ['label' => 'Security deposit',  'value' => $summary['depositCollected'], 'tone' => 'text-[#060D26]', 'sub' => $summary['depositCollected'] > 0 ? ($summary['depositCharged'] > 0 ? '₱' . number_format($summary['depositCharged'], 2) . ' charged · ₱' . number_format($summary['depositRemaining'], 2) . ' left' : 'Held, refundable at move-out') : 'No deposit recorded'],
                         ['label' => 'Total unpaid', 'value' => $summary['outstanding'],   'tone' => 'text-[#060D26]', 'sub' => 'Unpaid rent to date'],
                         ['label' => 'Overdue',      'value' => $summary['overdueAmount'], 'tone' => $summary['overdueCount'] > 0 ? 'text-[#DC2626]' : 'text-[#060D26]', 'sub' => $summary['overdueCount'] . ' ' . \Illuminate\Support\Str::plural('month', $summary['overdueCount']) . ' behind'],
                     ];
@@ -224,6 +224,156 @@
                         </div>
                     @endforeach
                 </div>
+
+                {{-- Security deposit charges — separate from the tiles above:
+                     those show Held/Charged/Left as numbers, this is the actual
+                     claim-by-claim record a tenant needs to see why. --}}
+                @php
+                    $activeDepositCharges = $reservation->depositCharges->reject->isVoided()->values();
+                    $voidedDepositCharges = $reservation->depositCharges->filter->isVoided()->values();
+                    $canChargeDeposit = $summary['depositCollected'] > 0;
+                    $depositCategoryLabels = \App\Models\DepositCharge::CATEGORIES;
+                @endphp
+                @if($canChargeDeposit || $activeDepositCharges->isNotEmpty())
+                    <x-card flush x-data="{ moreCharges: false }">
+                        <div class="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">
+                            <div>
+                                <h2 class="text-[16px] font-semibold text-[#060D26]">Security deposit</h2>
+                                <p class="text-[12px] text-[#5B6A8E] mt-0.5">
+                                    ₱{{ number_format($summary['depositRemaining'], 2) }} of ₱{{ number_format($summary['depositCollected'], 2) }} still held.
+                                </p>
+                            </div>
+                            @if($canChargeDeposit)
+                                <button type="button" @click="$dispatch('open-add-deposit-charge')"
+                                    {{ $summary['depositRemaining'] <= 0 ? 'disabled' : '' }}
+                                    class="h-10 px-4 inline-flex items-center gap-2 rounded-xl text-sm font-semibold transition-colors duration-200
+                                        {{ $summary['depositRemaining'] <= 0
+                                            ? 'bg-[#ECEEF6] text-[#5B6A8E] cursor-not-allowed'
+                                            : 'bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] cursor-pointer' }}">
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Add charge
+                                </button>
+                            @endif
+                        </div>
+
+                        @if($activeDepositCharges->isEmpty())
+                            <p class="px-5 sm:px-6 py-5 text-[13px] text-[#5B6A8E]">
+                                No charges recorded against this deposit.
+                            </p>
+                        @else
+                            {{-- Phone: one stacked card per charge (mobile-first, DESIGN §0b) --}}
+                            <ul class="lg:hidden divide-y divide-[#E2E4EC]">
+                                @foreach($activeDepositCharges as $charge)
+                                    <li class="px-5 py-3.5" @if($loop->index >= 6) x-show="moreCharges" x-cloak @endif>
+                                        <div class="flex items-start justify-between gap-3">
+                                            <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $depositCategoryLabels[$charge->category] ?? $charge->category }}</p>
+                                            <p class="text-[13.5px] font-semibold text-[#DC2626] tabular-nums whitespace-nowrap">-₱{{ number_format((float) $charge->amount, 2) }}</p>
+                                        </div>
+                                        <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $charge->description }}</p>
+                                        <p class="mt-1 text-[11.5px] text-[#5B6A8E]">
+                                            {{ optional($charge->charged_at)->format('M d, Y') }}
+                                            · {{ trim(($charge->charger->first_name ?? '') . ' ' . ($charge->charger->last_name ?? '')) ?: 'You' }}
+                                        </p>
+                                        <button type="button"
+                                            @click="$dispatch('open-void-deposit-charge', {
+                                                id: {{ $charge->deposit_charge_id }},
+                                                action: @js(route('landlord.depositCharges.void', $charge)),
+                                                amount: {{ (float) $charge->amount }},
+                                                label: @js(($depositCategoryLabels[$charge->category] ?? $charge->category) . ', recorded ' . (optional($charge->charged_at)->format('M d, Y') ?? ''))
+                                            })"
+                                            class="mt-1 inline-flex h-9 items-center text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#DC2626] transition-colors duration-200 cursor-pointer">
+                                            Void
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
+
+                            {{-- Desktop: full table --}}
+                            <div class="hidden lg:block overflow-x-auto">
+                                <table class="w-full min-w-[760px]">
+                                    <thead class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
+                                        <tr>
+                                            <th scope="col" class="px-5 sm:px-6 py-3 text-left text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Date</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Category</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Description</th>
+                                            <th scope="col" class="px-4 py-3 text-right text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Amount</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Recorded by</th>
+                                            <th scope="col" class="px-5 sm:px-6 py-3 text-right text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">
+                                                <span class="sr-only">Actions</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-[#E2E4EC]">
+                                        @foreach($activeDepositCharges as $charge)
+                                            <tr class="hover:bg-[#ECEEF6] transition-colors duration-200"
+                                                @if($loop->index >= 6) x-show="moreCharges" x-cloak @endif>
+                                                <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#060D26] whitespace-nowrap">
+                                                    {{ optional($charge->charged_at)->format('M d, Y') }}
+                                                </td>
+                                                <td class="px-4 py-3.5 text-[13px] text-[#060D26] whitespace-nowrap">{{ $depositCategoryLabels[$charge->category] ?? $charge->category }}</td>
+                                                <td class="px-4 py-3.5 text-[13px] text-[#5B6A8E] max-w-xs truncate" title="{{ $charge->description }}">{{ $charge->description }}</td>
+                                                <td class="px-4 py-3.5 text-[13px] font-semibold text-[#DC2626] text-right tabular-nums whitespace-nowrap">
+                                                    -₱{{ number_format((float) $charge->amount, 2) }}
+                                                </td>
+                                                <td class="px-4 py-3.5 text-[13px] text-[#5B6A8E] whitespace-nowrap">
+                                                    {{ trim(($charge->charger->first_name ?? '') . ' ' . ($charge->charger->last_name ?? '')) ?: 'You' }}
+                                                </td>
+                                                <td class="px-5 sm:px-6 py-3.5 text-right whitespace-nowrap">
+                                                    <button type="button"
+                                                        @click="$dispatch('open-void-deposit-charge', {
+                                                            id: {{ $charge->deposit_charge_id }},
+                                                            action: @js(route('landlord.depositCharges.void', $charge)),
+                                                            amount: {{ (float) $charge->amount }},
+                                                            label: @js(($depositCategoryLabels[$charge->category] ?? $charge->category) . ', recorded ' . (optional($charge->charged_at)->format('M d, Y') ?? ''))
+                                                        })"
+                                                        class="text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#DC2626] transition-colors duration-200 cursor-pointer">
+                                                        Void
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            @if($activeDepositCharges->count() > 6)
+                                <div class="px-5 sm:px-6 py-3 border-t border-[#E2E4EC]">
+                                    <button type="button" x-show="!moreCharges" x-on:click="moreCharges = true"
+                                        class="text-[12.5px] font-semibold text-[#060D26] hover:underline cursor-pointer">
+                                        Show all {{ $activeDepositCharges->count() }} charges
+                                    </button>
+                                </div>
+                            @endif
+                        @endif
+                    </x-card>
+                @endif
+
+                {{-- Voided deposit charges — kept on the page deliberately, same
+                     reasoning as the payments "Voided entries" card below. --}}
+                @if($voidedDepositCharges->isNotEmpty())
+                    <x-card flush>
+                        <div class="px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">
+                            <h2 class="text-[16px] font-semibold text-[#060D26]">Voided deposit charges</h2>
+                            <p class="text-[12px] text-[#5B6A8E] mt-0.5">Corrections made to this deposit's ledger. These do not count toward anything.</p>
+                        </div>
+                        <ul class="divide-y divide-[#E2E4EC]">
+                            @foreach($voidedDepositCharges as $charge)
+                                <li class="px-5 sm:px-6 py-3.5">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <p class="text-[13.5px] font-semibold text-[#5B6A8E] line-through">{{ $depositCategoryLabels[$charge->category] ?? $charge->category }}</p>
+                                        <p class="text-[13.5px] font-semibold text-[#5B6A8E] line-through tabular-nums whitespace-nowrap">₱{{ number_format((float) $charge->amount, 2) }}</p>
+                                    </div>
+                                    <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $charge->description }}</p>
+                                    <p class="mt-1 text-[11.5px] text-[#5B6A8E]">
+                                        Voided {{ optional($charge->voided_at)->format('M d, Y') }} — {{ $charge->voidReasonLabel() }}
+                                        @if($charge->void_note) — {{ $charge->void_note }} @endif
+                                    </p>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </x-card>
+                @endif
 
                 {{-- Rent ledger --}}
                 @php
@@ -574,6 +724,63 @@
                     </dl>
                 </x-card>
 
+                {{-- Lease — printable document + signed copy. See plans/formal-lease-agreement.md --}}
+                @php $leaseStatus = $reservation->leaseStatus(); @endphp
+                <x-card x-data="{ uploading: {{ $errors->has('lease_file') ? 'true' : 'false' }} }">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <p class="text-[12px] font-semibold text-[#5B6A8E]">Lease</p>
+                        @if ($leaseStatus === 'missing')
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#FBBF24]/15 text-[#B45309]">Lease missing</span>
+                        @else
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#22C55E]/10 text-[#15803D]">Signed</span>
+                        @endif
+                    </div>
+
+                    <p class="text-[13px] text-[#060D26] leading-relaxed">
+                        @if ($leaseStatus === 'uploaded')
+                            Signed copy uploaded {{ $reservation->lease_uploaded_at->format('M j, Y') }}.
+                        @elseif ($leaseStatus === 'signed_online')
+                            Signed online by the tenant {{ $reservation->agreed_at->format('M j, Y') }}.
+                        @else
+                            Print the lease, have both of you sign it, then upload the signed copy here.
+                        @endif
+                    </p>
+
+                    <div class="mt-4 flex flex-col gap-2">
+                        <a href="{{ route('landlord.leases.show', $reservation) }}"
+                            class="h-10 px-4 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26] text-[13px] font-semibold hover:bg-[#F7F8FC] inline-flex items-center justify-center transition-colors">
+                            {{ $leaseStatus === 'missing' ? 'View & print lease' : 'View lease' }}
+                        </a>
+                        @if ($reservation->lease_file_path)
+                            <a href="{{ route('landlord.leases.file', $reservation) }}" target="_blank" rel="noopener"
+                                class="h-10 px-4 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26] text-[13px] font-semibold hover:bg-[#F7F8FC] inline-flex items-center justify-center gap-1.5 transition-colors">
+                                Open signed copy
+                                <span class="text-[11px] font-normal text-[#5B6A8E] truncate max-w-[140px]">{{ $reservation->lease_file_name }}</span>
+                            </a>
+                        @endif
+                        <button type="button" @click="uploading = !uploading"
+                            class="h-10 px-4 rounded-xl text-[13px] font-bold inline-flex items-center justify-center cursor-pointer transition-colors
+                                {{ $leaseStatus === 'missing' ? 'bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26]' : 'text-[#060D26] hover:bg-[#ECEEF6]' }}">
+                            {{ $reservation->lease_file_path ? 'Replace signed copy' : 'Upload signed copy' }}
+                        </button>
+                    </div>
+
+                    <form x-show="uploading" x-cloak action="{{ route('landlord.leases.upload', $reservation) }}" method="POST" enctype="multipart/form-data"
+                        class="mt-3 pt-3 border-t border-[#E2E4EC]">
+                        @csrf
+                        <label for="lease_file" class="block text-[12px] font-semibold text-[#5B6A8E] mb-1.5">PDF, JPG or PNG · up to 10 MB</label>
+                        <input type="file" id="lease_file" name="lease_file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" required
+                            class="block w-full text-[13px] text-[#060D26] file:mr-3 file:h-9 file:px-3 file:rounded-lg file:border-0 file:bg-[#ECEEF6] file:text-[#060D26] file:font-semibold file:cursor-pointer">
+                        @error('lease_file')
+                            <p class="mt-1.5 text-[12px] font-semibold text-[#DC2626]">{{ $message }}</p>
+                        @enderror
+                        <button type="submit"
+                            class="mt-3 w-full h-10 rounded-xl bg-[#060D26] hover:brightness-110 text-white text-[13px] font-bold cursor-pointer transition-all">
+                            Upload
+                        </button>
+                    </form>
+                </x-card>
+
                 {{-- End tenancy --}}
                 @if($isActive)
                     <x-card>
@@ -637,6 +844,12 @@
          still fixing a wrong financial record (ReservationPolicy::voidPayment). --}}
     <x-rent-period-modal />
     @include('landlord.tenancies.partials.void-payment-modal')
+
+    {{-- Deposit charge modals — same teleported shape as the payment ones
+         above, not gated on $isActive: recordDepositCharge/voidDepositCharge
+         are deliberately not restricted to an active tenancy. --}}
+    @include('landlord.tenancies.partials.add-deposit-charge-modal')
+    @include('landlord.tenancies.partials.void-deposit-charge-modal')
 
     <script src="{{ asset('js/date-picker.js') }}"></script>
 

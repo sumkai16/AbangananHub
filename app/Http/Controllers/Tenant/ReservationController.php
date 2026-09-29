@@ -65,20 +65,28 @@ public function store(StoreReservationRequest $request)
             return back()->with('warning', 'You already have an active inquiry or reservation for this unit.');
         }
 
+        // Any conversation, cancelled included: the table allows only one per
+        // (tenant, landlord, property), so a cancelled thread can't be
+        // replaced by a new row — creating one threw a duplicate-key error
+        // and left the tenant unable to inquire about this property again.
         $conversation = Conversation::where('tenant_id', Auth::id())
             ->where('landlord_id', $property->landlord_id)
             ->where('property_id', $property->property_id)
-            ->where('status', '!=', 'Cancelled')
             ->first();
 
         if ($conversation) {
-            // Existing live conversation — update unit if it changed
+            // Reopen a cancelled thread and point it at the unit asked about.
+            $changes = [];
             if ($conversation->unit_id !== $unit->unit_id) {
-                $conversation->update(['unit_id' => $unit->unit_id]);
+                $changes['unit_id'] = $unit->unit_id;
+            }
+            if ($conversation->status === 'Cancelled') {
+                $changes['status'] = 'Open';
+            }
+            if ($changes) {
+                $conversation->update($changes);
             }
         } else {
-            // No live conversation exists (either none ever existed, or the
-            // prior one was cancelled) — start a fresh one.
             $conversation = Conversation::create([
                 'tenant_id'   => Auth::id(),
                 'landlord_id' => $property->landlord_id,

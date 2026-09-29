@@ -19,6 +19,8 @@ class AgreementController extends Controller
             'Pending Rental Agreement',
             'Rental Agreement Signed',
             'Occupied',
+            // A past tenant can still read what they signed (e.g. a deposit dispute).
+            'Completed',
         ])) {
             abort(404);
         }

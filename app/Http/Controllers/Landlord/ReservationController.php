@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Models\ViewingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -79,7 +80,14 @@ class ReservationController extends Controller
             ->orderBy('title')
             ->get(['property_id', 'title']);
 
-        return view('landlord.reservations.index', compact('reservations', 'counts', 'status', 'properties'));
+        // Badge on the Viewings tab: requests the landlord still has to answer.
+        $pendingViewings = ViewingRequest::where('landlord_id', Auth::id())
+            ->open()
+            ->where('status', 'Pending')
+            ->where('proposed_by', '!=', Auth::id())
+            ->count();
+
+        return view('landlord.reservations.index', compact('reservations', 'counts', 'status', 'properties', 'pendingViewings'));
     }
 
     /**

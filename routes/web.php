@@ -69,6 +69,15 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
     Route::post('/reservations/{reservation}/handover/propose', [HandoverController::class, 'propose'])->name('handover.propose');
     Route::post('/reservations/{reservation}/handover/confirm', [HandoverController::class, 'confirm'])->name('handover.confirm');
 
+    // Unit viewings — symmetric like the handover: the tenant requests from
+    // the chat, either party reschedules or cancels, the other one confirms.
+    // The landlord's Viewings tab posts here too.
+    Route::post('/reservations/{reservation}/viewings', [App\Http\Controllers\ViewingController::class, 'store'])->name('viewings.store');
+    Route::post('/viewings/{viewing}/reschedule', [App\Http\Controllers\ViewingController::class, 'reschedule'])->name('viewings.reschedule');
+    Route::post('/viewings/{viewing}/confirm', [App\Http\Controllers\ViewingController::class, 'confirm'])->name('viewings.confirm');
+    Route::post('/viewings/{viewing}/decline', [App\Http\Controllers\ViewingController::class, 'decline'])->name('viewings.decline');
+    Route::post('/viewings/{viewing}/cancel', [App\Http\Controllers\ViewingController::class, 'cancel'])->name('viewings.cancel');
+
     // Complaint & Reporting — open to any authenticated user, no role gate
     Route::get('/reports', [App\Http\Controllers\ReportController::class, 'create'])->name('reports.create');
     Route::post('/reports', [App\Http\Controllers\ReportController::class, 'store'])->name('reports.store');
@@ -153,6 +162,15 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
       // Reservations
         Route::get('/reservations', [App\Http\Controllers\Landlord\ReservationController::class, 'index'])->name('reservations.index');
         Route::get('/reservations/export', [App\Http\Controllers\Landlord\ReservationController::class, 'export'])->name('reservations.export');
+
+        // Viewings tab of the Reservations page — calendar, offline visitors, blocked days
+        Route::get('/reservations/viewings', [App\Http\Controllers\Landlord\ViewingController::class, 'index'])->name('viewings.index');
+        Route::post('/reservations/viewings', [App\Http\Controllers\Landlord\ViewingController::class, 'store'])->name('viewings.store');
+        Route::patch('/reservations/viewings/{viewing}', [App\Http\Controllers\Landlord\ViewingController::class, 'update'])->name('viewings.update');
+        Route::delete('/reservations/viewings/{viewing}', [App\Http\Controllers\Landlord\ViewingController::class, 'destroy'])->name('viewings.destroy');
+        Route::put('/reservations/viewings/hours', [App\Http\Controllers\Landlord\ViewingController::class, 'saveHours'])->name('viewings.hours');
+        Route::post('/reservations/viewings/blocked-days',[App\Http\Controllers\Landlord\ViewingController::class, 'block'])->name('viewings.block');
+        Route::delete('/reservations/viewings/blocked-days/{blockedDate}', [App\Http\Controllers\Landlord\ViewingController::class, 'unblock'])->name('viewings.unblock');
         Route::patch('/reservations/{reservation}/reject', [App\Http\Controllers\Landlord\ReservationController::class, 'reject'])->name('reservations.reject');
         Route::patch('/reservations/{reservation}/cancel', [App\Http\Controllers\Landlord\ReservationController::class, 'cancel'])->name('reservations.cancel');
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
@@ -197,6 +215,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         // tenancies alike — the escrow only ever covered the initial payment.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
+        // Lease — printable document + the signed copy (private disk)
+        Route::get('/tenancies/{reservation}/lease', [App\Http\Controllers\Landlord\LeaseController::class, 'show'])->name('leases.show');
+        Route::post('/tenancies/{reservation}/lease-file', [App\Http\Controllers\Landlord\LeaseController::class, 'upload'])->name('leases.upload');
+        Route::get('/tenancies/{reservation}/lease-file', [App\Http\Controllers\Landlord\LeaseController::class, 'file'])->name('leases.file');
         // On-demand rent reminder; throttled so a jumpy landlord can't spam a tenant.
         Route::post('/tenancies/{reservation}/remind', [App\Http\Controllers\Landlord\TenancyController::class, 'remind'])
             ->middleware('throttle:10,1')->name('tenancies.remind');
@@ -209,6 +231,11 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         // Strikes a recorded payment from the ledger without deleting it — POST,
         // not DELETE, since nothing is removed. See context/RULES.md → Money-Moving Code.
         Route::post('/payments/{payment}/void', [App\Http\Controllers\Landlord\PaymentController::class, 'void'])->name('payments.void');
+
+        // Claims against a tenant's held security deposit — separate from
+        // payments/void above, which corrects money actually received.
+        Route::post('/tenancies/{reservation}/deposit-charges', [App\Http\Controllers\Landlord\DepositChargeController::class, 'store'])->name('depositCharges.store');
+        Route::post('/deposit-charges/{depositCharge}/void', [App\Http\Controllers\Landlord\DepositChargeController::class, 'void'])->name('depositCharges.void');
 
         // A landlord's own view of what AbangananHub owes them and has paid
         // out. See docs/specs/2026-07-26-landlord-payout-design.md.

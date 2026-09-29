@@ -88,6 +88,13 @@
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
+                    <a href="{{ route('agreements.show', $reservation) }}"
+                        class="h-11 px-4 inline-flex items-center gap-2 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] text-sm font-semibold hover:bg-[#F7F8FC] transition-colors">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                        View lease
+                    </a>
                     @if($canReview)
                         <a href="{{ route('properties.show', $reservation->property) }}#reviews"
                             class="h-11 px-4 inline-flex items-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
@@ -160,6 +167,41 @@
                                 </button>
                             </form>
                         </div>
+                    </x-card>
+                @endif
+
+                {{-- Security deposit — read-only: only the landlord can add or void a charge. --}}
+                @php
+                    $activeDepositCharges = $reservation->depositCharges->reject->isVoided()->values();
+                    $depositCategoryLabels = \App\Models\DepositCharge::CATEGORIES;
+                @endphp
+                @if($summary['depositCollected'] > 0)
+                    <x-card flush>
+                        <div class="px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">
+                            <h2 class="text-[16px] font-semibold text-[#060D26]">Security deposit</h2>
+                            <p class="text-[12px] text-[#5B6A8E] mt-0.5">
+                                ₱{{ number_format($summary['depositRemaining'], 2) }} of ₱{{ number_format($summary['depositCollected'], 2) }} still held, refundable at move-out.
+                            </p>
+                        </div>
+
+                        @if($activeDepositCharges->isEmpty())
+                            <p class="px-5 sm:px-6 py-5 text-[13px] text-[#5B6A8E]">
+                                No charges have been made against your deposit.
+                            </p>
+                        @else
+                            <ul class="divide-y divide-[#E2E4EC]">
+                                @foreach($activeDepositCharges as $charge)
+                                    <li class="px-5 sm:px-6 py-3.5">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $depositCategoryLabels[$charge->category] ?? $charge->category }}</p>
+                                            <p class="text-[13.5px] font-semibold text-[#DC2626] tabular-nums whitespace-nowrap">-₱{{ number_format((float) $charge->amount, 2) }}</p>
+                                        </div>
+                                        <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $charge->description }}</p>
+                                        <p class="mt-1 text-[11.5px] text-[#5B6A8E]">{{ optional($charge->charged_at)->format('M d, Y') }}</p>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
                     </x-card>
                 @endif
 

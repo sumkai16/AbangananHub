@@ -68,7 +68,28 @@ class ReservationObserver
             $reservation->getOriginal('rental_status'),
         ));
 
+        $this->cancelViewingsIfEnded($reservation);
+
         $this->notifyTransition($reservation);
+    }
+
+    /**
+     * A rejected, cancelled or completed reservation can't still have a
+     * viewing on the landlord's calendar. Hooked here for the same reason as
+     * the broadcast: every path that ends a reservation goes through save().
+     * The status change's own notification already tells both parties, so
+     * no separate viewing notice.
+     */
+    private function cancelViewingsIfEnded(Reservation $reservation): void
+    {
+        if (! in_array($reservation->rental_status, Reservation::TERMINAL_STATUSES, true)) {
+            return;
+        }
+
+        $reservation->viewings()->active()->update([
+            'status'       => 'Cancelled',
+            'responded_at' => now(),
+        ]);
     }
 
     private function notifyTransition(Reservation $reservation): void

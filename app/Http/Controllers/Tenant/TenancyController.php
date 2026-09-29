@@ -21,6 +21,7 @@ class TenancyController extends Controller
             'property',
             'unit.media',
             'payments.recorder',
+            'depositCharges',
         ]);
 
         $ledger = RentLedger::for($reservation);

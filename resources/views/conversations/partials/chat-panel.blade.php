@@ -364,6 +364,13 @@
                     <p class="text-[12px] text-[#060D26] font-medium text-center py-1">{{ $occupiedNote }}</p>
                 @endif
             @endif
+
+            {{-- Unit viewing — both roles, renders nothing when it has nothing to say --}}
+            @include('conversations.partials._viewing-card', [
+                'reservation' => $reservation,
+                'isLandlord'  => $isLandlord,
+                'otherParty'  => $otherParty,
+            ])
         </div>
     @endif
 

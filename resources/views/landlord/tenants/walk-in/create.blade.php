@@ -109,7 +109,7 @@
                 </a>
             </x-card>
         @else
-            <form method="POST" action="{{ route('landlord.tenants.walkIn.store') }}"
+            <form method="POST" action="{{ route('landlord.tenants.walkIn.store') }}" enctype="multipart/form-data"
                 data-confirm="Add walk-in tenant?"
                 :data-confirm-message="confirmMessage"
                 data-confirm-button="Add tenant"
@@ -124,6 +124,8 @@
                     rent: @js(old('agreed_monthly_rent', '')),
                     dueDay: @js(old('rent_due_day', '')),
                     hasPayment: @js((bool) old('initial_amount')),
+                    leaseMode: @js(old('lease_mode', 'now')),
+                    leaseFileName: '',
                     initialAmount: @js(old('initial_amount', '')),
                     paymentMethod: @js(old('payment_method', 'Cash')),
                     // Server's 'today', not the browser's — a landlord in a
@@ -583,6 +585,56 @@
                             </div>
                         </x-card>
 
+                        {{-- Lease — before payment: the agreement comes first, then the money.
+                             See plans/formal-lease-agreement.md. --}}
+                        <x-card>
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="w-9 h-9 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-[15px] font-normal text-[#060D26]">Lease</h2>
+                                    <p class="text-[12px] text-[#5B6A8E]">The signed agreement for this tenancy.</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" role="radiogroup" aria-label="Signed lease">
+                                <label class="flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition-colors"
+                                    :class="leaseMode === 'now' ? 'border-[#060D26] bg-[#F7F8FC]' : 'border-[#E2E4EC] hover:border-[#5B6A8E]/40'">
+                                    <input type="radio" name="lease_mode" value="now" x-model="leaseMode" class="mt-0.5 text-[#060D26] focus:ring-[#FF8A66]">
+                                    <span>
+                                        <span class="block text-[13.5px] font-semibold text-[#060D26]">Upload signed lease now</span>
+                                        <span class="block text-[12px] text-[#5B6A8E]">A photo or PDF of the lease you both signed.</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition-colors"
+                                    :class="leaseMode === 'later' ? 'border-[#060D26] bg-[#F7F8FC]' : 'border-[#E2E4EC] hover:border-[#5B6A8E]/40'">
+                                    <input type="radio" name="lease_mode" value="later" x-model="leaseMode" class="mt-0.5 text-[#060D26] focus:ring-[#FF8A66]">
+                                    <span>
+                                        <span class="block text-[13.5px] font-semibold text-[#060D26]">Upload later</span>
+                                        <span class="block text-[12px] text-[#5B6A8E]">Print our lease from the tenancy page, sign it, then upload it there.</span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div x-show="leaseMode === 'now'" class="mt-4">
+                                <label for="lease_file" class="{{ $labelClass }}">Signed lease <span class="font-normal text-[#94A3B8]">· PDF, JPG or PNG, up to 10 MB</span></label>
+                                <input type="file" id="lease_file" name="lease_file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*"
+                                    :required="leaseMode === 'now'" :disabled="leaseMode !== 'now'"
+                                    @change="leaseFileName = $event.target.files[0]?.name || ''"
+                                    class="block w-full text-[13px] text-[#060D26] file:mr-3 file:h-10 file:px-4 file:rounded-lg file:border-0 file:bg-[#ECEEF6] file:text-[#060D26] file:font-semibold file:cursor-pointer">
+                                @error('lease_file')
+                                    <p class="{{ $errorClass }}">{{ $message }}</p>
+                                @enderror
+                                @if ($errors->any() && old('lease_mode', 'now') === 'now')
+                                    <p class="mt-1.5 text-[12px] text-[#B45309]">Browsers don't keep a chosen file after an error — please choose it again.</p>
+                                @endif
+                            </div>
+                        </x-card>
+
                         {{-- Initial payment --}}
                         <x-card>
                             <div class="flex items-start justify-between gap-4 mb-1">
@@ -791,6 +843,12 @@
                                 <div class="flex items-start justify-between gap-3">
                                     <span class="text-[#5B6A8E]">Move-in</span>
                                     <span class="font-semibold text-[#060D26] text-right" x-text="moveIn || '—'"></span>
+                                </div>
+                                <div class="flex items-start justify-between gap-3">
+                                    <span class="text-[#5B6A8E]">Lease</span>
+                                    <span class="font-semibold text-right"
+                                        :class="leaseMode === 'now' && leaseFileName ? 'text-[#15803D]' : 'text-[#B45309]'"
+                                        x-text="leaseMode === 'now' ? (leaseFileName ? 'Signed copy attached' : 'Not attached yet') : 'Upload later'"></span>
                                 </div>
 
                                 <div class="h-px bg-[#E2E4EC]"></div>
