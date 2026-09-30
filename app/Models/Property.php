@@ -33,6 +33,7 @@ class Property extends Model
     'longitude',
     'verification_status',
     'publication_status',
+    'rejection_reason',
 ];
 
     protected function casts(): array

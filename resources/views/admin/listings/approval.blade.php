@@ -3,7 +3,7 @@
 @section('page-title', 'Property Verifications')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto">
+<div class="max-w-[1600px] mx-auto" x-data="{ rejectTarget: { id: null, title: '' }, openReject(id, title) { this.rejectTarget = { id, title }; window.dispatchEvent(new CustomEvent('open-modal', { detail: 'reject-listing' })); } }">
 
     {{-- Page header --}}
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -160,16 +160,13 @@
                                         Approve
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ route('admin.listings.reject', $property->property_id) }}" class="flex-1 sm:flex-none">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:brightness-95 text-white text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(185,28,28,0.35)] cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                        Reject
-                                    </button>
-                                </form>
+                                <button type="button" x-on:click="openReject({{ $property->property_id }}, @js($property->title))"
+                                    class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:brightness-95 text-white text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(185,28,28,0.35)] cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Reject
+                                </button>
                             </div>
                         @elseif ($property->publication_status === 'Suspended')
                             <div class="flex sm:flex-col gap-2 sm:items-stretch shrink-0 sm:w-[130px]">
@@ -197,6 +194,42 @@
             </div>
         @endif
     @endif
+
+    {{-- Reject reason modal — shared across every row instead of an inline
+         per-row form, since this page can list dozens of pending listings.
+         The landlord previously got no reason at all when rejected (see
+         admin/documents/show.blade.php for the pattern this mirrors, which
+         already required one for document rejection). --}}
+    <x-modal name="reject-listing" focusable>
+        <form method="POST" x-bind:action="`{{ url('admin/listings') }}/${rejectTarget.id}/reject`" class="p-6">
+            @csrf
+            <h2 class="text-[15px] font-bold text-[#060D26]">Reject listing</h2>
+            <p class="mt-1 text-[13px] text-[#5B6A8E]">
+                <span x-text="rejectTarget.title"></span> will be rejected and the landlord notified with your reason below.
+            </p>
+
+            <label for="rejection_reason" class="block mt-4 text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+                Reason for rejection
+            </label>
+            <textarea name="rejection_reason" id="rejection_reason" rows="4" required
+                class="w-full rounded-lg border border-[#E2E4EC] px-3 py-2.5 text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all resize-none"
+                placeholder="Explain what needs to change — the landlord will see this and can resubmit."></textarea>
+            @error('rejection_reason')
+                <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
+            @enderror
+
+            <div class="mt-4 flex justify-end gap-2">
+                <button type="button" x-on:click="show = false"
+                    class="h-10 px-4 rounded-lg border border-[#E2E4EC] text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="h-10 px-4 rounded-lg bg-[#EF4444] hover:brightness-95 text-white text-[13px] font-bold transition-all">
+                    Confirm rejection
+                </button>
+            </div>
+        </form>
+    </x-modal>
 
 </div>
 @endsection
