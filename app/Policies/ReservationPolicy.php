@@ -131,7 +131,7 @@ class ReservationPolicy
 
     public function voidDepositCharge(User $user, Reservation $reservation): bool
     {
-        return $this->viewTenancy($user, $reservation);
+        return $this->viewTenancy($user, $reservation) || $user->hasRole('Admin');
     }
 
     /**

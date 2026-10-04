@@ -332,6 +332,20 @@
                     </span>
                 </a>
 
+                {{-- Deposit Charges --}}
+                <a href="{{ route('admin.deposit-charges.index') }}"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200
+                        {{ str_starts_with($cur ?? '', 'admin.deposit-charges') ? 'bg-[#060D26] text-white border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap flex-1">Deposit Charges</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
+                        Deposit Charges
+                    </span>
+                </a>
+
                 {{-- ── CONTENT & REVIEWS ── --}}
                 <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                     class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/30 uppercase tracking-widest whitespace-nowrap">

@@ -330,6 +330,12 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::get('/payouts', [App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
         Route::post('/payouts/{user}/mark-paid-out', [App\Http\Controllers\Admin\PayoutController::class, 'markPaidOut'])->name('payouts.markPaidOut');
 
+        // Deposit charges — admin oversight/override of a landlord's claims
+        // against a tenant's held security deposit. ReservationPolicy::
+        // voidDepositCharge() authorizes Admin here the same as the landlord.
+        Route::get('/deposit-charges', [App\Http\Controllers\Admin\DepositChargeController::class, 'index'])->name('deposit-charges.index');
+        Route::post('/deposit-charges/{depositCharge}/void', [App\Http\Controllers\Admin\DepositChargeController::class, 'void'])->name('deposit-charges.void');
+
         // Profile
         Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
