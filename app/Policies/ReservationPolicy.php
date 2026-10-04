@@ -120,6 +120,21 @@ class ReservationPolicy
     }
 
     /**
+     * Deliberately NOT restricted to 'Occupied', same reasoning as
+     * voidPayment — damage is often found around move-out, after the
+     * tenancy has already been marked Completed.
+     */
+    public function recordDepositCharge(User $user, Reservation $reservation): bool
+    {
+        return $this->viewTenancy($user, $reservation);
+    }
+
+    public function voidDepositCharge(User $user, Reservation $reservation): bool
+    {
+        return $this->viewTenancy($user, $reservation);
+    }
+
+    /**
      * Ending a tenancy hands the unit back to the available pool, so only the
      * owner may do it and only while it is actually running.
      */
@@ -141,5 +156,34 @@ class ReservationPolicy
                 $reservation->tenant_id === $user->user_id
                 || $reservation->property?->landlord_id === $user->user_id
             );
+    }
+
+    /**
+     * The lease: its tenant, or the landlord of its property. Unlike
+     * viewAgreement (the tenant's signing page), the landlord needs this to
+     * print a walk-in's lease and to check what an online tenant signed.
+     */
+    public function viewLease(User $user, Reservation $reservation): bool
+    {
+        return $reservation->tenant_id === $user->user_id
+            || $reservation->property?->landlord_id === $user->user_id;
+    }
+
+    /**
+     * Attaching the signed paper copy — landlord of the property only.
+     */
+    public function manageLease(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property?->landlord_id === $user->user_id;
+    }
+
+    /**
+     * Only the reservation's tenant asks to see the unit, and only between
+     * the landlord accepting the inquiry and the agreement being signed.
+     */
+    public function requestViewing(User $user, Reservation $reservation): bool
+    {
+        return $reservation->tenant_id === $user->user_id
+            && $reservation->canRequestViewing();
     }
 }

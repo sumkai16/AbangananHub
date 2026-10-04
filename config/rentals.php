@@ -70,4 +70,33 @@ return [
      * forgot to end doesn't generate reminders forever.
      */
     'rent_reminder_max_overdue_weeks' => 8,
+
+    /*
+     * Unit viewings — hourly slots from the first to the last start hour
+     * (24h), and how far ahead a viewing can be booked.
+     */
+    'viewing_first_hour' => 8,
+    'viewing_last_hour' => 17,
+    'viewing_max_days_ahead' => 60,
+
+    /*
+     * Bounds for a landlord's own weekly viewing hours (24h, whole hours).
+     * The first/last hour above is only the default for landlords who
+     * haven't set their hours yet — and the range offline viewings use.
+     */
+    'viewing_hours_earliest' => 6,
+    'viewing_hours_latest' => 21,
+
+    /*
+     * Days of written notice either party gives to end a tenancy, as printed
+     * in the lease (App\Support\LeaseTerms). Frozen into each lease when it's
+     * issued, so changing this only affects leases issued afterwards.
+     */
+    'lease_notice_days' => 30,
+
+    /*
+     * Rental statuses in which the tenant may request a viewing: after the
+     * landlord accepts the inquiry, up to signing.
+     */
+    'viewing_statuses' => ['Under Negotiation', 'Pending Rental Agreement'],
 ];

@@ -52,6 +52,12 @@ class StoreWalkInTenantRequest extends FormRequest
             'rent_due_day'         => ['nullable', 'integer', 'min:1', 'max:28'],
             'notes'                => ['nullable', 'string', 'max:1000'],
 
+            // The signed paper lease, optional — "upload later" from the
+            // tenancy page is allowed so a tenant who already lives there
+            // can be recorded before the paperwork turns up.
+            'lease_mode'           => ['nullable', Rule::in(['now', 'later'])],
+            'lease_file'           => ['required_if:lease_mode,now', 'nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+
             // Move-in money collected at the door. There is no "what was it
             // for" field: MoveInPaymentBreakdown allocates the amount across
             // deposit, first-month rent and advance rent, so asking the
@@ -144,6 +150,9 @@ class StoreWalkInTenantRequest extends FormRequest
             'payment_method.required_with'    => 'Choose how the initial payment was made.',
             'payment_date.before_or_equal'    => 'A payment cannot be recorded for a future date.',
             'reference_no.required'           => 'Enter the reference number for this payment, or switch the method to Cash.',
+            'lease_file.required_if'          => 'Choose the signed lease file, or pick "Upload later".',
+            'lease_file.mimes'                => 'Upload the signed lease as a PDF, JPG or PNG.',
+            'lease_file.max'                  => 'The lease file must be 10 MB or smaller.',
         ];
     }
 

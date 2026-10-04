@@ -24,6 +24,12 @@
       value     Carbon|null   currently chosen slot
       min       Carbon|null   earliest selectable day
       deadline  Carbon|null   marked on the grid; days after it are flagged
+      max       Carbon|null   last selectable day
+      blocked   string[]      Y-m-d days that can't be picked (landlord unavailable)
+      slots     array|null    [['value' => 'HH:mm', 'label' => '9 AM'], …] replaces the presets
+      weekSlots array|null    [dayOfWeek => slots] — per-weekday slots; missing weekdays can't be picked
+      customTime bool         show the free "Other time" input (off for fixed viewing slots)
+      heading   string
 --}}
 
 @props([
@@ -31,6 +37,12 @@
     'value' => null,
     'min' => null,
     'deadline' => null,
+    'max' => null,
+    'blocked' => [],
+    'slots' => null,
+    'weekSlots' => null,
+    'customTime' => true,
+    'heading' => 'When will you meet?',
 ])
 
 <div x-data="datetimePicker({
@@ -38,12 +50,16 @@
         time: @js($value?->format('H:i')),
         min: @js(($min ?? now())->format('Y-m-d')),
         deadline: @js($deadline?->format('Y-m-d')),
+        max: @js($max?->format('Y-m-d')),
+        blocked: @js(collect($blocked)->values()),
+        slots: @js($slots),
+        weekSlots: @js($weekSlots === null ? null : (object) $weekSlots),
     })">
 
     <input type="hidden" name="{{ $name }}" :value="value">
 
     <div class="px-5 sm:px-6 py-5">
-        <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#5B6A8E] mb-5">When will you meet?</p>
+        <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#5B6A8E] mb-5">{{ $heading }}</p>
 
         <div class="grid lg:grid-cols-[300px_minmax(0,1fr)] gap-7">
 
@@ -59,8 +75,8 @@
                         </svg>
                     </button>
                     <p class="text-[15px] font-bold text-[#060D26]" x-text="monthLabel" aria-live="polite"></p>
-                    <button type="button" @click="shiftMonth(1)"
-                        class="w-8 h-8 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors">
+                    <button type="button" @click="shiftMonth(1)" :disabled="!canGoForward"
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] disabled:opacity-25 disabled:cursor-not-allowed transition-colors">
                         <span class="sr-only">Next month</span>
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                             aria-hidden="true">
@@ -82,10 +98,12 @@
                             <template x-if="cell.iso">
                                 <button type="button" @click="date = cell.iso" :disabled="cell.disabled"
                                     :aria-pressed="date === cell.iso"
-                                    :aria-label="cell.label + (cell.beyondDeadline ? ' — after the review deadline' : '')"
+                                    :aria-label="cell.label + (cell.beyondDeadline ? ' — after the review deadline' : '') + (cell.isBlocked ? ' — not available' : '')"
                                     class="w-10 h-10 rounded-lg text-[14px] font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                     :class="date === cell.iso
                                         ? 'bg-[#FF8A66] text-[#060D26]'
+                                        : cell.isBlocked
+                                        ? 'text-[#5B6A8E] line-through bg-[#ECEEF6]'
                                         : (cell.beyondDeadline
                                             ? 'text-[#B45309] hover:bg-[#FBBF24]/[0.14]'
                                             : 'text-[#060D26] hover:bg-[#ECEEF6]')">
@@ -121,6 +139,12 @@
                         Review deadline
                     </p>
                 </template>
+                <template x-if="blocked.length">
+                    <p class="mt-3 flex items-center gap-2 text-[11.5px] text-[#5B6A8E]">
+                        <span class="w-4 h-4 rounded bg-[#ECEEF6] text-[9px] leading-4 text-center line-through shrink-0" aria-hidden="true">9</span>
+                        Landlord not available
+                    </p>
+                </template>
             </div>
 
             {{-- ── Time ───────────────────────────────────── --}}
@@ -137,7 +161,11 @@
                             x-text="t.label"></button>
                     </template>
                 </div>
+                <p x-show="weekSlots && !presets.length" x-cloak class="text-[13px] text-[#5B6A8E]">
+                    Pick a day first to see its viewing times.
+                </p>
 
+                @if ($customTime)
                 <p class="mt-6 text-[11px] font-bold uppercase tracking-[0.11em] text-[#5B6A8E] mb-2">Other time</p>
 
                 <div class="relative sm:max-w-[320px]">
@@ -150,6 +178,7 @@
                     <input type="time" :id="$id('time')" x-model="time" step="900"
                         class="w-full h-12 rounded-xl border border-[#E2E4EC] bg-white pl-10 pr-3 text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-1 focus:ring-[#FF8A66] outline-none">
                 </div>
+                @endif
 
                 <div class="mt-5 flex items-start gap-2" aria-live="polite">
                     <svg class="w-4 h-4 shrink-0 mt-0.5" :class="value ? 'text-[#B35A3D]' : 'text-[#94A3B8]'"

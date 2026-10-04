@@ -28,11 +28,60 @@
         class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
 
         {{-- 1. Nav Row --}}
-        <div class="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-[64px] relative">
+        @php
+            // A detail page opts in via @extends('layouts.app', ['backNav' =>
+            // ['route' => ..., 'label' => ...]]) to swap Home/Browse/Areas/How
+            // it works for a single back link at `lg`, with the logo moving to
+            // dead-centre — see properties/show.blade.php for the first use.
+            // Same "reuse the previous URL only if it's that index page" rule
+            // as any other back link here, computed fresh from the given route
+            // so callers don't have to duplicate the parse_url check.
+            $backNavData = null;
+            if (!empty($backNav)) {
+                $backNavIndexUrl = route($backNav['route']);
+                $backNavPrevUrl = url()->previous();
+                $backNavData = [
+                    'url' => parse_url($backNavPrevUrl, PHP_URL_PATH) === parse_url($backNavIndexUrl, PHP_URL_PATH)
+                        ? $backNavPrevUrl
+                        : $backNavIndexUrl,
+                    'label' => $backNav['label'] ?? 'Back',
+                ];
+            }
 
-            {{-- Logo --}}
+            // backNav's right-actions cluster (theme toggle + Become a
+            // Landlord/dashboard pill + notifications + avatar) is wide
+            // enough that a dead-centred logo can collide with it once the
+            // primary nav's flex space is gone, at widths just above `lg`.
+            // Pushing the mobile-style header (logo left + hamburger) out to
+            // `xl` on a backNav page buys enough room that it can't happen —
+            // ordinary pages keep switching at `lg` as before.
+            $mobileBp = $backNavData ? 'xl' : 'lg';
+
+            // Needed by both the primary nav below (desktop) and the mobile
+            // nav panel further down, so computed unconditionally rather than
+            // inside the @if/@else — the mobile panel still shows these links
+            // (via the hamburger) even on a backNav page, since there's no
+            // room for them in the header at that width either way.
+            $onHome = request()->routeIs('home');
+            $onBrowse = request()->routeIs('properties.index');
+            $onAreas = request()->routeIs('properties.areas');
+        @endphp
+        {{-- max-w-[1400px] mx-auto to match the standard content container
+             (gallery, footer below, every page built on it) — same full-bleed
+             bg + capped-and-centred inner row the search band two sections
+             down already uses. Without this the row was edge-to-edge of the
+             *window*, not the 1400px column, so on anything wider than
+             ~1462px the logo/back-link/actions drifted further from the
+             photo edges the wider the screen got — a small lg:px-10 vs
+             lg:px-8 padding mismatch (since fixed) was masking the real gap. --}}
+        <div class="max-w-[1400px] mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-[64px] relative">
+
+            {{-- Logo — hidden at `lg` on a backNav page, since the centred
+                 logo below takes over at that width. Unaffected on mobile:
+                 the header stays tight there (logo + hamburger + auth
+                 buttons), so the back link lives in the page content instead. --}}
             <a href="{{ route('home') }}"
-                class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group">
+                class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group {{ $backNavData ? $mobileBp.':hidden' : '' }}">
                 <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
                     class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
@@ -40,45 +89,55 @@
                 </span>
             </a>
 
-            {{-- Primary nav — sits beside the logo, deliberately not centred: the
-                 collapsed search pill below is `absolute left-1/2`, and a centred
-                 nav would land underneath it on scroll. Hidden below `lg`; phones
-                 get the same links via the `mobileNavOpen` hamburger panel instead
-                 (see `#mobile-nav-panel` further down). --}}
-            <nav aria-label="Primary" class="hidden lg:flex items-center gap-1 ml-8 mr-auto">
-                {{-- Block form, not the inline parenthesised one: that emitted an
-                     unterminated PHP open tag here and swallowed the rest of the
-                     header. Never write a literal PHP open tag in a Blade comment
-                     either — Blade tokenises with token_get_all(), so one inside a
-                     comment still opens a PHP block and silently drops the markup
-                     that follows it. --}}
-                @php
-                    $onHome = request()->routeIs('home');
-                    $onBrowse = request()->routeIs('properties.index');
-                    $onAreas = request()->routeIs('properties.areas');
-                @endphp
-
-                <a href="{{ route('home') }}" @if($onHome) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onHome ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
-                    Home
+            @if($backNavData)
+                <a href="{{ $backNavData['url'] }}"
+                    class="hidden xl:inline-flex items-center gap-2 text-[13.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+                    </svg>
+                    {{ $backNavData['label'] }}
                 </a>
 
-
-                <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
-                    Browse Rentals
+                {{-- Centred logo — `absolute left-1/2 -translate-x-1/2` inside
+                     this row's own `relative`, same trick the collapsed search
+                     pill uses elsewhere in this file. --}}
+                <a href="{{ route('home') }}"
+                    class="hidden xl:flex items-center gap-2.5 no-underline absolute left-1/2 -translate-x-1/2 group">
+                    <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
+                        class="w-9 h-9 object-contain transition-transform group-hover:scale-105">
+                    <span class="text-[18px] font-extrabold text-[#060D26] tracking-tight">
+                        Abanganan<span class="text-[#FF8A66]">Hub</span>
+                    </span>
                 </a>
+            @else
+                {{-- Primary nav — sits beside the logo, deliberately not centred: the
+                     collapsed search pill below is `absolute left-1/2`, and a centred
+                     nav would land underneath it on scroll. Hidden below `lg`; phones
+                     get the same links via the `mobileNavOpen` hamburger panel instead
+                     (see `#mobile-nav-panel` further down). --}}
+                <nav aria-label="Primary" class="hidden lg:flex items-center gap-1 ml-8 mr-auto">
+                    <a href="{{ route('home') }}" @if($onHome) aria-current="page" @endif
+                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onHome ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                        Home
+                    </a>
 
-                <a href="{{ route('properties.areas') }}" @if($onAreas) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onAreas ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
-                    Areas
-                </a>
 
-                <a href="{{ route('about') }}#how-it-works"
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
-                    How it works
-                </a>
-            </nav>
+                    <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
+                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                        Browse Rentals
+                    </a>
+
+                    <a href="{{ route('properties.areas') }}" @if($onAreas) aria-current="page" @endif
+                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onAreas ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                        Areas
+                    </a>
+
+                    <a href="{{ route('about') }}#how-it-works"
+                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
+                        How it works
+                    </a>
+                </nav>
+            @endif
 
             {{-- Right Actions --}}
             <div class="flex items-center gap-3">
@@ -91,7 +150,7 @@
                 <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Menu"
                     :aria-expanded="mobileNavOpen ? 'true' : 'false'" aria-haspopup="true" aria-controls="mobile-nav-panel"
                     :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
-                    class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+                    class="{{ $mobileBp }}:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path x-show="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         <path x-show="mobileNavOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -106,7 +165,7 @@
                         $mobileUnreadMsgCount = $unreadMessageCount;
                     @endphp
                     <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
-                        class="lg:hidden relative flex items-center gap-1.5 h-10 px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
+                        class="{{ $mobileBp }}:hidden relative flex items-center gap-1.5 h-10 px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
                         Messages
                         @if($mobileUnreadMsgCount > 0)
                             <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
@@ -380,7 +439,7 @@
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
-            class="lg:hidden border-t border-[#E2E4EC] bg-white px-4 py-3">
+            class="{{ $mobileBp }}:hidden border-t border-[#E2E4EC] bg-white px-4 py-3">
 
             <a href="{{ route('home') }}" @click="mobileNavOpen = false"
                 @if($onHome) aria-current="page" @endif

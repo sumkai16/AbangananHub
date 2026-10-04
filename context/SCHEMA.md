@@ -250,7 +250,10 @@ Column sizes were taken from the validation the controllers were already enforci
 | rent_due_day | TINYINT UNSIGNED | NULLABLE | Day of month rent falls due (1–28). Falls back to the move-in day via `Reservation::rentDueDay()`, clamped to 28 so it exists in February |
 | occupants_count | INT | NULLABLE | |
 | rental_status | VARCHAR | DEFAULT 'Inquiry' | Inquiry → Under Negotiation → Pending Rental Agreement → Rental Agreement Signed → Occupied → **Completed**; or Rejected / Cancelled. `Completed` (July 24 2026) is the end-of-tenancy terminal state; before it an Occupied reservation had no exit and held its unit forever. **`Reservation::TERMINAL_STATUSES` = `['Cancelled','Rejected','Completed']`** is the single source every "is this unit spoken for" query filters on — see RULES.md note on the audit |
-| agreement_terms_notes | TEXT | NULLABLE | |
+| agreement_terms_notes | TEXT | NULLABLE | Landlord's extra lease terms ("Additional terms" clause) |
+| lease_snapshot | JSON | NULLABLE | Added Sept 28 2026. The lease terms frozen when issued — `advanceToPendingAgreement()` (online) or walk-in save — built by `App\Support\LeaseTerms::snapshot()`. The lease renders from this so editing the property later can't rewrite a signed document. **Null on rows issued before it existed; those render live** via `LeaseTerms::for()` |
+| lease_file_path / lease_file_name | VARCHAR | NULLABLE | Signed paper copy (walk-in, or any tenancy), private `local` disk under `leases/{landlord_id}/`, served only by `Landlord\LeaseController::file`. Replacing deletes the old file |
+| lease_uploaded_at | TIMESTAMP | NULLABLE | `Reservation::leaseStatus()` = `uploaded` / `signed_online` (`agreed_at`) / `missing` |
 | agreed_at / agreed_ip | TIMESTAMP / VARCHAR | NULLABLE | Set by `signAgreement()` |
 | landlord_tc_accepted_at | TIMESTAMP | NULLABLE | |
 | tenant_tc_accepted_at | TIMESTAMP | NULLABLE | |
@@ -520,6 +523,48 @@ help text and group, and both the form and `UpdateSettingsRequest` derive from t
 Every change writes a `settings.update` audit row with a `label => 'before → after'` metadata entry per
 changed key, inside the same transaction as the writes.
 
+### viewing_requests
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| viewing_id | BIGINT UNSIGNED | PK | `$primaryKey = 'viewing_id'` |
+| source | ENUM('Online','Offline') | DEFAULT 'Online' | Online = tenant asked in the chat. Offline = landlord logged a visit arranged by phone/in person |
+| reservation_id | FK → reservations.reservation_id | NULLABLE, cascade | Set for Online, null for Offline |
+| property_id | FK → properties.property_id | NOT NULL, cascade | |
+| unit_id | FK → property_units.unit_id | NULLABLE, null on delete | |
+| tenant_id | FK → users.user_id | NULLABLE, cascade | Set for Online, null for Offline |
+| visitor_name / visitor_phone | VARCHAR(120) / VARCHAR(30) | NULLABLE | Offline only — the visitor has no account |
+| landlord_id | FK → users.user_id | NOT NULL | Denormalised from the property so the calendar is one indexed query |
+| scheduled_at | DATETIME | NOT NULL | On the hour, `viewing_first_hour`–`viewing_last_hour` (config/rentals.php) |
+| status | ENUM('Pending','Confirmed','Declined','Cancelled') | DEFAULT 'Pending' | Offline rows start Confirmed. **Completed** (Confirmed + past) and **Expired** (Pending + past) are derived, never stored |
+| proposed_by | FK → users.user_id | NOT NULL | Whoever put the current time forward; the *other* party confirms |
+| note / decline_reason | TEXT | NULLABLE | |
+| responded_at | TIMESTAMP | NULLABLE | |
+
+Indexes: `(landlord_id, scheduled_at)` for the calendar, `(reservation_id, status)` for the one-open-viewing check.
+
+### landlord_blocked_dates
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| blocked_date_id | BIGINT UNSIGNED | PK | |
+| landlord_id | FK → users.user_id | NOT NULL | Per landlord, across all their properties |
+| date | DATE | NOT NULL | UNIQUE with landlord_id |
+| reason | VARCHAR(255) | NULLABLE | |
+
+A day with an active viewing on it can't be blocked — the landlord reschedules or cancels first.
+
+### landlord_viewing_hours
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| viewing_hour_id | BIGINT UNSIGNED | PK | |
+| landlord_id | FK → users.user_id | NOT NULL | UNIQUE with day_of_week |
+| day_of_week | TINYINT UNSIGNED | NOT NULL | Carbon `dayOfWeek`, 0 = Sunday |
+| start_hour / end_hour | TINYINT UNSIGNED | NOT NULL | Whole hours, 24h, within `viewing_hours_earliest`–`viewing_hours_latest`. Last viewing starts at `end_hour - 1` |
+
+One row per weekday the landlord takes viewings; a missing weekday is a day off. **No rows at all = never
+set**, and `LandlordViewingHour::weekFor()` falls back to every day, `viewing_first_hour`–`viewing_last_hour`.
+Saving requires at least one day, so "no rows" can't be reached by unticking everything. Applies to online
+viewings only; offline ones use the default range.
+
 ## 3. Relationships
 - users → user_roles (1:many — a user can have multiple roles)
 - users → landlord_verifications (1:many — resubmission possible after rejection)
@@ -593,6 +638,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_room_details_to_property_units | `bedrooms`, `bathrooms` (TINYINT UNSIGNED, nullable), `is_furnished` (BOOLEAN, nullable) | The property creation wizard's unit step asks for these; nothing on `property_units` captured them before | Aug 2026 |
 | add_floor_area_to_property_units_table | `floor_area_sqm` DECIMAL(6,2) nullable | Tenants compare unit size when choosing between similarly-priced rooms, and nothing captured it. `properties/show` had already been rendering `$unit->size` in four places against a column that never existed — this gives those dead slots real data. See ARCHITECTURE.md | Aug 28 2026 |
 | add_void_fields_to_payments_table | `status` enum widened with `Voided`; adds `voided_at`, `voided_by`, `void_reason`, `void_note`, `replaces_payment_id` | Landlords had no way to correct a wrongly-entered payment except a raw DB edit — no audit trail, no UI. See ARCHITECTURE.md and `plans/void-correct-payments.md` | Aug 31 2026 |
+| create_viewing_requests_table / create_landlord_blocked_dates_table | Two new tables, nothing existing changes | Unit viewings: tenant requests from the chat, landlord logs offline visits, landlord blocks days. See `plans/unit-viewing-scheduling.md` | Sept 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.

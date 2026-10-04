@@ -35,6 +35,8 @@ class TenancyController extends Controller
             'payments.recorder',
             'payments.voider',
             'payments.replacements',
+            'depositCharges.charger',
+            'depositCharges.voider',
             'conversation',
         ]);
 

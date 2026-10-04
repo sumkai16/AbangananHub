@@ -36,6 +36,10 @@ class Reservation extends Model
         'occupants_count',
         'rental_status',
         'agreement_terms_notes',
+        'lease_snapshot',
+        'lease_file_path',
+        'lease_file_name',
+        'lease_uploaded_at',
         'agreed_at',
         'agreed_ip',
         'remarks',
@@ -61,6 +65,8 @@ class Reservation extends Model
             'target_move_in_date' => 'date',
             'target_move_out_date' => 'date',
             'agreed_monthly_rent' => 'decimal:2',
+            'lease_snapshot' => 'array',
+            'lease_uploaded_at' => 'datetime',
             'agreed_at' => 'datetime',
             'landlord_tc_accepted_at' => 'datetime',
             'tenant_tc_accepted_at' => 'datetime',
@@ -484,6 +490,55 @@ public ?Payment $releasedPayment = null;
         return $this->hasMany(Payment::class, 'reservation_id', 'reservation_id');
     }
 
+    public function depositCharges()
+    {
+        return $this->hasMany(DepositCharge::class, 'reservation_id', 'reservation_id')->orderByDesc('charged_at');
+    }
+
+    /**
+     * Where this tenancy's signed lease stands:
+     *   'uploaded'      — a signed paper copy is attached (walk-in, or any tenancy)
+     *   'signed_online' — the tenant e-signed on the platform
+     *   'missing'       — neither yet
+     */
+    public function leaseStatus(): string
+    {
+        if ($this->lease_file_path) {
+            return 'uploaded';
+        }
+
+        return $this->agreed_at ? 'signed_online' : 'missing';
+    }
+
+    public function viewings()
+    {
+        return $this->hasMany(ViewingRequest::class, 'reservation_id', 'reservation_id');
+    }
+
+    /**
+     * The one Pending/Confirmed viewing still ahead, if any — at most one
+     * exists per reservation (enforced in ViewingController::store). A
+     * viewing whose time has passed doesn't count, so the tenant can ask for
+     * a second look.
+     */
+    public function activeViewing(): ?ViewingRequest
+    {
+        return $this->viewings()->open()->latest('viewing_id')->first();
+    }
+
+    /**
+     * The newest viewing in any state — what the chat card shows.
+     */
+    public function latestViewing(): ?ViewingRequest
+    {
+        return $this->viewings()->latest('viewing_id')->first();
+    }
+
+    public function canRequestViewing(): bool
+    {
+        return in_array($this->rental_status, config('rentals.viewing_statuses'), true);
+    }
+
     public function conversation()
     {
         return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
@@ -651,6 +706,9 @@ public ?Payment $releasedPayment = null;
         if ($terms !== null) {
             $this->agreement_terms_notes = $terms;
         }
+        // Freeze the lease the tenant is about to sign. Done here, not at
+        // the call sites, so every path that issues the agreement does it.
+        $this->lease_snapshot = \App\Support\LeaseTerms::snapshot($this);
         $this->rental_status = 'Pending Rental Agreement';
         return $this->save();
     }

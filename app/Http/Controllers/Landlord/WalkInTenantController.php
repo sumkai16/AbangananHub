@@ -9,10 +9,12 @@ use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Support\LeaseTerms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -80,7 +82,31 @@ class WalkInTenantController extends Controller
         $data = $request->validated();
         $landlordId = Auth::id();
 
-        $reservation = DB::transaction(function () use ($data, $landlordId) {
+        // Stored before the transaction (a file write can't roll back), and
+        // deleted again below if the transaction fails, so a refused walk-in
+        // never leaves an orphaned lease on disk.
+        $leaseFile = $request->file('lease_file');
+        $leasePath = $leaseFile?->store("leases/{$landlordId}", 'local');
+
+        try {
+            $reservation = $this->createWalkIn($data, $landlordId, $leasePath, $leaseFile?->getClientOriginalName());
+        } catch (\Throwable $e) {
+            if ($leasePath) {
+                Storage::disk('local')->delete($leasePath);
+            }
+            throw $e;
+        }
+
+        return redirect()
+            ->route('landlord.tenancies.show', $reservation)
+            ->with('success', $leasePath
+                ? 'Walk-in tenant added with their signed lease. The unit is now marked occupied.'
+                : 'Walk-in tenant added and the unit is now marked occupied. Upload the signed lease from this page when you have it.');
+    }
+
+    private function createWalkIn(array $data, int $landlordId, ?string $leasePath, ?string $leaseName): Reservation
+    {
+        return DB::transaction(function () use ($data, $landlordId, $leasePath, $leaseName) {
             // Locked, not just checked: two tabs submitting the same unit could
             // otherwise both pass the availability check before either wrote a
             // reservation, placing two tenants in one unit.
@@ -136,6 +162,15 @@ class WalkInTenantController extends Controller
                 'remarks'              => $data['notes'] ?? null,
             ]);
 
+            // The lease this tenancy runs on, frozen now (it needs the new
+            // row's id for its reference), plus the signed copy if attached.
+            $reservation->update([
+                'lease_snapshot'    => LeaseTerms::snapshot($reservation),
+                'lease_file_path'   => $leasePath,
+                'lease_file_name'   => $leasePath ? $leaseName : null,
+                'lease_uploaded_at' => $leasePath ? now() : null,
+            ]);
+
             // Fires PropertyUnitObserver, which logs the occupancy activity.
             $unit->update(['availability_status' => 'Occupied']);
 
@@ -145,10 +180,6 @@ class WalkInTenantController extends Controller
 
             return $reservation;
         });
-
-        return redirect()
-            ->route('landlord.tenancies.show', $reservation)
-            ->with('success', 'Walk-in tenant added and the unit is now marked occupied.');
     }
 
     /**

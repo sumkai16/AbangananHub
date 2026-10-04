@@ -110,6 +110,9 @@ class TenantSeeder extends Seeder
 
     public function run(): void
     {
+        // First, so the other tenants can't use up all of Maria's free units.
+        $this->rentForAxcee();
+
         $units = $this->pickUnits(count(self::TENANTS));
 
         foreach (self::TENANTS as $i => $t) {
@@ -138,6 +141,35 @@ class TenantSeeder extends Seeder
             $this->rent($tenant, $unit, $t);
         }
     }
+
+    /**
+     * Axcee (the main test tenant from UserSeeder) rents a unit from Maria Santos,
+     * the main test landlord, so both demo logins see the same active tenancy.
+     */
+    private function rentForAxcee(): void
+    {
+        $axcee = User::where('email', 'axcee@abangananhub.com')->first();
+        if (! $axcee || Reservation::where('tenant_id', $axcee->user_id)->where('rental_status', 'Occupied')->exists()) {
+            return;
+        }
+
+        $unit = PropertyUnit::with('property')->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved')
+            ->whereHas('property.landlord', fn ($q) => $q->where('email', 'landlord@abangananhub.com'))
+            ->orderBy('property_id')->orderBy('unit_id')
+            ->first();
+        if (! $unit) {
+            throw new \RuntimeException('No available approved unit under landlord@abangananhub.com for Axcee.');
+        }
+
+        $this->rent($axcee, $unit, self::AXCEE);
+    }
+
+    private const AXCEE = [
+        'email' => 'axcee@abangananhub.com', 'months_in' => 3, 'occupants' => 1, 'due_day' => 1,
+        'pay_offsets' => [0, -1, 1], 'cash_every' => 0, 'methods' => ['GCash'],
+        'advance' => 0, 'current' => 'unpaid',
+    ];
 
     /** One available, approved unit from every third property, so the tenants spread across the listings. */
     private function pickUnits(int $count)
