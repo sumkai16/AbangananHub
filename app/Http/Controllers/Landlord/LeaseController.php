@@ -27,8 +27,9 @@ class LeaseController extends Controller
         $reservation->load(['property.landlord', 'unit', 'tenant']);
 
         return view('leases.show', [
-            'reservation' => $reservation,
-            'terms'       => LeaseTerms::for($reservation),
+            'reservation'     => $reservation,
+            'terms'           => LeaseTerms::for($reservation),
+            'isLandlordView'  => true,
         ]);
     }
 

@@ -134,6 +134,10 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         // A tenant's own tenancy and rent ledger — read-only except for the
         // one earliest unsettled period, which can be paid online via GCash.
         Route::get('/tenancy/{reservation}', [App\Http\Controllers\Tenant\TenancyController::class, 'show'])->name('tenancy.show');
+        // Read-only lease view — ReservationPolicy::viewLease already authorizes
+        // the tenant, same as the landlord; this was the missing route.
+        Route::get('/tenancy/{reservation}/lease', [App\Http\Controllers\Tenant\LeaseController::class, 'show'])->name('tenancy.lease');
+        Route::get('/tenancy/{reservation}/lease-file', [App\Http\Controllers\Tenant\LeaseController::class, 'file'])->name('tenancy.lease.file');
         Route::post('/tenancy/{reservation}/pay-rent', [PaymentController::class, 'createRentCheckoutSession'])->name('payments.rentCheckout');
         Route::get('/tenancy/{reservation}/rent-success', [PaymentController::class, 'rentSuccess'])->name('payments.rent.success');
 

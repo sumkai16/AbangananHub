@@ -1,18 +1,21 @@
-@extends('layouts.landlord')
+@extends($isLandlordView ? 'layouts.landlord' : 'layouts.app', $isLandlordView ? [] : ['searchBar' => false])
 
 {{--
-    The landlord's printable lease. For a walk-in: print, both sign on the
-    paper lines, then upload the signed copy from the tenancy page. For an
-    online tenant: what they e-signed, with the signature record.
-    See plans/formal-lease-agreement.md.
+    The printable lease, shared by both parties (Landlord\LeaseController and
+    Tenant\LeaseController render the same view, see ReservationPolicy::viewLease).
+    For a walk-in: print, both sign on the paper lines, then upload the signed
+    copy from the tenancy page. For an online tenant: what they e-signed, with
+    the signature record. See plans/formal-lease-agreement.md.
 --}}
 
 @section('content')
 @php
     $signedOnline = $reservation->agreed_at !== null;
-    $backUrl = $reservation->rental_status === 'Occupied'
-        ? route('landlord.tenancies.show', $reservation)
-        : route('landlord.reservations.index');
+    $backUrl = $isLandlordView
+        ? ($reservation->rental_status === 'Occupied'
+            ? route('landlord.tenancies.show', $reservation)
+            : route('landlord.reservations.index'))
+        : route('tenancy.show', $reservation);
 @endphp
 
 <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
