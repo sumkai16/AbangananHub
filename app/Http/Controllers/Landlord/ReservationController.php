@@ -150,11 +150,6 @@ class ReservationController extends Controller
             return back()->withErrors(['reservation' => 'This reservation can no longer be rejected.']);
         }
 
-        // Release unit if it was reserved
-        if ($reservation->unit && $reservation->unit->availability_status === 'Reserved') {
-            $reservation->unit->update(['availability_status' => 'Available']);
-        }
-
         return back()->with('success', 'Reservation rejected.');
     }
 
@@ -162,21 +157,8 @@ class ReservationController extends Controller
     {
         Gate::authorize('cancel', $reservation);
 
-        $unitWasReserved = $reservation->unit && $reservation->unit->availability_status === 'Reserved';
-
         if (!$reservation->cancel()) {
             return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
-        }
-
-        if ($unitWasReserved) {
-            $otherActiveExists = Reservation::where('unit_id', $reservation->unit_id)
-                ->where('reservation_id', '!=', $reservation->reservation_id)
-                ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
-                ->exists();
-
-            if (!$otherActiveExists) {
-                $reservation->unit->update(['availability_status' => 'Available']);
-            }
         }
 
         return back()->with('success', 'Reservation cancelled.');

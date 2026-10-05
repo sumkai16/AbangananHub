@@ -753,7 +753,7 @@ public ?Payment $releasedPayment = null;
 
         if ($saved) {
             $this->cancelLinkedConversation();
-            $this->releaseUnit();
+            $this->releaseUnitIfUnclaimed();
         }
 
         return $saved;
@@ -769,10 +769,27 @@ public ?Payment $releasedPayment = null;
 
         if ($saved) {
             $this->cancelLinkedConversation();
-            $this->releaseUnit();
+            $this->releaseUnitIfUnclaimed();
         }
 
         return $saved;
+    }
+
+    /**
+     * A unit can have several live reservations at once (competing inquiries,
+     * or an inquiry on a unit someone already occupies). Dropping one must not
+     * re-list the unit while another still holds it.
+     */
+    public function releaseUnitIfUnclaimed(): void
+    {
+        $claimed = self::where('unit_id', $this->unit_id)
+            ->where('reservation_id', '!=', $this->reservation_id)
+            ->whereNotIn('rental_status', self::TERMINAL_STATUSES)
+            ->exists();
+
+        if (! $claimed) {
+            $this->releaseUnit();
+        }
     }
 
     public function releaseUnit(): void
