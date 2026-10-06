@@ -255,6 +255,10 @@
                             const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' } });
                             if (!res.ok) throw new Error();
                             this.$refs.cal.innerHTML = await res.text();
+                            // Swapped in as plain HTML, so Alpine never saw it —
+                            // without this, every x-data/x-show/@click inside the
+                            // fresh markup (including the day-click modal) is inert.
+                            window.Alpine.initTree(this.$refs.cal);
                             if (push) history.pushState({ cal: true }, '', url);
                             if (focusKey) this.$nextTick(() => this.$refs.cal.querySelector('[data-cal-nav=' + focusKey + ']')?.focus());
                         } catch (e) { window.location.href = url; return; }

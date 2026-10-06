@@ -185,9 +185,20 @@
             </ul>
         </x-card>
 
-        {{-- ── List ───────────────────────────────────────── --}}
-        <section class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] overflow-hidden" aria-live="polite">
-            <header class="px-4 sm:px-5 py-3.5 border-b border-[#E2E4EC] flex items-center gap-3 flex-wrap">
+        {{-- ── List — reflows into a centered modal when a day is picked, so
+             seeing that day's viewings never needs a scroll down the page.
+             Same section, same rows: no second copy, so no duplicate IDs
+             behind the backdrop. The backdrop below covers the calendar
+             while open, so there's nothing to click "outside" onto. ── --}}
+        <div x-show="day" x-cloak @click="day = null" @keydown.escape.window="day = null"
+            class="fixed inset-0 z-[199] bg-black/40 backdrop-blur-sm"
+            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-end="opacity-0"></div>
+
+        <section aria-live="polite" role="dialog" :aria-modal="day ? 'true' : 'false'" :aria-label="day ? dayLabel : null"
+            class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] overflow-hidden"
+            :class="day ? 'fixed z-[200] inset-3 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-2xl sm:max-h-[80vh] flex flex-col' : ''">
+            <header class="px-4 sm:px-5 py-3.5 border-b border-[#E2E4EC] flex items-center gap-3 flex-wrap shrink-0">
                 <div class="flex-1 min-w-0">
                     <h2 class="text-[15px] font-bold text-[#060D26]" x-text="day ? dayLabel : 'Upcoming viewings'">Upcoming viewings</h2>
                     <p class="text-[12px] text-[#5B6A8E]" x-show="day && blocked[day]" x-cloak>
@@ -208,11 +219,13 @@
                         <button type="submit" class="h-9 px-3.5 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] cursor-pointer transition-colors">Unblock</button>
                     </form>
                 </template>
-                <button type="button" x-show="day" x-cloak @click="day = null"
-                    class="h-9 px-3 rounded-lg text-[#5B6A8E] text-[12.5px] font-semibold hover:bg-[#ECEEF6] hover:text-[#060D26] cursor-pointer transition-colors">Show upcoming</button>
+                <button type="button" x-show="day" x-cloak @click="day = null" aria-label="Close"
+                    class="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] cursor-pointer transition-colors">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                </button>
             </header>
 
-            <ul class="divide-y divide-[#E2E4EC]">
+            <ul class="divide-y divide-[#E2E4EC]" :class="day ? 'overflow-y-auto flex-1' : ''">
                 @foreach ($rows as $viewing)
                     @include('landlord.viewings._row', ['viewing' => $viewing, 'properties' => $properties, 'blockedIsos' => $blockedIsos])
                 @endforeach

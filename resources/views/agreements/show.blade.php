@@ -41,7 +41,7 @@
         {{-- Page header — bare on the background per DESIGN.md §6b --}}
         <div class="mb-6">
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5">
-                <h1 class="font-heading font-normal text-[32px] text-[#060D26]">Lease Agreement</h1>
+                <h1 class="text-2xl font-semibold text-[#060D26] tracking-tight">Lease Agreement</h1>
                 <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums border border-[#E2E4EC] rounded-full px-2.5 py-1">{{ $agreementRef }}</p>
             </div>
             <p class="text-sm text-[#5B6A8E] mt-1 print:hidden">Please read the terms below carefully before signing.</p>
