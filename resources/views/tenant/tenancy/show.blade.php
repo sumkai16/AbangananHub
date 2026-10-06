@@ -167,6 +167,7 @@
                                 </button>
                             </form>
                         </div>
+                        <x-payment-test-notice class="mt-4" />
                     </x-card>
                 @endif
 

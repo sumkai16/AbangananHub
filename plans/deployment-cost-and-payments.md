@@ -81,7 +81,8 @@ and keeps manual recording, over deleting the code.
 ---
 
 ## 3. Follow-ups (not done)
-- [ ] Add a visible "Test mode, no real money is charged" label on the checkout before the public
-      deployment, so real visitors are not misled.
+- [x] Add a visible "Test mode, no real money is charged" label on the checkout before the public
+      deployment, so real visitors are not misled. Done as `<x-payment-test-notice>`, shown only
+      while `PAYMONGO_SECRET_KEY` is an `sk_test_` key. Pending a browser check.
 - [ ] Answer the two open hosting decisions in §1.
 - [ ] Re-check every price on the providers' own pages before buying.

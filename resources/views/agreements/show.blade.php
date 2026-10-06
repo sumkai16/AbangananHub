@@ -210,6 +210,7 @@
                                     Pay Now
                                 </button>
                             </div>
+                            <x-payment-test-notice class="mt-2" />
                         </form>
 
                     @elseif($heldPayment)
