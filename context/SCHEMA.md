@@ -112,6 +112,7 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | latitude | DECIMAL(10,7) | NOT NULL | `parseFloat()` client-side. Bounded to Cebu (`App\Rules\WithinCebu`, `config('cebu.bounds')`) since Aug 2026 — no more silent fallback to a hardcoded downtown point when omitted; a pin is required |
 | longitude | DECIMAL(10,7) | NOT NULL | |
 | verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | Admin's verdict on legitimacy. **No longer the sole gate on tenant visibility** — see `publication_status` below and `Property::isLive()`/`scopeLive()` |
+| rejection_reason | TEXT | NULLABLE | Admin's reason when rejecting a listing (Sept 29 2026). Before this the reject action gave the landlord no reason |
 | publication_status | ENUM('Draft','Published','Unpublished','Suspended') | DEFAULT 'Published' | Added Aug 2026. Orthogonal to `verification_status`: this answers "should it be live right now", not "is it legitimate". `Draft` is written by `Landlord\PropertyWizardController::storeLocation()` (Aug 2026 — the property creation wizard's Step 2) and cleared to `Published` by `submit()` once the landlord finishes all six steps; `Property::scopeSubmitted()` excludes `Draft` rows from every admin- and landlord-facing listing query, since a Draft's `verification_status` defaults to `Pending` and would otherwise look like a real submission awaiting review. `Suspended` is admin-only, set by `Admin\ReportController`'s "delist property" report action and lifted only by `Admin\ListingController::unsuspend()` — a landlord's own publish/unpublish toggle (`PropertyController::publish()`/`unpublish()`) explicitly refuses to touch a `Suspended` row. Neither `PropertyController::update()` nor its API twin ever writes this column, so an edit-triggered reset of `verification_status` to `Pending` (and a subsequent re-approval) leaves a suspension untouched — the bug this column was added to fix: the delist action used to reuse `verification_status = 'Rejected'`, which the next edit-and-reapprove cycle silently undid |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
@@ -565,6 +566,26 @@ set**, and `LandlordViewingHour::weekFor()` falls back to every day, `viewing_fi
 Saving requires at least one day, so "no rows" can't be reached by unticking everything. Applies to online
 viewings only; offline ones use the default range.
 
+### deposit_charges
+Claims a landlord makes against a tenancy's held security deposit (Sept 28 2026). A separate ledger: it never edits the `payments` row that funded the deposit. Voided rows stay; `voided_at` marks them, and `RentLedger` counts only active rows.
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| deposit_charge_id | BIGINT UNSIGNED | PK | `$primaryKey = 'deposit_charge_id'` |
+| reservation_id | FK → reservations.reservation_id | NOT NULL, cascade on delete | The tenancy the deposit belongs to |
+| amount | DECIMAL(10,2) | NOT NULL | Capped at the deposit still held: `RentLedger::summary()['depositRemaining']`, checked under `lockForUpdate()` |
+| category | ENUM('Damage','Cleaning','Missing Item','Unpaid Utility','Other') | NOT NULL | `DepositCharge::CATEGORIES` |
+| description | TEXT | NOT NULL | What the charge is for, in the landlord's words |
+| charged_at | DATE | NOT NULL | |
+| charged_by | FK → users.user_id | NULLABLE, set null on delete | Landlord (or admin) who recorded it |
+| voided_at | TIMESTAMP | NULLABLE | Non-null = voided; the row is kept on record |
+| voided_by | FK → users.user_id | NULLABLE, set null on delete | |
+| void_reason | ENUM('wrong_amount','wrong_tenancy','not_applicable','duplicate','other') | NULLABLE | `DepositCharge::VOID_REASONS`. Named causes, not free text |
+| void_note | VARCHAR(255) | NULLABLE | Required when `void_reason` is `other` |
+| created_at / updated_at | TIMESTAMP | | |
+
+Index: `(reservation_id, voided_at)`.
+
 ## 3. Relationships
 - users → user_roles (1:many — a user can have multiple roles)
 - users → landlord_verifications (1:many — resubmission possible after rejection)
@@ -639,6 +660,12 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_floor_area_to_property_units_table | `floor_area_sqm` DECIMAL(6,2) nullable | Tenants compare unit size when choosing between similarly-priced rooms, and nothing captured it. `properties/show` had already been rendering `$unit->size` in four places against a column that never existed — this gives those dead slots real data. See ARCHITECTURE.md | Aug 28 2026 |
 | add_void_fields_to_payments_table | `status` enum widened with `Voided`; adds `voided_at`, `voided_by`, `void_reason`, `void_note`, `replaces_payment_id` | Landlords had no way to correct a wrongly-entered payment except a raw DB edit — no audit trail, no UI. See ARCHITECTURE.md and `plans/void-correct-payments.md` | Aug 31 2026 |
 | create_viewing_requests_table / create_landlord_blocked_dates_table | Two new tables, nothing existing changes | Unit viewings: tenant requests from the chat, landlord logs offline visits, landlord blocks days. See `plans/unit-viewing-scheduling.md` | Sept 2026 |
+| create_landlord_viewing_hours_table | Weekly viewing hours per landlord (`day_of_week`, `start_hour`, `end_hour`; unique per landlord and day) | Tenants can only request viewings inside the hours a landlord opens | Sept 28 2026 |
+| add_lease_fields_to_reservations_table | `lease_snapshot` (JSON), `lease_file_path`, `lease_file_name`, `lease_uploaded_at` | Formal lease: terms frozen when issued, plus the signed paper copy | Sept 28 2026 |
+| create_deposit_charges_table | Deposit claims ledger (see the `deposit_charges` section) | Landlords need to record what a held deposit is being claimed for | Sept 28 2026 |
+| add_condominium_to_properties_property_type / replace_room_with_boarding_house_property_type | `property_type` ENUM gains `Condominium`, and `Room` is renamed `Boarding House` (existing rows are rewritten). MySQL only, guarded by driver | Property types the listing form now offers | Sept 22 2026 |
+| add_occupancy_preference_to_properties_table | `occupancy_preference` ENUM ('No Preference','Men Only','Women Only'); old `Female only`/`Male only`/`Couples allowed`/`Family-friendly` living-arrangement values are moved out of `living_arrangement` | Gender preference was stored as a living arrangement, which mixed two questions | Sept 23 2026 |
+| add_rejection_reason_to_properties_table | `rejection_reason` TEXT | Landlord gets a reason when an admin rejects a listing | Sept 29 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.

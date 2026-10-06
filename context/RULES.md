@@ -174,9 +174,12 @@ The move-in escrow is the only place in the app where money moves with no human 
 - Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Concerns\RecordsMoveInPayments`.
 
 ## Testing
-- **DO NOT run the full `php artisan test` / `phpunit` against the dev database.** `phpunit.xml` has the sqlite override commented out, and the Breeze tests in `tests/Feature/Auth/*` + `ProfileTest` use `RefreshDatabase`, which **wipes the MySQL `abanganan_hub` data** (seeded properties, users, reviews). Run only `--filter=PerformanceBaseline` (read-only GETs). To make the suite safe, uncomment the sqlite `DB_CONNECTION`/`DB_DATABASE` lines in `phpunit.xml` first.
-- To verify a fixture-dependent change, insert rows inside `DB::beginTransaction()` … `DB::rollBack()` in a throwaway test and delete the file afterwards.
-- Manual testing for capstone scope (no automated test suite)
+- **Tests run against `abanganan_hub_test`, never the dev database.** `phpunit.xml` sets `DB_DATABASE=abanganan_hub_test`. Many tests use `RefreshDatabase`, which drops and rebuilds every table in the database they point at, so pointing `DB_DATABASE` back at `abanganan_hub` wipes the dev data (this happened in Oct 2026 and the seeded data had to be re-created). The test database must exist before the first run: `CREATE DATABASE abanganan_hub_test`. `RefreshDatabase` builds the schema itself, so no migrate step is needed.
+- **Run the suite with `php artisan test`.** It should be fully green before a commit. Use `--filter=<ClassName>` for one class.
+- **Tests build their own data; never rely on seeded rows.** Use the helpers in `tests/Support/CreatesMarketplaceFixtures.php` (`makeLandlord`, `makeTenant`, `makeProperty`, `makeUnit`). Tests that don't use `RefreshDatabase` wrap themselves in `DatabaseTransactions`, so their rows roll back.
+- **Use `getKey()`, not `->id`, on `User` in tests.** `User` has the custom primary key `user_id`, so `$user->id` is null.
+- **Outgoing password-reset mail is `App\Mail\PasswordResetMail`.** Tests fake `Mail` and read the token from the mailable's `resetUrl`. Laravel's `ResetPassword` notification is not used.
+- **UI is still checked by hand.** The suite covers routes, rules and data. It does not check how a page looks or behaves in the browser.
 - **Axcee tests manually.** When a feature needs verifying, build the fixtures that put the app into each state plus a checklist of what to look at — not a test suite. `escrow:scenarios` is the pattern: additive, tagged, `--clean` teardown, prints login credentials and expected appearance per state.
 - **Time-based features need backdated fixtures.** Anything measured in days cannot be observed by using the app; `Carbon::setTestNow()` does not reach a separate `php artisan` process, so backdate the data instead.
 - Any dev tool that creates or deletes users must refuse to run in production and must restore rows it did not create (see `EscrowVerify::snapshotRealRows`).

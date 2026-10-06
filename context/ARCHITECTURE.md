@@ -171,6 +171,14 @@ Additive — never touches `rental_status`, payments or escrow. See `plans/unit-
 - **Live refresh:** `ViewingScheduleUpdated` on the conversation channel, dispatched after commit via `ViewingRequest::broadcastUpdate()` (guarded — a stopped Reverb can't fail the action). Fourth instance of the "scheduling moves no status" event shape, after payment settling and handover.
 - **Reservation ends → viewings cancelled** in `ReservationObserver::cancelViewingsIfEnded()`, hooked on the save like every other status side effect.
 
+### Security Deposit Charges (Sept 28 2026)
+A landlord claims part of a tenant's held deposit (damage, cleaning, missing item, unpaid utility). The claim is a row in `deposit_charges`, a separate ledger: the `payments` row that funded the deposit is never edited.
+- **Cap:** `Landlord\DepositChargeController::store` rejects any amount above `RentLedger::summary()['depositRemaining']`. The check runs inside a transaction under `lockForUpdate()`, so two claims cannot both pass on the same remaining balance.
+- **Void, not delete:** `void()` sets `voided_at`, `voided_by` and a named `void_reason` (`DepositCharge::VOID_REASONS`). The row stays on record. `RentLedger` skips voided charges when it computes what is left.
+- **Notifications:** the tenant gets an in-app notification when a charge is recorded and when one is voided.
+- **Admin oversight:** `Admin\DepositChargeController` lists charges and can void them, under `ReservationPolicy::voidDepositCharge()`.
+- **Not in this ledger:** refunding what remains at move-out. That is a separate workflow.
+
 ### Post-Auth Destination
 Every auth entry point — login, registration, social login, both `VerifyEmailController` paths, the verification prompt, verification resend, and password confirm — resolves its redirect through `User::homeRoute()`: Admin → `admin.dashboard`, Landlord → `landlord.dashboard`, everyone else → `properties.index`.
 **There is no tenant dashboard and no bare `dashboard` route** — only `admin.dashboard` and `landlord.dashboard` exist. Adding a role means adding its home to `homeRoute()`; every auth entry point then follows automatically.
