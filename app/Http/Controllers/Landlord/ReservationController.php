@@ -17,7 +17,7 @@ class ReservationController extends Controller
     /** Statuses the index tabs and the export both accept. */
     private const VALID_STATUSES = [
         'Inquiry', 'Under Negotiation', 'Pending Rental Agreement',
-        'Rental Agreement Signed', 'Occupied', 'Completed', 'Cancelled', 'Rejected',
+        'Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed', 'Cancelled', 'Rejected',
     ];
 
     /**
@@ -62,7 +62,7 @@ class ReservationController extends Controller
     {
         $base = $this->filteredQuery($request);
 
-        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected']);
+        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Reserved', 'Occupied', 'Cancelled', 'Rejected']);
 
         $status = $request->query('status', 'all');
 
@@ -242,5 +242,31 @@ public function advanceToPendingAgreement(Request $request, Reservation $reserva
         }
 
         return back()->with('success', 'Keys marked as turned over. The tenant has been asked to confirm their move-in.');
+    }
+
+    /**
+     * Landlord confirms a walk-in reserved for a future date has actually
+     * moved in. No system message, no notification — unlike markTurnedOver(),
+     * a walk-in has no conversation_id and its tenant account is an inactive
+     * placeholder login (see WalkInTenantController::resolveTenant()), so
+     * there is no thread or notifiable account to reach.
+     */
+    public function confirmWalkInMoveIn(Reservation $reservation)
+    {
+        Gate::authorize('confirmWalkInMoveIn', $reservation);
+
+        $confirmed = DB::transaction(function () use ($reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            return $locked->confirmWalkInMoveIn();
+        });
+
+        if (! $confirmed) {
+            return back()->with('error', 'This reservation can no longer be confirmed as moved in.');
+        }
+
+        return back()->with('success', 'Move-in confirmed. The unit is now marked occupied.');
     }
 }

@@ -111,7 +111,8 @@ class LeaseTest extends TestCase
         ])->assertRedirect();
 
         $reservation = $this->latestWalkIn();
-        $this->assertSame('Occupied', $reservation->rental_status);
+        // walkIn() uses a future move-in date, so the unit is reserved, not occupied yet.
+        $this->assertSame('Reserved', $reservation->rental_status);
         $this->assertNotNull($reservation->lease_snapshot);
         $this->assertSame('lease.pdf', $reservation->lease_file_name);
         $this->assertSame('uploaded', $reservation->leaseStatus());

@@ -740,6 +740,30 @@ public ?Payment $releasedPayment = null;
         return true;
     }
 
+    /**
+     * The walk-in equivalent of markOccupied() — a walk-in reserved for a
+     * future date (see WalkInTenantController::createWalkIn()) has no
+     * agreement, no escrow and no held payment to release, so unlike the
+     * platform pipeline's confirmMoveIn() this touches only the two status
+     * fields. The landlord's own assertion is enough here, same as
+     * markKeysTurnedOver() is for the platform pipeline's turnover step.
+     */
+    public function confirmWalkInMoveIn(): bool
+    {
+        if ($this->rental_status !== 'Reserved') {
+            return false;
+        }
+        $this->rental_status = 'Occupied';
+        $this->save();
+
+        if ($this->unit) {
+            $this->unit->availability_status = 'Occupied';
+            $this->unit->save();
+        }
+
+        return true;
+    }
+
     public function reject(?string $reason = null): bool
     {
         if (in_array($this->rental_status, ['Occupied', ...self::TERMINAL_STATUSES], true)) {

@@ -40,6 +40,14 @@
         // tenant can review while living there or after moving out; this page
         // is one of the few places that CTA is actually reachable from.
         $canReview = \App\Models\Review::canReview(auth()->id(), $reservation->property_id);
+
+        // For the "View lease" modal below — by the time a tenant reaches this
+        // page the agreement is already signed (route only links here once
+        // rental_status is Occupied/Completed), so there is no sign/pay flow
+        // to render, just the frozen terms and the signature record.
+        $terms = \App\Support\LeaseTerms::for($reservation);
+        $landlord = $reservation->property->landlord;
+        $tenant = $reservation->tenant;
     @endphp
 
     <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16">
@@ -88,13 +96,13 @@
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
-                    <a href="{{ route('tenancy.lease', $reservation) }}"
-                        class="h-11 px-4 inline-flex items-center gap-2 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] text-sm font-semibold hover:bg-[#F7F8FC] transition-colors">
+                    <button type="button" x-data="" x-on:click="$dispatch('open-modal', 'lease-agreement')"
+                        class="h-11 px-4 inline-flex items-center gap-2 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] text-sm font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                         </svg>
                         View lease
-                    </a>
+                    </button>
                     @if($canReview)
                         <a href="{{ route('properties.show', $reservation->property) }}#reviews"
                             class="h-11 px-4 inline-flex items-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
@@ -474,4 +482,70 @@
         @endpush
     @endif
     <x-rent-period-modal />
+
+    {{-- "View lease" — read-only, since a tenant only reaches this page once
+         the agreement is already signed. Opens over this page instead of
+         navigating away; agreements.show (full page, printable) is still
+         linked from the footer for printing/saving a copy. --}}
+    <x-modal name="lease-agreement" maxWidth="2xl">
+        <div class="flex flex-col max-h-[85vh]">
+            <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-4 border-b border-[#E2E4EC] shrink-0">
+                <div>
+                    <h2 class="text-lg font-semibold text-[#060D26]">Lease Agreement</h2>
+                    <p class="mt-1 text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums">{{ $terms['reference'] }}</p>
+                </div>
+                <button type="button" x-on:click="$dispatch('close')" aria-label="Close"
+                    class="-mr-1.5 -mt-1 h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto px-6 py-5">
+                @include('leases._document', ['terms' => $terms])
+
+                @if($reservation->agreed_at || $reservation->landlord_tc_accepted_at)
+                    <div class="mt-6 rounded-xl border border-[#E2E4EC] p-5">
+                        <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-3">Signatures</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[13px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
+                                <p class="text-[11px] text-[#5B6A8E]">Landlord</p>
+                                @if($reservation->landlord_tc_accepted_at)
+                                    <p class="text-[11px] text-[#15803D] font-semibold mt-1.5">
+                                        Accepted {{ $reservation->landlord_tc_accepted_at->format('F j, Y \a\t g:i A') }}
+                                    </p>
+                                @else
+                                    <p class="text-[11px] text-[#5B6A8E] mt-1.5">Awaiting acceptance</p>
+                                @endif
+                            </div>
+                            <div class="sm:border-l sm:border-[#E2E4EC] sm:pl-4">
+                                <p class="text-[13px] font-bold text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
+                                <p class="text-[11px] text-[#5B6A8E]">Tenant</p>
+                                @if($reservation->agreed_at)
+                                    <p class="text-[11px] text-[#15803D] font-semibold mt-1.5">
+                                        Signed {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}
+                                    </p>
+                                @else
+                                    <p class="text-[11px] text-[#5B6A8E] mt-1.5">Not yet signed</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <div class="px-6 py-4 border-t border-[#E2E4EC] flex items-center justify-between gap-3 shrink-0">
+                <a href="{{ route('tenancy.lease', $reservation) }}" target="_blank" rel="noopener"
+                    class="text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline underline-offset-2">
+                    Open full page / Print
+                </a>
+                <button type="button" x-on:click="$dispatch('close')"
+                    class="h-10 px-5 rounded-xl border border-[#E2E4EC] text-[13px] font-semibold text-[#060D26] hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
+                    Close
+                </button>
+            </div>
+        </div>
+    </x-modal>
 @endsection

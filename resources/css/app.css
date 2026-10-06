@@ -33,6 +33,16 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
 }
 
+/* Formal 1" margin on every printed page (lease, tenant agreement, payment
+   receipt — all three print via the same window.print() pattern). Without
+   this the browser's own print-dialog default applies instead, which varies
+   by browser/printer and can be as tight as ~0.4" — sloppy for a document
+   meant to be signed. Card padding is zeroed with print:p-0 on these pages
+   so this margin is the only spacing, not stacked on top of it. */
+@page {
+    margin: 1in;
+}
+
 /* Slim, theme-matched scrollbar for dark sidebars (admin/landlord nav) —
    overrides the browser's bulky default arrows/thumb on Chromium + Firefox. */
 .scrollbar-thin {

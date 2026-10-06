@@ -74,7 +74,7 @@ public function scopeMaintenance($query)
     public function activeReservation()
     {
         return $this->hasOne(Reservation::class, 'unit_id', 'unit_id')
-                     ->whereIn('rental_status', ['Rental Agreement Signed', 'Occupied'])
+                     ->whereIn('rental_status', ['Rental Agreement Signed', 'Reserved', 'Occupied'])
                      ->latestOfMany('reservation_id');
     }
 

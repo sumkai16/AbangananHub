@@ -61,6 +61,20 @@ class ReservationPolicy
     }
 
     /**
+     * Only the landlord who owns the property, and only while the walk-in is
+     * sitting in Reserved waiting for its move-in date. Not date-gated — the
+     * landlord may confirm early or late, their own judgment is what starts
+     * the tenancy for a walk-in, same as markTurnedOver() is an assertion
+     * rather than a verified event.
+     */
+    public function confirmWalkInMoveIn(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property
+            && $reservation->property->landlord_id === $user->user_id
+            && $reservation->rental_status === 'Reserved';
+    }
+
+    /**
      * The landlord who owns the property can open a tenancy's detail page and
      * its rent ledger.
      *

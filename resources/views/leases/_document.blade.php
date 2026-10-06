@@ -18,16 +18,18 @@
     $tenantName = $terms['tenant']['name'] ?: 'the Tenant';
     $utilities = $terms['utilities'] ?? ['included' => [], 'not_included' => [], 'separately_metered' => null];
     $n = 0;
-    $heading = 'font-heading font-normal text-[19px] text-[#060D26] mt-8 mb-2 print:break-after-avoid';
+    $heading = 'text-[17px] font-semibold text-[#060D26] mt-8 mb-2 print:break-after-avoid';
     $body = 'text-[13.5px] leading-relaxed text-[#060D26]';
 @endphp
 
 <div class="text-[#060D26]">
-    {{-- Parties --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+    {{-- Parties — plain, not a card: this prints, and boxed UI chrome (rounded
+         corners, fill) reads as an app screenshot, not a contract. Same
+         bordered-column treatment as the Signatures block further down. --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 pb-5 border-b border-[#E2E4EC]">
         @foreach (['Landlord' => $terms['landlord'], 'Tenant' => $terms['tenant']] as $role => $p)
-            <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 print:bg-white">
-                <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">{{ $role }}</p>
+            <div @if ($role === 'Tenant') class="sm:border-l sm:border-[#E2E4EC] sm:pl-4" @endif>
+                <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1">{{ $role }}</p>
                 <p class="text-[14px] font-bold text-[#060D26]">{{ $p['name'] ?: '—' }}</p>
                 @if ($p['email'])
                     <p class="text-[11.5px] text-[#5B6A8E] mt-0.5 break-words">{{ $p['email'] }}</p>

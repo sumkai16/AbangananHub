@@ -10,6 +10,7 @@ use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -57,6 +58,12 @@ class WalkInTenantController extends Controller
 
             $tenant = $this->resolveTenant($data, $landlordId);
 
+            // Same rule as the web controller: occupy immediately only if the
+            // move-in date is today or already past, otherwise reserve the
+            // unit until the landlord confirms the actual move-in.
+            $movesInNow = Carbon::parse($data['move_in_date'])->lte(Carbon::today());
+            $status = $movesInNow ? 'Occupied' : 'Reserved';
+
             $reservation = Reservation::create([
                 'property_id'          => $property->property_id,
                 'unit_id'              => $unit->unit_id,
@@ -68,11 +75,11 @@ class WalkInTenantController extends Controller
                 'occupants_count'      => $data['occupants_count'] ?? null,
                 'agreed_monthly_rent'  => $data['agreed_monthly_rent'] ?? $unit->rental_fee,
                 'rent_due_day'         => $data['rent_due_day'] ?? null,
-                'rental_status'        => 'Occupied',
+                'rental_status'        => $status,
                 'remarks'              => $data['notes'] ?? null,
             ]);
 
-            $unit->update(['availability_status' => 'Occupied']);
+            $unit->update(['availability_status' => $status]);
 
             if (! empty($data['initial_amount'])) {
                 $this->recordMoveInPayments($reservation, $unit, $data, $landlordId);
