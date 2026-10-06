@@ -14,11 +14,14 @@ class ProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this
-            ->actingAs($user)
-            ->get('/profile');
+        // /profile sends a role-less account to its settings page.
+        $this->actingAs($user)
+            ->get('/profile')
+            ->assertRedirect(route('profile.edit'));
 
-        $response->assertOk();
+        $this->actingAs($user)
+            ->get(route('profile.edit'))
+            ->assertOk();
     }
 
     public function test_profile_information_can_be_updated(): void
@@ -35,7 +38,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.edit'));
 
         $user->refresh();
 
@@ -59,7 +62,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.edit'));
 
         $this->assertNotNull($user->refresh()->email_verified_at);
     }

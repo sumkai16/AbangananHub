@@ -8,18 +8,19 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\TestCase;
 
 /**
  * Formal lease: frozen terms, walk-in signed copies. See
  * plans/formal-lease-agreement.md.
  *
- * Dev database inside a rolled-back transaction (no separate test DB, so
- * never RefreshDatabase); files go to a faked disk.
+ * Builds its own landlord, tenant and unit inside a rolled-back transaction;
+ * files go to a faked disk.
  */
 class LeaseTest extends TestCase
 {
-    use DatabaseTransactions;
+    use CreatesMarketplaceFixtures, DatabaseTransactions;
 
     private PropertyUnit $unit;
     private User $landlord;
@@ -32,18 +33,9 @@ class LeaseTest extends TestCase
         config(['broadcasting.default' => 'null']);
         Storage::fake('local');
 
-        $this->unit = PropertyUnit::where('availability_status', 'Available')
-            ->where('verification_status', 'Approved')
-            ->whereHas('property', fn ($q) => $q->where('verification_status', 'Approved')
-                ->whereHas('landlord.roles', fn ($r) => $r->where('role', 'Landlord')))
-            ->whereDoesntHave('reservations', fn ($q) => $q->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES))
-            ->with('property')
-            ->firstOrFail();
-
-        $this->landlord = User::findOrFail($this->unit->property->landlord_id);
-        $this->tenant = User::whereHas('roles', fn ($q) => $q->where('role', 'Tenant'))
-            ->where('user_id', '!=', $this->landlord->user_id)
-            ->firstOrFail();
+        $this->landlord = $this->makeLandlord();
+        $this->tenant = $this->makeTenant();
+        $this->unit = $this->makeUnit($this->makeProperty($this->landlord));
     }
 
     private function negotiatingReservation(): Reservation
@@ -180,9 +172,7 @@ class LeaseTest extends TestCase
         ]);
         $reservation = $this->latestWalkIn();
 
-        $other = User::whereHas('roles', fn ($q) => $q->where('role', 'Landlord'))
-            ->where('user_id', '!=', $this->landlord->user_id)
-            ->firstOrFail();
+        $other = $this->makeLandlord();
 
         $this->actingAs($other)->get(route('landlord.leases.show', $reservation))->assertForbidden();
         $this->actingAs($other)->get(route('landlord.leases.file', $reservation))->assertForbidden();

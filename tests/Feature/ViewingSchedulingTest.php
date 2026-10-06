@@ -10,19 +10,19 @@ use App\Models\User;
 use App\Models\ViewingRequest;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
+use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\TestCase;
 
 /**
  * Unit viewings: online requests from the chat and offline ones the landlord
  * logs. See plans/unit-viewing-scheduling.md.
  *
- * Runs against the dev database inside a transaction that is rolled back —
- * phpunit.xml has no separate test database, so RefreshDatabase would wipe
- * the seeded data.
+ * Builds its own landlord, tenant and property, inside a transaction that is
+ * rolled back, so it does not depend on seeded data.
  */
 class ViewingSchedulingTest extends TestCase
 {
-    use DatabaseTransactions;
+    use CreatesMarketplaceFixtures, DatabaseTransactions;
 
     private User $landlord;
     private User $tenant;
@@ -35,22 +35,9 @@ class ViewingSchedulingTest extends TestCase
 
         config(['broadcasting.default' => 'null']);
 
-        $this->property = Property::where('verification_status', 'Approved')
-            ->whereHas('landlord.roles', fn ($q) => $q->where('role', 'Landlord'))
-            ->firstOrFail();
-        $this->landlord = User::findOrFail($this->property->landlord_id);
-
-        // Start from the default schedule whatever the dev data holds (the
-        // landlord may have set hours or blocked days in the browser). Rolled
-        // back with the rest of the transaction.
-        \App\Models\LandlordViewingHour::where('landlord_id', $this->landlord->user_id)->delete();
-        LandlordBlockedDate::where('landlord_id', $this->landlord->user_id)->delete();
-        // One conversation per (tenant, landlord, property), so pick a tenant
-        // who hasn't talked about this property yet.
-        $this->tenant = User::whereHas('roles', fn ($q) => $q->where('role', 'Tenant'))
-            ->where('user_id', '!=', $this->landlord->user_id)
-            ->whereNotIn('user_id', Conversation::where('property_id', $this->property->property_id)->pluck('tenant_id'))
-            ->firstOrFail();
+        $this->landlord = $this->makeLandlord();
+        $this->tenant = $this->makeTenant();
+        $this->property = $this->makeProperty($this->landlord);
 
         $conversation = Conversation::create([
             'tenant_id'   => $this->tenant->user_id,
@@ -108,10 +95,7 @@ class ViewingSchedulingTest extends TestCase
     {
         $this->request($this->landlord)->assertForbidden();
 
-        $other = User::whereHas('roles', fn ($q) => $q->where('role', 'Tenant'))
-            ->whereNotIn('user_id', [$this->tenant->user_id, $this->landlord->user_id])
-            ->firstOrFail();
-        $this->request($other)->assertForbidden();
+        $this->request($this->makeTenant())->assertForbidden();
     }
 
     public function test_not_allowed_before_the_landlord_accepts(): void
@@ -219,7 +203,7 @@ class ViewingSchedulingTest extends TestCase
 
     public function test_offline_viewing_on_another_landlords_property_is_refused(): void
     {
-        $foreign = Property::where('landlord_id', '!=', $this->landlord->user_id)->whereNotNull('landlord_id')->firstOrFail();
+        $foreign = $this->makeProperty($this->makeLandlord());
 
         $this->actingAs($this->landlord)->post(route('landlord.viewings.store'), [
             'visitor_name' => 'Someone',
