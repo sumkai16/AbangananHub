@@ -129,7 +129,10 @@ class AnalyticsController extends Controller
             ->pluck('aggregate', 'rental_status');
 
         $reservationBreakdown = [
-            ['label' => 'In progress', 'count' => (int) $statusCounts->only(['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed'])->sum(), 'color' => '#FBBF24'],
+            // 'Reserved' (a walk-in awaiting its move-in date) folds in here —
+            // it's "not yet occupied" just like the platform-pipeline stages,
+            // and volume is low enough that it doesn't need its own slice.
+            ['label' => 'In progress', 'count' => (int) $statusCounts->only(['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Reserved'])->sum(), 'color' => '#FBBF24'],
             ['label' => 'Occupied',    'count' => (int) ($statusCounts['Occupied'] ?? 0),  'color' => '#22C55E'],
             ['label' => 'Cancelled',   'count' => (int) ($statusCounts['Cancelled'] ?? 0), 'color' => '#94A3B8'],
             ['label' => 'Rejected',    'count' => (int) ($statusCounts['Rejected'] ?? 0),  'color' => '#EF4444'],

@@ -201,6 +201,20 @@
             {{-- ── Ledger column ──────────────────────────────── --}}
             <div class="lg:col-span-2 space-y-5">
 
+                {{-- Computed here, not inside the $hasStarted block below: the
+                     "voided deposit charges" card further down and the
+                     add-deposit-charge modal partial both need these
+                     regardless of whether the tenancy has started, since
+                     recordDepositCharge/voidDepositCharge aren't restricted
+                     to an active tenancy either (see the include's own
+                     comment near the bottom of this file). --}}
+                @php
+                    $activeDepositCharges = $reservation->depositCharges->reject->isVoided()->values();
+                    $voidedDepositCharges = $reservation->depositCharges->filter->isVoided()->values();
+                    $canChargeDeposit = $summary['depositCollected'] > 0;
+                    $depositCategoryLabels = \App\Models\DepositCharge::CATEGORIES;
+                @endphp
+
                 @if($hasStarted)
                 {{-- Money summary — labels stay plain; only overdue earns colour when it is > 0 --}}
                 @php
@@ -228,12 +242,6 @@
                 {{-- Security deposit charges — separate from the tiles above:
                      those show Held/Charged/Left as numbers, this is the actual
                      claim-by-claim record a tenant needs to see why. --}}
-                @php
-                    $activeDepositCharges = $reservation->depositCharges->reject->isVoided()->values();
-                    $voidedDepositCharges = $reservation->depositCharges->filter->isVoided()->values();
-                    $canChargeDeposit = $summary['depositCollected'] > 0;
-                    $depositCategoryLabels = \App\Models\DepositCharge::CATEGORIES;
-                @endphp
                 @if($canChargeDeposit || $activeDepositCharges->isNotEmpty())
                     <x-card flush x-data="{ moreCharges: false }">
                         <div class="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">
@@ -725,8 +733,12 @@
                 </x-card>
 
                 {{-- Lease — printable document + signed copy. See plans/formal-lease-agreement.md --}}
-                @php $leaseStatus = $reservation->leaseStatus(); @endphp
-                <x-card x-data="{ uploading: {{ $errors->has('lease_file') ? 'true' : 'false' }} }">
+                @php
+                    $leaseStatus = $reservation->leaseStatus();
+                    $leaseTerms = \App\Support\LeaseTerms::for($reservation);
+                    $leaseSignedOnline = $reservation->agreed_at !== null;
+                @endphp
+                <x-card x-data="{ uploading: {{ $errors->has('lease_file') ? 'true' : 'false' }}, viewingLease: false }">
                     <div class="flex items-center justify-between gap-3 mb-3">
                         <p class="text-[12px] font-semibold text-[#5B6A8E]">Lease</p>
                         @if ($leaseStatus === 'missing')
@@ -747,10 +759,10 @@
                     </p>
 
                     <div class="mt-4 flex flex-col gap-2">
-                        <a href="{{ route('landlord.leases.show', $reservation) }}"
-                            class="h-10 px-4 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26] text-[13px] font-semibold hover:bg-[#F7F8FC] inline-flex items-center justify-center transition-colors">
+                        <button type="button" @click="viewingLease = true"
+                            class="h-10 px-4 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26] text-[13px] font-semibold hover:bg-[#F7F8FC] inline-flex items-center justify-center cursor-pointer transition-colors">
                             {{ $leaseStatus === 'missing' ? 'View & print lease' : 'View lease' }}
-                        </a>
+                        </button>
                         @if ($reservation->lease_file_path)
                             <a href="{{ route('landlord.leases.file', $reservation) }}" target="_blank" rel="noopener"
                                 class="h-10 px-4 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26] text-[13px] font-semibold hover:bg-[#F7F8FC] inline-flex items-center justify-center gap-1.5 transition-colors">
@@ -779,6 +791,47 @@
                             Upload
                         </button>
                     </form>
+
+                    <x-picker-modal show="viewingLease" title="Lease Agreement" :subtitle="$leaseTerms['reference']">
+                        <div class="max-h-[70vh] overflow-y-auto p-5 sm:p-6">
+                            @include('leases._document', ['terms' => $leaseTerms])
+
+                            @if ($leaseSignedOnline)
+                                <div class="mt-6 rounded-xl border border-[#E2E4EC] p-5">
+                                    <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-3">Signatures</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[12px]">
+                                        <div>
+                                            <p class="text-[13px] font-bold text-[#060D26]">{{ $leaseTerms['landlord']['name'] }}</p>
+                                            <p class="text-[#5B6A8E]">Landlord</p>
+                                            @if ($reservation->landlord_tc_accepted_at)
+                                                <p class="text-[#15803D] font-semibold mt-1.5">Accepted {{ $reservation->landlord_tc_accepted_at->format('F j, Y \a\t g:i A') }}</p>
+                                            @endif
+                                        </div>
+                                        <div class="sm:border-l sm:border-[#E2E4EC] sm:pl-4">
+                                            <p class="text-[13px] font-bold text-[#060D26]">{{ $leaseTerms['tenant']['name'] }}</p>
+                                            <p class="text-[#5B6A8E]">Tenant</p>
+                                            <p class="text-[#15803D] font-semibold mt-1.5">Signed online {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}</p>
+                                            @if ($reservation->agreed_ip)
+                                                <p class="text-[10.5px] text-[#5B6A8E] mt-0.5">Recorded from {{ $reservation->agreed_ip }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Printing needs blank signature lines and print-specific CSS
+                             that only the standalone page carries — send them there
+                             rather than trying to print out of a fixed-position modal,
+                             which browsers handle inconsistently. --}}
+                        <div class="px-5 sm:px-6 py-3.5 border-t border-[#E2E4EC] flex justify-end">
+                            <a href="{{ route('landlord.leases.show', $reservation) }}"
+                                class="h-10 px-4 rounded-xl border border-[#E2E4EC] bg-white text-[#060D26] text-[13px] font-semibold hover:bg-[#F7F8FC] inline-flex items-center gap-1.5 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" /></svg>
+                                {{ $leaseStatus === 'missing' ? 'Open full page to print & sign' : 'Open full page to print' }}
+                            </a>
+                        </div>
+                    </x-picker-modal>
                 </x-card>
 
                 {{-- End tenancy --}}
@@ -820,6 +873,32 @@
                             @endif
                             The ledger is kept as a record and no longer accepts payments.
                         </p>
+                    </x-card>
+                @elseif($reservation->rental_status === 'Reserved')
+                    <x-card class="bg-[#F7F8FC]">
+                        <p class="text-[12px] font-semibold text-[#5B6A8E] mb-2">Not moved in yet</p>
+                        <p class="text-[13.5px] text-[#5B6A8E] leading-relaxed mb-4">
+                            This tenancy is <strong class="text-[#060D26]">Reserved</strong>
+                            @if($reservation->target_move_in_date)
+                                for {{ $reservation->target_move_in_date->format('M d, Y') }}.
+                            @else
+                                . No move-in date was recorded.
+                            @endif
+                            Confirm once the tenant has actually moved in.
+                        </p>
+
+                        <form method="POST" action="{{ route('landlord.reservations.confirmWalkInMoveIn', $reservation) }}"
+                            data-confirm="Confirm move-in?"
+                            data-confirm-type="confirm"
+                            data-confirm-message="The unit will be marked Occupied."
+                            data-confirm-button="Confirm move-in"
+                            data-confirm-cancel="Not yet">
+                            @csrf
+                            <button type="submit"
+                                class="w-full h-11 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                                Confirm move-in
+                            </button>
+                        </form>
                     </x-card>
                 @else
                     <x-card class="bg-[#F7F8FC]">

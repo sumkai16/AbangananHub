@@ -163,6 +163,7 @@
                 'Under Negotiation' => 'Negotiation',
                 'Pending Rental Agreement' => 'Pending Agreement',
                 'Rental Agreement Signed' => 'Signed',
+                'Reserved' => 'Reserved',
                 'Occupied' => 'Occupied',
                 'Rejected' => 'Rejected',
                 'Cancelled' => 'Cancelled',
@@ -206,6 +207,7 @@
                     'Under Negotiation' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
                     'Pending Rental Agreement' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
                     'Rental Agreement Signed' => 'bg-[#ECEEF6] text-[#060D26]',
+                    'Reserved' => 'bg-[#FBBF24]/[0.10] text-[#B45309]',
                     'Occupied' => 'bg-[#22C55E]/[0.07] text-[#15803D]',
                     'Rejected' => 'bg-[#EF4444]/[0.07] text-[#DC2626]',
                     'Cancelled' => 'bg-[#ECEEF6] text-[#5B6A8E]',
@@ -234,6 +236,20 @@
                         'status_class' => $statusStyles[$reservation->rental_status] ?? 'bg-[#ECEEF6] text-[#5B6A8E]',
                         'rent' => $reservation->agreed_monthly_rent ? '₱' . number_format($reservation->agreed_monthly_rent, 0) . '/mo' : null,
                         'tenancy_url' => $reservation->rental_status === 'Occupied' ? route('landlord.tenancies.show', $reservation) : null,
+                        // Same "mark keys turned over" action as the row/card
+                        // buttons below — this just surfaces it in the modal too.
+                        'keys_turned_over_at' => $reservation->keys_turned_over_at?->diffForHumans(),
+                        'move_in_disputed_at' => (bool) $reservation->move_in_disputed_at,
+                        'mark_turned_over_url' => route('landlord.reservations.markTurnedOver', $reservation),
+                        'turnover_confirm_message' => ($reservation->tenant->first_name ?? 'The tenant')
+                            . ' will have ' . config('rentals.move_in_confirmation_days')
+                            . ' days to confirm move-in, after which the held deposit is released to you automatically.',
+                        // Walk-in reserved for a future date — no escrow, no
+                        // handover clock, just the landlord's own assertion.
+                        'confirm_walk_in_move_in_url' => $reservation->rental_status === 'Reserved'
+                            ? route('landlord.reservations.confirmWalkInMoveIn', $reservation)
+                            : null,
+                        'cancel_reservation_url' => route('landlord.reservations.cancel', $reservation),
                     ];
                     $initials = mb_strtoupper(mb_substr($reservation->tenant->first_name ?? '?', 0, 1) . mb_substr($reservation->tenant->last_name ?? '', 0, 1));
                     $moveIn = $reservation->target_move_in_date ?? $reservation->reservation_date;
@@ -386,6 +402,31 @@
                                                         Awaiting tenant confirmation.
                                                     </p>
                                                 @endif
+                                            @elseif($reservation->rental_status === 'Reserved')
+                                                <form action="{{ route('landlord.reservations.confirmWalkInMoveIn', $reservation) }}" method="POST"
+                                                    data-confirm="Confirm move-in?"
+                                                    data-confirm-type="confirm"
+                                                    data-confirm-message="The unit will be marked Occupied."
+                                                    data-confirm-button="Confirm move-in"
+                                                    data-confirm-cancel="Not yet">
+                                                    @csrf
+                                                    <button type="submit"
+                                                        class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                        Confirm move-in
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
+                                                    data-confirm="Cancel this reservation?"
+                                                    data-confirm-type="warning"
+                                                    data-confirm-message="The unit will be marked Available again."
+                                                    data-confirm-button="Cancel reservation"
+                                                    data-confirm-cancel="Keep it">
+                                                    @csrf @method('PATCH')
+                                                    <button type="submit"
+                                                        class="h-8 px-3 rounded-lg bg-[#EF4444] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                                        Cancel
+                                                    </button>
+                                                </form>
                                             @elseif(in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
                                                 @if($reservation->tenantRating)
                                                     <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
@@ -560,6 +601,31 @@
                                             Awaiting tenant confirmation.
                                         </p>
                                     @endif
+                                @elseif($reservation->rental_status === 'Reserved')
+                                    <form action="{{ route('landlord.reservations.confirmWalkInMoveIn', $reservation) }}" method="POST"
+                                        data-confirm="Confirm move-in?"
+                                        data-confirm-type="confirm"
+                                        data-confirm-message="The unit will be marked Occupied."
+                                        data-confirm-button="Confirm move-in"
+                                        data-confirm-cancel="Not yet">
+                                        @csrf
+                                        <button type="submit"
+                                            class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                            Confirm move-in
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
+                                        data-confirm="Cancel this reservation?"
+                                        data-confirm-type="warning"
+                                        data-confirm-message="The unit will be marked Available again."
+                                        data-confirm-button="Cancel reservation"
+                                        data-confirm-cancel="Keep it">
+                                        @csrf @method('PATCH')
+                                        <button type="submit"
+                                            class="h-8 px-3 rounded-lg bg-[#EF4444] text-white text-[12px] font-semibold hover:brightness-95 cursor-pointer transition-all duration-200 whitespace-nowrap">
+                                            Cancel
+                                        </button>
+                                    </form>
                                 @elseif(in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
                                     @if($reservation->tenantRating)
                                         <span class="h-8 px-3 inline-flex items-center gap-1 rounded-lg bg-[#22C55E]/[0.07] text-[#15803D] text-[12px] font-semibold whitespace-nowrap">
@@ -621,11 +687,18 @@
                                 <div class="min-w-0 flex-1">
                                     <p class="text-[16px] font-semibold text-[#060D26] truncate" x-text="selected.tenant_name"></p>
                                     <a :href="'tel:' + selected.tenant_contact"
-                                        class="text-[13px] text-[#5B6A8E] hover:text-[#060D26] transition-colors duration-200"
-                                        x-text="selected.tenant_contact"></a>
-                                    <div class="mt-2">
+                                        class="inline-flex items-center gap-1 mt-0.5 text-[13px] text-[#5B6A8E] hover:text-[#060D26] transition-colors duration-200">
+                                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="shrink-0" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                                        </svg>
+                                        <span x-text="selected.tenant_contact"></span>
+                                    </a>
+                                    <div class="mt-2 flex flex-wrap items-center gap-2">
                                         <span class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold"
                                             :class="selected.status_class" x-text="selected.rental_status"></span>
+                                        <template x-if="selected.reservation_date">
+                                            <span class="text-[11px] text-[#5B6A8E]">Requested <span x-text="selected.reservation_date"></span></span>
+                                        </template>
                                     </div>
                                 </div>
                                 <button @click="modalOpen = false" aria-label="Close"
@@ -644,33 +717,41 @@
                                     <p class="text-[13px] text-[#5B6A8E]" x-text="selected.unit_label"></p>
                                 </div>
 
-                                {{-- When: the stay as a range, facts beneath --}}
+                                {{-- When: the stay as a range, facts beneath — one unified card
+                                     instead of boxed dates + a separate plain stat row, so the
+                                     section reads as one fact block, not two container styles. --}}
                                 <div>
                                     <p class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">Stay</p>
-                                    <div class="mt-2 grid grid-cols-2 gap-3">
-                                        <div class="rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] px-3.5 py-3">
-                                            <p class="text-[11px] text-[#5B6A8E]">Move-in</p>
-                                            <p class="text-[13.5px] font-semibold text-[#060D26]" x-text="selected.move_in || selected.reservation_date || '—'"></p>
+                                    <div class="mt-2 rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] overflow-hidden">
+                                        <div class="grid grid-cols-2 divide-x divide-[#E2E4EC]">
+                                            <div class="px-3.5 py-3">
+                                                <p class="text-[11px] text-[#5B6A8E]">Move-in</p>
+                                                <p class="mt-0.5 text-[13.5px] font-semibold text-[#060D26]" x-text="selected.move_in || selected.reservation_date || '—'"></p>
+                                            </div>
+                                            <div class="px-3.5 py-3">
+                                                <p class="text-[11px] text-[#5B6A8E]">Move-out</p>
+                                                <p class="mt-0.5 text-[13.5px] font-semibold text-[#060D26]" x-text="selected.move_out || '—'"></p>
+                                            </div>
                                         </div>
-                                        <div class="rounded-xl bg-[#F7F8FC] border border-[#E2E4EC] px-3.5 py-3">
-                                            <p class="text-[11px] text-[#5B6A8E]">Move-out</p>
-                                            <p class="text-[13.5px] font-semibold text-[#060D26]" x-text="selected.move_out || '—'"></p>
-                                        </div>
+                                        <dl class="flex flex-wrap gap-x-6 gap-y-2.5 px-3.5 py-3 border-t border-[#E2E4EC] text-[13px]">
+                                            <div>
+                                                <dt class="text-[11px] text-[#5B6A8E]">Duration</dt>
+                                                <dd class="font-medium text-[#060D26]" x-text="selected.duration_of_stay || '—'"></dd>
+                                            </div>
+                                            {{-- Only shown when actually recorded — an em dash here
+                                                 reads as broken data, not "not applicable". --}}
+                                            <template x-if="selected.occupants_count">
+                                                <div>
+                                                    <dt class="text-[11px] text-[#5B6A8E]">Occupants</dt>
+                                                    <dd class="font-medium text-[#060D26]" x-text="selected.occupants_count"></dd>
+                                                </div>
+                                            </template>
+                                            <div class="ml-auto text-right">
+                                                <dt class="text-[11px] text-[#5B6A8E]">Rent</dt>
+                                                <dd class="font-medium text-[#060D26]" x-text="selected.rent || '—'"></dd>
+                                            </div>
+                                        </dl>
                                     </div>
-                                    <dl class="mt-3 grid grid-cols-3 gap-3 text-[13px]">
-                                        <div>
-                                            <dt class="text-[11px] text-[#5B6A8E]">Duration</dt>
-                                            <dd class="font-medium text-[#060D26]" x-text="selected.duration_of_stay || '—'"></dd>
-                                        </div>
-                                        <div>
-                                            <dt class="text-[11px] text-[#5B6A8E]">Occupants</dt>
-                                            <dd class="font-medium text-[#060D26]" x-text="selected.occupants_count || '—'"></dd>
-                                        </div>
-                                        <div>
-                                            <dt class="text-[11px] text-[#5B6A8E]">Rent</dt>
-                                            <dd class="font-medium text-[#060D26]" x-text="selected.rent || '—'"></dd>
-                                        </div>
-                                    </dl>
                                 </div>
 
                                 <template x-if="selected.remarks">
@@ -687,6 +768,64 @@
                                         class="flex h-10 w-full items-center justify-center rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] focus:outline-none focus:ring-2 focus:ring-[#FF8A66] focus:ring-offset-2 transition-colors duration-200">
                                         View tenancy &amp; payments
                                     </a>
+                                </div>
+                            </template>
+
+                            {{-- Signed, not yet turned over — the "moving in soon" case. Same
+                                 route/gate/confirm copy as the row and card actions below and
+                                 the chat panel's move-in clock; this is just a third entry point
+                                 to it so the modal isn't a dead end for this status. --}}
+                            <template x-if="selected.rental_status === 'Rental Agreement Signed' && !selected.keys_turned_over_at && !selected.move_in_disputed_at">
+                                <div class="px-5 sm:px-6 pb-5 sm:pb-6">
+                                    <form :action="selected.mark_turned_over_url" method="POST"
+                                        data-confirm="Mark keys as turned over?"
+                                        data-confirm-type="confirm"
+                                        :data-confirm-message="selected.turnover_confirm_message"
+                                        data-confirm-button="Mark as turned over"
+                                        data-confirm-cancel="Not yet">
+                                        @csrf
+                                        <button type="submit"
+                                            class="flex h-10 w-full items-center justify-center rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] focus:outline-none focus:ring-2 focus:ring-[#FF8A66] focus:ring-offset-2 transition-colors duration-200 cursor-pointer">
+                                            Mark keys turned over
+                                        </button>
+                                    </form>
+                                </div>
+                            </template>
+                            <template x-if="selected.rental_status === 'Rental Agreement Signed' && selected.keys_turned_over_at">
+                                <p class="px-5 sm:px-6 pb-5 sm:pb-6 text-[12.5px] text-[#5B6A8E] text-center">
+                                    Keys turned over <span x-text="selected.keys_turned_over_at"></span>. Awaiting tenant confirmation.
+                                </p>
+                            </template>
+
+                            {{-- Walk-in reserved for a future move-in date — no escrow, no
+                                 handover clock, just the landlord's own assertion once the
+                                 tenant has actually moved in. --}}
+                            <template x-if="selected.rental_status === 'Reserved'">
+                                <div class="px-5 sm:px-6 pb-5 sm:pb-6 space-y-2">
+                                    <form :action="selected.confirm_walk_in_move_in_url" method="POST"
+                                        data-confirm="Confirm move-in?"
+                                        data-confirm-type="confirm"
+                                        data-confirm-message="The unit will be marked Occupied."
+                                        data-confirm-button="Confirm move-in"
+                                        data-confirm-cancel="Not yet">
+                                        @csrf
+                                        <button type="submit"
+                                            class="flex h-10 w-full items-center justify-center rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] focus:outline-none focus:ring-2 focus:ring-[#FF8A66] focus:ring-offset-2 transition-colors duration-200 cursor-pointer">
+                                            Confirm move-in
+                                        </button>
+                                    </form>
+                                    <form :action="selected.cancel_reservation_url" method="POST"
+                                        data-confirm="Cancel this reservation?"
+                                        data-confirm-type="warning"
+                                        data-confirm-message="The unit will be marked Available again."
+                                        data-confirm-button="Cancel reservation"
+                                        data-confirm-cancel="Keep it">
+                                        @csrf @method('PATCH')
+                                        <button type="submit"
+                                            class="flex h-10 w-full items-center justify-center rounded-xl border border-[#EF4444]/25 text-[#DC2626] text-[13px] font-semibold hover:bg-[#EF4444]/[0.07] transition-colors duration-200 cursor-pointer">
+                                            Cancel reservation
+                                        </button>
+                                    </form>
                                 </div>
                             </template>
                         </div>

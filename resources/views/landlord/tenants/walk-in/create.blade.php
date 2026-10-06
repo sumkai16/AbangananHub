@@ -66,8 +66,9 @@
         <div class="mb-6">
             <h1 class="text-2xl font-normal text-[#060D26] leading-tight">Add Walk-in Tenant</h1>
             <p class="text-sm text-[#5B6A8E] mt-1">
-                Record a tenant who arranged the rental with you directly. The unit is marked occupied straight away — there is no
-                inquiry, agreement or online payment step.
+                Record a tenant who arranged the rental with you directly — there is no inquiry, agreement or online payment
+                step. If the move-in date is today or earlier the unit is marked occupied straight away; a future date reserves
+                the unit until you confirm the actual move-in.
             </p>
             @if($scopedPropertyId && $properties->isNotEmpty())
                 <p class="text-[12.5px] text-[#060D26] font-medium mt-1.5">
@@ -286,7 +287,9 @@
                        modal-confirm.js reads dataset at submit time, so this
                        binding is live. */
                     get confirmMessage() {
-                        const base = 'The unit will be marked Occupied straight away and will stop appearing to tenants browsing the site.';
+                        const base = this.paymentRequired
+                            ? 'The unit will be marked Occupied straight away and will stop appearing to tenants browsing the site.'
+                            : 'The unit will be marked Reserved and will stop appearing to tenants browsing the site until you confirm move-in.';
                         if (this.hasPayment && this.isShort) {
                             return base + ' The ' + this.peso(this.received) + ' recorded is '
                                 + this.peso(this.shortfall) + ' short of the ' + this.peso(this.requiredMoveIn)
@@ -897,15 +900,19 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                 </svg>
-                                <p class="text-[12px] text-[#B45309] leading-relaxed">
+                                <p class="text-[12px] text-[#B45309] leading-relaxed" x-show="paymentRequired">
                                     Saving marks the unit <strong>Occupied</strong> immediately and it will stop appearing to tenants
                                     browsing the site.
+                                </p>
+                                <p class="text-[12px] text-[#B45309] leading-relaxed" x-show="!paymentRequired" x-cloak>
+                                    Saving marks the unit <strong>Reserved</strong> and it will stop appearing to tenants browsing the
+                                    site until you confirm the actual move-in.
                                 </p>
                             </div>
 
                             <button type="submit"
                                 class="mt-5 w-full h-11 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
-                                Add tenant &amp; occupy unit
+                                <span x-text="paymentRequired ? 'Add tenant &amp; occupy unit' : 'Add tenant &amp; reserve unit'"></span>
                             </button>
                             <a href="{{ route('landlord.tenants.index') }}"
                                 class="mt-2.5 w-full h-11 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] text-sm font-semibold hover:bg-[#F7F8FC] hover:text-[#060D26] transition-all duration-200 cursor-pointer">

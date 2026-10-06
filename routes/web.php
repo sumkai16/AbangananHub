@@ -176,6 +176,7 @@ Route::post('/conversations/{conversation}/resolve', [ConversationController::cl
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
         Route::patch('/reservations/{reservation}/advance-agreement', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToPendingAgreement'])->name('reservations.advanceAgreement');
         Route::post('/reservations/{reservation}/turned-over', [App\Http\Controllers\Landlord\ReservationController::class, 'markTurnedOver'])->name('reservations.markTurnedOver');
+        Route::post('/reservations/{reservation}/confirm-walk-in-move-in', [App\Http\Controllers\Landlord\ReservationController::class, 'confirmWalkInMoveIn'])->name('reservations.confirmWalkInMoveIn');
 
         // Units
         Route::resource('properties.units', PropertyUnitController::class);
