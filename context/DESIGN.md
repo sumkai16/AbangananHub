@@ -371,6 +371,7 @@ This is the pattern to copy for the next form field that needs one Alpine compon
 **Native HTML validation (`required`/`min`/`max`) is intentionally dropped**, same as §6h — a hidden `<input type="date">`... `type="hidden"` posting the ISO value doesn't get native constraint validation from the browser regardless, and none of the three consuming forms actually relied on it: `properties/show`'s submit button is already gated by a JS `canSubmit` computed prop, and the walk-in/tenancy forms are gated by their Form Request rules (`StoreReservationRequest`, `StoreWalkInTenantRequest`) server-side. Losing the native tooltip is an accepted, pre-existing tradeoff — `<x-datetime-picker>` never had it either.
 
 ## 6i. Browse hero (`properties/index`, which is also `/`) — July 24 2026
+> **Update Oct 8 2026:** the hero is now two columns from `lg` with a trust panel and a centered search pill; see §31. The notes below describe the original single-column design.
 `Route::get('/')` points at `PropertyController@index`, so the browse page *is* the site's home page — which is why it carries a hero rather than opening straight on a grid.
 
 - **Full-bleed brand gradient**, reusing `about.blade.php`'s `from-[#156F8C] via-[#1F2937] to-[#156F8C]` rather than introducing a second brand hero. Inner container is the standard public `max-w-[1400px] mx-auto`.
@@ -1094,3 +1095,21 @@ has the short version; this section has the reasoning and what it touched.
   buttons and the admin sidebar were still on a 150ms holdover from before the Sept 2026 reskins.
   Not swept app-wide; components outside this pass's scope may still carry 150ms until they're next
   touched.
+
+## 31. Home page pass after teacher review (Oct 8 2026)
+Changes to `properties/index.blade.php` (the home page) and shared pieces, following a teacher's review. Supersedes the parts of §6i that describe a single centered 900px hero. Plan: `plans/teacher-feedback-pass.md`.
+
+- **Hero is two columns from `lg`.** Container is `max-w-[1400px]`; grid `lg:grid-cols-[1.2fr_0.8fr]`, text left (eyebrow, h1, subtext), a "Why AbangananHub" panel right. Below `lg` it stays the centered single column and the panel is hidden. The reason: on a 1400px screen the old 900px column left the photo empty on both sides.
+  - **Panel** is on photography, so it follows the §6 "panels layered over photography" rule: `bg-[#060D26]/55 backdrop-blur-xl border-white/15 rounded-3xl`, `max-w-[460px]`, aligned right. Three points (identity-checked landlords, deposit held safely, sign online) each with a coral-tinted Heroicons tile (`bg-[#FF8A66]/15 ring-1 ring-[#FF8A66]/30`) separated by `divide-white/10`, plus a live `{{ $heroStats['units'] }}+ units available` pill with a pulsing green dot (`motion-safe:animate-pulse`).
+  - **Search pill is centered below both columns** at every width. It is a wide multi-field control, so it is not squeezed into the left half.
+  - **Chips** ("units available", "Verified landlords", "Across Cebu") are `lg:hidden`: phones have no panel, so the proof points stay as chips there, and desktop does not repeat them.
+  - Headline is `lg:text-[60px] xl:text-[66px]` and the subtext is `text-balance`, so "place." no longer sits alone on a second line.
+- **`<x-section-texture>` is deleted.** It drew the dot grid, diagonal hairlines, wavy curves and pastel glows in the side gutters; it was removed from all three home-page uses. §6 already removed the page-background mesh gradient; do not reintroduce decorative gutter art.
+- **"Browse by neighborhood" is minimal and centered.** Heading and sub-line are centered; the tile row uses `[&>*:first-child]:ml-auto [&>*:last-child]:mr-auto` so a short row (4 tiles in 5 slots) centers while a long row still scrolls (`justify-center` would make the left end unreachable). Tiles: `rounded-3xl`, no border, a bottom-only gradient (`from-[#060D26]/75 via-[#060D26]/5 to-transparent`), name `font-semibold`, count as plain `text-white/80` text with no pill. The last tile is an inline light tile (`bg-[#ECEEF6]`, outlined arrow circle that fills navy on hover) instead of `<x-view-all-tile>`. The other two "view all" tiles still use the component, so they now look different from this one.
+- **Home grid is a two-row teaser at every width.** Still `take(9)` plus `<x-view-all-tile>` linking to `properties.index?sort=newest`, but cards 4-5 are wrapped in `hidden lg:contents` and 6-9 in `hidden xl:contents`, so it is 3 + tile (`sm`), 5 + tile (`lg`, 3 cols), 9 + tile (`xl`, 5 cols). `display: contents` keeps the card the grid item. `<x-property-card>` does not merge classes, hence the wrapper.
+- **Category strip icons** (`components/category-strip.blade.php`, one `$items` array): Apartment is Heroicons `building-office`, Condominium is `building-office-2`, Boarding House is `key`. All, House and Bedspace are unchanged. The old Apartment / Condominium / Boarding House were three look-alike building outlines. There is no "Room" category (renamed Boarding House, Sept 2026).
+- **Filters modal** is `sm:max-w-7xl max-h-[94vh]` with a tighter body (`py-4 space-y-3`) to avoid the desktop scrollbar. Phones keep the bottom sheet with internal scroll and the amenity accordions.
+- **Header search band** (`layouts/app.blade.php`, filtered/browse state) is `py-5`, a little more room under the nav. The clean home hero was never close to the nav.
+- **404 page** uses Plus Jakarta Sans (`font-bold` / `font-extrabold`) instead of DM Serif Display. No page renders a serif now; the serif stays available as the opt-in `.font-heading` / `.font-display`.
+- **Auth and profile forms** show server validation inline under each field (no native popups). See RULES.md "Forms".
+- **Not verified in a browser** at the time of writing: hero at desktop width, modal scrollbar at 900px height, the two-row cap at each breakpoint, dark mode on the new panel and neighborhood tiles.

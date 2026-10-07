@@ -220,6 +220,17 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
   same lesson the admin document-preview routes already encode. Re-check this when wiring anything
   new across roles in production.
 
+## Forms: validation (established Oct 8 2026)
+- **Auth and profile forms carry `novalidate`** (login, register, forgot/reset password, profile edit, password change, delete account). The server's Laravel validation decides, and its messages show inline under the field that failed, so the browser's native popup never appears. Server rules already cover every field, so nothing relies on `required` / `type=email` in the HTML.
+- **Show errors per field**: `<x-input-error :messages="$errors->get('email')" />` (or an `@error` block). A single `$errors->first()` banner is not enough once `novalidate` is on. Login used one; it now shows the email and password errors under their own fields.
+- **Before adding `novalidate` to any other form**, confirm every input has its own error display and that the endpoint validates the same constraints. Of the ~86 forms, many (landlord, admin, conversations) show nothing on failure, so adding it blindly would make them fail silently. Forms submitted with `fetch` or `x-on:submit.prevent` also need their own 422 handling.
+- Keep `maxlength` as is; it is not a validation popup.
+
+## Dev environment gotchas (Oct 2026)
+- **Run `npm install` after every pull.** `@fontsource/*` and `chart.js` were declared in `package.json` but never installed, which made Vite show a full-page error overlay (`ENOENT ... @fontsource\inter\latin-300.css`) and `npm run build` fail. With the CSS failing, the browser shows unstyled default Times text. Restart `npm run dev` afterwards, then hard-refresh.
+- **If every page and every `artisan` command hangs with no CPU use**, check `information_schema.processlist` for stuck `select * from cache` queries, then restart `mysqld` (see ARCHITECTURE.md Known Tradeoffs). Do not retry in a loop.
+- To catch Blade syntax errors across every view, run `php artisan view:cache`, then `php artisan view:clear` to leave dev as it was.
+
 ## Git Discipline
 - Commit message format: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)
 - Separate commits per concern: backend fixes, feature additions, UI changes committed separately

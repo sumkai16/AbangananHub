@@ -6,6 +6,7 @@ Project context and rules live in `context/`:
 - `context/DESIGN.md` — design system / UI conventions
 - `context/PRD.md` — product requirements
 - `context/SCHEMA.md` — database schema
+- `context/CHANGELOG.md` — dated index of recent changes and why (start here to see what changed lately)
 
 Read the relevant file(s) before non-trivial work.
 
