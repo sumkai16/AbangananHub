@@ -25,23 +25,15 @@
         <h2 class="mt-10 font-jakarta text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Welcome back</h2>
         <p class="mt-1.5 text-[15px] text-[#5B6A8E]">Log in to continue to AbangananHub.</p>
 
-        {{-- Session alerts --}}
-        @if ($errors->any())
-            <div role="alert" class="mt-6 flex items-start gap-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-xl px-4 py-3">
-                <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                </svg>
-                <p class="text-[13px] text-[#EF4444] font-semibold">{{ $errors->first() }}</p>
-            </div>
-        @endif
-
-        <form method="POST" action="{{ route('login') }}" class="mt-8 space-y-5">
+        {{-- novalidate: the server's validation messages show inline under each field instead of the browser's native popups. --}}
+        <form method="POST" action="{{ route('login') }}" class="mt-8 space-y-5" novalidate>
             @csrf
 
             <div>
                 <label for="email" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">Email address</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="you@example.com"
-                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
+                    class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" @error('email') aria-invalid="true" @enderror />
+                <x-input-error :messages="$errors->get('email')" class="mt-1.5" role="alert" />
             </div>
 
             <div>
@@ -62,6 +54,7 @@
                         </svg>
                     </button>
                 </div>
+                <x-input-error :messages="$errors->get('password')" class="mt-1.5" role="alert" />
             </div>
 
             <label class="flex items-center gap-2.5 text-[14px] text-[#5B6A8E] cursor-pointer select-none">

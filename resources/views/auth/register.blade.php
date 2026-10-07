@@ -25,7 +25,7 @@
         <h2 class="mt-8 font-jakarta text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create your account</h2>
         <p class="mt-1.5 text-[15px] text-[#5B6A8E]">Join AbangananHub and find your place to stay.</p>
 
-        <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-4">
+        <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-4" novalidate>
             @csrf
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

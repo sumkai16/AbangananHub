@@ -9,7 +9,7 @@
     @vite(['resources/css/app.css'])
     <style>
         body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
-        .font-display { font-family: 'DM Serif Display', ui-serif, serif; }
+        .font-display { font-family: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif; }
     </style>
 </head>
 
@@ -18,16 +18,16 @@
 
         <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
             <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub" class="w-10 h-10 object-contain">
-            <span class="font-display text-[18px] font-normal text-[#060D26] tracking-tight">
+            <span class="font-display text-[18px] font-bold text-[#060D26] tracking-tight">
                 Abanganan<span class="text-[#060D26]">Hub</span>
             </span>
         </a>
 
-        <p class="font-display text-[96px] sm:text-[128px] font-normal leading-none tracking-tight text-[#060D26]">
+        <p class="font-display text-[96px] sm:text-[128px] font-extrabold leading-none tracking-tight text-[#060D26]">
             404
         </p>
 
-        <h1 class="font-display text-[22px] sm:text-[26px] font-normal text-[#060D26] tracking-tight mt-2">
+        <h1 class="font-display text-[22px] sm:text-[26px] font-bold text-[#060D26] tracking-tight mt-2">
             This page went off the map
         </h1>
         <p class="text-[14.5px] sm:text-[15px] text-[#5B6A8E] mt-3 max-w-[420px] leading-relaxed">

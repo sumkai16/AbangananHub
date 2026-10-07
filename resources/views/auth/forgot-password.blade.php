@@ -37,17 +37,7 @@
                 <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">We'll email you a link to choose a new one.</p>
             </div>
 
-            {{-- Session alerts --}}
-            @if ($errors->any())
-                <div class="mb-4 flex items-start gap-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg px-4 py-2.5">
-                    <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                    </svg>
-                    <p class="text-xs text-[#EF4444] font-semibold">{{ $errors->first() }}</p>
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('password.email') }}" class="space-y-3.5">
+            <form method="POST" action="{{ route('password.email') }}" class="space-y-3.5" novalidate>
                 @csrf
 
                 {{-- Email Address --}}
@@ -55,6 +45,7 @@
                     <label for="email" class="block text-xs font-bold text-[#060D26] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Enter your email"
                         class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                    <x-input-error :messages="$errors->get('email')" class="mt-1.5 !text-xs" role="alert" />
                 </div>
 
                 {{-- Action Submission Button --}}

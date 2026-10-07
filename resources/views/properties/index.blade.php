@@ -27,23 +27,68 @@
             <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/35 via-[#060D26]/45 to-[#060D26]/55"></div>
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_75%_at_50%_40%,rgba(6,13,38,0.45),rgba(6,13,38,0)_70%)]"></div>
 
-            <div class="relative z-10 mx-auto w-full max-w-[900px] px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
-                <p class="inline-flex items-center font-jakarta text-[10.5px] sm:text-[11.5px] font-bold uppercase tracking-[0.14em] text-white px-3.5 py-1.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
-                    Your Next Place Starts Here
-                </p>
-                <h1 class="mt-5 sm:mt-6 font-jakarta text-[40px] sm:text-[58px] lg:text-[70px] font-extrabold leading-[1.08] tracking-tight text-white text-balance">
-                    Find a place to call home
-                    <span class="block">in <span class="text-[#FF8A66]">Cebu</span>.</span>
-                </h1>
-                <p class="mt-5 sm:mt-6 mx-auto max-w-xl text-white/90 text-[15px] sm:text-[17px] font-normal">
-                    Verified apartments, rooms, boarding houses, and condos &mdash; all in one place.
-                </p>
+            <div class="relative z-10 mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center lg:text-left">
+                {{-- Text left, trust panel right from lg. Below lg it stays the centered single column. --}}
+                <div class="lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-16 lg:items-center">
+                    <div>
+                        <p class="inline-flex items-center font-jakarta text-[10.5px] sm:text-[11.5px] font-bold uppercase tracking-[0.14em] text-white px-3.5 py-1.5 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
+                            Your Next Place Starts Here
+                        </p>
+                        <h1 class="mt-5 sm:mt-6 font-jakarta text-[40px] sm:text-[56px] lg:text-[60px] xl:text-[66px] font-extrabold leading-[1.06] tracking-tight text-white text-balance">
+                            Find a place to call home
+                            <span class="block">in <span class="text-[#FF8A66]">Cebu</span>.</span>
+                        </h1>
+                        <p class="mt-5 sm:mt-6 mx-auto lg:mx-0 max-w-lg text-balance text-white/90 text-[15px] sm:text-[18px] leading-relaxed font-normal">
+                            Verified apartments, rooms, boarding houses, and condos in one place.
+                        </p>
+                    </div>
 
-                <div class="mt-8 sm:mt-10 flex justify-center">
+                    <aside class="hidden lg:block lg:ml-auto w-full max-w-[460px] rounded-3xl border border-white/15 bg-[#060D26]/55 backdrop-blur-xl p-7 shadow-[0_24px_60px_rgba(6,13,38,0.45)]" aria-label="Why AbangananHub">
+                        <div class="flex items-center justify-between gap-3">
+                            <p class="font-jakarta text-[11.5px] font-bold uppercase tracking-[0.14em] text-[#FF8A66]">Why AbangananHub</p>
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 font-jakarta text-[11px] font-bold text-white">
+                                <span class="h-1.5 w-1.5 rounded-full bg-[#22C55E] motion-safe:animate-pulse"></span>
+                                {{ $heroStats['units'] }}+ units available
+                            </span>
+                        </div>
+                        <ul class="mt-4 divide-y divide-white/10">
+                            <li class="flex items-center gap-4 py-4">
+                                <span class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[#FF8A66]/15 text-[#FF8A66] ring-1 ring-[#FF8A66]/30">
+                                    <svg width="21" height="21" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                                </span>
+                                <div>
+                                    <p class="font-jakarta text-[15px] font-bold text-white">Identity-checked landlords</p>
+                                    <p class="mt-0.5 text-[13.5px] leading-snug text-white/75">Every landlord is verified before listing.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center gap-4 py-4">
+                                <span class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[#FF8A66]/15 text-[#FF8A66] ring-1 ring-[#FF8A66]/30">
+                                    <svg width="21" height="21" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                                </span>
+                                <div>
+                                    <p class="font-jakarta text-[15px] font-bold text-white">Deposit held safely</p>
+                                    <p class="mt-0.5 text-[13.5px] leading-snug text-white/75">Payment is held until you confirm move-in.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center gap-4 pt-4">
+                                <span class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[#FF8A66]/15 text-[#FF8A66] ring-1 ring-[#FF8A66]/30">
+                                    <svg width="21" height="21" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                                </span>
+                                <div>
+                                    <p class="font-jakarta text-[15px] font-bold text-white">Sign online, no paperwork</p>
+                                    <p class="mt-0.5 text-[13.5px] leading-snug text-white/75">Message, agree on terms, and sign the lease online.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </aside>
+                </div>
+
+                <div class="mt-10 sm:mt-12 flex justify-center">
                     <x-search-pill variant="hero" />
                 </div>
 
-                <div class="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-2 font-jakarta text-[10.5px] font-bold uppercase tracking-[0.06em] text-white">
+                {{-- Phones don't get the trust panel, so the proof points stay here as chips below lg. --}}
+                <div class="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-2 lg:hidden font-jakarta text-[10.5px] font-bold uppercase tracking-[0.06em] text-white">
                     <span class="px-3 py-1 rounded-full border border-white/25 bg-[#060D26]/40">{{ $heroStats['units'] }}+ available units</span>
                     <span class="px-3 py-1 rounded-full border border-white/25 bg-[#060D26]/40">Verified landlords</span>
                     <span class="px-3 py-1 rounded-full border border-white/25 bg-[#060D26]/40">Across Cebu</span>
@@ -55,11 +100,6 @@
 
     {{-- ===== BROWSE ===== --}}
     <div class="relative isolate overflow-clip">
-    @if($heroStats)
-        {{-- Background texture for the wide side margins on the landing page: soft colour glows, a dot
-             grid, diagonal hairlines and flowing curves. Purely decorative, low contrast, behind content. --}}
-        <x-section-texture />
-    @endif
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: false, filtersOpen: false }"
         @if(! $heroStats) data-browse-live @endif
         x-effect="window.dispatchEvent(new CustomEvent('browse-map-state', { detail: mapVisible }))"
@@ -75,35 +115,41 @@
                         sync() { const el = this.$refs.track; this.canPrev = el.scrollLeft > 4; this.canNext = el.scrollLeft + el.clientWidth < el.scrollWidth - 4; },
                         scrollByPage(dir) { const el = this.$refs.track; el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: 'smooth' }); }
                     }" x-init="$nextTick(() => sync())" @resize.window.debounce.150ms="sync()">
-                    <div class="flex items-end justify-between gap-4 mb-5">
+                    <div class="flex items-end justify-center gap-4 mb-5 text-center">
                         <div>
-                            <h2 class="font-jakarta text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Browse by neighborhood</h2>
-                            <span class="mt-1 block text-[13px] text-[#5B6A8E]">{{ $areas->count() }} {{ Str::plural('area', $areas->count()) }} &middot; {{ $areas->sum('count') }} listings</span>
+                            <h2 class="font-jakarta text-[20px] sm:text-[24px] font-semibold leading-tight tracking-tight text-[#060D26]">Browse by neighborhood</h2>
+                            <span class="mt-1.5 block text-[13px] text-[#5B6A8E]">{{ $areas->count() }} {{ Str::plural('area', $areas->count()) }} &middot; {{ $areas->sum('count') }} listings</span>
                         </div>
                     </div>
                     {{-- Same swipeable scroll-snap row as "Popular places to stay": ~5 tiles visible on
                          desktop, ~1.5 on phones (next tile peeks in), "View all areas" is the last one. --}}
                     <div class="relative">
-                        <div x-ref="track" @scroll.passive="sync()" class="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <div x-ref="track" @scroll.passive="sync()" class="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 py-1 [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         @foreach($areas as $area)
                             <a href="{{ $area['url'] }}"
-                                class="relative shrink-0 snap-start w-[62%] sm:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-3rem)/5)] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+                                class="relative shrink-0 snap-start w-[62%] sm:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-3rem)/5)] h-40 sm:h-44 rounded-3xl overflow-hidden group transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(6,13,38,0.16)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                                 <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}" loading="lazy"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/90 via-[#060D26]/35 to-transparent"></div>
-                                <div class="absolute bottom-3 left-3 right-3">
-                                    <p class="text-white font-jakarta text-[14.5px] font-bold leading-tight truncate [text-shadow:0_1px_6px_rgba(6,13,38,0.5)]">{{ $area['name'] }}</p>
-                                    <p class="mt-1 inline-flex font-jakarta text-[12px] font-semibold text-white px-2.5 py-0.5 rounded-full border border-white/30 bg-[#060D26]/40">
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 motion-reduce:group-hover:scale-100">
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/75 via-[#060D26]/5 to-transparent"></div>
+                                <div class="absolute bottom-4 left-5 right-5">
+                                    <p class="text-white font-jakarta text-[15px] font-semibold leading-tight truncate">{{ $area['name'] }}</p>
+                                    <p class="mt-0.5 text-[12px] font-medium text-white/80">
                                         {{ $area['count'] }} {{ Str::plural('listing', $area['count']) }}
                                     </p>
                                 </div>
                             </a>
                         @endforeach
 
-                        <x-view-all-tile :href="route('properties.areas')" label="View all areas"
-                            :sub="$areas->count() . ' neighborhoods'"
-                            :photos="$areas->reverse()->pluck('photo')->all()"
-                            class="w-[62%] sm:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-3rem)/5)] h-36 sm:h-40" />
+                        <a href="{{ route('properties.areas') }}"
+                            class="group shrink-0 snap-start w-[62%] sm:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-3rem)/5)] h-40 sm:h-44 rounded-3xl bg-[#ECEEF6] flex flex-col items-center justify-center gap-3 text-center transition-all duration-300 hover:bg-[#E2E4EC] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-full border border-[#060D26]/20 text-[#060D26] transition-colors duration-300 group-hover:bg-[#060D26] group-hover:text-white">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                            </span>
+                            <span>
+                                <span class="block font-jakarta text-[15px] font-semibold text-[#060D26]">View all areas</span>
+                                <span class="mt-0.5 block text-[12px] text-[#5B6A8E]">{{ $areas->count() }} {{ Str::plural('neighborhood', $areas->count()) }}</span>
+                            </span>
+                        </a>
                     </div>
                         <x-row-arrows />
                     </div>
@@ -434,7 +480,7 @@
                 <form method="GET" action="{{ route('properties.index') }}"
                     x-data="{ selected: {{ $initialSelected }}, count() { this.selected = Array.from(this.$el.querySelectorAll('input[type=checkbox]:checked, input[type=radio]:checked')).filter(i => i.value !== '').length } }"
                     @change="count()"
-                    class="relative w-full sm:max-w-6xl max-h-[92vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+                    class="relative w-full sm:max-w-7xl max-h-[94vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
                     x-show="filtersOpen" x-transition>
 
                     {{-- Header --}}
@@ -452,7 +498,7 @@
                     </div>
 
                     {{-- Body (only this scrolls) --}}
-                    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4 bg-[#F7F8FC]">
+                    <div class="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-[#F7F8FC]">
                         {{-- Carries location/type/price_min/price_max/sort through untouched —
                              this form only ever sets amenities. --}}
                         @foreach(request()->except(['amenities', 'verified', 'page', 'living', 'for', 'furnishing', 'rules']) as $key => $value)
@@ -609,8 +655,21 @@
                         {{-- Landing (no filter/sort/page): a two-row teaser — 9 listings plus a
                              "view all" tile as the 10th cell. The tile links with sort=newest,
                              which drops heroStats and opens the full paginated list. --}}
+                        {{-- Cards 4-5 only show from lg (3 cols) and 6-9 from xl (5 cols), so the
+                             teaser is two rows with the tile as the last cell at every width. --}}
                         @foreach($heroStats ? $properties->take(9) : $properties as $property)
-                            <x-property-card :property="$property" :favorited-ids="$favoritedIds" />
+                            @php
+                                $teaserWrap = $heroStats
+                                    ? ($loop->index >= 5 ? 'hidden xl:contents' : ($loop->index >= 3 ? 'hidden lg:contents' : null))
+                                    : null;
+                            @endphp
+                            @if($teaserWrap)
+                                <div class="{{ $teaserWrap }}">
+                                    <x-property-card :property="$property" :favorited-ids="$favoritedIds" />
+                                </div>
+                            @else
+                                <x-property-card :property="$property" :favorited-ids="$favoritedIds" />
+                            @endif
                         @endforeach
 
                         @if($heroStats)
@@ -683,7 +742,6 @@
             x-init="if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) { shown = true; return; }
                     const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { shown = true; io.disconnect(); } }, { threshold: 0.25 });
                     io.observe($el);">
-            <x-section-texture compact />
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
                 <h2 id="how-it-works-title" class="sr-only">How AbangananHub works</h2>
                 <ol class="grid gap-8 sm:grid-cols-3 sm:gap-10">
@@ -725,7 +783,6 @@
             ];
         @endphp
         <section class="relative isolate overflow-hidden bg-[#ECEEF6]" aria-labelledby="landlord-cta-title">
-            <x-section-texture compact />
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 grid gap-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:items-center lg:gap-16">
                 <div>
                     <p class="font-jakarta text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#B35A3D]">For property owners</p>
