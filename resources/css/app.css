@@ -299,3 +299,39 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
     transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 200ms ease;
 }
 #nav-progress.is-active { width: 85%; opacity: 1; }
+
+/* Inline validation (resources/js/field-validation.js): short tag on the field border; full text is screen-reader only (checkboxes keep a visible line). */
+.fv-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.fv-bad {
+    border-color: #DC2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.14) !important;
+}
+.fv-tag {
+    position: absolute; z-index: 2; pointer-events: none; width: max-content; white-space: nowrap;
+    transform: translate(calc(-100% - 12px), -50%);
+    background: #DC2626; color: #fff;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1;
+    padding: 4px 8px; border-radius: 999px;
+    animation: fv-rise 180ms ease-out;
+}
+.fv-msg {
+    display: flex; align-items: center; gap: 6px; margin: 6px 0 0;
+    color: #DC2626; font-size: 12.5px; font-weight: 500; line-height: 1.4;
+    animation: fv-rise 180ms ease-out;
+}
+.fv-ico {
+    flex: none; width: 16px; height: 16px; border-radius: 50%; background: #DC2626; color: #fff;
+    display: grid; place-items: center; font-size: 11px; font-weight: 700; line-height: 1;
+}
+@keyframes fv-rise { from { opacity: 0; transform: translateY(-4px); } }
+.fv-tag { animation-name: fv-tag-in; }
+@keyframes fv-tag-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .fv-tag, .fv-msg { animation: none; } }
+
+/* Password strength meter */
+.fv-strength { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11.5px; color: #5B6A8E; }
+.fv-strength[hidden] { display: none; }
+.fv-bars { display: flex; gap: 4px; flex: none; }
+.fv-bars i { width: 28px; height: 4px; border-radius: 999px; background: rgba(148, 163, 184, 0.3); transition: background-color 150ms; }
+.fv-bars i.on { background: var(--fv-c); }
+.fv-strength-label { color: var(--fv-c); font-weight: 600; }

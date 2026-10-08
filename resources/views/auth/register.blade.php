@@ -73,7 +73,7 @@
                 <div>
                     <label for="password" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
                     <div class="relative">
-                        <input id="password" type="password" name="password" required autocomplete="new-password"
+                        <input id="password" type="password" name="password" minlength="8" data-strength required autocomplete="new-password"
                             placeholder="Create a password"
                             class="w-full pl-4 pr-12 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
                         <button type="button" onclick="togglePassword('password', this)" aria-label="Show password"

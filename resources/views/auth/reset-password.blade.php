@@ -54,7 +54,7 @@
                 <div>
                     <label for="password" class="block text-xs font-bold text-[#060D26] mb-1">New Password</label>
                     <div class="relative">
-                        <input id="password" type="password" name="password" required autocomplete="new-password" placeholder="Create a new password"
+                        <input id="password" type="password" name="password" minlength="8" data-strength required autocomplete="new-password" placeholder="Create a new password"
                             class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                         <button type="button" onclick="togglePassword('password', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
