@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Page not found · AbangananHub</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/logo-app-icon.svg') }}">
     @vite(['resources/css/app.css'])
     <style>
         body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
@@ -17,7 +17,7 @@
     <div class="min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center">
 
         <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-            <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub" class="w-10 h-10 object-contain">
+            <img src="{{ asset('images/brand/logo-mark.svg') }}" alt="AbangananHub" class="w-10 h-10 object-contain">
             <span class="font-display text-[18px] font-bold text-[#060D26] tracking-tight">
                 Abanganan<span class="text-[#060D26]">Hub</span>
             </span>

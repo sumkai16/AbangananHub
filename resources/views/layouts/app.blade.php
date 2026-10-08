@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ $title ?? 'AbangananHub' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/logo-app-icon.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <script>
@@ -82,7 +82,7 @@
                  buttons), so the back link lives in the page content instead. --}}
             <a href="{{ route('home') }}"
                 class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group {{ $backNavData ? $mobileBp.':hidden' : '' }}">
-                <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
+                <img src="{{ asset('images/brand/logo-mark.svg') }}" alt="AbangananHub"
                     class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
                     Abanganan<span class="text-[#FF8A66]">Hub</span>
@@ -103,7 +103,7 @@
                      pill uses elsewhere in this file. --}}
                 <a href="{{ route('home') }}"
                     class="hidden xl:flex items-center gap-2.5 no-underline absolute left-1/2 -translate-x-1/2 group">
-                    <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
+                    <img src="{{ asset('images/brand/logo-mark.svg') }}" alt="AbangananHub"
                         class="w-9 h-9 object-contain transition-transform group-hover:scale-105">
                     <span class="text-[18px] font-extrabold text-[#060D26] tracking-tight">
                         Abanganan<span class="text-[#FF8A66]">Hub</span>
@@ -525,7 +525,7 @@
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-                <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
+                <img src="{{ asset('images/brand/logo-mark-on-dark.svg') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
                 <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#FF8A66]">Hub</span></span>
             </a>
 
