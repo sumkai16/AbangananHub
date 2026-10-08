@@ -75,8 +75,8 @@
         <div class="hidden lg:flex flex-shrink-0 items-center gap-2 pl-3 border-l border-[#E2E4EC]"
             x-data="{ mapVisible: window.browseMapVisible ? window.browseMapVisible() : false }" @browse-map-state.window="mapVisible = $event.detail">
             @php
-                // Sort + Clear all fill the strip's spare width. Both are plain links to /properties, so browse-live.js
-                // turns them into in-place updates (and they still work without JS).
+                // Sort options are plain links to /properties, so browse-live.js turns them into in-place updates
+                // (and they still work without JS). "Clear all" lives in the "Filtering by" row below, not here.
                 $sortOptions = [
                     'newest'     => 'Newest',
                     'price_low'  => 'Price: low to high',
@@ -84,19 +84,7 @@
                     'top_rated'  => 'Top rated',
                 ];
                 $currentSort = array_key_exists((string) request('sort'), $sortOptions) ? request('sort') : 'newest';
-                $stripHasFilters = collect(array_merge(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities'], \App\Support\BrowseFilters::KEYS))
-                    ->contains(fn ($key) => request()->filled($key));
             @endphp
-            @if($stripHasFilters)
-                <a href="{{ route('properties.index', request()->only('sort')) }}" aria-label="Clear all filters"
-                    class="group relative inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[#DC2626] transition-colors duration-200 hover:bg-[#EF4444]/[0.08] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#EF4444]">
-                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <span class="{{ $tipCenter }}" aria-hidden="true">Clear all filters</span>
-                </a>
-            @endif
-
             {{-- Sort --}}
             <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
                 <button type="button" @click="open = !open" :aria-expanded="open.toString()" aria-haspopup="true"
