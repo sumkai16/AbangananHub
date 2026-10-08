@@ -478,8 +478,8 @@
                 x-on:keydown.escape.window="filtersOpen = false">
                 <div class="absolute inset-0 bg-[#060D26]/50" x-on:click="filtersOpen = false"></div>
                 <form method="GET" action="{{ route('properties.index') }}"
-                    x-data="{ selected: {{ $initialSelected }}, count() { this.selected = Array.from(this.$el.querySelectorAll('input[type=checkbox]:checked, input[type=radio]:checked')).filter(i => i.value !== '').length } }"
-                    @change="count()"
+                    x-data="{ priceSet: {{ (request()->filled('price_min') || request()->filled('price_max')) ? 'true' : 'false' }}, selected: {{ $initialSelected }}, count() { this.selected = Array.from(this.$el.querySelectorAll('input[type=checkbox]:checked, input[type=radio]:checked')).filter(i => i.value !== '').length + (this.priceSet ? 1 : 0) } }"
+                    @change="count()" @price-changed="priceSet = $event.detail; count()"
                     class="relative w-full sm:max-w-7xl max-h-[94vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
                     x-show="filtersOpen" x-transition>
 
@@ -499,9 +499,9 @@
 
                     {{-- Body (only this scrolls) --}}
                     <div class="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-[#F7F8FC]">
-                        {{-- Carries location/type/price_min/price_max/sort through untouched —
-                             this form only ever sets amenities. --}}
-                        @foreach(request()->except(['amenities', 'verified', 'page', 'living', 'for', 'furnishing', 'rules']) as $key => $value)
+                        {{-- Carries location/type/sort through untouched. The price fields are owned by the budget card below,
+                             so they are left out here (a second copy would submit the old value). --}}
+                        @foreach(request()->except(['amenities', 'verified', 'page', 'living', 'for', 'furnishing', 'rules', 'price_min', 'price_max']) as $key => $value)
                             @if(is_array($value))
                                 @foreach($value as $item)
                                     <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
@@ -510,6 +510,9 @@
                                 <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                             @endif
                         @endforeach
+
+                        {{-- Budget first: price is the filter most people start with. --}}
+                        <x-budget-filter />
 
                         {{-- Property facts. One card of labelled rows (each option set stays on one line) beside the house
                              rules — the two together span the same five columns as the amenity groups below, so
@@ -606,7 +609,7 @@
 
                     {{-- Footer --}}
                     <div class="flex items-center gap-4 px-6 py-4 border-t border-[#E2E4EC] bg-white flex-shrink-0">
-                        <a href="{{ route('properties.index', request()->except(['amenities', 'verified', 'page', 'living', 'for', 'furnishing', 'rules'])) }}"
+                        <a href="{{ route('properties.index', request()->except(['amenities', 'verified', 'page', 'living', 'for', 'furnishing', 'rules', 'price_min', 'price_max'])) }}"
                             class="font-jakarta text-[13px] font-bold text-[#EF4444] hover:brightness-95">
                             Clear all
                         </a>
@@ -808,132 +811,57 @@
                     </a>
                 </div>
 
-                {{-- Decorative "landlord dashboard" scene: a lit building on navy with floating status chips. --}}
-                <div class="hidden md:block relative h-[340px] lg:h-[380px] rounded-[28px] bg-[#060D26] overflow-hidden" aria-hidden="true">
-                    <div class="absolute -top-16 -right-10 w-64 h-64 rounded-full bg-[#FF8A66]/25 blur-3xl"></div>
-                    <div class="absolute -bottom-20 -left-10 w-64 h-64 rounded-full bg-[#5B6A8E]/30 blur-3xl"></div>
+                {{-- "How it works for owners": the path from sign-up to a first inquiry, with the platform's real counts underneath.
+                     Replaced the decorative isometric-building illustration (Oct 9 2026). Only true statements and live numbers here. --}}
+                @php
+                    $ownerSteps = [
+                        ['Verify your identity', 'Submit your ID once. An admin reviews it before you can list.', 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
+                        ['Add your property and units', 'A guided form for photos, rent, deposit and house rules.', 'M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21'],
+                        ['Get inquiries, sign online', 'Chat with interested tenants, agree on terms, and sign the lease on the platform.', 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75'],
+                    ];
+                @endphp
+                <div class="hidden md:flex flex-col relative rounded-[28px] bg-[#060D26] overflow-hidden p-7 lg:p-9" role="group" aria-label="How listing works">
+                    <div class="pointer-events-none absolute -top-16 -right-10 w-64 h-64 rounded-full bg-[#FF8A66]/20 blur-3xl" aria-hidden="true"></div>
+                    <div class="pointer-events-none absolute -bottom-20 -left-10 w-64 h-64 rounded-full bg-[#5B6A8E]/25 blur-3xl" aria-hidden="true"></div>
 
-                    {{-- 3D-style isometric building: lit left/right faces, a light roof, glowing windows,
-                         and a soft ground platform. Window grids are drawn flat then skewed onto each face. --}}
-                    @php
-                        $litLeft  = [[1,0,0],[0,1,0],[1,0,1]];
-                        $litRight = [[0,1,1],[1,0,0],[0,1,0],[1,1,0]];
-                    @endphp
-                    <svg viewBox="0 0 260 310" class="absolute left-[43%] bottom-[2%] -translate-x-1/2 h-[90%] w-auto" fill="none">
-                        <defs>
-                            <linearGradient id="ow-left" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1C2858"/><stop offset="1" stop-color="#2A3A78"/></linearGradient>
-                            <linearGradient id="ow-right" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4356A6"/><stop offset="1" stop-color="#2E3F86"/></linearGradient>
-                            <linearGradient id="ow-roof" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7183CC"/><stop offset="1" stop-color="#4A5DAA"/></linearGradient>
-                            <linearGradient id="ow-lit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC7AF"/><stop offset="1" stop-color="#FF8A66"/></linearGradient>
-                            <linearGradient id="ow-dim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A6B2DA" stop-opacity=".55"/><stop offset="1" stop-color="#6A79B0" stop-opacity=".4"/></linearGradient>
-                            <linearGradient id="ow-plat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B3A78"/><stop offset="1" stop-color="#141D45"/></linearGradient>
-                            <radialGradient id="ow-shadow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
-                        </defs>
+                    <p class="relative font-jakarta text-[11px] font-bold uppercase tracking-[0.14em] text-[#FF8A66]">From sign-up to first tenant</p>
 
-                        <ellipse cx="128" cy="292" rx="122" ry="16" fill="url(#ow-shadow)"/>
-                        <path d="M8 262l112 42 132-46-132-52z" fill="url(#ow-plat)"/>
-                        <path d="M8 262l112 42 132-46" stroke="#5F70B8" stroke-opacity=".5" stroke-width="1.5" stroke-linejoin="round"/>
+                    <ol class="relative mt-6">
+                        @foreach($ownerSteps as $i => [$stepTitle, $stepText, $stepIcon])
+                            <li class="flex gap-4">
+                                <div class="flex flex-col items-center">
+                                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FF8A66]/15 text-[#FF8A66] ring-1 ring-[#FF8A66]/30">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $stepIcon }}" /></svg>
+                                    </span>
+                                    @unless($loop->last)
+                                        <span class="my-1.5 w-px flex-1 bg-gradient-to-b from-[#FF8A66]/40 to-white/10" aria-hidden="true"></span>
+                                    @endunless
+                                </div>
+                                <div class="{{ $loop->last ? '' : 'pb-6' }}">
+                                    <p class="font-jakarta text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">Step {{ $i + 1 }}</p>
+                                    <p class="mt-0.5 font-jakarta text-[16px] font-bold text-white">{{ $stepTitle }}</p>
+                                    <p class="mt-1 text-[13.5px] leading-snug text-white/75">{{ $stepText }}</p>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ol>
 
-                        {{-- faces --}}
-                        <path d="M30 60l90 35v190l-90-35z" fill="url(#ow-left)"/>
-                        <path d="M120 95l90-35v190l-90 35z" fill="url(#ow-right)"/>
-                        <path d="M30 60l90-35 90 35-90 35z" fill="url(#ow-roof)"/>
-                        {{-- rooftop unit --}}
-                        <path d="M92 52l22-8 22 8-22 8z" fill="#8FA0E0"/>
-                        <path d="M92 52v12l22 8V60z" fill="#3B4C98"/><path d="M114 60v12l22-8V52z" fill="#5468BC"/>
-
-                        {{-- left-face windows + lobby door --}}
-                        <g transform="translate(30 60) skewY(21.25)">
-                            @foreach($litLeft as $r => $row)
-                                @foreach($row as $c => $lit)
-                                    @if($lit)<rect x="{{ 8 + $c * 26 }}" y="{{ 12 + $r * 44 }}" width="22" height="30" rx="3" fill="#FF8A66" opacity=".28"/>@endif
-                                    <rect x="{{ 10 + $c * 26 }}" y="{{ 14 + $r * 44 }}" width="18" height="26" rx="2.5" fill="url(#{{ $lit ? 'ow-lit' : 'ow-dim' }})"/>
-                                @endforeach
-                            @endforeach
-                            <rect x="30" y="144" width="30" height="46" rx="3" fill="#0B1435"/>
-                            <rect x="26" y="138" width="38" height="7" rx="2" fill="#FF8A66"/>
-                        </g>
-
-                        {{-- right-face windows --}}
-                        <g transform="translate(120 95) skewY(-21.25)">
-                            @foreach($litRight as $r => $row)
-                                @foreach($row as $c => $lit)
-                                    @if($lit)<rect x="{{ 8 + $c * 26 }}" y="{{ 12 + $r * 44 }}" width="22" height="30" rx="3" fill="#FF8A66" opacity=".28"/>@endif
-                                    <rect x="{{ 10 + $c * 26 }}" y="{{ 14 + $r * 44 }}" width="18" height="26" rx="2.5" fill="url(#{{ $lit ? 'ow-lit' : 'ow-dim' }})"/>
-                                @endforeach
-                            @endforeach
-                        </g>
-
-                        {{-- edge highlights sell the 3D volume --}}
-                        <path d="M30 60l90-35 90 35" stroke="#B5C2F5" stroke-opacity=".65" stroke-width="1.5" stroke-linejoin="round"/>
-                        <path d="M120 95v190" stroke="#8FA0E6" stroke-opacity=".5" stroke-width="1.5"/>
-                        <path d="M30 60l90 35 90-35" stroke="#9AA9EA" stroke-opacity=".45" stroke-width="1.2" stroke-linejoin="round"/>
-                    </svg>
-
-                    {{-- 3D-style landlord: rounded "clay" shapes with gradients and soft highlights. --}}
-                    <svg viewBox="0 0 110 236" class="absolute bottom-[3%] left-[62%] h-[56%] w-auto" fill="none">
-                        <defs>
-                            <radialGradient id="ow-skin" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#FFDCC6"/><stop offset="1" stop-color="#E29A78"/></radialGradient>
-                            <linearGradient id="ow-jacket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB094"/><stop offset="1" stop-color="#E2603C"/></linearGradient>
-                            <linearGradient id="ow-sleeve" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF9C7A"/><stop offset="1" stop-color="#CF5433"/></linearGradient>
-                            <linearGradient id="ow-pants" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5D6FAE"/><stop offset="1" stop-color="#2C3970"/></linearGradient>
-                            <linearGradient id="ow-hair" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#434C7E"/><stop offset="1" stop-color="#10152C"/></linearGradient>
-                            <linearGradient id="ow-shoe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BCC6E6"/></linearGradient>
-                            <linearGradient id="ow-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A3"/><stop offset="1" stop-color="#E0A21B"/></linearGradient>
-                            <radialGradient id="ow-pshadow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".6"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
-                        </defs>
-                        <ellipse cx="55" cy="230" rx="42" ry="7" fill="url(#ow-pshadow)"/>
-                        {{-- legs + sneakers --}}
-                        <rect x="34" y="130" width="17" height="94" rx="8" fill="url(#ow-pants)"/>
-                        <rect x="56" y="130" width="17" height="94" rx="8" fill="url(#ow-pants)"/>
-                        <rect x="29" y="216" width="26" height="14" rx="7" fill="url(#ow-shoe)"/>
-                        <rect x="53" y="216" width="26" height="14" rx="7" fill="url(#ow-shoe)"/>
-                        {{-- left arm --}}
-                        <rect x="13" y="66" width="20" height="68" rx="10" fill="url(#ow-sleeve)"/>
-                        <circle cx="23" cy="138" r="8" fill="url(#ow-skin)"/>
-                        {{-- torso --}}
-                        <rect x="24" y="60" width="62" height="80" rx="20" fill="url(#ow-jacket)"/>
-                        <ellipse cx="42" cy="82" rx="12" ry="20" fill="#fff" opacity=".16"/>
-                        <path d="M74 64c8 4 12 14 12 26v34a18 18 0 01-18 16h6c10 0 18-8 18-18V84c0-10-6-18-18-20z" fill="#B8431F" opacity=".22"/>
-                        <path d="M45 61h22L56 94z" fill="#fff"/>
-                        {{-- raised arm holding the key --}}
-                        <path d="M78 72l19 21a9 9 0 01-3 14l-6 3" stroke="url(#ow-sleeve)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="87" cy="108" r="8.5" fill="url(#ow-skin)"/>
-                        <g transform="translate(90 80) rotate(20)">
-                            <circle cx="0" cy="0" r="6.5" stroke="url(#ow-gold)" stroke-width="3.4"/>
-                            <path d="M0 6.5v20m0-6h6.5m-6.5 6h5" stroke="url(#ow-gold)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
-                        </g>
-                        {{-- neck, head, ears, hair, face --}}
-                        <rect x="48" y="46" width="14" height="20" rx="6" fill="#DB9270"/>
-                        <circle cx="35" cy="36" r="4.5" fill="#E9A583"/><circle cx="75" cy="36" r="4.5" fill="#E9A583"/>
-                        <circle cx="55" cy="34" r="21" fill="url(#ow-skin)"/>
-                        <path d="M34 33c0-15 9-23 21-23s21 8 21 23c-4-7-10-10-17-10-8 0-18 3-25 10z" fill="url(#ow-hair)"/>
-                        <ellipse cx="46" cy="16" rx="8" ry="3.5" fill="#fff" opacity=".22"/>
-                        <circle cx="47" cy="38" r="2.3" fill="#1B2140"/><circle cx="63" cy="38" r="2.3" fill="#1B2140"/>
-                        <circle cx="47.8" cy="37.2" r=".8" fill="#fff"/><circle cx="63.8" cy="37.2" r=".8" fill="#fff"/>
-                        <circle cx="41" cy="45" r="3.4" fill="#FF8F7A" opacity=".45"/><circle cx="69" cy="45" r="3.4" fill="#FF8F7A" opacity=".45"/>
-                        <path d="M49 46c3.5 3.5 8.5 3.5 12 0" stroke="#1B2140" stroke-width="2.2" stroke-linecap="round"/>
-                    </svg>
-
-                    <div class="absolute top-6 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
-                        <span class="w-8 h-8 rounded-full bg-[#E7F6EC] text-[#1F8A4C] flex items-center justify-center">
-                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $ownerPerks[3][1] }}" /></svg>
-                        </span>
-                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Verified<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Landlord</span></span>
-                    </div>
-                    <div class="absolute top-24 right-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
-                        <span class="w-8 h-8 rounded-full bg-[#FFE9E1] text-[#B35A3D] flex items-center justify-center">
-                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H19a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14z" /></svg>
-                        </span>
-                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">New inquiry<span class="block text-[10.5px] font-medium text-[#5B6A8E]">A tenant is interested</span></span>
-                    </div>
-                    <div class="absolute bottom-10 left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_8s_ease-in-out_-4s_infinite]">
-                        <span class="w-8 h-8 rounded-full bg-[#E8ECFA] text-[#2A3A75] flex items-center justify-center text-[15px] font-extrabold">&#8369;</span>
-                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Rent received<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Tracked automatically</span></span>
-                    </div>
+                    {{-- Live counts: social proof that is actually true. --}}
+                    <dl class="relative mt-6 grid grid-cols-3 divide-x divide-white/10 border-t border-white/10 pt-5 text-center">
+                        <div>
+                            <dt class="text-[11px] font-medium uppercase tracking-wide text-white/50">Live listings</dt>
+                            <dd class="mt-1 font-jakarta text-[22px] font-extrabold tabular-nums text-white">{{ number_format($heroStats['listings']) }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-[11px] font-medium uppercase tracking-wide text-white/50">Units open</dt>
+                            <dd class="mt-1 font-jakarta text-[22px] font-extrabold tabular-nums text-white">{{ number_format($heroStats['units']) }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-[11px] font-medium uppercase tracking-wide text-white/50">Areas</dt>
+                            <dd class="mt-1 font-jakarta text-[22px] font-extrabold tabular-nums text-white">{{ number_format($areas->count()) }}</dd>
+                        </div>
+                    </dl>
                 </div>
-                {{-- owner-float now lives in resources/css/app.css (global) so the auth modal's
-                     brand panel can reuse the same chip-float animation. --}}
                 <style>@keyframes owner-cta-pulse { 0% { opacity: .55; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.14, 1.35); } }</style>
             </div>
         </section>
