@@ -38,6 +38,14 @@ return new class extends Migration
 
     public function down(): void
     {
+        // MySQL dropped the automatic index on reviews.property_id when the
+        // composite index (which starts with property_id) was added, so the
+        // foreign key now relies on it. Give the key a plain index back first,
+        // or dropping the composite fails with error 1553.
+        if (! Schema::hasIndex('reviews', 'reviews_property_id_index')) {
+            Schema::table('reviews', fn (Blueprint $t) => $t->index(['property_id'], 'reviews_property_id_index'));
+        }
+
         foreach (self::INDEXES as $table => $indexes) {
             foreach (array_keys($indexes) as $name) {
                 if (Schema::hasIndex($table, $name)) {
