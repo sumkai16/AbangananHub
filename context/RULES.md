@@ -68,6 +68,7 @@ Reference implementations: `Admin\VerificationController::approve/reject`, `Admi
 ## Laravel Conventions
 - Eloquent ORM over raw queries, always
 - Migrations for all schema changes — never manual SQL
+- **An index that starts with a foreign-key column can't simply be dropped in `down()` (MySQL, found Oct 8 2026).** When you add such an index, MySQL silently drops the automatic index it made for that foreign key, and the key then depends on yours. Dropping it fails with error 1553 ("needed in a foreign key constraint"). In `down()`, add a plain index on the foreign-key column first. Example: `2026_10_08_000000_add_browse_sort_indexes`. Test every new migration's rollback on `abanganan_hub_test` (`DB_DATABASE=abanganan_hub_test php artisan migrate:rollback --step=1`), never on the dev database.
 - Middleware for role gating (`EnsureTenant`, `EnsureLandlord`, `EnsureAdmin`) — never if-else role checks in controllers
 - Resource controllers where applicable
 - Named routes throughout — no hardcoded URLs in Blade

@@ -1097,7 +1097,9 @@ has the short version; this section has the reasoning and what it touched.
   touched.
 
 ## 31. Home page pass after teacher review (Oct 8 2026)
-Changes to `properties/index.blade.php` (the home page) and shared pieces, following a teacher's review. Supersedes the parts of §6i that describe a single centered 900px hero. Plan: `plans/teacher-feedback-pass.md`.
+Changes to `properties/index.blade.php` (the home page) and shared pieces, following a teacher's review. Plan: `plans/teacher-feedback-pass.md`.
+
+> **Partly reverted (Oct 8 2026, `b8be7d1` on `axci`).** `properties/index.blade.php` was restored to its `c18e701` version and `components/section-texture.blade.php` was brought back. **Reverted, so not in the code:** the two-column hero and "Why AbangananHub" panel, the `lg:hidden` chips and headline sizes, the `<x-section-texture>` deletion, the minimal "Browse by neighborhood", the two-row home grid, and the wider filters modal. §6i describes the home hero as it is now. **Still in the code:** the category strip icons, the header search band `py-5`, the 404 font, and the inline form errors. The bullets below are kept as a record of the reverted design.
 
 - **Hero is two columns from `lg`.** Container is `max-w-[1400px]`; grid `lg:grid-cols-[1.2fr_0.8fr]`, text left (eyebrow, h1, subtext), a "Why AbangananHub" panel right. Below `lg` it stays the centered single column and the panel is hidden. The reason: on a 1400px screen the old 900px column left the photo empty on both sides.
   - **Panel** is on photography, so it follows the §6 "panels layered over photography" rule: `bg-[#060D26]/55 backdrop-blur-xl border-white/15 rounded-3xl`, `max-w-[460px]`, aligned right. Three points (identity-checked landlords, deposit held safely, sign online) each with a coral-tinted Heroicons tile (`bg-[#FF8A66]/15 ring-1 ring-[#FF8A66]/30`) separated by `divide-white/10`, plus a live `{{ $heroStats['units'] }}+ units available` pill with a pulsing green dot (`motion-safe:animate-pulse`).

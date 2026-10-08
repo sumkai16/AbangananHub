@@ -1,8 +1,21 @@
 # CHANGELOG.md — what changed and why (Oct 2026)
 
-Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. All of it is on branch `joseph`.
+Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the two Oct 8 fixes below are on `axci`.
+
+## Oct 8 2026 — home page redesign reverted (`b8be7d1`, branch `axci`)
+- `properties/index.blade.php` restored to its `c18e701` version, undoing the `94f2e15` changes to that file. `components/section-texture.blade.php` restored too: the old page uses it and `94f2e15` had deleted it.
+- **Reverted:** two-column hero and "Why AbangananHub" panel, minimal "Browse by neighborhood", two-row home grid, wider filters modal, the texture removal.
+- **Kept from `94f2e15`:** category icons, header search band `py-5`, 404 font, inline form errors, the browse-sort index migration.
+- Checked: `/properties` and `/properties?sort=price_asc` return 200 with no log errors. Not checked in a browser. DESIGN.md §31 notes which parts are gone.
+- `origin/joseph` still has the redesign, so a future merge of `joseph` could bring it back.
+
+## Oct 8 2026 — browse-sort index migration rollback fixed (`6a7240d`, branch `axci`)
+- `2026_10_08_000000_add_browse_sort_indexes` could run but not roll back: `down()` failed with MySQL error 1553 because the new `reviews_property_rating_index` had become the `reviews.property_id` foreign key's index.
+- `down()` now adds `reviews_property_id_index` before dropping the composite. Checked on `abanganan_hub_test`: rollback, migrate, rollback, migrate all succeed; suite 70 passing. Dev database unaffected (only `down()` changed). Rule: RULES.md "Laravel Conventions".
+- `origin/joseph` still has the old `down()`.
 
 ## Oct 8 2026 — teacher feedback pass + home page redesign (`94f2e15`)
+> The `properties/index.blade.php` and `section-texture` parts of this entry were reverted in `b8be7d1` (above).
 A teacher reviewed the public home page. Each suggestion was checked against the code; some were applied, some declined. Plan: `plans/teacher-feedback-pass.md`. Design details: DESIGN.md §31.
 
 Applied:
@@ -53,4 +66,4 @@ Verified but not fixed; full list in ARCHITECTURE.md Known Tradeoffs.
 
 ## Not verified in a browser
 Everything above was checked with tinker requests, Blade compile and the test suite (36 passing for auth, profile, browse, property, reservation and viewing tests), never by clicking through. Pending a manual pass: hero layout, filters modal scrollbar, two-row cap per breakpoint, icons, dark mode, mobile width, and the empty-form inline errors.
-`ViewingSchedulingTest::test_only_the_reservations_tenant_can_request` fails because its setup never creates a second tenant; not caused by these changes.
+Update Oct 8 2026: `ViewingSchedulingTest::test_only_the_reservations_tenant_can_request` now passes. The tests build their own fixtures (`tests/Support/CreatesMarketplaceFixtures.php`, `b529738`), and the full suite runs green on `abanganan_hub_test` (70 tests).
