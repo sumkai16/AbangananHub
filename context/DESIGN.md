@@ -1115,3 +1115,15 @@ Changes to `properties/index.blade.php` (the home page) and shared pieces, follo
 - **404 page** uses Plus Jakarta Sans (`font-bold` / `font-extrabold`) instead of DM Serif Display. No page renders a serif now; the serif stays available as the opt-in `.font-heading` / `.font-display`.
 - **Auth and profile forms** show server validation inline under each field (no native popups). See RULES.md "Forms".
 - **Not verified in a browser** at the time of writing: hero at desktop width, modal scrollbar at 900px height, the two-row cap at each breakpoint, dark mode on the new panel and neighborhood tiles.
+
+## 32. Logo and field-error tags (Oct 8 2026)
+**Logo.** The mark is the mobile app's house-with-keyhole (`public/images/brand/*.svg`), not the old building-in-a-ring PNG. Navy mark on light grounds, white mark on dark grounds (sidebars, footer), rounded-square app icon as favicon. The mark is never baked together with the wordmark; "AbangananHub" stays HTML text with "Hub" in coral.
+
+**Field errors use design D: a tag on the border, no message line.** Chosen over inline text, a pointer bubble, an attached strip and a summary box. Rules:
+- Tag: red `#DC2626` pill, white 10px bold uppercase, sits on the field's top border 12px in from the right. Field gets a red border and a 3px red ring.
+- Tag text is short and specific: Required, Invalid email, Min 8 characters, Max N characters, Numbers only, Doesn't match, Already in use. Never a sentence.
+- The sentence is in a screen-reader-only element (`role="alert"`, linked with `aria-describedby`) and the tag's `title`.
+- Checkboxes and radios have no border to tag, so they show a small visible red line instead.
+- Password strength meter: four bars + "Password strength: Weak/Fair/Good/Strong" under the field; red, amber, teal, green. Advice only.
+- Implementation and opt-out: RULES.md "Forms: validation".
+

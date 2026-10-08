@@ -1,6 +1,18 @@
 # CHANGELOG.md — what changed and why (Oct 2026)
 
-Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the two Oct 8 fixes below are on `axci`.
+Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
+
+## Oct 8 2026 — inline field-error tags replace the browser's validation bubble (`faaef48`, branch `axci`)
+- The browser's "Please fill out this field." popup could not be styled and differed per browser. `resources/js/field-validation.js` (loaded from `app.js`) now turns it off on **every** form and shows a short tag on the field's top border instead: "Required", "Invalid email", "Min 8 characters", "Numbers only", "Doesn't match". The full sentence is screen-reader only and a hover tooltip. Checkboxes/radios keep a visible red line. Styles: `.fv-*` in `app.css`.
+- Also in that script: `*_confirmation` fields must match their base field; `type="tel"` inputs drop letters as typed; a password strength meter on any `<input data-strength>` (advice only, the 8-character minimum still blocks); `window.fieldValidation.show()` places a fetch 422 error on its field.
+- Signup modal (`layouts/app.blade.php`): server errors now land on their own field (login keeps its banner); password has `minlength="8"`; contact number has a digits-only pattern. `RegisteredUserController` and `Api/AuthController` reject non-phone `contact_number` (`regex:/^[0-9+()\s-]{7,20}$/`). Register and reset-password pages got `minlength="8"` + the meter.
+- Bug found while testing: `bad.forEach(showError)` passed the list index as the override argument, so the first bad field got an empty tag. Fixed.
+- Not changed: profile "New password" form (own `pw` state), and all other `contact_number` rules (profile, verification, business) still allow letters server-side. Not verified in a browser beyond the signup modal. Rule: RULES.md "Forms: validation". Design: DESIGN.md §32.
+
+## Oct 8 2026 — new house-and-keyhole logo from the mobile app (`25bfb58`, branch `axci`)
+- Web now uses the mobile app's mark. SVGs copied from `AbangananHubMobile/assets/brand/` to `public/images/brand/` (`logo-mark`, `logo-mark-on-dark`, `logo-mark-mono`, `logo-app-icon`).
+- Light surfaces (public header, 404) use `logo-mark.svg`; dark surfaces (admin/landlord sidebars, public footer) use `logo-mark-on-dark.svg`; favicon is `logo-app-icon.svg` in all layouts. The wordmark stays HTML text.
+- Old `public/images/AbangananHub-*.png` files are now unused and left in place. Supersedes the Aug 20 2026 logo row in ARCHITECTURE.md.
 
 ## Oct 8 2026 — home page redesign reverted (`b8be7d1`, branch `axci`)
 - `properties/index.blade.php` restored to its `c18e701` version, undoing the `94f2e15` changes to that file. `components/section-texture.blade.php` restored too: the old page uses it and `94f2e15` had deleted it.
