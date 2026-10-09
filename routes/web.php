@@ -36,6 +36,10 @@ use App\Http\Controllers\Auth\WebviewLoginController;
 
 Route::get('/', [PropertyController::class, 'index'])->name('home');
 Route::get('/areas', [PropertyController::class, 'areas'])->name('properties.areas');
+
+// AI search: read the sentence, then fetch results for the (chip-edited) filters.
+Route::post('/search/interpret', [\App\Http\Controllers\AiSearchController::class, 'interpret'])->middleware('throttle:60,1')->name('search.interpret');
+Route::post('/search/results', [\App\Http\Controllers\AiSearchController::class, 'results'])->middleware('throttle:60,1')->name('search.results');
 Route::get('/about', fn() => view('about'))->name('about');
 Route::view('/privacy', 'legal.privacy')->name('privacy');
 Route::view('/terms', 'legal.terms')->name('terms');

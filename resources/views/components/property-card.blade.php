@@ -1,4 +1,4 @@
-@props(['property', 'favoritedIds' => []])
+@props(['property', 'favoritedIds' => [], 'fit' => null])
 
 {{--
     The image-is-the-card property listing card. Shared by the main browse
@@ -87,6 +87,12 @@
             </div>
         @endif
 
+        @if($fit)
+            {{-- AI search: where this result ranks, and whether it fully fits. --}}
+            <span class="absolute bottom-3 left-3 z-10 inline-flex items-center h-6 px-2.5 rounded-full bg-white text-[11px] font-bold text-[#060D26] shadow-sm">
+                {{ $fit['exact'] ? '#' . $fit['rank'] . ' best fit' : 'Closest match' }}
+            </span>
+        @endif
         {{-- HEART top-right --}}
         <button type="button" data-property-id="{{ $property->property_id }}"
             data-favorited="{{ in_array($property->property_id, $favoritedIds) ? 'true' : 'false' }}"
@@ -155,6 +161,23 @@
                 <span class="text-[13px] font-normal text-[#5B6A8E]">Price not set</span>
             @endif
         </p>
+        @if($fit && ($fit['misses'] || $fit['hits']))
+            {{-- What the search asked for vs. what this place has. Computed from real data (MatchExplainer), gaps first. Three chips, then "+N". --}}
+            @php $fitChips = collect($fit['misses'])->map(fn ($c) => ['miss', $c['text']])->concat(collect($fit['hits'])->map(fn ($c) => ['hit', $c['text']])); @endphp
+            <div class="flex flex-wrap gap-1.5 mt-2.5 pt-2.5 border-t border-[#F1F2F7]">
+                @foreach($fitChips->take(3) as [$kind, $text])
+                    <span class="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[12px] font-semibold {{ $kind === 'hit' ? 'bg-[#EAF8EF] text-[#166534]' : 'bg-[#FEF6E4] text-[#8A5300]' }}">
+                        <svg class="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="{{ $kind === 'hit' ? 'M5 12.5l4.5 4.5L19 7.5' : 'M6 12h12' }}" />
+                        </svg>
+                        {{ $text }}
+                    </span>
+                @endforeach
+                @if($fitChips->count() > 3)
+                    <span class="inline-flex items-center h-6 px-2 rounded-full bg-[#F1F2F7] text-[12px] font-semibold text-[#5B6A8E]">+{{ $fitChips->count() - 3 }}</span>
+                @endif
+            </div>
+        @endif
     </div>
 
 </div>

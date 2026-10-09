@@ -506,7 +506,7 @@
         <div id="header-search-expanded" class="{{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
             <div class="bg-[#060D26]">
                 <div id="browse-search-pill" class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-5">
-                    <x-search-pill variant="header" />
+                    <x-ai-search-box variant="header" />
                 </div>
             </div>
 

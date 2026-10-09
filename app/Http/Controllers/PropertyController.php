@@ -19,6 +19,12 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
+        // A described search ("room near USC under 5k"): the page shell loads at once and
+        // resources/js/ai-search.js fills it in. See plans/ai-search.md.
+        if (filled($request->query('q'))) {
+            return view('properties.ai', ['query' => \Illuminate\Support\Str::limit(strip_tags((string) $request->query('q')), (int) config('ai_search.max_query_length', 300), '')]);
+        }
+
         // The hero + "Browse by area" + "Popular places" sections are the Home page
         // (route `home`, `/`) only — /properties (Browse Rentals) is always the
         // filter bar + grid, so clearing filters or picking "All" stays on Browse
