@@ -1,0 +1,313 @@
+[
+ {
+  "q": "Room near USC Talamban for a student, with Wi-Fi, under ₱5,000. I have a cat.",
+  "expect": {
+   "location": "usc_talamban",
+   "price_max": 5000,
+   "amenities": [
+    "Wi-Fi"
+   ],
+   "rules": [
+    "pets"
+   ]
+  }
+ },
+ {
+  "q": "Condo near IT Park with a pool, good for 2, max 18k",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Condominium",
+   "price_max": 18000
+  }
+ },
+ {
+  "q": "Looking for an apartment in Mandaue with parking, below 6,000 pesos",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "price_max": 6000,
+   "amenities": [
+    "Parking Space"
+   ]
+  }
+ },
+ {
+  "q": "Women-only bedspace near CIT-U with aircon",
+  "expect": {
+   "location": "cit_u",
+   "property_type": "Bedspace",
+   "for": "Women",
+   "amenities": [
+    "Air Conditioning"
+   ]
+  }
+ },
+ {
+  "q": "Furnished studio at least 8k near Ayala",
+  "expect": {
+   "location": "ayala_center",
+   "price_min": 8000,
+   "furnishing": "Furnished"
+  }
+ },
+ {
+  "q": "Boarding house in Lapu-Lapu, pets allowed, no curfew",
+  "expect": {
+   "location": "Lapu-Lapu City",
+   "property_type": "Boarding House",
+   "rules": [
+    "pets",
+    "curfew"
+   ]
+  }
+ },
+ {
+  "q": "cheap room near UP Cebu, 3k to 4.5k a month",
+  "expect": {
+   "location": "up_cebu",
+   "price_min": 3000,
+   "price_max": 4500
+  }
+ },
+ {
+  "q": "House in Talisay with a washing machine and parking",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "House",
+   "amenities": [
+    "Washing Machine",
+    "Parking Space"
+   ]
+  }
+ },
+ {
+  "q": "Somewhere near SM Seaside, smoking is fine, up to 7k",
+  "expect": {
+   "location": "sm_seaside",
+   "price_max": 7000,
+   "rules": [
+    "smoking"
+   ]
+  }
+ },
+ {
+  "q": "quiet place near Chong Hua Hospital for a nurse, wifi, under 6000",
+  "expect": {
+   "location": "chong_hua",
+   "price_max": 6000,
+   "amenities": [
+    "Wi-Fi"
+   ],
+   "unmapped": true
+  }
+ },
+ {
+  "q": "Naghahanap ako ng kwarto malapit sa USC Talamban, hindi lalampas ng 4k",
+  "expect": {
+   "location": "usc_talamban",
+   "price_max": 4000,
+   "language": "tl"
+  }
+ },
+ {
+  "q": "Bedspace para sa babae malapit sa CIT-U, may aircon",
+  "expect": {
+   "location": "cit_u",
+   "property_type": "Bedspace",
+   "for": "Women",
+   "amenities": [
+    "Air Conditioning"
+   ],
+   "language": "tl"
+  }
+ },
+ {
+  "q": "Apartment sa Mandaue, limang libo pababa, pwede ang aso",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "price_max": 5000,
+   "rules": [
+    "pets"
+   ],
+   "language": "tl"
+  }
+ },
+ {
+  "q": "Murang boarding house malapit sa Colon, may wifi",
+  "expect": {
+   "location": "colon",
+   "property_type": "Boarding House",
+   "amenities": [
+    "Wi-Fi"
+   ],
+   "language": "tl"
+  }
+ },
+ {
+  "q": "Condo sa Cebu City na may paradahan, hanggang 15k",
+  "expect": {
+   "location": "Cebu City",
+   "property_type": "Condominium",
+   "price_max": 15000,
+   "amenities": [
+    "Parking Space"
+   ],
+   "language": "tl"
+  }
+ },
+ {
+  "q": "Gusto ko ng bahay sa Talisay na may 2 kwarto, pet friendly",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "House",
+   "rules": [
+    "pets"
+   ],
+   "language": "tl"
+  }
+ },
+ {
+  "q": "Malapit sa Ayala, studio, hindi hihigit ng 12k, may aircon at wifi",
+  "expect": {
+   "location": "ayala_center",
+   "price_max": 12000,
+   "amenities": [
+    "Air Conditioning",
+    "Wi-Fi"
+   ],
+   "language": "tl"
+  }
+ },
+ {
+  "q": "room for rent near SM City, pwede magdala ng bisita, 4k lang",
+  "expect": {
+   "location": "sm_city_cebu",
+   "price_max": 4000,
+   "rules": [
+    "overnight"
+   ]
+  }
+ },
+ {
+  "q": "Pang-lalaki na bedspace malapit sa CTU, 2k lang",
+  "expect": {
+   "location": "ctu_main",
+   "property_type": "Bedspace",
+   "for": "Men",
+   "price_max": 2000,
+   "language": "tl"
+  }
+ },
+ {
+  "q": "hanap apartment sa Lapu-Lapu malapit sa airport, 8k max",
+  "expect": {
+   "location": "mactan_airport",
+   "property_type": "Apartment",
+   "price_max": 8000
+  }
+ },
+ {
+  "q": "Naa bay apartment sa Mandaue ubos sa 4k, naay parking ug aircon?",
+  "expect": {
+   "location": "Mandaue City",
+   "property_type": "Apartment",
+   "price_max": 4000,
+   "amenities": [
+    "Parking Space",
+    "Air Conditioning"
+   ],
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Gipangita nako ang kwarto duol sa USC Talamban, lima ka libo ang maximum",
+  "expect": {
+   "location": "usc_talamban",
+   "price_max": 5000,
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Bedspace para sa lalaki duol sa UC Main, naay wifi",
+  "expect": {
+   "location": "uc_main",
+   "property_type": "Bedspace",
+   "for": "Men",
+   "amenities": [
+    "Wi-Fi"
+   ],
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Balay sa Talisay nga puwede ang iro, ubos sa 10k",
+  "expect": {
+   "location": "Talisay City",
+   "property_type": "House",
+   "price_max": 10000,
+   "rules": [
+    "pets"
+   ],
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Condo duol sa IT Park nga naay swimming pool, 20k hangtod",
+  "expect": {
+   "location": "it_park",
+   "property_type": "Condominium",
+   "price_max": 20000,
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Apartment sa Lapu-Lapu, kinse mil ang budget, naay washing machine",
+  "expect": {
+   "location": "Lapu-Lapu City",
+   "property_type": "Apartment",
+   "price_max": 15000,
+   "amenities": [
+    "Washing Machine"
+   ],
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Pangita ko ug boarding house sa Banilad, tulo ka libo ngadto sa lima ka libo",
+  "expect": {
+   "property_type": "Boarding House",
+   "price_min": 3000,
+   "price_max": 5000,
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Dapit sa Colon, naay aircon, 6k ubos, pwede ang pusa",
+  "expect": {
+   "location": "colon",
+   "price_max": 6000,
+   "amenities": [
+    "Air Conditioning"
+   ],
+   "rules": [
+    "pets"
+   ],
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "Furnished nga apartment duol sa Ayala, dili molapas ug 14k",
+  "expect": {
+   "location": "ayala_center",
+   "property_type": "Apartment",
+   "furnishing": "Furnished",
+   "price_max": 14000,
+   "language": "ceb"
+  }
+ },
+ {
+  "q": "hello",
+  "expect": {}
+ }
+]

@@ -12,6 +12,10 @@ use App\Observers\PaymentObserver;
 use App\Observers\PropertyUnitObserver;
 use App\Observers\ReservationObserver;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\AiSearch\AiSearchDriver;
+use App\Services\AiSearch\GeminiDriver;
+use App\Services\AiSearch\NullDriver;
+use App\Services\AiSearch\OpenRouterDriver;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -23,7 +27,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // AI search: the configured driver, or NullDriver (keyword search only) when its key is missing.
+        $this->app->bind(AiSearchDriver::class, function () {
+            return match (config('ai_search.driver')) {
+                'gemini' => filled(config('services.gemini.key')) ? new GeminiDriver() : new NullDriver(),
+                'openrouter' => filled(config('services.openrouter.key')) ? new OpenRouterDriver() : new NullDriver(),
+                default => new NullDriver(),
+            };
+        });
     }
 
     /**

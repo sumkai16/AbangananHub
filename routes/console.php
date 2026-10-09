@@ -23,3 +23,6 @@ Schedule::command('occupancy:snapshot')->dailyAt('23:55');
 // and overdue monthly rent, read off the ledger. Morning delivery reads better
 // than the nightly escrow run. Idempotent via the rent_reminders guard.
 Schedule::command('reservations:process-rent-reminders')->dailyAt('08:00');
+
+// AI search logs are kept 30 days (App\Models\AiSearchLog::prunable()).
+Schedule::command('model:prune', ['--model' => [\App\Models\AiSearchLog::class]])->dailyAt('03:00');
