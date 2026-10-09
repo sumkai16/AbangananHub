@@ -2,6 +2,12 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 9 2026 — merged `origin/joseph` into `axci` (budget filter, icon-only toolbar, landlord CTA)
+- Joseph's two commits (budget card in the Filters modal, icon-only browse toolbar, landlord CTA panel) are in. They sit well with AI search: budget now lives in the Filters modal, which is where "Refine with filters" sends people.
+- **Conflicts resolved:** `properties/index.blade.php` (Filters modal form: took Joseph's version because the budget card needs it, which also brings back the wider `max-w-7xl` modal the Oct 8 revert had removed) and `context/DESIGN.md` (both sides numbered sections §32 and §33, so ours are now §35 logo + field errors and §36 AI search; Joseph's §32-§34 unchanged).
+- **One test changed:** `BudgetFilterTest` asserted the old search pill carried a chosen price as hidden fields; the AI box submits only `q` (a sentence is a fresh search), so it now asserts that instead.
+- `components/search-pill.blade.php` is unused on both sides now (Joseph removed its Budget field and the AI box replaced it); delete it after the browser pass.
+
 ## Oct 9 2026 — AI search: describe the place, get the best or closest matches (branch `axci`, uncommitted)
 - The Where / Type / Budget pill is replaced by one "Describe your ideal place" box (`components/ai-search-box.blade.php`, hero and header variants). A plain GET form to `/properties?q=`; `PropertyController::index()` renders `properties/ai.blade.php` for it and `resources/js/ai-search.js` fills it in. English, Tagalog, Bisaya and mixed.
 - **Two AI calls per search, and the AI never touches the database.** (1) `interpret`: sentence -> JSON intent, validated against our own lists by `IntentValidator`. (2) `rank`: orders ≤ 20 candidates and writes the summary (own language + English). Hit/gap chips on each card come from `MatchExplainer` (real columns), not the AI.
@@ -27,7 +33,7 @@ Newest first. One entry per piece of work, with the files to read. Longer reason
 - Also in that script: `*_confirmation` fields must match their base field; `type="tel"` inputs drop letters as typed; a password strength meter on any `<input data-strength>` (advice only, the 8-character minimum still blocks); `window.fieldValidation.show()` places a fetch 422 error on its field.
 - Signup modal (`layouts/app.blade.php`): server errors now land on their own field (login keeps its banner); password has `minlength="8"`; contact number has a digits-only pattern. `RegisteredUserController` and `Api/AuthController` reject non-phone `contact_number` (`regex:/^[0-9+()\s-]{7,20}$/`). Register and reset-password pages got `minlength="8"` + the meter.
 - Bug found while testing: `bad.forEach(showError)` passed the list index as the override argument, so the first bad field got an empty tag. Fixed.
-- Not changed: profile "New password" form (own `pw` state), and all other `contact_number` rules (profile, verification, business) still allow letters server-side. Not verified in a browser beyond the signup modal. Rule: RULES.md "Forms: validation". Design: DESIGN.md §32.
+- Not changed: profile "New password" form (own `pw` state), and all other `contact_number` rules (profile, verification, business) still allow letters server-side. Not verified in a browser beyond the signup modal. Rule: RULES.md "Forms: validation". Design: DESIGN.md §35.
 
 ## Oct 8 2026 — new house-and-keyhole logo from the mobile app (`25bfb58`, branch `axci`)
 - Web now uses the mobile app's mark. SVGs copied from `AbangananHubMobile/assets/brand/` to `public/images/brand/` (`logo-mark`, `logo-mark-on-dark`, `logo-mark-mono`, `logo-app-icon`).
@@ -45,6 +51,16 @@ Newest first. One entry per piece of work, with the files to read. Longer reason
 - `2026_10_08_000000_add_browse_sort_indexes` could run but not roll back: `down()` failed with MySQL error 1553 because the new `reviews_property_rating_index` had become the `reviews.property_id` foreign key's index.
 - `down()` now adds `reviews_property_id_index` before dropping the composite. Checked on `abanganan_hub_test`: rollback, migrate, rollback, migrate all succeed; suite 70 passing. Dev database unaffected (only `down()` changed). Rule: RULES.md "Laravel Conventions".
 - `origin/joseph` still has the old `down()`.
+
+## Oct 9 2026 — budget moved from the search pill into the Filters modal
+- Landlord CTA section: the isometric-building illustration is replaced by a "From sign-up to first tenant" panel (3 steps + live listing, unit and area counts). DESIGN.md §34.
+- The search pill no longer has a Budget field (`components/search-pill.blade.php`); a price chosen in Filters rides along as hidden `price_min` / `price_max`.
+- New `<x-budget-filter>` card at the top of the Filters modal: percentile-based quick ranges with live counts and a "Most" tag, a slider whose steps stop at the dearest unit, a histogram, typed Min / Max, "Typical rent" (median) and an exact matching-listings count. Details: DESIGN.md §32.
+- `Property::budgetBands()` / `budgetHistogram()` are now derived from the available units instead of a fixed table; new `budgetStops()`, `budgetMedian()`, `budgetPoints()`.
+- `BrowseFilters::activeCount()` counts a price as one filter; the modal's Clear all and "N selected" include it.
+- Search-pill field hover/focus is a visibly darker `#ECEEF6` (dark-mode rule added in `resources/css/app.css`).
+- Test: `tests/Feature/BudgetFilterTest.php` (4 tests). Not yet checked in a browser.
+- Browse toolbar (Sort, Filters, Show map, Clear all, Saved) is icon-only with hover/focus tooltips, giving the property-type chips about 250px more room; the strip is full width and the chips stretch to fill it (no blank margins or gap). `components/category-strip.blade.php`; DESIGN.md §33.
 
 ## Oct 8 2026 — teacher feedback pass + home page redesign (`94f2e15`)
 > The `properties/index.blade.php` and `section-texture` parts of this entry were reverted in `b8be7d1` (above).

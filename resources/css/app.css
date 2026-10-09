@@ -127,6 +127,8 @@ html.dark .bg-\[\#ECEEF6\] { background-color: #1A2448; }
 html.dark .bg-\[\#FFF7F4\],
 html.dark .hover\:bg-\[\#FFF7F4\]:hover { background-color: #1A2448; }
 html.dark .hover\:bg-\[\#F7F8FC\]:hover { background-color: #1A2448; }
+html.dark .hover\:bg-\[\#ECEEF6\]:hover,
+html.dark .focus-within\:bg-\[\#ECEEF6\]:focus-within { background-color: #26325C; }
 html.dark .bg-white\/95 { background-color: rgba(17, 26, 58, 0.95); }
 html.dark .bg-white\/90 { background-color: rgba(17, 26, 58, 0.9); }
 html.dark .bg-white\/70 { background-color: rgba(17, 26, 58, 0.7); }

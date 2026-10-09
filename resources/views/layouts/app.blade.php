@@ -510,7 +510,8 @@
                 </div>
             </div>
 
-            <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+            {{-- Full width on purpose: the chips stretch to fill the band, so there is no empty margin either side of them. --}}
+            <div class="px-4 sm:px-6 lg:px-8">
                 <x-category-strip />
             </div>
         </div>

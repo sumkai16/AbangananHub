@@ -417,74 +417,182 @@ class Property extends Model
             return $cities->concat($barangays)->map(fn ($i) => \Illuminate\Support\Arr::except($i, 'n'))->values()->all();
         });
     }
+
     /**
-     * The quick-pick price ranges in the search bar's Budget popover, each with
-     * how many live listings have an available unit inside it (so a tenant never
-     * picks an empty range). Bounds are inclusive, matching scopeBrowseFilters.
-     * Breaks sit where the Cebu market does: bedspaces and rooms under ₱5,000,
-     * apartments and condos above. Cached for ten minutes.
+     * Available, approved units of live listings as [property_id, rental_fee] pairs.
+     * Every budget helper below is derived from this one list, so the quick ranges,
+     * the slider steps and the histogram can never disagree with each other, and all
+     * of them follow the real market as listings come and go. Cached for ten minutes.
      *
-     * @return list<array{label: string, min: int|null, max: int|null, count: int}>
+     * @return list<array{p: int, f: float}>
+     */
+    private static function budgetFees(): array
+    {
+        return \Illuminate\Support\Facades\Cache::remember('search.budget_fees', now()->addMinutes(10), function () {
+            return PropertyUnit::query()
+                ->where('availability_status', 'Available')
+                ->where('verification_status', 'Approved')
+                ->whereHas('property', fn ($q) => $q->live())
+                ->get(['property_id', 'rental_fee'])
+                ->map(fn ($u) => ['p' => (int) $u->property_id, 'f' => (float) $u->rental_fee])
+                ->all();
+        });
+    }
+
+    /** Round to a figure a person would say out loud: ₱500 steps under ₱5,000, ₱1,000 under ₱20,000, ₱5,000 above. */
+    private static function niceRound(float $v): int
+    {
+        $step = $v < 5000 ? 500 : ($v < 20000 ? 1000 : 5000);
+
+        return (int) (round($v / $step) * $step);
+    }
+
+    /**
+     * The quick-pick ranges in the Filters modal's budget card. The breaks are the
+     * 20/40/60/80th percentiles of what is actually available right now (rounded to
+     * friendly numbers), so each range holds roughly a fifth of the market and the
+     * labels move when rents do. With too little data to split sensibly it falls back
+     * to the fixed Cebu breaks. Each band carries how many live listings have an
+     * available unit inside it (bounds inclusive, matching scopeBrowseFilters), and
+     * the busiest one is flagged `popular`.
+     *
+     * @return list<array{label: string, min: int|null, max: int|null, count: int, popular: bool}>
      */
     public static function budgetBands(): array
     {
-        return \Illuminate\Support\Facades\Cache::remember('search.budget_bands', now()->addMinutes(10), function () {
-            return collect([
-                ['Up to ₱3,000', null, 3000],
-                ['₱3,000 – ₱5,000', 3000, 5000],
-                ['₱5,000 – ₱10,000', 5000, 10000],
-                ['₱10,000 – ₱20,000', 10000, 20000],
-                ['₱20,000 & up', 20000, null],
-            ])->map(fn ($b) => [
-                'label' => $b[0],
-                'min' => $b[1],
-                'max' => $b[2],
-                'count' => static::live()->whereHas('units', function ($q) use ($b) {
-                    $q->where('availability_status', 'Available')->where('verification_status', 'Approved');
-                    if ($b[1] !== null) {
-                        $q->where('rental_fee', '>=', $b[1]);
-                    }
-                    if ($b[2] !== null) {
-                        $q->where('rental_fee', '<=', $b[2]);
-                    }
-                })->count(),
-            ])->all();
-        });
+        $rows = self::budgetFees();
+        $fees = array_column($rows, 'f');
+        sort($fees);
+        $n = count($fees);
+
+        $cuts = [];
+        if ($n > 0 && count(array_unique(array_column($rows, 'p'))) >= 5) {
+            foreach ([0.2, 0.4, 0.6, 0.8] as $q) {
+                $cut = self::niceRound($fees[(int) floor($q * ($n - 1))]);
+                if ($cut > 0 && (! $cuts || $cut > end($cuts))) {
+                    $cuts[] = $cut;
+                }
+            }
+        }
+        if (count($cuts) < 2) {
+            $cuts = [3000, 5000, 10000, 20000];
+        }
+
+        $money = fn (int $v) => '₱'.number_format($v);
+        $ranges = [];
+        $prev = null;
+        foreach ($cuts as $cut) {
+            $ranges[] = [$prev, $cut];
+            $prev = $cut;
+        }
+        $ranges[] = [$prev, null];
+
+        $bands = array_map(function ($r) use ($rows, $money) {
+            [$min, $max] = $r;
+            $inside = array_filter($rows, fn ($row) => ($min === null || $row['f'] >= $min) && ($max === null || $row['f'] <= $max));
+
+            return [
+                'label' => $min === null ? 'Up to '.$money($max) : ($max === null ? $money($min).' & up' : $money($min).' – '.$money($max)),
+                'min' => $min,
+                'max' => $max,
+                'count' => count(array_unique(array_column($inside, 'p'))),
+                'popular' => false,
+            ];
+        }, $ranges);
+
+        $top = max(array_column($bands, 'count'));
+        if ($top > 0) {
+            $bands[array_search($top, array_column($bands, 'count'), true)]['popular'] = true;
+        }
+
+        return $bands;
     }
+
+    /**
+     * Steps the budget slider moves along: the fixed table, trimmed so the top step
+     * is the first one at or above the dearest available unit (a slider that runs to
+     * ₱30,000 when nothing costs over ₱9,000 wastes most of its travel). Position 0 is
+     * "no minimum", the last is "no maximum". Falls back to the full table when there
+     * is too little data to trim by.
+     *
+     * @return list<int>
+     */
+    public static function budgetStops(): array
+    {
+        $fees = array_column(self::budgetFees(), 'f');
+        if (count($fees) < 5) {
+            return self::SEARCH_PRICE_STOPS;
+        }
+
+        $max = max($fees);
+        $cap = null;
+        foreach (self::SEARCH_PRICE_STOPS as $stop) {
+            if ($stop >= $max) {
+                $cap = $stop;
+                break;
+            }
+        }
+        $cap ??= (int) (ceil($max / 5000) * 5000);
+
+        $stops = array_values(array_filter(self::SEARCH_PRICE_STOPS, fn ($s) => $s < $cap));
+        $stops[] = $cap;
+
+        return count($stops) >= 6 ? $stops : self::SEARCH_PRICE_STOPS;
+    }
+
     /**
      * How many live listings have an available unit in each step of the budget
-     * slider: one count per gap between SEARCH_PRICE_STOPS (so bar i sits between
+     * slider: one count per gap between the budgetStops() (so bar i sits between
      * slider positions i and i+1). A listing counts once per bar even with several
-     * units in it; anything at or above the top stop lands in the last bar.
-     * Cached for ten minutes.
+     * units in it; anything at or above the top step lands in the last bar.
      *
      * @return list<int>
      */
     public static function budgetHistogram(): array
     {
-        return \Illuminate\Support\Facades\Cache::remember('search.budget_histogram', now()->addMinutes(10), function () {
-            $stops = self::SEARCH_PRICE_STOPS;
-            $bins = count($stops) - 1;
-            $seen = array_fill(0, $bins, []);
+        $stops = self::budgetStops();
+        $bins = count($stops) - 1;
+        $seen = array_fill(0, $bins, []);
 
-            PropertyUnit::query()
-                ->where('availability_status', 'Available')
-                ->where('verification_status', 'Approved')
-                ->whereHas('property', fn ($q) => $q->live())
-                ->get(['property_id', 'rental_fee'])
-                ->each(function ($unit) use ($stops, $bins, &$seen) {
-                    $fee = (float) $unit->rental_fee;
-                    $bin = $bins - 1;
-                    for ($i = 0; $i < $bins; $i++) {
-                        if ($fee < $stops[$i + 1]) {
-                            $bin = $i;
-                            break;
-                        }
-                    }
-                    $seen[$bin][$unit->property_id] = true;
-                });
+        foreach (self::budgetFees() as $row) {
+            $bin = $bins - 1;
+            for ($i = 0; $i < $bins; $i++) {
+                if ($row['f'] < $stops[$i + 1]) {
+                    $bin = $i;
+                    break;
+                }
+            }
+            $seen[$bin][$row['p']] = true;
+        }
 
-            return array_map('count', $seen);
-        });
+        return array_map('count', $seen);
+    }
+
+    /**
+     * The raw (listing, rent) pairs behind the budget helpers, so the Filters card can count exactly
+     * how many distinct listings fall inside whatever range is being dragged out. Capped: past 2,000
+     * units the card shows no live count rather than shipping a large JSON blob on every page load.
+     *
+     * @return list<array{p: int, f: float}>
+     */
+    public static function budgetPoints(): array
+    {
+        $fees = self::budgetFees();
+
+        return count($fees) <= 2000 ? $fees : [];
+    }
+
+    /** Median monthly rent of what is available now, rounded to a friendly figure, or null when nothing is listed. */
+    public static function budgetMedian(): ?int
+    {
+        $fees = array_column(self::budgetFees(), 'f');
+        if (! $fees) {
+            return null;
+        }
+        sort($fees);
+        $mid = intdiv(count($fees), 2);
+        $median = count($fees) % 2 ? $fees[$mid] : ($fees[$mid - 1] + $fees[$mid]) / 2;
+
+        return self::niceRound($median);
     }
 }

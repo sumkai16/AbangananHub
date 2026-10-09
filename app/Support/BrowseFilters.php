@@ -70,6 +70,7 @@ class BrowseFilters
             + (int) ($f['living'] !== null)
             + (int) ($f['for'] !== null)
             + (int) ($f['furnishing'] !== null)
-            + count($f['rules']);
+            + count($f['rules'])
+            + (int) ($request->filled('price_min') || $request->filled('price_max'));
     }
 }

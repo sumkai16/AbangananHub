@@ -45,10 +45,10 @@
 <nav id="browse-category-strip" aria-label="Property type" class="flex items-center gap-3 py-3">
     {{-- pr-8 + the right-edge fade: chips that overflow dissolve before the Saved divider instead of
          being sliced against it. When everything fits, the padding keeps the last chip clear of the fade. --}}
-    <div class="flex flex-1 items-center gap-2 overflow-x-auto min-w-0 pr-8 [mask-image:linear-gradient(to_right,#000_calc(100%-40px),transparent)] [-ms-overflow-style:none] [scrollbar-width:none]">
+    <div class="flex flex-1 items-center gap-2 overflow-x-auto min-w-0 pr-8 xl:pr-0 [mask-image:linear-gradient(to_right,#000_calc(100%-40px),transparent)] xl:[mask-image:none] [-ms-overflow-style:none] [scrollbar-width:none]">
         @foreach($typeItems as $item)
             <a href="{{ $item['url'] }}" @if($item['active']) aria-current="page" @endif
-                class="flex-shrink-0 inline-flex items-center gap-2 h-10 px-4 rounded-full border text-[14px] font-semibold whitespace-nowrap transition-colors duration-200 {{ $item['active'] ? 'bg-[#060D26] border-[#060D26] text-white' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#060D26]/40 hover:text-[#060D26]' }}">
+                class="flex-shrink-0 grow inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border text-[14px] font-semibold whitespace-nowrap transition-colors duration-200 {{ $item['active'] ? 'bg-[#060D26] border-[#060D26] text-white' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#060D26]/40 hover:text-[#060D26]' }}">
                 <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="{{ $item['active'] ? 'text-[#FF8A66]' : '' }}" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}" />
                 </svg>
@@ -60,13 +60,23 @@
 
     {{-- Filters + Show map live here on the browse page (large screens, where this band is sticky) so they stay in
          reach while scrolling. They only dispatch window events; the page's Alpine root owns the state. Below `lg`
-         the results toolbar keeps its own Filters button and the List/Map tabs cover the map. --}}
+         the results toolbar keeps its own Filters button and the List/Map tabs cover the map.
+
+         Every control is an icon-only 40px circle so the type chips get the room; the name appears as a small
+         tooltip on hover or keyboard focus (and as the aria-label, so screen readers always have it). The tooltip
+         floats over the page rather than growing the button, so nothing beside it shifts. --}}
+    @php
+        $iconBtn = 'group relative inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border bg-white text-[#060D26] transition-colors duration-200 cursor-pointer hover:border-[#060D26]/40 hover:bg-[#ECEEF6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2';
+        $tip = 'pointer-events-none absolute top-[calc(100%+8px)] z-40 whitespace-nowrap rounded-lg bg-[#1e293b] px-2.5 py-1.5 text-[12px] font-medium text-white shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover:delay-200 group-focus-visible:opacity-100';
+        $tipCenter = $tip . ' left-1/2 -translate-x-1/2';
+        $tipEnd = $tip . ' right-0';
+    @endphp
     @if(request()->routeIs('properties.index'))
         <div class="hidden lg:flex flex-shrink-0 items-center gap-2 pl-3 border-l border-[#E2E4EC]"
             x-data="{ mapVisible: window.browseMapVisible ? window.browseMapVisible() : false }" @browse-map-state.window="mapVisible = $event.detail">
             @php
-                // Sort + Clear all fill the strip's spare width. Both are plain links to /properties, so browse-live.js
-                // turns them into in-place updates (and they still work without JS).
+                // Sort options are plain links to /properties, so browse-live.js turns them into in-place updates
+                // (and they still work without JS). "Clear all" lives in the "Filtering by" row below, not here.
                 $sortOptions = [
                     'newest'     => 'Newest',
                     'price_low'  => 'Price: low to high',
@@ -74,26 +84,19 @@
                     'top_rated'  => 'Top rated',
                 ];
                 $currentSort = array_key_exists((string) request('sort'), $sortOptions) ? request('sort') : 'newest';
-                $stripHasFilters = collect(array_merge(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities'], \App\Support\BrowseFilters::KEYS))
-                    ->contains(fn ($key) => request()->filled($key));
             @endphp
-            @if($stripHasFilters)
-                <a href="{{ route('properties.index', request()->only('sort')) }}"
-                    class="inline-flex items-center h-10 px-3 rounded-full text-[14px] font-semibold text-[#DC2626] hover:bg-[#EF4444]/[0.07] transition-colors duration-200">
-                    Clear all
-                </a>
-            @endif
+            {{-- Sort --}}
             <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
                 <button type="button" @click="open = !open" :aria-expanded="open.toString()" aria-haspopup="true"
-                    class="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-[#E2E4EC] bg-white text-[14px] font-semibold text-[#060D26] hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
+                    aria-label="Sort: {{ $sortOptions[$currentSort] }}"
+                    class="{{ $iconBtn }} {{ $currentSort !== 'newest' ? 'border-[#060D26]' : 'border-[#E2E4EC]' }}">
                     <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
                     </svg>
-                    <span class="hidden xl:inline text-[#5B6A8E] font-medium">Sort</span>
-                    <span>{{ $sortOptions[$currentSort] }}</span>
-                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="text-[#5B6A8E] transition-transform duration-200" :class="open ? 'rotate-180' : ''" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
+                    @if($currentSort !== 'newest')
+                        <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-[#FF8A66] ring-2 ring-white" aria-hidden="true"></span>
+                    @endif
+                    <span class="{{ $tipCenter }}" :class="open ? '!hidden' : ''" aria-hidden="true">Sort: {{ $sortOptions[$currentSort] }}</span>
                 </button>
                 <div x-show="open" x-cloak x-transition.opacity.duration.150ms
                     class="absolute right-0 top-[calc(100%+8px)] z-50 w-56 rounded-xl bg-white py-1 shadow-[0_4px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/5">
@@ -109,34 +112,42 @@
                     @endforeach
                 </div>
             </div>
+
+            {{-- Filters --}}
+            @php $stripFilterCount = \App\Support\BrowseFilters::activeCount(request()); @endphp
             <button type="button" @click="$dispatch('browse-open-filters')"
-                class="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-[#E2E4EC] bg-white text-[14px] font-semibold text-[#060D26] hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
+                aria-label="Filters{{ $stripFilterCount > 0 ? ', '.$stripFilterCount.' active' : '' }}"
+                class="{{ $iconBtn }} {{ $stripFilterCount > 0 ? 'border-[#060D26]' : 'border-[#E2E4EC]' }}">
                 <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
                 </svg>
-                Filters
-                @php $stripFilterCount = \App\Support\BrowseFilters::activeCount(request()); @endphp
                 @if($stripFilterCount > 0)
-                    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#FF8A66] text-[#060D26] text-[11px] font-bold tabular-nums">{{ $stripFilterCount }}</span>
+                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FF8A66] px-1.5 text-[11px] font-bold tabular-nums text-[#060D26] ring-2 ring-white">{{ $stripFilterCount }}</span>
                 @endif
+                <span class="{{ $tipCenter }}" aria-hidden="true">Filters{{ $stripFilterCount > 0 ? ' · '.$stripFilterCount.' active' : '' }}</span>
             </button>
+
+            {{-- Map --}}
             <button type="button" @click="$dispatch('browse-toggle-map')" :aria-pressed="mapVisible.toString()"
-                class="inline-flex items-center gap-2 h-10 px-4 rounded-full border bg-white text-[14px] font-semibold text-[#060D26] hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer"
-                :class="mapVisible ? 'border-[#060D26]' : 'border-[#E2E4EC]'">
+                :aria-label="mapVisible ? 'Hide map' : 'Show map'"
+                class="{{ $iconBtn }}"
+                :class="mapVisible ? 'border-[#060D26] bg-[#ECEEF6]' : 'border-[#E2E4EC]'">
                 <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.007 0z" />
                 </svg>
-                <span x-text="mapVisible ? 'Hide map' : 'Show map'">Show map</span>
+                <span class="{{ $tipCenter }}" x-text="mapVisible ? 'Hide map' : 'Show map'" aria-hidden="true">Show map</span>
             </button>
         </div>
     @endif
     @if($saved)
-        <a href="{{ $saved['url'] }}"
-            class="flex-shrink-0 inline-flex items-center gap-2 h-10 pl-4 pr-1 sm:pr-2 border-l border-[#E2E4EC] text-[14px] font-semibold text-[#5B6A8E] hover:text-[#B35A3D] transition-colors duration-200">
-            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $saved['icon'] }}" />
-            </svg>
-            <span class="hidden sm:inline">Saved</span><span class="sr-only sm:hidden">Saved</span>
-        </a>
+        <div class="flex-shrink-0 border-l border-[#E2E4EC] pl-3">
+            <a href="{{ $saved['url'] }}" aria-label="Saved"
+                class="group relative inline-flex h-10 w-10 items-center justify-center rounded-full text-[#5B6A8E] transition-colors duration-200 hover:bg-[#ECEEF6] hover:text-[#B35A3D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $saved['icon'] }}" />
+                </svg>
+                <span class="{{ $tipEnd }}" aria-hidden="true">Saved</span>
+            </a>
+        </div>
     @endif
 </nav>

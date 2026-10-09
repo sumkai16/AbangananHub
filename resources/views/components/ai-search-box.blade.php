@@ -5,7 +5,7 @@
     Tagalog or Bisaya. A plain GET form to /properties?q=..., so it works as a normal link and the
     result page is shareable; resources/js/ai-search.js does the reading. `hero` is the large
     landing-page box with example sentences and recent searches; `header` is the one-line version in
-    the dark search band. See plans/ai-search.md and DESIGN.md §32.
+    the dark search band. See plans/ai-search.md and DESIGN.md §36.
 --}}
 @php
     $isHero = $variant === 'hero';

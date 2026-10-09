@@ -1116,7 +1116,35 @@ Changes to `properties/index.blade.php` (the home page) and shared pieces, follo
 - **Auth and profile forms** show server validation inline under each field (no native popups). See RULES.md "Forms".
 - **Not verified in a browser** at the time of writing: hero at desktop width, modal scrollbar at 900px height, the two-row cap at each breakpoint, dark mode on the new panel and neighborhood tiles.
 
-## 32. Logo and field-error tags (Oct 8 2026)
+## 32. Budget moved from the search pill into the Filters modal (Oct 9 2026)
+The search pill is now **Where / Type / Search** (the header variant: Where / Search). Everything price-related lives in `<x-budget-filter>` (`components/budget-filter.blade.php`), the first card in the Filters modal, above "The place" / "House rules".
+
+- **Nothing in it is a fixed price table.** All of it is derived from the available units of live listings by `Property::budgetFees()`: `budgetBands()` (quick ranges), `budgetStops()` (slider steps), `budgetHistogram()` (one bar per step) and `budgetMedian()` ("Typical rent right now"). Cached 10 minutes under `search.budget_fees`.
+  - **Ranges** are the 20/40/60/80th percentile breaks, rounded to figures a person would say (₱500 steps under ₱5,000, ₱1,000 under ₱20,000, ₱5,000 above), so each holds roughly a fifth of the market and the labels move when rents do. Fewer than 5 listings, or breaks that collapse, falls back to ₱3,000 / 5,000 / 10,000 / 20,000. The range with the most listings carries a "Most" tag.
+  - **Slider** steps come from the fixed table but are trimmed so the top step is the first one at or above the dearest unit. Position 0 = no minimum, last = no maximum.
+- **Card layout:** header (navy icon tile, title, "Typical rent right now ₱X / month", a summary pill and a Clear link that appear once a price is set), then two columns from `lg`: quick-range chips with live counts on the left; histogram + two-handle slider + typed Min / Max on the right. Stacks on phones. The summary pill shows an exact count of distinct listings inside the chosen range (`budgetPoints()`, omitted above 2,000 units). Tapping a selected range again unselects it.
+- **The number inputs `price_min` / `price_max` are the real form fields.** Chips, slider and typed values all edit the same two numbers; min > max is swapped on change.
+- **Counter and reset:** the card dispatches `price-changed`; the modal's "N selected" and `BrowseFilters::activeCount()` (so the Filters button badge too) count a price as one filter. The modal's "Clear all" now drops `price_min` / `price_max` as well.
+- **Search from the pill keeps the price.** `price_min` / `price_max` ride along as hidden fields in the pill, like `sort` and `verified`, so typing a location doesn't discard a budget chosen in Filters. The modal's own hidden pass-through excludes them (a second copy would submit the old value).
+- **Not verified in a browser** at the time of writing: card layout at 375px and at `lg`, the slider handles, dark mode. Tests: `tests/Feature/BudgetFilterTest.php`.
+
+## 33. Browse toolbar is icon-only, with hover tooltips (Oct 9 2026)
+Sort, Filters, Show map, Clear all and Saved in `components/category-strip.blade.php` were labeled pills (about 450px together); the property-type chips shared the row with them and were the ones that got squeezed. They are now 40px round icon buttons, which frees roughly 250px for the chips.
+
+- **The name appears as a tooltip, not as a growing button.** On hover (after a 200ms delay, so it does not flicker while the pointer passes over) or keyboard focus (`group-focus-visible`), a small `bg-[#1e293b]` label fades in under the icon. The button does not change width, so neighbouring controls and chips never shift. Every control also has an `aria-label`, so the text is always available to screen readers. Tooltip strings are shared via `$tip` / `$tipCenter` / `$tipEnd` at the top of the toolbar block; Saved uses `$tipEnd` (right-aligned) because it sits at the viewport edge.
+- **State that used to be in the label is carried by the control.** Sort: a coral dot when it is not "Newest", and the tooltip reads "Sort: <current>" (hidden while the dropdown is open). Filters: the count badge is on the icon corner, navy border when any filter is active. Map: navy border and tinted fill while the map is shown, tooltip flips between "Show map" and "Hide map". There is deliberately no clear-all control in the strip: the "Filtering by" row under it already has "Clear all", and a second one was redundant (a red X was added and then removed on Oct 9 2026).
+- Hover uses the darker `#ECEEF6` (same as the search-pill fields). Below `lg` this toolbar is still hidden (the results toolbar has its own Filters button); Saved shows at every width, icon-only.
+- **Not verified in a browser:** tooltip placement near the right edge, dark mode (the badge ring uses `ring-white`), and the chips row at 1024px.
+- **No dead space in the strip (Oct 9 2026).** The strip container in `layouts/app.blade.php` is no longer capped at the 1400px content column, so it runs to the band edge with the normal `px-4 sm:px-6 lg:px-8` gutter. The type chips use `grow` (still `flex-shrink-0`), so they share whatever width the toolbar leaves instead of sitting left with a gap before the buttons. The right-edge fade and its `pr-8` only apply below `xl`, where the chips can overflow; from `xl` they fit, so both are off. Trade-off: on screens wider than ~1500px this strip is wider than the header and content below it (both still use the 1400px column); restore `max-w-[1400px] mx-auto` on that one div to realign.
+
+## 34. Landlord CTA: illustration replaced by a "how it works" panel (Oct 9 2026)
+The right side of the "Have a room or unit to rent out?" section on the home page (`properties/index.blade.php`, hero state, hidden for logged-in landlords) was a decorative isometric building with three floating chips ("Verified landlord", "New inquiry", "Rent received"). It is now a navy `rounded-[28px]` panel, hidden below `md`: a coral eyebrow "From sign-up to first tenant", three steps on a vertical connector (verify identity, add property and units, get inquiries and sign online; each a coral-tinted Heroicons tile), and a three-up stat strip.
+
+- **Only true content.** The steps describe what the landlord flow really does (verification review, the property wizard, chat plus online lease signing). The stat strip uses live values from `$heroStats` (live listings, units open) and `$areas->count()`, never invented figures; the old chips implied features and activity that the page does not demonstrate.
+- The `owner-float` keyframes stay in `resources/css/app.css` because the auth modal brand panel still uses them; `owner-cta-pulse` (the CTA button halo) is unchanged.
+- **Not verified in a browser:** panel height against the left column at `md` and `lg`.
+
+## 35. Logo and field-error tags (Oct 8 2026)
 **Logo.** The mark is the mobile app's house-with-keyhole (`public/images/brand/*.svg`), not the old building-in-a-ring PNG. Navy mark on light grounds, white mark on dark grounds (sidebars, footer), rounded-square app icon as favicon. The mark is never baked together with the wordmark; "AbangananHub" stays HTML text with "Hub" in coral.
 
 **Field errors use design D: a tag on the border, no message line.** Chosen over inline text, a pointer bubble, an attached strip and a summary box. Rules:
@@ -1127,7 +1155,7 @@ Changes to `properties/index.blade.php` (the home page) and shared pieces, follo
 - Password strength meter: four bars + "Password strength: Weak/Fair/Good/Strong" under the field; red, amber, teal, green. Advice only.
 - Implementation and opt-out: RULES.md "Forms: validation".
 
-## 33. AI search box and results ("A+", Oct 9 2026)
+## 36. AI search box and results ("A+", Oct 9 2026)
 Design canvas: claude.ai/artifact/ERzErWXZSSUVuc7ymGgTft, top row. Chosen over a chat layout, an editable-sentence layout and a bottom-docked bar.
 - **One box replaces the Where / Type / Budget pill.** Hero: white 20px-radius card, 1.5px coral border + 4px coral ring, "Describe your ideal place" label in deep coral, 3-line textarea, EN/TL/CEB marks, coral Search button; example sentences as outline chips under it, then Recent (localStorage, 4 max). Header band: one-line white pill, same coral ring. Filters and the category strip stay for manual use.
 - **Result page order:** your sentence → "Searching for" chips → (notice) → navy summary card → count + "Refine with filters" → cards. Loading uses the same shape (navy card with spinner, three card skeletons) so nothing jumps.
@@ -1136,4 +1164,3 @@ Design canvas: claude.ai/artifact/ERzErWXZSSUVuc7ymGgTft, top row. Chosen over a
 - **Cards** are the normal `<x-property-card>` with an optional `fit`: bottom-left white pill ("#1 best fit" or "Closest match") and up to three chips under the price, **gaps first**: amber `−` for what is off, green `✓` (`#EAF8EF` / `#166534`) for what fits, then "+N". Chips come from real data, never from the AI.
 - **Unavailable / limited:** amber notice (`#FEF6E4`, border `#F5D78A`) with Retry and Use Filters; the results below are plain keyword matches.
 - 375px first; touch targets ≥ 40px.
-

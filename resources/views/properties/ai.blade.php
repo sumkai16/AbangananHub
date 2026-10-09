@@ -3,7 +3,7 @@
 {{--
     A described search ("room near USC under 5k"). The shell renders at once; the aiSearch Alpine
     component (resources/js/ai-search.js) reads the sentence, fills the "Searching for" chips, then
-    swaps in properties/partials/ai-results. Layout: DESIGN.md §32, canvas "A+".
+    swaps in properties/partials/ai-results. Layout: DESIGN.md §36, canvas "A+".
 --}}
 @section('content')
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 min-h-[60vh]"
