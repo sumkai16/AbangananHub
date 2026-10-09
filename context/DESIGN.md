@@ -1127,3 +1127,13 @@ Changes to `properties/index.blade.php` (the home page) and shared pieces, follo
 - Password strength meter: four bars + "Password strength: Weak/Fair/Good/Strong" under the field; red, amber, teal, green. Advice only.
 - Implementation and opt-out: RULES.md "Forms: validation".
 
+## 33. AI search box and results ("A+", Oct 9 2026)
+Design canvas: claude.ai/artifact/ERzErWXZSSUVuc7ymGgTft, top row. Chosen over a chat layout, an editable-sentence layout and a bottom-docked bar.
+- **One box replaces the Where / Type / Budget pill.** Hero: white 20px-radius card, 1.5px coral border + 4px coral ring, "Describe your ideal place" label in deep coral, 3-line textarea, EN/TL/CEB marks, coral Search button; example sentences as outline chips under it, then Recent (localStorage, 4 max). Header band: one-line white pill, same coral ring. Filters and the category strip stay for manual use.
+- **Result page order:** your sentence → "Searching for" chips → (notice) → navy summary card → count + "Refine with filters" → cards. Loading uses the same shape (navy card with spinner, three card skeletons) so nothing jumps.
+- **Chips:** white, navy 1px border, small coral icon, remove ×. **Amber chip (`#FEF6E4` / `#D99A00`, warning icon) = nothing returned satisfies it.** "+ Add" goes to the classic filter page.
+- **Summary card:** `#060D26`. Label coral when there are exact matches, amber (`#FBBF24`) when none. Body 14.5px `#E7EAF3`. One-tap fix ("Raise budget to ₱X") in coral; "Show in English" ghost button when the reply is Tagalog/Bisaya. "AI summary · check the details on each listing" only when the AI wrote it.
+- **Cards** are the normal `<x-property-card>` with an optional `fit`: bottom-left white pill ("#1 best fit" or "Closest match") and up to three chips under the price, **gaps first**: amber `−` for what is off, green `✓` (`#EAF8EF` / `#166534`) for what fits, then "+N". Chips come from real data, never from the AI.
+- **Unavailable / limited:** amber notice (`#FEF6E4`, border `#F5D78A`) with Retry and Use Filters; the results below are plain keyword matches.
+- 375px first; touch targets ≥ 40px.
+

@@ -566,6 +566,24 @@ set**, and `LandlordViewingHour::weekFor()` falls back to every day, `viewing_fi
 Saving requires at least one day, so "no rows" can't be reached by unticking everything. Applies to online
 viewings only; offline ones use the default range.
 
+### ai_search_logs
+One row per AI search (`App\Models\AiSearchLog`), so prompts can be tuned on real sentences and the daily free-tier quota watched. No FK on `user_id`: guests search too. Pruned after 30 days (`model:prune`, scheduled 03:00 in `routes/console.php`).
+
+| Column | Type | Notes |
+|---|---|---|
+| id | BIGINT UNSIGNED | PK |
+| user_id | BIGINT UNSIGNED | NULLABLE, indexed. Null for guests |
+| query | VARCHAR(300) | The sentence as typed (tags stripped) |
+| language | VARCHAR(8) | en / tl / ceb / mixed, as read by the AI or the fallback |
+| intent | JSON | Validated filters (`IntentValidator`) |
+| result_count / exact_count | SMALLINT UNSIGNED | Results shown / results with no gaps |
+| relaxed | JSON | Which filters were loosened to find results, in order |
+| driver | VARCHAR(20) | gemini / anthropic / null |
+| used_ai | BOOLEAN | False when the keyword fallback answered |
+| fallback_reason | VARCHAR(30) | not_configured / unavailable / busy (daily cap) / rate_limited / network |
+| latency_ms | INT UNSIGNED | Server time for the results step |
+| created_at | TIMESTAMP | Indexed. No `updated_at` |
+
 ### deposit_charges
 Claims a landlord makes against a tenancy's held security deposit (Sept 28 2026). A separate ledger: it never edits the `payments` row that funded the deposit. Voided rows stay; `voided_at` marks them, and `RentLedger` counts only active rows.
 
@@ -667,6 +685,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_occupancy_preference_to_properties_table | `occupancy_preference` ENUM ('No Preference','Men Only','Women Only'); old `Female only`/`Male only`/`Couples allowed`/`Family-friendly` living-arrangement values are moved out of `living_arrangement` | Gender preference was stored as a living arrangement, which mixed two questions | Sept 23 2026 |
 | add_rejection_reason_to_properties_table | `rejection_reason` TEXT | Landlord gets a reason when an admin rejects a listing | Sept 29 2026 |
 | add_browse_sort_indexes (`2026_10_08_000000`) | Indexes only, no column changes: `properties_created_at_index (created_at)`, `properties_type_index (property_type)`, `reviews_property_rating_index (property_id, is_hidden, rating)`. Each guarded with `Schema::hasIndex`, explicitly named | Browse sorts by newest / price / rating and filters by type; price and rating order by correlated subselects, and the reviews one had only the `property_id` foreign key. No measurable change on the 12-row dev data (~8 ms before and after); added for growth. **Rollback fixed Oct 8 2026 (`6a7240d`):** adding the composite index let MySQL drop the automatic `reviews.property_id` foreign-key index, so `down()` failed with error 1553; `down()` now adds `reviews_property_id_index` back first | Oct 8 2026 |
+| create_ai_search_logs_table (`2026_10_09_000000`) | New `ai_search_logs` table | AI search: tune prompts on real sentences, watch quota | Oct 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.
