@@ -42,14 +42,14 @@
 
 
 @endphp
-<nav id="browse-category-strip" aria-label="Property type" class="flex items-center gap-3 py-3">
+<nav id="browse-category-strip" aria-label="Property type" class="flex items-center gap-3 py-2">
     {{-- pr-8 + the right-edge fade: chips that overflow dissolve before the Saved divider instead of
          being sliced against it. When everything fits, the padding keeps the last chip clear of the fade. --}}
     <div class="flex flex-1 items-center gap-2 overflow-x-auto min-w-0 pr-8 xl:pr-0 [mask-image:linear-gradient(to_right,#000_calc(100%-40px),transparent)] xl:[mask-image:none] [-ms-overflow-style:none] [scrollbar-width:none]">
         @foreach($typeItems as $item)
             <a href="{{ $item['url'] }}" @if($item['active']) aria-current="page" @endif
-                class="flex-shrink-0 grow inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border text-[14px] font-semibold whitespace-nowrap transition-colors duration-200 {{ $item['active'] ? 'bg-[#060D26] border-[#060D26] text-white' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#060D26]/40 hover:text-[#060D26]' }}">
-                <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="{{ $item['active'] ? 'text-[#FF8A66]' : '' }}" aria-hidden="true">
+                class="flex-shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border text-[13px] font-semibold whitespace-nowrap transition-colors duration-200 {{ $item['active'] ? 'bg-[#060D26] border-[#060D26] text-white' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#060D26]/40 hover:text-[#060D26]' }}">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="{{ $item['active'] ? 'text-[#FF8A66]' : '' }}" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}" />
                 </svg>
                 {{ $item['label'] }}
@@ -66,7 +66,7 @@
          tooltip on hover or keyboard focus (and as the aria-label, so screen readers always have it). The tooltip
          floats over the page rather than growing the button, so nothing beside it shifts. --}}
     @php
-        $iconBtn = 'group relative inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border bg-white text-[#060D26] transition-colors duration-200 cursor-pointer hover:border-[#060D26]/40 hover:bg-[#ECEEF6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2';
+        $iconBtn = 'group relative inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border bg-white text-[#060D26] transition-colors duration-200 cursor-pointer hover:border-[#060D26]/40 hover:bg-[#ECEEF6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2';
         $tip = 'pointer-events-none absolute top-[calc(100%+8px)] z-40 whitespace-nowrap rounded-lg bg-[#1e293b] px-2.5 py-1.5 text-[12px] font-medium text-white shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover:delay-200 group-focus-visible:opacity-100';
         $tipCenter = $tip . ' left-1/2 -translate-x-1/2';
         $tipEnd = $tip . ' right-0';
@@ -142,7 +142,7 @@
     @if($saved)
         <div class="flex-shrink-0 border-l border-[#E2E4EC] pl-3">
             <a href="{{ $saved['url'] }}" aria-label="Saved"
-                class="group relative inline-flex h-10 w-10 items-center justify-center rounded-full text-[#5B6A8E] transition-colors duration-200 hover:bg-[#ECEEF6] hover:text-[#B35A3D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+                class="group relative inline-flex h-9 w-9 items-center justify-center rounded-full text-[#5B6A8E] transition-colors duration-200 hover:bg-[#ECEEF6] hover:text-[#B35A3D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $saved['icon'] }}" />
                 </svg>

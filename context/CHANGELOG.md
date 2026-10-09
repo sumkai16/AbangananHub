@@ -6,6 +6,7 @@ Newest first. One entry per piece of work, with the files to read. Longer reason
 - Joseph's two commits (budget card in the Filters modal, icon-only browse toolbar, landlord CTA panel) are in. They sit well with AI search: budget now lives in the Filters modal, which is where "Refine with filters" sends people.
 - **Conflicts resolved:** `properties/index.blade.php` (Filters modal form: took Joseph's version because the budget card needs it, which also brings back the wider `max-w-7xl` modal the Oct 8 revert had removed) and `context/DESIGN.md` (both sides numbered sections §32 and §33, so ours are now §35 logo + field errors and §36 AI search; Joseph's §32-§34 unchanged).
 - **One test changed:** `BudgetFilterTest` asserted the old search pill carried a chosen price as hidden fields; the AI box submits only `q` (a sentence is a fresh search), so it now asserts that instead.
+- **Category strip made compact (Axcee, after the merge):** chips are content-sized (36px, 13px text) and left-aligned, the strip is back in the 1400px column so it lines up with the grid, toolbar buttons are 36px. This overrides Joseph's "chips stretch to fill" entry (DESIGN.md §33 amended). Tell Joseph.
 - `components/search-pill.blade.php` is unused on both sides now (Joseph removed its Budget field and the AI box replaced it); delete it after the browser pass.
 
 ## Oct 9 2026 — AI search: describe the place, get the best or closest matches (branch `axci`, uncommitted)

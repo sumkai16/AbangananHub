@@ -510,8 +510,8 @@
                 </div>
             </div>
 
-            {{-- Full width on purpose: the chips stretch to fill the band, so there is no empty margin either side of them. --}}
-            <div class="px-4 sm:px-6 lg:px-8">
+            {{-- Same column as the listings below (1400px), so the chips line up with the grid. The chips are content-sized and sit left; the toolbar sits right. --}}
+            <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
                 <x-category-strip />
             </div>
         </div>
