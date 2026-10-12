@@ -12,12 +12,19 @@
     $first = $rows->first();
     $overBudget = $exact_count === 0 && $first && collect($first['misses'])->contains('facet', 'price') && $intent['price_max'] !== null;
     $raiseTo = $overBudget ? (int) (ceil(((float) $first['property']->min_rental_fee) / 100) * 100) : null;
+
+    // Other property types that fit the budget and area: a suggestion strip, never mixed into the main list.
+    $alternatives = ($alternatives ?? collect())->take(3);
+    $alt_note = $alt_note ?? '';
+
+    // Every listing the summary may name becomes a link; prices and distances are bold (SummaryFormatter).
+    $linkable = $rows->pluck('property')->concat($alternatives->pluck('property'));
 @endphp
 
 @if($total === 0)
     <section class="rounded-2xl border border-[#E2E4EC] bg-white px-5 py-8 text-center max-w-3xl">
         <p class="font-jakarta text-[17px] font-bold text-[#060D26]">Nothing matches yet</p>
-        <p class="mt-1.5 text-[14px] text-[#5B6A8E]">{{ $summary }}</p>
+        <p class="mt-1.5 text-[14px] leading-[1.55] text-[#5B6A8E]">{{ \App\Services\AiSearch\SummaryFormatter::html($summary, $linkable, false) }}</p>
         <a href="{{ $filtersUrl }}" class="mt-4 inline-flex items-center h-10 px-5 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13.5px] font-bold transition-colors">Browse with filters</a>
     </section>
 @else
@@ -33,9 +40,9 @@
                 {{ $exact_count }} exact, {{ $close }} close
             @endif
         </span>
-        <p class="mt-2 text-[14.5px] leading-[1.55] text-[#E7EAF3]" x-show="!english">{{ $summary }}</p>
+        <p class="mt-2 text-[14.5px] leading-[1.55] text-[#E7EAF3]" x-show="!english">{{ \App\Services\AiSearch\SummaryFormatter::html($summary, $linkable) }}</p>
         @if($showEnglishToggle)
-            <p class="mt-2 text-[14.5px] leading-[1.55] text-[#E7EAF3]" x-show="english" x-cloak>{{ $summary_en }}</p>
+            <p class="mt-2 text-[14.5px] leading-[1.55] text-[#E7EAF3]" x-show="english" x-cloak>{{ \App\Services\AiSearch\SummaryFormatter::html($summary_en, $linkable) }}</p>
         @endif
         <div class="mt-3 flex flex-wrap gap-2">
             @if($raiseTo)
@@ -58,10 +65,25 @@
         <a href="{{ $filtersUrl }}" class="text-[13px] font-semibold text-[#B35A3D] hover:underline">Refine with filters</a>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div class="ai-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         @foreach($rows as $i => $row)
             <x-property-card :property="$row['property']" :favorited-ids="$favoritedIds"
                 :fit="['rank' => $i + 1, 'exact' => empty($row['misses']), 'hits' => $row['hits'], 'misses' => $row['misses']]" />
         @endforeach
     </div>
+@endif
+
+@if($alternatives->isNotEmpty())
+    <section aria-label="Other options" class="{{ $total === 0 ? 'mt-6' : 'mt-8' }}">
+        <h2 class="font-jakarta text-[17px] font-bold text-[#060D26]">You might also like</h2>
+        @if(filled($alt_note))
+            <p class="mt-0.5 mb-3 text-[13px] text-[#5B6A8E] max-w-3xl">{{ $alt_note }}</p>
+        @endif
+        <div class="ai-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 {{ filled($alt_note) ? '' : 'mt-3' }}">
+            @foreach($alternatives as $row)
+                <x-property-card :property="$row['property']" :favorited-ids="$favoritedIds"
+                    :fit="['rank' => null, 'exact' => false, 'hits' => $row['hits'], 'misses' => $row['misses'], 'suggestion' => true]" />
+            @endforeach
+        </div>
+    </section>
 @endif

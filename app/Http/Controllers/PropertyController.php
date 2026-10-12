@@ -115,6 +115,9 @@ class PropertyController extends Controller
                 'url'           => route('properties.show', $property->property_id),
                 'property_type' => $property->property_type,
                 'image'         => Images::resize($property->media->first()?->media_url, 480),
+                'rating'        => $property->avg_rating !== null ? round((float) $property->avg_rating, 1) : null,
+                'reviews'       => (int) $property->review_count,
+                'area'          => trim(($property->barangay ? $property->barangay . ', ' : '') . $property->city_municipality),
             ];
         })->values();
 

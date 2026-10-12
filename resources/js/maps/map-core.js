@@ -59,10 +59,12 @@ export function createMap(elementId, centerLat, centerLng, zoom = 15, style = 'v
         if (!cartoKey) {
             console.warn('VITE_CARTO_API_KEY is not set — using plain OpenStreetMap tiles. See resources/js/maps/map-core.js.');
         }
-        // Same CARTO family in both themes: dark_all in dark mode, voyager otherwise.
-        // Follows the sitewide toggle live (html.dark is flipped by partials/theme-init).
-        const tilesFor = (dark) => cartoKey
-            ? L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${dark ? 'dark_all' : 'voyager'}/{z}/{x}/{y}{r}.png?key=${cartoKey}`, {
+        // One tile set for both themes. Dark mode does not swap to CARTO's near-black dark_all (roads and labels
+        // vanish on it): the same Voyager tiles are turned navy with a CSS filter on the tile pane (maps.css,
+        // `.map-tiles-base`), which keeps street names and places readable. The map's own background is set
+        // to the land colour in the same place so the hairline gaps between tiles stop showing as white lines.
+        const tiles = cartoKey
+            ? L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${cartoKey}`, {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
                 maxZoom: 20,
                 subdomains: 'abcd',
@@ -71,18 +73,8 @@ export function createMap(elementId, centerLat, centerLng, zoom = 15, style = 'v
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 maxZoom: 19,
             });
-        const isDark = () => document.documentElement.classList.contains('dark');
-
-        let dark = isDark();
-        let tiles = tilesFor(dark).addTo(map);
-
-        new MutationObserver(() => {
-            if (isDark() === dark) return;
-            dark = isDark();
-            map.removeLayer(tiles);
-            tiles = tilesFor(dark).addTo(map);
-            tiles.bringToBack();
-        }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        tiles.addTo(map);
+        map.getContainer().classList.add('map-tiles-base');
     }
 
     // Re-enable scroll zoom once the user clicks into the map — standard
@@ -116,10 +108,10 @@ export function createPin(map, lat, lng, type = 'property', popupHtml = null) {
 // iconSize [0,0] anchors the wrapper exactly at the lat/lng point; the inner
 // .map-price-pin element self-centers via CSS transform, so it auto-sizes
 // to whatever price string it's given instead of clipping or overflowing.
-export function createPricePin(map, lat, lng, propertyId, label, popupHtml = null, addToMap = true) {
+export function createPricePin(map, lat, lng, propertyId, label, popupHtml = null, addToMap = true, extraClass = '') {
     const icon = L.divIcon({
         className: 'map-price-pin-wrapper',
-        html: `<div class="map-price-pin" data-property-id="${propertyId}">${label}</div>`,
+        html: `<div class="map-price-pin${extraClass ? ' ' + extraClass : ''}" data-property-id="${propertyId}">${label}</div>`,
         iconSize: [0, 0],
         iconAnchor: [0, 0]
     });

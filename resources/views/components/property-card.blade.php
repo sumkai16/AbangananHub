@@ -90,7 +90,7 @@
         @if($fit)
             {{-- AI search: where this result ranks, and whether it fully fits. --}}
             <span class="absolute bottom-3 left-3 z-10 inline-flex items-center h-6 px-2.5 rounded-full bg-white text-[11px] font-bold text-[#060D26] shadow-sm">
-                {{ $fit['exact'] ? '#' . $fit['rank'] . ' best fit' : 'Closest match' }}
+                {{ $fit['exact'] ? '#' . $fit['rank'] . ' best fit' : (($fit['suggestion'] ?? false) ? 'Other option' : 'Closest match') }}
             </span>
         @endif
         {{-- HEART top-right --}}

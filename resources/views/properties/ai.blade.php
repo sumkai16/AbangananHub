@@ -7,7 +7,12 @@
 --}}
 @section('content')
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 min-h-[60vh]"
-        x-data="aiSearch({ query: @js($query), interpretUrl: @js(route('search.interpret')), resultsUrl: @js(route('search.results')) })">
+        x-data="aiSearch({ query: @js($query), interpretUrl: @js(route('search.interpret')), resultsUrl: @js(route('search.results')) })"
+        x-effect="window.dispatchEvent(new CustomEvent('browse-map-state', { detail: mapVisible }))"
+        @browse-toggle-map.window="toggleMap()"
+        @browse-open-filters.window="openFilters()"
+        @browse-close-filters.window="closeFilters()"
+        @browse-map-selected.window="onMapSelected($event.detail)">
         <h1 class="sr-only">Search results</h1>
 
         {{-- The sentence being searched --}}
@@ -63,33 +68,108 @@
             </div>
         </section>
 
-        {{-- Loading: same shape as the results so nothing jumps --}}
-        <div x-show="loading" x-cloak class="mt-5" aria-hidden="true">
-            <div class="rounded-2xl bg-[#060D26] px-4 py-4 max-w-3xl">
-                <span class="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-[#FF8A66]">
-                    <span class="w-3.5 h-3.5 rounded-full border-2 border-[#FF8A66] border-r-[#FF8A66]/25 animate-spin"></span>
-                    <span x-text="phase === 'reading' ? 'Reading your request…' : 'Checking listings…'"></span>
-                </span>
-                <div class="mt-3 h-3 w-11/12 rounded-md bg-white/15"></div>
-                <div class="mt-2 h-3 w-8/12 rounded-md bg-white/10"></div>
+        {{-- Mobile: List / Map tabs (desktop uses the header's Show map button) --}}
+        <div class="flex lg:hidden gap-2 mt-5" x-show="phase === 'done'" x-cloak>
+            <button type="button" x-on:click="showList()"
+                :class="mobileView === 'list' ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
+                class="flex-1 h-10 rounded-full text-[13px] font-semibold transition cursor-pointer">List</button>
+            <button type="button" data-browse-map-tab x-on:click="showMapTab()"
+                :class="mobileView === 'map' ? 'bg-[#FF8A66] text-[#060D26]' : 'bg-white text-[#060D26] border border-[#5B6A8E]/30'"
+                class="flex-1 h-10 rounded-full text-[13px] font-semibold transition cursor-pointer">Map</button>
+        </div>
+
+        {{-- Results on the left; with the map open the cards drop to two columns (.ai-grid in the partial). --}}
+        <div class="grid grid-cols-1 gap-6" :class="mapVisible ? 'lg:grid-cols-[2fr_3fr]' : 'lg:grid-cols-1'">
+            <div class="min-w-0" :class="[mobileView === 'map' ? 'hidden lg:block' : '', mapVisible ? 'lg:[&_.ai-grid]:grid-cols-2' : '']">
+            {{-- Loading: same shape as the results so nothing jumps --}}
+            <div x-show="loading" x-cloak class="mt-5" aria-hidden="true">
+                <div class="rounded-2xl bg-[#060D26] px-4 py-4 max-w-3xl">
+                    <span class="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-[#FF8A66]">
+                        <span class="w-3.5 h-3.5 rounded-full border-2 border-[#FF8A66] border-r-[#FF8A66]/25 animate-spin"></span>
+                        <span x-text="phase === 'reading' ? 'Reading your request…' : 'Checking listings…'"></span>
+                    </span>
+                    <div class="mt-3 h-3 w-11/12 rounded-md bg-white/15"></div>
+                    <div class="mt-2 h-3 w-8/12 rounded-md bg-white/10"></div>
+                </div>
+                <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    @foreach(range(1, 3) as $n)
+                        <div class="rounded-2xl border border-[#E2E4EC] bg-white overflow-hidden animate-pulse">
+                            <div class="aspect-[4/3] bg-[#ECEEF6]"></div>
+                            <div class="p-4 space-y-2.5"><div class="h-4 w-20 rounded-full bg-[#ECEEF6]"></div><div class="h-4 w-4/5 rounded-md bg-[#ECEEF6]"></div><div class="h-3 w-3/5 rounded-md bg-[#F1F2F7]"></div></div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
-            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                @foreach(range(1, 3) as $n)
-                    <div class="rounded-2xl border border-[#E2E4EC] bg-white overflow-hidden animate-pulse">
-                        <div class="aspect-[4/3] bg-[#ECEEF6]"></div>
-                        <div class="p-4 space-y-2.5"><div class="h-4 w-20 rounded-full bg-[#ECEEF6]"></div><div class="h-4 w-4/5 rounded-md bg-[#ECEEF6]"></div><div class="h-3 w-3/5 rounded-md bg-[#F1F2F7]"></div></div>
+
+            {{-- Results, rendered by the server --}}
+            <div x-show="phase === 'done'" x-cloak x-html="html" class="mt-5"></div>
+
+            <div x-show="phase === 'error' && !notice" x-cloak class="mt-6 text-[14px] text-[#5B6A8E]">Search cancelled. <button type="button" class="font-semibold text-[#B35A3D] underline cursor-pointer" x-on:click="retry()">Search again</button></div>
+            </div>
+
+            {{-- Map column: pins come with every results response (AiSearchController::mapPins). --}}
+            <div :class="[mobileView === 'map' ? 'block' : 'hidden', mapVisible ? 'lg:!block' : 'lg:!hidden']"
+                class="mt-5 lg:sticky lg:top-[var(--browse-sticky-top,240px)] lg:self-start">
+                <div id="browse-map"
+                    class="w-full h-[56svh] min-h-[320px] lg:h-[calc(100vh-var(--browse-sticky-top,240px)-16px)] lg:min-h-[420px] rounded-2xl overflow-hidden border border-[#FF8A66]"></div>
+                <script type="application/json" id="browse-map-data">[]</script>
+
+                {{-- Below lg: swipeable cards under the map. The card in the middle is the selected pin (and the reverse). --}}
+                <div class="lg:hidden mt-3" x-show="pins.length" x-cloak>
+                    <div x-ref="carousel" @scroll.passive="onCarouselScroll()" aria-label="Results on the map"
+                        class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <template x-for="pin in pins" :key="pin.property_id">
+                            <article :data-pin-card="pin.property_id" @click="selectPin(pin)"
+                                class="snap-center shrink-0 w-[min(300px,82vw)] flex gap-3 p-2.5 rounded-2xl bg-white border-2 transition-colors"
+                                :class="String(pin.property_id) === String(selectedId) ? 'border-[#FF8A66] shadow-[0_10px_24px_rgba(6,13,38,0.16)]' : 'border-[#E2E4EC]'">
+                                <div class="w-[88px] h-[112px] shrink-0 rounded-xl overflow-hidden bg-[#ECEEF6] grid place-items-center">
+                                    <img x-show="pin.image" :src="pin.image" :alt="pin.title" loading="lazy" class="w-full h-full object-cover">
+                                    <svg x-show="!pin.image" class="w-7 h-7 text-[#8C95B0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V8M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5" /><circle cx="7" cy="11" r="1.5" /></svg>
+                                </div>
+                                <div class="min-w-0 flex flex-col gap-1">
+                                    <span class="font-jakarta text-[14px] font-bold leading-[1.25] text-[#060D26] line-clamp-2" x-text="pin.title"></span>
+                                    <span class="text-[12px] text-[#5B6A8E] truncate" x-text="pinMeta(pin)"></span>
+                                    <span class="self-start max-w-full truncate px-2 h-[22px] leading-[20px] rounded-full border text-[11px] font-bold font-jakarta"
+                                        :class="pin.fit === 'exact' ? 'bg-[#E9F6EE] border-[#A8D8BA] text-[#1B6B3A]' : (pin.fit === 'other' ? 'bg-[#F1F2F7] border-[#E2E4EC] text-[#5B6A8E]' : 'bg-[#FEF6E4] border-[#D99A00] text-[#6B4100]')"
+                                        x-text="pinTag(pin)"></span>
+                                    <div class="mt-auto flex items-center justify-between gap-2">
+                                        <span class="font-jakarta text-[16px] font-extrabold text-[#060D26]"><span x-text="pinPrice(pin)"></span> <span class="text-[12px] font-medium text-[#5B6A8E]">/month</span></span>
+                                        <a :href="pin.url" :aria-label="'View ' + pin.title" class="inline-flex items-center justify-center h-11 min-w-11 px-3 -my-1.5 -mr-1 text-[13px] font-bold text-[#B35A3D] hover:text-[#060D26]">View</a>
+                                    </div>
+                                </div>
+                            </article>
+                        </template>
                     </div>
-                @endforeach
+                    <div class="mt-2 flex justify-center gap-1.5" aria-hidden="true">
+                        <template x-for="(pin, i) in pins.slice(0, 6)" :key="'dot' + pin.property_id">
+                            <span class="h-1.5 rounded-full transition-all" :class="i === activeDot ? 'w-[18px] bg-[#060D26]' : 'w-1.5 bg-[#C5CADB]'"></span>
+                        </template>
+                    </div>
+                </div>
             </div>
         </div>
 
-        {{-- Results, rendered by the server --}}
-        <div x-show="phase === 'done'" x-cloak x-html="html" class="mt-5"></div>
-
-        <div x-show="phase === 'error' && !notice" x-cloak class="mt-6 text-[14px] text-[#5B6A8E]">Search cancelled. <button type="button" class="font-semibold text-[#B35A3D] underline cursor-pointer" x-on:click="retry()">Search again</button></div>
+        {{-- Filters panel (header Filters button): edits a copy of the intent, searches again in place. --}}
+        @include('properties.partials.ai-filters')
     </div>
 
 @push('scripts')
+    @vite(['resources/js/maps/browse-map.js'])
+    <script>
+        // Pin the map 16px below the sticky header + search band (their height changes with breakpoint).
+        (() => {
+            const set = () => {
+                const nav = document.querySelector('header');
+                const band = document.getElementById('header-search-expanded');
+                const top = (nav ? nav.offsetHeight : 64) + (band ? band.offsetHeight : 0) + 16;
+                document.documentElement.style.setProperty('--browse-sticky-top', top + 'px');
+                window.browseMapRefit?.();
+            };
+            set();
+            window.addEventListener('resize', set);
+            window.addEventListener('load', set);
+        })();
+    </script>
     @include('properties.partials.favorite-toggle-script')
 @endpush
 @endsection
