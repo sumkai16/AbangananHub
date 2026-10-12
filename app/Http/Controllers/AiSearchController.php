@@ -44,10 +44,17 @@ class AiSearchController extends Controller
             'fallback_reason' => ['nullable', 'string', 'max:30'],
         ]);
 
+        // `used_ai` comes from the browser, so it can only ever ask for the AI ranking call, never skip a limit:
+        // that call is charged to its own hourly bucket (only when ranking is on at all).
+        $usedAi = (bool) ($data['used_ai'] ?? false);
+        if ($usedAi && config('ai_search.rank_with_ai') && $this->limited($request, 'ai-rank')) {
+            $usedAi = false;
+        }
+
         $result = $this->search->results(
             $data['q'] ?? '',
             $data['intent'],
-            (bool) ($data['used_ai'] ?? false),
+            $usedAi,
             $request->user()?->user_id,
             $data['fallback_reason'] ?? null,
         );
@@ -123,9 +130,9 @@ class AiSearchController extends Controller
     }
 
     /** One interpret per search counts against the hour's allowance; over it the keyword fallback answers. */
-    private function limited(Request $request): bool
+    private function limited(Request $request, string $bucket = 'ai-search'): bool
     {
-        $key = 'ai-search:' . ($request->user()?->getAuthIdentifier() ?? $request->ip());
+        $key = $bucket . ':' . ($request->user()?->getAuthIdentifier() ?? $request->ip());
         if (RateLimiter::tooManyAttempts($key, (int) config('ai_search.rate_per_hour', 20))) {
             return true;
         }

@@ -670,7 +670,7 @@
                             window.addEventListener('load', set);
                         })();
                     </script>
-                    <script type="application/json" id="browse-map-data">{!! json_encode($mapProperties) !!}</script>
+                    <script type="application/json" id="browse-map-data">{!! json_encode($mapProperties, JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
                 </div>
 
             </div>

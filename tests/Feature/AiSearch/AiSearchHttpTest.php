@@ -213,4 +213,19 @@ class AiSearchHttpTest extends AiSearchTestCase
             ->assertSee('x-ref="carousel"', false)
             ->assertSee('@browse-map-selected.window="onMapSelected($event.detail)"', false);
     }
+
+    public function test_a_forged_used_ai_flag_is_charged_to_its_own_hourly_limit(): void
+    {
+        config(['ai_search.rank_with_ai' => true, 'ai_search.rate_per_hour' => 2]);
+        \Illuminate\Support\Facades\RateLimiter::clear('ai-rank:127.0.0.1');
+
+        $payload = ['q' => 'apartment', 'used_ai' => true, 'intent' => ['property_type' => 'Apartment']];
+
+        foreach (range(1, 3) as $_) {
+            $this->postJson('/search/results', $payload)->assertOk();
+        }
+
+        // Two calls were allowed; the third is over the bucket, so it was served without the AI.
+        $this->assertTrue(\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('ai-rank:127.0.0.1', 2));
+    }
 }

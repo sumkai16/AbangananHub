@@ -84,12 +84,14 @@ export function createMap(elementId, centerLat, centerLng, zoom = 15, style = 'v
     return map;
 }
 
+const escapeAttr = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
 export function createPin(map, lat, lng, type = 'property', popupHtml = null) {
     const config = ICONS[type] || ICONS.property;
 
     const icon = L.divIcon({
         className: config.className,
-        html: `<span class="map-pin__dot" title="${config.label}"></span>`,
+        html: `<span class="map-pin__dot" title="${escapeAttr(config.label)}"></span>`,
         iconSize: [22, 22],
         iconAnchor: [11, 11],
     });
@@ -103,6 +105,7 @@ export function createPin(map, lat, lng, type = 'property', popupHtml = null) {
     return marker;
 }
 
+// `label` is trusted HTML (callers build it with their own escaping, e.g. ai-map-layer's pinHtml).
 // Price-pill marker for the browse page — content is dynamic text (price),
 // not a fixed dot, so it can't reuse createPin's fixed iconSize approach.
 // iconSize [0,0] anchors the wrapper exactly at the lat/lng point; the inner
@@ -111,7 +114,7 @@ export function createPin(map, lat, lng, type = 'property', popupHtml = null) {
 export function createPricePin(map, lat, lng, propertyId, label, popupHtml = null, addToMap = true, extraClass = '') {
     const icon = L.divIcon({
         className: 'map-price-pin-wrapper',
-        html: `<div class="map-price-pin${extraClass ? ' ' + extraClass : ''}" data-property-id="${propertyId}">${label}</div>`,
+        html: `<div class="map-price-pin${extraClass ? ' ' + extraClass : ''}" data-property-id="${escapeAttr(propertyId)}">${label}</div>`,
         iconSize: [0, 0],
         iconAnchor: [0, 0]
     });
