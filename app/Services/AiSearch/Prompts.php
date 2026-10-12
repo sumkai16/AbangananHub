@@ -32,6 +32,9 @@ RULES
 - "babae", "girls", "women", "for ladies" means for = "Women"; "lalaki", "boys", "men", "pang-lalaki" means for = "Men".
 - "studio", "room", "kwarto" mean property_type "Boarding House" unless "apartment", "condo", "house" or "bedspace" is said; "bahay" and "balay" mean House.
 - Only wishes you truly cannot map (quiet street, near a church, good vibes, a pool, number of bedrooms) go into "unmapped" as short phrases.
+- Where they study or work counts as the place: "I study at USC", "nag-aaral ako sa CIT-U", "nurse sa Chong Hua", "work at IT Park" -> location kind "landmark" with that landmark KEY, if it is in the landmarks list.
+- Group size: "2 of us", "kami duha", "magpartner", "couple", "family of 4", "good for 2" -> occupants = that number.
+- Read only what is written. A property type word the tenant says ("apartment", "condo", "bedspace", "boarding house", "house") is a firm requirement: always fill property_type. But never guess property_type from who the person is (a student who names no type leaves it null), never guess "for" (Men / Women) unless they say it, and never invent a budget.
 - language: the language the tenant mostly wrote in: "en", "tl" (Tagalog), "ceb" (Bisaya) or "mixed".
 
 ALLOWED VALUES
@@ -92,6 +95,8 @@ Return JSON with:
 - summary_en: the same summary in English.
 
 SUMMARY RULES
+- Sound like a friendly local agent, not a form letter: warm, short, answer first. Talk about what the tenant asked for in their own terms ("an apartment near IT Park", "a bedspace for two").
+- If the tenant asked for a specific property type and none of that type fits, say so plainly first.
 - Use ONLY facts in the candidate data. Never state a distance, amenity, rule or price that is not there. Do not guess.
 - If every candidate fully fits: say how many fit, and name the cheapest or best-reviewed one.
 - If none fits fully: say plainly there is no exact match, name the closest candidate, and say exactly what it misses (use its "misses" wording, for example "₱500 over budget").

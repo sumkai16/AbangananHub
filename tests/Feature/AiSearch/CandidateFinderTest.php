@@ -91,4 +91,33 @@ class CandidateFinderTest extends AiSearchTestCase
         $this->assertSame(0, $out['rows']->count());
         $this->assertNotNull($hidden);
     }
+
+    public function test_property_type_is_never_relaxed_and_other_types_become_alternatives(): void
+    {
+        $this->listing('The apartment', ['property_type' => 'Apartment'], 9000);
+        $this->listing('A bedspace', ['property_type' => 'Bedspace'], 3000);
+        $this->listing('A pricey bedspace', ['property_type' => 'Bedspace'], 20000);
+
+        $out = $this->find(['location' => ['kind' => 'city', 'value' => 'Cebu City'], 'property_type' => 'Apartment', 'price_max' => 10000]);
+
+        $this->assertSame(['The apartment'], $out['rows']->pluck('property.title')->all());
+        $this->assertNotContains('property type', $out['relaxed']);
+        // Only the bedspace that fits the budget is suggested, and it carries no misses.
+        $this->assertSame(['A bedspace'], $out['alternatives']->pluck('property.title')->all());
+        $this->assertEmpty($out['alternatives']->first()['misses']);
+    }
+
+    public function test_no_alternatives_when_the_main_list_is_full_or_no_type_was_asked(): void
+    {
+        foreach (['A', 'B', 'C'] as $t) {
+            $this->listing($t, ['property_type' => 'Apartment']);
+        }
+        $this->listing('Bedspace', ['property_type' => 'Bedspace']);
+
+        $full = $this->find(['location' => ['kind' => 'city', 'value' => 'Cebu City'], 'property_type' => 'Apartment']);
+        $none = $this->find(['location' => ['kind' => 'city', 'value' => 'Cebu City'], 'price_max' => 100]);
+
+        $this->assertCount(0, $full['alternatives']);
+        $this->assertCount(0, $none['alternatives']);
+    }
 }

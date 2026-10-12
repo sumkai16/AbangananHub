@@ -94,13 +94,14 @@ class AiSearchService
         $intent = $this->validator->validate($intent);
 
         $found = IntentValidator::isEmpty($intent)
-            ? ['rows' => collect(), 'exact_count' => 0, 'relaxed' => []]
+            ? ['rows' => collect(), 'exact_count' => 0, 'relaxed' => [], 'alternatives' => collect()]
             : $this->finder->find($intent);
         $rows = $found['rows'];
         $exact = $found['exact_count'];
         $language = $intent['language'];
 
-        $summary = $this->composer->compose($rows, $exact, $language);
+        $alternatives = $found['alternatives'];
+        $summary = $this->composer->compose($rows, $exact, $language, $alternatives, $intent['property_type']);
         $aiSummary = false;
 
         if ($usedAi && $rows->isNotEmpty() && config('ai_search.rank_with_ai')) {
@@ -108,7 +109,7 @@ class AiSearchService
                 $ranked = $this->rank($intent, $rows, $language, $exact > 0 && $exact === $rows->count());
                 $rows = $this->applyOrder($rows, $ranked['order']);
                 if (filled($ranked['summary'])) {
-                    $summary = ['summary' => $ranked['summary'], 'summary_en' => $ranked['summary_en'] ?: $ranked['summary']];
+                    $summary = ['summary' => $ranked['summary'], 'summary_en' => $ranked['summary_en'] ?: $ranked['summary'], 'alt_note' => $summary['alt_note']];
                     $aiSummary = true;
                 }
             } catch (Throwable $e) {
@@ -122,6 +123,8 @@ class AiSearchService
             'intent' => $intent,
             'chips' => $this->chips->build($intent, $rows),
             'rows' => $rows,
+            'alternatives' => $alternatives,
+            'alt_note' => $summary['alt_note'] ?? '',
             'exact_count' => $exact,
             'relaxed' => $found['relaxed'],
             'summary' => $summary['summary'],

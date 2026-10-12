@@ -67,7 +67,7 @@ Drop/widen one step at a time, stop once ≥ 3 candidates, max 20:
 3. house rules (pets/smoking/overnight/curfew)
 4. price_max +15%, then +30%
 5. location: landmark radius 2 → 4 km; barangay → its city; city → neighbouring LGUs (config map)
-6. property_type
+6. ~~property_type~~ **never relaxed (Oct 12).** Someone asking for an apartment only sees apartments. When fewer than 3 fit, up to 3 listings of other types that fit everything else exactly are shown separately as "You might also like" (`CandidateFinder::alternatives()`).
 
 Each candidate keeps a score: 100 minus weighted misses (budget overage proportional). Ties: rating, then price.
 

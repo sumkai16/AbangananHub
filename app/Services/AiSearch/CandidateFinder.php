@@ -13,6 +13,11 @@ use Illuminate\Support\Collection;
  *
  * Every row is explained against the ORIGINAL intent (MatchExplainer), so a row
  * found by a relaxed query still says exactly what it misses.
+ *
+ * Property type is never relaxed: someone who asked for an apartment only gets
+ * apartments in the main list. When that list is thin, `alternatives` holds a few
+ * listings of OTHER types that still fit the budget, area and everything else,
+ * shown separately as "You might also like".
  */
 class CandidateFinder
 {
@@ -21,7 +26,7 @@ class CandidateFinder
     }
 
     /**
-     * @return array{rows: Collection<int, array<string, mixed>>, exact_count: int, relaxed: list<string>}
+     * @return array{rows: Collection<int, array<string, mixed>>, exact_count: int, relaxed: list<string>, alternatives: Collection<int, array<string, mixed>>}
      */
     public function find(array $intent): array
     {
@@ -51,7 +56,32 @@ class CandidateFinder
             'rows' => $rows,
             'exact_count' => $rows->filter(fn ($r) => empty($r['misses']))->count(),
             'relaxed' => $relaxed,
+            'alternatives' => $rows->count() < $min ? $this->alternatives($intent, $rows->pluck('property.property_id')->all()) : collect(),
         ];
+    }
+
+    /**
+     * Other property types that fit everything else, exactly (no relaxing). Only when a type was asked for.
+     *
+     * @param  list<int>  $skipIds  properties already in the main list
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function alternatives(array $intent, array $skipIds): Collection
+    {
+        if ($intent['property_type'] === null) {
+            return collect();
+        }
+
+        $other = array_merge($intent, ['property_type' => null]);
+
+        return $this->query($other)
+            ->reject(fn (Property $p) => $p->property_type === $intent['property_type'] || in_array($p->property_id, $skipIds, true))
+            ->map(fn (Property $p) => ['property' => $p] + $this->explainer->explain($p, $other))
+            ->filter(fn ($r) => empty($r['misses']))
+            ->sort(fn ($a, $b) => [-$a['score'], -(float) $a['property']->avg_rating, (float) $a['property']->min_rental_fee]
+                <=> [-$b['score'], -(float) $b['property']->avg_rating, (float) $b['property']->min_rental_fee])
+            ->take(3)
+            ->values();
     }
 
     /** @return Collection<int, Property> */
@@ -145,7 +175,6 @@ class CandidateFinder
             }
         }
 
-        $add('property type', array_merge($current, ['property_type' => null]));
         $add('remaining amenities', array_merge($current, ['amenities' => []]));
 
         return $steps;
