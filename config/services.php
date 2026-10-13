@@ -38,6 +38,8 @@ return [
         'secret_key' => env('PAYMONGO_SECRET_KEY'),
         'public_key' => env('PAYMONGO_PUBLIC_KEY'),
         'webhook_secret' => env('PAYMONGO_WEBHOOK_SECRET'),
+        // Seconds a webhook's signed timestamp may differ from now before it is refused (replay guard).
+        'webhook_tolerance' => (int) env('PAYMONGO_WEBHOOK_TOLERANCE', 300),
         // PayMongo test keys start with sk_test_. Drives the "Test mode" notice
         // on checkout so visitors know no real money is charged.
         'test_mode' => str_starts_with((string) env('PAYMONGO_SECRET_KEY', ''), 'sk_test_'),

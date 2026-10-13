@@ -104,6 +104,64 @@ class PayMongoWebhookTest extends TestCase
         $this->assertSame('Pending', $payment->fresh()->status);
     }
 
+    public function test_a_correctly_signed_but_stale_request_is_refused(): void
+    {
+        $t = $this->makeTenancy();
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_stale');
+        $body = $this->paidEvent('cs_stale');
+
+        $this->deliver($body, $this->signature($body, self::SECRET, time() - 600))->assertForbidden();
+
+        $this->assertSame('Pending', $payment->fresh()->status, 'A captured request must not be replayable later.');
+    }
+
+    public function test_a_signature_dated_in_the_future_is_refused(): void
+    {
+        $t = $this->makeTenancy();
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_future');
+        $body = $this->paidEvent('cs_future');
+
+        $this->deliver($body, $this->signature($body, self::SECRET, time() + 600))->assertForbidden();
+
+        $this->assertSame('Pending', $payment->fresh()->status);
+    }
+
+    public function test_a_slightly_old_signature_inside_the_window_is_accepted(): void
+    {
+        $t = $this->makeTenancy();
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_window');
+        $body = $this->paidEvent('cs_window');
+
+        $this->deliver($body, $this->signature($body, self::SECRET, time() - 240))->assertOk();
+
+        $this->assertSame('Held', $payment->fresh()->status);
+    }
+
+    public function test_the_window_can_be_narrowed_by_config(): void
+    {
+        config(['services.paymongo.webhook_tolerance' => 30]);
+        $t = $this->makeTenancy();
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_narrow');
+        $body = $this->paidEvent('cs_narrow');
+
+        $this->deliver($body, $this->signature($body, self::SECRET, time() - 120))->assertForbidden();
+
+        $this->assertSame('Pending', $payment->fresh()->status);
+    }
+
+    public function test_a_malformed_signature_header_is_refused_not_a_server_error(): void
+    {
+        $t = $this->makeTenancy();
+        $payment = $this->makePendingCheckout($t['reservation'], 'cs_garbage');
+        $body = $this->paidEvent('cs_garbage');
+
+        foreach (['garbage', 't=abc,te=deadbeef', 't=,te=', ',,,', 'te=' . str_repeat('a', 64)] as $header) {
+            $this->deliver($body, $header)->assertForbidden();
+        }
+
+        $this->assertSame('Pending', $payment->fresh()->status);
+    }
+
     public function test_a_paid_initial_payment_goes_into_escrow_not_to_the_landlord(): void
     {
         $t = $this->makeTenancy(['rental_status' => 'Rental Agreement Signed']);

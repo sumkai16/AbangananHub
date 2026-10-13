@@ -14,6 +14,7 @@ class PayMongoWebhookController extends Controller
 
         if (!$signature || !$this->verifySignature($request->getContent(), $signature)) {
             Log::warning('PayMongo webhook: invalid signature');
+
             return response()->json(['message' => 'Invalid signature'], 403);
         }
 
@@ -27,60 +28,62 @@ class PayMongoWebhookController extends Controller
         return response()->json(['message' => 'Webhook received'], 200);
     }
 
-protected function handleCheckoutPaid(array $resource): void
-{
-    $checkoutSessionId = $resource['id'] ?? null;
+    protected function handleCheckoutPaid(array $resource): void
+    {
+        $checkoutSessionId = $resource['id'] ?? null;
 
-    if (!$checkoutSessionId) {
-        Log::warning('PayMongo webhook: missing checkout session ID');
-        return;
+        if (!$checkoutSessionId) {
+            Log::warning('PayMongo webhook: missing checkout session ID');
+
+            return;
+        }
+
+        $payment = Payment::where('paymongo_checkout_session_id', $checkoutSessionId)->first();
+
+        if (!$payment) {
+            Log::warning('PayMongo webhook: no matching payment', ['session_id' => $checkoutSessionId]);
+
+            return;
+        }
+
+        // Idempotency — already processed
+        if ($payment->status !== 'Pending') {
+            return;
+        }
+
+        $paymentIntentId = $resource['attributes']['payment_intent']['id'] ?? null;
+        $paymongoPaymentId = $resource['attributes']['payments'][0]['id'] ?? null;
+        $paymentMethod = Payment::resolvePaymongoMethod(
+            $resource['attributes']['payment_method_used']
+                ?? $resource['attributes']['payments'][0]['attributes']['source']['type'] ?? null
+        ) ?? $payment->payment_method;
+
+        // Monthly rent settles straight to the landlord — there is no handover
+        // left to protect once a tenant already occupies the unit, unlike the
+        // Initial payment which stays escrowed until move-in is confirmed.
+        $isRent = $payment->payment_type === 'Monthly';
+
+        $payment->update([
+            'status' => $isRent ? 'Paid' : 'Held',
+            'payment_method' => $paymentMethod,
+            'paymongo_payment_intent_id' => $paymentIntentId,
+            'paymongo_payment_id' => $paymongoPaymentId,
+            'paid_at' => now(),
+            // Rent settles straight to the landlord with no escrow step, so it is
+            // payout-eligible the moment it's paid. The initial payment isn't —
+            // it only becomes payout-eligible once escrow releases it.
+            'payout_status' => $isRent ? 'Pending Payout' : null,
+        ]);
+
+        // The broadcast and both notifications are raised by PaymentObserver off
+        // the status change above — the tenant sitting on the agreement/ledger
+        // page's "Payment Processing" spinner is waiting for exactly that.
+        $message = $isRent
+            ? $payment->reservation->tenant->name . ' paid rent for ' . ($payment->billing_period?->format('M Y') ?? 'this period') . ' online.'
+            : $payment->reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.';
+
+        $payment->reservation?->postSystemMessage($message);
     }
-
-    $payment = Payment::where('paymongo_checkout_session_id', $checkoutSessionId)->first();
-
-    if (!$payment) {
-        Log::warning('PayMongo webhook: no matching payment', ['session_id' => $checkoutSessionId]);
-        return;
-    }
-
-    // Idempotency — already processed
-    if ($payment->status !== 'Pending') {
-        return;
-    }
-
-    $paymentIntentId = $resource['attributes']['payment_intent']['id'] ?? null;
-    $paymongoPaymentId = $resource['attributes']['payments'][0]['id'] ?? null;
-    $paymentMethod = Payment::resolvePaymongoMethod(
-        $resource['attributes']['payment_method_used']
-            ?? $resource['attributes']['payments'][0]['attributes']['source']['type'] ?? null
-    ) ?? $payment->payment_method;
-
-    // Monthly rent settles straight to the landlord — there is no handover
-    // left to protect once a tenant already occupies the unit, unlike the
-    // Initial payment which stays escrowed until move-in is confirmed.
-    $isRent = $payment->payment_type === 'Monthly';
-
-    $payment->update([
-        'status' => $isRent ? 'Paid' : 'Held',
-        'payment_method' => $paymentMethod,
-        'paymongo_payment_intent_id' => $paymentIntentId,
-        'paymongo_payment_id' => $paymongoPaymentId,
-        'paid_at' => now(),
-        // Rent settles straight to the landlord with no escrow step, so it is
-        // payout-eligible the moment it's paid. The initial payment isn't —
-        // it only becomes payout-eligible once escrow releases it.
-        'payout_status' => $isRent ? 'Pending Payout' : null,
-    ]);
-
-    // The broadcast and both notifications are raised by PaymentObserver off
-    // the status change above — the tenant sitting on the agreement/ledger
-    // page's "Payment Processing" spinner is waiting for exactly that.
-    $message = $isRent
-        ? $payment->reservation->tenant->name . ' paid rent for ' . ($payment->billing_period?->format('M Y') ?? 'this period') . ' online.'
-        : $payment->reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.';
-
-    $payment->reservation?->postSystemMessage($message);
-}
 
     protected function verifySignature(string $payload, string $signatureHeader): bool
     {
@@ -88,20 +91,34 @@ protected function handleCheckoutPaid(array $resource): void
 
         if (empty($secret)) {
             Log::warning('PayMongo webhook: PAYMONGO_WEBHOOK_SECRET is not set');
+
             return false;
         }
 
         // PayMongo signature format: t=<timestamp>,te=<test_signature>,li=<live_signature>
         $parts = collect(explode(',', $signatureHeader))
+            ->filter(fn ($part) => str_contains($part, '='))
             ->mapWithKeys(function ($part) {
                 [$key, $value] = explode('=', $part, 2);
+
                 return [$key => $value];
             });
 
         $timestamp = $parts->get('t');
         $testSignature = $parts->get('te');
 
-        if (!$timestamp || !$testSignature) {
+        if (!$timestamp || !$testSignature || !ctype_digit($timestamp)) {
+            return false;
+        }
+
+        // A signed body stays valid forever unless its timestamp is checked, so
+        // a captured request could be replayed at any time. Reject anything
+        // outside the tolerance window, in either direction.
+        $tolerance = (int) config('services.paymongo.webhook_tolerance', 300);
+
+        if (abs(time() - (int) $timestamp) > $tolerance) {
+            Log::warning('PayMongo webhook: signature timestamp outside tolerance');
+
             return false;
         }
 
