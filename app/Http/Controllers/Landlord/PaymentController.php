@@ -82,7 +82,7 @@ class PaymentController extends Controller
         // to see what an ex-tenant left unpaid.
         $query = Reservation::whereIn('rental_status', ['Occupied', 'Completed'])
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments']);
+            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges']);
 
         if ($propertyId && $properties->contains('property_id', $propertyId)) {
             $query->where('property_id', $propertyId);
@@ -533,7 +533,7 @@ class PaymentController extends Controller
         $reservations = Reservation::whereIn('rental_status', ['Occupied', 'Completed'])
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
             ->when($request->integer('property'), fn ($q, $id) => $q->where('property_id', $id))
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments'])
+            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges'])
             ->get();
 
         return response()->streamDownload(function () use ($reservations) {

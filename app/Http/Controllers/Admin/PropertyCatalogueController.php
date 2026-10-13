@@ -97,11 +97,12 @@ class PropertyCatalogueController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $statusTotals = Property::selectRaw('verification_status, COUNT(*) as total')->groupBy('verification_status')->pluck('total', 'verification_status');
         $counts = [
-            'total'    => Property::count(),
-            'approved' => Property::where('verification_status', 'Approved')->count(),
-            'pending'  => Property::where('verification_status', 'Pending')->count(),
-            'rejected' => Property::where('verification_status', 'Rejected')->count(),
+            'total'    => $statusTotals->sum(),
+            'approved' => $statusTotals['Approved'] ?? 0,
+            'pending'  => $statusTotals['Pending'] ?? 0,
+            'rejected' => $statusTotals['Rejected'] ?? 0,
             'needs_attention' => Property::query()
                 ->where(function ($q) {
                     $q->doesntHave('media')

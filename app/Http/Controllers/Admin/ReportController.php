@@ -25,9 +25,10 @@ class ReportController extends Controller
 
         $reports = $query->latest('report_id')->paginate(15)->withQueryString();
 
+        $statusTotals = Report::selectRaw('report_status, COUNT(*) as total')->groupBy('report_status')->pluck('total', 'report_status');
         $counts = [
-            'Pending' => Report::where('report_status', 'Pending')->count(),
-            'Resolved' => Report::where('report_status', 'Resolved')->count(),
+            'Pending' => $statusTotals['Pending'] ?? 0,
+            'Resolved' => $statusTotals['Resolved'] ?? 0,
         ];
         $counts['All'] = array_sum($counts);
 

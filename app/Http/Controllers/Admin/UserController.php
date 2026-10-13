@@ -34,17 +34,19 @@ class UserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $roleTotals = UserRole::selectRaw('role, COUNT(*) as total')->groupBy('role')->pluck('total', 'role');
         $roleCounts = [
-            'Landlord' => UserRole::where('role', 'Landlord')->count(),
-            'Tenant'   => UserRole::where('role', 'Tenant')->count(),
-            'Admin'    => UserRole::where('role', 'Admin')->count(),
+            'Landlord' => $roleTotals['Landlord'] ?? 0,
+            'Tenant'   => $roleTotals['Tenant'] ?? 0,
+            'Admin'    => $roleTotals['Admin'] ?? 0,
         ];
         $roleCounts['No role'] = User::doesntHave('roles')->count();
 
+        $statusTotals = User::selectRaw('account_status, COUNT(*) as total')->groupBy('account_status')->pluck('total', 'account_status');
         $statusCounts = [
-            'active'    => User::where('account_status', 'active')->count(),
-            'suspended' => User::where('account_status', 'suspended')->count(),
-            'inactive'  => User::where('account_status', 'inactive')->count(),
+            'active'    => $statusTotals['active'] ?? 0,
+            'suspended' => $statusTotals['suspended'] ?? 0,
+            'inactive'  => $statusTotals['inactive'] ?? 0,
         ];
 
         return view('admin.users.index', compact('users', 'search', 'role', 'roleCounts', 'statusCounts'));

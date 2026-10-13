@@ -103,7 +103,7 @@ class TenantController extends Controller
     public function index(Request $request)
     {
         $reservations = $this->filteredQuery($request)
-            ->with(['tenant', 'property.media', 'unit', 'conversation', 'payments'])
+            ->with(['tenant', 'property.media', 'unit', 'conversation', 'payments', 'depositCharges'])
             ->latest('reservation_date')->paginate(12)->withQueryString();
 
         // Rent standing per card, so each knows whether the tenant has anything

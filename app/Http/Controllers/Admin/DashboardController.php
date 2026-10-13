@@ -34,9 +34,10 @@ class DashboardController extends Controller
             ->pluck('total', 'rental_status');
 
         // ── User distribution ─────────────────────────────────────
-        $totalLandlords        = UserRole::where('role', 'Landlord')->count();
-        $totalTenants          = UserRole::where('role', 'Tenant')->count();
-        $totalAdmins           = UserRole::where('role', 'Admin')->count();
+        $roleTotals            = UserRole::selectRaw('role, COUNT(*) as total')->groupBy('role')->pluck('total', 'role');
+        $totalLandlords        = $roleTotals['Landlord'] ?? 0;
+        $totalTenants          = $roleTotals['Tenant'] ?? 0;
+        $totalAdmins           = $roleTotals['Admin'] ?? 0;
         $unverifiedLandlords   = max(0, $totalLandlords - $verifiedLandlords);
 
         // ── Platform chart – last 7 days ──────────────────────────
