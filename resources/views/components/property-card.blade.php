@@ -1,4 +1,4 @@
-@props(['property', 'favoritedIds' => []])
+@props(['property', 'favoritedIds' => [], 'fit' => null])
 
 {{--
     The image-is-the-card property listing card. Shared by the main browse
@@ -18,9 +18,25 @@
     onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
 
     {{-- IMAGE CAROUSEL --}}
-    <div x-data="{ activeSlide: 0, slides: {{ $property->media->count() }} }"
-        @mouseenter="$refs.nav.classList.remove('opacity-0')"
-        @mouseleave="$refs.nav.classList.add('opacity-0')"
+    {{--
+        Only the first photo is in the HTML. The others ride along in data-photos as URL templates and are added by
+        resources/js/property-card.js on first touch, so a page of cards doesn't download every photo.
+        99999 is a stand-in width swapped for {w}, so Images stays the only code that knows URL formats.
+    --}}
+    @php
+        $photos = $property->media->values();
+        $extraPhotos = $photos->slice(1)->map(fn ($m) => \App\Support\Images::srcset($m->media_url)
+            ? str_replace('99999', '{w}', \App\Support\Images::resize($m->media_url, 99999))
+            : $m->media_url)->values()->all();
+        $cardSizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 20vw';
+    @endphp
+    <div x-data="propertyCard()"
+        data-photos="{{ json_encode($extraPhotos, JSON_UNESCAPED_SLASHES) }}"
+        data-widths="{{ implode(',', \App\Support\Images::SRCSET_WIDTHS) }}"
+        @mouseenter="load(); $refs.nav?.classList.remove('opacity-0')"
+        @mouseleave="$refs.nav?.classList.add('opacity-0')"
+        @touchstart.passive="load()"
+        @focusin="load()"
         class="relative w-full aspect-[4/3] overflow-hidden bg-[#ECEEF6]">
 
         @if($property->hasVerifiedDocuments())
@@ -35,23 +51,27 @@
         @if($property->media->count() > 0)
             <div class="flex transition-transform duration-500 ease-out h-full"
                 :style="`transform: translateX(-${activeSlide * 100}%)`">
-                @foreach($property->media as $media)
-                    {{-- Lazy + resized: a card is ~400px wide, so it never needs the 1200px
-                         original, and offscreen cards/slides shouldn't download at all. --}}
-                    <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($media->media_url, 640) }}"
-                        @if($srcset = \App\Support\Images::srcset($media->media_url))
-                            srcset="{{ $srcset }}" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        @endif
-                        alt="{{ $property->title }}" loading="lazy" decoding="async" width="640" height="480"
+                {{-- Lazy + resized: a card is ~300-400px wide, so it never needs the 1200px original.
+                     width/height keep the 4:3 box reserved so nothing shifts as it loads. --}}
+                <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($photos[0]->media_url, 640) }}"
+                    @if($srcset = \App\Support\Images::srcset($photos[0]->media_url))
+                        srcset="{{ $srcset }}" sizes="{{ $cardSizes }}"
+                    @endif
+                    alt="{{ $property->title }}" width="640" height="480"
+                    class="w-full h-full object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-700 ease-out motion-reduce:group-hover:scale-100">
+                <template x-for="(photo, i) in extra" :key="i">
+                    {{-- Eager on purpose: these are only added once the visitor touched the card. --}}
+                    <img decoding="async" :src="photo.src" :srcset="photo.srcset" sizes="{{ $cardSizes }}"
+                        alt="{{ $property->title }}" width="640" height="480"
                         class="w-full h-full object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-700 ease-out motion-reduce:group-hover:scale-100">
-                @endforeach
+                </template>
             </div>
 
             {{-- Navigation Arrows (visible on hover) --}}
             <div x-ref="nav"
                 class="opacity-0 transition-opacity duration-300 absolute inset-0 flex items-center justify-between px-2"
                 x-show="slides > 1">
-                <button @click.stop="activeSlide = activeSlide > 0 ? activeSlide - 1 : slides - 1"
+                <button @click.stop="prev()"
                     aria-label="Previous photo"
                     class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#060D26] cursor-pointer">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -59,7 +79,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <button @click.stop="activeSlide = activeSlide < slides - 1 ? activeSlide + 1 : 0"
+                <button @click.stop="next()"
                     aria-label="Next photo"
                     class="w-7 h-7 flex items-center justify-center rounded-full bg-white/80 hover:bg-white hover:scale-110 shadow-sm transition-all text-[#060D26] cursor-pointer">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -87,6 +107,12 @@
             </div>
         @endif
 
+        @if($fit)
+            {{-- AI search: where this result ranks, and whether it fully fits. --}}
+            <span class="absolute bottom-3 left-3 z-10 inline-flex items-center h-6 px-2.5 rounded-full bg-white text-[11px] font-bold text-[#060D26] shadow-sm">
+                {{ $fit['exact'] ? '#' . $fit['rank'] . ' best fit' : (($fit['suggestion'] ?? false) ? 'Other option' : 'Closest match') }}
+            </span>
+        @endif
         {{-- HEART top-right --}}
         <button type="button" data-property-id="{{ $property->property_id }}"
             data-favorited="{{ in_array($property->property_id, $favoritedIds) ? 'true' : 'false' }}"
@@ -155,6 +181,23 @@
                 <span class="text-[13px] font-normal text-[#5B6A8E]">Price not set</span>
             @endif
         </p>
+        @if($fit && ($fit['misses'] || $fit['hits']))
+            {{-- What the search asked for vs. what this place has. Computed from real data (MatchExplainer), gaps first. Three chips, then "+N". --}}
+            @php $fitChips = collect($fit['misses'])->map(fn ($c) => ['miss', $c['text']])->concat(collect($fit['hits'])->map(fn ($c) => ['hit', $c['text']])); @endphp
+            <div class="flex flex-wrap gap-1.5 mt-2.5 pt-2.5 border-t border-[#F1F2F7]">
+                @foreach($fitChips->take(3) as [$kind, $text])
+                    <span class="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[12px] font-semibold {{ $kind === 'hit' ? 'bg-[#EAF8EF] text-[#166534]' : 'bg-[#FEF6E4] text-[#8A5300]' }}">
+                        <svg class="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="{{ $kind === 'hit' ? 'M5 12.5l4.5 4.5L19 7.5' : 'M6 12h12' }}" />
+                        </svg>
+                        {{ $text }}
+                    </span>
+                @endforeach
+                @if($fitChips->count() > 3)
+                    <span class="inline-flex items-center h-6 px-2 rounded-full bg-[#F1F2F7] text-[12px] font-semibold text-[#5B6A8E]">+{{ $fitChips->count() - 3 }}</span>
+                @endif
+            </div>
+        @endif
     </div>
 
 </div>

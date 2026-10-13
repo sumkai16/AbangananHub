@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ $title ?? 'AbangananHub' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/logo-app-icon.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <script>
@@ -82,7 +82,7 @@
                  buttons), so the back link lives in the page content instead. --}}
             <a href="{{ route('home') }}"
                 class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group {{ $backNavData ? $mobileBp.':hidden' : '' }}">
-                <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
+                <img src="{{ asset('images/brand/logo-mark.svg') }}" alt="AbangananHub"
                     class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
                 <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
                     Abanganan<span class="text-[#FF8A66]">Hub</span>
@@ -103,7 +103,7 @@
                      pill uses elsewhere in this file. --}}
                 <a href="{{ route('home') }}"
                     class="hidden xl:flex items-center gap-2.5 no-underline absolute left-1/2 -translate-x-1/2 group">
-                    <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
+                    <img src="{{ asset('images/brand/logo-mark.svg') }}" alt="AbangananHub"
                         class="w-9 h-9 object-contain transition-transform group-hover:scale-105">
                     <span class="text-[18px] font-extrabold text-[#060D26] tracking-tight">
                         Abanganan<span class="text-[#FF8A66]">Hub</span>
@@ -505,11 +505,12 @@
     @if(($searchBar ?? true) && !View::hasSection('hide_search'))
         <div id="header-search-expanded" class="{{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
             <div class="bg-[#060D26]">
-                <div id="browse-search-pill" class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-4">
-                    <x-search-pill variant="header" />
+                <div id="browse-search-pill" class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-5">
+                    <x-ai-search-box variant="header" />
                 </div>
             </div>
 
+            {{-- Same column as the listings below (1400px), so the chips line up with the grid. The chips are content-sized and sit left; the toolbar sits right. --}}
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
                 <x-category-strip />
             </div>
@@ -525,7 +526,7 @@
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-                <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
+                <img src="{{ asset('images/brand/logo-mark-on-dark.svg') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
                 <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#FF8A66]">Hub</span></span>
             </a>
 
@@ -741,7 +742,7 @@
 
                             <div class="mb-3">
                                 <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact number</label>
-                                <input type="tel" name="contact_number" required placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
+                                <input type="tel" name="contact_number" required pattern="[0-9+()\s\-]{7,20}" data-error-tag="Numbers only" title="Use digits only, e.g. 0917 123 4567" placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-contact_number"></span>
@@ -757,7 +758,7 @@
                             <div class="mb-3">
                                 <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <div class="relative">
-                                    <input type="password" name="password" id="modal-register-password" autocomplete="new-password" required placeholder="At least 8 characters" aria-label="Password"
+                                    <input type="password" name="password" id="modal-register-password" autocomplete="new-password" required minlength="8" data-strength placeholder="At least 8 characters" aria-label="Password"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all pr-11">
                                     <button type="button" onclick="toggleModalPassword('modal-register-password', this)"
                                         class="absolute right-4 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26]" aria-label="Show password"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
@@ -950,8 +951,14 @@
 
                     if (!res.ok) {
                         if (data?.errors) {
-                            errorBag.classList.remove('hidden');
-                            errorBag.innerText = Object.values(data.errors).flat().join(' ');
+                            // Register: each error sits on its own field. Anything with no visible field (and all of login) uses the banner.
+                            window.fieldValidation?.clear(form);
+                            const unplaced = Object.entries(data.errors).filter(([name, msgs]) =>
+                                form.id === 'ajax-login-form' || !window.fieldValidation?.show(form, name, [].concat(msgs)[0]));
+                            if (unplaced.length) {
+                                errorBag.classList.remove('hidden');
+                                errorBag.innerText = unplaced.flatMap(([, msgs]) => msgs).join(' ');
+                            }
                             return;
                         }
                         errorBag.classList.remove('hidden');

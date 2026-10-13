@@ -31,7 +31,7 @@ class AuthController extends Controller
             'first_name'     => ['required', 'string', 'max:255'],
             'last_name'      => ['required', 'string', 'max:255'],
             'email'          => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'contact_number' => ['required', 'string', 'max:20'],
+            'contact_number' => ['required', 'string', 'max:20', 'regex:/^[0-9+()\s-]{7,20}$/'],
             'password'       => ['required', 'confirmed', Rules\Password::defaults()],
             'device_name'    => ['required', 'string', 'max:255'],
         ]);

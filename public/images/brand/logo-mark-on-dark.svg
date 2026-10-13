@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  
+  <g>
+    <defs>
+      <linearGradient id="spill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#FF8A66" stop-opacity=".85"/>
+        <stop offset="1" stop-color="#FF8A66" stop-opacity=".12"/>
+      </linearGradient>
+    </defs>
+    <path d="M23 50H14V22L32 5l18 17v28H41" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M38 10.7V6.5A1.5 1.5 0 0 1 39.5 5h5A1.5 1.5 0 0 1 46 6.5v11.7z" fill="#FFFFFF"/>
+    <circle cx="32" cy="36.5" r="6" fill="#FF8A66"/>
+    <path d="M29 39h6l3 13.5H26z" fill="#FF8A66"/>
+    <path d="M26 55h12l12 8H38z" fill="url(#spill)"/>
+  </g>
+</svg>

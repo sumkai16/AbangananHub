@@ -6,6 +6,7 @@ Project context and rules live in `context/`:
 - `context/DESIGN.md` — design system / UI conventions
 - `context/PRD.md` — product requirements
 - `context/SCHEMA.md` — database schema
+- `context/CHANGELOG.md` — dated index of recent changes and why (start here to see what changed lately)
 
 Read the relevant file(s) before non-trivial work.
 
@@ -31,6 +32,15 @@ A plan that documents a decision worth keeping long-term (e.g. a runbook like
 Plan with **Opus 5 (high effort)**; implement/code with **Sonnet 5**. Planning is where reasoning
 quality pays off; once the plan is agreed the coding is mechanical. Switch models at the handoff
 from plan to implementation.
+
+## Agents
+Use sub-agents (forks) when a task splits into **independent** pieces that can run side by side,
+e.g. a Blade view and a prompt rewrite that only share a data shape. It costs more tokens (each
+agent carries its own context, a fork copies the whole conversation) but finishes sooner. Do not
+use them for tightly linked changes (finder -> service -> tests), where one agent holding the whole
+picture is cheaper and less error-prone. Before spawning, fix the contract between the pieces (the
+array keys, function signatures, file ownership) and give each agent its own files so they never
+edit the same file. Say what was split and why in the reply.
 
 ## Git commits
 Author commits as the user only. Do not add a `Co-Authored-By: Claude` (or any AI) trailer.

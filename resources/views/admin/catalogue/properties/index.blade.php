@@ -16,7 +16,7 @@
         'no-units'   => 'No units',
         'stale'      => 'Listed 90+ days ago',
     ];
-    $typeOptions = ['' => 'All Types', 'Apartment' => 'Apartment', 'Condominium' => 'Condominium', 'House' => 'House', 'Boarding House' => 'Boarding House', 'Bedspace' => 'Bedspace'];
+    $typeOptions = \App\Enums\PropertyType::options('All Types');
     $sortOptions = [
         'newest'     => 'Newest first',
         'oldest'     => 'Oldest first',

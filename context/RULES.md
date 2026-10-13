@@ -68,6 +68,7 @@ Reference implementations: `Admin\VerificationController::approve/reject`, `Admi
 ## Laravel Conventions
 - Eloquent ORM over raw queries, always
 - Migrations for all schema changes — never manual SQL
+- **An index that starts with a foreign-key column can't simply be dropped in `down()` (MySQL, found Oct 8 2026).** When you add such an index, MySQL silently drops the automatic index it made for that foreign key, and the key then depends on yours. Dropping it fails with error 1553 ("needed in a foreign key constraint"). In `down()`, add a plain index on the foreign-key column first. Example: `2026_10_08_000000_add_browse_sort_indexes`. Test every new migration's rollback on `abanganan_hub_test` (`DB_DATABASE=abanganan_hub_test php artisan migrate:rollback --step=1`), never on the dev database.
 - Middleware for role gating (`EnsureTenant`, `EnsureLandlord`, `EnsureAdmin`) — never if-else role checks in controllers
 - Resource controllers where applicable
 - Named routes throughout — no hardcoded URLs in Blade
@@ -219,6 +220,25 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
 - **A route prefixed by one role's middleware isn't safe to link from another role's view** — the
   same lesson the admin document-preview routes already encode. Re-check this when wiring anything
   new across roles in production.
+
+## Forms: validation (established Oct 8 2026)
+- **Auth and profile forms carry `novalidate`** (login, register, forgot/reset password, profile edit, password change, delete account). The server's Laravel validation decides, and its messages show inline under the field that failed, so the browser's native popup never appears. Server rules already cover every field, so nothing relies on `required` / `type=email` in the HTML.
+- **Show errors per field**: `<x-input-error :messages="$errors->get('email')" />` (or an `@error` block). A single `$errors->first()` banner is not enough once `novalidate` is on. Login used one; it now shows the email and password errors under their own fields.
+- **Before adding `novalidate` to any other form**, confirm every input has its own error display and that the endpoint validates the same constraints. Of the ~86 forms, many (landlord, admin, conversations) show nothing on failure, so adding it blindly would make them fail silently. Forms submitted with `fetch` or `x-on:submit.prevent` also need their own 422 handling.
+- Keep `maxlength` as is; it is not a validation popup.
+- **Client-side field errors (Oct 8 2026):** `resources/js/field-validation.js` (loaded from `app.js`) replaces the browser's "Please fill out this field." bubble on **every** form. On submit it sets `noValidate`, runs the browser's own checks (`required`, `type=email`, `minlength`, `pattern`, …), and shows a short tag on the field border — "Required", "Invalid email", "Min 8 characters", "Numbers only" — with the full sentence for screen readers only (design D; styles: `.fv-*` in `app.css`). `type="tel"` inputs drop letters as they are typed. Forms that submit with `fetch` can place a 422 error on its field with `window.fieldValidation.show(form, name, message)` (the auth modal does this for register; login keeps its banner). Nothing is skipped vs. before, so unlike adding `novalidate` by hand it does not make forms fail silently. Hidden controls are ignored (server decides). Opt out with `data-native-validation` on the `<form>`; `formnovalidate` buttons still bypass it. Label text comes from `<label for>` (override with `data-label`).
+
+## AI search (established Oct 9 2026)
+- **A model never queries the database or states facts.** Whatever a driver returns goes through `IntentValidator` (whitelists from our own tables/config) before any query; the ✓/gap chips come from `MatchExplainer`; the rank call may only reorder ids it was given. Add a new filter by extending `IntentValidator`, `CandidateFinder`, `MatchExplainer` and the prompt vocabulary together.
+- **Every driver failure must throw `AiSearchUnavailable`** (no key, HTTP error, quota, bad JSON). The service turns it into the keyword fallback; a search never returns an error page.
+- **Untrusted text:** the tenant's sentence and listing titles are data. Prompts wrap the sentence in `<query>` tags and say so; never put them in the system prompt.
+- Send only the sentence and public listing facts to a provider. No names, emails, ids or account data (the privacy page says so).
+- Prompt or model changes: run `php artisan ai-search:eval` before and after and compare the per-field rates. It spends real quota.
+
+## Dev environment gotchas (Oct 2026)
+- **Run `npm install` after every pull.** `@fontsource/*` and `chart.js` were declared in `package.json` but never installed, which made Vite show a full-page error overlay (`ENOENT ... @fontsource\inter\latin-300.css`) and `npm run build` fail. With the CSS failing, the browser shows unstyled default Times text. Restart `npm run dev` afterwards, then hard-refresh.
+- **If every page and every `artisan` command hangs with no CPU use**, check `information_schema.processlist` for stuck `select * from cache` queries, then restart `mysqld` (see ARCHITECTURE.md Known Tradeoffs). Do not retry in a loop.
+- To catch Blade syntax errors across every view, run `php artisan view:cache`, then `php artisan view:clear` to leave dev as it was.
 
 ## Git Discipline
 - Commit message format: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)

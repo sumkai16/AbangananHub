@@ -25,9 +25,10 @@ class ReportController extends Controller
 
         $reports = $query->latest('report_id')->paginate(15)->withQueryString();
 
+        $statusTotals = Report::selectRaw('report_status, COUNT(*) as total')->groupBy('report_status')->pluck('total', 'report_status');
         $counts = [
-            'Pending' => Report::where('report_status', 'Pending')->count(),
-            'Resolved' => Report::where('report_status', 'Resolved')->count(),
+            'Pending' => $statusTotals['Pending'] ?? 0,
+            'Resolved' => $statusTotals['Resolved'] ?? 0,
         ];
         $counts['All'] = array_sum($counts);
 
@@ -45,62 +46,62 @@ class ReportController extends Controller
         return view('admin.reports.show', compact('report'));
     }
 
- public function resolve(Request $request, Report $report)
-{
-    abort_if($report->report_status !== 'Pending', 409, 'This report has already been resolved.');
+    public function resolve(Request $request, Report $report)
+    {
+        abort_if($report->report_status !== 'Pending', 409, 'This report has already been resolved.');
 
-    $validated = $request->validate([
-        'admin_notes'  => 'required|string|max:1000',
-        'action_taken' => 'required|in:none,suspend_user,delist_property',
-    ]);
+        $validated = $request->validate([
+            'admin_notes'  => 'required|string|max:1000',
+            'action_taken' => 'required|in:none,suspend_user,delist_property',
+        ]);
 
-    $actionLabel = 'No action taken';
+        $actionLabel = 'No action taken';
 
-    // Enforce action
-    if ($validated['action_taken'] === 'suspend_user') {
-        $targetUser = $report->reported_user_id
-            ? $report->reportedUser
-            : ($report->property ? $report->property->landlord : null);
+        // Enforce action
+        if ($validated['action_taken'] === 'suspend_user') {
+            $targetUser = $report->reported_user_id
+                ? $report->reportedUser
+                : ($report->property ? $report->property->landlord : null);
 
-        if ($targetUser) {
-            $targetUser->update(['account_status' => 'suspended']);
-            $actionLabel = "Suspended user: {$targetUser->first_name} {$targetUser->last_name}";
+            if ($targetUser) {
+                $targetUser->update(['account_status' => 'suspended']);
+                $actionLabel = "Suspended user: {$targetUser->first_name} {$targetUser->last_name}";
+            }
+        } elseif ($validated['action_taken'] === 'delist_property' && $report->property) {
+            // Suspended, not Rejected — this is a moderation takedown, not a
+            // verdict on whether the listing was ever legitimate. Rejected would
+            // get silently cleared the next time the listing is edited and
+            // re-approved (PropertyController::update() resets verification_status
+            // to Pending on any material change); publication_status is untouched
+            // by that reset, so a suspension survives it.
+            $report->property->update(['publication_status' => 'Suspended']);
+            $actionLabel = "Delisted property: {$report->property->title}";
         }
-    } elseif ($validated['action_taken'] === 'delist_property' && $report->property) {
-        // Suspended, not Rejected — this is a moderation takedown, not a
-        // verdict on whether the listing was ever legitimate. Rejected would
-        // get silently cleared the next time the listing is edited and
-        // re-approved (PropertyController::update() resets verification_status
-        // to Pending on any material change); publication_status is untouched
-        // by that reset, so a suspension survives it.
-        $report->property->update(['publication_status' => 'Suspended']);
-        $actionLabel = "Delisted property: {$report->property->title}";
+
+        $report->resolve(
+            $validated['admin_notes'],
+            $actionLabel,
+            auth()->id()
+        );
+
+        AuditLog::record(
+            'report.resolve',
+            "Resolved report #{$report->getKey()}. {$actionLabel}.",
+            $report,
+            $validated['admin_notes'],
+            ['action_taken' => $validated['action_taken']],
+        );
+
+        // Only the reporter is told. The reported party is deliberately not
+        // notified that a report existed — that is admin-only moderation state.
+        Notification::notify(
+            $report->reporter_id,
+            'report',
+            'Your report was reviewed',
+            $validated['admin_notes'],
+            route('notifications.index'),
+        );
+
+        return back()->with('status', 'Report resolved.');
     }
-
-    $report->resolve(
-        $validated['admin_notes'],
-        $actionLabel,
-        auth()->id()
-    );
-
-    AuditLog::record(
-        'report.resolve',
-        "Resolved report #{$report->getKey()}. {$actionLabel}.",
-        $report,
-        $validated['admin_notes'],
-        ['action_taken' => $validated['action_taken']],
-    );
-
-    // Only the reporter is told. The reported party is deliberately not
-    // notified that a report existed — that is admin-only moderation state.
-    Notification::notify(
-        $report->reporter_id,
-        'report',
-        'Your report was reviewed',
-        $validated['admin_notes'],
-        route('notifications.index'),
-    );
-
-    return back()->with('status', 'Report resolved.');
-}
 }

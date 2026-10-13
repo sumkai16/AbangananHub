@@ -86,7 +86,7 @@
                                 <div>
                                     <label class="{{ $label }}">Property type</label>
                                     <x-styled-select name="property_type"
-                                        :options="['Apartment' => 'Apartment', 'Condominium' => 'Condominium', 'House' => 'House', 'Boarding House' => 'Boarding House', 'Bedspace' => 'Bedspace']"
+                                        :options="\App\Enums\PropertyType::options()"
                                         :selected="old('property_type', $property->property_type)" required
                                         class="w-full h-11 px-3.5 rounded-xl border border-[#E2E4EC] text-[14px] text-[#060D26]" />
                                     @error('property_type')<p class="{{ $error }}">{{ $message }}</p>@enderror

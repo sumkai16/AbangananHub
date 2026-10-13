@@ -98,7 +98,7 @@ accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL
 | title | VARCHAR(255) | NOT NULL | |
 | description | TEXT | NULLABLE | |
 | house_rules | JSON | NULLABLE | cast to `array`. Since Sept 23 2026 a flat list of strings: the preset labels the landlord ticked in `App\Support\PropertyPolicies::HOUSE_RULES` (No Smoking, No Pets, No Parties / Events, Quiet Hours, Curfew, No Overnight Guests, Visitors Allowed) followed by each custom line they typed. Anything not in the preset list is a custom rule. Set in the add-property wizard and the property edit page; every unit inherits it |
-| property_type | ENUM('Apartment','Condominium','House','Boarding House','Bedspace') | NOT NULL | `Room` retired and renamed `Boarding House` Sept 22 2026 (`2026_09_22_000001_replace_room_with_boarding_house_property_type` renames existing rows; a single room is a *unit* inside a property, not a property type). `Condominium` added Sept 22 2026 (`2026_09_22_000000_add_condominium_to_properties_property_type`) — condos have association dues, elevators and amenity decks that renters filter on separately from apartments |
+| property_type | ENUM('Apartment','Dormitory','House','Boarding House','Bedspace') | NOT NULL | `Condominium` shelved and replaced by `Dormitory` Oct 13 2026 on the project manager's request (`2026_10_13_000000_replace_condominium_with_dormitory_property_type` renames existing rows; down() reverses it). `Room` retired and renamed `Boarding House` Sept 22 2026 (`2026_09_22_000001_replace_room_with_boarding_house_property_type` renames existing rows; a single room is a *unit* inside a property, not a property type). `Condominium` added Sept 22 2026 (`2026_09_22_000000_add_condominium_to_properties_property_type`) — condos have association dues, elevators and amenity decks that renters filter on separately from apartments |
 | living_arrangement | ENUM('Private','Shared','Mixed') | NULLABLE | Required by every property form since Sept 23 2026 (`PropertyPolicies::rules()`); the column stays nullable only for legacy rows. The old 'Female only' / 'Male only' values moved to `occupancy_preference`; 'Couples allowed' / 'Family-friendly' had no equivalent and were reset to NULL by `2026_09_23_000000_add_occupancy_preference_to_properties_table` |
 | occupancy_preference | ENUM('No Preference','Men Only','Women Only') | NOT NULL, default 'No Preference' | Added Sept 23 2026. Who the landlord prefers to rent to; required in every property form. Existing rows default to No Preference (or Men/Women Only when they carried the old gender arrangement) |
 | water_included | BOOLEAN | NULLABLE | Added Sept 2026. NULL means the landlord hasn't answered utilities at all (predates this field); `false` is an explicit "not included", shown as such on the tenant-facing property page |
@@ -566,6 +566,24 @@ set**, and `LandlordViewingHour::weekFor()` falls back to every day, `viewing_fi
 Saving requires at least one day, so "no rows" can't be reached by unticking everything. Applies to online
 viewings only; offline ones use the default range.
 
+### ai_search_logs
+One row per AI search (`App\Models\AiSearchLog`), so prompts can be tuned on real sentences and the daily free-tier quota watched. No FK on `user_id`: guests search too. Pruned after 30 days (`model:prune`, scheduled 03:00 in `routes/console.php`).
+
+| Column | Type | Notes |
+|---|---|---|
+| id | BIGINT UNSIGNED | PK |
+| user_id | BIGINT UNSIGNED | NULLABLE, indexed. Null for guests |
+| query | VARCHAR(300) | The sentence as typed (tags stripped) |
+| language | VARCHAR(8) | en / tl / ceb / mixed, as read by the AI or the fallback |
+| intent | JSON | Validated filters (`IntentValidator`) |
+| result_count / exact_count | SMALLINT UNSIGNED | Results shown / results with no gaps |
+| relaxed | JSON | Which filters were loosened to find results, in order |
+| driver | VARCHAR(20) | gemini / anthropic / null |
+| used_ai | BOOLEAN | False when the keyword fallback answered |
+| fallback_reason | VARCHAR(30) | not_configured / unavailable / busy (daily cap) / rate_limited / network |
+| latency_ms | INT UNSIGNED | Server time for the results step |
+| created_at | TIMESTAMP | Indexed. No `updated_at` |
+
 ### deposit_charges
 Claims a landlord makes against a tenancy's held security deposit (Sept 28 2026). A separate ledger: it never edits the `payments` row that funded the deposit. Voided rows stay; `voided_at` marks them, and `RentLedger` counts only active rows.
 
@@ -664,8 +682,12 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | add_lease_fields_to_reservations_table | `lease_snapshot` (JSON), `lease_file_path`, `lease_file_name`, `lease_uploaded_at` | Formal lease: terms frozen when issued, plus the signed paper copy | Sept 28 2026 |
 | create_deposit_charges_table | Deposit claims ledger (see the `deposit_charges` section) | Landlords need to record what a held deposit is being claimed for | Sept 28 2026 |
 | add_condominium_to_properties_property_type / replace_room_with_boarding_house_property_type | `property_type` ENUM gains `Condominium`, and `Room` is renamed `Boarding House` (existing rows are rewritten). MySQL only, guarded by driver | Property types the listing form now offers | Sept 22 2026 |
+| replace_condominium_with_dormitory_property_type | `property_type` ENUM swaps `Condominium` for `Dormitory`; existing Condominium rows are renamed. MySQL only, guarded by driver | Dormitory type in forms, filters and AI search | Oct 13 2026 |
+| add_geo_role_and_status_indexes | Indexes: `properties (latitude, longitude)`, `user_roles` UNIQUE `(user_id, role)` + `(role, user_id)`, `users.account_status`. No column changes | AI search near-place box filter, admin role / status counts | Oct 13 2026 |
 | add_occupancy_preference_to_properties_table | `occupancy_preference` ENUM ('No Preference','Men Only','Women Only'); old `Female only`/`Male only`/`Couples allowed`/`Family-friendly` living-arrangement values are moved out of `living_arrangement` | Gender preference was stored as a living arrangement, which mixed two questions | Sept 23 2026 |
 | add_rejection_reason_to_properties_table | `rejection_reason` TEXT | Landlord gets a reason when an admin rejects a listing | Sept 29 2026 |
+| add_browse_sort_indexes (`2026_10_08_000000`) | Indexes only, no column changes: `properties_created_at_index (created_at)`, `properties_type_index (property_type)`, `reviews_property_rating_index (property_id, is_hidden, rating)`. Each guarded with `Schema::hasIndex`, explicitly named | Browse sorts by newest / price / rating and filters by type; price and rating order by correlated subselects, and the reviews one had only the `property_id` foreign key. No measurable change on the 12-row dev data (~8 ms before and after); added for growth. **Rollback fixed Oct 8 2026 (`6a7240d`):** adding the composite index let MySQL drop the automatic `reviews.property_id` foreign-key index, so `down()` failed with error 1553; `down()` now adds `reviews_property_id_index` back first | Oct 8 2026 |
+| create_ai_search_logs_table (`2026_10_09_000000`) | New `ai_search_logs` table | AI search: tune prompts on real sentences, watch quota | Oct 2026 |
 
 ### Seeders
 - `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.

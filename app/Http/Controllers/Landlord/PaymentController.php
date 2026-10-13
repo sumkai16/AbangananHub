@@ -46,6 +46,7 @@ class PaymentController extends Controller
     ];
 
     private const METHODS = ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'];
+
     private const TYPES = ['Monthly', 'Deposit', 'Initial', 'Utility', 'Other'];
 
     /**
@@ -82,7 +83,7 @@ class PaymentController extends Controller
         // to see what an ex-tenant left unpaid.
         $query = Reservation::whereIn('rental_status', ['Occupied', 'Completed'])
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments']);
+            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges']);
 
         if ($propertyId && $properties->contains('property_id', $propertyId)) {
             $query->where('property_id', $propertyId);
@@ -91,8 +92,8 @@ class PaymentController extends Controller
         if ($search = $request->input('search')) {
             $query->whereHas('tenant', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -533,7 +534,7 @@ class PaymentController extends Controller
         $reservations = Reservation::whereIn('rental_status', ['Occupied', 'Completed'])
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
             ->when($request->integer('property'), fn ($q, $id) => $q->where('property_id', $id))
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments'])
+            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges'])
             ->get();
 
         return response()->streamDownload(function () use ($reservations) {

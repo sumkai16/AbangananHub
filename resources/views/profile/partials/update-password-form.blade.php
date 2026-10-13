@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <form method="post" action="{{ route('password.update') }}" x-data="{ pw: '', confirm: '' }">
+    <form method="post" action="{{ route('password.update') }}" x-data="{ pw: '', confirm: '' }" novalidate>
         @csrf
         @method('put')
 

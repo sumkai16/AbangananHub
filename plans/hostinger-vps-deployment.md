@@ -1,6 +1,6 @@
 # Hostinger VPS Deployment Runbook
 
-Target: Ubuntu 22.04 VPS, Nginx, PHP 8.2-FPM, MySQL, Supervisor-managed Reverb, Certbot SSL.
+Target: Ubuntu 22.04 VPS, Nginx, PHP 8.4-FPM, MySQL, Supervisor-managed Reverb, Certbot SSL.
 
 This is the deploy procedure for AbangananHub as it exists today (Aug 2026). It assumes a fresh VPS
 and a domain pointed at it. Substitute `abangananhub.com` and `/var/www/abangananhub` throughout.
@@ -29,9 +29,16 @@ Three hard requirements rule out shared hosting and ephemeral-filesystem platfor
 
 ```bash
 sudo apt update && sudo apt upgrade -y
+
+# Ubuntu 22.04 ships PHP 8.1. The app requires PHP >= 8.4 (composer.json), so add the
+# Ondrej PPA first — `composer install` refuses to run on anything older.
+sudo apt install -y software-properties-common
+sudo add-apt-repository -y ppa:ondrej/php
+sudo apt update
+
 sudo apt install -y nginx mysql-server supervisor git unzip curl \
-  php8.2-fpm php8.2-mysql php8.2-mbstring php8.2-xml php8.2-curl \
-  php8.2-zip php8.2-gd php8.2-bcmath php8.2-intl
+  php8.4-fpm php8.4-mysql php8.4-mbstring php8.4-xml php8.4-curl \
+  php8.4-zip php8.4-gd php8.4-bcmath php8.4-intl
 
 # Composer
 curl -sS https://getcomposer.org/installer | php
@@ -53,7 +60,7 @@ sudo ufw enable
 
 ### PHP tuning
 
-In `/etc/php/8.2/fpm/php.ini`:
+In `/etc/php/8.4/fpm/php.ini`:
 
 ```ini
 memory_limit = 256M
@@ -62,6 +69,7 @@ post_max_size = 64M          ; unit create posts up to 10 photos at once
 max_execution_time = 60
 
 opcache.enable = 1
+opcache.memory_consumption = 256
 opcache.validate_timestamps = 0   ; production only — requires an FPM reload to pick up code changes
 ```
 
@@ -70,7 +78,7 @@ opcache.validate_timestamps = 0   ; production only — requires an FPM reload t
 fails with a confusing error.
 
 ```bash
-sudo systemctl restart php8.2-fpm
+sudo systemctl restart php8.4-fpm
 ```
 
 ---
@@ -130,7 +138,7 @@ BCRYPT_ROUNDS=12
 
 LOG_CHANNEL=stack
 LOG_STACK=daily
-LOG_LEVEL=error
+LOG_LEVEL=warning
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -243,10 +251,8 @@ php artisan migrate --force
 # 3. Assets — AFTER the env is correct
 npm run build
 
-# 4. Caches (these read .env, so they come last)
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# 4. Caches (these read .env, so they come last) — config + route + view + event in one go
+php artisan optimize
 
 # 5. Public symlink for the local (public) disk
 php artisan storage:link
@@ -296,6 +302,19 @@ server {
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
 
+    # --- Compression ---
+    # Text (HTML, JS, CSS, JSON) shrinks 70-80%; the browse page HTML alone is ~350 KB.
+    # `php artisan serve` never compresses, so this only shows up on the real server.
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_types text/plain text/css text/javascript application/javascript application/json
+               application/xml image/svg+xml;
+    # Brotli is smaller still: `sudo apt install libnginx-mod-http-brotli-filter`, then
+    # `brotli on; brotli_types <same list>;`. Optional; gzip alone is enough.
+
     # --- Reverb WebSocket proxy ---
     # The browser connects to wss://abangananhub.com/app/... on 443;
     # this forwards to the daemon on loopback:8080.
@@ -321,12 +340,20 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # Vite output is content-hashed (app-m4J79ABd.js), so a changed file gets a new name
+    # and the old one can be cached for a year. Never do this for anything outside /build/.
+    location /build/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
     location ~ \.php$ {
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_read_timeout 60;
@@ -460,6 +487,7 @@ Ordered so a failure points at the layer that caused it.
 
 - [ ] `https://abangananhub.com` loads, padlock valid, redirects from `http://`
 - [ ] Styling is present (if unstyled → `npm run build` didn't run, or `public/build` is missing)
+- [ ] Compression is on: `curl -sI -H 'Accept-Encoding: gzip' https://abangananhub.com/properties | grep -i content-encoding` prints `gzip`, and a `/build/assets/*.js` response has `cache-control: public, immutable`
 - [ ] Register a tenant → lands on `/properties` (`User::homeRoute()`)
 - [ ] Browse: search, filters, map tiles, a property detail page
 - [ ] **Chat**: two accounts, two browsers, message delivers in <2s with no reload.
@@ -488,15 +516,14 @@ php artisan down
 
 git pull origin main
 composer install --no-dev --optimize-autoloader
+php artisan optimize:clear        # drop stale caches before the new code is built against
 php artisan migrate --force
 npm ci && npm run build
 
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan optimize              # config + route + view + event caches
 
 sudo supervisorctl restart abangananhub-reverb   # picks up changed broadcast code
-sudo systemctl reload php8.2-fpm                 # required: opcache.validate_timestamps=0
+sudo systemctl reload php8.4-fpm                 # required: opcache.validate_timestamps=0
 
 php artisan up
 ```
@@ -530,7 +557,84 @@ Same for the FPM reload, since opcache is set not to check timestamps.
 
 - Real mail sender if live delivery is ever needed
 - Publishing the Google/Facebook OAuth apps out of Testing mode
-- Redis for cache/session (DB-backed is fine at this volume)
+- Redis for cache/session (DB-backed is fine at this volume — see §16 for the switch)
 - A queue worker (only if something starts implementing `ShouldQueue`)
 - Off-server backups — at minimum a nightly `mysqldump` plus `storage/app/private`, which holds the
   only copy of every government ID and property document
+
+---
+
+## 16. Production settings
+
+One place for the knobs that differ from local dev. Most are already set in §2, §5 and §13 — this
+is the checklist, plus the parts those sections do not cover. `.env.example` is left on dev
+defaults on purpose (`APP_ENV=local`, `APP_DEBUG=true`, `LOG_LEVEL=debug` are right for a laptop);
+production values live only in the server's `.env`.
+
+| Setting | Production value | Why |
+|---|---|---|
+| `APP_ENV` / `APP_DEBUG` | `production` / `false` | debug on a 500 leaks secrets (§14) |
+| `LOG_LEVEL` | `warning` | `debug` grows fast (the dev log is already 1.8 MB) and slows every request |
+| PHP | `>= 8.4` | `composer.json` requires `^8.4` (§2 adds the PPA) |
+| `opcache.enable` | `1` | |
+| `opcache.validate_timestamps` | `0` | skip the per-file mtime check; **reload FPM on every deploy** (§13) |
+| `opcache.memory_consumption` | `256` | the default 128 MB is tight with the vendor tree |
+
+### Deploy-time caches
+
+On every deploy, in this order (already wired into §6 and §13):
+
+```bash
+php artisan optimize:clear   # first — removes stale config/route/view/event caches
+# ... migrate, npm run build ...
+php artisan optimize         # then — rebuilds config, route, view and event caches
+```
+
+`optimize` reads `.env`, so it must run after the production values are in place (§6).
+
+### Cache and sessions
+
+| VPS has Redis? | `CACHE_STORE` | `SESSION_DRIVER` |
+|---|---|---|
+| Yes | `redis` | `redis` |
+| No | `file` | `database` (keep) |
+
+To use Redis: `sudo apt install -y redis-server php8.4-redis`, bind it to loopback (the default),
+then set `CACHE_STORE=redis`, `SESSION_DRIVER=redis`, `REDIS_CLIENT=phpredis`
+(`.env.example` already has the `REDIS_*` block). Run `php artisan cache:clear` after switching.
+Switching `SESSION_DRIVER` logs everyone out once.
+
+Why not `database` for cache: every cache read and write is a query on the same MySQL the app
+queries for real work. `file` is free and fine at one-server scale. Sessions stay on `database`
+without Redis because file sessions break if the app is ever moved to two servers.
+
+### Queue worker
+
+Nothing queues today (§9), so this is not needed yet. The moment something implements
+`ShouldQueue` or calls `Mail::queue`, add a second Supervisor program next to the Reverb one.
+Use `queue:work`, **not** `queue:listen` — `listen` re-boots the framework for every job and is
+slower; `work` keeps the app in memory, which is why it must be restarted on deploy.
+
+`/etc/supervisor/conf.d/abangananhub-worker.conf`:
+
+```ini
+[program:abangananhub-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/abangananhub/artisan queue:work --tries=3 --max-time=3600
+directory=/var/www/abangananhub
+autostart=true
+autorestart=true
+numprocs=1
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/www/abangananhub/storage/logs/worker.log
+stopwaitsecs=3600
+```
+
+```bash
+sudo supervisorctl reread && sudo supervisorctl update
+```
+
+Then add `php artisan queue:restart` to §13 after `optimize` (it signals workers to exit after the
+current job; Supervisor brings them back on the new code). With Redis, also set
+`QUEUE_CONNECTION=redis`.
