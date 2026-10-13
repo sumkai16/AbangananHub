@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Events\MessageSent;
+use App\Support\LeaseTerms;
 use Illuminate\Broadcasting\BroadcastException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -80,74 +82,75 @@ class Reservation extends Model
             'handover_confirmed_at' => 'datetime',
         ];
     }
-/**
- * Tenant confirms they have physically moved in.
- *
- * This is the escrow release point: the held payment goes to the landlord
- * in the same transaction that marks the unit occupied. Previously this
- * only flipped the status and left the payment sitting on 'Held' forever,
- * so money never actually reached the landlord unless an admin noticed and
- * released it by hand from the admin Payments screen.
- *
- * Callers must hold a lock on this reservation — see
- * Tenant\AgreementController::confirmMoveIn.
- */
-public function confirmMoveIn(): bool
-{
-    if ($this->rental_status !== 'Rental Agreement Signed') {
-        return false;
+
+    /**
+     * Tenant confirms they have physically moved in.
+     *
+     * This is the escrow release point: the held payment goes to the landlord
+     * in the same transaction that marks the unit occupied. Previously this
+     * only flipped the status and left the payment sitting on 'Held' forever,
+     * so money never actually reached the landlord unless an admin noticed and
+     * released it by hand from the admin Payments screen.
+     *
+     * Callers must hold a lock on this reservation — see
+     * Tenant\AgreementController::confirmMoveIn.
+     */
+    public function confirmMoveIn(): bool
+    {
+        if ($this->rental_status !== 'Rental Agreement Signed') {
+            return false;
+        }
+
+        // A dispute freezes the clock for admin review; the tenant confirming
+        // their own move-in here would release the deposit out from under it.
+        if ($this->move_in_disputed_at !== null) {
+            return false;
+        }
+
+        // Locked, not just checked: this row is about to move money.
+        $heldPayment = $this->payments()
+            ->where('status', 'Held')
+            ->lockForUpdate()
+            ->first();
+
+        if (! $heldPayment) {
+            return false;
+        }
+
+        $this->rental_status = 'Occupied';
+        $this->tenant_confirmed_move_in_at = now();
+        $this->move_in_deadline_at = null;
+        $this->save();
+
+        $heldPayment->update([
+            'status'         => 'Released',
+            'released_at'    => now(),
+            // Null = released by the platform, not an admin. release_reason is what
+            // distinguishes a tenant confirming from a timer firing — released_by is
+            // null for both, so it cannot carry that distinction on its own.
+            'released_by'    => null,
+            'release_reason' => 'tenant_confirmed',
+            // The money is now owed to the landlord — see
+            // docs/specs/2026-07-26-landlord-payout-design.md.
+            'payout_status'  => 'Pending Payout',
+        ]);
+
+        $this->releasedPayment = $heldPayment;
+
+        if ($this->unit) {
+            $this->unit->availability_status = 'Occupied';
+            $this->unit->save();
+        }
+
+        return true;
     }
 
-    // A dispute freezes the clock for admin review; the tenant confirming
-    // their own move-in here would release the deposit out from under it.
-    if ($this->move_in_disputed_at !== null) {
-        return false;
-    }
-
-    // Locked, not just checked: this row is about to move money.
-    $heldPayment = $this->payments()
-        ->where('status', 'Held')
-        ->lockForUpdate()
-        ->first();
-
-    if (! $heldPayment) {
-        return false;
-    }
-
-    $this->rental_status = 'Occupied';
-    $this->tenant_confirmed_move_in_at = now();
-    $this->move_in_deadline_at = null;
-    $this->save();
-
-    $heldPayment->update([
-        'status'         => 'Released',
-        'released_at'    => now(),
-        // Null = released by the platform, not an admin. release_reason is what
-        // distinguishes a tenant confirming from a timer firing — released_by is
-        // null for both, so it cannot carry that distinction on its own.
-        'released_by'    => null,
-        'release_reason' => 'tenant_confirmed',
-        // The money is now owed to the landlord — see
-        // docs/specs/2026-07-26-landlord-payout-design.md.
-        'payout_status'  => 'Pending Payout',
-    ]);
-
-    $this->releasedPayment = $heldPayment;
-
-    if ($this->unit) {
-        $this->unit->availability_status = 'Occupied';
-        $this->unit->save();
-    }
-
-    return true;
-}
-
-/**
- * Set by confirmMoveIn() so the caller can broadcast the release after the
- * transaction commits — broadcasting inside it would announce a payout that
- * a rollback could still undo.
- */
-public ?Payment $releasedPayment = null;
+    /**
+     * Set by confirmMoveIn() so the caller can broadcast the release after the
+     * transaction commits — broadcasting inside it would announce a payout that
+     * a rollback could still undo.
+     */
+    public ?Payment $releasedPayment = null;
 
     /**
      * The single held payment for this reservation, if any.
@@ -490,6 +493,19 @@ public ?Payment $releasedPayment = null;
         return $this->hasMany(Payment::class, 'reservation_id', 'reservation_id');
     }
 
+    /**
+     * True once the initial payment is in escrow, paid out, or recorded by the
+     * landlord. The reservation stays "Rental Agreement Signed" while escrow is
+     * funded, so the status alone cannot stop a second charge.
+     */
+    public function hasSettledInitialPayment(): bool
+    {
+        return $this->payments()
+            ->where('payment_type', 'Initial')
+            ->whereIn('status', ['Held', 'Paid', 'Released'])
+            ->exists();
+    }
+
     public function depositCharges()
     {
         return $this->hasMany(DepositCharge::class, 'reservation_id', 'reservation_id')->orderByDesc('charged_at');
@@ -695,6 +711,7 @@ public ?Payment $releasedPayment = null;
             return false;
         }
         $this->rental_status = 'Under Negotiation';
+
         return $this->save();
     }
 
@@ -708,8 +725,9 @@ public ?Payment $releasedPayment = null;
         }
         // Freeze the lease the tenant is about to sign. Done here, not at
         // the call sites, so every path that issues the agreement does it.
-        $this->lease_snapshot = \App\Support\LeaseTerms::snapshot($this);
+        $this->lease_snapshot = LeaseTerms::snapshot($this);
         $this->rental_status = 'Pending Rental Agreement';
+
         return $this->save();
     }
 
@@ -721,6 +739,7 @@ public ?Payment $releasedPayment = null;
         $this->rental_status = 'Rental Agreement Signed';
         $this->agreed_at = now();
         $this->agreed_ip = $ip;
+
         return $this->save();
     }
 
@@ -871,7 +890,7 @@ public ?Payment $releasedPayment = null;
      * present (0 when none). Replaces one COUNT per tab — 8 identical queries
      * per page load on both the landlord and tenant reservation lists.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $base  already scoped/filtered, not yet ordered
+     * @param  Builder  $base  already scoped/filtered, not yet ordered
      */
     public static function statusCounts($base, array $statuses): array
     {

@@ -2,6 +2,11 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 14 2026 — Two checkout bugs fixed (branch `axci`)
+- **Second initial checkout after escrow is funded:** `Reservation::hasSettledInitialPayment()` (an Initial payment that is `Held`, `Paid` or `Released`) is now checked before a new PayMongo session is created, in `Tenant/PaymentController::createCheckoutSession` and `Api/Tenant/PaymentController::pay`. The reservation stays `Rental Agreement Signed` while escrow is funded, so the status guard alone never stopped it. Refused with "The initial payment for this reservation has already been made."; nothing is sent to PayMongo and no row is created. A landlord-recorded Initial payment counts too.
+- **1 centavo short:** new `Payment::toCentavos()` rounds instead of truncating (512.05 became 51204). Used by all four checkout sites (initial and rent, web and API).
+- The two `markTestIncomplete` tests were switched on; both fail on the old code (4 cases, web + API) and pass now. Suite: 330 passing, 4 incomplete (the remaining suspected bugs: allocator x2, API allocator, auto-release wording), 1 skipped.
+
 ## Oct 14 2026 — Money-path tests, part 2 (branch `axci`)
 - **+156 test cases (suite: 326 passing, 8 incomplete, 1 skipped)**, in `tests/Feature/Payments/`, written by three parallel agents and break-checked by hand (every guard listed below was removed one at a time; each removal failed a test):
   - `MoveInDeadlinesTest` (26): the daily escrow command: backfill, reminders, escalation to admin, auto-release. Pins the midnight boundary, disputed / wrong-status / no-held-deposit / keys-not-turned-over guards, once-a-day reminders, double-run idempotency, one failing row not stopping the others. The keys guard needed a test that calls the release step alone, because the escalation step runs first and hides it.
@@ -12,8 +17,8 @@ Newest first. One entry per piece of work, with the files to read. Longer reason
   2. **A settled start month is charged a second rent** when the landlord records a payment on it (`Landlord/PaymentController.php:351` passes `unsettledPeriods()`, so `RentPaymentAllocator` falls back to full rent).
   3. **A part-covered future month is treated as owing a full rent** (same cause, `RentLedger.php:322` drops future months).
   4. **The landlord API skips the allocator** (`Api/Landlord/PaymentController.php:112-125`): 10,000 on a 5,000 rent lands entirely on one month, and `replaces_payment_id` is ignored.
-  5. **A second initial checkout is allowed after escrow is funded** (`Tenant/PaymentController.php:37-40`, `Api/Tenant/PaymentController.php:45-48` only look for a Pending row). Two incomplete cases (web, API).
-  6. **Initial amount can be 1 centavo short** (`(int) ($rental_fee * 100)` at `Tenant/PaymentController.php:61`, `Api/Tenant/PaymentController.php:67`; 512.05 is sent as 51204). Rent uses `round()`.
+  5. **FIXED Oct 14 (see the entry above):** **A second initial checkout is allowed after escrow is funded** (`Tenant/PaymentController.php:37-40`, `Api/Tenant/PaymentController.php:45-48` only look for a Pending row). Two incomplete cases (web, API).
+  6. **FIXED Oct 14:** **Initial amount can be 1 centavo short** (`(int) ($rental_fee * 100)` at `Tenant/PaymentController.php:61`, `Api/Tenant/PaymentController.php:67`; 512.05 is sent as 51204). Rent uses `round()`.
 - **Contract notes:** initial checkout charges ONE month of rent (not deposit + advance); the web `store()` writes no audit log and sends the tenant no notification; a recorded split starts at the month the landlord picks, not the oldest unpaid one.
 - **Not covered:** lock-based double-click protection and the in-transaction `Occupied` re-check (need real concurrency), the "unit no longer available" branch, the reconcile poll never comparing the paid amount to the Payment row, the 409 branch of `store()`.
 

@@ -273,8 +273,6 @@ class TenantCheckoutTest extends TestCase
     #[DataProvider('surfaces')]
     public function test_a_second_initial_checkout_is_refused_once_the_first_is_already_paid_into_escrow(string $surface): void
     {
-        $this->markTestIncomplete('Suspected bug: createCheckoutSession/pay only look for a Pending session, so a tenant whose initial payment is already Held (status stays "Rental Agreement Signed" while escrow is funded) can start a second charge. Tenant/PaymentController.php:37-40, Api/Tenant/PaymentController.php:45-48.');
-
         Http::fake();
         $t = $this->signedTenancy();
         $this->makePayment($t['reservation'], [
@@ -384,8 +382,6 @@ class TenantCheckoutTest extends TestCase
     #[DataProvider('surfaces')]
     public function test_an_initial_amount_with_centavos_reaches_paymongo_without_losing_one(string $surface): void
     {
-        $this->markTestIncomplete('Suspected bug: (int) ($rental_fee * 100) truncates float noise, so PHP 512.05 is sent as 51204 centavos (the rent path correctly uses round()). Tenant/PaymentController.php:61, Api/Tenant/PaymentController.php:67.');
-
         $this->fakeCheckoutCreated('cs_checkout_centavo');
         $t = $this->signedTenancy(unit: ['rental_fee' => 512.05]);
 
