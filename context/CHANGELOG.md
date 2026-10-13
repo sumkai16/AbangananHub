@@ -2,6 +2,21 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 14 2026 — Money-path tests, part 2 (branch `axci`)
+- **+156 test cases (suite: 326 passing, 8 incomplete, 1 skipped)**, in `tests/Feature/Payments/`, written by three parallel agents and break-checked by hand (every guard listed below was removed one at a time; each removal failed a test):
+  - `MoveInDeadlinesTest` (26): the daily escrow command: backfill, reminders, escalation to admin, auto-release. Pins the midnight boundary, disputed / wrong-status / no-held-deposit / keys-not-turned-over guards, once-a-day reminders, double-run idempotency, one failing row not stopping the others. The keys guard needed a test that calls the release step alone, because the escalation step runs first and hides it.
+  - `RecordPaymentTest` (36) + `RentPaymentAllocatorTest` (12): landlord-recorded rent, split over months to the exact centavo, validation, `replaces_payment_id` scoping, authorization, rows always `Paid` / `recorded_by` / no payout status, web and API.
+  - `TenantCheckoutTest` + `TenantReconcileTest` (89 methods, 4 entry points each via data providers): who may start / settle a PayMongo payment, amounts in centavos, no orphan Pending row on a PayMongo failure, the reconcile poll never moving a settled payment, `Http::fake()` throughout.
+- **Suspected app bugs, found and NOT fixed** (each has a `markTestIncomplete('Suspected bug: ...')` test that fails once the marker is removed; remove the marker when fixing):
+  1. **Auto-release announces a tenant confirmation** (`ProcessMoveInDeadlines.php:280` sets `Occupied`, `ReservationObserver.php:123-129` then tells the landlord "{tenant} confirmed move-in" and sends a second notice). Only when the reservation has a conversation.
+  2. **A settled start month is charged a second rent** when the landlord records a payment on it (`Landlord/PaymentController.php:351` passes `unsettledPeriods()`, so `RentPaymentAllocator` falls back to full rent).
+  3. **A part-covered future month is treated as owing a full rent** (same cause, `RentLedger.php:322` drops future months).
+  4. **The landlord API skips the allocator** (`Api/Landlord/PaymentController.php:112-125`): 10,000 on a 5,000 rent lands entirely on one month, and `replaces_payment_id` is ignored.
+  5. **A second initial checkout is allowed after escrow is funded** (`Tenant/PaymentController.php:37-40`, `Api/Tenant/PaymentController.php:45-48` only look for a Pending row). Two incomplete cases (web, API).
+  6. **Initial amount can be 1 centavo short** (`(int) ($rental_fee * 100)` at `Tenant/PaymentController.php:61`, `Api/Tenant/PaymentController.php:67`; 512.05 is sent as 51204). Rent uses `round()`.
+- **Contract notes:** initial checkout charges ONE month of rent (not deposit + advance); the web `store()` writes no audit log and sends the tenant no notification; a recorded split starts at the month the landlord picks, not the oldest unpaid one.
+- **Not covered:** lock-based double-click protection and the in-transaction `Occupied` re-check (need real concurrency), the "unit no longer available" branch, the reconcile poll never comparing the paid amount to the Payment row, the 409 branch of `store()`.
+
 ## Oct 14 2026 — Money-path tests (branch `axci`)
 - **+40 tests in `tests/Feature/Payments/`** (suite: 165 passing, 1 skipped). Fixtures in `tests/Support/CreatesPaymentFixtures` (an Occupied tenancy, recorded / pending / held payments).
   - `PayMongoWebhookTest` (10): no / wrong / tampered / unconfigured signature is refused (403) and settles nothing; Initial goes to `Held` with no payout status, Monthly goes to `Paid` + `Pending Payout`; a retried delivery changes nothing; a replay cannot pull a `Released` payment back to `Held`; unknown session and other event types are acknowledged and ignored.
