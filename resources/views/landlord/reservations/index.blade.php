@@ -15,6 +15,18 @@
             openAgreement(action) {
                 this.agreementAction = action;
                 this.agreementOpen = true;
+            },
+            rateOpen: false,
+            rate: { action: '', tenant: '', unit: '' },
+            rating: 0,
+            hovered: 0,
+            commentLen: 0,
+            openRate(data) {
+                this.rate = data;
+                this.rating = 0;
+                this.hovered = 0;
+                this.commentLen = 0;
+                this.rateOpen = true;
             }
         }">
 
@@ -440,10 +452,11 @@
                                                         Rated
                                                     </span>
                                                 @else
-                                                    <a href="{{ route('landlord.reservations.rateTenant', $reservation) }}"
-                                                        class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66]/15 text-[#B35A3D] text-[12px] font-semibold hover:bg-[#FF8A66]/25 transition-colors duration-200 whitespace-nowrap">
+                                                    <button type="button"
+                                                        @click="openRate(@js(['action' => route('landlord.reservations.rateTenant.store', $reservation), 'tenant' => trim($reservation->tenant->first_name . ' ' . $reservation->tenant->last_name), 'unit' => $reservation->property->title . ' — ' . ($reservation->unit->unit_label ?? 'No unit')]))"
+                                                        class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66]/15 text-[#B35A3D] text-[12px] font-semibold hover:bg-[#FF8A66]/25 cursor-pointer transition-colors duration-200 whitespace-nowrap">
                                                         Rate Tenant
-                                                    </a>
+                                                    </button>
                                                 @endif
                                             @endif
 
@@ -642,10 +655,11 @@
                                             Rated
                                         </span>
                                     @else
-                                        <a href="{{ route('landlord.reservations.rateTenant', $reservation) }}"
-                                            class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66]/15 text-[#B35A3D] text-[12px] font-semibold hover:bg-[#FF8A66]/25 transition-colors duration-200 whitespace-nowrap">
+                                        <button type="button"
+                                            @click="openRate(@js(['action' => route('landlord.reservations.rateTenant.store', $reservation), 'tenant' => trim($reservation->tenant->first_name . ' ' . $reservation->tenant->last_name), 'unit' => $reservation->property->title . ' — ' . ($reservation->unit->unit_label ?? 'No unit')]))"
+                                            class="h-8 px-3 inline-flex items-center rounded-lg bg-[#FF8A66]/15 text-[#B35A3D] text-[12px] font-semibold hover:bg-[#FF8A66]/25 cursor-pointer transition-colors duration-200 whitespace-nowrap">
                                             Rate Tenant
-                                        </a>
+                                        </button>
                                     @endif
                                 @endif
 
@@ -837,6 +851,74 @@
                             </template>
                         </div>
                     </template>
+                </div>
+            </div>
+        </template>
+
+        {{-- Rate tenant modal (replaces the standalone landlord/tenant-ratings/create page as the entry point) --}}
+        <template x-teleport="body">
+            <div x-show="rateOpen" x-cloak x-on:keydown.escape.window="rateOpen = false"
+                class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-4">
+                <div @click="rateOpen = false" class="absolute inset-0 bg-black/40"></div>
+                <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md p-5 sm:p-6 max-h-[92vh] overflow-y-auto"
+                    x-show="rateOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="rate-tenant-title">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="min-w-0">
+                            <h2 id="rate-tenant-title" class="text-lg font-normal text-[#060D26]">Rate tenant</h2>
+                            <p class="mt-0.5 text-[13px] font-semibold text-[#060D26] truncate" x-text="rate.tenant"></p>
+                            <p class="text-[12px] text-[#5B6A8E] truncate" x-text="rate.unit"></p>
+                        </div>
+                        <button type="button" @click="rateOpen = false" aria-label="Close"
+                            class="h-11 w-11 -mr-2 -mt-2 flex items-center justify-center text-[#5B6A8E] hover:text-[#060D26] cursor-pointer">
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form :action="rate.action" method="POST">
+                        @csrf
+                        <div class="mb-5">
+                            <p class="text-sm font-semibold text-[#060D26] mb-2">Rating</p>
+                            <div class="flex items-center gap-1" role="radiogroup" aria-label="Rating out of 5">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <button type="button" role="radio" :aria-checked="rating === {{ $i }}" aria-label="{{ $i }} star{{ $i > 1 ? 's' : '' }}"
+                                        @click="rating = {{ $i }}" @mouseenter="hovered = {{ $i }}" @mouseleave="hovered = 0"
+                                        class="h-11 w-11 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] rounded-lg">
+                                        <svg width="30" height="30" viewBox="0 0 24 24"
+                                            :fill="(hovered || rating) >= {{ $i }} ? '#FBBF24' : 'none'"
+                                            :stroke="(hovered || rating) >= {{ $i }} ? '#FBBF24' : '#C9CDDB'" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.563.563 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z" />
+                                        </svg>
+                                    </button>
+                                @endfor
+                                <span class="ml-2 text-sm text-[#5B6A8E]" x-show="rating > 0" x-cloak><span x-text="rating"></span>/5</span>
+                            </div>
+                            <input type="hidden" name="rating" :value="rating">
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="rate-comment" class="block text-sm font-semibold text-[#060D26] mb-2">Comment
+                                <span class="font-normal text-[#5B6A8E]">(optional)</span></label>
+                            <textarea id="rate-comment" name="comment" rows="3" maxlength="1000"
+                                @input="commentLen = $el.value.length" x-effect="if (rateOpen) $el.value = ''"
+                                placeholder="How was your experience with this tenant?"
+                                class="w-full border border-[#E2E4EC] rounded-xl px-4 py-3 text-[16px] sm:text-sm text-[#060D26] placeholder-[#5B6A8E]/60 focus:ring-2 focus:ring-[#FF8A66]/30 focus:border-[#FF8A66] transition-colors duration-150 resize-none"></textarea>
+                            <p class="text-[11px] text-[#5B6A8E] mt-1 text-right"><span x-text="commentLen"></span>/1000</p>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button type="submit" :disabled="rating === 0"
+                                class="flex-1 sm:flex-none h-11 px-6 rounded-xl bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] cursor-pointer transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed">
+                                Submit rating
+                            </button>
+                            <button type="button" @click="rateOpen = false"
+                                class="h-11 px-5 rounded-xl text-sm font-medium text-[#5B6A8E] hover:text-[#060D26] cursor-pointer transition-colors duration-200">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </template>

@@ -46,12 +46,14 @@
                             </svg>
                             Message
                         </a>
-                        <a href="{{ route('reports.create', ['user_id' => $user->user_id]) }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-[13px] font-semibold text-white transition-colors duration-200">
+                        <button type="button" x-data x-on:click="$dispatch('open-report')" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-[13px] font-semibold text-white transition-colors duration-200 cursor-pointer">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
                             </svg>
                             Report
-                        </a>
+                        </button>
+                        <x-report-modal target-type="user" :target-id="$user->user_id" heading="Report this user"
+                            :subtitle="trim($user->first_name . ' ' . $user->last_name)" />
                     @endauth
                 @endif
             </x-slot:actions>

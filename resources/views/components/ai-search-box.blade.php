@@ -20,12 +20,12 @@
 @if($isHero)
     <div class="w-full max-w-[760px] text-left" x-data="aiSearchBox(@js(request('q', '')))">
         <form action="{{ route('properties.index') }}" method="GET" role="search"
-            class="bg-white rounded-[20px] border-[1.5px] border-[#FF8A66] ring-4 ring-[#FF8A66]/15 shadow-[0_18px_50px_rgba(6,13,38,0.28)] flex flex-col">
+            class="bg-white rounded-[20px] border-[1.5px] border-[#FF8A66] ring-4 ring-[#FF8A66]/15 shadow-[0_10px_30px_rgba(6,13,38,0.22)] flex flex-col">
             <label for="ai-q-hero" class="flex items-center gap-1.5 px-4 pt-3.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-[#B35A3D]">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z" /></svg>
                 Describe your ideal place
             </label>
-            <textarea id="ai-q-hero" name="q" rows="3" maxlength="300" required x-model="q" placeholder="{{ $placeholder }}"
+            <textarea id="ai-q-hero" name="q" rows="2" maxlength="300" required x-model="q" placeholder="{{ $placeholder }}"
                 x-on:keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit(); }"
                 class="resize-none border-0 bg-transparent px-4 pt-2 pb-1 text-[16px] leading-[1.45] text-[#060D26] placeholder-[#5B6A8E]/70 focus:ring-0 focus:outline-none"></textarea>
             <div class="flex items-center justify-between gap-2 pl-4 pr-2.5 pb-2.5 pt-2">
@@ -45,17 +45,17 @@
         <div class="mt-3.5 flex flex-wrap gap-2" aria-label="Try asking">
             @foreach($examples as $example)
                 <button type="button" x-on:click="use(@js($example))"
-                    class="h-9 px-3 rounded-full border border-white/35 bg-white/10 hover:bg-white/20 text-white text-[13px] transition-colors cursor-pointer">{{ $example }}</button>
+                    class="h-11 sm:h-9 px-3 rounded-full border border-white/35 bg-white/10 hover:bg-white/20 text-white text-[13px] transition-colors cursor-pointer">{{ $example }}</button>
             @endforeach
         </div>
 
         <div x-show="recent.length" x-cloak class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span class="text-[12px] font-semibold uppercase tracking-[0.06em] text-white/70">Recent</span>
+            <span class="text-[12px] font-semibold uppercase tracking-[0.06em] text-white/85">Recent</span>
             <template x-for="item in recent" :key="item">
                 <button type="button" x-on:click="use(item)" x-text="item"
-                    class="max-w-[260px] truncate text-[13px] text-white/90 hover:text-white underline-offset-2 hover:underline cursor-pointer"></button>
+                    class="max-w-[260px] truncate min-h-[44px] sm:min-h-0 text-[13px] text-white/90 hover:text-white underline-offset-2 hover:underline cursor-pointer"></button>
             </template>
-            <button type="button" x-on:click="clearRecent()" class="text-[12px] text-white/60 hover:text-white cursor-pointer">Clear</button>
+            <button type="button" x-on:click="clearRecent()" class="min-h-[44px] sm:min-h-0 px-1 text-[12px] text-white/85 hover:text-white cursor-pointer">Clear</button>
         </div>
     </div>
 @else

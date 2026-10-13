@@ -123,65 +123,15 @@
                             <h2 class="mt-1.5 font-jakarta text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Popular places to stay</h2>
                         </div>
                     </div>
-                    {{-- A different card treatment than the main grid's borderless
-                         image-is-the-card pattern (DESIGN.md §6), deliberately — this
-                         boxed white-card style is specific to this section, mirroring
-                         the reference mockup exactly. Only one use site, so inlined
-                         rather than a new shared component. --}}
+                    {{-- Same shared card as the main grid (x-property-card) so the two never drift apart. --}}
                     {{-- One swipeable row (scroll-snap): ~5 cards visible on desktop, ~1.5 on phones
                          so the next card peeks in as a swipe hint. "View all" is the last item. --}}
                     <div class="relative">
                         <div x-ref="track" @scroll.passive="sync()" class="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         @foreach($popularProperties as $property)
-                            @php
-                                $availableCount = $property->units->where('availability_status', 'Available')->count();
-                                $photo = $property->media->firstWhere('media_type', 'Image')?->media_url;
-                            @endphp
-                            <a href="{{ route('properties.show', $property->property_id) }}"
-                                class="block shrink-0 snap-start w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)] bg-white border border-[#E2E4EC] rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66]/60 hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
-                                <div class="relative h-[110px] bg-[#ECEEF6]">
-                                    @if($photo)
-                                        <img src="{{ \App\Support\Images::resize($photo, 480) }}" alt="{{ $property->title }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
-                                    @endif
-                                    @if($property->hasVerifiedDocuments())
-                                        <span class="absolute top-2.5 left-2.5 inline-flex items-center gap-0.5 bg-white/95 text-[#060D26] text-[10.5px] font-semibold px-2 py-1 rounded-full">
-                                            &#10003; Verified
-                                        </span>
-                                    @endif
-                                </div>
-                                <div class="p-3.5">
-                                    <p class="text-[11px] text-[#5B6A8E] mb-0.5 truncate">
-                                        {{ $property->property_type }} &middot; {{ $property->city_municipality }}
-                                    </p>
-                                    <h3 class="font-jakarta text-[14px] font-bold text-[#060D26] truncate mb-2.5">
-                                        {{ $property->title }}
-                                    </h3>
-                                    <div class="flex items-end justify-between gap-2">
-                                        <div>
-                                            <p class="font-jakarta text-[19px] font-extrabold text-[#060D26] leading-none">
-                                                @if($property->min_rental_fee)
-                                                    &#8369;{{ number_format($property->min_rental_fee) }}
-                                                @else
-                                                    &#8212;
-                                                @endif
-                                            </p>
-                                            <p class="text-[11px] text-[#5B6A8E] mt-0.5">/ month &middot; from</p>
-                                        </div>
-                                        <div class="text-right shrink-0">
-                                            @if($availableCount > 0)
-                                                <p class="inline-block font-jakarta text-[10px] font-bold uppercase tracking-[0.04em] text-[#060D26] px-2 py-0.5 rounded-full bg-[#ECEEF6]">
-                                                    {{ $availableCount }} {{ Str::plural('unit', $availableCount) }} free
-                                                </p>
-                                            @endif
-                                            @if($property->review_count > 0)
-                                                <p class="text-[11px] text-[#060D26] mt-0.5">
-                                                    &#9733; {{ number_format($property->avg_rating, 1) }} ({{ $property->review_count }})
-                                                </p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
+                            <div class="shrink-0 snap-start w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]">
+                                <x-property-card :property="$property" :favorited-ids="$favoritedIds" />
+                            </div>
                         @endforeach
 
                         <x-view-all-tile :href="route('properties.index', ['sort' => 'top_rated'])" label="View all popular properties"
@@ -189,7 +139,7 @@
                             :photos="$popularProperties->reverse()->map(fn ($p) => $p->media->firstWhere('media_type', 'Image')?->media_url)->all()"
                             class="w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]" />
                     </div>
-                        <x-row-arrows top="top-[56px]" />
+                        <x-row-arrows top="top-[88px]" />
                     </div>
                 </div>
             @endif
