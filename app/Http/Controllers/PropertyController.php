@@ -8,12 +8,15 @@ use App\Models\Favorite;
 use App\Models\Property;
 use App\Models\PropertyMedia;
 use App\Models\PropertyUnit;
+use App\Models\Review;
+use App\Support\BrowseFilters;
 use App\Support\Images;
-use Illuminate\Support\Collection;
+use App\Support\PropertyPolicies;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\Review;
+use Illuminate\Support\Str;
 
 class PropertyController extends Controller
 {
@@ -22,7 +25,7 @@ class PropertyController extends Controller
         // A described search ("room near USC under 5k"): the page shell loads at once and
         // resources/js/ai-search.js fills it in. See plans/ai-search.md.
         if (filled($request->query('q'))) {
-            return view('properties.ai', ['query' => \Illuminate\Support\Str::limit(strip_tags((string) $request->query('q')), (int) config('ai_search.max_query_length', 300), '')]);
+            return view('properties.ai', ['query' => Str::limit(strip_tags((string) $request->query('q')), (int) config('ai_search.max_query_length', 300), '')]);
         }
 
         // The hero + "Browse by area" + "Popular places" sections are the Home page
@@ -35,9 +38,9 @@ class PropertyController extends Controller
         $heroStats = null;
         $popularProperties = collect();
         $areas = collect();
-        $showDiscovery = !$request->hasAny(array_merge(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page'], \App\Support\BrowseFilters::KEYS));
+        $showDiscovery = !$request->hasAny(array_merge(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page'], BrowseFilters::KEYS));
 
-        if ($request->routeIs('home') && ! $request->hasAny(array_merge(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'], \App\Support\BrowseFilters::KEYS))) {
+        if ($request->routeIs('home') && ! $request->hasAny(array_merge(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'], BrowseFilters::KEYS))) {
             $heroStats = [
                 'listings' => Property::browsable()->count(),
                 'units' => PropertyUnit::where('availability_status', 'Available')
@@ -63,11 +66,11 @@ class PropertyController extends Controller
         }
 
         $properties = Property::with([
-                'media', 'landlord', 'amenities', 'units',
-                'documents:document_id,property_id,document_type,status,expiry_date',
-            ])
+            'media', 'landlord', 'amenities', 'units',
+            'documents:document_id,property_id,document_type,status,expiry_date',
+        ])
             ->browsable()
-            ->browseFilters(\App\Support\BrowseFilters::fromRequest($request) + [
+            ->browseFilters(BrowseFilters::fromRequest($request) + [
                 'location'   => $request->query('location'),
                 'type'       => $request->query('type'),
                 'price_min'  => $request->query('price_min'),
@@ -87,7 +90,7 @@ class PropertyController extends Controller
         // but tenants filter on these."
         // Curfew / Pet Friendly / Visitors Allowed are house rules now, filtered under "House rules" instead.
         $amenityGroups = Amenity::orderBy('category')->orderBy('amenity_name')->get()
-            ->reject(fn ($a) => in_array($a->amenity_name, \App\Support\BrowseFilters::AMENITIES_REPLACED_BY_RULES, true))
+            ->reject(fn ($a) => in_array($a->amenity_name, BrowseFilters::AMENITIES_REPLACED_BY_RULES, true))
             ->groupBy('category');
 
         // Names for the "Filtering by:" chip row — the query string only
@@ -106,6 +109,7 @@ class PropertyController extends Controller
                 ->where('availability_status', 'Available')
                 ->where('verification_status', 'Approved')
                 ->min('rental_fee');
+
             return [
                 'property_id'   => $property->property_id,
                 'title'         => $property->title,
@@ -298,7 +302,7 @@ class PropertyController extends Controller
                 'title'                          => $validated['title'],
                 'description'                    => $validated['description'],
                 'property_type'                  => $validated['property_type'],
-                ...\App\Support\PropertyPolicies::fromRequest($request),
+                ...PropertyPolicies::fromRequest($request),
                 'water_included'                 => $request->boolean('water_included'),
                 'electricity_included'           => $request->boolean('electricity_included'),
                 'internet_included'              => $request->boolean('internet_included'),

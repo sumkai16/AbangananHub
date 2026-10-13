@@ -44,6 +44,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($property) {
                 $units = $property->units;
+
                 return [
                     'title' => $property->title,
                     'property_id' => $property->property_id,
@@ -103,7 +104,7 @@ class DashboardController extends Controller
      * the payments page uses so the two screens can never disagree.
      *
      * @return array{0: array<string, mixed>, 1: Collection} totals, then the
-     *         overdue tenancies (oldest first) for the action queue.
+     *                                                       overdue tenancies (oldest first) for the action queue.
      */
     private function rentThisMonth(int $landlordId): array
     {

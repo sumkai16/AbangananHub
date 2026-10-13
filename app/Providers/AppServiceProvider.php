@@ -4,19 +4,17 @@ namespace App\Providers;
 
 use App\Models\Message;
 use App\Models\Payment;
-use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\Setting;
 use App\Observers\PaymentObserver;
 use App\Observers\PropertyUnitObserver;
 use App\Observers\ReservationObserver;
-use Illuminate\Database\Eloquent\Model;
 use App\Services\AiSearch\AiSearchDriver;
 use App\Services\AiSearch\GeminiDriver;
 use App\Services\AiSearch\NullDriver;
 use App\Services\AiSearch\OpenRouterDriver;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,9 +28,9 @@ class AppServiceProvider extends ServiceProvider
         // AI search: the configured driver, or NullDriver (keyword search only) when its key is missing.
         $this->app->bind(AiSearchDriver::class, function () {
             return match (config('ai_search.driver')) {
-                'gemini' => filled(config('services.gemini.key')) ? new GeminiDriver() : new NullDriver(),
-                'openrouter' => filled(config('services.openrouter.key')) ? new OpenRouterDriver() : new NullDriver(),
-                default => new NullDriver(),
+                'gemini' => filled(config('services.gemini.key')) ? new GeminiDriver : new NullDriver,
+                'openrouter' => filled(config('services.openrouter.key')) ? new OpenRouterDriver : new NullDriver,
+                default => new NullDriver,
             };
         });
     }
@@ -65,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
                 $counts = $user ? [
                     'unreadNotificationCount' => $user->notifications()->where('is_read', false)->count(),
                     'unreadMessageCount' => Message::whereHas('conversation', fn ($q) => $q
-                            ->where('tenant_id', $user->user_id)->orWhere('landlord_id', $user->user_id))
+                        ->where('tenant_id', $user->user_id)->orWhere('landlord_id', $user->user_id))
                         ->where('sender_id', '!=', $user->user_id)
                         ->where('is_read', false)
                         ->count(),

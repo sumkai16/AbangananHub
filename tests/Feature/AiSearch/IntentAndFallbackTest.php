@@ -4,6 +4,7 @@ namespace Tests\Feature\AiSearch;
 
 use App\Services\AiSearch\IntentValidator;
 use App\Services\AiSearch\KeywordFallback;
+use App\Services\AiSearch\LanguageDetector;
 
 class IntentAndFallbackTest extends AiSearchTestCase
 {
@@ -60,7 +61,7 @@ class IntentAndFallbackTest extends AiSearchTestCase
     public function test_keyword_fallback_reads_the_common_cases(): void
     {
         $this->listing('Anywhere', ['barangay' => 'Talamban']);
-        $parse = fn (string $q) => $this->validate((new KeywordFallback())->parse($q));
+        $parse = fn (string $q) => $this->validate((new KeywordFallback)->parse($q));
 
         $a = $parse('Boarding house near USC Talamban with wifi under 5k, may pusa ako');
         $this->assertSame('usc_talamban', $a['location']['value']);
@@ -80,7 +81,7 @@ class IntentAndFallbackTest extends AiSearchTestCase
 
     public function test_language_is_detected_from_the_words_typed(): void
     {
-        $detect = fn (string $q) => \App\Services\AiSearch\LanguageDetector::detect($q);
+        $detect = fn (string $q) => LanguageDetector::detect($q);
 
         $this->assertSame('en', $detect('Room near USC Talamban with Wi-Fi under 5k'));
         $this->assertSame('ceb', $detect('Naa bay apartment sa Mandaue ubos sa 4k, naay parking ug aircon?'));

@@ -22,7 +22,7 @@ interface AiSearchDriver
     /**
      * Order the candidates and write the summary.
      *
-     * @param  array<string, mixed>  $intent      validated intent
+     * @param  array<string, mixed>  $intent  validated intent
      * @param  list<array<string, mixed>>  $candidates  public facts + hit/miss text per property, keyed by `id`
      * @return array{order: list<int>, summary: string, summary_en: string}
      */

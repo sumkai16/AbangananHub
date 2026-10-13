@@ -16,6 +16,7 @@ use App\Support\BrowseFilters;
 class MatchExplainer
 {
     private const HIT_RULE = ['pets' => 'Pets OK', 'smoking' => 'Smoking OK', 'overnight' => 'Guests OK', 'curfew' => 'No curfew'];
+
     private const MISS_RULE = ['pets' => 'No pets', 'smoking' => 'No smoking', 'overnight' => 'No overnight guests', 'curfew' => 'Has a curfew'];
 
     /**

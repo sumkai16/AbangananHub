@@ -1,8 +1,14 @@
 <?php
+
 namespace App\Models;
 
+use App\Support\BrowseFilters;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+
 class Property extends Model
 {
     /**
@@ -13,42 +19,43 @@ class Property extends Model
     public const SEARCH_PRICE_STOPS = [0, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 9000, 10000, 12500, 15000, 17500, 20000, 25000, 30000];
 
     protected $primaryKey = 'property_id';
-   protected $fillable = [
-    'landlord_id',
-    'title',
-    'description',
-    'house_rules',
-    'property_type',
-    'living_arrangement',
-    'occupancy_preference',
-    'water_included',
-    'electricity_included',
-    'internet_included',
-    'association_fees_included',
-    'utilities_separately_metered',
-    'address',
-    'city_municipality',
-    'barangay',
-    'latitude',
-    'longitude',
-    'verification_status',
-    'publication_status',
-    'rejection_reason',
-];
+
+    protected $fillable = [
+        'landlord_id',
+        'title',
+        'description',
+        'house_rules',
+        'property_type',
+        'living_arrangement',
+        'occupancy_preference',
+        'water_included',
+        'electricity_included',
+        'internet_included',
+        'association_fees_included',
+        'utilities_separately_metered',
+        'address',
+        'city_municipality',
+        'barangay',
+        'latitude',
+        'longitude',
+        'verification_status',
+        'publication_status',
+        'rejection_reason',
+    ];
 
     protected function casts(): array
-{
-    return [
-        'latitude'                      => 'decimal:7',
-        'longitude'                     => 'decimal:7',
-        'house_rules'                   => 'array',
-        'water_included'                => 'boolean',
-        'electricity_included'          => 'boolean',
-        'internet_included'             => 'boolean',
-        'association_fees_included'     => 'boolean',
-        'utilities_separately_metered'  => 'boolean',
-    ];
-}
+    {
+        return [
+            'latitude'                      => 'decimal:7',
+            'longitude'                     => 'decimal:7',
+            'house_rules'                   => 'array',
+            'water_included'                => 'boolean',
+            'electricity_included'          => 'boolean',
+            'internet_included'             => 'boolean',
+            'association_fees_included'     => 'boolean',
+            'utilities_separately_metered'  => 'boolean',
+        ];
+    }
 
     // ─── Relationships ───────────────────────────────────────
 
@@ -71,6 +78,7 @@ class Property extends Model
             'amenity_id'           // FK on pivot pointing to Amenity
         );
     }
+
     public function reservations()
     {
         return $this->hasMany(Reservation::class, 'property_id', 'property_id');
@@ -252,11 +260,11 @@ class Property extends Model
             ->live()
             ->whereHas('units', function ($q) {
                 $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved');
+                    ->where('verification_status', 'Approved');
             })
             ->withMin(['units as min_rental_fee' => function ($q) {
                 $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved');
+                    ->where('verification_status', 'Approved');
             }], 'rental_fee')
             ->withAvg(['reviews as avg_rating' => function ($q) {
                 $q->where('is_hidden', false);
@@ -276,7 +284,7 @@ class Property extends Model
             $location = $filters['location'];
             $query->where(function ($q) use ($location) {
                 $q->where('address', 'like', '%' . $location . '%')
-                  ->orWhere('title', 'like', '%' . $location . '%');
+                    ->orWhere('title', 'like', '%' . $location . '%');
             });
         }
 
@@ -289,7 +297,7 @@ class Property extends Model
             $priceMax = $filters['price_max'] ?? null;
             $query->whereHas('units', function ($q) use ($priceMin, $priceMax) {
                 $q->where('availability_status', 'Available')
-                  ->where('verification_status', 'Approved');
+                    ->where('verification_status', 'Approved');
 
                 if (!empty($priceMin)) {
                     $q->where('rental_fee', '>=', $priceMin);
@@ -316,7 +324,7 @@ class Property extends Model
                     // both amenities.amenity_id and unit_amenities.amenity_id,
                     // so a bare "amenity_id" is ambiguous to MySQL.
                     $q->whereHas('amenities', fn ($aq) => $aq->where('amenities.amenity_id', $amenityId))
-                      ->orWhereHas('units.amenities', fn ($aq) => $aq->where('amenities.amenity_id', $amenityId));
+                        ->orWhereHas('units.amenities', fn ($aq) => $aq->where('amenities.amenity_id', $amenityId));
                 });
             }
         }
@@ -328,7 +336,7 @@ class Property extends Model
 
         if (!empty($filters['for'])) {
             // A tenant of that gender can take a matching property or one with no preference.
-            $query->whereIn('occupancy_preference', [\App\Support\BrowseFilters::SUITABLE_FOR[$filters['for']], 'No Preference']);
+            $query->whereIn('occupancy_preference', [BrowseFilters::SUITABLE_FOR[$filters['for']], 'No Preference']);
         }
 
         if (!empty($filters['furnishing'])) {
@@ -340,7 +348,7 @@ class Property extends Model
         // "Must allow": the property must not carry the restricting rule. A property with no rules at all
         // (NULL) carries none, so it matches — NOT JSON_CONTAINS(NULL, …) would otherwise drop it.
         foreach ((array) ($filters['rules'] ?? []) as $ruleKey) {
-            $restriction = \App\Support\BrowseFilters::RULES[$ruleKey][1] ?? null;
+            $restriction = BrowseFilters::RULES[$ruleKey][1] ?? null;
             if ($restriction) {
                 $query->where(fn ($q) => $q->whereNull('house_rules')->orWhereJsonDoesntContain('house_rules', $restriction));
             }
@@ -355,6 +363,7 @@ class Property extends Model
 
         return $query;
     }
+
     public function units()
     {
         return $this->hasMany(PropertyUnit::class, 'property_id', 'property_id');
@@ -385,6 +394,7 @@ class Property extends Model
 
         return $hasAvailable ? 'Available' : 'Unavailable';
     }
+
     /**
      * Every area that has something bookable, for the "Where" search box's
      * suggestion dropdown: each city, and each barangay within it ("Poblacion,
@@ -397,14 +407,14 @@ class Property extends Model
      */
     public static function searchLocations(): array
     {
-        return \Illuminate\Support\Facades\Cache::remember('search.locations', now()->addMinutes(10), function () {
+        return Cache::remember('search.locations', now()->addMinutes(10), function () {
             $rows = static::live()
                 ->whereHas('units', fn ($q) => $q->where('availability_status', 'Available')->where('verification_status', 'Approved'))
                 ->selectRaw('city_municipality, barangay, COUNT(*) as cnt')
                 ->groupBy('city_municipality', 'barangay')
                 ->get();
 
-            $count = fn (int $n) => $n.' '.\Illuminate\Support\Str::plural('listing', $n);
+            $count = fn (int $n) => $n.' '.Str::plural('listing', $n);
 
             $cities = $rows->groupBy('city_municipality')
                 ->map(fn ($group, $city) => ['label' => $city, 'value' => $city, 'sub' => $count((int) $group->sum('cnt')), 'type' => 'city', 'n' => (int) $group->sum('cnt')])
@@ -414,7 +424,7 @@ class Property extends Model
                 ->map(fn ($r) => ['label' => $r->barangay, 'value' => $r->barangay.', '.$r->city_municipality, 'sub' => $r->city_municipality.' · '.$count((int) $r->cnt), 'type' => 'barangay', 'n' => (int) $r->cnt])
                 ->sortByDesc('n');
 
-            return $cities->concat($barangays)->map(fn ($i) => \Illuminate\Support\Arr::except($i, 'n'))->values()->all();
+            return $cities->concat($barangays)->map(fn ($i) => Arr::except($i, 'n'))->values()->all();
         });
     }
 
@@ -428,7 +438,7 @@ class Property extends Model
      */
     private static function budgetFees(): array
     {
-        return \Illuminate\Support\Facades\Cache::remember('search.budget_fees', now()->addMinutes(10), function () {
+        return Cache::remember('search.budget_fees', now()->addMinutes(10), function () {
             return PropertyUnit::query()
                 ->where('availability_status', 'Available')
                 ->where('verification_status', 'Approved')

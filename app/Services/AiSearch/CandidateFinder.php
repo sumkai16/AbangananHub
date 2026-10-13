@@ -21,9 +21,7 @@ use Illuminate\Support\Collection;
  */
 class CandidateFinder
 {
-    public function __construct(private MatchExplainer $explainer)
-    {
-    }
+    public function __construct(private MatchExplainer $explainer) {}
 
     /**
      * @return array{rows: Collection<int, array<string, mixed>>, exact_count: int, relaxed: list<string>, alternatives: Collection<int, array<string, mixed>>}

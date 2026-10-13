@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,7 +36,7 @@ class TenantController extends Controller
     {
         $landlordId = Auth::user()->user_id;
 
-        $query = Reservation::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId));
+        $query = Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId));
 
         $status = $request->input('status');
         if ($status && isset(self::STATUS_GROUPS[$status])) {
@@ -50,8 +51,8 @@ class TenantController extends Controller
         if ($search = $request->input('search')) {
             $query->whereHas('tenant', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -77,7 +78,7 @@ class TenantController extends Controller
      * filters — what the stat cards count against, so they always read the
      * true total rather than reacting to search/status/property selections.
      */
-    private function activeOrPendingQuery(): \Illuminate\Database\Eloquent\Builder
+    private function activeOrPendingQuery(): Builder
     {
         $landlordId = Auth::user()->user_id;
 

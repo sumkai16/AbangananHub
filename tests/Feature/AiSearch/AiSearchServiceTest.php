@@ -17,12 +17,11 @@ class AiSearchServiceTest extends AiSearchTestCase
     /** A scripted driver: returns canned intent / ranking, or throws when told to. */
     private function useDriver(?array $intent, ?array $rank = null, bool $fail = false): object
     {
-        $driver = new class($intent, $rank, $fail) implements AiSearchDriver {
+        $driver = new class($intent, $rank, $fail) implements AiSearchDriver
+        {
             public int $calls = 0;
 
-            public function __construct(private ?array $intent, private ?array $rank, private bool $fail)
-            {
-            }
+            public function __construct(private ?array $intent, private ?array $rank, private bool $fail) {}
 
             public function interpret(string $query, array $vocab): array
             {
@@ -189,7 +188,7 @@ class AiSearchServiceTest extends AiSearchTestCase
         config(['services.openrouter.key' => 'or-key', 'services.openrouter.model' => 'google/gemma-4-31b-it:free']);
         Http::fake(['openrouter.ai/*' => Http::response(['choices' => [['message' => ['content' => "Sure!\n```json\n{\"language\":\"ceb\",\"price_max\":4000}\n```"]]]])]);
 
-        $out = (new OpenRouterDriver())->interpret('ubos sa 4k', Vocabulary::forPrompt());
+        $out = (new OpenRouterDriver)->interpret('ubos sa 4k', Vocabulary::forPrompt());
 
         $this->assertSame(4000, $out['price_max']);
         Http::assertSent(fn ($r) => $r->url() === 'https://openrouter.ai/api/v1/chat/completions'
@@ -204,7 +203,7 @@ class AiSearchServiceTest extends AiSearchTestCase
     {
         config(['services.openrouter.key' => 'k', 'services.openrouter.model' => 'm']);
         Http::fakeSequence('openrouter.ai/*')->push(['error' => ['message' => 'Rate limit exceeded: free-models-per-day']], 429)->push(['choices' => [['message' => ['content' => 'no json here']]]]);
-        $driver = new OpenRouterDriver();
+        $driver = new OpenRouterDriver;
 
         try {
             $driver->interpret('x', Vocabulary::forPrompt());
@@ -223,7 +222,7 @@ class AiSearchServiceTest extends AiSearchTestCase
         config(['services.gemini.key' => 'k', 'services.gemini.model' => 'm']);
         Http::fake(['generativelanguage.googleapis.com/*' => Http::response(['candidates' => [['content' => ['parts' => [['text' => '{"language":"tl","price_max":5000}']]]]]])]);
 
-        $out = (new GeminiDriver())->interpret('hanap ako', Vocabulary::forPrompt());
+        $out = (new GeminiDriver)->interpret('hanap ako', Vocabulary::forPrompt());
 
         $this->assertSame(5000, $out['price_max']);
         Http::assertSent(fn ($r) => str_contains($r->url(), 'models/m:generateContent') && $r->header('x-goog-api-key')[0] === 'k'
@@ -236,7 +235,7 @@ class AiSearchServiceTest extends AiSearchTestCase
         Http::fake(['generativelanguage.googleapis.com/*' => Http::response(['candidates' => [['content' => ['parts' => [['text' => 'not json']]]]]])]);
 
         $this->expectException(AiSearchUnavailable::class);
-        (new GeminiDriver())->interpret('x', Vocabulary::forPrompt());
+        (new GeminiDriver)->interpret('x', Vocabulary::forPrompt());
     }
 
     public function test_gemini_quota_error_is_unavailable(): void
@@ -245,6 +244,6 @@ class AiSearchServiceTest extends AiSearchTestCase
         Http::fake(['generativelanguage.googleapis.com/*' => Http::response('quota', 429)]);
 
         $this->expectException(AiSearchUnavailable::class);
-        (new GeminiDriver())->interpret('x', Vocabulary::forPrompt());
+        (new GeminiDriver)->interpret('x', Vocabulary::forPrompt());
     }
 }

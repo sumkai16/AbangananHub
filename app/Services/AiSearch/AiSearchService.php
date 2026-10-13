@@ -25,8 +25,7 @@ class AiSearchService
         private KeywordFallback $fallback,
         private SummaryComposer $composer,
         private ChipBuilder $chips,
-    ) {
-    }
+    ) {}
 
     /** @return array{query: string, intent: array<string, mixed>, chips: list<array<string, mixed>>, used_ai: bool, fallback_reason: ?string} */
     public function interpret(string $query, ?string $skipAi = null): array

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\AiSearch;
 
+use App\Services\AiSearch\SummaryFormatter;
 use Illuminate\Support\Facades\RateLimiter;
 
 class AiSearchHttpTest extends AiSearchTestCase
@@ -96,7 +97,7 @@ class AiSearchHttpTest extends AiSearchTestCase
     {
         $p = $this->listing('<script>alert(1)</script> Flat');
 
-        $html = (string) \App\Services\AiSearch\SummaryFormatter::html('See ' . $p->title . ' at ₱4,500/month', collect([$p]));
+        $html = (string) SummaryFormatter::html('See ' . $p->title . ' at ₱4,500/month', collect([$p]));
 
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt; Flat</a>', $html);
@@ -217,7 +218,7 @@ class AiSearchHttpTest extends AiSearchTestCase
     public function test_a_forged_used_ai_flag_is_charged_to_its_own_hourly_limit(): void
     {
         config(['ai_search.rank_with_ai' => true, 'ai_search.rate_per_hour' => 2]);
-        \Illuminate\Support\Facades\RateLimiter::clear('ai-rank:127.0.0.1');
+        RateLimiter::clear('ai-rank:127.0.0.1');
 
         $payload = ['q' => 'apartment', 'used_ai' => true, 'intent' => ['property_type' => 'Apartment']];
 
@@ -226,6 +227,6 @@ class AiSearchHttpTest extends AiSearchTestCase
         }
 
         // Two calls were allowed; the third is over the bucket, so it was served without the AI.
-        $this->assertTrue(\Illuminate\Support\Facades\RateLimiter::tooManyAttempts('ai-rank:127.0.0.1', 2));
+        $this->assertTrue(RateLimiter::tooManyAttempts('ai-rank:127.0.0.1', 2));
     }
 }

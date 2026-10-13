@@ -46,6 +46,7 @@ class PaymentController extends Controller
     ];
 
     private const METHODS = ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'];
+
     private const TYPES = ['Monthly', 'Deposit', 'Initial', 'Utility', 'Other'];
 
     /**
@@ -91,8 +92,8 @@ class PaymentController extends Controller
         if ($search = $request->input('search')) {
             $query->whereHas('tenant', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 

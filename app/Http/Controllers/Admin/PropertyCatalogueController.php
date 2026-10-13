@@ -20,12 +20,12 @@ class PropertyCatalogueController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('address', 'like', "%{$search}%")
-                  ->orWhereHas('landlord', function ($lq) use ($search) {
-                      $lq->where('first_name', 'like', "%{$search}%")
-                         ->orWhere('last_name', 'like', "%{$search}%")
-                         ->orWhere('email', 'like', "%{$search}%");
-                  });
+                    ->orWhere('address', 'like', "%{$search}%")
+                    ->orWhereHas('landlord', function ($lq) use ($search) {
+                        $lq->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -106,11 +106,11 @@ class PropertyCatalogueController extends Controller
             'needs_attention' => Property::query()
                 ->where(function ($q) {
                     $q->doesntHave('media')
-                      ->orWhere(function ($geo) {
-                          $geo->where('latitude', 10.3157)->where('longitude', 123.8854);
-                      })
-                      ->orDoesntHave('units')
-                      ->orWhere('created_at', '<', now()->subDays(90));
+                        ->orWhere(function ($geo) {
+                            $geo->where('latitude', 10.3157)->where('longitude', 123.8854);
+                        })
+                        ->orDoesntHave('units')
+                        ->orWhere('created_at', '<', now()->subDays(90));
                 })
                 ->count(),
         ];

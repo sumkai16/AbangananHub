@@ -7,6 +7,7 @@ use App\Models\Property;
 use App\Models\PropertyMedia;
 use App\Models\UnitMedia;
 use App\Models\User;
+use App\Support\PropertyPolicies;
 use Illuminate\Database\Seeder;
 
 /**
@@ -143,8 +144,8 @@ class PropertySeeder extends Seeder
                 ['landlord_id' => $landlords[$owner]->user_id, 'title' => $title],
                 [
                     'description'                  => $description,
-                    'house_rules'                  => \App\Support\PropertyPolicies::compileRules(
-                        collect(\App\Support\PropertyPolicies::HOUSE_RULES)->shuffle()->take(rand(2, 4))->all(),
+                    'house_rules'                  => PropertyPolicies::compileRules(
+                        collect(PropertyPolicies::HOUSE_RULES)->shuffle()->take(rand(2, 4))->all(),
                         collect(self::RULES[$type])->random()
                     ),
                     'property_type'                => $type,

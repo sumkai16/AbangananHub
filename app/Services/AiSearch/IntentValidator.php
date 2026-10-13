@@ -22,6 +22,7 @@ use App\Support\PropertyPolicies;
 class IntentValidator
 {
     private const PRICE_MIN = 500;
+
     private const PRICE_MAX = 200000;
 
     /** @param array<string, mixed> $raw */

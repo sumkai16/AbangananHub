@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Favorite;
 use App\Services\AiSearch\AiSearchService;
+use App\Support\Images;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\RateLimiter;
 
 /**
@@ -16,9 +18,7 @@ use Illuminate\Support\Facades\RateLimiter;
  */
 class AiSearchController extends Controller
 {
-    public function __construct(private AiSearchService $search)
-    {
-    }
+    public function __construct(private AiSearchService $search) {}
 
     public function interpret(Request $request): JsonResponse
     {
@@ -79,8 +79,8 @@ class AiSearchController extends Controller
      * exact / close / other (a different type, from the "You might also like" strip), `tag` is the one
      * thing to print under a close pin, `hits` / `misses` feed the preview card.
      *
-     * @param  \Illuminate\Support\Collection<int, array<string, mixed>>  $rows
-     * @param  \Illuminate\Support\Collection<int, array<string, mixed>>  $alternatives
+     * @param  Collection<int, array<string, mixed>>  $rows
+     * @param  Collection<int, array<string, mixed>>  $alternatives
      * @return list<array<string, mixed>>
      */
     private function mapPins($rows, $alternatives): array
@@ -96,7 +96,7 @@ class AiSearchController extends Controller
                 'rental_fee' => $p->min_rental_fee,
                 'url' => route('properties.show', $p->property_id),
                 'property_type' => $p->property_type,
-                'image' => \App\Support\Images::resize($p->media->first()?->media_url, 480),
+                'image' => Images::resize($p->media->first()?->media_url, 480),
                 'rank' => $rank,
                 'fit' => $fit,
                 'tag' => match ($fit) {

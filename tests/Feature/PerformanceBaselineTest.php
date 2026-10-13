@@ -62,7 +62,11 @@ class PerformanceBaselineTest extends TestCase
 
         foreach ($targets as [$uri, $r]) {
             $user = $r ? $role($r) : null;
-            if ($r && ! $user) { echo "$uri — no $r user\n"; continue; }
+            if ($r && ! $user) {
+                echo "$uri — no $r user\n";
+
+                continue;
+            }
 
             DB::flushQueryLog();
             DB::enableQueryLog();
@@ -97,7 +101,9 @@ class PerformanceBaselineTest extends TestCase
             }
             arsort($norm);
             $d = array_filter($norm, fn ($c) => $c >= 3);
-            if (! $d) continue;
+            if (! $d) {
+                continue;
+            }
             echo "\n--- $uri  ({$row['n']} queries)\n";
             foreach (array_slice($d, 0, 6, true) as $q => $c) {
                 echo "   x$c  ".substr($q, 0, 110)."\n";
