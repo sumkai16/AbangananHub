@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 14 2026 — Money-path tests (branch `axci`)
+- **+40 tests in `tests/Feature/Payments/`** (suite: 165 passing, 1 skipped). Fixtures in `tests/Support/CreatesPaymentFixtures` (an Occupied tenancy, recorded / pending / held payments).
+  - `PayMongoWebhookTest` (10): no / wrong / tampered / unconfigured signature is refused (403) and settles nothing; Initial goes to `Held` with no payout status, Monthly goes to `Paid` + `Pending Payout`; a retried delivery changes nothing; a replay cannot pull a `Released` payment back to `Held`; unknown session and other event types are acknowledged and ignored.
+  - `PaymentAccessAndStateTest` (12): landlord void (logged, can't void twice, other landlord / tenant / PayMongo-settled refused, reason required); admin release only from `Held`, landlord / tenant refused; `markPaidOut` covers only that landlord's pending payments, needs a reference, 409 on a second click, landlord can't pay themselves out.
+  - `RentLedgerTest` (11): arrears, part payments, prepaid months, voided / pending payments count for nothing, due vs overdue, deposit is held money not rent, voided deposit charges don't reduce it.
+  - `DepositChargeTest` (7): charges capped at what is held (exactly the remainder is allowed), no deposit means no charge, other landlord / tenant refused, void frees the amount again.
+- **Mutation check:** six deliberate breaks (webhook signature, webhook idempotency, release state check, void authorization, deposit cap, ledger status list) were each caught by the matching test, then reverted.
+- **Found, not changed:** the webhook accepts any signature timestamp (no freshness window), so a captured signed payload can be replayed forever. Idempotency makes that harmless for payments already settled, but a window of ~5 minutes would close it. **Not covered:** tenant checkout creation and the PayMongo reconcile poll (both call PayMongo over HTTP and need `Http::fake`), `RentPaymentAllocator`, the move-in deadline command, the `/api` payment routes.
+
 ## Oct 14 2026 — Pint in CI, Dependabot, compression runbook (branch `axci`)
 - **Pint (#3):** `pint.json` = Laravel preset minus the four rules that fight the project's own style (aligned `=>`, `' . '` spacing, `! $x`, unary spacing). The default preset flags 241 of 371 PHP files; with this config 148 still differ, so there is **no repo-wide reformat** (it would conflict with other branches). Instead CI runs `vendor/bin/pint --test --diff=origin/main` (changed files only) and the 33 files this branch changed were formatted once. Run `vendor/bin/pint --diff=origin/main` before pushing.
 - **Dependabot (#4):** `.github/dependabot.yml` (composer + npm weekly, minor/patch grouped into one PR each; Actions monthly). CI also runs `npm audit --omit=dev --audit-level=high` (0 vulnerabilities today) next to `composer audit`.
