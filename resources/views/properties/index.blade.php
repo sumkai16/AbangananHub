@@ -55,11 +55,10 @@
 
     {{-- ===== BROWSE ===== --}}
     <div class="relative isolate overflow-clip">
-    @if($heroStats)
-        {{-- Background texture for the wide side margins on the landing page: soft colour glows, a dot
-             grid, diagonal hairlines and flowing curves. Purely decorative, low contrast, behind content. --}}
-        <x-section-texture />
-    @endif
+    {{-- Background texture for the wide side margins: soft colour glows, a dot grid, diagonal
+         hairlines and flowing curves. Purely decorative, low contrast, behind content. Shown on
+         the filtered/browse view too, not just the landing arrival, so both read as one page. --}}
+    <x-section-texture />
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: false, filtersOpen: false }"
         @if(! $heroStats) data-browse-live @endif
         x-effect="window.dispatchEvent(new CustomEvent('browse-map-state', { detail: mapVisible }))"

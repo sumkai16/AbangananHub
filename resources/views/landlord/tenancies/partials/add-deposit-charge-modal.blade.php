@@ -38,7 +38,7 @@
 
                 <div class="flex items-start justify-between gap-4 px-6 pt-6 pb-4">
                     <div>
-                        <h2 id="add-deposit-charge-title" class="text-[17px] font-normal text-[#060D26]">Add a deposit charge</h2>
+                        <h2 id="add-deposit-charge-title" class="text-[17px] font-normal text-[#060D26]">Deduct from deposit</h2>
                         <p class="text-[12.5px] text-[#5B6A8E] mt-0.5">
                             ₱{{ number_format($summary['depositRemaining'], 2) }} of the held deposit is available to charge.
                         </p>
@@ -121,7 +121,7 @@
                         </button>
                         <button type="submit"
                             class="h-11 px-6 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
-                            Add charge
+                            Deduct
                         </button>
                     </div>
                 </form>

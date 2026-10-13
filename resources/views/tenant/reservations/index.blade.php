@@ -27,7 +27,7 @@
 
         {{-- Summary cards --}}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <x-stat-card label="Total" :value="$counts['all']" sub="All time">
+            <x-stat-card label="Total" :value="$counts['all']">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -45,7 +45,7 @@
                 </x-slot:icon>
             </x-stat-card>
 
-            <x-stat-card label="Occupied" :value="$counts['Occupied']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="All time">
+            <x-stat-card label="Occupied" :value="$counts['Occupied']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#16A34A" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
@@ -53,7 +53,7 @@
                 </x-slot:icon>
             </x-stat-card>
 
-            <x-stat-card label="Cancelled/Rejected" :value="$counts['Cancelled'] + $counts['Rejected']" icon-bg="rgba(239,68,68,0.07)" sub="All time">
+            <x-stat-card label="Cancelled/Rejected" :value="$counts['Cancelled'] + $counts['Rejected']" icon-bg="rgba(239,68,68,0.07)">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -74,6 +74,8 @@
                 'Rejected' => 'Rejected',
                 'Cancelled' => 'Cancelled',
             ] as $key => $label)
+                {{-- Empty tabs are noise: keep All, the active tab, and any tab with results. --}}
+                @continue($key !== 'all' && $status !== $key && ($counts[$key] ?? 0) === 0)
                 <a href="{{ route('reservations.index', $key === 'all' ? [] : ['status' => $key]) }}"
                     class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors duration-150 whitespace-nowrap
                               {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
@@ -205,7 +207,7 @@
                                 @elseif($reservation->rental_status === 'Occupied')
                                     <a href="{{ route('tenancy.show', $reservation) }}"
                                         class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-2">
-                                        Rent
+                                        Rent &amp; payments
                                     </a>
                                     @if($mCanReview)
                                         <a href="{{ route('properties.show', $reservation->property) }}#reviews"
@@ -364,7 +366,7 @@
                                         @elseif($reservation->rental_status === 'Occupied')
                                             <a href="{{ route('tenancy.show', $reservation) }}"
                                                 class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-1.5 transition-all duration-150">
-                                                Rent
+                                                Rent &amp; payments
                                             </a>
                                             @if($canReview)
                                                 <a href="{{ route('properties.show', $reservation->property) }}#reviews"
