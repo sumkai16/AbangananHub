@@ -474,8 +474,6 @@ class MoveInDeadlinesTest extends TestCase
 
     public function test_an_auto_released_move_in_is_not_announced_as_a_tenant_confirmation(): void
     {
-        $this->markTestIncomplete('Suspected bug: ReservationObserver::notifyTransition sends the "Move-in confirmed" notices to both parties on ANY transition to Occupied, so a timer-driven auto release tells the landlord the tenant confirmed move-in when they did not.');
-
         $e = $this->makeAwaitingConfirmation(-1);
 
         $this->runCommand();

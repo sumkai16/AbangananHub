@@ -121,6 +121,15 @@ class ReservationObserver
                 break;
 
             case 'Occupied':
+                // Only the tenant's own confirmation reads as "you confirmed".
+                // The deadline timer and an admin release also end in Occupied
+                // but leave tenant_confirmed_move_in_at null on purpose, and
+                // both send their own "deposit released" notices; telling the
+                // landlord the tenant confirmed would be untrue and a duplicate.
+                if (! $reservation->wasChanged('tenant_confirmed_move_in_at')) {
+                    break;
+                }
+
                 Notification::notify($landlordId, 'payment', 'Move-in confirmed — payment released',
                     "{$tenantName} confirmed move-in for {$unitLabel}. The held payment has been released to you.",
                     $thread, $conversationId);
