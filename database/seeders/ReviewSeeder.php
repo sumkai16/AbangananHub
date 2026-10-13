@@ -140,7 +140,7 @@ class ReviewSeeder extends Seeder
             for ($i = 0; $i < $count; $i++) {
                 $tenant = $tenants[($property->property_id * 3 + $i) % $tenants->count()];
                 $rating = $this->ratingFor($property->property_id, $i);
-                $pool   = self::COMMENTS[$type === 'Condominium' ? 'Apartment' : $type][$rating];
+                $pool   = self::COMMENTS[$type === 'Dormitory' ? 'Boarding House' : $type][$rating];
                 $days   = 3 + ($property->property_id * 7 + $i * 23) % 240;
                 $reply  = ($property->property_id + $i) % 3 === 0 ? self::REPLIES[$rating] : null;
 

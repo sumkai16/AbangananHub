@@ -73,7 +73,7 @@
                 <section class="bg-white border border-[#E2E4EC] rounded-2xl p-4" aria-labelledby="aif-type">
                     <h4 id="aif-type" class="font-jakarta text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">Property type</h4>
                     <div class="mt-3 flex flex-wrap gap-2">
-                        @foreach(\App\Services\AiSearch\Vocabulary::PROPERTY_TYPES as $type)
+                        @foreach(\App\Services\AiSearch\Vocabulary::propertyTypes() as $type)
                             <button type="button" x-on:click="pickDraft('property_type', @js($type))" :aria-pressed="(draft.property_type === @js($type)).toString()"
                                 :class="draft.property_type === @js($type) ? '{{ $chipOn }}' : '{{ $chipOff }}'" class="{{ $chip }}">{{ $type }}</button>
                         @endforeach

@@ -37,7 +37,7 @@
                 @php
                     $typeTiles = [
                         'Apartment' => ['A whole apartment unit', 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'],
-                        'Condominium' => ['A condo unit in a tower', 'M8 21V4a1 1 0 011-1h6a1 1 0 011 1v17M4 21V10a1 1 0 011-1h3M20 21V12a1 1 0 00-1-1h-3M3 21h18M11 7h2m-2 4h2m-2 4h2'],
+                        'Dormitory' => ['A building with shared rooms for students or workers', 'M8 21V4a1 1 0 011-1h6a1 1 0 011 1v17M4 21V10a1 1 0 011-1h3M20 21V12a1 1 0 00-1-1h-3M3 21h18M11 7h2m-2 4h2m-2 4h2'],
                         'House'     => ['A whole house', 'M3 21h18M3 10.5L12 3l9 7.5M5 21V10.5M19 21V10.5M9 21v-6h6v6'],
                         'Boarding House' => ['A building with rooms to rent', 'M4 21h16M7 21V4a1 1 0 011-1h8a1 1 0 011 1v17M14 12h.01'],
                         'Bedspace'  => ['A bed in a shared room', 'M3 7h18M3 7v10m0-10V5m18 2v10m0-10V5M3 17h18M6 12h12M5 5h14'],

@@ -36,7 +36,7 @@
                     <span class="block">in <span class="text-[#FF8A66]">Cebu</span>.</span>
                 </h1>
                 <p class="mt-5 sm:mt-6 mx-auto max-w-xl text-white/90 text-[15px] sm:text-[17px] font-normal">
-                    Verified apartments, rooms, boarding houses, and condos &mdash; all in one place.
+                    Verified apartments, rooms, boarding houses, and dormitories &mdash; all in one place.
                 </p>
 
                 <div class="mt-8 sm:mt-10 flex justify-center">
@@ -351,7 +351,7 @@
 
         <div id="browse-toolbar">
         @php
-            $typePills = ['All' => null, 'Apartment' => 'Apartment', 'Condominium' => 'Condominium', 'House' => 'House', 'Boarding House' => 'Boarding House', 'Bedspace' => 'Bedspace'];
+            $typePills = ['All' => null] + \App\Enums\PropertyType::options();
             $activeType = request('type');
         @endphp
         <div class="mb-4 flex flex-wrap items-end justify-between gap-x-3 gap-y-2">

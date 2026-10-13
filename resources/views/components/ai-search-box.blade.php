@@ -10,7 +10,7 @@
 @php
     $isHero = $variant === 'hero';
     $examples = [
-        'Condo near IT Park, max ₱18k',
+        'Dorm near IT Park, max ₱18k',
         'Bedspace para sa babae, may aircon',
         'Apartment sa Mandaue ubos 4k',
     ];

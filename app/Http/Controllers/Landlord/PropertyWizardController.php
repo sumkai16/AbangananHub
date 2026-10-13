@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Landlord;
 
+use App\Enums\PropertyType;
 use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Amenity;
@@ -62,7 +63,7 @@ class PropertyWizardController extends Controller
     {
         $validated = $request->validate([
             'title'                          => ['required', 'string', 'min:10', 'max:150'],
-            'property_type'                  => ['required', 'in:Apartment,Condominium,House,Boarding House,Bedspace'],
+            'property_type'                  => ['required', 'in:' . PropertyType::rule()],
             ...\App\Support\PropertyPolicies::rules(),
             'water_included'                 => ['nullable', 'boolean'],
             'electricity_included'           => ['nullable', 'boolean'],
@@ -121,7 +122,7 @@ class PropertyWizardController extends Controller
 
         $validated = $request->validate([
             'title'               => ['required', 'string', 'min:10', 'max:150'],
-            'property_type'       => ['required', 'in:Apartment,Condominium,House,Boarding House,Bedspace'],
+            'property_type'       => ['required', 'in:' . PropertyType::rule()],
             ...\App\Support\PropertyPolicies::rules(),
             'description'         => ['required', 'string', 'min:20', 'max:3000'],
             'number_of_units'     => ['required', 'integer', 'min:1', 'max:100'],

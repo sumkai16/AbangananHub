@@ -13,9 +13,9 @@ use App\Models\Property;
 class KeywordFallback
 {
     private const TYPES = [
-        'Boarding House' => ['boarding house', 'boardinghouse', 'boarding', 'dorm', 'dormitory', 'room for rent', 'kwarto', 'kuwarto', 'kwarto'],
+        'Boarding House' => ['boarding house', 'boardinghouse', 'boarding', 'room for rent', 'kwarto', 'kuwarto', 'kwarto'],
         'Bedspace' => ['bedspace', 'bed space', 'bed spacer', 'bedspacer'],
-        'Condominium' => ['condominium', 'condo'],
+        'Dormitory' => ['dormitory', 'dorm', 'dorms'],
         'Apartment' => ['apartment', 'apartelle', 'apt'],
         'House' => ['house', 'bahay', 'balay'],
     ];

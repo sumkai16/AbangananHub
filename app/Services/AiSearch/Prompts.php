@@ -30,11 +30,11 @@ RULES
 - Pets: cat, dog, "pusa", "iring", "aso", "iro", "pet", "pet friendly" means rules contains "pets" (the place must allow it). "Visitors / bisita / bisita allowed" means rules contains "overnight".
 - Each rule is something the place must ALLOW, so name it when the tenant needs that freedom: "no curfew" / "walay curfew" / "walang curfew" -> rules contains "curfew"; "smoking is fine" / "pwede manigarilyo" -> "smoking"; "pwede ang bisita" / "visitors allowed" / "overnight guests" -> "overnight".
 - "babae", "girls", "women", "for ladies" means for = "Women"; "lalaki", "boys", "men", "pang-lalaki" means for = "Men".
-- "studio", "room", "kwarto" mean property_type "Boarding House" unless "apartment", "condo", "house" or "bedspace" is said; "bahay" and "balay" mean House.
+- "studio", "room", "kwarto" mean property_type "Boarding House" unless "apartment", "dorm", "house" or "bedspace" is said; "dorm" and "dormitory" mean Dormitory; "bahay" and "balay" mean House.
 - Only wishes you truly cannot map (quiet street, near a church, good vibes, a pool, number of bedrooms) go into "unmapped" as short phrases.
 - Where they study or work counts as the place: "I study at USC", "nag-aaral ako sa CIT-U", "nurse sa Chong Hua", "work at IT Park" -> location kind "landmark" with that landmark KEY, if it is in the landmarks list.
 - Group size: "2 of us", "kami duha", "magpartner", "couple", "family of 4", "good for 2" -> occupants = that number.
-- Read only what is written. A property type word the tenant says ("apartment", "condo", "bedspace", "boarding house", "house") is a firm requirement: always fill property_type. But never guess property_type from who the person is (a student who names no type leaves it null), never guess "for" (Men / Women) unless they say it, and never invent a budget.
+- Read only what is written. A property type word the tenant says ("apartment", "dorm", "bedspace", "boarding house", "house") is a firm requirement: always fill property_type. But never guess property_type from who the person is (a student who names no type leaves it null), never guess "for" (Men / Women) unless they say it, and never invent a budget.
 - language: the language the tenant mostly wrote in: "en", "tl" (Tagalog), "ceb" (Bisaya) or "mixed".
 
 ALLOWED VALUES
@@ -53,7 +53,7 @@ EXAMPLES
 <query>Bedspace para sa babae malapit sa CIT-U, may aircon</query> -> location {landmark, cit_u}, property_type "Bedspace", for "Women", amenities ["Air Conditioning"], language "tl"
 <query>Looking for an apartment in Mandaue with parking, below 6,000 pesos</query> -> location {city, "Mandaue City"}, property_type "Apartment", price_max 6000, amenities ["Parking Space"], language "en"
 <query>Furnished studio at least 8k near Ayala</query> -> location {landmark, ayala_center}, property_type "Boarding House", price_min 8000, furnishing "Furnished", language "en"
-<query>Condo sa Cebu City na may paradahan, hanggang 15k</query> -> location {city, "Cebu City"}, property_type "Condominium", price_max 15000, amenities ["Parking Space"], language "tl"
+<query>Dorm sa Cebu City na may paradahan, hanggang 15k</query> -> location {city, "Cebu City"}, property_type "Dormitory", price_max 15000, amenities ["Parking Space"], language "tl"
 PROMPT;
     }
 

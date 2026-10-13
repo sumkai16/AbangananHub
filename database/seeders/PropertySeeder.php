@@ -43,9 +43,9 @@ class PropertySeeder extends Seeder
             '1554995207-c18c203602cb', '1598928506311-c55ded91a20c', '1583608205776-bfd35f0d9f83',
             '1524758631624-e2822e304c36',
         ],
-        'Condominium' => [
-            '1522708323590-d24dbb6b0267', '1502672260266-1c1ef2d93688', '1554995207-c18c203602cb',
-            '1493809842364-78817add7ffb', '1524758631624-e2822e304c36',
+        'Dormitory' => [
+            '1555854877-bab0e564b8d5', '1493809842364-78817add7ffb', '1505691938895-1758d7feb511',
+            '1595526114035-0d45ed16cfbf', '1540518614846-7eded433c457',
         ],
         'House' => [
             '1568605114967-8130f3a36994', '1570129477492-45c003edd2be', '1512917774080-9991f1c4c750',
@@ -84,11 +84,11 @@ class PropertySeeder extends Seeder
             'Segregate garbage and dispose on collection days', 'Overnight guests must be registered at the guard house',
             'No changes to walls or fixtures without approval', 'Report leaks or electrical faults immediately',
         ],
-        'Condominium' => [
-            'No smoking inside the unit', 'No pets unless allowed by the condominium corporation', 'Quiet hours from 10:00 PM to 6:00 AM',
-            'Overnight guests must be registered at the lobby', 'Amenity deck use follows the building schedule',
-            'No subletting or Airbnb-style short stays', 'Association dues are handled by the owner unless stated',
-            'Move-in and move-out only on approved hours', 'Report leaks or electrical faults immediately',
+        'Dormitory' => [
+            'No smoking inside the building', 'No pets', 'Quiet hours from 10:00 PM to 6:00 AM',
+            'Visitors only in the lobby or common area', 'Curfew at 11:00 PM, late entry must be cleared with the dorm manager',
+            'No cooking inside the rooms', 'Keep shared bathrooms and study areas clean',
+            'No subletting or unregistered occupants', 'Report leaks or electrical faults immediately',
         ],
         'House' => [
             'No smoking inside the house', 'Pets allowed with prior approval', 'Tenant keeps the yard clean and trimmed',
@@ -112,9 +112,9 @@ class PropertySeeder extends Seeder
             'property' => ['CCTV', '24/7 Security', 'Gated Entrance', 'Parking Space', 'Elevator', 'Near Public Transport', 'Rooftop Access'],
             'unit'     => ['Air Conditioning', 'Wi-Fi', 'Private Bathroom', 'Private Kitchen', 'Hot Shower', 'Refrigerator', 'Balcony', 'Bed Included'],
         ],
-        'Condominium' => [
-            'property' => ['24/7 Security', 'CCTV', 'Elevator', 'Parking Space', 'Rooftop Access', 'Near Public Transport', 'Gated Entrance'],
-            'unit'     => ['Air Conditioning', 'Wi-Fi', 'Private Bathroom', 'Private Kitchen', 'Hot Shower', 'Refrigerator', 'Balcony', 'Bed Included'],
+        'Dormitory' => [
+            'property' => ['24/7 Security', 'CCTV', 'Gated Entrance', 'Laundry Area', 'Shared Kitchen', 'Near Public Transport', 'Curfew'],
+            'unit'     => ['Air Conditioning', 'Wi-Fi', 'Wardrobe / Cabinet', 'Bed Included', 'Study Table', 'Hot Shower'],
         ],
         'House' => [
             'property' => ['Parking Space', 'Gated Entrance', 'Backup Generator', 'Pet Friendly', 'Near Market / Grocery', 'Near Public Transport'],
@@ -243,10 +243,10 @@ class PropertySeeder extends Seeder
                 'furn' => 'Semi-furnished', 'kitchen' => 'Private kitchen', 'floor' => '2nd floor',
                 'desc' => 'Self-contained unit with its own comfort room and kitchenette.',
             ],
-            'Condominium' => [
-                'type' => 'Studio', 'beds' => 0, 'baths' => 1, 'sqm' => 24 + $occupancy * 4, 'bath' => 'Private bathroom',
-                'furn' => 'Furnished', 'kitchen' => 'Private kitchen', 'floor' => '12th floor',
-                'desc' => 'Condominium unit with its own comfort room and kitchenette. Building amenities follow the association rules.',
+            'Dormitory' => [
+                'type' => 'Dorm room', 'beds' => $occupancy, 'baths' => 1, 'sqm' => 14 + $occupancy * 3, 'bath' => 'Shared bathroom',
+                'furn' => 'Furnished', 'kitchen' => 'Shared kitchen', 'floor' => '2nd floor',
+                'desc' => 'Furnished dorm room with beds, lockers and a study table. Common areas follow the dormitory house rules.',
             ],
             default => [
                 'type' => 'Whole house', 'beds' => 3, 'baths' => 2, 'sqm' => 70 + $occupancy * 6, 'bath' => 'Private bathroom',
@@ -289,20 +289,20 @@ class PropertySeeder extends Seeder
                 'Ventilated rooms at the back of a two-storey house, ten minutes from SM Seaside and the SRP. Electricity billed per sub-meter, water is flat.',
                 [['Room A', 4000, 1], ['Room B', 3800, 1, ['avail' => 'Maintenance']]]],
 
-            [6, 'IT Park Studios, Apas', 'Condominium', 'Apas', 'Cebu City', 10.3297, 123.9056, 'Private',
+            [6, 'IT Park Dormitory, Apas', 'Dormitory', 'Apas', 'Cebu City', 10.3297, 123.9056, 'Private',
                 [true, false, true, true, false],
-                'Fully furnished studios a five-minute walk from Cebu IT Park. Aircon, fiber Wi-Fi and 24/7 guard. Many tenants are BPO and IT workers on night shifts.',
-                [['Unit 101', 12000, 2, ['furn' => 'Furnished', 'floor' => '1st floor']], ['Unit 102', 12000, 2, ['furn' => 'Furnished', 'floor' => '1st floor']], ['Unit 201', 14000, 2, ['furn' => 'Furnished', 'floor' => '2nd floor', 'sqm' => 32]], ['Unit 202', 14000, 2, ['furn' => 'Furnished', 'floor' => '2nd floor', 'sqm' => 32]]]],
+                'Fully furnished dorm rooms a five-minute walk from Cebu IT Park. Aircon, fiber Wi-Fi and 24/7 guard. Many tenants are BPO and IT workers on night shifts.',
+                [['Room 101', 12000, 2, ['furn' => 'Furnished', 'floor' => '1st floor']], ['Room 102', 12000, 2, ['furn' => 'Furnished', 'floor' => '1st floor']], ['Room 201', 14000, 2, ['furn' => 'Furnished', 'floor' => '2nd floor', 'sqm' => 32]], ['Room 202', 14000, 2, ['furn' => 'Furnished', 'floor' => '2nd floor', 'sqm' => 32]]]],
 
             [6, 'Two-Bedroom Apartments in Banilad', 'Apartment', 'Banilad', 'Cebu City', 10.3402, 123.9128, 'Family-friendly',
                 [false, false, false, true, true],
                 'Two-bedroom units in a quiet subdivision off Banilad Road. Washing area, one parking slot per unit, and walking distance to Gaisano Country Mall.',
                 [['Unit A', 18000, 4, ['type' => '2BR', 'beds' => 2, 'sqm' => 58, 'deposit' => 2]], ['Unit B', 16000, 3, ['type' => '2BR', 'beds' => 2, 'sqm' => 50, 'deposit' => 2]]]],
 
-            [6, 'Condo-Type Unit, Lahug', 'Condominium', 'Lahug', 'Cebu City', 10.3283, 123.8982, 'Couples allowed',
+            [6, 'Lahug Dormitory near JY Square', 'Dormitory', 'Lahug', 'Cebu City', 10.3283, 123.8982, 'Couples allowed',
                 [true, false, true, true, false],
-                'Condo-style one-bedroom near Ayala Center and JY Square. Hot shower, aircon, CCTV in the hallway.',
-                [['Unit 1', 15000, 2, ['type' => '1BR', 'beds' => 1, 'furn' => 'Furnished', 'sqm' => 30, 'deposit' => 2]]]],
+                'Dormitory rooms near Ayala Center and JY Square. Hot shower, aircon, CCTV in the hallway.',
+                [['Room 1', 15000, 2, ['furn' => 'Furnished', 'sqm' => 30, 'deposit' => 2]]]],
 
             [$M, 'Bedspace near Cebu Doctors, Osmeña Blvd', 'Bedspace', 'Kamputhaw', 'Cebu City', 10.3112, 123.9068, 'Male only',
                 [true, false, true, false, true],
@@ -618,15 +618,15 @@ class PropertySeeder extends Seeder
                 'Private rooms a short walk from University of Cebu Main and Colon. Wi-Fi included, shared kitchen, motorcycle parking.',
                 [['Room 1', 3500, 1], ['Room 2', 3500, 1], ['Room 3', 4000, 1, ['sqm' => 14]]]],
 
-            [6, 'Ayala Heights Condo, Cebu Business Park', 'Condominium', 'Luz', 'Cebu City', 10.3191, 123.9048, 'Couples allowed',
+            [6, 'Ayala Heights Dormitory, Cebu Business Park', 'Dormitory', 'Luz', 'Cebu City', 10.3191, 123.9048, 'Couples allowed',
                 [false, false, true, true, false],
-                'One-bedroom condo units beside Ayala Center Cebu. Pool, gym, 24/7 security and covered parking. Fully furnished with aircon and fiber Wi-Fi.',
-                [['Unit 8A', 22000, 2, ['type' => '1BR', 'beds' => 1, 'sqm' => 36, 'furn' => 'Furnished', 'floor' => '8th floor', 'deposit' => 2]], ['Unit 12C', 26000, 3, ['type' => '1BR', 'beds' => 1, 'sqm' => 42, 'furn' => 'Furnished', 'floor' => '12th floor', 'deposit' => 2]]]],
+                'Dorm rooms beside Ayala Center Cebu. Study lounge, gym, 24/7 security and covered parking. Fully furnished with aircon and fiber Wi-Fi.',
+                [['Room 8A', 22000, 2, ['sqm' => 36, 'furn' => 'Furnished', 'floor' => '8th floor', 'deposit' => 2]], ['Room 12C', 26000, 3, ['sqm' => 42, 'furn' => 'Furnished', 'floor' => '12th floor', 'deposit' => 2]]]],
 
-            [6, 'Pool View Condo Studios, IT Park', 'Condominium', 'Apas', 'Cebu City', 10.3303, 123.9068, 'Private',
+            [6, 'Rooftop Dormitory, IT Park', 'Dormitory', 'Apas', 'Cebu City', 10.3303, 123.9068, 'Private',
                 [false, false, true, true, false],
-                'Studio condos with a pool and rooftop deck, two minutes from Cebu IT Park. Furnished, aircon, fiber Wi-Fi, guard at the lobby.',
-                [['Studio 5B', 15000, 2, ['furn' => 'Furnished', 'floor' => '5th floor']], ['Studio 9D', 17000, 2, ['furn' => 'Furnished', 'floor' => '9th floor', 'sqm' => 30]], ['Studio 14A', 18000, 2, ['furn' => 'Furnished', 'floor' => '14th floor', 'sqm' => 32]]]],
+                'Dorm rooms with a rooftop deck, two minutes from Cebu IT Park. Furnished, aircon, fiber Wi-Fi, guard at the lobby.',
+                [['Room 5B', 15000, 2, ['furn' => 'Furnished', 'floor' => '5th floor']], ['Room 9D', 17000, 2, ['furn' => 'Furnished', 'floor' => '9th floor', 'sqm' => 30]], ['Room 14A', 18000, 2, ['furn' => 'Furnished', 'floor' => '14th floor', 'sqm' => 32]]]],
 
             [6, 'Furnished Studios near Ayala', 'Apartment', 'Kamputhaw', 'Cebu City', 10.3156, 123.9013, 'Private',
                 [true, false, true, false, true],
@@ -643,10 +643,10 @@ class PropertySeeder extends Seeder
                 'Pet-friendly apartment with its own parking, Wi-Fi included and a small garden. Near Gaisano Grand Mall Mandaue.',
                 [['Unit A', 6800, 3, ['type' => '1BR', 'beds' => 1, 'sqm' => 38, 'furn' => 'Semi-furnished']], ['Unit B', 7500, 4, ['type' => '2BR', 'beds' => 2, 'sqm' => 46]]]],
 
-            [2, 'Mandaue Condo Studios near Parkmall', 'Condominium', 'Ibabao', 'Mandaue City', 10.3237, 123.9328, 'Private',
+            [2, 'Mandaue Dormitory near Parkmall', 'Dormitory', 'Ibabao', 'Mandaue City', 10.3237, 123.9328, 'Private',
                 [false, false, true, true, false],
-                'Studio condos with a pool and parking beside Parkmall. Furnished, aircon, fiber Wi-Fi, 24/7 security.',
-                [['Studio 3F', 13500, 2, ['furn' => 'Furnished', 'floor' => '3rd floor']], ['Studio 7E', 15000, 2, ['furn' => 'Furnished', 'floor' => '7th floor']]]],
+                'Dorm rooms with parking beside Parkmall. Furnished, aircon, fiber Wi-Fi, 24/7 security.',
+                [['Room 3F', 13500, 2, ['furn' => 'Furnished', 'floor' => '3rd floor']], ['Room 7E', 15000, 2, ['furn' => 'Furnished', 'floor' => '7th floor']]]],
 
             [3, 'Family House with Parking, Tangke', 'House', 'Tangke', 'Talisay City', 10.2712, 123.8433, 'Family-friendly',
                 [false, false, false, false, true],

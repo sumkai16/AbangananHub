@@ -74,8 +74,8 @@ class IntentAndFallbackTest extends AiSearchTestCase
         $this->assertSame(4000, $b['price_max']);
         $this->assertContains('Parking Space', $b['amenities']);
 
-        $c = $parse('condo for women starting 10k');
-        $this->assertSame(['Condominium', 'Women', 10000, null], [$c['property_type'], $c['for'], $c['price_min'], $c['price_max']]);
+        $c = $parse('dorm for women starting 10k');
+        $this->assertSame(['Dormitory', 'Women', 10000, null], [$c['property_type'], $c['for'], $c['price_min'], $c['price_max']]);
     }
 
     public function test_language_is_detected_from_the_words_typed(): void
@@ -84,7 +84,7 @@ class IntentAndFallbackTest extends AiSearchTestCase
 
         $this->assertSame('en', $detect('Room near USC Talamban with Wi-Fi under 5k'));
         $this->assertSame('ceb', $detect('Naa bay apartment sa Mandaue ubos sa 4k, naay parking ug aircon?'));
-        $this->assertSame('ceb', $detect('Condo duol sa IT Park nga naay swimming pool, 20k hangtod'));
+        $this->assertSame('ceb', $detect('Dorm duol sa IT Park nga naay swimming pool, 20k hangtod'));
         $this->assertSame('tl', $detect('Bedspace para sa babae malapit sa CIT-U, may aircon'));
         $this->assertSame('tl', $detect('Murang boarding house malapit sa Colon, may wifi'));
         $this->assertNull($detect('apartment'));

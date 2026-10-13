@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Landlord;
 
+use App\Enums\PropertyType;
 use App\Rules\WithinCebu;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -20,7 +21,7 @@ class UpdatePropertyRequest extends FormRequest
         return [
             'title'             => ['required', 'string', 'min:10', 'max:150'],
             'description'       => ['required', 'string', 'min:20', 'max:3000'],
-            'property_type'     => ['required', 'in:Apartment,Condominium,House,Boarding House,Bedspace'],
+            'property_type'     => ['required', 'in:' . PropertyType::rule()],
             ...\App\Support\PropertyPolicies::rules(),
             'address'           => ['required', 'string', 'min:10', 'max:255'],
             'city_municipality' => ['required', 'string', Rule::in(config('cebu.lgus'))],
