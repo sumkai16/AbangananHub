@@ -88,7 +88,8 @@
                         @foreach($areas as $area)
                             <a href="{{ $area['url'] }}"
                                 class="relative shrink-0 snap-start w-[62%] sm:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-3rem)/5)] h-36 sm:h-40 rounded-2xl overflow-hidden group border border-[#E2E4EC] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66] hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
-                                <img src="{{ $area['photo'] }}" alt="{{ $area['name'] }}" loading="lazy"
+                                {{-- The controller hands over an 800px URL; a tile is ~280px wide. --}}
+                                <img src="{{ \App\Support\Images::resize($area['photo'], 480) }}" alt="{{ $area['name'] }}" loading="lazy" decoding="async"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#060D26]/90 via-[#060D26]/35 to-transparent"></div>
                                 <div class="absolute bottom-3 left-3 right-3">
