@@ -302,6 +302,19 @@ server {
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
 
+    # --- Compression ---
+    # Text (HTML, JS, CSS, JSON) shrinks 70-80%; the browse page HTML alone is ~350 KB.
+    # `php artisan serve` never compresses, so this only shows up on the real server.
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_types text/plain text/css text/javascript application/javascript application/json
+               application/xml image/svg+xml;
+    # Brotli is smaller still: `sudo apt install libnginx-mod-http-brotli-filter`, then
+    # `brotli on; brotli_types <same list>;`. Optional; gzip alone is enough.
+
     # --- Reverb WebSocket proxy ---
     # The browser connects to wss://abangananhub.com/app/... on 443;
     # this forwards to the daemon on loopback:8080.
@@ -325,6 +338,14 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Vite output is content-hashed (app-m4J79ABd.js), so a changed file gets a new name
+    # and the old one can be cached for a year. Never do this for anything outside /build/.
+    location /build/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
     }
 
     location / {
@@ -466,6 +487,7 @@ Ordered so a failure points at the layer that caused it.
 
 - [ ] `https://abangananhub.com` loads, padlock valid, redirects from `http://`
 - [ ] Styling is present (if unstyled → `npm run build` didn't run, or `public/build` is missing)
+- [ ] Compression is on: `curl -sI -H 'Accept-Encoding: gzip' https://abangananhub.com/properties | grep -i content-encoding` prints `gzip`, and a `/build/assets/*.js` response has `cache-control: public, immutable`
 - [ ] Register a tenant → lands on `/properties` (`User::homeRoute()`)
 - [ ] Browse: search, filters, map tiles, a property detail page
 - [ ] **Chat**: two accounts, two browsers, message delivers in <2s with no reload.

@@ -47,6 +47,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so Pint can diff against origin/main.
+          fetch-depth: 0
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -78,6 +81,11 @@ jobs:
       - name: Audit PHP dependencies
         run: composer audit
 
+      # Only files changed since main are checked (pint.json matches the project style), so
+      # the codebase gets cleaner as it is touched without a repo-wide reformat.
+      - name: Check code style (changed files)
+        run: vendor/bin/pint --test --diff=origin/main
+
       - name: Prepare environment
         run: |
           cp .env.example .env
@@ -85,6 +93,9 @@ jobs:
 
       - name: Build assets
         run: npm ci && npm run build
+
+      - name: Audit JS dependencies
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Migrate test database
         run: php artisan migrate --force
