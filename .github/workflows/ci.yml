@@ -46,7 +46,7 @@ jobs:
       BROADCAST_CONNECTION: 'null'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history so Pint can diff against origin/main.
           fetch-depth: 0
