@@ -245,8 +245,6 @@ class RecordPaymentTest extends TestCase
 
     public function test_a_start_month_that_is_already_settled_is_skipped_not_charged_a_second_rent(): void
     {
-        $this->markTestIncomplete('Suspected bug: RentPaymentAllocator is fed RentLedger::unsettledPeriods(), which drops paid months, so a settled start month falls back to a full monthlyRent instead of 0 (PaymentController.php:351-356, RentPaymentAllocator.php:57-59).');
-
         $t = $this->makeTenancy();
         $this->makeRecordedPayment($t['reservation'], $t['landlord'], ['billing_period' => '2026-08-01', 'amount' => 5000]);
 
@@ -258,8 +256,6 @@ class RecordPaymentTest extends TestCase
 
     public function test_a_future_month_that_is_part_covered_only_takes_its_remaining_balance(): void
     {
-        $this->markTestIncomplete('Suspected bug: unsettledPeriods() excludes future months, so a part-prepaid November is treated as owing a full rent and is overpaid (RentLedger.php:322, RentPaymentAllocator.php:57-60).');
-
         $t = $this->makeTenancy();
         $this->record($t, ['amount' => 17500]); // Aug-Oct, plus 2,500 of November
 
@@ -581,13 +577,34 @@ class RecordPaymentTest extends TestCase
 
     public function test_the_api_spreads_an_overpayment_over_months_like_the_web_form_does(): void
     {
-        $this->markTestIncomplete('Suspected bug: the API store() writes one row on the chosen month and never calls RentPaymentAllocator, so 10,000 against 5,000 rent overpays one month (Api/Landlord/PaymentController.php:112-125).');
-
         $t = $this->makeTenancy();
 
         $this->apiRecord($t, ['amount' => 10000])->assertCreated();
 
         $this->assertSame(['2026-08-01' => 5000.0, '2026-09-01' => 5000.0], $this->byMonth($t));
         $this->assertSame(5000.0, $this->summary($t)['outstanding']);
+    }
+
+    public function test_the_api_tells_the_app_how_many_months_it_covered(): void
+    {
+        $t = $this->makeTenancy();
+
+        $this->apiRecord($t, ['amount' => 10000])->assertCreated()->assertJsonPath('message', 'Payment recorded across 2 billing months.');
+        $this->apiRecord($t, ['amount' => 1000, 'billing_period' => '2026-10-01'])->assertCreated()->assertJsonPath('message', 'Payment recorded.');
+    }
+
+    public function test_the_api_links_a_correction_to_the_voided_row_on_the_same_tenancy_only(): void
+    {
+        $t = $this->makeTenancy();
+        $voided = $this->makeRecordedPayment($t['reservation'], $t['landlord'], ['status' => 'Voided']);
+        $other = $this->makeTenancy();
+        $foreignVoided = $this->makeRecordedPayment($other['reservation'], $other['landlord'], ['status' => 'Voided']);
+
+        $this->apiRecord($t, ['replaces_payment_id' => $voided->payment_id])->assertCreated();
+        $this->apiRecord($t, ['replaces_payment_id' => $foreignVoided->payment_id, 'billing_period' => '2026-10-01'])->assertCreated();
+
+        $links = $this->rows($t)->where('status', 'Paid')->pluck('replaces_payment_id', 'billing_period')->all();
+        $this->assertContains($voided->payment_id, $links);
+        $this->assertNotContains($foreignVoided->payment_id, $links, 'A correction must never point at another landlord\'s row.');
     }
 }

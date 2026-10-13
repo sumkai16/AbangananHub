@@ -11,8 +11,8 @@ use Tests\TestCase;
  * RentPaymentAllocator turns one lump of rent money into per-month rows, and it
  * does it with floats. The two things that must never happen are a centavo
  * being lost or invented, and money landing on the wrong month. Pure function,
- * so no database: the unsettled-periods collection is built by hand in the
- * shape RentLedger::unsettledPeriods() returns.
+ * so no database: the periods collection is built by hand in the shape
+ * RentLedger::periods() returns (a `period` and a `balance` per month).
  */
 class RentPaymentAllocatorTest extends TestCase
 {
@@ -76,15 +76,34 @@ class RentPaymentAllocatorTest extends TestCase
         $this->assertSame([['2026-08-01', 2000.0], ['2026-09-01', 3000.0]], $this->plain($rows));
     }
 
-    public function test_months_after_the_start_month_are_billed_at_full_rent_whatever_the_ledger_says(): void
+    public function test_every_month_takes_only_what_the_ledger_says_it_still_owes(): void
     {
-        // Only the start month may carry a partial balance; later months are
-        // untouched months and take a full rent each.
-        $unsettled = $this->unsettled(['2026-08' => 1000.0, '2026-09' => 1.0]);
+        // A later month can be part-paid too (prepaid, or paid offline earlier).
+        // It must take its own remaining balance, not a fresh full rent.
+        $periods = $this->unsettled(['2026-08' => 1000.0, '2026-09' => 1000.0, '2026-10' => 5000.0]);
 
-        $rows = RentPaymentAllocator::allocate($unsettled, $this->month('2026-08'), self::RENT, 11000.0);
+        $rows = RentPaymentAllocator::allocate($periods, $this->month('2026-08'), self::RENT, 11000.0);
 
-        $this->assertSame([['2026-08-01', 1000.0], ['2026-09-01', 5000.0], ['2026-10-01', 5000.0]], $this->plain($rows));
+        // November is not in the ledger yet, so it owes a full rent.
+        $this->assertSame([['2026-08-01', 1000.0], ['2026-09-01', 1000.0], ['2026-10-01', 5000.0], ['2026-11-01', 4000.0]], $this->plain($rows));
+    }
+
+    public function test_a_settled_month_is_skipped_not_billed_a_second_time(): void
+    {
+        $periods = $this->unsettled(['2026-08' => 0.0, '2026-09' => 5000.0]);
+
+        $rows = RentPaymentAllocator::allocate($periods, $this->month('2026-08'), self::RENT, 5000.0);
+
+        $this->assertSame([['2026-09-01', 5000.0]], $this->plain($rows));
+    }
+
+    public function test_an_overpaid_month_with_a_negative_balance_counts_as_settled(): void
+    {
+        $periods = $this->unsettled(['2026-08' => -2000.0, '2026-09' => 5000.0]);
+
+        $rows = RentPaymentAllocator::allocate($periods, $this->month('2026-08'), self::RENT, 3000.0);
+
+        $this->assertSame([['2026-09-01', 3000.0]], $this->plain($rows));
     }
 
     public function test_a_start_month_missing_from_the_ledger_is_billed_at_full_rent(): void
