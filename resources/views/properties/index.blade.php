@@ -17,11 +17,13 @@
             x-data="{ slides: [
                     '{{ asset('images/pexels-photo-10530237.webp') }}',
                     '{{ asset('images/photo-1448630360428-65456885c650.webp') }}'
-                ], active: -1 }"
-            x-init="setInterval(() => active = active >= slides.length - 1 ? -1 : active + 1, 12000)">
-            <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+                ], active: -1, ready: false }"
+            x-init="setTimeout(() => ready = true, 4000); setInterval(() => active = active >= slides.length - 1 ? -1 : active + 1, 12000)">
+            {{-- The one eager image: it is the page's largest paint, so it is fetched first. The slideshow photos
+                 only start downloading 4 s in (first swap is at 12 s), so they never compete with it on a slow phone. --}}
+            <img src="{{ asset('images/hero-bg.jpg') }}" alt="" fetchpriority="high" decoding="async" class="absolute inset-0 w-full h-full object-cover">
             <template x-for="(slide, i) in slides" :key="i">
-                <img :src="slide" alt="" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out motion-reduce:transition-none"
+                <img :src="ready ? slide : null" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out motion-reduce:transition-none"
                     :class="active === i ? 'opacity-100' : 'opacity-0'">
             </template>
             <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/35 via-[#060D26]/45 to-[#060D26]/55"></div>
