@@ -10,11 +10,24 @@ use Tests\TestCase;
  * Baseline harness for the performance work: prints query count, DB time and
  * repeated-query shapes per route. Run before and after an optimisation to
  * prove it moved a number. Read-only GETs against the dev database.
+ *
+ * Run with `composer perf` (same as `DB_DATABASE=abanganan_hub php artisan test
+ * --filter=PerformanceBaselineTest`). phpunit.xml points tests at the EMPTY
+ * `abanganan_hub_test` database, so a plain `php artisan test` has no users to
+ * act as: the test skips itself there with a message instead of profiling nothing.
  */
 class PerformanceBaselineTest extends TestCase
 {
     public function test_profile_routes(): void
     {
+        if (! DB::table('users')->exists()) {
+            $this->markTestSkipped(
+                'Database "'.DB::connection()->getDatabaseName().'" has no users. '
+                .'This harness profiles the dev database; run `composer perf` '
+                .'(DB_DATABASE=abanganan_hub php artisan test --filter=PerformanceBaselineTest).'
+            );
+        }
+
         $role = fn (string $r) => User::whereHas('roles', fn ($q) => $q->where('role', $r))->first();
 
         $targets = [
@@ -29,7 +42,7 @@ class PerformanceBaselineTest extends TestCase
             ['/landlord/analytics',          'Landlord'],
             ['/admin/dashboard',             'Admin'],
             ['/admin/users',                 'Admin'],
-            ['/admin/listings',              'Admin'],
+            ['/admin/listings/approval',              'Admin'],
             ['/admin/catalogue/properties',  'Admin'],
             ['/admin/reports',               'Admin'],
             ['/tenant/reservations',         'Tenant'],

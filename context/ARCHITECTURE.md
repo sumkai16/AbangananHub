@@ -2,7 +2,7 @@
 
 ## 1. Stack Summary
 - Frontend: Blade templates, Tailwind CSS v3, Alpine.js, vanilla JS fetch()
-- Backend: PHP 8.2, Laravel 12.6, Eloquent ORM
+- Backend: PHP 8.4, Laravel 12.6, Eloquent ORM
 - Database: MySQL
 - Auth: Laravel Breeze (session-based web), Laravel Sanctum v4.3.2 (API token auth for mobile layer)
 - Real-time: Laravel Reverb (WebSockets)
