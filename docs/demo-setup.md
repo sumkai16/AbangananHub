@@ -51,3 +51,10 @@ not `localhost`.
 2. Anything from `images.unsplash.com` at `w=1200`? A view is missing `Images::resize()` / `loading="lazy"`.
 3. Any request to `fonts.googleapis.com` or `cdn.jsdelivr.net`? Something re-added a CDN tag.
 4. `php artisan test --filter=PerformanceBaseline` — compare **query counts** to the table in the plan.
+
+## Demo data
+
+`php artisan migrate:fresh --seed` builds the whole demo (Maria Santos, her 10 tenants, three requests in
+progress, a listing waiting for admin approval). **It wipes the local database.** To add the demo extras
+to a database that already has the base seed, run `php artisan db:seed --class=DemoSeeder` (safe to repeat).
+All seeded logins use the password `password`.
