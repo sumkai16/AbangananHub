@@ -82,11 +82,7 @@
                  buttons), so the back link lives in the page content instead. --}}
             <a href="{{ route('home') }}"
                 class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group {{ $backNavData ? $mobileBp.':hidden' : '' }}">
-                <img src="{{ asset('images/brand/logo-mark.svg') }}" alt="AbangananHub"
-                    class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
-                <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
-                    Abanganan<span class="text-[#FF8A66]">Hub</span>
-                </span>
+                <x-brand-logo mark="w-8 h-8 sm:w-10 sm:h-10" text="text-[16px] sm:text-[18px]" gap="gap-1.5 sm:gap-2.5" />
             </a>
 
             @if($backNavData)
@@ -103,11 +99,7 @@
                      pill uses elsewhere in this file. --}}
                 <a href="{{ route('home') }}"
                     class="hidden xl:flex items-center gap-2.5 no-underline absolute left-1/2 -translate-x-1/2 group">
-                    <img src="{{ asset('images/brand/logo-mark.svg') }}" alt="AbangananHub"
-                        class="w-9 h-9 object-contain transition-transform group-hover:scale-105">
-                    <span class="text-[18px] font-extrabold text-[#060D26] tracking-tight">
-                        Abanganan<span class="text-[#FF8A66]">Hub</span>
-                    </span>
+                    <x-brand-logo mark="w-9 h-9" text="text-[18px]" />
                 </a>
             @else
                 {{-- Primary nav — sits beside the logo, deliberately not centred: the
@@ -537,8 +529,7 @@
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-                <img src="{{ asset('images/brand/logo-mark-on-dark.svg') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
-                <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#FF8A66]">Hub</span></span>
+                <x-brand-logo tone="on-dark" mark="w-8 h-8" text="text-[16px]" />
             </a>
 
             {{-- Link columns --}}
@@ -648,11 +639,7 @@
                     </div>
 
                     <div class="relative z-10">
-                        <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                        </div>
+                        <x-brand-logo tone="on-dark" mark="w-10 h-10" text="text-[18px]" class="mb-5" />
                         <h3 id="auth-side-title" class="font-jakarta text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
                         <p id="auth-side-subtitle" class="text-white/75 text-[13px] mt-3 leading-relaxed max-w-[17rem]">
                             Pick up where you left off.
