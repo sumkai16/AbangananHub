@@ -2,6 +2,10 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 14 2026 — Chat messages out of order (branch `axci`)
+- **Cause:** `Conversation::messages()` had no `ORDER BY`, so MySQL returned rows in index order (`conversation_id, is_read, sender_id`), i.e. all of one person's lines before the other's. Fixed by ordering the relation by `sent_at`, then `message_id`. Every reader (tenant/landlord chat, admin view, API) goes through it.
+- **Seed:** `DemoSeeder` stamped the "inquiry sent" card as newer than the chat lines; it is now older than all of them, and the existing demo rows were corrected. Test: `tests/Feature/ConversationMessageOrderTest.php`.
+
 ## Oct 14 2026 — Verification status page: reachable, full details, new layout (branch `axci`)
 - **A pending applicant can get back to what they submitted.** `/landlord/apply` (and the emailed link) redirect Pending applications to `/landlord/verification`; Rejected still gets the wizard. The navbar, mobile menu and footer say **Verification status** once an application exists. Before, the only way to the status page was the redirect right after submitting, and re-running the wizard overwrote the pending row.
 - **The page shows every field the applicant entered**, with the ID number (last 4 shown) and contact number (last 3 shown) masked server-side by `LandlordVerification::maskedIdNumber()` / `maskedContactNumber()`. Empty fields show "—" instead of hiding the card.

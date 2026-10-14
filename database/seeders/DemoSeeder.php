@@ -172,7 +172,8 @@ class DemoSeeder extends TenantSeeder
                 'target_move_out_date' => now()->addDays($r['move_in_in'])->addMonths(12)->toDateString(),
             ]);
 
-            $this->message($conversation, $tenant->user_id, '', 200, summary: true);
+            // The inquiry card is the first thing sent, so it is older than every chat line.
+            $this->message($conversation, $tenant->user_id, '', max(array_column($r['chat'], 2)) + 60, summary: true);
             foreach ($r['chat'] as [$from, $text, $minutesAgo]) {
                 $this->message($conversation, $from === 'tenant' ? $tenant->user_id : $maria->user_id, $text, $minutesAgo);
             }

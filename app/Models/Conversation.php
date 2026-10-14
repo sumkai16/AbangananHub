@@ -32,7 +32,11 @@ class Conversation extends Model
     }
     public function messages(): HasMany
     {
-        return $this->hasMany(Message::class, 'conversation_id', 'conversation_id');
+        // Oldest first. Without an ORDER BY MySQL returns rows in index order (grouped by
+        // sender), which scrambles the chat. message_id breaks ties inside the same second.
+        return $this->hasMany(Message::class, 'conversation_id', 'conversation_id')
+            ->orderBy('sent_at')
+            ->orderBy('message_id');
     }
     public function latestMessage(): HasOne
     {
