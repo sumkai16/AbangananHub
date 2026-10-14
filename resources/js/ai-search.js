@@ -143,6 +143,7 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
 
         apply(read) {
             this.intent = read.intent;
+            this.syncDraft();
             this.chips = read.chips;
             this.usedAi = read.used_ai;
             this.reason = read.fallback_reason;
@@ -161,6 +162,7 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
                 this.html = out.html;
                 this.chips = out.chips;
                 this.intent = out.intent;
+                this.syncDraft();
                 this.phase = 'done';
                 this.showOnMap(out.map || [], out.map_origin ?? null);
             } catch (e) {
@@ -302,7 +304,8 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
         // ── Filters panel ──
         // Edits a copy (`draft`) of what the search understood; "Show results" writes it back to the intent and searches
         // again in place. No new AI call and nothing counts against the daily cap: only fetchResults() runs.
-        openFilters() {
+        // The working copy follows the intent, so the desktop rail (always on screen) never shows stale filters.
+        syncDraft() {
             const i = this.intent || {};
             this.draft = {
                 price_min: i.price_min ?? '',
@@ -314,6 +317,16 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
                 for: i.for ?? '',
                 furnishing: i.furnishing ?? '',
             };
+        },
+
+        // lg and up: the rail is already on screen, so the header's Filters button just brings it into view.
+        openFilters() {
+            if (window.matchMedia('(min-width: 1024px)').matches) {
+                this.$refs.filtersRail?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                this.$refs.filtersRail?.querySelector('input, button')?.focus({ preventScroll: true });
+                return;
+            }
+            this.syncDraft();
             this.filtersOpen = true;
             this.$nextTick(() => this.$refs.filtersDialog?.focus());
         },

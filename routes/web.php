@@ -396,6 +396,7 @@ Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])-
 
 // Bridges a mobile WebView (Bearer token, no session) into a logged-in web
 // session — see Api\AuthController::webviewTicket. Outside the auth
+Route::get('/properties/count', [PropertyController::class, 'count'])->middleware('throttle:120,1')->name('properties.count');
 // middleware on purpose: the WebView has no session to require yet.
 Route::get('/auth/webview-login/{ticket}', WebviewLoginController::class)->name('auth.webviewLogin');
 require __DIR__.'/auth.php';

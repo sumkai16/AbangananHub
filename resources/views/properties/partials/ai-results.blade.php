@@ -28,8 +28,9 @@
         <a href="{{ $filtersUrl }}" class="mt-4 inline-flex items-center h-10 px-5 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13.5px] font-bold transition-colors">Browse with filters</a>
     </section>
 @else
-    <section aria-label="Summary" class="rounded-2xl bg-[#060D26] px-4 py-4 sm:px-5 text-white max-w-3xl"
+    <section aria-label="Summary" class="rounded-2xl bg-[#060D26] px-4 py-4 sm:px-5 text-white max-w-3xl lg:max-w-none lg:flex lg:items-center lg:justify-between lg:gap-6"
         x-data="{ english: false }">
+        <div class="min-w-0 lg:max-w-3xl">
         <span class="flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] {{ $exact_count > 0 ? 'text-[#FF8A66]' : 'text-[#FBBF24]' }}">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z" /></svg>
             @if($exact_count === 0)
@@ -44,7 +45,11 @@
         @if($showEnglishToggle)
             <p class="mt-2 text-[14.5px] leading-[1.55] text-[#E7EAF3]" x-show="english" x-cloak>{{ \App\Services\AiSearch\SummaryFormatter::html($summary_en, $linkable) }}</p>
         @endif
-        <div class="mt-3 flex flex-wrap gap-2">
+        @if($ai_summary)
+            <p class="mt-3 text-[11.5px] text-[#8C95B0]">AI summary · check the details on each listing</p>
+        @endif
+        </div>
+        <div class="mt-3 lg:mt-0 flex flex-wrap lg:flex-col lg:items-stretch gap-2 shrink-0">
             @if($raiseTo)
                 <button type="button" x-on:click="raiseBudget({{ $raiseTo }})"
                     class="h-10 px-4 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[13px] font-bold transition-colors cursor-pointer">Raise budget to ₱{{ number_format($raiseTo) }}</button>
@@ -55,17 +60,14 @@
                     x-text="english ? 'Show original' : 'Show in English'"></button>
             @endif
         </div>
-        @if($ai_summary)
-            <p class="mt-3 text-[11.5px] text-[#8C95B0]">AI summary · check the details on each listing</p>
-        @endif
     </section>
 
     <div class="mt-5 mb-3 flex items-center justify-between gap-3">
         <span class="text-[13px] text-[#5B6A8E]">{{ $total }} {{ \Illuminate\Support\Str::plural('result', $total) }} · {{ $exact_count > 0 ? 'best fit first' : 'nearest fit first' }}</span>
-        <a href="{{ $filtersUrl }}" class="text-[13px] font-semibold text-[#B35A3D] hover:underline">Refine with filters</a>
+        <a href="{{ $filtersUrl }}" class="lg:hidden text-[13px] font-semibold text-[#B35A3D] hover:underline">Refine with filters</a>
     </div>
 
-    <div class="ai-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div class="ai-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
         @foreach($rows as $i => $row)
             <x-property-card :property="$row['property']" :favorited-ids="$favoritedIds"
                 :fit="['rank' => $i + 1, 'exact' => empty($row['misses']), 'hits' => $row['hits'], 'misses' => $row['misses']]" />
@@ -79,7 +81,7 @@
         @if(filled($alt_note))
             <p class="mt-0.5 mb-3 text-[13px] text-[#5B6A8E] max-w-3xl">{{ $alt_note }}</p>
         @endif
-        <div class="ai-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 {{ filled($alt_note) ? '' : 'mt-3' }}">
+        <div class="ai-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 {{ filled($alt_note) ? '' : 'mt-3' }}">
             @foreach($alternatives as $row)
                 <x-property-card :property="$row['property']" :favorited-ids="$favoritedIds"
                     :fit="['rank' => null, 'exact' => false, 'hits' => $row['hits'], 'misses' => $row['misses'], 'suggestion' => true]" />

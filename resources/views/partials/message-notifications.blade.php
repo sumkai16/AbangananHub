@@ -72,8 +72,7 @@
     </div>
 
     {{-- Floating bubble (hidden when panel is open). Desktop only — mobile
-         opens the same panel via a "Messages" pill in the top bar instead
-         (see the `open-messages-panel` window event above). --}}
+         links to the full messages page from the top bar instead. --}}
     <button x-show="!panelOpen" @click="openBubblePanel()"
         class="hidden lg:flex fixed bottom-5 right-5 z-[9997] w-[52px] h-[52px] rounded-full bg-[#060D26] items-center justify-center shadow-[0_4px_16px_rgba(97,178,240,0.35)] hover:brightness-95 transition-all duration-200 focus:outline-none"
         x-transition:enter="transition ease-out duration-200"

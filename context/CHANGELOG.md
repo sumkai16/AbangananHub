@@ -2,6 +2,18 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 14 2026 — Filters dialog restyle with live count (branch `axci`)
+- **`/properties` Filters dialog redone as mockup E** (picked from five): flat two-column layout at `sm:max-w-5xl` instead of nine cards at `7xl`; no icon circles or chip icons; one chip style (chosen = coral, "Any" too); "Clear all" navy; a **Selected** row of removable chips; the button says **"Show N places"**. Phones keep the bottom sheet and amenity accordions. Files: `properties/index.blade.php`, `components/budget-filter.blade.php`.
+- **New `GET /properties/count`** (`PropertyController::count`, throttled 120/min) returns `{count}` for the same filters the page uses; `index()` and `count()` share one private `browseQuery()`, so the number cannot disagree with the list. Test: `tests/Feature/BrowseCountTest.php`.
+- Checked in headless Chrome as Axcee at 1440 and 375 px: pick a range, Women, Private, Wi-Fi (72 → 10 places), remove chips (button updates), submit (URL and "33 properties found" match the button). Tests: 343 passing, 1 skipped.
+
+## Oct 14 2026 — Search results: desktop filter rail, phone Messages link (branch `axci`)
+- **Desktop (lg and up) search results got a left filter rail** (mockup E, picked from five). The repeated search sentence box and the "Searching for" row are gone there; the chips and the filter controls (budget, type, living, suitable for, furnishing, rules, amenities) sit in a sticky 272 px column, edited into the same `draft` and applied with "Show results". The summary card now spans the column (text left, buttons right) and cards are 2 across at `lg`, 3 at `xl`, 1 while the map is open. Below `lg` nothing changed: sentence box, chips, "Refine with filters" link, Filters dialog.
+- **Shared partials, no copies:** `ai-filter-sections` (controls, used by the dialog and the rail), `ai-chips` (used by phone row and rail), `ai-rail`. `ai-search.js`: `syncDraft()` keeps the draft equal to the intent after every search, and on lg `openFilters()` focuses the rail instead of opening the dialog.
+- **Rail and map stick right under the nav:** the pin offset (`--browse-sticky-top`) counted the search band, which is not sticky on this page, so the rail stopped 175 px below the nav. It now counts the band only when it is sticky (`ai.blade.php` script).
+- **Messages icon in the phone header (tenant and landlord) is now a link to `/conversations`**, not the popup panel. The round chat bubble (desktop) still opens the panel.
+- Checked in headless Chrome as Axcee at 1440, 1024 and 375 px: remove chip, edit budget, pick "Women", Show results, open map; no console errors; no sideways scroll. Tests: 341 passing, 1 skipped.
+
 ## Oct 14 2026 — Browser click-through: phone header, card link, small fixes (branch `axci`)
 - **Checked in headless Chrome, logged in through the real form:** 36 pages as Maria, Axcee, Liza and the admin (every demo-flow page) with no console errors and no failed requests; Maria's 11 landlord pages and Axcee's 5 tenant pages also at 375 px.
 - **Tenant header overflowed on a 375 px phone** (`layouts/app.blade.php`): logo, theme toggle, menu, Messages, bell and avatar did not fit, so the avatar sat off screen (x=477) and the page scrolled sideways. Below `sm`: Messages is an icon with the unread badge, the theme toggle moves into the menu panel ("Dark mode" row), tighter gaps. Fits at 360, 375 and 390 px.
