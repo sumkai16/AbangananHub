@@ -7,6 +7,7 @@ Newest first. One entry per piece of work, with the files to read. Longer reason
 - **`composer dev` ignored `PHP_CLI_SERVER_WORKERS=4`:** `php artisan serve` only honours it with `--no-reload`, so the server ran single-threaded and one slow request (AI search, up to 8-15 s) made every page click wait behind it. `composer.json` `dev` script now passes `--no-reload` (checked: 4 workers, a stuck request no longer blocks another). Trade-off: `.env` edits need a restart.
 - **`GET /landlord/properties/{p}/units/{u}` returned 500:** the resource route had a `show` with no controller method. Nothing links to it; route is now `->except('show')` (404).
 - **Cold Vite start:** the first page load after `npm run dev` starts takes about 2.4 s while Tailwind compiles `app.css`; later loads are fast.
+- **`composer dev:lite`:** `npm run build`, then only `artisan serve --no-reload` and `reverb:start`. For laptops short on RAM (Axcee's was at 13 of 16 GB with swap full, which made the server wait 900 ms). Checked: boots in about 20 s, page answers in 30 ms. Documented in `docs/demo-setup.md`.
 
 ## Oct 14 2026 — Demo-ready seed data (branch `axci`)
 - **Why:** the landlord demo (Maria Santos) had gaps. No pending request existed, so the Reservations tab was empty; the seeded ID photos pointed at files that did not exist, so the admin review screen showed broken images; Maria had no walk-in tenants and no listing waiting for approval. The local dev database was also older than the seeders (different listing titles, Axcee had no tenancy), so a reseed is needed anyway.

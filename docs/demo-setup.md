@@ -58,3 +58,7 @@ not `localhost`.
 progress, a listing waiting for admin approval). **It wipes the local database.** To add the demo extras
 to a database that already has the base seed, run `php artisan db:seed --class=DemoSeeder` (safe to repeat).
 All seeded logins use the password `password`.
+
+## Running on a weaker laptop
+
+`composer dev` starts the server, a queue worker, a log viewer and the Vite dev server. On a laptop with little free RAM that is too much, and pages take seconds. Use `composer dev:lite` instead: it builds the assets once (about 6 s), then runs only the web server (4 workers) and Reverb for live chat. Nothing in the demo needs the queue worker (broadcasts are sent straight away). Run it again after you change CSS or JS, because it serves the built files.
