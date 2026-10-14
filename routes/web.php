@@ -202,7 +202,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/reservations/{reservation}/confirm-walk-in-move-in', [App\Http\Controllers\Landlord\ReservationController::class, 'confirmWalkInMoveIn'])->name('reservations.confirmWalkInMoveIn');
 
         // Units
-        Route::resource('properties.units', PropertyUnitController::class);
+        Route::resource('properties.units', PropertyUnitController::class)->except('show');
         Route::delete('/properties/{property}/units/{unit}/media/{media}', [PropertyUnitController::class, 'destroyMedia'])->name('properties.units.media.destroy');
 
         // Property verification documents (proof of ownership, tax dec, permits — private disk, policy-gated)
