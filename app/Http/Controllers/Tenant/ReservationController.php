@@ -69,7 +69,7 @@ public function store(StoreReservationRequest $request)
         // (tenant, landlord, property), so a cancelled thread can't be
         // replaced by a new row — creating one threw a duplicate-key error
         // and left the tenant unable to inquire about this property again.
-        $conversation = Conversation::where('tenant_id', Auth::id())
+        $conversation = Conversation::inquiries()->where('tenant_id', Auth::id())
             ->where('landlord_id', $property->landlord_id)
             ->where('property_id', $property->property_id)
             ->first();

@@ -10,6 +10,7 @@ use App\Models\Property;
 use App\Models\PropertyMedia;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
+use App\Models\TenantConcern;
 use App\Models\UnitMedia;
 use App\Models\User;
 use App\Models\UserRole;
@@ -123,6 +124,7 @@ class DemoSeeder extends TenantSeeder
         $this->requests($maria);
         $this->walkIns($maria);
         $this->tenancies($maria);
+        $this->tenancyChats($maria);
         $this->pendingListing($maria);
     }
 
@@ -301,6 +303,64 @@ class DemoSeeder extends TenantSeeder
         }
     }
 
+    /**
+     * Some life in the post-move-in chat: two tenants talking to Maria, one with an open
+     * plumbing concern and a fixed electrical one. The threads themselves already exist,
+     * opened by ReservationObserver when each tenancy was created as Occupied.
+     */
+    private function tenancyChats(User $maria): void
+    {
+        $scenes = [
+            'mylene@abangananhub.com' => [
+                'chat' => [
+                    ['tenant', 'Good morning po! Just confirming I will pay for 2 more months in advance this week.', 4300],
+                    ['landlord', 'Thank you Mylene. I will send the receipt once it arrives.', 4280],
+                ],
+                'concerns' => [
+                    ['Electrical', 'The outlet beside my bed stopped working. Other outlets are fine.', 'Fixed', 3000],
+                    ['Plumbing', 'The bathroom faucet has been dripping since yesterday, even when fully closed.', 'Open', 90],
+                ],
+            ],
+            'joel@abangananhub.com' => [
+                'chat' => [
+                    ['tenant', 'Hi po, can I pay half today and the rest on Friday?', 600],
+                ],
+                'concerns' => [],
+            ],
+        ];
+
+        foreach ($scenes as $email => $scene) {
+            $tenant = User::where('email', $email)->first();
+            $thread = $tenant
+                ? Conversation::tenancies()->where('tenant_id', $tenant->user_id)->where('landlord_id', $maria->user_id)->first()
+                : null;
+            if (! $thread || $thread->messages()->exists()) {
+                continue;
+            }
+
+            foreach ($scene['chat'] as [$from, $text, $minutesAgo]) {
+                $this->message($thread, $from === 'tenant' ? $tenant->user_id : $maria->user_id, $text, $minutesAgo);
+            }
+
+            foreach ($scene['concerns'] as [$category, $description, $status, $minutesAgo]) {
+                $concern = TenantConcern::create([
+                    'conversation_id' => $thread->conversation_id,
+                    'reservation_id'  => $thread->reservation_id,
+                    'tenant_id'       => $tenant->user_id,
+                    'category'        => $category,
+                    'description'     => $description,
+                    'status'          => $status,
+                    'fixed_at'        => $status === 'Fixed' ? now()->subMinutes($minutesAgo - 600) : null,
+                ]);
+                $this->message($thread, $tenant->user_id, $description, $minutesAgo, concernId: $concern->concern_id);
+
+                if ($status === 'Fixed') {
+                    $this->systemLine($thread, "{$maria->first_name} marked the \"{$category}\" concern as fixed.", $concern->concern_id, $minutesAgo - 600);
+                }
+            }
+        }
+    }
+
     /** A listing the admin has not approved yet, so /admin/listings/approval has something in it. */
     private function pendingListing(User $maria): void
     {
@@ -404,15 +464,30 @@ class DemoSeeder extends TenantSeeder
         return $tenant;
     }
 
-    private function message(Conversation $conversation, int $senderId, string $text, int $minutesAgo, bool $summary = false): void
+    private function message(Conversation $conversation, int $senderId, string $text, int $minutesAgo, bool $summary = false, ?int $concernId = null): void
     {
         $message = new Message([
             'conversation_id'    => $conversation->conversation_id,
             'sender_id'          => $senderId,
             'message'            => $text,
             'is_inquiry_summary' => $summary,
+            'concern_id'         => $concernId,
             // The landlord has not read what the tenant sent, so the unread badge shows in the demo.
             'is_read'            => $senderId === $conversation->landlord_id,
+        ]);
+        $message->sent_at = now()->subMinutes($minutesAgo);
+        $message->save();
+    }
+
+    private function systemLine(Conversation $conversation, string $text, ?int $concernId, int $minutesAgo): void
+    {
+        $message = new Message([
+            'conversation_id' => $conversation->conversation_id,
+            'sender_id'       => null,
+            'message'         => $text,
+            'is_system'       => true,
+            'is_read'         => true,
+            'concern_id'      => $concernId,
         ]);
         $message->sent_at = now()->subMinutes($minutesAgo);
         $message->save();

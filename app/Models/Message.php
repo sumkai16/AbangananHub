@@ -13,6 +13,7 @@ class Message extends Model
         'is_read',
         'is_system',
         'is_inquiry_summary',
+        'concern_id',
     ];
     protected $casts = [
         'sent_at' => 'datetime',
@@ -23,6 +24,10 @@ class Message extends Model
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
+    }
+    public function concern(): BelongsTo
+    {
+        return $this->belongsTo(TenantConcern::class, 'concern_id', 'concern_id');
     }
     public function sender(): BelongsTo
     {

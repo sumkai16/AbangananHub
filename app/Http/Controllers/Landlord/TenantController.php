@@ -105,6 +105,7 @@ class TenantController extends Controller
     {
         $reservations = $this->filteredQuery($request)
             ->with(['tenant', 'property.media', 'unit', 'conversation', 'payments', 'depositCharges'])
+            ->withCount(['concerns as open_concerns_count' => fn ($q) => $q->unresolved()])
             ->latest('reservation_date')->paginate(12)->withQueryString();
 
         // Rent standing per card, so each knows whether the tenant has anything

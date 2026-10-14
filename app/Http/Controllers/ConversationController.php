@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Conversation;
 use App\Models\Property;
+use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -18,10 +19,17 @@ class ConversationController extends Controller
         $status = $request->query('status', 'all');
         $propertyId = $request->query('property_id');
 
-        $base = Conversation::where(function ($q) use ($userId) {
-            $q->where('tenant_id', $userId)
-                ->orWhere('landlord_id', $userId);
-        });
+        $party = fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId);
+
+        // Two inboxes: the deal chats ("inquiries") and the post-move-in chats ("tenancy").
+        $box = $request->query('box') === 'tenancy' ? Conversation::TYPE_TENANCY : Conversation::TYPE_INQUIRY;
+        $hasTenancy = Conversation::where($party)->tenancies()->exists();
+        $boxUnread = [
+            Conversation::TYPE_INQUIRY => $this->unreadIn(Conversation::TYPE_INQUIRY, $userId),
+            Conversation::TYPE_TENANCY => $this->unreadIn(Conversation::TYPE_TENANCY, $userId),
+        ];
+
+        $base = Conversation::where($party)->where('type', $box);
 
         if ($propertyId) {
             $base->where('property_id', $propertyId);
@@ -37,7 +45,9 @@ class ConversationController extends Controller
                     ->where('is_read', false);
             })->count();
 
-        $query = (clone $base)->with(['tenant', 'landlord', 'property', 'unit', 'latestMessage', 'activeReservation.payments']);
+        $query = (clone $base)
+            ->with(['tenant', 'landlord', 'property', 'unit', 'latestMessage', 'activeReservation.payments'])
+            ->withCount(['concerns as open_concerns_count' => fn ($q) => $q->unresolved()]);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -76,8 +86,38 @@ class ConversationController extends Controller
 
         return view('conversations.index', compact(
             'conversations', 'status', 'activeCount', 'unreadCount', 'resolvedCount', 'cancelledCount',
-            'isLandlord', 'landlordProperties', 'propertyId'
+            'isLandlord', 'landlordProperties', 'propertyId', 'box', 'hasTenancy', 'boxUnread'
         ));
+    }
+
+    /** Conversations of one type with an unread message from the other person, still open. */
+    private function unreadIn(string $type, int $userId): int
+    {
+        return Conversation::where(fn ($q) => $q->where('tenant_id', $userId)->orWhere('landlord_id', $userId))
+            ->where('type', $type)
+            ->whereNotIn('status', ['Cancelled', 'Resolved'])
+            ->whereHas('latestMessage', fn ($q) => $q->where('sender_id', '!=', $userId)->where('is_read', false))
+            ->count();
+    }
+
+    /**
+     * Entry point from a tenancy page: open (creating if needed) the chat for this
+     * tenancy and land in it. Both the tenant and the landlord come through here.
+     */
+    public function tenancyChat(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('viewTenancyChat', $reservation);
+
+        $thread = $reservation->tenancyThread ?? $reservation->openTenancyThread();
+
+        // Walk-in tenants have no account to chat from.
+        abort_unless($thread, 404, 'This tenant has no chat.');
+
+        return redirect()->route('conversations.index', array_filter([
+            'box' => 'tenancy',
+            'active' => $thread->conversation_id,
+            'concern' => $request->query('concern') === 'new' ? 'new' : null,
+        ]));
     }
 
     public function store(Request $request)
@@ -99,6 +139,7 @@ class ConversationController extends Controller
             'landlord_id' => $property->landlord_id,
             'property_id' => $property->property_id,
             'unit_id' => $validated['unit_id'] ?? null,
+            'type' => Conversation::TYPE_INQUIRY,
         ]);
 
         return redirect()->route('conversations.show', $conversation);
@@ -119,7 +160,13 @@ class ConversationController extends Controller
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        $conversation->load(['tenant', 'landlord', 'property.media', 'unit', 'messages.sender', 'activeReservation.payments']);
+        // One load() with every path: a second load('messages.…') would re-fetch the
+        // messages and drop the sender eager load (Model::preventLazyLoading then throws).
+        $relations = ['tenant', 'landlord', 'property.media', 'unit', 'messages.sender', 'activeReservation.payments'];
+        if ($conversation->isTenancy()) {
+            array_push($relations, 'reservation', 'concerns', 'messages.concern.tenant');
+        }
+        $conversation->load($relations);
 
         $otherParty = Auth::id() === $conversation->tenant_id
             ? $conversation->landlord
@@ -127,10 +174,16 @@ class ConversationController extends Controller
 
         // AJAX request → return chat partial only
         if (request()->ajax() || request()->wantsJson()) {
-            return view('conversations.partials.chat-panel', compact('conversation', 'otherParty'));
+            return view(
+                $conversation->isTenancy() ? 'conversations.partials.tenancy-panel' : 'conversations.partials.chat-panel',
+                compact('conversation', 'otherParty')
+            );
         }
 
-       return redirect()->route('conversations.index', ['active' => $conversation->conversation_id]);
+        return redirect()->route('conversations.index', array_filter([
+            'active' => $conversation->conversation_id,
+            'box' => $conversation->isTenancy() ? 'tenancy' : null,
+        ]));
     }
 
     public function resolve(Conversation $conversation)

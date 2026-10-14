@@ -67,6 +67,8 @@ class MessageSent implements ShouldBroadcastNow
             'sender_avatar'   => $sender?->profile_picture,
             'is_system'       => (bool) $this->message->is_system,
             'message'         => $this->message->message,
+            // Set on concern cards and their status lines; the open panel refetches itself for these.
+            'concern_id'      => $this->message->concern_id,
             'sent_at'         => $this->message->sent_at->toIso8601String(),
             'property_title'  => $property?->title ?? '',
             'unit_label'      => $unit?->unit_label ?? '',

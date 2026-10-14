@@ -560,6 +560,45 @@ class Reservation extends Model
         return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
     }
 
+    /** The post-move-in chat with the landlord. Walk-in tenants have none. */
+    public function tenancyThread()
+    {
+        return $this->hasOne(Conversation::class, 'reservation_id', 'reservation_id')
+            ->where('type', Conversation::TYPE_TENANCY);
+    }
+
+    public function concerns()
+    {
+        return $this->hasMany(TenantConcern::class, 'reservation_id', 'reservation_id');
+    }
+
+    /**
+     * Create (or reattach) the tenancy chat once the tenant is actually living here.
+     *
+     * One thread per tenant, landlord and property: renting the same place again later
+     * reuses it and just points it at the new tenancy. Walk-ins get nothing, since the
+     * tenant can't log in to read it.
+     */
+    public function openTenancyThread(): ?Conversation
+    {
+        $tenant = $this->tenant;
+        $landlordId = $this->property?->landlord_id;
+
+        if (! $tenant || $tenant->is_walk_in || ! $landlordId) {
+            return null;
+        }
+
+        $thread = Conversation::firstOrNew([
+            'tenant_id' => $this->tenant_id,
+            'landlord_id' => $landlordId,
+            'property_id' => $this->property_id,
+            'type' => Conversation::TYPE_TENANCY,
+        ]);
+        $thread->fill(['reservation_id' => $this->reservation_id, 'unit_id' => $this->unit_id, 'status' => 'Open'])->save();
+
+        return $thread;
+    }
+
     public function tenantRating()
     {
         return $this->hasOne(TenantRating::class, 'reservation_id', 'reservation_id');

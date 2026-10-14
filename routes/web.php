@@ -45,6 +45,7 @@ use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
 use App\Http\Controllers\Tenant\ReservationController;
 use App\Http\Controllers\Tenant\TenancyController;
+use App\Http\Controllers\TenantConcernController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\ViewingController;
 use App\Models\Reservation;
@@ -380,6 +381,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
 
+    // Post-move-in chat and its concern cards. Both sides use the same URLs; policies decide.
+    Route::get('/tenancy/{reservation}/chat', [ConversationController::class, 'tenancyChat'])->name('tenancy.chat');
+    Route::post('/conversations/{conversation}/concerns', [TenantConcernController::class, 'store'])->name('concerns.store');
+    Route::patch('/concerns/{concern}/status', [TenantConcernController::class, 'updateStatus'])->name('concerns.status');
+
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
@@ -390,13 +396,13 @@ Route::middleware('auth')->group(function () {
 
 // Publicly accessible property routes
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/properties/count', [PropertyController::class, 'count'])->middleware('throttle:120,1')->name('properties.count');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 // PayMongo webhook — no auth, CSRF excluded in bootstrap/app.php
 Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
 
 // Bridges a mobile WebView (Bearer token, no session) into a logged-in web
 // session — see Api\AuthController::webviewTicket. Outside the auth
-Route::get('/properties/count', [PropertyController::class, 'count'])->middleware('throttle:120,1')->name('properties.count');
 // middleware on purpose: the WebView has no session to require yet.
 Route::get('/auth/webview-login/{ticket}', WebviewLoginController::class)->name('auth.webviewLogin');
 require __DIR__.'/auth.php';

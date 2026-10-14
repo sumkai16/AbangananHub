@@ -95,7 +95,7 @@ class ReservationController extends Controller
             throw ValidationException::withMessages(['unit' => ['You already have an active inquiry or reservation for this unit.']]);
         }
 
-        $conversation = Conversation::where('tenant_id', $tenantId)
+        $conversation = Conversation::inquiries()->where('tenant_id', $tenantId)
             ->where('landlord_id', $property->landlord_id)
             ->where('property_id', $property->property_id)
             ->where('status', '!=', 'Cancelled')

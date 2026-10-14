@@ -101,6 +101,17 @@ class ReservationPolicy
     }
 
     /**
+     * Either side of a tenancy can open its chat — the tenant, or the landlord who
+     * owns the property. A tenancy that never started (still negotiating) has none.
+     */
+    public function viewTenancyChat(User $user, Reservation $reservation): bool
+    {
+        return in_array($reservation->rental_status, ['Occupied', 'Completed'], true)
+            && ($reservation->tenant_id === $user->user_id
+                || $reservation->property?->landlord_id === $user->user_id);
+    }
+
+    /**
      * A tenant may pay rent online only while the tenancy is actually running
      * — there is nothing to bill against once it has ended.
      */
