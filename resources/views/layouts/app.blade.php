@@ -226,9 +226,10 @@
                                 </div>
                             </div>
                         @else
-                            <a href="{{ route('landlord.verification.create') }}"
+                            @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                            <a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}"
                                 class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#ECEEF6] text-[13.5px] font-semibold text-[#060D26] hover:brightness-95 transition-all cursor-pointer">
-                                Become a Landlord
+                                {{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}
                             </a>
                         @endif
                     </div>
@@ -497,9 +498,10 @@
                         </a>
                     @endforeach
                 @else
-                    <a href="{{ route('landlord.verification.create') }}" @click="mobileNavOpen = false"
+                    @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                    <a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" @click="mobileNavOpen = false"
                         class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] bg-[#ECEEF6] hover:brightness-95">
-                        Become a Landlord
+                        {{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}
                     </a>
                 @endif
             @endauth
@@ -567,7 +569,8 @@
                     <div>
                         <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">For Landlords</p>
                         <ul class="space-y-3 text-[14px]">
-                            <li><a href="{{ route('landlord.verification.create') }}" class="text-white/75 hover:text-white transition-colors">Become a Landlord</a></li>
+                            @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                            <li><a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" class="text-white/75 hover:text-white transition-colors">{{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}</a></li>
                             <li><a href="{{ route('landlord.dashboard') }}" class="text-white/75 hover:text-white transition-colors">Landlord Dashboard</a></li>
                             <li><a href="{{ route('landlord.analytics.index') }}" class="text-white/75 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
                         </ul>

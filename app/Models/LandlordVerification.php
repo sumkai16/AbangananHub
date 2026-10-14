@@ -72,4 +72,28 @@ class LandlordVerification extends Model
     {
         return $this->verification_status === 'Rejected';
     }
+
+    // ─── Display Helpers ─────────────────────────────────────
+
+    /** ID number with everything but the last 4 characters hidden, for the applicant's own status page. */
+    public function maskedIdNumber(): ?string
+    {
+        return self::maskTail($this->id_number, 4);
+    }
+
+    public function maskedContactNumber(): ?string
+    {
+        return self::maskTail($this->contact_number, 3);
+    }
+
+    private static function maskTail(?string $value, int $visible): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $value = preg_replace('/\s+/', '', $value);
+
+        return str_repeat('•', max(mb_strlen($value) - $visible, 0)).mb_substr($value, -$visible);
+    }
 }
