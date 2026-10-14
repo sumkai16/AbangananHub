@@ -140,9 +140,10 @@
             @endif
 
             {{-- Right Actions --}}
-            <div class="flex items-center gap-3">
+            {{-- gap-1.5 below sm: on a 375px phone the logo, theme toggle, menu, messages, bell and avatar did not fit in one row and the avatar was pushed off screen. The theme toggle also moves into the menu panel below sm. --}}
+            <div class="flex items-center gap-1.5 sm:gap-3">
 
-                <x-theme-toggle />
+                <div class="hidden sm:block"><x-theme-toggle /></div>
 
                 {{-- Mobile nav toggle — this header has no `lg:flex` primary nav
                      below `lg` (see the comment above), so this is the only way a
@@ -165,10 +166,12 @@
                         $mobileUnreadMsgCount = $unreadMessageCount;
                     @endphp
                     <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
-                        class="{{ $mobileBp }}:hidden relative flex items-center gap-1.5 h-10 px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
-                        Messages
+                        aria-label="Messages"
+                        class="{{ $mobileBp }}:hidden relative flex items-center justify-center gap-1.5 h-10 w-10 sm:w-auto sm:px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
+                        <svg class="sm:hidden" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>
+                        <span class="hidden sm:inline">Messages</span>
                         @if($mobileUnreadMsgCount > 0)
-                            <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
+                            <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold absolute -top-1 -right-1 sm:static">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
                         @endif
                     </button>
                 @endauth
@@ -278,7 +281,7 @@
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
                             :class="open ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]'"
-                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+                            class="flex items-center gap-2.5 pl-1 pr-1 sm:pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                             @if(auth()->user()->profile_picture)
                                 <img loading="lazy" decoding="async" src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
                                     class="w-9 h-9 rounded-full object-cover shrink-0">
@@ -440,6 +443,12 @@
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
             class="{{ $mobileBp }}:hidden border-t border-[#E2E4EC] bg-white px-4 py-3">
+
+            {{-- The header's theme toggle is hidden below sm (no room), so it lives here on phones. --}}
+            <div class="sm:hidden flex items-center justify-between px-3.5 py-1.5">
+                <span class="text-[14px] font-semibold text-[#060D26]">Dark mode</span>
+                <x-theme-toggle />
+            </div>
 
             <a href="{{ route('home') }}" @click="mobileNavOpen = false"
                 @if($onHome) aria-current="page" @endif
@@ -614,7 +623,8 @@
                     {{-- Not lazy: this img sits inside a display:none ancestor until the modal opens, so
                          native lazy-loading can't compute intersection until then — it would only start
                          fetching on open, popping the photo in after the panel is already visible. --}}
-                    <img src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover">
+                    {{-- src is set a moment after the page has loaded (script below) or when the modal opens, whichever comes first, so this 170 KB photo no longer competes with the page's own images on every guest page. --}}
+                    <img id="auth-bg-img" data-src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 via-[#060D26]/45 to-[#060D26]/90"></div>
 
                     {{-- Floating trust chips — same recipe as the landlord CTA figure on
@@ -837,7 +847,15 @@
         <script>
             let authModalCloseTimer = null;
 
+            function loadAuthBg() {
+                const img = document.getElementById('auth-bg-img');
+                if (img && img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; }
+            }
+            if (document.readyState === 'complete') setTimeout(loadAuthBg, 1500);
+            else window.addEventListener('load', () => setTimeout(loadAuthBg, 1500));
+
             function openAuthModal(mode) {
+                loadAuthBg();
                 const modal = document.getElementById('auth-modal');
                 const panel = document.getElementById('auth-modal-content');
                 const views = {

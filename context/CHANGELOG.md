@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 14 2026 — Browser click-through: phone header, card link, small fixes (branch `axci`)
+- **Checked in headless Chrome, logged in through the real form:** 36 pages as Maria, Axcee, Liza and the admin (every demo-flow page) with no console errors and no failed requests; Maria's 11 landlord pages and Axcee's 5 tenant pages also at 375 px.
+- **Tenant header overflowed on a 375 px phone** (`layouts/app.blade.php`): logo, theme toggle, menu, Messages, bell and avatar did not fit, so the avatar sat off screen (x=477) and the page scrolled sideways. Below `sm`: Messages is an icon with the unread badge, the theme toggle moves into the menu panel ("Dark mode" row), tighter gaps. Fits at 360, 375 and 390 px.
+- **`x-stat-card` label** ("Cancelled/Rejected") pushed its icon out of the card at 360 px: `min-w-0`, `gap-2`, line break allowed after "/".
+- **Landlord payments and tenancy tables scrolled the whole page sideways at 1280 px:** the sr-only "Actions" header is absolutely positioned and escaped its `overflow-x-auto` wrapper, which had no `relative`. Added `relative` to the three wrappers.
+- **Property cards:** the title is now a real link (open in new tab, middle-click, keyboard); the whole card still navigates on click, and Ctrl/Cmd+click opens a new tab. Heart and carousel unchanged (checked: heart click stays on the page).
+- **Guest sign-in photo (170 KB) no longer downloads at page start:** its `src` is set 1.5 s after `load`, or when the modal opens. Checked: requested about 1.7 s after navigation.
+- Tests: 341 passing, 1 skipped.
+
 ## Oct 14 2026 — Speed audit: nothing slow found, two dev-setup fixes (branch `axci`)
 - **Measured, not fixed:** on the seeded dev DB every tenant, landlord and admin page renders in 5-40 ms on the server (max 60 queries, no N+1; the Oct 12-13 work holds). In headless Chrome (Vite dev, Reverb and queue running, logged in, 4x CPU throttle) `/properties` to `/properties/39` loads in 0.2-0.6 s. The "5 s" did not reproduce here.
 - **`composer dev` ignored `PHP_CLI_SERVER_WORKERS=4`:** `php artisan serve` only honours it with `--no-reload`, so the server ran single-threaded and one slow request (AI search, up to 8-15 s) made every page click wait behind it. `composer.json` `dev` script now passes `--no-reload` (checked: 4 workers, a stuck request no longer blocks another). Trade-off: `.env` edits need a restart.
