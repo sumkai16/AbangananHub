@@ -2,6 +2,11 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 15 2026 — Page header icons and landing chip icons (branch `axci`)
+- **`<x-page-icon>`** is the navy tile beside a page title; `<x-page-header>` now draws it through that component and takes `icon-path="…"` for the common case (the `icon` slot still works). Tiles added to pages that had a bare title: admin Conversations, Property Verifications, Reviews, Deposit Charges and Landlord Payouts; landlord Units and Verification Documents; tenant My Reports; and the landlord verification status page. Pages with a tile already (Messages, My Reservations, Notifications, Favorites, the dashboards, most admin lists) are unchanged.
+- **Landing page type pills have icons**, matching `/properties`. The icon paths moved into `PropertyType::icon()` / `PropertyType::ALL_ICON`; `category-strip` and the landing pills both read them.
+- Left as they are on purpose: detail pages, create/edit forms, the property wizard, auth, legal, About and error pages, whose headers are a different pattern (back link, step label, or hero). Tests: `tests/Feature/PageIconTest.php`. Not verified in a browser beyond the landing chips.
+
 ## Oct 15 2026 — One logo component, real mark on every page (branch `axci`)
 - **`<x-brand-logo>`** (`components/brand-logo.blade.php`) is now the only place the house mark and wordmark are drawn. `tone="auto"` swaps to the white-outline mark in dark mode; `tone="on-dark"` is for always-dark surfaces. Used by the navbar (both spots) and footer in `layouts/app`, the login popup's side panel, login, register, forgot-password, reset-password and the 404 page.
 - **Why:** login, register and the two password pages showed a placeholder (a white house glyph in a navy square) instead of the real mark; the login popup had a similar glass square; the real logo was hand-copied in seven places with different sizes, a navy "Hub" on the 404 page, and no dark-mode swap on the auth pages.

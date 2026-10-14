@@ -365,7 +365,11 @@
                         @php $isActive = $type === null ? ! $activeType : $activeType === $type; @endphp
                         <a href="{{ $type ? route('properties.index', ['type' => $type]) : route('properties.index') }}"
                             @if($isActive) aria-current="page" @endif
-                            class="flex-shrink-0 h-9 inline-flex items-center px-4 rounded-full border font-jakarta text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#FF8A66] hover:text-[#060D26]' }}">
+                            class="flex-shrink-0 h-9 inline-flex items-center gap-1.5 px-3.5 rounded-full border font-jakarta text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#FF8A66] hover:text-[#060D26]' }}">
+                            {{-- Same icons as the header's category strip (one source: PropertyType::icon()). --}}
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="{{ $isActive ? 'text-[#FF8A66]' : '' }}" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $type ? \App\Enums\PropertyType::from($type)->icon() : \App\Enums\PropertyType::ALL_ICON }}" />
+                            </svg>
                             {{ $label }}
                         </a>
                     @endforeach
