@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Reservation;
+use App\Services\ImageUploader;
 use App\Services\RentLedger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,6 +61,30 @@ class ProfileController extends Controller
         $request->user()->save();
 
         return Redirect::route('profile.edit')->with('success', 'Your profile has been updated.');
+    }
+
+    /**
+     * Set the profile photo from the avatar pencil on Account Settings. Works for every role,
+     * so the page needs no trip to a role-specific edit screen. Cropped square on the face,
+     * same as the tenant and landlord profile forms.
+     */
+    public function updatePhoto(Request $request, ImageUploader $uploader): RedirectResponse
+    {
+        $request->validate([
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'photo.image' => 'Choose a JPG, PNG or WebP image.',
+            'photo.mimes' => 'Choose a JPG, PNG or WebP image.',
+            'photo.max' => 'That photo is over 5 MB. Choose a smaller one.',
+        ]);
+
+        $uploaded = $uploader->upload($request->file('photo'), 'abanganganhub/profile-pictures', [
+            'transformation' => ['width' => 400, 'height' => 400, 'crop' => 'fill', 'gravity' => 'face'],
+        ]);
+
+        $request->user()->update(['profile_picture' => $uploaded['url']]);
+
+        return Redirect::route('profile.edit')->with('success', 'Profile photo updated.');
     }
 
     /**

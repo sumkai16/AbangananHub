@@ -31,7 +31,7 @@ class TenantConcernsTest extends TestCase
         // Never reach Cloudinary from a test.
         $this->app->instance(ImageUploader::class, new class extends ImageUploader
         {
-            public function upload(UploadedFile $file, string $folder): array
+            public function upload(UploadedFile $file, string $folder, array $options = []): array
             {
                 return ['url' => 'https://img.test/'.$file->getClientOriginalName(), 'public_id' => $folder.'/'.$file->getClientOriginalName()];
             }

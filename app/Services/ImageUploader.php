@@ -10,10 +10,13 @@ use Illuminate\Http\UploadedFile;
  */
 class ImageUploader
 {
-    /** @return array{url: string, public_id: string} */
-    public function upload(UploadedFile $file, string $folder): array
+    /**
+     * @param  array<string, mixed>  $options  extra Cloudinary options, e.g. a crop transformation
+     * @return array{url: string, public_id: string}
+     */
+    public function upload(UploadedFile $file, string $folder, array $options = []): array
     {
-        $result = cloudinary()->uploadApi()->upload($file->getRealPath(), [
+        $result = cloudinary()->uploadApi()->upload($file->getRealPath(), $options + [
             'folder' => $folder,
             'resource_type' => 'image',
         ]);

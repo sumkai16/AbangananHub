@@ -67,6 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/settings', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Landlord verification — open to any authenticated user, no role gate
@@ -169,8 +170,9 @@ Route::middleware('auth')->group(function () {
 
         // Profile
         Route::get('/profile', [TenantProfileController::class, 'show'])->name('tenant.profile.show');
-        Route::get('/profile/edit', [TenantProfileController::class, 'edit'])->name('tenant.profile.edit');
-        Route::patch('/profile', [TenantProfileController::class, 'update'])->name('tenant.profile.update');
+        // The tenant edit form was folded into Account Settings (name, contact, bio, photo are all
+        // there now). The old URL stays as a redirect for bookmarks.
+        Route::get('/profile/edit', fn () => redirect()->route('profile.edit'))->name('tenant.profile.edit');
     });
     // Public landlord profile (visibility-gated in controller)
     Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');
