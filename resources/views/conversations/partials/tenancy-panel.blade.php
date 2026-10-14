@@ -37,6 +37,13 @@
         @if($ended)
             <span class="inline-flex items-center h-8 px-3 text-[11px] font-bold text-[#5B6A8E] bg-[#E2E4EC]/60 rounded-lg">Tenancy ended</span>
         @endif
+        @if($isTenant && $reservation)
+            <a href="{{ route('tenancy.show', $reservation) }}"
+                class="inline-flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border border-[#E2E4EC] px-3 text-[11px] font-bold text-[#5B6A8E] transition-colors duration-200 hover:bg-[#F7F8FC] hover:text-[#060D26]">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" /></svg>
+                Tenancy &amp; rent
+            </a>
+        @endif
     </div>
 
     {{-- Open concerns --}}

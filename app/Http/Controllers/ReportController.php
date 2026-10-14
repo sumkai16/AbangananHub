@@ -48,9 +48,17 @@ public function create(Request $request)
     }
 
     if (!$targetType || $targetType === 'user') {
-        $users = User::where('user_id', '!=', $userId)
+        // Only people this user has shared a conversation with. The list used to be every account, with email
+        // addresses, so any logged-in user could harvest them. Anyone else is reported from their profile's
+        // Report button (?user_id=), which pre-selects them.
+        $partnerIds = \App\Models\Conversation::where('tenant_id', $userId)->pluck('landlord_id')
+            ->merge(\App\Models\Conversation::where('landlord_id', $userId)->pluck('tenant_id'))
+            ->unique()
+            ->reject(fn ($id) => (int) $id === (int) $userId);
+
+        $users = User::whereIn('user_id', $partnerIds)
             ->orderBy('first_name')
-            ->get(['user_id', 'first_name', 'last_name', 'email']);
+            ->get(['user_id', 'first_name', 'last_name']);
     }
 
     return view('reports.create', [

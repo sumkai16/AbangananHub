@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Payment;
 use App\Models\Reservation;
 use App\Services\ImageUploader;
 use App\Services\RentLedger;
@@ -148,6 +149,17 @@ class ProfileController extends Controller
 
         if ($liveReservations->isNotEmpty()) {
             return 'You have an active inquiry or reservation in progress. Cancel it before deleting your account.';
+        }
+
+        // payments.reservation_id cascades, so deleting the account would delete these rows too. A Cancelled or
+        // Completed tenancy is not "live" (checked above) but can still hold escrowed money, or rent the landlord
+        // has not been paid out yet. That money has to be settled first, not erased with the account.
+        $unsettled = Payment::whereHas('reservation', fn ($q) => $q->where('tenant_id', $user->user_id))
+            ->where(fn ($q) => $q->where('status', 'Held')->orWhere('payout_status', 'Pending Payout'))
+            ->exists();
+
+        if ($unsettled) {
+            return 'You have payments that are still held by AbangananHub or waiting to be paid out to a landlord, so your account cannot be deleted yet. Contact support and we will settle them first.';
         }
 
         if ($user->properties()->exists()) {

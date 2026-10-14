@@ -59,8 +59,8 @@ class RentReminderNotifier
             'payment',
             $this->title($today->greaterThan($period['due_on'])),
             'Your ' . $period['label'] . ' rent (' . $this->peso($period['balance']) . ') '
-                . $this->timing($period['due_on'], $today) . '. Please arrange payment with your landlord.',
-            route('reservations.index'),
+                . $this->timing($period['due_on'], $today) . '. You can pay it online from your tenancy page, or arrange it with your landlord.',
+            route('tenancy.show', $reservation),
         );
 
         return true;

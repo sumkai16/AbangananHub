@@ -152,7 +152,7 @@ class ReservationController extends Controller
         }
 
         if (! $reservation->cancel()) {
-            throw ValidationException::withMessages(['reservation' => ['This reservation can no longer be cancelled.']]);
+            throw ValidationException::withMessages(['reservation' => [$reservation->cancellationBlockedReason() ?? 'This reservation can no longer be cancelled.']]);
         }
 
         if ($reservation->unit && $reservation->unit->availability_status === 'Reserved') {

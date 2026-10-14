@@ -26,7 +26,7 @@ class ReservationController extends Controller
         }
 
         $reservations = $base
-            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation'])
+            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'payments'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -126,7 +126,7 @@ public function store(StoreReservationRequest $request)
         }
 
         if (!$reservation->cancel()) {
-            return back()->with('error', 'This reservation can no longer be cancelled.');
+            return back()->with('error', $reservation->cancellationBlockedReason() ?? 'This reservation can no longer be cancelled.');
         }
 
         // Reservation::cancel() already releases the unit via releaseUnit().

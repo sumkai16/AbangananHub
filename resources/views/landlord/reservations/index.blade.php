@@ -375,6 +375,11 @@
                                                     </button>
                                                 </form>
                                             @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
+                                                {{-- Held money (or an open checkout) means cancelling would strand it: say why instead of offering a button that only fails. --}}
+                                                @php $cancelBlocked = $reservation->cancellationBlockedReason(); @endphp
+                                                @if($cancelBlocked)
+                                                    <p class="basis-full max-w-[280px] text-[11.5px] leading-snug text-[#5B6A8E]">{{ $cancelBlocked }}</p>
+                                                @else
                                                 <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                                     data-confirm="Cancel this reservation?"
                                                     data-confirm-type="warning"
@@ -387,6 +392,7 @@
                                                         Cancel
                                                     </button>
                                                 </form>
+                                                @endif
                                                 @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
                                                     <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
                                                         data-confirm="Mark keys as turned over?"
@@ -577,6 +583,11 @@
                                         </button>
                                     </form>
                                 @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
+                                    {{-- Held money (or an open checkout) means cancelling would strand it: say why instead of offering a button that only fails. --}}
+                                    @php $cancelBlocked = $reservation->cancellationBlockedReason(); @endphp
+                                    @if($cancelBlocked)
+                                        <p class="basis-full max-w-[280px] text-[11.5px] leading-snug text-[#5B6A8E]">{{ $cancelBlocked }}</p>
+                                    @else
                                     <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                         data-confirm="Cancel this reservation?"
                                         data-confirm-type="warning"
@@ -589,6 +600,7 @@
                                             Cancel
                                         </button>
                                     </form>
+                                    @endif
                                     @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
                                         <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
                                             data-confirm="Mark keys as turned over?"

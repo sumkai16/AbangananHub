@@ -2,6 +2,35 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 15 2026 — Tenant side: security, payment dead-ends, navigation (branch `joseph`)
+A full tenant-side check after pulling `axci`. Every finding was verified in the code before it was fixed; two survey claims were wrong and dropped (see the end). Plan: `plans/tenant-side-hardening.md`.
+
+Security and privacy:
+- **Reflected XSS** in the inbox: `conversations/index.blade.php` printed `?active=` unquoted into a `<script>`. Now `@js(request()->integer('active') ?: null)`.
+- **Email harvesting**: the report form listed every user's name and email to any logged-in user. It now lists only people the reporter shares a conversation with, names only. Anyone else is reported from their profile's Report button.
+- **Account deletion erased money**: `payments.reservation_id` cascades, so a tenant with a Cancelled or Completed tenancy could delete their account and destroy Held payments and landlord payouts still pending. Deletion is now refused while any payment is `Held` or `Pending Payout`.
+
+Money:
+- **The rent a tenant signs is the rent they pay.** Online tenancies never stored an agreed rent, so checkout read the unit's live price. `advanceToPendingAgreement()` now pins `agreed_monthly_rent` before the lease snapshot; checkout (web and API) and the agreement page use `monthlyRent()`. Data migration `2026_10_15_000000_backfill_agreed_rent_from_lease_snapshot` fills it for leases already issued.
+- **The online move-in payment is the first month's rent.** `RentLedger` treated `Initial` as outside the monthly cycle, so after moving in the first month read Due and "Pay now" was offered again. A platform `Initial` (not a landlord-typed one) now settles the first billing period and no longer double-counts in `collected`. Billing starts at the confirmed move-in when no target date was given, not at the inquiry date.
+- **Copy**: "Due at move-in = rent + deposit" is gone (chat strip, inquiry summary, property sheet). It now says what is paid online (first month) and that the deposit is settled directly with the landlord.
+- **Abandoned checkouts no longer lock the tenant out.** A `Pending` payment was never cleared: Pay Now vanished and retry was refused forever. After `rentals.checkout_stale_minutes` (30) the old session is expired at PayMongo (`App\Services\PaymongoCheckout`), then deleted, and Pay can be pressed again. If expiry cannot be confirmed, no second session is opened (fail safe: no double charge). Applies to initial and rent checkout, web and API.
+- **Cancel and reject cannot strand money.** `Reservation::cancellationBlockedReason()` refuses both while a payment is Held or a fresh checkout is open, with a plain reason on every surface; admin force-cancel still works. Both now lock the row and re-check.
+- **Money that lands after a cancel is no longer silent**: the webhook and the poll fallback alert all admins (`Payment::alertAdminsIfStranded()`).
+- The agreement page now shows payment errors (they were returned but never rendered).
+
+Navigation:
+- **Reservations list** (one shared `_actions` partial for mobile and desktop, was two drifting copies): shows the real move-in date ("Flexible" if none; the inquiry date was printed under "Move-in"), a primary next step per status (`Review & sign`, `Pay now` / `Open agreement`, `Rent`, `View tenancy`), Chat goes to the tenancy thread once occupied, inquiry Cancel now confirms, and Cancel is replaced by the reason when it is blocked.
+- Chat headers link back to "Tenancy & rent". "My Reports" is linked from the account menu and the report form (it was reachable only by URL).
+- Notifications page: an Open button for notifications that carry a link (they dead-ended), and the Reservations tab works (it filtered on a column only reviews set). Rent reminders open the tenancy page.
+
+Tests added: `TenantSafetyTest`, `Payments/TenantPaymentRecoveryTest`, `RentLedgerInitialTest` (41 tests). `TenantCheckoutTest` now asserts the agreed rent is charged and that a later price edit does not change it. Full suite: 430 passed.
+
+Verified and dropped: the tenancy page does not throw on lazy loading (Laravel only blocks it on models hydrated two or more at a time); the landlord profile "Message" link opens the inbox rather than returning 405.
+
+Not verified in a browser: the list buttons at 375px, the notifications Open button, the chat link. The PayMongo `expire` endpoint and the `expired` status value are assumed from its API docs and are covered only by `Http::fake`; confirm against the sandbox before relying on them.
+
+Left for later (found, deliberately not in this pass): mobile and design polish on the tenancy header (overflows at 375px), chat composer font size (iOS zoom), the reports page layout, favorites, status colours and thin page titles; viewing slot double-booking; inquiry and review double-submit races; missing notifications (rent paid online, landlord-recorded payment, lease upload); no refund workflow.
 ## Oct 15 2026 — Page header icons and landing chip icons (branch `axci`)
 - **`<x-page-icon>`** is the navy tile beside a page title; `<x-page-header>` now draws it through that component and takes `icon-path="…"` for the common case (the `icon` slot still works). Tiles added to pages that had a bare title: admin Conversations, Property Verifications, Reviews, Deposit Charges and Landlord Payouts; landlord Units and Verification Documents; tenant My Reports; and the landlord verification status page. Pages with a tile already (Messages, My Reservations, Notifications, Favorites, the dashboards, most admin lists) are unchanged.
 - **Landing page type pills have icons**, matching `/properties`. The icon paths moved into `PropertyType::icon()` / `PropertyType::ALL_ICON`; `category-strip` and the landing pills both read them.

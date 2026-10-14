@@ -99,4 +99,11 @@ return [
      * landlord accepts the inquiry, up to signing.
      */
     'viewing_statuses' => ['Under Negotiation', 'Pending Rental Agreement'],
+
+    /*
+     * Minutes after which an unfinished PayMongo checkout is treated as abandoned. Until then a Pending
+     * payment blocks a second session (the tenant may still be paying); after it, the tenant can try again
+     * and the old session is expired first so it can never also pay.
+     */
+    'checkout_stale_minutes' => 30,
 ];

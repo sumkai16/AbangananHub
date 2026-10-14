@@ -313,7 +313,7 @@
                         // Lets the concern buttons (rendered inside the injected panel) refresh it.
                         window.refreshInboxPanel = () => this.refreshPanel();
 
-                        const active = {{ request('active', 'null') }};
+                        const active = @js(request()->integer('active') ?: null);
                         if (active) this.loadConversation(active);
 
                         // Bound once for the page lifetime, not per-conversation:

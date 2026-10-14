@@ -1559,12 +1559,12 @@
                                             <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
                                         </div>
                                         <div class="flex items-center justify-between text-[#5B6A8E] mt-1" x-show="selected?.depositRaw">
-                                            <span>Security deposit</span>
+                                            <span>Security deposit (paid to landlord)</span>
                                             <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.depositRaw ?? 0).toLocaleString()"></span>
                                         </div>
                                         <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-[#E2E4EC]">
-                                            <span class="font-bold text-[#060D26]">Due at move-in</span>
-                                            <span class="font-bold text-[#060D26]" x-text="'₱' + Number((selected?.rentRaw ?? 0) + (selected?.depositRaw ?? 0)).toLocaleString()"></span>
+                                            <span class="font-bold text-[#060D26]">Paid online (first month)</span>
+                                            <span class="font-bold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
                                         </div>
                                     </div>
                                 </template>
@@ -1773,12 +1773,12 @@
                                                     <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
                                                 </div>
                                                 <div class="flex items-center justify-between text-[#5B6A8E] mt-1" x-show="selected?.depositRaw">
-                                                    <span>Security deposit</span>
+                                                    <span>Security deposit (paid to landlord)</span>
                                                     <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.depositRaw ?? 0).toLocaleString()"></span>
                                                 </div>
                                                 <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-[#E2E4EC]">
-                                                    <span class="font-bold text-[#060D26]">Due at move-in</span>
-                                                    <span class="font-bold text-[#060D26]" x-text="'₱' + Number((selected?.rentRaw ?? 0) + (selected?.depositRaw ?? 0)).toLocaleString()"></span>
+                                                    <span class="font-bold text-[#060D26]">Paid online (first month)</span>
+                                                    <span class="font-bold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
                                                 </div>
                                             </div>
                                         </template>
