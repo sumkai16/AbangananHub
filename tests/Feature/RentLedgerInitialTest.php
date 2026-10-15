@@ -166,7 +166,7 @@ class RentLedgerInitialTest extends TestCase
             'Under Negotiation' => null,
             'Pending Rental Agreement' => 'Review & sign',
             'Rental Agreement Signed' => 'Pay now',
-            'Occupied' => 'Rent',
+            'Occupied' => 'Rent & payments',
             'Completed' => 'View tenancy',
             'Cancelled' => null,
         ];

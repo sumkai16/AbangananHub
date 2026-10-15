@@ -875,7 +875,7 @@ class Reservation extends Model
         return match ($this->rental_status) {
             'Pending Rental Agreement' => ['label' => 'Review & sign', 'url' => route('agreements.show', $this)],
             'Rental Agreement Signed'  => ['label' => $paid ? 'Open agreement' : 'Pay now', 'url' => route('agreements.show', $this)],
-            'Occupied'                 => ['label' => 'Rent', 'url' => route('tenancy.show', $this)],
+            'Occupied'                 => ['label' => 'Rent & payments', 'url' => route('tenancy.show', $this)],
             'Completed'                => ['label' => 'View tenancy', 'url' => route('tenancy.show', $this)],
             default                    => null,
         };

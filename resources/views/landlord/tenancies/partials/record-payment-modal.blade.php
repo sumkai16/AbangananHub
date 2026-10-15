@@ -71,7 +71,11 @@
             ->map(fn ($p) => ['period' => $p['period']->toDateString(), 'balance' => round($p['balance'], 2)])
             ->values()),
         monthlyRent: @js($summary['monthlyRent']),
-        open() { this.show = true; },
+        // A bare open (header button) keeps the defaults; a row's Record button passes its period + balance.
+        open(detail) {
+            if (detail && detail.period) { this.type = 'Monthly'; this.period = detail.period; this.amount = detail.balance; }
+            this.show = true;
+        },
         close() { this.show = false; },
         round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; },
         /*
@@ -116,7 +120,7 @@
             return '₱' + (value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
      }"
-     x-on:open-record-payment.window="open()"
+     x-on:open-record-payment.window="open($event.detail)"
      x-on:keydown.escape.window="close()">
 
     <template x-teleport="body">

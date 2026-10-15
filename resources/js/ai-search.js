@@ -4,7 +4,7 @@
 // The server does all the thinking; this file only moves JSON and HTML around.
 
 const RECENT_KEY = 'ai_search_recent';
-const RECENT_MAX = 4;
+const RECENT_MAX = 3;
 
 const readRecent = () => {
     try {
@@ -108,7 +108,6 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
             controller = new AbortController();
             const { signal } = controller;
             Object.assign(this, { phase: 'reading', upgrading: false, html: '', chips: [], reason: null, usedAi: false });
-            saveRecent(this.query);
 
             const smart = post(interpretUrl, { q: this.query }, signal);
             smart.catch(() => {}); // handled below; stops an early rejection from being reported twice
@@ -165,6 +164,7 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
                 this.syncDraft();
                 this.phase = 'done';
                 this.showOnMap(out.map || [], out.map_origin ?? null);
+                if (out.exact_count > 0) saveRecent(this.query); // typos and empty searches stay out of Recent
             } catch (e) {
                 if (id === runId) this.fail(e);
             }
