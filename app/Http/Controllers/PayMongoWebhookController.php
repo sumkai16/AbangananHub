@@ -83,6 +83,7 @@ class PayMongoWebhookController extends Controller
             : $payment->reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.';
 
         $payment->reservation?->postSystemMessage($message);
+        $payment->alertAdminsIfStranded();
     }
 
     protected function verifySignature(string $payload, string $signatureHeader): bool

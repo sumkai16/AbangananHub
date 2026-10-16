@@ -3,7 +3,9 @@
 @section('page-title', 'Users')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto">
+<div class="max-w-[1600px] mx-auto" x-data="{ userFormOpen: @js(old('_form') === 'create-user') }">
+
+    @include('admin.users._form-modal')
 
     {{-- Page header --}}
     <x-page-header title="System Users" subtitle="View and manage all registered accounts.">
@@ -14,13 +16,13 @@
         </x-slot:icon>
         <x-slot:actions>
             <span class="text-[13px] font-semibold text-[#5B6A8E]">{{ number_format($users->total()) }} total</span>
-            <a href="{{ route('admin.users.create') }}"
-                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#FF8A66] text-[#060D26] rounded-xl hover:bg-[#E96F4F] transition-colors shadow-sm">
+            <button type="button" @click="userFormOpen = true"
+                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-bold bg-[#FF8A66] text-[#060D26] rounded-xl hover:bg-[#E96F4F] transition-colors shadow-sm cursor-pointer">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 Create User
-            </a>
+            </button>
         </x-slot:actions>
     </x-page-header>
 

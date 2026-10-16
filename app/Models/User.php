@@ -58,6 +58,19 @@ protected $primaryKey = 'user_id';
     {
         return $this->hasOne(LandlordVerification::class, 'user_id', 'user_id');
     }
+    /**
+     * The name on the account must keep matching the ID submitted for landlord verification:
+     * the name check runs once, at submission, so a later rename would make a stale "matched"
+     * result. Locked while the application is Pending or Approved. Rejected applicants can
+     * still fix a typo before resubmitting.
+     */
+    public function nameIsLocked(): bool
+    {
+        $application = $this->verificationApplication;
+
+        return $application !== null && ($application->isPending() || $application->isApproved());
+    }
+
     public function roles(): HasMany
     {
         return $this->hasMany(UserRole::class, 'user_id', 'user_id');

@@ -22,6 +22,12 @@ class VerificationController extends Controller
             return redirect()->route('landlord.properties.index');
         }
 
+        // Pending applicants have nothing to redo — show what they submitted
+        // instead of a blank wizard whose store() would overwrite it.
+        if ($verification?->isPending()) {
+            return redirect()->route('landlord.verification.show');
+        }
+
         return view('landlord.verification.create', compact('verification'));
     }
 
@@ -38,6 +44,12 @@ class VerificationController extends Controller
 
         if ($verification?->isApproved()) {
             return redirect()->route('landlord.properties.index');
+        }
+
+        // Pending applicants have nothing to redo — show what they submitted
+        // instead of a blank wizard whose store() would overwrite it.
+        if ($verification?->isPending()) {
+            return redirect()->route('landlord.verification.show');
         }
 
         return view('landlord.verification.create', compact('verification'));

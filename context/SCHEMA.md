@@ -285,7 +285,9 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | landlord_id | FK → users.user_id | NOT NULL | |
 | property_id | FK → properties.property_id | NOT NULL | |
 | unit_id | FK → property_units.unit_id | NULLABLE, `nullOnDelete` | Updated in place if the tenant inquires on a different unit within the same live thread |
-| status | STRING | default `'Open'` | `Open` \| `Resolved` \| `Cancelled` |
+| type | VARCHAR(20) | default `'inquiry'` | Oct 14 2026. `inquiry` (the deal chat) \| `tenancy` (the chat between a tenant who has moved in and their landlord, holds concern cards). Unique key is `(tenant_id, landlord_id, property_id, type)`, so one of each per tenant, landlord and property |
+| reservation_id | FK → reservations.reservation_id | NULLABLE, `nullOnDelete` | Set on `tenancy` threads only: the tenancy it is about. Renting the same property again reuses the thread and re-points this |
+| status | STRING | default `'Open'` | `Open` \| `Resolved` \| `Cancelled`. On a tenancy thread, `Resolved` means the tenancy ended and the thread is read-only; it is never `Cancelled` |
 | created_at | TIMESTAMP | | |
 | updated_at | TIMESTAMP | | |
 
@@ -298,8 +300,27 @@ Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_di
 | message | TEXT | NOT NULL | |
 | is_system | BOOLEAN | default `false` | Status-narration bubble (centered divider), no sender shown |
 | is_inquiry_summary | BOOLEAN | default `false` | Aug 2026 — the first message on a reservation's conversation; renders as the property/rent/dates card in the thread instead of a plain bubble. Always created (not conditional on the tenant typing a note) by both the web and API `Tenant\ReservationController::store()` |
+| concern_id | FK → tenant_concerns.concern_id | NULLABLE, `nullOnDelete` | Oct 14 2026. On a concern's card message, and on the system lines that narrate its status changes |
 | is_read | BOOLEAN | default `false` | |
 | sent_at | TIMESTAMP | `useCurrent()` | Set in `Message::booted()`, not by the DB default, so it can be backdated by fixtures |
+
+### tenant_concerns
+Something a current tenant reported to their landlord, shown as a card in the tenancy chat (Oct 14 2026).
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| concern_id | BIGINT UNSIGNED | PK | `$primaryKey = 'concern_id'` |
+| conversation_id | FK → conversations.conversation_id | NOT NULL, cascade | Always a `tenancy` thread |
+| reservation_id | FK → reservations.reservation_id | NOT NULL, cascade | |
+| tenant_id | FK → users.user_id | NOT NULL, cascade | |
+| category | VARCHAR(30) | NOT NULL | One of `TenantConcern::CATEGORIES` |
+| description | TEXT | NOT NULL | Max 1000 chars (validated) |
+| photos | JSON | NULLABLE | `[{url, public_id}]`, max 3, Cloudinary folder `abanganan/concerns` |
+| status | VARCHAR(20) | default `'Open'` | `Open` \| `In Progress` \| `Fixed`. Landlord moves it to In Progress / Fixed; the tenant can only reopen a Fixed one |
+| fixed_at | TIMESTAMP | NULLABLE | Set on Fixed, cleared on reopen |
+| created_at / updated_at | TIMESTAMP | | |
+
+Index `(reservation_id, status)`.
 
 ### favorites
 | Column | Type | Constraints | Notes |
@@ -683,6 +704,7 @@ Not applicable — MySQL, no row-level security. Access control via Laravel Midd
 | create_deposit_charges_table | Deposit claims ledger (see the `deposit_charges` section) | Landlords need to record what a held deposit is being claimed for | Sept 28 2026 |
 | add_condominium_to_properties_property_type / replace_room_with_boarding_house_property_type | `property_type` ENUM gains `Condominium`, and `Room` is renamed `Boarding House` (existing rows are rewritten). MySQL only, guarded by driver | Property types the listing form now offers | Sept 22 2026 |
 | replace_condominium_with_dormitory_property_type | `property_type` ENUM swaps `Condominium` for `Dormitory`; existing Condominium rows are renamed. MySQL only, guarded by driver | Dormitory type in forms, filters and AI search | Oct 13 2026 |
+| add_tenancy_threads_and_concerns (`2026_10_14_000000`) | `conversations.type` + `reservation_id`, unique key widened to include `type` (new key added before the old is dropped: the `tenant_id` foreign key needs an index at every step), `tenant_concerns` table, `messages.concern_id`; backfills one tenancy thread per Occupied, non-walk-in reservation | Tenant ↔ landlord chat after move-in, with concern cards | Oct 14 2026 |
 | add_geo_role_and_status_indexes | Indexes: `properties (latitude, longitude)`, `user_roles` UNIQUE `(user_id, role)` + `(role, user_id)`, `users.account_status`. No column changes | AI search near-place box filter, admin role / status counts | Oct 13 2026 |
 | add_occupancy_preference_to_properties_table | `occupancy_preference` ENUM ('No Preference','Men Only','Women Only'); old `Female only`/`Male only`/`Couples allowed`/`Family-friendly` living-arrangement values are moved out of `living_arrangement` | Gender preference was stored as a living arrangement, which mixed two questions | Sept 23 2026 |
 | add_rejection_reason_to_properties_table | `rejection_reason` TEXT | Landlord gets a reason when an admin rejects a listing | Sept 29 2026 |

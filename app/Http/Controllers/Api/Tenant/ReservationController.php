@@ -95,7 +95,7 @@ class ReservationController extends Controller
             throw ValidationException::withMessages(['unit' => ['You already have an active inquiry or reservation for this unit.']]);
         }
 
-        $conversation = Conversation::where('tenant_id', $tenantId)
+        $conversation = Conversation::inquiries()->where('tenant_id', $tenantId)
             ->where('landlord_id', $property->landlord_id)
             ->where('property_id', $property->property_id)
             ->where('status', '!=', 'Cancelled')
@@ -152,7 +152,7 @@ class ReservationController extends Controller
         }
 
         if (! $reservation->cancel()) {
-            throw ValidationException::withMessages(['reservation' => ['This reservation can no longer be cancelled.']]);
+            throw ValidationException::withMessages(['reservation' => [$reservation->cancellationBlockedReason() ?? 'This reservation can no longer be cancelled.']]);
         }
 
         if ($reservation->unit && $reservation->unit->availability_status === 'Reserved') {

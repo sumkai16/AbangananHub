@@ -15,7 +15,7 @@
 --}}
 <div data-property-card="{{ $property->property_id }}"
     class="group relative cursor-pointer overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-[#FFF7F4] hover:border-[#FF8A66] hover:shadow-[0_12px_28px_rgba(6,13,38,0.12)] motion-reduce:hover:translate-y-0"
-    onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
+    onclick="if (event.target.closest('a')) return; const u = '{{ route('properties.show', $property->property_id) }}'; (event.ctrlKey || event.metaKey) ? window.open(u, '_blank') : window.location = u">
 
     {{-- IMAGE CAROUSEL --}}
     {{--
@@ -39,14 +39,20 @@
         @focusin="load()"
         class="relative w-full aspect-[4/3] overflow-hidden bg-[#ECEEF6]">
 
-        @if($property->hasVerifiedDocuments())
-            <span class="absolute top-3 left-3 z-10 inline-flex items-center gap-1 bg-[#FF8A66] text-[#060D26] text-[10.5px] font-bold px-2 py-1 rounded-full shadow-sm">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Verified
+        {{-- Type chip (and Verified, when earned) over the photo. --}}
+        <div class="absolute top-3 left-3 z-10 flex items-center gap-1.5">
+            <span class="inline-flex font-jakarta text-[11px] font-bold uppercase tracking-[0.04em] text-[#060D26] bg-white px-2.5 py-1 rounded-full shadow-sm">
+                {{ $property->property_type }}
             </span>
-        @endif
+            @if($property->hasVerifiedDocuments())
+                <span class="inline-flex items-center gap-1 bg-[#FF8A66] text-[#060D26] text-[10.5px] font-bold px-2 py-1 rounded-full shadow-sm">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Verified
+                </span>
+            @endif
+        </div>
 
         @if($property->media->count() > 0)
             <div class="flex transition-transform duration-500 ease-out h-full"
@@ -118,10 +124,10 @@
             data-favorited="{{ in_array($property->property_id, $favoritedIds) ? 'true' : 'false' }}"
             aria-label="Save {{ $property->title }} to favorites"
             onclick="event.stopPropagation(); toggleFavorite(this)"
-            class="favorite-btn absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer">
+            class="favorite-btn absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/95 hover:bg-white shadow-sm hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer">
             <svg class="heart-outline {{ in_array($property->property_id, $favoritedIds) ? 'hidden' : '' }}"
-                width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white"
-                stroke-width="2.5" aria-hidden="true">
+                width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#060D26"
+                stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
@@ -136,25 +142,18 @@
 
     {{-- TEXT BELOW IMAGE — no card box --}}
     <div class="px-4 pt-3.5 pb-4">
-        <span class="inline-flex mb-1.5 font-jakarta text-[10px] font-bold uppercase tracking-[0.05em] text-[#060D26] px-2.5 py-1 rounded-full border border-[#FF8A66]/60 bg-[#FF8A66]/10">
-            {{ $property->property_type }}
-        </span>
-
-        <h3 class="font-jakarta text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1">
-            {{ $property->title }}
-        </h3>
-
-        <p class="text-[13px] text-[#5B6A8E] mt-0.5 line-clamp-1 flex items-center gap-1">
-            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                stroke-width="2" class="flex-shrink-0" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            {{ $property->address }}
-        </p>
-        <div class="flex items-center gap-1 mt-1">
+        @php
+            // Only count units when they are already eager-loaded — never trigger an N+1 per card.
+            $freeUnits = $property->relationLoaded('units')
+                ? $property->units->where('availability_status', 'Available')->count()
+                : 0;
+        @endphp
+        <div class="flex items-center justify-between gap-2">
+            {{-- A real link, so the title can be opened in a new tab, middle-clicked, or reached by keyboard. The whole card still navigates on click (the root onclick), which keeps the image carousel and heart working. --}}
+            <h3 class="font-jakarta text-[16px] font-bold text-[#060D26] leading-snug truncate min-w-0">
+                <a href="{{ route('properties.show', $property->property_id) }}" class="hover:underline focus-visible:underline outline-none">{{ $property->title }}</a>
+            </h3>
+            <div class="flex items-center gap-1 shrink-0">
             @if($property->review_count > 0)
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24"
                     stroke-width="1" aria-hidden="true">
@@ -165,22 +164,28 @@
                     class="text-[13px] font-semibold text-[#060D26]">{{ number_format($property->avg_rating, 1) }}</span>
                 <span class="text-[12px] text-[#5B6A8E]">({{ $property->review_count }})</span>
             @else
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6A8E"
-                    stroke-width="1.5" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-                <span class="text-[12px] text-[#5B6A8E]">No reviews yet</span>
+                <span class="text-[12px] text-[#5B6A8E] whitespace-nowrap">No reviews</span>
+            @endif
+            </div>
+        </div>
+
+        <p class="text-[13px] text-[#5B6A8E] mt-1.5 line-clamp-1">{{ $property->address }}</p>
+
+        <div class="flex items-baseline justify-between gap-2 mt-3">
+            <p class="font-jakarta text-[18px] font-extrabold text-[#B35A3D]">
+                @if($property->min_rental_fee)
+                    ₱{{ number_format($property->min_rental_fee) }}
+                    <span class="text-[13px] font-normal text-[#5B6A8E]">/month</span>
+                @else
+                    <span class="text-[13px] font-normal text-[#5B6A8E]">Price not set</span>
+                @endif
+            </p>
+            @if($freeUnits > 0)
+                <span class="text-[12px] font-medium text-[#15803D] whitespace-nowrap">
+                    {{ $freeUnits }} {{ Str::plural('unit', $freeUnits) }} free
+                </span>
             @endif
         </div>
-        <p class="font-jakarta text-[15px] font-extrabold text-[#B35A3D] mt-1.5">
-            @if($property->min_rental_fee)
-                ₱{{ number_format($property->min_rental_fee) }}
-                <span class="text-[13px] font-normal text-[#5B6A8E]">/month</span>
-            @else
-                <span class="text-[13px] font-normal text-[#5B6A8E]">Price not set</span>
-            @endif
-        </p>
         @if($fit && ($fit['misses'] || $fit['hits']))
             {{-- What the search asked for vs. what this place has. Computed from real data (MatchExplainer), gaps first. Three chips, then "+N". --}}
             @php $fitChips = collect($fit['misses'])->map(fn ($c) => ['miss', $c['text']])->concat(collect($fit['hits'])->map(fn ($c) => ['hit', $c['text']])); @endphp

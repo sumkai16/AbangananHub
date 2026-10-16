@@ -173,6 +173,8 @@ public function update(Request $request)
 {
     $user = Auth::user();
 
+        \App\Support\NameLock::apply($request, $user);
+
     $validated = $request->validate([
         'first_name' => ['required', 'string', 'max:255'],
         'last_name' => ['required', 'string', 'max:255'],

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             TenantSeeder::class,
             ReviewSeeder::class,
             ReportSeeder::class,
+            DemoSeeder::class,
         ]);
     }
 }

@@ -122,6 +122,55 @@ class Payment extends Model
         return $this->recorded_by !== null;
     }
 
+    /**
+     * An unfinished checkout the tenant has walked away from. With a PayMongo session it takes
+     * `rentals.checkout_stale_minutes`; a placeholder that never got a session id (the request died between
+     * creating the row and saving the id) is dead after a few minutes. Nothing else ever clears a Pending row,
+     * so without this the tenant is locked out of paying.
+     */
+    public function isStalePending(): bool
+    {
+        if ($this->status !== 'Pending' || $this->created_at === null) {
+            return false;
+        }
+
+        $minutes = $this->paymongo_checkout_session_id
+            ? (int) config('rentals.checkout_stale_minutes', 30)
+            : 5;
+
+        return $this->created_at->lt(now()->subMinutes($minutes));
+    }
+
+    /**
+     * Money can still arrive after a reservation ended: the tenant opened a checkout, the reservation was
+     * cancelled or rejected, then the checkout was paid. The payment is real, there is no refund path in the
+     * app, and nothing else looks at a Cancelled reservation's payments, so tell the admins instead of leaving
+     * it Held where nobody will find it.
+     */
+    public function alertAdminsIfStranded(): void
+    {
+        $reservation = $this->reservation;
+
+        if (! $reservation || ! in_array($reservation->rental_status, ['Cancelled', 'Rejected'], true)) {
+            return;
+        }
+
+        User::whereHas('roles', fn ($q) => $q->where('role', 'Admin'))
+            ->pluck('user_id')
+            ->each(fn ($adminId) => Notification::notify(
+                $adminId,
+                'payment',
+                'Payment received for an ended reservation',
+                sprintf(
+                    '₱%s was paid on reservation #%d after it was %s. The money is held and needs an administrator to resolve.',
+                    number_format((float) $this->amount, 2),
+                    $reservation->reservation_id,
+                    strtolower($reservation->rental_status),
+                ),
+                route('admin.payments.index', ['status' => 'Held']),
+            ));
+    }
+
     public function isHeld(): bool
     {
         return $this->status === 'Held';

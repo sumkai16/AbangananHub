@@ -1,19 +1,79 @@
 <?php
 namespace App\Models;
+use App\Events\MessageSent;
+use Illuminate\Broadcasting\BroadcastException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 class Conversation extends Model
 {
+    /** The deal chat: inquiry → agreement → move-in. */
+    public const TYPE_INQUIRY = 'inquiry';
+    /** The chat between a tenant who has moved in and their landlord. Holds concern cards. */
+    public const TYPE_TENANCY = 'tenancy';
+
     protected $primaryKey = 'conversation_id';
     protected $fillable = [
         'tenant_id',
         'landlord_id',
         'property_id',
         'unit_id',
+        'type',
+        'reservation_id',
         'status',
     ];
+    public function scopeInquiries(Builder $query): Builder
+    {
+        return $query->where('type', self::TYPE_INQUIRY);
+    }
+    public function scopeTenancies(Builder $query): Builder
+    {
+        return $query->where('type', self::TYPE_TENANCY);
+    }
+    public function isTenancy(): bool
+    {
+        return $this->type === self::TYPE_TENANCY;
+    }
+    /** The tenancy a tenancy thread is about. Null on inquiry threads. */
+    public function reservation(): BelongsTo
+    {
+        return $this->belongsTo(Reservation::class, 'reservation_id', 'reservation_id');
+    }
+    public function concerns(): HasMany
+    {
+        return $this->hasMany(TenantConcern::class, 'conversation_id', 'conversation_id');
+    }
+    /** Narration line in this thread, e.g. a concern changing status. */
+    public function postSystemMessage(string $text, ?int $concernId = null): void
+    {
+        $message = $this->messages()->create([
+            'sender_id' => null,
+            'message' => $text,
+            'is_system' => true,
+            'is_read' => true,
+            'concern_id' => $concernId,
+        ]);
+
+        $this->broadcastQuietly($message);
+    }
+    /**
+     * Push a message to the live channel without letting a stopped Reverb roll back the
+     * caller (same guard as Reservation::postSystemMessage()). The row is the message of record.
+     */
+    public function broadcastQuietly(Message $message): void
+    {
+        try {
+            MessageSent::dispatch($message);
+        } catch (BroadcastException $e) {
+            Log::warning('Message broadcast failed, continuing without it', [
+                'message_id' => $message->message_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(User::class, 'tenant_id', 'user_id');
@@ -32,7 +92,11 @@ class Conversation extends Model
     }
     public function messages(): HasMany
     {
-        return $this->hasMany(Message::class, 'conversation_id', 'conversation_id');
+        // Oldest first. Without an ORDER BY MySQL returns rows in index order (grouped by
+        // sender), which scrambles the chat. message_id breaks ties inside the same second.
+        return $this->hasMany(Message::class, 'conversation_id', 'conversation_id')
+            ->orderBy('sent_at')
+            ->orderBy('message_id');
     }
     public function latestMessage(): HasOne
     {

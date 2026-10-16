@@ -9,14 +9,17 @@
     @php
         $role = $user->hasRole('Landlord') ? 'Landlord' : ($user->hasRole('Tenant') ? 'Tenant' : ($user->hasRole('Admin') ? 'Admin' : 'Member'));
 
+        // Profile strength: four things a person can actually fill in, 25% each. Email is not
+        // counted: User does not implement MustVerifyEmail and there is no working verify flow,
+        // so that check used to pass for everyone (and lied next to "Email status: Not verified").
         $checks = [
-            !empty($user->profile_picture),
-            !empty($user->first_name) && !empty($user->last_name),
-            !empty($user->contact_number),
-            !empty($user->bio),
-            $user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail ? $user->hasVerifiedEmail() : true,
+            'a profile photo' => !empty($user->profile_picture),
+            'your name' => !empty($user->first_name) && !empty($user->last_name),
+            'a contact number' => !empty($user->contact_number),
+            'a short bio' => !empty($user->bio),
         ];
         $strength = (int) round((count(array_filter($checks)) / count($checks)) * 100);
+        $missing = array_keys(array_filter($checks, fn ($done) => ! $done));
     @endphp
 
     <div class="{{ auth()->user()->shellContainerClass(auth()->user()->hasRole('Admin')) }} mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 min-h-[calc(100vh-72px)]">
@@ -49,11 +52,18 @@
                             {{ strtoupper(substr($user->first_name, 0, 1)) }}{{ strtoupper(substr($user->last_name, 0, 1)) }}
                         </div>
                     @endif
-                    <span class="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-md">
+                    <button type="button" id="avatar-pick" title="Change profile photo" aria-label="Change profile photo"
+                        class="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-md hover:scale-110 transition-transform disabled:opacity-60 disabled:hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
                         </svg>
-                    </span>
+                    </button>
+                    {{-- Picking a file uploads it straight away; no trip to another page. --}}
+                    <form id="avatar-form" method="POST" action="{{ route('profile.photo') }}" enctype="multipart/form-data" class="hidden">
+                        @csrf
+                        <input type="file" id="avatar-input" name="photo" accept="image/jpeg,image/png,image/webp" tabindex="-1">
+                    </form>
+
                 </div>
 
                 {{-- Identity --}}
@@ -81,6 +91,9 @@
                         </svg>
                         Member since {{ $user->created_at->format('F Y') }}
                     </p>
+                    @error('photo')
+                        <p class="mt-2 text-[12px] font-medium text-[#FCA5A5]" role="alert">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- Profile strength meter --}}
@@ -96,7 +109,7 @@
                         @if($strength >= 100)
                             Your account is fully set up.
                         @else
-                            Complete your details to build trust with the community.
+                            Add {{ implode(', ', array_slice($missing, 0, -1)) }}{{ count($missing) > 1 ? ' and ' : '' }}{{ end($missing) }} to build trust with the community.
                         @endif
                     </p>
                 </div>
@@ -276,6 +289,21 @@
                 }, { passive: true });
 
                 setActive('personal-info');
+            })();
+        </script>
+    @endpush
+    @push('scripts')
+        <script>
+            (function () {
+                const pick = document.getElementById('avatar-pick');
+                const input = document.getElementById('avatar-input');
+                if (!pick || !input) return;
+                pick.addEventListener('click', () => input.click());
+                input.addEventListener('change', () => {
+                    if (!input.files.length) return;
+                    pick.disabled = true;
+                    input.form.submit();
+                });
             })();
         </script>
     @endpush

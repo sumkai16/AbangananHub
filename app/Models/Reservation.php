@@ -8,6 +8,7 @@ use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class Reservation extends Model
@@ -560,6 +561,45 @@ class Reservation extends Model
         return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');
     }
 
+    /** The post-move-in chat with the landlord. Walk-in tenants have none. */
+    public function tenancyThread()
+    {
+        return $this->hasOne(Conversation::class, 'reservation_id', 'reservation_id')
+            ->where('type', Conversation::TYPE_TENANCY);
+    }
+
+    public function concerns()
+    {
+        return $this->hasMany(TenantConcern::class, 'reservation_id', 'reservation_id');
+    }
+
+    /**
+     * Create (or reattach) the tenancy chat once the tenant is actually living here.
+     *
+     * One thread per tenant, landlord and property: renting the same place again later
+     * reuses it and just points it at the new tenancy. Walk-ins get nothing, since the
+     * tenant can't log in to read it.
+     */
+    public function openTenancyThread(): ?Conversation
+    {
+        $tenant = $this->tenant;
+        $landlordId = $this->property?->landlord_id;
+
+        if (! $tenant || $tenant->is_walk_in || ! $landlordId) {
+            return null;
+        }
+
+        $thread = Conversation::firstOrNew([
+            'tenant_id' => $this->tenant_id,
+            'landlord_id' => $landlordId,
+            'property_id' => $this->property_id,
+            'type' => Conversation::TYPE_TENANCY,
+        ]);
+        $thread->fill(['reservation_id' => $this->reservation_id, 'unit_id' => $this->unit_id, 'status' => 'Open'])->save();
+
+        return $thread;
+    }
+
     public function tenantRating()
     {
         return $this->hasOne(TenantRating::class, 'reservation_id', 'reservation_id');
@@ -636,13 +676,14 @@ class Reservation extends Model
     }
 
     /**
-     * The date rent starts accruing. Move-in where there is one, otherwise the
-     * date the reservation was made — a walk-in always supplies a move-in date,
-     * so this fallback only ever covers odd legacy rows.
+     * The date rent starts accruing. The agreed move-in date; failing that the day
+     * the tenant actually confirmed moving in (an online inquiry may name no
+     * target date); and only then the date the reservation was made, which is
+     * the inquiry day and would bill months before anyone lived there.
      */
     public function tenancyStartDate(): ?Carbon
     {
-        $start = $this->target_move_in_date ?? $this->reservation_date;
+        $start = $this->target_move_in_date ?? $this->tenant_confirmed_move_in_at ?? $this->reservation_date;
 
         return $start ? Carbon::parse($start) : null;
     }
@@ -723,6 +764,11 @@ class Reservation extends Model
         if ($terms !== null) {
             $this->agreement_terms_notes = $terms;
         }
+        // Pin the rent to what the tenant is about to sign. Online tenancies never had an agreed rent (only
+        // walk-ins did), so checkout and the ledger read the unit's live price, and a landlord editing it after
+        // signing changed what the tenant paid. Set before the snapshot so the lease and the charge agree.
+        $this->agreed_monthly_rent ??= $this->unit?->rental_fee;
+
         // Freeze the lease the tenant is about to sign. Done here, not at
         // the call sites, so every path that issues the agreement does it.
         $this->lease_snapshot = LeaseTerms::snapshot($this);
@@ -783,23 +829,87 @@ class Reservation extends Model
         return true;
     }
 
+    /**
+     * Why this reservation cannot be cancelled or rejected right now, or null if it can.
+     *
+     * There is no refund path in the app, so ending a reservation while money is held would strand that money
+     * (the escrow scan only looks at 'Rental Agreement Signed'). A checkout still open may also be paid after
+     * the cancel. Both are refused until an administrator has dealt with the payment. Admin overrides
+     * (Admin\ReservationController::forceCancel / forceReject) deliberately bypass this.
+     */
+    public function cancellationBlockedReason(): ?string
+    {
+        // The list page calls this once per row with payments already eager-loaded; elsewhere it is one query.
+        $payments = $this->relationLoaded('payments') ? $this->payments : $this->payments()->get();
+
+        $held = (float) $payments->where('status', 'Held')->sum('amount');
+
+        if ($held > 0) {
+            return 'A payment of ₱'.number_format($held, 2).' is held by AbangananHub for this reservation, so it cannot be cancelled here. Message each other, or use Report a Problem and an administrator will sort it out.';
+        }
+
+        $cutoff = now()->subMinutes((int) config('rentals.checkout_stale_minutes', 30));
+
+        $checkoutOpen = $payments->contains(fn ($p) => $p->status === 'Pending'
+            && $p->paymongo_checkout_session_id
+            && $p->created_at?->gte($cutoff));
+
+        return $checkoutOpen
+            ? 'A payment is being processed for this reservation. Wait for it to finish, then try again.'
+            : null;
+    }
+
+    /**
+     * The one thing this tenant should do next on a reservation, for the list's primary button (label + url),
+     * or null when there is nothing to do. Before this the list offered only Cancel and Chat on an agreement
+     * waiting to be signed or paid, and the agreement was reachable only from inside the chat.
+     *
+     * @return array{label: string, url: string}|null
+     */
+    public function tenantNextStep(): ?array
+    {
+        $paid = $this->relationLoaded('payments')
+            ? $this->payments->contains(fn ($p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true))
+            : $this->hasSettledInitialPayment();
+
+        return match ($this->rental_status) {
+            'Pending Rental Agreement' => ['label' => 'Review & sign', 'url' => route('agreements.show', $this)],
+            'Rental Agreement Signed'  => ['label' => $paid ? 'Open agreement' : 'Pay now', 'url' => route('agreements.show', $this)],
+            'Occupied'                 => ['label' => 'Rent & payments', 'url' => route('tenancy.show', $this)],
+            'Completed'                => ['label' => 'View tenancy', 'url' => route('tenancy.show', $this)],
+            default                    => null,
+        };
+    }
+
     public function reject(?string $reason = null): bool
     {
         if (in_array($this->rental_status, ['Occupied', ...self::TERMINAL_STATUSES], true)) {
             return false;
         }
-        $this->rental_status = 'Rejected';
-        if ($reason !== null) {
-            $this->rejection_reason = $reason;
-        }
-        $saved = $this->save();
 
-        if ($saved) {
-            $this->cancelLinkedConversation();
-            $this->releaseUnitIfUnclaimed();
-        }
+        return DB::transaction(function () use ($reason) {
+            // Same row the checkout locks, so a payment being started and this cannot both pass.
+            static::whereKey($this->getKey())->lockForUpdate()->first();
 
-        return $saved;
+            $this->unsetRelation('payments');
+
+            if ($this->cancellationBlockedReason() !== null) {
+                return false;
+            }
+
+            $this->rental_status = 'Rejected';
+            if ($reason !== null) {
+                $this->rejection_reason = $reason;
+            }
+            $saved = $this->save();
+
+            if ($saved) {
+                $this->cancelLinkedConversation();
+                $this->releaseUnitIfUnclaimed();
+            }
+
+            return $saved;
+        });
     }
 
     public function cancel(): bool
@@ -807,15 +917,26 @@ class Reservation extends Model
         if (in_array($this->rental_status, ['Occupied', ...self::TERMINAL_STATUSES], true)) {
             return false;
         }
-        $this->rental_status = 'Cancelled';
-        $saved = $this->save();
 
-        if ($saved) {
-            $this->cancelLinkedConversation();
-            $this->releaseUnitIfUnclaimed();
-        }
+        return DB::transaction(function () {
+            static::whereKey($this->getKey())->lockForUpdate()->first();
 
-        return $saved;
+            $this->unsetRelation('payments');
+
+            if ($this->cancellationBlockedReason() !== null) {
+                return false;
+            }
+
+            $this->rental_status = 'Cancelled';
+            $saved = $this->save();
+
+            if ($saved) {
+                $this->cancelLinkedConversation();
+                $this->releaseUnitIfUnclaimed();
+            }
+
+            return $saved;
+        });
     }
 
     /**

@@ -71,7 +71,7 @@ class ReservationController extends Controller
         }
 
         $reservations = $base
-            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'tenantRating'])
+            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'tenantRating', 'payments'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -147,7 +147,7 @@ class ReservationController extends Controller
         ]);
 
         if (!$reservation->reject($request->rejection_reason)) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be rejected.']);
+            return back()->withErrors(['reservation' => $reservation->cancellationBlockedReason() ?? 'This reservation can no longer be rejected.']);
         }
 
         return back()->with('success', 'Reservation rejected.');
@@ -158,7 +158,7 @@ class ReservationController extends Controller
         Gate::authorize('cancel', $reservation);
 
         if (!$reservation->cancel()) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
+            return back()->withErrors(['reservation' => $reservation->cancellationBlockedReason() ?? 'This reservation can no longer be cancelled.']);
         }
 
         return back()->with('success', 'Reservation cancelled.');

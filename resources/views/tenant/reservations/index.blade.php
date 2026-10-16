@@ -27,7 +27,7 @@
 
         {{-- Summary cards --}}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <x-stat-card label="Total" :value="$counts['all']" sub="All time">
+            <x-stat-card label="Total" :value="$counts['all']">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -45,7 +45,7 @@
                 </x-slot:icon>
             </x-stat-card>
 
-            <x-stat-card label="Occupied" :value="$counts['Occupied']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)" sub="All time">
+            <x-stat-card label="Occupied" :value="$counts['Occupied']" value-color="#15803D" icon-bg="rgba(34,197,94,0.07)">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#16A34A" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M15.75 21H8.25m6.386-8.818a3.375 3.375 0 11-6.747-.248l-.006.248a3.375 3.375 0 116.747.248z" />
@@ -53,7 +53,7 @@
                 </x-slot:icon>
             </x-stat-card>
 
-            <x-stat-card label="Cancelled/Rejected" :value="$counts['Cancelled'] + $counts['Rejected']" icon-bg="rgba(239,68,68,0.07)" sub="All time">
+            <x-stat-card label="Cancelled/Rejected" :value="$counts['Cancelled'] + $counts['Rejected']" icon-bg="rgba(239,68,68,0.07)">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -74,6 +74,8 @@
                 'Rejected' => 'Rejected',
                 'Cancelled' => 'Cancelled',
             ] as $key => $label)
+                {{-- Empty tabs are noise: keep All, the active tab, and any tab with results. --}}
+                @continue($key !== 'all' && $status !== $key && ($counts[$key] ?? 0) === 0)
                 <a href="{{ route('reservations.index', $key === 'all' ? [] : ['status' => $key]) }}"
                     class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors duration-150 whitespace-nowrap
                               {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#5B6A8E] hover:text-[#060D26]' }}">
@@ -132,6 +134,7 @@
                             $mModalData = [
                                 'reservation_id' => $reservation->reservation_id,
                                 'reservation_date' => $reservation->reservation_date?->format('M d, Y'),
+                                'move_in_date' => $reservation->target_move_in_date?->format('M d, Y') ?? 'Flexible',
                                 'duration_of_stay' => $reservation->duration_of_stay,
                                 'occupants_count' => $reservation->occupants_count,
                                 'remarks' => $reservation->remarks,
@@ -161,78 +164,15 @@
                                 </div>
                             </div>
                             <div class="flex items-center justify-between mt-3 text-[12px] text-[#5B6A8E]">
-                                <span>Move-in: {{ $reservation->reservation_date?->format('M d, Y') ?? '—' }}</span>
+                                <span>Move-in: {{ $reservation->target_move_in_date?->format('M d, Y') ?? 'Flexible' }}</span>
                                 <span>{{ $reservation->duration_of_stay ?? '—' }}</span>
                             </div>
-                            <div class="flex items-center gap-2 mt-3">
+                            <div class="flex flex-wrap items-center gap-2 mt-3">
                                 <button @click="openModal({{ Js::from($mModalData) }})"
                                     class="flex-1 text-center text-[12px] font-semibold text-[#060D26] border border-[#060D26]/25 rounded-lg px-3 py-2">
                                     View Details
                                 </button>
-                                @if(in_array($reservation->rental_status, ['Inquiry', 'Under Negotiation']))
-                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST">
-                                        @csrf @method('PATCH')
-                                        <button type="submit"
-                                            class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-2">
-                                            Cancel
-                                        </button>
-                                    </form>
-                                    @if($reservation->conversation)
-                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
-                                            Chat
-                                        </a>
-                                    @endif
-                                @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
-                                    <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
-                                        data-confirm="Cancel this reservation?"
-                                        data-confirm-type="warning"
-                                        data-confirm-message="This action cannot be undone."
-                                        data-confirm-button="Cancel reservation"
-                                        data-confirm-cancel="Keep it">
-                                        @csrf @method('PATCH')
-                                        <button type="submit"
-                                            class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-2">
-                                            Cancel
-                                        </button>
-                                    </form>
-                                    @if($reservation->conversation)
-                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
-                                            Chat
-                                        </a>
-                                    @endif
-                                @elseif($reservation->rental_status === 'Occupied')
-                                    <a href="{{ route('tenancy.show', $reservation) }}"
-                                        class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-2">
-                                        Rent
-                                    </a>
-                                    @if($mCanReview)
-                                        <a href="{{ route('properties.show', $reservation->property) }}#reviews"
-                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
-                                            Review
-                                        </a>
-                                    @endif
-                                    @if($reservation->conversation)
-                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
-                                            Chat
-                                        </a>
-                                    @endif
-                                @elseif($reservation->rental_status === 'Completed')
-                                    @if($mCanReview)
-                                        <a href="{{ route('properties.show', $reservation->property) }}#reviews"
-                                            class="flex-1 text-center text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-2">
-                                            Leave a review
-                                        </a>
-                                    @endif
-                                    @if($reservation->conversation)
-                                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                            class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-2">
-                                            Chat
-                                        </a>
-                                    @endif
-                                @endif
+                                @include('tenant.reservations._actions', ['reservation' => $reservation, 'canReview' => $mCanReview, 'pad' => 'py-2'])
                             </div>
                         </div>
                     @endforeach
@@ -273,6 +213,7 @@
                                 $modalData = [
                                     'reservation_id' => $reservation->reservation_id,
                                     'reservation_date' => $reservation->reservation_date?->format('M d, Y'),
+                                    'move_in_date' => $reservation->target_move_in_date?->format('M d, Y') ?? 'Flexible',
                                     'duration_of_stay' => $reservation->duration_of_stay,
                                     'occupants_count' => $reservation->occupants_count,
                                     'remarks' => $reservation->remarks,
@@ -309,7 +250,7 @@
                                     <p class="text-[12px] text-[#5B6A8E]">{{ $reservation->property->landlord->contact_number ?? '—' }}</p>
                                 </td>
                                 <td class="px-5 py-4">
-                                    <p class="text-sm text-[#060D26]">{{ $reservation->reservation_date?->format('M d, Y') ?? '—' }}
+                                    <p class="text-sm text-[#060D26]">{{ $reservation->target_move_in_date?->format('M d, Y') ?? 'Flexible' }}
                                     </p>
                                 </td>
                                 <td class="px-5 py-4">
@@ -322,76 +263,13 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-4">
-                                    <div class="flex items-center justify-end gap-2">
+                                    <div class="flex flex-wrap items-center justify-end gap-2">
                                         <button @click="openModal({{ Js::from($modalData) }})"
                                             class="text-[12px] font-semibold text-[#060D26] hover:underline px-2 py-1.5">
                                             View Details
                                         </button>
 
-                                        @if(in_array($reservation->rental_status, ['Inquiry', 'Under Negotiation']))
-                                            <form action="{{ route('reservations.cancel', $reservation) }}" method="POST">
-                                                @csrf @method('PATCH')
-                                                <button type="submit"
-                                                    class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
-                                                    Cancel
-                                                </button>
-                                            </form>
-                                            @if($reservation->conversation)
-                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
-                                                    Chat
-                                                </a>
-                                            @endif
-                                        @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
-                                            <form action="{{ route('reservations.cancel', $reservation) }}" method="POST"
-                                                data-confirm="Cancel this reservation?"
-                                                data-confirm-type="warning"
-                                                data-confirm-message="This action cannot be undone."
-                                                data-confirm-button="Cancel reservation"
-                                                data-confirm-cancel="Keep it">
-                                                @csrf @method('PATCH')
-                                                <button type="submit"
-                                                    class="text-[12px] font-semibold text-white bg-[#EF4444] hover:brightness-95 rounded-lg px-3 py-1.5 transition-all duration-150">
-                                                    Cancel
-                                                </button>
-                                            </form>
-                                            @if($reservation->conversation)
-                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
-                                                    Chat
-                                                </a>
-                                            @endif
-                                        @elseif($reservation->rental_status === 'Occupied')
-                                            <a href="{{ route('tenancy.show', $reservation) }}"
-                                                class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-1.5 transition-all duration-150">
-                                                Rent
-                                            </a>
-                                            @if($canReview)
-                                                <a href="{{ route('properties.show', $reservation->property) }}#reviews"
-                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
-                                                    Review
-                                                </a>
-                                            @endif
-                                            @if($reservation->conversation)
-                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
-                                                    Chat
-                                                </a>
-                                            @endif
-                                        @elseif($reservation->rental_status === 'Completed')
-                                            @if($canReview)
-                                                <a href="{{ route('properties.show', $reservation->property) }}#reviews"
-                                                    class="text-[12px] font-semibold text-[#060D26] bg-[#FF8A66] hover:bg-[#E96F4F] rounded-lg px-3 py-1.5 transition-all duration-150">
-                                                    Leave a review
-                                                </a>
-                                            @endif
-                                            @if($reservation->conversation)
-                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                    class="text-[12px] font-semibold text-[#060D26] border border-[#E2E4EC] rounded-lg px-3 py-1.5 hover:bg-[#F7F8FC] transition-all duration-150">
-                                                    Chat
-                                                </a>
-                                            @endif
-                                        @endif
+                                        @include('tenant.reservations._actions', ['reservation' => $reservation, 'canReview' => $canReview, 'pad' => 'py-1.5'])
                                     </div>
                                 </td>
                             </tr>
@@ -502,7 +380,8 @@
                                     </svg>
                                     <span class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wide">Move-in</span>
                                 </div>
-                                <p class="text-[13px] font-semibold text-[#060D26]" x-text="selected.reservation_date || '—'"></p>
+                                <p class="text-[13px] font-semibold text-[#060D26]" x-text="selected.move_in_date || 'Flexible'"></p>
+                                <p class="mt-0.5 text-[11px] text-[#5B6A8E]">Inquired <span x-text="selected.reservation_date || '—'"></span></p>
                             </div>
                             <div class="rounded-xl bg-[#F7F8FC] px-3.5 py-3">
                                 <div class="flex items-center gap-1.5 mb-1">

@@ -9,6 +9,11 @@ use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        \App\Support\NameLock::apply($this, $this->user());
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *

@@ -32,6 +32,10 @@ class PaymentController extends Controller
             return back()->withErrors(['payment' => 'The initial payment for this reservation has already been made.']);
         }
 
+        if ($message = $this->clearStaleCheckouts($reservation, 'Initial')) {
+            return back()->withErrors(['payment' => $message]);
+        }
+
         // Lock the reservation row so two concurrent requests (e.g. a double
         // click) can't both pass the "no pending payment" check before either
         // has inserted its Payment row.
@@ -52,7 +56,7 @@ class PaymentController extends Controller
             return Payment::create([
                 'reservation_id' => $locked->reservation_id,
                 'payment_type' => 'Initial',
-                'amount' => $locked->unit->rental_fee,
+                'amount' => $locked->monthlyRent(),
                 'payment_method' => 'GCash',
                 'status' => 'Pending',
             ]);
@@ -62,7 +66,7 @@ class PaymentController extends Controller
             return back()->withErrors(['payment' => 'A payment session is already in progress.']);
         }
 
-        $amount = Payment::toCentavos($reservation->unit->rental_fee); // PayMongo expects cents
+        $amount = Payment::toCentavos($reservation->monthlyRent()); // PayMongo expects cents
 
         $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
             ->post('https://api.paymongo.com/v1/checkout_sessions', [
@@ -142,6 +146,10 @@ class PaymentController extends Controller
 
         $billingPeriod = $period['period']->copy()->startOfMonth();
         $balance = round((float) $period['balance'], 2);
+
+        if ($message = $this->clearStaleCheckouts($reservation, 'Monthly', $billingPeriod)) {
+            return back()->withErrors(['payment' => $message]);
+        }
 
         $placeholder = DB::transaction(function () use ($reservation, $billingPeriod, $balance) {
             $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();

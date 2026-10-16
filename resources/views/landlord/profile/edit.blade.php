@@ -63,23 +63,30 @@
             <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 mb-5">
                 <h2 class="text-[15px] font-normal text-[#060D26] mb-4">Personal information</h2>
 
+@php $nameLocked = $user->nameIsLocked(); @endphp
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label for="first_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">First name</label>
-                        <input type="text" id="first_name" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
-                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                        <input type="text" id="first_name" name="first_name" value="{{ old('first_name', $user->first_name) }}" @readonly($nameLocked) required
+                            class="{{ $nameLocked ? 'cursor-not-allowed opacity-70 ' : '' }}w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                         @error('first_name')
                             <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
                         <label for="last_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Last name</label>
-                        <input type="text" id="last_name" name="last_name" value="{{ old('last_name', $user->last_name) }}" required
-                            class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
+                        <input type="text" id="last_name" name="last_name" value="{{ old('last_name', $user->last_name) }}" @readonly($nameLocked) required
+                            class="{{ $nameLocked ? 'cursor-not-allowed opacity-70 ' : '' }}w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                         @error('last_name')
                             <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
                         @enderror
                     </div>
+                    @if($nameLocked)
+                        <p class="sm:col-span-2 -mt-1 flex items-start gap-2 text-[12px] leading-relaxed text-[#5B6A8E]">
+                            <svg class="mt-0.5 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+                            {{ \App\Support\NameLock::NOTE }}
+                        </p>
+                    @endif
                 </div>
 
                 <div class="mb-4">

@@ -49,7 +49,7 @@ class UserSeeder extends Seeder
             'submitted_at'        => now()->subDays(7),
         ]);
 
-        // Landlord #2 — Pending (no Landlord role yet — role is granted on approval, not application)
+        // Landlord #2 — Pending (Tenant role only — Landlord is granted on approval, not application)
         $pendingLandlord = User::create([
             'first_name'     => 'Roberto',
             'last_name'      => 'Reyes',
@@ -58,12 +58,22 @@ class UserSeeder extends Seeder
             'contact_number' => '09181112222',
             'account_status' => 'active',
         ]);
+        // Applicants are ordinary Tenants until approved (every self-registered account gets Tenant),
+        // and the tenant-only pages (profile, reservations) need the role.
+        UserRole::create(['user_id' => $pendingLandlord->user_id, 'role' => 'Tenant']);
         LandlordVerification::create([
             'user_id'             => $pendingLandlord->user_id,
             'government_id'       => 'verifications/seed-placeholder-pending.jpg',
             'id_type'             => 'Driver\'s License',
             'selfie'              => 'verifications/seed-placeholder-selfie-pending.jpg',
             'id_image_hash'       => hash('sha256', 'seed-placeholder-pending'),
+            'id_number'           => 'N03-12-345678',
+            'ocr_name'            => 'ROBERTO REYES',
+            'ocr_status'          => 'pass',
+            'business_name'       => 'Reyes Apartments',
+            'description'         => 'Three-unit apartment near the Abanganan market, rented to students and young professionals.',
+            'contact_number'      => '09181112222',
+            'business_address'    => '12 Rizal St, Abanganan, Cebu',
             'verification_status' => 'Pending',
             'admin_notes'         => null,
             'reviewed_by'         => null,
@@ -80,6 +90,9 @@ class UserSeeder extends Seeder
             'contact_number' => '09191223344',
             'account_status' => 'active',
         ]);
+        // Applicants are ordinary Tenants until approved (every self-registered account gets Tenant),
+        // and the tenant-only pages (profile, reservations) need the role.
+        UserRole::create(['user_id' => $rejectedLandlord->user_id, 'role' => 'Tenant']);
         LandlordVerification::create([
             'user_id'             => $rejectedLandlord->user_id,
             'government_id'       => 'verifications/seed-placeholder-rejected.jpg',

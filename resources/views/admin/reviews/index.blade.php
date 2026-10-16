@@ -7,9 +7,12 @@
 
     {{-- Header --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-            <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">Reviews</h1>
-            <p class="text-[13.5px] text-[#5B6A8E] mt-1">Moderate tenant reviews. Flag inappropriate or fake content.</p>
+        <div class="flex items-center gap-3.5">
+            <x-page-icon path="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z" />
+            <div>
+                <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">Reviews</h1>
+                <p class="text-[13.5px] text-[#5B6A8E] mt-1">Moderate tenant reviews. Flag inappropriate or fake content.</p>
+            </div>
         </div>
         <span class="text-[13px] font-semibold text-[#5B6A8E]">{{ number_format($counts['all']) }} total</span>
     </div>

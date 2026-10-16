@@ -108,6 +108,9 @@ Every controller / request-path change gets a two-front check before it's done �
 - Validate then assign explicit fields — never `Model::create($request->all())` / `->fill($request->all())`. No raw SQL with user input (`selectRaw` is fine for hardcoded aggregates only). Validate file uploads (mime + size).
 - Run `composer audit` periodically; dependency advisories are a free catch.
 
+- **Never echo request input into a `<script>`.** `{{ }}` escapes for HTML, not for JavaScript, so `const x = {{ request('x') }};` runs `?x=alert(1)`. Pass values with `@js(...)`, cast to the type you expect (`request()->integer('x')`) first. Found in `conversations/index.blade.php` Oct 15 2026.
+- **A picker must not be a directory.** A dropdown of users, or anything else personal, lists only what the viewer already has a relationship with, and never shows email addresses (the report form listed every account with its email).
+
 ## Blade Compile Traps (July 24 2026)
 Blade tokenises a template with `token_get_all()` **before** it strips comments or compiles directives. Two failure modes come out of that, and both were hit in one sitting:
 
@@ -172,6 +175,10 @@ The move-in escrow is the only place in the app where money moves with no human 
 - **One collection event that covers several obligations is several rows, not one lump.** A walk-in landlord types a single figure at the door; `App\Support\MoveInPaymentBreakdown` splits it into a `Deposit` row plus one `Monthly` row per month it reaches, all sharing the same `payment_method`, `paid_at`, `reference_no` and `recorded_by` so they stay readable as one event rather than several payments. The lump version of this shipped for months and was a real defect: `RentLedger` only settles a period from a `Monthly` row carrying a `billing_period`, so a tenant who paid rent and deposit on day one still read **Overdue for their own move-in month**. **Before writing a payment row, ask which ledger period it is supposed to settle** — if the answer is "one of them" but the row can't say which, the row is wrong.
 - **Never invent a split when backfilling money.** The pre-existing lump `Initial` rows were deliberately left untouched: nothing in them records how much was rent versus deposit, and a migration guessing the proportion would write amounts nobody asserted onto the one table a dispute is argued from. A wrong-looking old row beats a plausible fabricated one.
 - **A validation rule that refuses to record what actually happened is not a control.** The move-in form warns when the collected amount is short of rent + deposit; it does not block. Walk-in exists to write down an arrangement made offline, so a landlord blocked from entering ₱3,000 enters ₱4,000 instead and the ledger becomes fiction. Blocking rules on a *record-what-happened* surface push falsification; blocking rules on a *do-something-now* surface (escrow release, payout) are correct. Know which kind of surface you are on.
+- **A `Pending` payment is not a payment.** Anything that decides "has this tenant paid?" or "may a new session be opened?" must treat a stale Pending row as nothing (`Payment::isStalePending()`), and anything that clears one must first prove the PayMongo session can no longer be paid (`PaymongoCheckout::abandon()`), failing closed. Otherwise one abandoned checkout locks a tenant out for good, or two live sessions double-charge.
+- **Ending a reservation must not strand money.** Cancel and reject go through `Reservation::cancellationBlockedReason()` (Held payment, or a fresh open checkout). Never add a new path that sets `rental_status` to `Cancelled` / `Rejected` without it, unless it is an admin override.
+- **Charge the frozen number.** Use `Reservation::monthlyRent()`, never `unit->rental_fee`, for anything a tenant is billed or shown as their price. The unit's price is what the landlord asks today; `agreed_monthly_rent` is what was signed.
+- **Anything that deletes a user must check the cascade.** `payments.reservation_id` cascades from the tenant; a delete path has to refuse while money is Held or `Pending Payout` (see `ProfileController::activeObligation()` and `Admin\UserController::destroy`).
 - Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Concerns\RecordsMoveInPayments`.
 
 ## Testing
@@ -246,6 +253,31 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
 - Never `git add .` across unrelated work
 - Branch: `axci` (Axcee's working branch)
 - Claude provides commit message text only — Axcee uses VSCode source control
+
+### Team flow (established Oct 15 2026)
+Each teammate has their own branch (`axci`, `joseph`, `emman`); `main` changes only through PRs. Written after
+`emman` fell 22 commits behind `main` and `joseph` was built on unmerged `axci`, which made one pull cost 3 conflicts.
+1. **Pull `main` into your branch at the start of every work session and before opening a PR:** `git fetch` then
+   `git merge origin/main`. The longer a branch drifts, the bigger the conflicts.
+2. **Small, frequent PRs.** One feature or a few days of work per PR, not a week of mixed changes.
+3. **Branch from `main`, not from a teammate's unmerged branch.** If you must build on someone's unmerged work,
+   say so in the group chat first, because your PR will carry their commits too.
+4. **Announce before reworking a shared file.** Hot spots: `components/property-card`, `layouts/app`,
+   `properties/index`, `properties/show`, `landlord/tenancies/show`, `tenant/reservations/index`, `resources/js/ai-search.js`.
+5. **Merge, don't rebase, on any branch someone else may have pulled, and never force-push it.**
+6. **After every pull:** `composer install`, `npm install`, `php artisan migrate` (see Dev environment gotchas).
+
+### Resolving a merge conflict
+1. **Whoever is behind resolves it, on their own branch** (merge `main` in and fix it there), never on `main`.
+2. **Read what each side meant before choosing.** `git log origin/main..origin/<branch> -- <file>` shows each
+   side's commits on that file. Most conflicts are two changes that both belong.
+3. **Pick per hunk: keep both, combine, or keep one.** Never take "ours" or "theirs" for a whole file without
+   reading it, because that silently deletes a teammate's work.
+4. **If you can't tell why the other side made a change, ask its author.** Don't guess.
+5. **Check before committing:** no markers left (`grep -rn '<<<<<<<' app resources routes tests`),
+   `php artisan test`, `npm run build`, and a browser pass over the screens that conflicted.
+6. **List each resolved file and what you kept in the merge commit message**, so the other author can check it.
+   Example: `638c1c3`.
 
 ## Build Order (Layer-by-Layer)
 1. Migration (+ `$fillable` audit)

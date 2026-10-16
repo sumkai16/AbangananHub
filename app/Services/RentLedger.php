@@ -28,7 +28,7 @@ use Illuminate\Support\Collection;
  */
 class RentLedger
 {
-    /** Charges that sit outside the monthly cycle. */
+    /** Charges that sit outside the monthly cycle. (A platform checkout's 'Initial' is the exception: see isPlatformInitial().) */
     private const NON_MONTHLY_TYPES = ['Initial', 'Deposit', 'Utility', 'Other'];
 
     /**
@@ -156,6 +156,7 @@ class RentLedger
     {
         return $this->payments
             ->filter(fn (Payment $p) => in_array($p->payment_type, self::NON_MONTHLY_TYPES, true)
+                && ! $this->isPlatformInitial($p)
                 && in_array($p->status, self::SETTLED_STATUSES, true))
             ->sortByDesc(fn (Payment $p) => $p->paid_at ?? $p->created_at)
             ->values();
@@ -171,7 +172,7 @@ class RentLedger
     public function monthlyTransactions(): Collection
     {
         return $this->payments
-            ->filter(fn (Payment $p) => $p->payment_type === 'Monthly'
+            ->filter(fn (Payment $p) => ($p->payment_type === 'Monthly' || $this->isPlatformInitial($p))
                 && in_array($p->status, self::SETTLED_STATUSES, true))
             ->sortByDesc(fn (Payment $p) => $p->paid_at ?? $p->created_at)
             ->values();
@@ -417,6 +418,19 @@ class RentLedger
     }
 
     /**
+     * The initial payment an online tenant makes at checkout. It is the first month's rent (the checkout
+     * charges the agreed monthly rent and nothing else), so it settles the first billing period instead of
+     * sitting in otherCharges() while the move-in month still reads Due and offers "Pay now" again.
+     *
+     * Only platform checkouts qualify. A walk-in's lump the landlord typed in carries recorded_by and is
+     * split into Deposit + Monthly rows at entry (MoveInPaymentBreakdown), so it is left alone here.
+     */
+    private function isPlatformInitial(Payment $payment): bool
+    {
+        return $payment->payment_type === 'Initial' && ! $payment->isManuallyRecorded();
+    }
+
+    /**
      * Settled monthly payments whose billing_period falls in this month.
      *
      * Matched on the month rather than the exact date so a payment recorded
@@ -425,13 +439,20 @@ class RentLedger
      */
     private function monthlyPaymentsFor(Carbon $period): Collection
     {
+        $firstPeriod = $this->reservation->tenancyStartDate()?->copy()->startOfMonth();
+
         return $this->payments
-            ->filter(function (Payment $payment) use ($period) {
-                if ($payment->payment_type !== 'Monthly') {
+            ->filter(function (Payment $payment) use ($period, $firstPeriod) {
+                if (! in_array($payment->status, self::SETTLED_STATUSES, true)) {
                     return false;
                 }
 
-                if (! in_array($payment->status, self::SETTLED_STATUSES, true)) {
+                // The move-in payment taken at checkout pays the first month (see isPlatformInitial()).
+                if ($this->isPlatformInitial($payment)) {
+                    return $firstPeriod !== null && $period->isSameMonth($firstPeriod);
+                }
+
+                if ($payment->payment_type !== 'Monthly') {
                     return false;
                 }
 

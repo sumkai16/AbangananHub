@@ -65,6 +65,13 @@
         </div>
 
         <div class="flex items-center gap-2 flex-shrink-0">
+            @if($isTenant && $reservation && in_array($rentalStatus, ['Occupied', 'Completed'], true))
+                <a href="{{ route('tenancy.show', $reservation) }}"
+                    class="inline-flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border border-[#E2E4EC] px-3 text-[11px] font-bold text-[#5B6A8E] transition-colors duration-200 hover:bg-[#F7F8FC] hover:text-[#060D26]">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" /></svg>
+                    Tenancy &amp; rent
+                </a>
+            @endif
             {{-- Details toggle now carries only secondary context (property,
                  dates) — the stage and the actions moved out into the always
                  visible strip below, so nothing actionable hides in here. --}}
@@ -111,7 +118,6 @@
                 $stripUnit = $conversation->unit;
                 $stripRent = $stripUnit?->rental_fee ?? $conversation->property->rental_fee;
                 $stripDeposit = $stripUnit?->security_deposit ?? 0;
-                $stripDue = $stripRent + $stripDeposit;
                 $stripThumb = $conversation->property->media->firstWhere('media_type', 'Image');
             @endphp
             {{-- Sticky terms strip: property + rent/deposit/due breakdown +
@@ -136,19 +142,15 @@
 
                 <div class="flex items-center gap-5 ml-auto">
                     <div>
-                        <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Monthly rent</p>
+                        <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Monthly rent &middot; paid online</p>
                         <p class="text-[12.5px] font-bold text-[#060D26]">&#8369;{{ number_format($stripRent) }}</p>
                     </div>
                     @if($stripDeposit > 0)
                         <div>
-                            <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Security deposit</p>
+                            <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Deposit &middot; paid to landlord</p>
                             <p class="text-[12.5px] font-bold text-[#060D26]">&#8369;{{ number_format($stripDeposit) }}</p>
                         </div>
                     @endif
-                    <div>
-                        <p class="text-[9.5px] font-bold text-[#94A3B8] uppercase tracking-wider">Due at move-in</p>
-                        <p class="text-[12.5px] font-bold text-[#060D26]">&#8369;{{ number_format($stripDue) }}</p>
-                    </div>
                     <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ECEEF6] text-[#060D26] border border-[#FF8A66]/20 whitespace-nowrap">{{ $stageLabel }}</span>
                 </div>
             </div>
@@ -422,7 +424,6 @@
                     $summaryUnit = $conversation->unit;
                     $summaryRent = $summaryUnit?->rental_fee ?? $conversation->property->rental_fee;
                     $summaryDeposit = $summaryUnit?->security_deposit ?? 0;
-                    $summaryDue = $summaryRent + $summaryDeposit;
                     $summaryThumb = $conversation->property->media->firstWhere('media_type', 'Image');
                 @endphp
                 <div class="flex items-end gap-2 self-start max-w-[85%] mb-1.5"
@@ -475,13 +476,13 @@
                                 </div>
                                 @if($summaryDeposit > 0)
                                     <div class="flex items-center justify-between text-[#5B6A8E]">
-                                        <span>Security deposit</span>
+                                        <span>Security deposit (paid to landlord)</span>
                                         <span class="font-semibold text-[#060D26]">&#8369;{{ number_format($summaryDeposit) }}</span>
                                     </div>
                                 @endif
                                 <div class="flex items-center justify-between pt-1 border-t border-[#E2E4EC]">
-                                    <span class="font-bold text-[#060D26]">Due at move-in</span>
-                                    <span class="font-bold text-[#060D26]">&#8369;{{ number_format($summaryDue) }}</span>
+                                    <span class="font-bold text-[#060D26]">Paid online (first month)</span>
+                                    <span class="font-bold text-[#060D26]">&#8369;{{ number_format($summaryRent) }}</span>
                                 </div>
                             </div>
 
@@ -500,65 +501,7 @@
                     <div class="flex-1 h-px bg-[#E2E4EC]"></div>
                 </div>
             @else
-                @php
-                    $isSelf = $message->sender_id === auth()->id();
-                    $next = $msgs[$i + 1] ?? null;
-                    // Messenger convention: the avatar sits on the LAST message
-                    // of a consecutive run, not every one. A run ends at the
-                    // thread end, at a system divider, an inquiry summary card,
-                    // or a sender change.
-                    $endsRun = !$next || $next->is_system || $next->is_inquiry_summary || $next->sender_id !== $message->sender_id;
-                    $prev = $msgs[$i - 1] ?? null;
-                    $startsRun = !$prev || $prev->is_system || $prev->is_inquiry_summary || $prev->sender_id !== $message->sender_id;
-                @endphp
-
-                @if($isSelf)
-                    {{-- The timestamp is absolutely positioned outside the
-                         bubble so hiding it costs no vertical space. It stays
-                         in the DOM (opacity only) so screen readers keep it. --}}
-                    <div class="group relative max-w-[75%] self-end {{ $endsRun ? 'mb-1.5' : '' }}" data-bubble>
-                        <div class="bg-[#060D26] text-white rounded-2xl {{ $startsRun ? 'rounded-tr-sm' : '' }} px-4 py-2.5 shadow-sm cursor-default">
-                            <p class="text-[13px] leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>
-                        </div>
-                        <p class="message-time absolute right-full top-1/2 -translate-y-1/2 mr-2 whitespace-nowrap text-[10px] tracking-wide text-[#5B6A8E] opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
-                            data-sent-at="{{ $message->sent_at->toIso8601String() }}"></p>
-                    </div>
-                @else
-                    <div class="flex items-end gap-2 self-start max-w-[85%] {{ $endsRun ? 'mb-1.5' : '' }}"
-                        data-msg-sender="{{ $message->sender_id }}">
-                        {{-- Spacer keeps every bubble in the run on the same
-                             left edge as the one that carries the avatar. --}}
-                        <span data-avatar-slot class="contents">
-                        @if($endsRun)
-                            @if($message->sender?->profile_picture)
-                                <img loading="lazy" decoding="async" src="{{ $message->sender->profile_picture }}"
-                                    alt="{{ $message->sender->first_name }} {{ $message->sender->last_name }}"
-                                    class="w-7 h-7 rounded-full object-cover shrink-0 mb-0.5">
-                            @else
-                                <div class="w-7 h-7 rounded-full bg-[#060D26] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mb-0.5"
-                                    aria-hidden="true">
-                                    {{ strtoupper(substr($message->sender->first_name, 0, 1)) }}
-                                </div>
-                            @endif
-                        @else
-                            <div class="w-7 shrink-0" aria-hidden="true"></div>
-                        @endif
-                        </span>
-
-                        <div class="group relative min-w-0" data-bubble>
-                            <div class="bg-white text-[#060D26] border border-[#E2E4EC] rounded-2xl {{ $startsRun ? 'rounded-tl-sm' : '' }} px-4 py-2.5 shadow-sm cursor-default">
-                                @if($startsRun)
-                                    <p class="text-[11px] font-bold text-[#060D26] mb-1">
-                                        {{ $message->sender->first_name }}
-                                    </p>
-                                @endif
-                                <p class="text-[13px] leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>
-                            </div>
-                            <p class="message-time absolute left-full top-1/2 -translate-y-1/2 ml-2 whitespace-nowrap text-[10px] tracking-wide text-[#5B6A8E] opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
-                                data-sent-at="{{ $message->sent_at->toIso8601String() }}"></p>
-                        </div>
-                    </div>
-                @endif
+                @include('conversations.partials._bubble', ['message' => $message, 'msgs' => $msgs, 'i' => $i])
             @endif
         @endforeach
     </div>

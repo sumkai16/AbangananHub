@@ -15,8 +15,13 @@
         @browse-map-selected.window="onMapSelected($event.detail)">
         <h1 class="sr-only">Search results</h1>
 
+        {{-- lg+: filter rail on the left, everything else on the right. Below lg the rail is hidden and the Filters dialog is used. --}}
+        <div class="lg:grid lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-6 lg:items-start">
+        @include('properties.partials.ai-rail')
+        <div class="min-w-0">
+
         {{-- The sentence being searched --}}
-        <div class="flex items-start gap-2.5 px-3.5 py-3 bg-white border border-[#E2E4EC] rounded-2xl max-w-3xl">
+        <div class="lg:hidden flex items-start gap-2.5 px-3.5 py-3 bg-white border border-[#E2E4EC] rounded-2xl max-w-3xl">
             <svg class="w-4 h-4 mt-0.5 text-[#B35A3D] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z" /></svg>
             <p class="flex-1 min-w-0 text-[14px] leading-[1.45] text-[#060D26] line-clamp-3">{{ $query }}</p>
             <button type="button" x-show="loading" x-cloak x-on:click="cancel()"
@@ -24,27 +29,9 @@
         </div>
 
         {{-- Searching for: what was understood. A removable chip per filter; amber = nothing matched it. --}}
-        <div class="mt-4" x-show="chips.length || phase === 'reading'" x-cloak>
+        <div class="mt-4 lg:hidden" x-show="chips.length || phase === 'reading'" x-cloak>
             <span class="block text-[11.5px] font-semibold uppercase tracking-[0.06em] text-[#5B6A8E] mb-2">Searching for</span>
-            <div class="flex flex-wrap gap-1.5" aria-live="polite">
-                <template x-for="chip in chips" :key="chip.label">
-                    <span class="inline-flex items-center h-8 pl-2.5 pr-1 rounded-full text-[13px] gap-1.5 border"
-                        :class="chip.state === 'miss' ? 'bg-[#FEF6E4] border-[#D99A00] text-[#6B4100] font-semibold' : 'bg-white border-[#060D26] text-[#060D26] font-medium'">
-                        <svg x-show="chip.state === 'miss'" class="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 16H3z" /><path d="M12 10v4M12 17v.01" /></svg>
-                        <span x-show="chip.state !== 'miss' && chip.icon === 'peso'" class="font-bold text-[#B35A3D]" aria-hidden="true">₱</span>
-                        <svg x-show="chip.state !== 'miss' && chip.icon === 'pin'" class="w-3.5 h-3.5 text-[#B35A3D] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
-                        <svg x-show="chip.state !== 'miss' && chip.icon === 'home'" class="w-3.5 h-3.5 text-[#B35A3D] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l8-6 8 6v12z" /></svg>
-                        <svg x-show="chip.state !== 'miss' && ['amenity', 'rule', 'people'].includes(chip.icon)" class="w-3.5 h-3.5 text-[#B35A3D] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
-                        <span x-text="chip.label"></span>
-                        <button type="button" x-on:click="removeChip(chip)" :aria-label="'Remove ' + chip.label"
-                            class="w-7 h-7 grid place-items-center rounded-full text-[#5B6A8E] hover:text-[#060D26] hover:bg-black/5 cursor-pointer">
-                            <svg class="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                        </button>
-                    </span>
-                </template>
-                <span x-show="phase === 'reading'" class="h-8 w-24 rounded-full bg-[#ECEEF6] animate-pulse" aria-hidden="true"></span>
-                <a href="{{ route('properties.index') }}" x-show="chips.length" class="inline-flex items-center h-8 px-3 rounded-full border border-dashed border-[#5B6A8E] text-[13px] text-[#060D26] hover:bg-white" title="Add more with the full filter panel">+ Add</a>
-            </div>
+            @include('properties.partials.ai-chips')
         </div>
 
         {{-- Keyword results are already showing; the AI is still reading the full sentence --}}
@@ -80,18 +67,19 @@
 
         {{-- Results on the left; with the map open the cards drop to two columns (.ai-grid in the partial). --}}
         <div class="grid grid-cols-1 gap-6" :class="mapVisible ? 'lg:grid-cols-[2fr_3fr]' : 'lg:grid-cols-1'">
-            <div class="min-w-0" :class="[mobileView === 'map' ? 'hidden lg:block' : '', mapVisible ? 'lg:[&_.ai-grid]:grid-cols-2' : '']">
+            <div class="min-w-0" :class="[mobileView === 'map' ? 'hidden lg:block' : '', mapVisible ? 'lg:[&_.ai-grid]:grid-cols-1' : '']">
             {{-- Loading: same shape as the results so nothing jumps --}}
-            <div x-show="loading" x-cloak class="mt-5" aria-hidden="true">
-                <div class="rounded-2xl bg-[#060D26] px-4 py-4 max-w-3xl">
+            <div x-show="loading" x-cloak class="mt-5">
+                <div class="rounded-2xl bg-[#060D26] px-4 py-4 lg:max-w-none max-w-3xl">
                     <span class="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-[#FF8A66]">
                         <span class="w-3.5 h-3.5 rounded-full border-2 border-[#FF8A66] border-r-[#FF8A66]/25 animate-spin"></span>
                         <span x-text="phase === 'reading' ? 'Reading your request…' : 'Checking listings…'"></span>
+                        <button type="button" x-on:click="cancel()" aria-hidden="false" class="hidden lg:inline ml-auto px-2 h-8 normal-case tracking-normal text-[13px] font-semibold text-white/70 hover:text-white cursor-pointer">Cancel</button>
                     </span>
                     <div class="mt-3 h-3 w-11/12 rounded-md bg-white/15"></div>
                     <div class="mt-2 h-3 w-8/12 rounded-md bg-white/10"></div>
                 </div>
-                <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                     @foreach(range(1, 3) as $n)
                         <div class="rounded-2xl border border-[#E2E4EC] bg-white overflow-hidden animate-pulse">
                             <div class="aspect-[4/3] bg-[#ECEEF6]"></div>
@@ -149,6 +137,9 @@
             </div>
         </div>
 
+        </div>
+        </div>
+
         {{-- Filters panel (header Filters button): edits a copy of the intent, searches again in place. --}}
         @include('properties.partials.ai-filters')
     </div>
@@ -156,12 +147,14 @@
 @push('scripts')
     @vite(['resources/js/maps/browse-map.js'])
     <script>
-        // Pin the map 16px below the sticky header + search band (their height changes with breakpoint).
+        // Pin the filter rail and the map 16px below whatever stays on screen: the sticky nav, plus the search band
+        // only when it is sticky too (it is not on this page, so counting it left a 175px gap above the rail).
         (() => {
             const set = () => {
                 const nav = document.querySelector('header');
                 const band = document.getElementById('header-search-expanded');
-                const top = (nav ? nav.offsetHeight : 64) + (band ? band.offsetHeight : 0) + 16;
+                const bandSticky = band && getComputedStyle(band).position === 'sticky';
+                const top = (nav ? nav.offsetHeight : 64) + (bandSticky ? band.offsetHeight : 0) + 16;
                 document.documentElement.style.setProperty('--browse-sticky-top', top + 'px');
                 window.browseMapRefit?.();
             };

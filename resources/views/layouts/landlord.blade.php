@@ -360,18 +360,18 @@
 
                     {{-- Messages — mobile equivalent of the floating chat bubble,
                          which is desktop-only (see partials.message-notifications).
-                         Dispatches the same event that bubble's panel listens for. --}}
+                         Links to the full messages page instead of a popup panel. --}}
                     @auth
                         @php
                             $mobileUnreadMsgCount = $unreadMessageCount;
                         @endphp
-                        <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
+                        <a href="{{ route('conversations.index') }}"
                             class="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                             Messages
                             @if($mobileUnreadMsgCount > 0)
                                 <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
                             @endif
-                        </button>
+                        </a>
                     @endauth
 
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"

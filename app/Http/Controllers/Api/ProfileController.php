@@ -34,6 +34,8 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        \App\Support\NameLock::apply($request, $user);
+
         $validated = $request->validate([
             'first_name'      => ['sometimes', 'required', 'string', 'max:255'],
             'last_name'       => ['sometimes', 'required', 'string', 'max:255'],
