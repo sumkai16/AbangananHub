@@ -2,6 +2,9 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31, RULES.md and SCHEMA.md; this file is the index. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 15 2026 — Team git flow and conflict rules (branch `axci`)
+- Merged `joseph` and `emman` into `axci` (merge `638c1c3`, 3 conflicts, resolutions listed in its message). That pull is why RULES.md › Git Discipline now has **Team flow** and **Resolving a merge conflict**: pull `main` every session, small PRs, branch from `main`, announce shared-file rework, and resolve per hunk with tests + build before committing.
+
 ## Oct 15 2026 — Tenant side: security, payment dead-ends, navigation (branch `joseph`)
 A full tenant-side check after pulling `axci`. Every finding was verified in the code before it was fixed; two survey claims were wrong and dropped (see the end). Plan: `plans/tenant-side-hardening.md`.
 

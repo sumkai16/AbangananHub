@@ -254,6 +254,31 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
 - Branch: `axci` (Axcee's working branch)
 - Claude provides commit message text only — Axcee uses VSCode source control
 
+### Team flow (established Oct 15 2026)
+Each teammate has their own branch (`axci`, `joseph`, `emman`); `main` changes only through PRs. Written after
+`emman` fell 22 commits behind `main` and `joseph` was built on unmerged `axci`, which made one pull cost 3 conflicts.
+1. **Pull `main` into your branch at the start of every work session and before opening a PR:** `git fetch` then
+   `git merge origin/main`. The longer a branch drifts, the bigger the conflicts.
+2. **Small, frequent PRs.** One feature or a few days of work per PR, not a week of mixed changes.
+3. **Branch from `main`, not from a teammate's unmerged branch.** If you must build on someone's unmerged work,
+   say so in the group chat first, because your PR will carry their commits too.
+4. **Announce before reworking a shared file.** Hot spots: `components/property-card`, `layouts/app`,
+   `properties/index`, `properties/show`, `landlord/tenancies/show`, `tenant/reservations/index`, `resources/js/ai-search.js`.
+5. **Merge, don't rebase, on any branch someone else may have pulled, and never force-push it.**
+6. **After every pull:** `composer install`, `npm install`, `php artisan migrate` (see Dev environment gotchas).
+
+### Resolving a merge conflict
+1. **Whoever is behind resolves it, on their own branch** (merge `main` in and fix it there), never on `main`.
+2. **Read what each side meant before choosing.** `git log origin/main..origin/<branch> -- <file>` shows each
+   side's commits on that file. Most conflicts are two changes that both belong.
+3. **Pick per hunk: keep both, combine, or keep one.** Never take "ours" or "theirs" for a whole file without
+   reading it, because that silently deletes a teammate's work.
+4. **If you can't tell why the other side made a change, ask its author.** Don't guess.
+5. **Check before committing:** no markers left (`grep -rn '<<<<<<<' app resources routes tests`),
+   `php artisan test`, `npm run build`, and a browser pass over the screens that conflicted.
+6. **List each resolved file and what you kept in the merge commit message**, so the other author can check it.
+   Example: `638c1c3`.
+
 ## Build Order (Layer-by-Layer)
 1. Migration (+ `$fillable` audit)
 2. Model (+ `$primaryKey`, relationships)
