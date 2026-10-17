@@ -241,3 +241,466 @@
     outline-offset: 4px;
     border-radius: 24px;
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Search results map (resources/js/maps/ai-map-layer.js). Every class is ai-*.
+   Pins are the browse price pill with a fit state: exact (coral), close (white +
+   amber tag saying what it misses), other (dashed, another property type).
+   ─────────────────────────────────────────────────────────────────────────── */
+.map-price-pin.ai-pin {
+    --ai-bg: #ffffff;
+    --ai-fg: #060D26;
+    --ai-border: #060D26;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 800;
+    background: var(--ai-bg);
+    color: var(--ai-fg);
+    border-color: var(--ai-border);
+}
+
+.map-price-pin.ai-pin--badged { padding-left: 4px; }
+
+.map-price-pin.ai-pin--exact { --ai-bg: #FF8A66; }
+
+.map-price-pin.ai-pin--other {
+    --ai-fg: #5B6A8E;
+    --ai-border: #5B6A8E;
+    border-style: dashed;
+}
+
+/* The two triangles under the pill follow the pill's border and fill. */
+.map-price-pin.ai-pin::after { border-top-color: var(--ai-border); }
+.map-price-pin.ai-pin::before { border-top-color: var(--ai-bg); }
+
+/* Hover keeps the state's colours (the plain pill inverts to navy). */
+.map-price-pin.ai-pin:hover,
+.map-price-pin.ai-pin.active {
+    background: var(--ai-bg);
+    color: var(--ai-fg);
+    transform: translate(-50%, -100%) translateY(-8px) scale(1.08);
+}
+
+.map-price-pin.ai-pin:hover::before,
+.map-price-pin.ai-pin.active::before { border-color: var(--ai-bg) transparent transparent transparent; }
+
+.map-price-pin.ai-pin.ai-selected {
+    --ai-bg: #060D26;
+    --ai-fg: #ffffff;
+    --ai-border: #060D26;
+    border-style: solid;
+    padding: 7px 15px;
+    padding-left: 15px;
+    font-size: 15px;
+    transform: translate(-50%, -100%) translateY(-8px) scale(1.06);
+    box-shadow: 0 0 0 6px rgba(255, 138, 102, 0.35), 0 12px 24px rgba(6, 13, 38, 0.35);
+}
+
+.map-price-pin.ai-pin--badged.ai-selected { padding-left: 5px; }
+
+.ai-pin__badge {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #060D26;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.ai-pin__badge--top,
+.ai-selected .ai-pin__badge { background: #FF8A66; color: #060D26; }
+
+.ai-pin__tag {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 10px);
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    pointer-events: none;
+    background: #FEF6E4;
+    border: 1px solid #D99A00;
+    color: #6B4100;
+}
+
+.ai-pin--other .ai-pin__tag {
+    background: #ffffff;
+    border-color: #E2E4EC;
+    color: #5B6A8E;
+}
+
+/* The searched place */
+.ai-origin-wrapper { background: transparent; border: none; pointer-events: none; }
+
+.ai-origin__dot {
+    position: absolute;
+    left: -18px;
+    top: -18px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #060D26;
+    box-shadow: 0 0 0 6px rgba(6, 13, 38, 0.14);
+}
+
+.ai-origin__label {
+    position: absolute;
+    left: 0;
+    top: 26px;
+    transform: translateX(-50%);
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background: #060D26;
+    color: #ffffff;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ai-radius-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    padding: 3px 8px;
+    border-radius: 9999px;
+    background: #ffffff;
+    border: 1px solid #FFC9B8;
+    color: #B35A3D;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Controls: summary chip + switch (top-left), legend + fit button (bottom-left) */
+.leaflet-control.ai-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 16px 0 0 16px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    font-family: 'Inter', sans-serif;
+}
+
+.leaflet-control.ai-panel--bottom { margin: 0 0 16px 16px; }
+
+.ai-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px 8px 10px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid #E2E4EC;
+    box-shadow: 0 6px 18px rgba(6, 13, 38, 0.10);
+    max-width: min(330px, calc(100vw - 96px));
+}
+
+.ai-chip__icon {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #FFF1EB;
+    display: grid;
+    place-items: center;
+}
+
+.ai-chip__text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+.ai-chip__title {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #060D26;
+}
+
+.ai-chip__sub { font-size: 12px; color: #5B6A8E; }
+
+.ai-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px 0 10px;
+    border-radius: 9999px;
+    background: #ffffff;
+    border: 1px solid #E2E4EC;
+    box-shadow: 0 6px 18px rgba(6, 13, 38, 0.10);
+    font-size: 13px;
+    color: #5B6A8E;
+    cursor: pointer;
+}
+
+.ai-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+
+.ai-switch__track {
+    position: relative;
+    flex: none;
+    width: 36px;
+    height: 20px;
+    border-radius: 9999px;
+    background: #C5CADB;
+    transition: background 0.15s ease;
+}
+
+.ai-switch__track::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.ai-switch input:checked + .ai-switch__track { background: #060D26; }
+.ai-switch input:checked + .ai-switch__track::after { transform: translateX(16px); background: #FF8A66; }
+.ai-switch input:focus-visible + .ai-switch__track { outline: 2px solid #FF8A66; outline-offset: 2px; }
+
+.ai-legend {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    width: 190px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid #E2E4EC;
+    box-shadow: 0 6px 18px rgba(6, 13, 38, 0.10);
+    font-size: 12.5px;
+    color: #060D26;
+}
+
+@media (min-width: 1024px) {
+    .ai-legend { display: flex; }
+}
+
+.ai-legend__title {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5B6A8E;
+}
+
+.ai-legend__row { display: flex; align-items: center; gap: 10px; }
+
+.ai-legend__swatch {
+    flex: none;
+    width: 34px;
+    height: 18px;
+    box-sizing: border-box;
+    border-radius: 9999px;
+    border: 2px solid #060D26;
+    background: #ffffff;
+}
+
+.ai-legend__swatch--exact { background: #FF8A66; }
+.ai-legend__swatch--other { border-style: dashed; border-color: #5B6A8E; }
+
+.ai-fit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 16px;
+    border: 1px solid #060D26;
+    border-radius: 9999px;
+    background: #060D26;
+    color: #ffffff;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ai-fit:hover { background: #0E1A45; }
+
+/* Preview card on the selected pin (desktop) */
+.ai-popup .leaflet-popup-content-wrapper { border-radius: 16px; box-shadow: 0 18px 40px rgba(6, 13, 38, 0.22); }
+.ai-popup .leaflet-popup-content { width: 290px !important; }
+
+.ai-card__photo {
+    height: 130px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #ECEEF6, #DCE0EE);
+    overflow: hidden;
+}
+
+.ai-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.ai-card__body { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px 16px; background: #ffffff; }
+.ai-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+
+.ai-card__title {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #060D26;
+}
+
+.ai-card__rating {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    color: #060D26;
+}
+
+.ai-card__rating span { font-weight: 500; color: #5B6A8E; }
+.ai-card__meta { font-size: 12.5px; color: #5B6A8E; }
+.ai-card__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.ai-chip-tag {
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.ai-chip-tag--miss { background: #FEF6E4; border: 1px solid #D99A00; color: #6B4100; }
+.ai-chip-tag--hit { background: #E9F6EE; border: 1px solid #A8D8BA; color: #1B6B3A; }
+
+.ai-card__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+
+.ai-card__price {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #060D26;
+}
+
+.ai-card__price span { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 500; color: #5B6A8E; }
+
+.leaflet-container a.ai-card__cta {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 9999px;
+    background: #FF8A66;
+    color: #060D26;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.leaflet-container a.ai-card__cta:hover { background: #E96F4F; }
+
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Dark mode (html.dark, set by partials/theme-init).
+   Base map: the same Voyager tiles turned navy by a filter on the tile pane only (pins, popups and
+   controls are other panes, so they are not filtered). The filter values are a starting point to tune by eye:
+   invert turns Voyager's cream land near-black, hue-rotate brings blues back to blue, brightness lifts it to a
+   readable navy-grey (anything under ~1.5 leaves the land black and the roads invisible). The container background is the land colour so the hairline gaps between tiles stop showing as white.
+   ─────────────────────────────────────────────────────────────────────────── */
+.map-tiles-base { background: #F4F1EA; }
+
+html.dark .map-tiles-base { background: #141A2A; }
+
+html.dark .map-tiles-base .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(205deg) saturate(0.9) brightness(1.9) contrast(0.85);
+}
+
+/* Pins, plain and search results: navy pill, indigo ring, coral for the selected one. */
+html.dark .map-price-pin {
+    background: #0E1633;
+    color: #ffffff;
+    border-color: #4A5A98;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+html.dark .map-price-pin::after { border-top-color: #4A5A98; }
+html.dark .map-price-pin::before { border-top-color: #0E1633; }
+
+html.dark .map-price-pin:not(.ai-pin):hover,
+html.dark .map-price-pin:not(.ai-pin).active { background: #FF8A66; color: #060D26; }
+html.dark .map-price-pin:not(.ai-pin):hover::before,
+html.dark .map-price-pin:not(.ai-pin).active::before { border-top-color: #FF8A66; }
+
+html.dark .map-price-pin.ai-pin { --ai-bg: #0E1633; --ai-fg: #ffffff; --ai-border: #4A5A98; }
+html.dark .map-price-pin.ai-pin.ai-pin--exact { --ai-bg: #FF8A66; --ai-fg: #060D26; --ai-border: #FFC3AF; }
+html.dark .map-price-pin.ai-pin.ai-pin--other { --ai-bg: #0E1633; --ai-fg: #A9B4D8; --ai-border: #6A7AB8; }
+html.dark .map-price-pin.ai-pin.ai-selected {
+    --ai-bg: #FF8A66; --ai-fg: #060D26; --ai-border: #FFC3AF;
+    box-shadow: 0 0 0 6px rgba(255, 138, 102, 0.32), 0 12px 24px rgba(0, 0, 0, 0.55);
+}
+
+html.dark .ai-pin__badge { background: #2A3A78; color: #ffffff; }
+html.dark .ai-pin__badge--top,
+html.dark .ai-selected .ai-pin__badge { background: #FF8A66; color: #060D26; }
+html.dark .ai-pin__tag { background: #3A2F12; border-color: #D99A00; color: #FBD38D; }
+html.dark .ai-pin--other .ai-pin__tag { background: #0E1633; border-color: #3A4A85; color: #A9B4D8; }
+
+html.dark .map-cluster-pin { background: #0E1633; border-color: #4A5A98; box-shadow: 0 0 0 5px rgba(74, 90, 152, 0.3); }
+
+/* The searched place */
+html.dark .ai-origin__dot { background: #2A3A78; box-shadow: 0 0 0 6px rgba(143, 160, 224, 0.22); }
+html.dark .ai-origin__label { background: #2A3A78; }
+html.dark .ai-radius-label { background: #0E1633; border-color: #FF8A66; color: #FFB59E; }
+
+/* Controls */
+html.dark .ai-chip,
+html.dark .ai-switch,
+html.dark .ai-legend { background: rgba(14, 22, 51, 0.94); border-color: #2F3E78; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); }
+html.dark .ai-chip__icon { background: rgba(255, 138, 102, 0.16); }
+html.dark .ai-chip__title,
+html.dark .ai-legend { color: #ffffff; }
+html.dark .ai-chip__sub,
+html.dark .ai-switch,
+html.dark .ai-legend__title { color: #A9B4D8; }
+html.dark .ai-switch__track { background: #3A4A85; }
+html.dark .ai-switch input:checked + .ai-switch__track { background: #2A3A78; }
+html.dark .ai-legend__swatch { background: #0E1633; border-color: #4A5A98; }
+html.dark .ai-legend__swatch--exact { background: #FF8A66; border-color: #FFC3AF; }
+html.dark .ai-legend__swatch--other { border-color: #6A7AB8; }
+html.dark .ai-fit { background: rgba(14, 22, 51, 0.94); border-color: #2F3E78; }
+html.dark .ai-fit:hover { background: #1B2A63; }
+
+html.dark .leaflet-bar { border: 1px solid #2F3E78; box-shadow: none; }
+html.dark .leaflet-bar a,
+html.dark .leaflet-bar a:hover { background: #0E1633; color: #ffffff; border-bottom-color: #2F3E78; }
+html.dark .leaflet-bar a:hover { background: #1B2A63; }
+html.dark .leaflet-control-attribution { background: rgba(14, 22, 51, 0.8); color: #8F9BC7; }
+html.dark .leaflet-control-attribution a { color: #A9B4D8; }
+
+/* Preview card on the selected pin */
+html.dark .ai-popup .leaflet-popup-content-wrapper,
+html.dark .ai-popup .leaflet-popup-tip { background: #0E1633; color: #ffffff; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55); }
+html.dark .ai-card__photo { background: linear-gradient(135deg, #1B2A63, #12204A); }
+html.dark .ai-card__body { background: #0E1633; }
+html.dark .ai-card__title,
+html.dark .ai-card__rating,
+html.dark .ai-card__price { color: #ffffff; }
+html.dark .ai-card__rating span,
+html.dark .ai-card__meta,
+html.dark .ai-card__price span { color: #A9B4D8; }
+html.dark .ai-chip-tag--miss { background: #3A2F12; border-color: #D99A00; color: #FBD38D; }
+html.dark .ai-chip-tag--hit { background: #12301F; border-color: #2F7A4B; color: #9FE0B8; }
+html.dark .leaflet-container .ai-popup a.leaflet-popup-close-button { background: rgba(14, 22, 51, 0.92); color: #ffffff; }

@@ -31,7 +31,7 @@
                 x-on:input.debounce.400ms="$el.form.requestSubmit()"
                 class="w-full h-10 pl-9 pr-4 text-[13.5px] text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition placeholder-[#94A3B8]" />
         </div>
-        <x-styled-select name="type" :options="['' => 'Any type', 'Apartment' => 'Apartment', 'Condominium' => 'Condominium', 'House' => 'House', 'Boarding House' => 'Boarding House', 'Bedspace' => 'Bedspace']"
+        <x-styled-select name="type" :options="\App\Enums\PropertyType::options('Any type')"
             :selected="request('type', '')" aria-label="Filter by property type"
             class="px-4 py-2.5 text-sm font-semibold text-[#060D26] bg-[#F7F8FC] border border-[#E2E4EC] rounded-xl" />
         <x-styled-select name="availability" :options="['' => 'Any status', 'Available' => 'Available', 'Unavailable' => 'Unavailable']"

@@ -103,7 +103,7 @@ class ProfileController extends Controller
     {
         $liveReservations = $user->reservations()
             ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
-            ->with(['property', 'unit', 'payments'])
+            ->with(['property', 'unit', 'payments', 'depositCharges'])
             ->get();
 
         $occupied = $liveReservations->where('rental_status', 'Occupied');

@@ -12,9 +12,12 @@ class LanguageDetector
 {
     // Words that are distinctly Bisaya / Tagalog (not shared, and not English).
     private const CEBUANO = ['naa', 'naay', 'ubos', 'duol', 'dapit', 'ug', 'nga', 'dili', 'molapas', 'pangita', 'gipangita', 'nako', 'ko', 'libo', 'ngadto', 'hangtod', 'unsa', 'bay', 'balay', 'tabi', 'puwede', 'kinse', 'tulo', 'lima', 'maximum', 'kuwarto', 'ka', 'adtong', 'diha', 'gusto', 'unta', 'pwede'];
+
     private const TAGALOG = ['malapit', 'may', 'ang', 'ng', 'na', 'para', 'hindi', 'lalampas', 'hanap', 'gusto', 'pababa', 'hanggang', 'ako', 'ko', 'naghahanap', 'kwarto', 'bahay', 'murang', 'pang', 'lalaki', 'babae', 'sa', 'libo', 'limang', 'pwede', 'hihigit', 'magdala', 'bisita', 'lang', 'mga', 'paradahan', 'aso', 'pusa'];
+
     // Words only one of the two uses; they decide ties.
     private const CEBUANO_ONLY = ['naa', 'naay', 'ubos', 'duol', 'dapit', 'ug', 'nga', 'dili', 'molapas', 'pangita', 'gipangita', 'nako', 'ngadto', 'hangtod', 'unsa', 'bay', 'balay', 'kinse', 'tulo', 'ka', 'diha', 'unta', 'iro', 'iring'];
+
     private const TAGALOG_ONLY = ['malapit', 'may', 'ang', 'ng', 'hindi', 'lalampas', 'hanap', 'pababa', 'hanggang', 'naghahanap', 'kwarto', 'bahay', 'murang', 'pang', 'limang', 'hihigit', 'magdala', 'bisita', 'mga', 'paradahan', 'aso', 'pusa'];
 
     public static function detect(string $text): ?string

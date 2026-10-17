@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "cloudinary-labs/cloudinary-laravel": "^3.0",
         "laravel/framework": "^12.0",
         "laravel/reverb": "^1.0",
@@ -53,6 +53,11 @@
             "@php artisan key:generate --ansi",
             "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
+        ],
+        "perf": [
+            "Composer\\Config::disableProcessTimeout",
+            "@putenv DB_DATABASE=abanganan_hub",
+            "@php artisan test --filter=PerformanceBaselineTest"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",

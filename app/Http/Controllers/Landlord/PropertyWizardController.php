@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Landlord;
 
+use App\Enums\PropertyType;
 use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use App\Models\Property;
 use App\Rules\WithinCebu;
+use App\Support\PropertyPolicies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +54,7 @@ class PropertyWizardController extends Controller
         $old = session('property_wizard.info', []);
 
         // The session keeps house_rules as one compiled list; the form wants presets and custom text apart.
-        $split = \App\Support\PropertyPolicies::splitRules($old['house_rules'] ?? null);
+        $split = PropertyPolicies::splitRules($old['house_rules'] ?? null);
         $formValues = array_merge($old, ['house_rules' => $split['presets'], 'custom_house_rules' => $split['custom']]);
 
         return view('landlord.properties.wizard.info', ['property' => null, 'formValues' => $formValues]);
@@ -62,8 +64,8 @@ class PropertyWizardController extends Controller
     {
         $validated = $request->validate([
             'title'                          => ['required', 'string', 'min:10', 'max:150'],
-            'property_type'                  => ['required', 'in:Apartment,Condominium,House,Boarding House,Bedspace'],
-            ...\App\Support\PropertyPolicies::rules(),
+            'property_type'                  => ['required', 'in:' . PropertyType::rule()],
+            ...PropertyPolicies::rules(),
             'water_included'                 => ['nullable', 'boolean'],
             'electricity_included'           => ['nullable', 'boolean'],
             'internet_included'              => ['nullable', 'boolean'],
@@ -83,7 +85,7 @@ class PropertyWizardController extends Controller
         }
 
         unset($validated['custom_house_rules']);
-        $validated = array_merge($validated, \App\Support\PropertyPolicies::fromRequest($request));
+        $validated = array_merge($validated, PropertyPolicies::fromRequest($request));
 
         session(['property_wizard.info' => $validated]);
 
@@ -98,7 +100,7 @@ class PropertyWizardController extends Controller
         $formValues = [
             'title'                          => $property->title,
             'property_type'                  => $property->property_type,
-            ...\App\Support\PropertyPolicies::formValues($property),
+            ...PropertyPolicies::formValues($property),
             'water_included'                 => $property->water_included,
             'electricity_included'           => $property->electricity_included,
             'internet_included'              => $property->internet_included,
@@ -121,8 +123,8 @@ class PropertyWizardController extends Controller
 
         $validated = $request->validate([
             'title'               => ['required', 'string', 'min:10', 'max:150'],
-            'property_type'       => ['required', 'in:Apartment,Condominium,House,Boarding House,Bedspace'],
-            ...\App\Support\PropertyPolicies::rules(),
+            'property_type'       => ['required', 'in:' . PropertyType::rule()],
+            ...PropertyPolicies::rules(),
             'description'         => ['required', 'string', 'min:20', 'max:3000'],
             'number_of_units'     => ['required', 'integer', 'min:1', 'max:100'],
         ]);
@@ -130,7 +132,7 @@ class PropertyWizardController extends Controller
         $property->update([
             'title'                          => $validated['title'],
             'property_type'                  => $validated['property_type'],
-            ...\App\Support\PropertyPolicies::fromRequest($request),
+            ...PropertyPolicies::fromRequest($request),
             'water_included'                 => $request->boolean('water_included'),
             'electricity_included'           => $request->boolean('electricity_included'),
             'internet_included'              => $request->boolean('internet_included'),
@@ -190,7 +192,7 @@ class PropertyWizardController extends Controller
         $property = null;
 
         DB::transaction(function () use ($info, $validated, $request, &$property) {
-            $property = new Property();
+            $property = new Property;
             $property->landlord_id         = Auth::user()->user_id;
             $property->title               = $info['title'];
             $property->description         = $info['description'];

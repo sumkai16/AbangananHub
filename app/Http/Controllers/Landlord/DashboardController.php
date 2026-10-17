@@ -9,6 +9,7 @@ use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\Review;
+use App\Models\User;
 use App\Services\RentLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -43,6 +44,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($property) {
                 $units = $property->units;
+
                 return [
                     'title' => $property->title,
                     'property_id' => $property->property_id,
@@ -102,13 +104,13 @@ class DashboardController extends Controller
      * the payments page uses so the two screens can never disagree.
      *
      * @return array{0: array<string, mixed>, 1: Collection} totals, then the
-     *         overdue tenancies (oldest first) for the action queue.
+     *                                                       overdue tenancies (oldest first) for the action queue.
      */
     private function rentThisMonth(int $landlordId): array
     {
         $rows = Reservation::where('rental_status', 'Occupied')
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments'])
+            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges'])
             ->get()
             ->map(fn (Reservation $r) => ['reservation' => $r, 'summary' => RentLedger::for($r)->summary()]);
 
@@ -156,12 +158,24 @@ class DashboardController extends Controller
         }
 
         // Signed agreement, deposit held, keys not yet handed over — Clock 1.
-        Reservation::whereIn('property_id', $propertyIds)
+        $handovers = Reservation::whereIn('property_id', $propertyIds)
             ->where('rental_status', 'Rental Agreement Signed')
             ->whereNull('keys_turned_over_at')
             ->whereNull('move_in_disputed_at')
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label'])
-            ->get()
+            ->with(['property:property_id,title', 'unit:unit_id,unit_label'])
+            ->get();
+
+        $inquiries = Reservation::whereIn('property_id', $propertyIds)
+            ->where('rental_status', 'Inquiry')
+            ->with(['property:property_id,title', 'unit:unit_id,unit_label'])
+            ->oldest('created_at')
+            ->get();
+
+        // Both lists name the tenant, so load them together: one users query
+        // instead of one per list.
+        $handovers->concat($inquiries)->load('tenant');
+
+        $handovers
             ->sortBy(fn ($r) => $r->move_in_deadline_at?->timestamp ?? PHP_INT_MAX)
             ->each(function ($r) use ($items) {
                 $late = $r->move_in_deadline_at?->isPast();
@@ -179,11 +193,7 @@ class DashboardController extends Controller
                 ]);
             });
 
-        Reservation::whereIn('property_id', $propertyIds)
-            ->where('rental_status', 'Inquiry')
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label'])
-            ->oldest('created_at')
-            ->get()
+        $inquiries
             ->each(function ($r) use ($items) {
                 $items->push([
                     'level' => 'warn',
@@ -300,18 +310,41 @@ class DashboardController extends Controller
         $where = fn ($r) => trim(($r->unit?->unit_label ? $r->unit->unit_label . ' · ' : '') . ($titles[$r->property_id] ?? ''));
         $name = fn ($u) => trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')) ?: 'A tenant';
 
-        $payments = Payment::whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId))
+        $paymentRows = Payment::whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId))
             ->whereIn('status', ['Paid', 'Held', 'Released'])
             ->where('amount', '>', 0)
             ->whereNull('voided_at')
-            ->with(['reservation.tenant', 'reservation.unit:unit_id,unit_label'])
+            ->with(['reservation', 'reservation.unit:unit_id,unit_label'])
             ->latest('paid_at')
             ->limit(5)
+            ->get();
+
+        $reservationRows = Reservation::whereIn('property_id', $propertyIds)
+            ->with(['unit:unit_id,unit_label'])
+            ->latest('updated_at')
+            ->limit(5)
+            ->get();
+
+        $reviewRows = Review::whereIn('property_id', $propertyIds)
+            ->where('is_hidden', false)
+            ->latest()
+            ->limit(3)
+            ->get();
+
+        // The three feeds all name a tenant, so fetch every one in a single
+        // query rather than one per feed.
+        $tenants = User::whereIn('user_id', $paymentRows->pluck('reservation.tenant_id')
+            ->merge($reservationRows->pluck('tenant_id'))
+            ->merge($reviewRows->pluck('tenant_id'))
+            ->filter()->unique()->values())
             ->get()
-            ->map(function ($p) use ($name, $where) {
+            ->keyBy('user_id');
+
+        $payments = $paymentRows
+            ->map(function ($p) use ($name, $where, $tenants) {
                 $r = $p->reservation;
                 $amount = '₱' . number_format((float) $p->amount);
-                $who = $name($r->tenant);
+                $who = $name($tenants[$r->tenant_id] ?? null);
                 $text = $p->status === 'Held'
                     ? "{$amount} held in escrow for {$who}"
                     : ($p->payment_type === 'Monthly'
@@ -339,14 +372,10 @@ class DashboardController extends Controller
             'Rejected' => 'was declined',
         ];
 
-        $reservations = Reservation::whereIn('property_id', $propertyIds)
-            ->with(['tenant', 'unit:unit_id,unit_label'])
-            ->latest('updated_at')
-            ->limit(5)
-            ->get()
+        $reservations = $reservationRows
             ->map(fn ($r) => [
                 'kind' => 'reservation',
-                'text' => $name($r->tenant) . ' ' . ($phrases[$r->rental_status] ?? 'is ' . strtolower($r->rental_status)),
+                'text' => $name($tenants[$r->tenant_id] ?? null) . ' ' . ($phrases[$r->rental_status] ?? 'is ' . strtolower($r->rental_status)),
                 'meta' => $where($r),
                 'timestamp' => $r->updated_at,
                 'url' => $r->conversation_id
@@ -354,15 +383,10 @@ class DashboardController extends Controller
                     : route('landlord.reservations.index'),
             ]);
 
-        $reviews = Review::whereIn('property_id', $propertyIds)
-            ->where('is_hidden', false)
-            ->with('tenant')
-            ->latest()
-            ->limit(3)
-            ->get()
+        $reviews = $reviewRows
             ->map(fn ($rv) => [
                 'kind' => 'review',
-                'text' => $name($rv->tenant) . ' left a ' . $rv->rating . '-star review',
+                'text' => $name($tenants[$rv->tenant_id] ?? null) . ' left a ' . $rv->rating . '-star review',
                 'meta' => $titles[$rv->property_id] ?? '',
                 'timestamp' => $rv->created_at,
                 'url' => route('landlord.reviews.index'),

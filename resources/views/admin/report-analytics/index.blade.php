@@ -78,7 +78,7 @@
                                 @if($tb['type'] === 'Bedspace') bg-[#ECEEF6] text-[#060D26]
                                 @elseif($tb['type'] === 'Boarding House') bg-[#22C55E]/[0.07] text-[#15803D]
                                 @elseif($tb['type'] === 'Apartment') bg-[#FBBF24]/[0.10] text-[#B45309]
-                                @elseif($tb['type'] === 'Condominium') bg-[#5B6A8E]/[0.12] text-[#5B6A8E]
+                                @elseif($tb['type'] === 'Dormitory') bg-[#5B6A8E]/[0.12] text-[#5B6A8E]
                                 @else bg-[#EF4444]/[0.07] text-[#DC2626]
                                 @endif">{{ $tb['type'] }}</span>
                         </div>
@@ -108,7 +108,7 @@
             <form method="GET" action="{{ route('admin.report-analytics.index') }}" class="flex items-center gap-2" id="propFilterForm">
                 <input type="hidden" name="section" value="properties">
                 @php
-                    $propTypeOptions = ['' => 'All types'] + array_combine(['Apartment', 'Condominium', 'House', 'Boarding House', 'Bedspace'], ['Apartment', 'Condominium', 'House', 'Boarding House', 'Bedspace']);
+                    $propTypeOptions = \App\Enums\PropertyType::options('All types');
                     $propStatusOptions = ['' => 'All statuses'] + array_combine(['Approved', 'Pending', 'Rejected'], ['Approved', 'Pending', 'Rejected']);
                 @endphp
                 <x-styled-select name="type" :options="$propTypeOptions" :selected="$typeFilter" :autosubmit="true"
@@ -211,7 +211,7 @@
                                 @if($tb['type'] === 'Bedspace') bg-[#ECEEF6] text-[#060D26]
                                 @elseif($tb['type'] === 'Boarding House') bg-[#22C55E]/[0.07] text-[#15803D]
                                 @elseif($tb['type'] === 'Apartment') bg-[#FBBF24]/[0.10] text-[#B45309]
-                                @elseif($tb['type'] === 'Condominium') bg-[#5B6A8E]/[0.12] text-[#5B6A8E]
+                                @elseif($tb['type'] === 'Dormitory') bg-[#5B6A8E]/[0.12] text-[#5B6A8E]
                                 @else bg-[#EF4444]/[0.07] text-[#DC2626]
                                 @endif">{{ $tb['type'] }}</span>
                         </div>

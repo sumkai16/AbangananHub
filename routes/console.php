@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AiSearchLog;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -25,4 +26,4 @@ Schedule::command('occupancy:snapshot')->dailyAt('23:55');
 Schedule::command('reservations:process-rent-reminders')->dailyAt('08:00');
 
 // AI search logs are kept 30 days (App\Models\AiSearchLog::prunable()).
-Schedule::command('model:prune', ['--model' => [\App\Models\AiSearchLog::class]])->dailyAt('03:00');
+Schedule::command('model:prune', ['--model' => [AiSearchLog::class]])->dailyAt('03:00');

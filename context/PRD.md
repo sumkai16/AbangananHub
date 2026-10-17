@@ -49,7 +49,7 @@ In Cebu, Philippines (Talisay, Minglanilla, Naga City), tenants and landlords re
 - 3D/video keyframing for photo verification
 
 ## 5. Technical Requirements
-- Stack: PHP 8.2, Laravel 12, Blade + Tailwind CSS v3 + Alpine.js, MySQL, Vite
+- Stack: PHP 8.4, Laravel 12, Blade + Tailwind CSS v3 + Alpine.js, MySQL, Vite
 - Hosting: Hostinger VPS, Ubuntu, Nginx, Supervisor (for Laravel Reverb), SSL
 - Auth: Laravel Breeze (session-based), Laravel Sanctum (API layer for future mobile)
 - Third-party integrations:

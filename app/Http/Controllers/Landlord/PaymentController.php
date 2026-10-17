@@ -9,7 +9,7 @@ use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\RentLedger;
-use App\Support\RentPaymentAllocator;
+use App\Services\RentPaymentRecorder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +46,7 @@ class PaymentController extends Controller
     ];
 
     private const METHODS = ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'];
+
     private const TYPES = ['Monthly', 'Deposit', 'Initial', 'Utility', 'Other'];
 
     /**
@@ -82,7 +83,7 @@ class PaymentController extends Controller
         // to see what an ex-tenant left unpaid.
         $query = Reservation::whereIn('rental_status', ['Occupied', 'Completed'])
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments']);
+            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges']);
 
         if ($propertyId && $properties->contains('property_id', $propertyId)) {
             $query->where('property_id', $propertyId);
@@ -91,8 +92,8 @@ class PaymentController extends Controller
         if ($search = $request->input('search')) {
             $query->whereHas('tenant', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -314,66 +315,7 @@ class PaymentController extends Controller
                 'This tenancy is no longer active, so payments cannot be added to it.'
             );
 
-            // Scoped to this reservation and to an actually-voided row:
-            // without the scope this is an IDOR that lets one landlord point
-            // a payment at another landlord's row. `exists:` alone would not
-            // catch that.
-            $replaces = ! empty($data['replaces_payment_id'])
-                ? Payment::where('payment_id', $data['replaces_payment_id'])
-                    ->where('reservation_id', $locked->reservation_id)
-                    ->where('status', 'Voided')
-                    ->value('payment_id')
-                : null;
-
-            $shared = [
-                'reservation_id'       => $locked->reservation_id,
-                'payment_method'       => $data['payment_method'],
-                'status'               => 'Paid',
-                'paid_at'              => $data['paid_at'],
-                'reference_no'         => $data['reference_no'] ?? null,
-                'payment_notes'        => $data['payment_notes'] ?? null,
-                'recorded_by'          => Auth::id(),
-                'replaces_payment_id'  => $replaces,
-            ];
-
-            if ($data['payment_type'] !== 'Monthly') {
-                Payment::create($shared + [
-                    'payment_type'   => $data['payment_type'],
-                    'billing_period' => null,
-                    'amount'         => $data['amount'],
-                ]);
-
-                return 1;
-            }
-
-            $ledger = RentLedger::for($locked);
-            $rows = RentPaymentAllocator::allocate(
-                $ledger->unsettledPeriods(),
-                Carbon::parse($data['billing_period'])->startOfMonth(),
-                $locked->monthlyRent(),
-                (float) $data['amount']
-            );
-
-            // The allocator can return nothing only when the chosen month and
-            // every month after it happened to already be settled — record
-            // the amount against the chosen month regardless, so a
-            // landlord's entry is never silently dropped.
-            if ($rows === []) {
-                $rows = [[
-                    'billing_period' => Carbon::parse($data['billing_period'])->startOfMonth(),
-                    'amount'         => (float) $data['amount'],
-                ]];
-            }
-
-            foreach ($rows as $row) {
-                Payment::create($shared + [
-                    'payment_type'   => 'Monthly',
-                    'billing_period' => $row['billing_period'],
-                    'amount'         => $row['amount'],
-                ]);
-            }
-
-            return count($rows);
+            return RentPaymentRecorder::record($locked, $data, Auth::id());
         });
 
         $message = $monthsCovered > 1
@@ -533,7 +475,7 @@ class PaymentController extends Controller
         $reservations = Reservation::whereIn('rental_status', ['Occupied', 'Completed'])
             ->whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
             ->when($request->integer('property'), fn ($q, $id) => $q->where('property_id', $id))
-            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments'])
+            ->with(['tenant', 'property:property_id,title', 'unit:unit_id,unit_label,rental_fee', 'payments', 'depositCharges'])
             ->get();
 
         return response()->streamDownload(function () use ($reservations) {

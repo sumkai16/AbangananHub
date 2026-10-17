@@ -112,7 +112,7 @@ class GeminiDriver implements AiSearchDriver
                     'value' => ['type' => 'STRING'],
                 ], 'required' => ['kind', 'value']],
                 'radius_km' => ['type' => 'NUMBER', 'nullable' => true],
-                'property_type' => ['type' => 'STRING', 'nullable' => true, 'enum' => Vocabulary::PROPERTY_TYPES],
+                'property_type' => ['type' => 'STRING', 'nullable' => true, 'enum' => Vocabulary::propertyTypes()],
                 'price_min' => ['type' => 'INTEGER', 'nullable' => true],
                 'price_max' => ['type' => 'INTEGER', 'nullable' => true],
                 'amenities' => $strings,

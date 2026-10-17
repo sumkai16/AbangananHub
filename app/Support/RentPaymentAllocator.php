@@ -32,15 +32,17 @@ class RentPaymentAllocator
     private const MAX_ADVANCE_MONTHS = 60;
 
     /**
-     * @param  Collection  $unsettledPeriods  RentLedger::unsettledPeriods() — each entry carries
-     *                                        `period` (Carbon, start-of-month) and `balance`.
+     * @param  Collection  $periods  RentLedger::periods() — every month the ledger knows about, each with
+     *                               `period` (Carbon, start-of-month) and `balance`. Settled months have a
+     *                               balance of 0 and are skipped; a part-paid month, past or future,
+     *                               takes only what it still owes.
      * @param  Carbon  $startMonth  The month the landlord selected in the form, start-of-month.
-     * @param  float  $monthlyRent  Full rent for every month after the start month.
+     * @param  float  $monthlyRent  Full rent for any month the ledger has no row for yet.
      * @param  float  $amount  The amount being recorded.
      * @return array<int, array{billing_period: Carbon, amount: float}>
      */
     public static function allocate(
-        Collection $unsettledPeriods,
+        Collection $periods,
         Carbon $startMonth,
         float $monthlyRent,
         float $amount,
@@ -51,28 +53,26 @@ class RentPaymentAllocator
             return [];
         }
 
-        // Only the starting month can carry a partial balance from an
-        // earlier payment — everything after it is a month nobody has paid
-        // into yet, so it is billed at the full rent.
-        $startBalance = $unsettledPeriods->first(
-            fn (array $p) => $p['period']->isSameMonth($startMonth)
-        )['balance'] ?? $monthlyRent;
-        $startBalance = round(max(0.0, $startBalance), 2);
+        // Each month owes what the ledger says it still owes. A month the ledger
+        // has no row for yet is untouched, so it owes the full rent. Keyed once
+        // so the loop is a lookup, not a scan per month.
+        $balances = $periods->mapWithKeys(
+            fn (array $p) => [$p['period']->format('Y-m') => round(max(0.0, (float) $p['balance']), 2)]
+        );
 
         $rows = [];
         $cursor = $startMonth->copy();
 
         for ($month = 0; $month < self::MAX_ADVANCE_MONTHS && $remaining > 0.0; $month++) {
-            $due = $month === 0 ? $startBalance : $monthlyRent;
+            $due = $balances->get($cursor->format('Y-m'), $monthlyRent);
             $slice = round(min($remaining, $due), 2);
 
             if ($slice > 0.0) {
                 $rows[] = ['billing_period' => $cursor->copy(), 'amount' => $slice];
                 $remaining = round($remaining - $slice, 2);
             }
-            // $slice can be 0 only when the selected start month is already
-            // fully settled — that month is skipped rather than billed for
-            // nothing, and the loop moves straight to the next one.
+            // $slice is 0 for a month that is already fully settled: it is
+            // skipped rather than billed a second time, and the loop moves on.
 
             $cursor = $cursor->copy()->addMonthNoOverflow();
         }

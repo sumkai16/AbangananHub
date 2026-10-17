@@ -22,6 +22,7 @@ use App\Support\PropertyPolicies;
 class IntentValidator
 {
     private const PRICE_MIN = 500;
+
     private const PRICE_MAX = 200000;
 
     /** @param array<string, mixed> $raw */
@@ -39,7 +40,7 @@ class IntentValidator
         return [
             'location' => $location,
             'radius_km' => max(0.5, min(10.0, $radius)),
-            'property_type' => $this->pick($raw['property_type'] ?? null, Vocabulary::PROPERTY_TYPES),
+            'property_type' => $this->pick($raw['property_type'] ?? null, Vocabulary::propertyTypes()),
             'price_min' => $min,
             'price_max' => $max,
             'amenities' => $this->pickMany($raw['amenities'] ?? [], Vocabulary::amenities()),

@@ -60,7 +60,7 @@ class LandlordSeeder extends Seeder
             'first_name' => 'Wilfredo', 'last_name' => 'Lozada', 'email' => 'wilfredo.lozada@abangananhub.com',
             'contact' => '09173340107', 'id_type' => 'UMID',
             'business' => 'Lozada Urban Living', 'address' => 'Apas, Cebu City, Cebu',
-            'bio' => 'Studios and condo-type units around IT Park, Lahug and Banilad for young professionals.',
+            'bio' => 'Dormitory-style rooms and studios around IT Park, Lahug and Banilad for young professionals.',
         ],
     ];
 

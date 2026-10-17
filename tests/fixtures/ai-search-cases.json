@@ -13,10 +13,10 @@
   }
  },
  {
-  "q": "Condo near IT Park with a pool, good for 2, max 18k",
+  "q": "Dormitory near IT Park with a pool, good for 2, max 18k",
   "expect": {
    "location": "it_park",
-   "property_type": "Condominium",
+   "property_type": "Dormitory",
    "price_max": 18000
   }
  },
@@ -145,10 +145,10 @@
   }
  },
  {
-  "q": "Condo sa Cebu City na may paradahan, hanggang 15k",
+  "q": "Dorm sa Cebu City na may paradahan, hanggang 15k",
   "expect": {
    "location": "Cebu City",
-   "property_type": "Condominium",
+   "property_type": "Dormitory",
    "price_max": 15000,
    "amenities": [
     "Parking Space"
@@ -253,10 +253,10 @@
   }
  },
  {
-  "q": "Condo duol sa IT Park nga naay swimming pool, 20k hangtod",
+  "q": "Dorm duol sa IT Park nga naay swimming pool, 20k hangtod",
   "expect": {
    "location": "it_park",
-   "property_type": "Condominium",
+   "property_type": "Dormitory",
    "price_max": 20000,
    "language": "ceb"
   }

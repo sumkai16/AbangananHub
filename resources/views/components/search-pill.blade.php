@@ -127,7 +127,7 @@
             </svg>
             <div class="min-w-0 flex-1">
                 <label id="search-type-label-{{ $variant }}" class="block {{ $label }}">Type</label>
-                <x-styled-select name="type" :options="['' => 'Any type', 'Apartment' => 'Apartment', 'Condominium' => 'Condominium', 'House' => 'House', 'Boarding House' => 'Boarding House', 'Bedspace' => 'Bedspace']"
+                <x-styled-select name="type" :options="\App\Enums\PropertyType::options('Any type')"
                     :selected="request('type', '')" placeholder="Any type" aria-labelledby="search-type-label-{{ $variant }}"
                     class="p-0 border-none bg-transparent text-[13.5px] sm:text-[14.5px] text-[#060D26] w-full mt-0.5" />
             </div>

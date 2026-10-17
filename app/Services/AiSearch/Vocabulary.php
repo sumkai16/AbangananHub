@@ -2,6 +2,7 @@
 
 namespace App\Services\AiSearch;
 
+use App\Enums\PropertyType;
 use App\Models\Amenity;
 use App\Models\Property;
 use App\Support\BrowseFilters;
@@ -14,7 +15,11 @@ use Illuminate\Support\Facades\Cache;
  */
 class Vocabulary
 {
-    public const PROPERTY_TYPES = ['Apartment', 'Condominium', 'House', 'Boarding House', 'Bedspace'];
+    /** @return list<string> */
+    public static function propertyTypes(): array
+    {
+        return PropertyType::values();
+    }
 
     /** Amenity names offered to the AI: the ones tenants filter on (Curfew / Pet Friendly / Visitors Allowed are house rules instead). */
     public static function amenities(): array
@@ -37,7 +42,7 @@ class Vocabulary
     public static function forPrompt(): array
     {
         return [
-            'property_types' => self::PROPERTY_TYPES,
+            'property_types' => self::propertyTypes(),
             'amenities' => self::amenities(),
             'rules' => array_map(fn ($key) => $key . ' = ' . BrowseFilters::RULES[$key][0], array_keys(BrowseFilters::RULES)),
             'living' => array_keys(PropertyPolicies::LIVING_ARRANGEMENTS),

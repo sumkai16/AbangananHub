@@ -10,33 +10,33 @@ class Payment extends Model
 {
     protected $primaryKey = 'payment_id';
 
-  protected $fillable = [
-    'reservation_id',
-    'payment_type',
-    'billing_period',
-    'amount',
-    'payment_method',
-    'paymongo_payment_intent_id',
-    'paymongo_payment_id',
-    'paymongo_checkout_session_id',
-    'status',
-    'paid_at',
-    'released_at',
-    'released_by',
-    'release_reason',
-    'payout_status',
-    'paid_out_at',
-    'paid_out_by',
-    'payout_reference',
-    'recorded_by',
-    'reference_no',
-    'payment_notes',
-    'voided_at',
-    'voided_by',
-    'void_reason',
-    'void_note',
-    'replaces_payment_id',
-];
+    protected $fillable = [
+        'reservation_id',
+        'payment_type',
+        'billing_period',
+        'amount',
+        'payment_method',
+        'paymongo_payment_intent_id',
+        'paymongo_payment_id',
+        'paymongo_checkout_session_id',
+        'status',
+        'paid_at',
+        'released_at',
+        'released_by',
+        'release_reason',
+        'payout_status',
+        'paid_out_at',
+        'paid_out_by',
+        'payout_reference',
+        'recorded_by',
+        'reference_no',
+        'payment_notes',
+        'voided_at',
+        'voided_by',
+        'void_reason',
+        'void_note',
+        'replaces_payment_id',
+    ];
 
     protected $casts = [
         'billing_period' => 'date',
@@ -78,6 +78,15 @@ class Payment extends Model
         return $this->belongsTo(User::class, 'paid_out_by', 'user_id');
     }
 
+    /**
+     * Pesos to PayMongo's centavos. Rounds rather than truncating: 512.05 * 100
+     * is 51204.99999999999 in floating point, and a plain (int) cast sends 51204.
+     */
+    public static function toCentavos(float|int|string $pesos): int
+    {
+        return (int) round((float) $pesos * 100);
+    }
+
     public function isPaid(): bool
     {
         return $this->status === 'Paid';
@@ -112,15 +121,16 @@ class Payment extends Model
     {
         return $this->recorded_by !== null;
     }
-    public function isHeld(): bool
-{
-    return $this->status === 'Held';
-}
 
-public function isReleased(): bool
-{
-    return $this->status === 'Released';
-}
+    public function isHeld(): bool
+    {
+        return $this->status === 'Held';
+    }
+
+    public function isReleased(): bool
+    {
+        return $this->status === 'Released';
+    }
 
     public function isPendingPayout(): bool
     {
