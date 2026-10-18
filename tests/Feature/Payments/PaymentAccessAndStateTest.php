@@ -4,6 +4,7 @@ namespace Tests\Feature\Payments;
 
 use App\Models\AuditLog;
 use App\Models\Payment;
+use App\Models\Payout;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\Support\CreatesPaymentFixtures;
@@ -149,7 +150,7 @@ class PaymentAccessAndStateTest extends TestCase
         return $this->makePayment($tenancy['reservation'], [
             'amount'         => $amount,
             'status'         => 'Paid',
-            'payout_status'  => 'Pending Payout',
+            'payout_status'  => 'Pending Payout', // translated by makePayment() into payout_owed_at
             'billing_period' => null,
             'payment_type'   => 'Other',
             'payment_method' => 'GCash',
@@ -172,9 +173,13 @@ class PaymentAccessAndStateTest extends TestCase
         foreach ([$a, $b] as $payment) {
             $payment->refresh();
             $this->assertSame('Paid Out', $payment->payout_status);
-            $this->assertSame('GCASH-REF-1', $payment->payout_reference);
-            $this->assertSame($admin->user_id, $payment->paid_out_by);
+            $this->assertSame('GCASH-REF-1', $payment->payout->payout_reference);
+            $this->assertSame($admin->user_id, $payment->payout->paid_out_by);
         }
+
+        $this->assertSame($a->fresh()->payout_id, $b->fresh()->payout_id, 'One transfer covers the whole batch.');
+        $this->assertSame(1, Payout::where('landlord_id', $mine['landlord']->user_id)->count());
+        $this->assertSame('8000.00', Payout::where('landlord_id', $mine['landlord']->user_id)->value('amount'));
 
         $this->assertSame('Pending Payout', $other->fresh()->payout_status, 'Another landlord\'s payout must be untouched.');
         $this->assertTrue(AuditLog::where('action', 'payout.mark_paid_out')->exists());
@@ -193,7 +198,8 @@ class PaymentAccessAndStateTest extends TestCase
         $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'R1'])->assertRedirect();
         $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'R2'])->assertStatus(409);
 
-        $this->assertSame('R1', $payment->fresh()->payout_reference, 'A second click must not overwrite the reference.');
+        $this->assertSame('R1', $payment->fresh()->payout->payout_reference, 'A second click must not overwrite the reference.');
+        $this->assertSame(1, Payout::count(), 'A second click must not create a second payout.');
     }
 
     public function test_a_landlord_cannot_mark_their_own_payout_as_sent(): void

@@ -25,6 +25,12 @@ class Reservation extends Model
      */
     public const TERMINAL_STATUSES = ['Cancelled', 'Rejected', 'Completed'];
 
+    /** Every value `reservations.rental_status` can hold (an ENUM since 2026_10_18_000002). */
+    public const STATUSES = [
+        'Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed',
+        'Reserved', 'Occupied', 'Completed', 'Rejected', 'Cancelled',
+    ];
+
     protected $fillable = [
         'property_id',
         'unit_id',
@@ -133,7 +139,7 @@ class Reservation extends Model
             'release_reason' => 'tenant_confirmed',
             // The money is now owed to the landlord — see
             // docs/specs/2026-07-26-landlord-payout-design.md.
-            'payout_status'  => 'Pending Payout',
+            'payout_owed_at' => now(),
         ]);
 
         $this->releasedPayment = $heldPayment;
@@ -982,7 +988,7 @@ class Reservation extends Model
             'conversation_id' => $this->conversation_id,
             'sender_id' => null,
             'message' => $text,
-            'is_system' => true,
+            'kind' => 'system',
             'is_read' => true,
         ]);
 

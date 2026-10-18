@@ -112,7 +112,7 @@ public function store(StoreReservationRequest $request)
         $conversation->messages()->create([
             'sender_id'           => Auth::id(),
             'message'             => $request->message ?? '',
-            'is_inquiry_summary'  => true,
+            'kind'                => 'inquiry_summary',
         ]);
 
         return redirect()->route('conversations.show', $conversation)

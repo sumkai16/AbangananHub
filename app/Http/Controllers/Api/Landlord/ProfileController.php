@@ -62,8 +62,15 @@ class ProfileController extends Controller
         }
 
         $user->update(collect($validated)->only([
-            'first_name', 'last_name', 'contact_number', 'gcash_number', 'gcash_account_name', 'bio', 'profile_picture',
+            'first_name', 'last_name', 'contact_number', 'bio', 'profile_picture',
         ])->toArray());
+
+        // A key left out of the request keeps its stored value, like every other field above.
+        $payout = $user->payoutAccount;
+        $user->savePayoutAccount(
+            array_key_exists('gcash_number', $validated) ? $validated['gcash_number'] : $payout?->gcash_number,
+            array_key_exists('gcash_account_name', $validated) ? $validated['gcash_account_name'] : $payout?->gcash_account_name,
+        );
 
         $businessData = array_filter([
             'business_name'    => $validated['business_name'] ?? null,

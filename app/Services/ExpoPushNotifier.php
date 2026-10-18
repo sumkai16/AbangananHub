@@ -22,17 +22,20 @@ class ExpoPushNotifier
 
     public function send(User $user, string $title, string $message, ?string $link = null): void
     {
-        if (! $user->expo_push_token) {
+        $tokens = $user->devices()->orderBy('device_id')->pluck('expo_push_token')->all();
+
+        if (! $tokens) {
             return;
         }
 
         try {
-            $response = Http::timeout(5)->post(self::ENDPOINT, [
-                'to'    => $user->expo_push_token,
+            // One message per registered device; Expo answers with one ticket per message, in order.
+            $response = Http::timeout(5)->post(self::ENDPOINT, array_map(fn (string $token) => [
+                'to'    => $token,
                 'title' => $title,
                 'body'  => $message,
                 'data'  => array_filter(['link' => $link]),
-            ]);
+            ], $tokens));
 
             if ($response->failed()) {
                 Log::warning('Expo push failed', [
@@ -46,10 +49,18 @@ class ExpoPushNotifier
             // A 200 from Expo's own endpoint can still carry a per-message
             // DeviceNotRegistered error — that means the token is dead
             // (app uninstalled, or a new token issued that never got
-            // re-registered). Clear it so future sends don't keep trying.
-            $status = $response->json('data.status');
-            if ($status === 'error' && $response->json('data.details.error') === 'DeviceNotRegistered') {
-                $user->update(['expo_push_token' => null]);
+            // re-registered). Drop that device so future sends don't keep trying.
+            $tickets = $response->json('data') ?? [];
+            if (isset($tickets['status'])) {
+                $tickets = [$tickets];
+            }
+
+            foreach (array_values($tickets) as $i => $ticket) {
+                if (($ticket['status'] ?? null) === 'error'
+                    && ($ticket['details']['error'] ?? null) === 'DeviceNotRegistered'
+                    && isset($tokens[$i])) {
+                    $user->devices()->where('expo_push_token', $tokens[$i])->delete();
+                }
             }
         } catch (Throwable $e) {
             Log::warning('Expo push threw', [

@@ -66,6 +66,8 @@ class MessageSent implements ShouldBroadcastNow
             // Cloudinary URL — output as-is, never through Storage::url().
             'sender_avatar'   => $sender?->profile_picture,
             'is_system'       => (bool) $this->message->is_system,
+            'is_inquiry_summary' => (bool) $this->message->is_inquiry_summary,
+            'kind'            => $this->message->kind,
             'message'         => $this->message->message,
             // Set on concern cards and their status lines; the open panel refetches itself for these.
             'concern_id'      => $this->message->concern_id,

@@ -87,17 +87,26 @@ class AuthController extends Controller
         $token = $user->createToken($request->device_name)->plainTextToken;
 
         return response()->json([
-            'user'  => new UserResource($user),
+            'user'  => new UserResource($user->load('payoutAccount')),
             'token' => $token,
             'roles' => $user->roles()->pluck('role'),
         ]);
     }
 
     /**
-     * Revoke the token used for the current request only.
+     * Revoke the token used for the current request only. A client that also sends its
+     * `expo_push_token` has that device unregistered, so a logged-out phone stops getting pushes.
      */
     public function logout(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'expo_push_token' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if (! empty($validated['expo_push_token'])) {
+            $request->user()->devices()->where('expo_push_token', $validated['expo_push_token'])->delete();
+        }
+
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logged out.']);

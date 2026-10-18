@@ -72,7 +72,7 @@ class PayMongoWebhookController extends Controller
             // Rent settles straight to the landlord with no escrow step, so it is
             // payout-eligible the moment it's paid. The initial payment isn't —
             // it only becomes payout-eligible once escrow releases it.
-            'payout_status' => $isRent ? 'Pending Payout' : null,
+            'payout_owed_at' => $isRent ? now() : null,
         ]);
 
         // The broadcast and both notifications are raised by PaymentObserver off

@@ -24,10 +24,8 @@ class Payment extends Model
         'released_at',
         'released_by',
         'release_reason',
-        'payout_status',
-        'paid_out_at',
-        'paid_out_by',
-        'payout_reference',
+        'payout_id',
+        'payout_owed_at',
         'recorded_by',
         'reference_no',
         'payment_notes',
@@ -43,7 +41,7 @@ class Payment extends Model
         'paid_at' => 'datetime',
         'amount' => 'decimal:2',
         'released_at' => 'datetime',
-        'paid_out_at' => 'datetime',
+        'payout_owed_at' => 'datetime',
         'voided_at' => 'datetime',
     ];
 
@@ -71,11 +69,36 @@ class Payment extends Model
     }
 
     /**
-     * The admin who recorded that this payment's payout was actually sent.
+     * The transfer that settled this payment, once an admin has sent it. Null while the money is
+     * still owed to the landlord (or was never payout-eligible).
      */
-    public function payoutRecorder(): BelongsTo
+    public function payout(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'paid_out_by', 'user_id');
+        return $this->belongsTo(Payout::class, 'payout_id', 'payout_id');
+    }
+
+    /** Owed to the landlord and not yet in a payout: the admin payout queue. */
+    public function scopePendingPayout($query)
+    {
+        return $query->whereNotNull('payout_owed_at')->whereNull('payout_id');
+    }
+
+    public function scopePaidOut($query)
+    {
+        return $query->whereNotNull('payout_id');
+    }
+
+    /**
+     * 'Pending Payout' / 'Paid Out' / null, derived from `payout_owed_at` and `payout_id` (there is
+     * no stored status). Kept as an attribute so views and the mobile payload read the same name.
+     */
+    public function getPayoutStatusAttribute(): ?string
+    {
+        if ($this->payout_id !== null) {
+            return 'Paid Out';
+        }
+
+        return $this->payout_owed_at !== null ? 'Pending Payout' : null;
     }
 
     /**
@@ -183,12 +206,12 @@ class Payment extends Model
 
     public function isPendingPayout(): bool
     {
-        return $this->payout_status === 'Pending Payout';
+        return $this->payout_owed_at !== null && $this->payout_id === null;
     }
 
     public function isPaidOut(): bool
     {
-        return $this->payout_status === 'Paid Out';
+        return $this->payout_id !== null;
     }
 
     public function isVoided(): bool
@@ -209,7 +232,7 @@ class Payment extends Model
     {
         return $this->isManuallyRecorded()
             && $this->status === 'Paid'
-            && $this->payout_status === null;
+            && $this->payout_owed_at === null;
     }
 
     public function voidReasonLabel(): ?string

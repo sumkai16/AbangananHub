@@ -123,8 +123,6 @@ class TenantSeeder extends Seeder
                     'last_name'          => $t['last_name'],
                     'password'           => Hash::make('password'),
                     'contact_number'     => $t['contact'],
-                    'gcash_number'       => $t['contact'],
-                    'gcash_account_name' => $t['first_name'].' '.$t['last_name'],
                     'profile_picture'    => 'https://i.pravatar.cc/300?img='.(11 + $i * 7),
                     'bio'                => $t['bio'],
                     'profile_visibility' => 'public',

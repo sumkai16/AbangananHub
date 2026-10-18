@@ -58,7 +58,7 @@ trait ReconcilesPaymongoCheckout
         if ($payment->payment_type === 'Monthly') {
             $payment->update($common + [
                 'status'        => 'Paid',
-                'payout_status' => 'Pending Payout',
+                'payout_owed_at' => now(),
             ]);
 
             $label = $payment->billing_period?->format('M Y') ?? 'this period';

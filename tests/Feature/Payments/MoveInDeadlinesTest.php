@@ -554,7 +554,7 @@ class MoveInDeadlinesTest extends TestCase
             return 0;
         }
 
-        return Message::where('conversation_id', $conversation->conversation_id)->where('is_system', true)->count();
+        return Message::where('conversation_id', $conversation->conversation_id)->where('kind', 'system')->count();
     }
 
     private function reminderMessage(User $tenant): string

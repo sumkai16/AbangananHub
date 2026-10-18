@@ -134,7 +134,7 @@ class ReservationController extends Controller
         $conversation->messages()->create([
             'sender_id'           => $tenantId,
             'message'             => $firstMessage ?? '',
-            'is_inquiry_summary'  => true,
+            'kind'                => 'inquiry_summary',
         ]);
 
         return response()->json([

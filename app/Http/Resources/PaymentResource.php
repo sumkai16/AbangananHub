@@ -21,10 +21,12 @@ class PaymentResource extends ApiResource
             'released_at'                   => $this->attr('released_at'),
             'released_by'                   => $this->attr('released_by'),
             'release_reason'                => $this->attr('release_reason'),
-            'payout_status'                 => $this->attr('payout_status'),
-            'paid_out_at'                   => $this->attr('paid_out_at'),
-            'paid_out_by'                   => $this->attr('paid_out_by'),
-            'payout_reference'              => $this->attr('payout_reference'),
+            // Payout state is derived (payout_owed_at / payout_id); the keys stay as the mobile app knows them.
+            'payout_id'                     => $this->attr('payout_id'),
+            'payout_status'                 => $this->resource->payout_status,
+            'paid_out_at'                   => $this->payout()?->paid_out_at,
+            'paid_out_by'                   => $this->payout()?->paid_out_by,
+            'payout_reference'              => $this->payout()?->payout_reference,
             'recorded_by'                   => $this->attr('recorded_by'),
             'reference_no'                  => $this->attr('reference_no'),
             'payment_notes'                 => $this->attr('payment_notes'),
@@ -34,5 +36,15 @@ class PaymentResource extends ApiResource
             'reservation'                   => new ReservationResource($this->whenLoaded('reservation')),
             'recorder'                      => new UserResource($this->whenLoaded('recorder')),
         ];
+    }
+
+    /** The settling payout, loaded on demand and only when there is one (no query for unpaid rows). */
+    private function payout(): ?\App\Models\Payout
+    {
+        if ($this->resource->payout_id === null) {
+            return null;
+        }
+
+        return $this->resource->loadMissing('payout')->payout;
     }
 }

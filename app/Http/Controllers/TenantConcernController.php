@@ -36,6 +36,7 @@ class TenantConcernController extends Controller
             $message = $conversation->messages()->create([
                 'sender_id' => Auth::id(),
                 'message' => $concern->description,
+                'kind' => 'concern',
                 'concern_id' => $concern->concern_id,
             ]);
 

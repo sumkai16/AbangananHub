@@ -194,8 +194,8 @@
                             <div class="min-w-0">
                                 <dt class="text-[12px] font-semibold text-[#5B6A8E]">Payout (GCash)</dt>
                                 @if($hasPayout)
-                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26] tabular-nums">&bull;&bull;&bull;&bull;{{ substr(preg_replace('/\D/', '', $user->gcash_number), -4) }}</dd>
-                                    <p class="text-[12px] text-[#5B6A8E] truncate">{{ $user->gcash_account_name }}</p>
+                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26] tabular-nums">&bull;&bull;&bull;&bull;{{ substr(preg_replace('/\D/', '', $user->payoutAccount->gcash_number), -4) }}</dd>
+                                    <p class="text-[12px] text-[#5B6A8E] truncate">{{ $user->payoutAccount->gcash_account_name }}</p>
                                 @else
                                     <dd class="mt-1 text-[14px] font-semibold text-[#B45309]">Not set</dd>
                                     <p class="text-[12px] text-[#5B6A8E]"><a href="{{ route('landlord.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Add GCash details</a> to get paid</p>

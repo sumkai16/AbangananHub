@@ -155,7 +155,7 @@ class ProfileController extends Controller
         // Completed tenancy is not "live" (checked above) but can still hold escrowed money, or rent the landlord
         // has not been paid out yet. That money has to be settled first, not erased with the account.
         $unsettled = Payment::whereHas('reservation', fn ($q) => $q->where('tenant_id', $user->user_id))
-            ->where(fn ($q) => $q->where('status', 'Held')->orWhere('payout_status', 'Pending Payout'))
+            ->where(fn ($q) => $q->where('status', 'Held')->orWhere(fn ($q) => $q->pendingPayout()))
             ->exists();
 
         if ($unsettled) {

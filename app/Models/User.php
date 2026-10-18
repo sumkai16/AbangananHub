@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
@@ -25,17 +26,12 @@ protected $primaryKey = 'user_id';
         'email',
         'password',
         'contact_number',
-        'gcash_number',
-        'gcash_account_name',
         'profile_picture',
         'account_status',
         'bio',
         'profile_visibility',
         'is_walk_in',
         'created_by_landlord_id',
-        'provider',
-        'provider_id',
-        'expo_push_token',
     ];
 
     protected $hidden = [
@@ -287,7 +283,42 @@ public function tenantRatingsReceived()
      */
     public function hasPayoutDestination(): bool
     {
-        return filled($this->gcash_number) && filled($this->gcash_account_name);
+        $account = $this->payoutAccount;
+
+        return $account !== null && filled($account->gcash_number) && filled($account->gcash_account_name);
+    }
+
+    public function payoutAccount(): HasOne
+    {
+        return $this->hasOne(UserPayoutAccount::class, 'user_id', 'user_id');
+    }
+
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(SocialAccount::class, 'user_id', 'user_id');
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(UserDevice::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * Set or clear the landlord's GCash payout details. Both blank deletes the row, so "no payout
+     * destination" is the absence of a row rather than a row of nulls.
+     */
+    public function savePayoutAccount(?string $number, ?string $name): void
+    {
+        if (blank($number) && blank($name)) {
+            $this->payoutAccount()->delete();
+        } else {
+            $this->payoutAccount()->updateOrCreate(
+                ['user_id' => $this->user_id],
+                ['gcash_number' => $number, 'gcash_account_name' => $name],
+            );
+        }
+
+        $this->unsetRelation('payoutAccount');
     }
 
     // ─── Password Reset ──────────────────────────────────────

@@ -111,6 +111,7 @@ class TenantConcernsTest extends TestCase
         $card = Message::where('concern_id', $concern->concern_id)->firstOrFail();
         $this->assertSame($tenant->user_id, $card->sender_id);
         $this->assertSame('The faucet in the bathroom is leaking.', $card->message);
+        $this->assertSame('concern', $card->kind);
 
         $this->assertTrue(Notification::where('user_id', $landlord->user_id)->where('type', 'concern')->exists());
     }
@@ -180,7 +181,7 @@ class TenantConcernsTest extends TestCase
 
         $this->actingAs($landlord)->patch(route('concerns.status', $concern), ['status' => 'Fixed'])->assertOk();
 
-        $line = Message::where('concern_id', $concern->concern_id)->where('is_system', true)->firstOrFail();
+        $line = Message::where('concern_id', $concern->concern_id)->where('kind', 'system')->firstOrFail();
         $this->assertStringContainsString('marked the "Plumbing" concern as fixed', $line->message);
         $this->assertNull($line->sender_id);
         $this->assertTrue(Notification::where('user_id', $tenant->user_id)->where('title', 'Concern fixed')->exists());

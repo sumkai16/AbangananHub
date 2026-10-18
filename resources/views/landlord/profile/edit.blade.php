@@ -129,7 +129,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="gcash_number" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash number</label>
-                        <input type="text" id="gcash_number" name="gcash_number" value="{{ old('gcash_number', $user->gcash_number) }}"
+                        <input type="text" id="gcash_number" name="gcash_number" value="{{ old('gcash_number', $user->payoutAccount?->gcash_number) }}"
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all"
                             placeholder="09XX XXX XXXX">
                         @error('gcash_number')
@@ -138,7 +138,7 @@
                     </div>
                     <div>
                         <label for="gcash_account_name" class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash account name</label>
-                        <input type="text" id="gcash_account_name" name="gcash_account_name" value="{{ old('gcash_account_name', $user->gcash_account_name) }}"
+                        <input type="text" id="gcash_account_name" name="gcash_account_name" value="{{ old('gcash_account_name', $user->payoutAccount?->gcash_account_name) }}"
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all"
                             placeholder="Name on the GCash account">
                         @error('gcash_account_name')

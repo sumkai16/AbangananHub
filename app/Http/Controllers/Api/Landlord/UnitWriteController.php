@@ -84,6 +84,7 @@ class UnitWriteController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Image',
                     'media_url'  => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'] ?? null,
                     'source'     => ($sources[$i] ?? 'upload') === 'camera' ? 'camera' : 'upload',
                     'caption'    => $captions[$i] ?? null,
                 ]);
@@ -97,6 +98,7 @@ class UnitWriteController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Video',
                     'media_url'  => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'] ?? null,
                     'source'     => 'upload',
                 ]);
             }
@@ -165,6 +167,7 @@ class UnitWriteController extends Controller
                     $unit->media()->create([
                         'media_type' => 'Image',
                         'media_url'  => $result['secure_url'],
+                        'cloudinary_public_id' => $result['public_id'] ?? null,
                         'source'     => 'upload',
                     ]);
                 }
@@ -178,6 +181,7 @@ class UnitWriteController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Video',
                     'media_url'  => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'] ?? null,
                     'source'     => 'upload',
                 ]);
             }
@@ -200,18 +204,7 @@ class UnitWriteController extends Controller
         }
 
         foreach ($unit->media as $media) {
-            if ($media->media_url) {
-                try {
-                    $publicId = pathinfo(parse_url($media->media_url, PHP_URL_PATH), PATHINFO_FILENAME);
-                    cloudinary()->uploadApi()->destroy('abanganan/units/'.$publicId);
-                } catch (\Exception $e) {
-                    Log::warning('Cloudinary media delete failed', [
-                        'media_id' => $media->media_id,
-                        'media_url' => $media->media_url,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
+            $media->destroyFromCloudinary();
             $media->delete();
         }
 
@@ -235,18 +228,7 @@ class UnitWriteController extends Controller
 
         $photo = $unit->media()->where('media_id', $media)->firstOrFail();
 
-        if ($photo->media_url) {
-            try {
-                $publicId = pathinfo(parse_url($photo->media_url, PHP_URL_PATH), PATHINFO_FILENAME);
-                cloudinary()->uploadApi()->destroy('abanganan/units/'.$publicId);
-            } catch (\Exception $e) {
-                Log::warning('Cloudinary media delete failed', [
-                    'media_id' => $photo->media_id,
-                    'media_url' => $photo->media_url,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $photo->destroyFromCloudinary();
         $photo->delete();
 
         return response()->json(['message' => 'Photo removed.']);

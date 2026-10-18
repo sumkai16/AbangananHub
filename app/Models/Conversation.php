@@ -52,7 +52,7 @@ class Conversation extends Model
         $message = $this->messages()->create([
             'sender_id' => null,
             'message' => $text,
-            'is_system' => true,
+            'kind' => 'system',
             'is_read' => true,
             'concern_id' => $concernId,
         ]);

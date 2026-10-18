@@ -54,13 +54,11 @@ trait CreatesMarketplaceFixtures
     {
         return $property->units()->create(array_merge([
             'unit_label'          => 'Unit 1',
-            'unit_type'           => 'Studio',
             'floor'               => '1',
             'bedrooms'            => 1,
             'bathrooms'           => 1,
             'floor_area_sqm'      => 25,
             'furnishing_status'   => 'Unfurnished',
-            'is_furnished'        => false,
             'rental_fee'          => 5000,
             'security_deposit'    => 5000,
             'occupancy_limit'     => 2,

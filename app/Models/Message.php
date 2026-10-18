@@ -11,16 +11,27 @@ class Message extends Model
         'sender_id',
         'message',
         'is_read',
-        'is_system',
-        'is_inquiry_summary',
+        'kind',
         'concern_id',
     ];
     protected $casts = [
         'sent_at' => 'datetime',
         'is_read' => 'boolean',
-        'is_system' => 'boolean',
-        'is_inquiry_summary' => 'boolean',
     ];
+
+    /** user | system (status narration, no sender) | inquiry_summary (the first card) | concern (a tenant's concern card). */
+    public const KINDS = ['user', 'system', 'inquiry_summary', 'concern'];
+
+    /** Read-only views of `kind`, so Blade, JS payloads and API resources keep their flag names. */
+    public function getIsSystemAttribute(): bool
+    {
+        return $this->kind === 'system';
+    }
+
+    public function getIsInquirySummaryAttribute(): bool
+    {
+        return $this->kind === 'inquiry_summary';
+    }
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class, 'conversation_id', 'conversation_id');

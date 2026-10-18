@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\UserDevice;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,7 @@ class ProfileController extends Controller
      */
     public function show(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user()->load('payoutAccount');
 
         return response()->json([
             'data' => [
@@ -62,7 +63,7 @@ class ProfileController extends Controller
 
         $user->update($validated);
 
-        return response()->json(['data' => new UserResource($user->fresh())]);
+        return response()->json(['data' => new UserResource($user->fresh('payoutAccount'))]);
     }
 
     /**
@@ -83,11 +84,9 @@ class ProfileController extends Controller
     }
 
     /**
-     * Registers this device's Expo push token, called on login/app start.
-     * One token per user (see the migration) — a device re-registering just
-     * overwrites the previous token, so a second device silently takes over
-     * push for that account. Acceptable for now: nothing in the product
-     * distinguishes devices per user.
+     * Registers this device's Expo push token, called on login/app start. A user can have
+     * several devices; the token is unique, so one that changes hands (a shared phone, a new
+     * login) moves to the current user rather than being duplicated.
      */
     public function updatePushToken(Request $request): JsonResponse
     {
@@ -95,7 +94,10 @@ class ProfileController extends Controller
             'expo_push_token' => ['required', 'string', 'max:255'],
         ]);
 
-        $request->user()->update(['expo_push_token' => $validated['expo_push_token']]);
+        UserDevice::updateOrCreate(
+            ['expo_push_token' => $validated['expo_push_token']],
+            ['user_id' => $request->user()->user_id],
+        );
 
         return response()->json(['message' => 'Push token registered.']);
     }

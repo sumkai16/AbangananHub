@@ -3,8 +3,10 @@
 namespace Tests\Support;
 
 use App\Models\Payment;
+use App\Models\Payout;
 use App\Models\Reservation;
 use App\Models\User;
+use Illuminate\Support\Arr;
 
 /**
  * An occupied tenancy and payment rows of every settlement route, so the money
@@ -38,6 +40,24 @@ trait CreatesPaymentFixtures
 
     protected function makePayment(Reservation $reservation, array $attributes = []): Payment
     {
+        // Payout state is derived now (payout_owed_at / payout_id). Tests can still say
+        // 'payout_status' => 'Pending Payout' | 'Paid Out' and get the matching rows.
+        $payoutStatus = Arr::pull($attributes, 'payout_status');
+
+        if ($payoutStatus !== null) {
+            $attributes['payout_owed_at'] ??= now();
+        }
+
+        if ($payoutStatus === 'Paid Out') {
+            $reservation->loadMissing('property');
+            $attributes['payout_id'] ??= Payout::create([
+                'landlord_id'      => $reservation->property->landlord_id,
+                'amount'           => $attributes['amount'] ?? 5000,
+                'payout_reference' => 'TEST-PAYOUT',
+                'paid_out_at'      => now(),
+            ])->payout_id;
+        }
+
         return Payment::create(array_merge([
             'reservation_id' => $reservation->reservation_id,
             'payment_type'   => 'Monthly',

@@ -1,716 +1,775 @@
 # SCHEMA.md — Database Schema
 
-## 1. ERD
-(To be generated — see relationships below for the logical ERD)
+Reference only. Every table below was checked against the live MySQL/MariaDB schema, and
+`tests/Feature/SchemaDocTest.php` fails when a column or table here disagrees with the database.
+**Update this file in the same change as the migration.** The reasoning behind a design lives in
+ARCHITECTURE.md §6 (Key Decisions Log); dated changes live in CHANGELOG.md.
 
-## 2. Tables
+How to read the tables: `NN` = NOT NULL, `null` = nullable, `= x` = default. Primary keys are custom
+(`$primaryKey = 'user_id'` etc. on each model), not `id`. "FK → t, cascade" is the `onDelete` rule.
+Row format is one column per row (the test parses the first cell).
+
+## 1. ERD
+
+Relationships only (columns are in §2). Every table with a `tenant_id`, `landlord_id` or `actor_id`
+points at `users`; the less obvious ones are listed here.
+
+```mermaid
+erDiagram
+    users ||--o{ user_roles : "user_id"
+    users ||--o| landlord_verifications : "user_id"
+    users ||--o| rental_businesses : "landlord_id"
+    users ||--o{ social_accounts : "user_id"
+    users ||--o| user_payout_accounts : "user_id"
+    users ||--o{ user_devices : "user_id"
+    users ||--o{ payouts : "landlord_id"
+    payouts ||--o{ payments : "payout_id"
+    users ||--o{ properties : "landlord_id"
+    users ||--o{ users : "created_by_landlord_id (walk-in)"
+    properties ||--o{ property_units : "property_id"
+    properties ||--o{ property_documents : "property_id"
+    properties ||--o{ property_media : "property_id"
+    property_units ||--o{ unit_media : "unit_id"
+    properties }o--o{ amenities : "property_amenities"
+    property_units }o--o{ amenities : "unit_amenities"
+    property_units ||--o{ reservations : "unit_id"
+    properties ||--o{ reservations : "property_id"
+    users ||--o{ reservations : "tenant_id"
+    reservations ||--o{ payments : "reservation_id"
+    payments ||--o{ payments : "replaces_payment_id"
+    reservations ||--o{ deposit_charges : "reservation_id"
+    reservations ||--o{ rent_reminders : "reservation_id"
+    reservations ||--o| tenant_ratings : "reservation_id"
+    reservations ||--o{ tenant_concerns : "reservation_id"
+    reservations ||--o{ viewing_requests : "reservation_id"
+    conversations ||--o{ messages : "conversation_id"
+    conversations ||--o{ tenant_concerns : "conversation_id"
+    tenant_concerns ||--o{ messages : "concern_id"
+    reservations |o--o{ conversations : "reservation_id (tenancy threads)"
+    properties ||--o{ conversations : "property_id"
+    properties ||--o{ reviews : "property_id"
+    properties ||--o{ favorites : "property_id"
+    users ||--o{ reports : "reporter_id"
+    users ||--o{ notifications : "user_id"
+    users ||--o{ landlord_blocked_dates : "landlord_id"
+    users ||--o{ landlord_viewing_hours : "landlord_id"
+    users ||--o{ occupancy_snapshots : "landlord_id"
+    property_units ||--o{ occupancy_activities : "unit_id"
+    users |o--o{ audit_logs : "actor_id (set null)"
+```
+
+## 2. Tables — Identity
 
 ### users
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| user_id | BIGINT UNSIGNED | PK, AUTO_INCREMENT | Custom PK — `$primaryKey = 'user_id'` in model |
-| first_name | VARCHAR(255) | NOT NULL | |
-| last_name | VARCHAR(255) | NOT NULL | |
-| email | VARCHAR(255) | UNIQUE, NOT NULL | |
-| password | VARCHAR(255) | NOT NULL | Hashed via Breeze |
-| contact_number | VARCHAR(20) | NULLABLE | |
-| gcash_number | VARCHAR(20) | NULLABLE | Added July 26 2026 — a landlord's payout destination. `User::hasPayoutDestination()` requires this and `gcash_account_name` both set before the admin payouts queue will let a payout be recorded |
-| gcash_account_name | VARCHAR(255) | NULLABLE | Added July 26 2026 — name on the GCash account, so an admin can verify before sending |
-| profile_picture | VARCHAR(255) | NULLABLE | Cloudinary URL |
-| account_status | ENUM('active','suspended','inactive') | DEFAULT 'active' | Normalized to lowercase July 21, 2026 — was `ENUM('Active','Suspended')` with no `inactive` member, which silently didn't match the lowercase values the Users admin UI had been writing/reading (see RULES.md → Concurrency & State Transitions and migration `2026_07_21_000001_normalize_users_account_status`) |
-| email | VARCHAR(255) | UNIQUE, **NULLABLE** | Was NOT NULL until July 24 2026; made nullable for walk-in tenants who often have only a phone number. MySQL allows many NULLs under a UNIQUE index, so real addresses stay unique. Anything rendering an avatar/name must use `?: '—'`, not assume a value |
-| is_walk_in | BOOLEAN | DEFAULT false | A landlord-entered tenant, not a self-registered account. Cast to bool. Drives the **Walk-in** pill everywhere the user surfaces (landlord tenants, admin users, occupancy, exports) — the identity is landlord-asserted, never platform-verified |
-| created_by_landlord_id | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who added this walk-in. Scopes `User::walkInTenants()` |
-| provider | VARCHAR(255) | NULLABLE | Added July 25 2026 for Google/Facebook login (`'google'`/`'facebook'`). NULL for password-only accounts. One provider per user — no multi-provider linking table |
-| provider_id | VARCHAR(255) | NULLABLE, UNIQUE with `provider` | The provider's own user ID. An existing account is auto-linked (not duplicated) when a social login's email matches `users.email` |
-| created_at | TIMESTAMP | | |
-| updated_at | TIMESTAMP | | |
+A person. Tenants, landlords and admins are all rows here; the role lives in `user_roles`.
 
-Walk-in tenants (added July 24 2026) are real `users` rows with a random unknowable password and `account_status='inactive'`, so the row can never be logged into — that is why they structurally cannot leave reviews or ratings. Keeping them in `users` (rather than a separate table) is what lets `reservations.tenant_id` stay NOT NULL so the ~20 views reading `$reservation->tenant->…` need no null-handling. Written by `Landlord\WalkInTenantController`.
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| user_id | bigint unsigned | NN | PK | |
+| first_name | varchar(255) | NN | | |
+| last_name | varchar(255) | NN | | |
+| email | varchar(255) | null | UNIQUE | Null for walk-in tenants with only a phone; render with `?: '—'` |
+| email_verified_at | timestamp | null | | Set immediately for social-login accounts |
+| password | varchar(255) | NN | | Hashed |
+| contact_number | varchar(20) | null | | |
+| profile_picture | varchar(255) | null | | Cloudinary URL |
+| bio | text | null | | |
+| profile_visibility | enum('public','landlords_only','private') | NN, = 'private' | | |
+| account_status | enum('active','suspended','inactive') | NN, = 'active' | index | |
+| is_walk_in | boolean | NN, = 0 | | Landlord-entered tenant; drives the **Walk-in** pill everywhere |
+| created_by_landlord_id | bigint unsigned | null | FK → users, set null | Scopes `User::walkInTenants()` |
+| remember_token | varchar(100) | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-Social login accounts (Google/Facebook, added July 25 2026) also get a random unknowable `Hash::make(Str::random(40))` password, same precedent as walk-ins — the account is meant to only ever be entered via the provider, not email/password. Unlike walk-ins, `account_status` stays default (`active`) and `email_verified_at` is set immediately since the provider already verified the address. Written by `Auth\SocialiteController::resolveSocialUser()`.
+Rules:
+- Walk-in and social-login accounts get a random unknowable password. A walk-in is also `inactive`, so it can never log in or leave a review; keeping walk-ins in `users` is what lets `reservations.tenant_id` stay NOT NULL.
+- Payout details live in `user_payout_accounts`, social logins in `social_accounts`, push tokens in `user_devices`. `User::hasPayoutDestination()` needs both GCash fields before an admin can record a payout.
+- Deleting a user cascades almost every FK (RULES.md → Hard deletes). `Admin\UserController::destroy` blocks it once the user has records; suspend instead.
+
+### social_accounts
+A Google/Facebook login linked to a user. A user can link several; linking by email adds a row and never overwrites one.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| social_account_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | NN | FK → users, cascade | UNIQUE with `provider` |
+| provider | varchar(30) | NN | UNIQUE with `provider_id` | `google` / `facebook` |
+| provider_id | varchar(255) | NN | | The provider's own user id |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### user_payout_accounts
+A landlord's GCash payout destination. A row exists only while details are set (`User::savePayoutAccount()` deletes it when both are blank). Never part of a nested user payload.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| user_id | bigint unsigned | NN | PK, FK → users, cascade | |
+| gcash_number | varchar(255) | null | | |
+| gcash_account_name | varchar(255) | null | | Name on the account, so an admin can verify before sending |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### user_devices
+One row per phone registered for mobile push. A token that changes hands moves to the new user; a row is deleted when Expo reports `DeviceNotRegistered`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| device_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | NN | FK → users, cascade | |
+| expo_push_token | varchar(255) | NN | UNIQUE | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
 ### user_roles
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| role_id | BIGINT UNSIGNED | PK | `$primaryKey = 'role_id'` |
-| user_id | FK → users.user_id | NOT NULL | |
-| role | ENUM('Tenant','Landlord','Admin') | NOT NULL | Landlord role granted on verification approval |
-| assigned_at | TIMESTAMP | | |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| role_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | NN | FK → users, cascade | UNIQUE with `role` |
+| role | enum('Tenant','Landlord','Admin') | NN | index `(role, user_id)` | Landlord granted on verification approval |
+| assigned_at | timestamp | NN, = now | | |
 
 ### landlord_verifications
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| verification_id | BIGINT UNSIGNED | PK | `$primaryKey = 'verification_id'` |
-| user_id | FK → users.user_id | NOT NULL | |
-| government_id | VARCHAR(255) | NOT NULL | Local disk path (private) |
-| liveness_passed | BOOLEAN | DEFAULT false | False = applicant fell back to manual capture (face-api.js unavailable); admin screen shows a warning banner |
-| verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | |
-| admin_notes | TEXT | NULLABLE | Rejection reason |
-| reviewed_by | FK → users.user_id | NULLABLE | Admin who reviewed |
-| reviewed_at | TIMESTAMP | NULLABLE | |
-| submitted_at | TIMESTAMP | | |
+One application per landlord. Government ID, selfie and ID back live on the **private** disk.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| verification_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | NN | FK → users, cascade, UNIQUE | |
+| government_id | varchar(255) | NN | | Private-disk path |
+| id_back | varchar(255) | null | | |
+| id_type | varchar(255) | NN | | |
+| selfie | varchar(255) | NN | | |
+| liveness_passed | boolean | NN, = 0 | | False = manual-capture fallback; admin screen shows a warning |
+| id_image_hash | varchar(64) | NN | | Duplicate-ID detection |
+| id_number | varchar(255) | null | | |
+| ocr_name | varchar(255) | null | | |
+| ocr_confidence | tinyint unsigned | null | | |
+| ocr_status | varchar(255) | null | | |
+| business_name | varchar(255) | null | | Copied to `rental_businesses` on approval |
+| description | text | null | | |
+| logo_url | varchar(255) | null | | |
+| contact_number | varchar(255) | null | | |
+| business_address | varchar(255) | null | | |
+| verification_status | enum('Pending','Approved','Rejected') | NN, = 'Pending' | | |
+| admin_notes | text | null | | Rejection reason |
+| reviewed_by | bigint unsigned | null | FK → users, set null | |
+| reviewed_at | timestamp | null | | |
+| submitted_at | timestamp | NN, = now | | |
 
 ### rental_businesses
-**Corrected July 27 2026 — this table was missing four real columns
-(`description`, `logo_url`, `logo_public_id`, `contact_number`,
-`business_address`) and had the wrong name for one (`business_logo` doesn't
-exist; the real column is `logo_url`).**
+A landlord's public profile. Created by `Admin\VerificationController::approve()` alongside the role grant.
 
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| business_id | BIGINT UNSIGNED | PK | `$primaryKey = 'business_id'` |
-| landlord_id | FK → users.user_id | NOT NULL, UNIQUE | one business per landlord |
-| business_name | VARCHAR(255) | NULLABLE | made nullable July 27 2026 — see note below |
-| description | TEXT | NULLABLE | |
-| logo_url | VARCHAR(255) | NULLABLE | Cloudinary secure_url |
-| logo_public_id | VARCHAR(255) | NULLABLE | Cloudinary public_id, needed to `destroy()` the old logo on replace |
-| contact_number | VARCHAR(255) | NULLABLE | made nullable July 27 2026 |
-| business_address | VARCHAR(255) | NULLABLE | made nullable July 27 2026 |
-| created_at | TIMESTAMP | | |
-| updated_at | TIMESTAMP | | |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| business_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade, UNIQUE | One per landlord |
+| business_name | varchar(255) | null | | |
+| description | text | null | | |
+| logo_url | varchar(255) | null | | Cloudinary `secure_url` |
+| logo_public_id | varchar(255) | null | | Needed to `destroy()` the old logo |
+| contact_number | varchar(255) | null | | |
+| business_address | varchar(255) | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-**`business_name`, `contact_number` and `business_address` were `NOT NULL`
-with no default until `2026_07_27_000002_make_rental_businesses_columns_nullable`,**
-even though `Landlord\ProfileController@update` (and its API mirror,
-`Api\Landlord\ProfileController@update`) validate all three as `nullable`
-and only write whatever was actually submitted. A blank text input reaches
-the controller as an empty string, which `ConvertEmptyStringsToNull` turns
-into `null` before validation runs — so a landlord's **first** profile save
-crashed with `SQLSTATE[HY000] 1364` the moment any one of the three was left
-blank. Same shape as the `property_units` bug above: validation promised
-optional, the schema never agreed. Found via the mobile API's landlord
-profile probe, but it was reachable from the web form the whole time.
+Rules:
+- Every "Verified Host" check reads `landlord.rentalBusiness` existence. An Approved landlord without a row is invisible to them (backfill `2026_08_21_000000`).
+- There is no property ↔ business FK; the link is `landlord_id` on both.
 
-**Backfilled Aug 21 2026** (`2026_08_21_000000_backfill_rental_business_for_approved_landlords`) — `Admin\VerificationController::approve()` has always created this row alongside the role grant, but at least one Approved landlord in this dataset predated that pairing and had no row at all. Every "Verified Host" check reads `landlord.rentalBusiness` existence, so that landlord's properties were invisible to all of them. See ARCHITECTURE.md.
+## 2. Tables — Listings
 
 ### properties
-**Verified against `2026_..._create_properties_table.php` July 26 2026 — the row below was wrong for
-an unknown period: `business_id` does not exist (no property↔business FK; a business only links via
-`landlord_id` → `rental_businesses.landlord_id`), `rental_fee`/`occupancy_limit`/`availability_status`
-don't exist either (those live on `property_units` — `Property` exposes them only as derived
-accessors, aggregating from its units), and `latitude`/`longitude` are `NOT NULL`, not nullable.**
+A listing (building or house). Price, occupancy and availability live on its units.
 
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| property_id | BIGINT UNSIGNED | PK | `$primaryKey = 'property_id'` |
-| landlord_id | FK → users.user_id | NOT NULL | |
-| title | VARCHAR(255) | NOT NULL | |
-| description | TEXT | NULLABLE | |
-| house_rules | JSON | NULLABLE | cast to `array`. Since Sept 23 2026 a flat list of strings: the preset labels the landlord ticked in `App\Support\PropertyPolicies::HOUSE_RULES` (No Smoking, No Pets, No Parties / Events, Quiet Hours, Curfew, No Overnight Guests, Visitors Allowed) followed by each custom line they typed. Anything not in the preset list is a custom rule. Set in the add-property wizard and the property edit page; every unit inherits it |
-| property_type | ENUM('Apartment','Dormitory','House','Boarding House','Bedspace') | NOT NULL | `Condominium` shelved and replaced by `Dormitory` Oct 13 2026 on the project manager's request (`2026_10_13_000000_replace_condominium_with_dormitory_property_type` renames existing rows; down() reverses it). `Room` retired and renamed `Boarding House` Sept 22 2026 (`2026_09_22_000001_replace_room_with_boarding_house_property_type` renames existing rows; a single room is a *unit* inside a property, not a property type). `Condominium` added Sept 22 2026 (`2026_09_22_000000_add_condominium_to_properties_property_type`) — condos have association dues, elevators and amenity decks that renters filter on separately from apartments |
-| living_arrangement | ENUM('Private','Shared','Mixed') | NULLABLE | Required by every property form since Sept 23 2026 (`PropertyPolicies::rules()`); the column stays nullable only for legacy rows. The old 'Female only' / 'Male only' values moved to `occupancy_preference`; 'Couples allowed' / 'Family-friendly' had no equivalent and were reset to NULL by `2026_09_23_000000_add_occupancy_preference_to_properties_table` |
-| occupancy_preference | ENUM('No Preference','Men Only','Women Only') | NOT NULL, default 'No Preference' | Added Sept 23 2026. Who the landlord prefers to rent to; required in every property form. Existing rows default to No Preference (or Men/Women Only when they carried the old gender arrangement) |
-| water_included | BOOLEAN | NULLABLE | Added Sept 2026. NULL means the landlord hasn't answered utilities at all (predates this field); `false` is an explicit "not included", shown as such on the tenant-facing property page |
-| electricity_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
-| internet_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
-| association_fees_included | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
-| utilities_separately_metered | BOOLEAN | NULLABLE | Added Sept 2026, same convention |
-| address | VARCHAR(255) | NOT NULL | Text-searched for browse |
-| city_municipality | VARCHAR(100) | NOT NULL | Added Aug 2026 — must be one of `config('cebu.lgus')`, enforced by `StorePropertyRequest`/`UpdatePropertyRequest`. Backfilled from `address`'s second-to-last comma segment |
-| barangay | VARCHAR(100) | NULLABLE | Added Aug 2026 |
-| latitude | DECIMAL(10,7) | NOT NULL | `parseFloat()` client-side. Bounded to Cebu (`App\Rules\WithinCebu`, `config('cebu.bounds')`) since Aug 2026 — no more silent fallback to a hardcoded downtown point when omitted; a pin is required |
-| longitude | DECIMAL(10,7) | NOT NULL | |
-| verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | Admin's verdict on legitimacy. **No longer the sole gate on tenant visibility** — see `publication_status` below and `Property::isLive()`/`scopeLive()` |
-| rejection_reason | TEXT | NULLABLE | Admin's reason when rejecting a listing (Sept 29 2026). Before this the reject action gave the landlord no reason |
-| publication_status | ENUM('Draft','Published','Unpublished','Suspended') | DEFAULT 'Published' | Added Aug 2026. Orthogonal to `verification_status`: this answers "should it be live right now", not "is it legitimate". `Draft` is written by `Landlord\PropertyWizardController::storeLocation()` (Aug 2026 — the property creation wizard's Step 2) and cleared to `Published` by `submit()` once the landlord finishes all six steps; `Property::scopeSubmitted()` excludes `Draft` rows from every admin- and landlord-facing listing query, since a Draft's `verification_status` defaults to `Pending` and would otherwise look like a real submission awaiting review. `Suspended` is admin-only, set by `Admin\ReportController`'s "delist property" report action and lifted only by `Admin\ListingController::unsuspend()` — a landlord's own publish/unpublish toggle (`PropertyController::publish()`/`unpublish()`) explicitly refuses to touch a `Suspended` row. Neither `PropertyController::update()` nor its API twin ever writes this column, so an edit-triggered reset of `verification_status` to `Pending` (and a subsequent re-approval) leaves a suspension untouched — the bug this column was added to fix: the delist action used to reuse `verification_status = 'Rejected'`, which the next edit-and-reapprove cycle silently undid |
-| created_at | TIMESTAMP | | |
-| updated_at | TIMESTAMP | | |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| property_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | |
+| title | varchar(255) | NN | | |
+| description | text | NN | | |
+| house_rules | json | null | | Flat list of strings: preset labels from `PropertyPolicies::HOUSE_RULES`, then custom lines. Cast to array; every unit inherits it |
+| property_type | enum('Apartment','Dormitory','House','Boarding House','Bedspace') | NN | index | A single room is a *unit*, not a type |
+| living_arrangement | enum('Private','Shared','Mixed') | null | | Required by forms; null only on legacy rows |
+| occupancy_preference | enum('No Preference','Men Only','Women Only') | NN, = 'No Preference' | | |
+| water_included | boolean | null | | Null = landlord never answered; `false` = explicitly not included |
+| electricity_included | boolean | null | | Same |
+| internet_included | boolean | null | | Same |
+| association_fees_included | boolean | null | | Same |
+| utilities_separately_metered | boolean | null | | Same |
+| address | varchar(255) | NN | | Text-searched by browse |
+| city_municipality | varchar(100) | NN | index | Must be in `config('cebu.lgus')` |
+| barangay | varchar(100) | null | | |
+| latitude | decimal(10,7) | NN | index `(latitude, longitude)` | Bounded to Cebu by `App\Rules\WithinCebu`; a pin is required |
+| longitude | decimal(10,7) | NN | | |
+| verification_status | enum('Pending','Approved','Rejected') | NN, = 'Pending' | index with `publication_status` | Admin's verdict on legitimacy |
+| rejection_reason | text | null | | Shown to the landlord on reject |
+| publication_status | enum('Draft','Published','Unpublished','Suspended') | NN, = 'Published' | | "Should it be live right now" |
+| created_at | timestamp | null | index | |
+| updated_at | timestamp | null | | |
 
-**Visibility funnels through one place**: `Property::isLive()` (single-row) and `scopeLive()`/`scopeBrowsable()` (query) are the only sanctioned checks for "can a tenant see this" — `verification_status = 'Approved' AND publication_status = 'Published'`, `scopeBrowsable()` additionally requiring an available approved unit. Before Aug 2026 this predicate was hand-copied in three places (`Property::scopeBrowsable()`, web `PropertyController::index()`, and the `navAreas` header composer in `AppServiceProvider`); all three now call the scope.
+Rules:
+- Tenant visibility goes through one place: `Property::isLive()` / `scopeLive()` / `scopeBrowsable()` (`Approved` AND `Published`; browsable also needs an available approved unit). Never hand-copy the predicate.
+- `Draft` is written by `PropertyWizardController::storeLocation()` and cleared by `submit()`; `scopeSubmitted()` hides drafts from admin and landlord lists.
+- `Suspended` is admin-only (report "delist"), lifted only by `Admin\ListingController::unsuspend()`. A landlord's publish/unpublish refuses to touch it, and `update()` never writes this column.
+- Rent, occupancy limit and availability are not columns here; `Property` derives them from its units.
 
 ### property_documents
-Added Aug 2026 — proof of ownership, tax declarations, and permits, one per property. The second
-upload path (after `landlord_verifications`) to use the **private** disk (`storage/app/private`)
-rather than Cloudinary: these are sensitive legal documents that must never get a public Cloudinary
-URL, so they're served only through policy-gated controller routes
-(`Landlord\PropertyDocumentController::preview/download`, `PropertyDocumentPolicy@view`), mirroring
-`landlord_verifications`/`VerificationController` exactly. **`Admin\PropertyDocumentController` gained
-its own `preview`/`download` pair Aug 21 2026** — the landlord routes sit under `EnsureLandlord`
-middleware, which 403s an Admin before the (Admin-aware) policy ever runs; reusing them from an admin
-view rendered a dead `<img>`. Route path prefix and Gate/Policy allow-list are two independent checks —
-don't assume a route is safely linkable from another role just because the policy underneath it is.
+Proof of ownership, tax declaration and permits. Private disk, served only through policy-gated routes.
 
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| document_id | BIGINT UNSIGNED | PK | `$primaryKey = 'document_id'` |
-| property_id | FK → properties.property_id | NOT NULL, cascade | |
-| document_type | VARCHAR(100) | NOT NULL | Validated against `PropertyDocument::TYPES`. Only `PropertyDocument::OWNERSHIP_TYPES` ('Proof of Ownership', 'Authorization / Special Power of Attorney') count toward `Property::hasVerifiedDocuments()`/`scopeVerified()` — the other 5 types (permits, tax dec, etc.) don't prove ownership and don't earn the "Verified Property" badge alone (Aug 21 2026) |
-| file_path | VARCHAR(255) | NULLABLE | **NULL = admin-requested, not yet uploaded** — a "requested" document is a row with no file, not a fifth status |
-| file_name | VARCHAR(255) | NULLABLE | Landlord's original filename |
-| document_number | VARCHAR(100) | NULLABLE | TCT no., tax dec no., permit no. |
-| status | ENUM('Pending','Verified','Rejected') | DEFAULT 'Pending' | **`Expired` is deliberately not a stored member** — see below |
-| rejection_reason | TEXT | NULLABLE | Required by `RejectPropertyDocumentRequest` when rejecting |
-| expiry_date | DATE | NULLABLE | Permits expire; titles don't |
-| verified_by | FK → users.user_id | NULLABLE, set null | |
-| verified_at | TIMESTAMP | NULLABLE | |
-| requested_by | FK → users.user_id | NULLABLE, set null | Set when an admin requests the document |
-| created_at / updated_at | TIMESTAMP | | |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| document_id | bigint unsigned | NN | PK | |
+| property_id | bigint unsigned | NN | FK → properties, cascade | Index `(property_id, status)` |
+| document_type | varchar(100) | NN | | One of `PropertyDocument::TYPES` |
+| file_path | varchar(255) | null | | Null = admin-requested, not yet uploaded |
+| file_name | varchar(255) | null | | Landlord's original filename |
+| document_number | varchar(100) | null | | TCT, tax dec or permit number |
+| status | enum('Pending','Verified','Rejected') | NN, = 'Pending' | | |
+| rejection_reason | text | null | | |
+| expiry_date | date | null | | |
+| verified_by | bigint unsigned | null | FK → users, set null | |
+| verified_at | timestamp | null | | |
+| requested_by | bigint unsigned | null | FK → users, set null | Admin who requested it |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-Index on `(property_id, status)`. `Expired` is computed on read (`PropertyDocument::isExpired()` /
-`getDisplayStatusAttribute()`) from `status = 'Verified' AND expiry_date < today` rather than stored —
-the same lesson as `publication_status` (see `properties` above): a nightly job maintaining a stored
-`Expired` state can drift, so nothing maintains it. `Property::hasVerifiedDocuments()`
-(`scopeCurrentlyValid()`) is the single source of truth behind the public "Verified Property" badge on
-`properties/show.blade.php` — the badge is no longer unconditional decoration on every approved
-listing with photos, it requires an actual currently-valid verified document. Documents never gate
-property approval itself; the admin uses judgment, with the "request a document" action
-(`requested_by`) as the lever for a specific missing one.
+Rules:
+- `Expired` is never stored. It is derived (`isExpired()`, `display_status`) from `status = 'Verified' AND expiry_date < today`.
+- Only `PropertyDocument::OWNERSHIP_TYPES` count toward `Property::hasVerifiedDocuments()` and the "Verified Property" badge.
+- Admins have their own `preview`/`download` routes; the landlord routes sit under `EnsureLandlord` and 403 an admin before the policy runs.
 
 ### property_units
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| unit_id | BIGINT UNSIGNED | PK | `$primaryKey = 'unit_id'` |
-| property_id | FK → properties.property_id | NOT NULL | |
-| unit_label | VARCHAR(100) | NOT NULL | e.g. "Room A", "Bed 3" — column is `unit_label`, not `unit_name` |
-| unit_type | VARCHAR(50) | NULLABLE | **No longer written or read (Sept 23 2026)** — removed from the unit forms, API, CSV export and every display. The column is left in place so no data is destroyed; drop it in a later migration if it's confirmed unused |
-| floor | VARCHAR(50) | NULLABLE | Added July 27 2026 |
-| bedrooms | TINYINT UNSIGNED | NULLABLE | Added Aug 2026 for the property wizard's unit form. Nullable because every pre-existing unit predates it |
-| bathrooms | TINYINT UNSIGNED | NULLABLE | Added Aug 2026, same migration as `bedrooms` |
-| floor_area_sqm | DECIMAL(6,2) | NULLABLE | Added Aug 28 2026. Optional, like `bedrooms`/`bathrooms` — NULL means the landlord never recorded it, and no backfill invents one. Validated `nullable\|numeric\|min:1\|max:9999.99` in both `Landlord\PropertyUnitController` and its API twin. **Never render the raw column** — the `decimal:2` cast makes `24` into `"24.00"`; every display site uses the `PropertyUnit::floor_area_label` accessor, which formats it as `24 sqm` / `24.5 sqm` and returns null when unset. "sqm" over the m² symbol to match how PH real estate listings write it |
-| is_furnished | BOOLEAN | NULLABLE | Added Aug 2026. `PropertyUnit` casts it `boolean`; NULL means "not answered" (pre-existing unit), not "unfurnished" — don't treat a null the same as `false` in any consumer |
-| bathroom_type | ENUM('Private bathroom','Shared bathroom') | NULLABLE | **No longer written or read (Sept 23 2026)** — the unit amenities (Private/Shared Bathroom, Private Kitchen) already say this and are what tenants see and filter on. Column left in place; existing values are ignored |
-| furnishing_status | ENUM('Furnished','Semi-furnished','Unfurnished') | NULLABLE | Added Sept 2026, alongside `is_furnished`. `is_furnished` (boolean, two-state) is kept for backward compatibility but the create/edit forms now capture this three-state field instead — new consumers should read `furnishing_status`, not `is_furnished` |
-| kitchen_type | ENUM('Private kitchen','Shared kitchen','No kitchen') | NULLABLE | **No longer written or read (Sept 23 2026)** — the unit amenities (Private/Shared Bathroom, Private Kitchen) already say this and are what tenants see and filter on. Column left in place; existing values are ignored |
-| pets_allowed | BOOLEAN | NULLABLE | **No longer written or read (Sept 23 2026)** — house rules are chosen once per property (`properties.house_rules`), not per unit. Column left in place; existing values are ignored |
-| smoking_allowed | BOOLEAN | NULLABLE | **No longer written or read (Sept 23 2026)** — house rules are chosen once per property (`properties.house_rules`), not per unit. Column left in place; existing values are ignored |
-| visitors_allowed | BOOLEAN | NULLABLE | **No longer written or read (Sept 23 2026)** — house rules are chosen once per property (`properties.house_rules`), not per unit. Column left in place; existing values are ignored |
-| description | TEXT | NULLABLE | |
-| rental_fee | DECIMAL(10,2) | NOT NULL | |
-| security_deposit | DECIMAL(8,2) | NULLABLE | Added July 27 2026. Required at the **application layer** on unit *creation* since Aug 20 2026 — every new unit must state a deposit, enforced in `Landlord\PropertyUnitController::store()`/`Api\Landlord\UnitWriteController::store()`. `2026_08_20_000000_backfill_security_deposit_on_property_units` set every then-NULL row to one month's rent so no pre-existing listing shows blank. **Optional on edit since Sept 2026** (`PropertyUnitController::update()` only) — a unit that genuinely charges no deposit can clear it; a submit that omits the field entirely leaves the existing value untouched rather than nulling it (guarded with `array_key_exists`, not `??`). Every display site treats null as "no deposit" explicitly (e.g. "No security deposit required" on the property page), never as ₱0 |
-| occupancy_limit | INT | NULLABLE | |
-| availability_status | ENUM('Available','Reserved','Occupied','Maintenance') | DEFAULT 'Available' | Maintenance added for unit form |
-| vacated_at | TIMESTAMP | NULLABLE | Occupancy tracking |
-| verification_status | ENUM('Pending','Approved','Rejected') | DEFAULT 'Pending' | Admin approval; reset to Pending on material edit |
-| rejection_reason | TEXT | NULLABLE | Admin rejection note |
-| created_at | TIMESTAMP | | |
-| updated_at | TIMESTAMP | | |
+The atomic rentable thing: a room, bedspace or whole apartment.
 
-**`unit_type`, `floor` and `security_deposit` were missing for months and were finally created July 27 2026** by `2026_07_27_000000_add_unit_type_floor_security_deposit_to_property_units`. The original cause was a **misnamed migration**: `2026_07_18_022220_add_unit_type_floor_deposit_description_to_property_units` promises all four in its filename, but its body contains a single `ALTER TABLE ... MODIFY COLUMN availability_status` adding the `Maintenance` enum member and nothing else. It was recorded in `migrations` as run (batch 1), so `migrate` reported nothing outstanding and `migrate:fresh` reproduced the gap exactly — which is why a *new* migration was needed rather than a re-run.
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| unit_id | bigint unsigned | NN | PK | |
+| property_id | bigint unsigned | NN | FK → properties, cascade | Index `property_units_bookable_index` |
+| unit_label | varchar(255) | NN | | e.g. "Room A", "Bed 3" |
+| floor | varchar(50) | null | | |
+| bedrooms | tinyint unsigned | null | | |
+| bathrooms | tinyint unsigned | null | | |
+| floor_area_sqm | decimal(6,2) | null | | Render via `PropertyUnit::floor_area_label`, never the raw column |
+| furnishing_status | enum('Furnished','Semi-furnished','Unfurnished') | null | | Null = not answered |
+| description | text | null | | |
+| rental_fee | decimal(10,2) | NN | | |
+| security_deposit | decimal(8,2) | null | | Null = "no deposit", never ₱0. Required on create; optional on edit |
+| occupancy_limit | int unsigned | NN | | |
+| availability_status | enum('Available','Reserved','Occupied','Maintenance') | null, = 'Available' | | Cached from reservations; see §3 |
+| vacated_at | timestamp | null | | |
+| verification_status | enum('Pending','Approved','Rejected') | NN, = 'Pending' | | Reset to Pending on a material edit |
+| rejection_reason | varchar(500) | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-Until then: `PropertyUnit::$fillable` declared all three and `Landlord\PropertyUnitController::store()/update()` validated and wrote them, so **creating a unit threw `SQLSTATE[42S22] Unknown column 'unit_type'`**. Reads failed silently instead — a missing attribute returns null — so `agreements/show`'s "Security deposit" row could never render, `OccupancyController` reported null deposits, the units CSV exported blanks, and `properties/show`'s unit payload sent `deposit: null` to the cost breakdown. All of those now carry real values for units created after the fix; units that predate it (seeder rows) have NULL in the three columns, which every consumer already handles.
-
-Column sizes were taken from the validation the controllers were already enforcing (`string|max:50` ×2, `numeric|max:999999.99`), not chosen fresh.
-
-**Do not trust a migration by its filename.** This one was cross-checked against `Schema::hasColumn` before this entry was written; the previous version of this table was written from the filename alone and was wrong for months.
+Rules:
+- A change to `availability_status` from any path is logged to `occupancy_activities` by `PropertyUnitObserver`.
+- `furnishing_status` null means "not answered", not "unfurnished".
+- Validation of `security_deposit` on edit uses `array_key_exists`, so omitting the field leaves the value alone.
 
 ### property_media
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| media_id | BIGINT UNSIGNED | PK | `$primaryKey = 'media_id'` — verify this is set |
-| property_id | FK → properties.property_id | NOT NULL | |
-| media_type | ENUM('Image','Video') | NOT NULL | |
-| media_url | VARCHAR(255) | NOT NULL | Cloudinary URL — output as-is, never wrap in `Storage::url()` |
+Property-level photos and videos. `media_url` is a Cloudinary URL: output as-is, never wrap in `Storage::url()`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| media_id | bigint unsigned | NN | PK | |
+| property_id | bigint unsigned | NN | FK → properties, cascade | |
+| media_type | enum('Image','Video') | NN | | |
+| media_url | varchar(255) | NN | | |
+| cloudinary_public_id | varchar(255) | null | | For deleting the Cloudinary file |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
 ### unit_media
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| media_id | BIGINT UNSIGNED | PK | `$primaryKey = 'media_id'` |
-| unit_id | FK → property_units.unit_id | NOT NULL | onDelete cascade |
-| media_type | ENUM('Image','Video') | NOT NULL | Filter to 'Image' for image galleries — videos must not render in `<img>` |
-| media_url | VARCHAR(255) | NOT NULL | Cloudinary URL — output as-is |
-| source | ENUM('camera','upload') | DEFAULT 'upload' | 'camera' = live in-browser capture, purely informational (shown as a "Live" badge) — landlord's free choice since Sept 2026, no longer a required minimum. Unit still needs ≥3 photos total, any source |
-| caption | VARCHAR(150) | NULLABLE | Optional per-photo caption, shown to tenants |
-| created_at | TIMESTAMP | | |
-| updated_at | TIMESTAMP | | |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| media_id | bigint unsigned | NN | PK | |
+| unit_id | bigint unsigned | NN | FK → property_units, cascade | |
+| media_type | enum('Image','Video') | NN | | Filter to `Image` for galleries; videos must not render in `<img>` |
+| media_url | varchar(255) | NN | | Cloudinary URL, output as-is |
+| cloudinary_public_id | varchar(255) | null | | Used to delete the Cloudinary asset; null on rows that predate it (deletion then falls back to guessing it from the URL) |
+| source | enum('camera','upload') | NN, = 'upload' | | Informational "Live" badge; a unit needs ≥3 photos from any source |
+| caption | varchar(150) | null | | Shown to tenants |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
 ### amenities
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| amenity_id | BIGINT UNSIGNED | PK | `$primaryKey = 'amenity_id'` |
-| amenity_name | VARCHAR(255) | NOT NULL | |
-| scope | ENUM('property','unit','both') | DEFAULT 'both' | Added Aug 2026. Display filter only — `Amenity::forProperty()`/`forUnit()` scopes, each also returning `both`. Not enforced in validation, so a later reclassification never breaks previously-saved data |
-| category | VARCHAR(50) | NULLABLE | Added Aug 2026. Groups the checkbox UI on both the property and unit forms — `AmenitySeeder` is the source of truth |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| amenity_id | bigint unsigned | NN | PK | |
+| amenity_name | varchar(255) | NN | UNIQUE | `Amenity` exposes a `name` accessor |
+| scope | enum('property','unit','both') | NN, = 'both' | | Display filter only, not enforced in validation |
+| category | varchar(50) | null | | Groups the form checkboxes; `AmenitySeeder` is the source of truth |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-### property_amenities (pivot)
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| property_id | FK → properties.property_id | | Composite key |
-| amenity_id | FK → amenities.amenity_id | | `belongsToMany` needs all 4 args |
+### property_amenities
+Pivot. The property form syncs only `scope = property` amenities here.
 
-**No longer empty (as of Aug 2026).** Was 0 rows/no landlord-facing form through July 2026 (see the superseded note this replaces). `PropertyController::store()`/`update()` now sync `amenities[]` here directly, restricted by the form to `scope = property` amenities. A one-time migration (`promote_building_amenities_to_properties`) seeded it by moving every `scope = property` row already sitting in `unit_amenities` up to the unit's property (deduped per property) and deleting the unit-side row — so existing landlords' building-level tags (Water Dispenser, 24/7 Security, CCTV, etc.) didn't just vanish when the two concepts split. `properties/show` now renders this as its own "Building amenities" section, separate from the per-unit list (DESIGN.md §6e). `Property::amenities()` is safe to eager-load again.
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| property_id | bigint unsigned | NN | PK, FK → properties, cascade | |
+| amenity_id | bigint unsigned | NN | PK, FK → amenities, cascade | `belongsToMany` needs all four args |
 
-### unit_amenities (pivot)
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| unit_id | FK → property_units.unit_id | | Joseph's table |
-| amenity_id | FK → amenities.amenity_id | | |
+### unit_amenities
+Pivot, live (the one `PropertyUnit` uses).
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| unit_id | bigint unsigned | NN | PK, FK → property_units, cascade | |
+| amenity_id | bigint unsigned | NN | PK, FK → amenities, cascade | |
+
+### property_unit_amenities
+Orphan pivot. 0 rows, no code reads it. See §4.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| unit_id | bigint unsigned | NN | PK, FK → property_units, cascade | |
+| amenity_id | bigint unsigned | NN | PK, FK → amenities, cascade | |
+
+## 2. Tables — Tenancy
 
 ### reservations
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| reservation_id | BIGINT UNSIGNED | PK | `$primaryKey = 'reservation_id'` |
-| property_id | FK → properties.property_id | NULLABLE | |
-| unit_id | FK → property_units.unit_id | NULLABLE | Unit-grain reservations |
-| tenant_id | FK → users.user_id | NOT NULL | |
-| reservation_date | DATE | NOT NULL | |
-| target_move_in_date | DATE | NULLABLE | Negotiated. Clock 1 derives from it — see below |
-| target_move_out_date | DATE | NULLABLE | |
-| duration_of_stay | VARCHAR | NULLABLE | **Dead as of Aug 20 2026.** Nothing in the live app writes to this column anymore — `Reservation::getDurationOfStayAttribute()` is an Eloquent accessor of the same name that shadows it, deriving "6 months" / "Open-ended" from `target_move_in_date`/`target_move_out_date` instead. Every read site (`ReservationResource`, tenant/landlord reservation lists, admin detail) keeps working unchanged since accessors take precedence over the raw attribute. Only dev fixtures (`ReservationSeeder`, `BuildsEscrowFixtures`) still touch the raw column, and even those now set dates rather than free text |
-| agreed_monthly_rent | DECIMAL(10,2) | NULLABLE | Rent negotiated for this tenancy; the ledger's "expected". Falls back to `unit->rental_fee` via `Reservation::monthlyRent()`. Added July 24 2026 for walk-ins whose door rent differs from the listed price |
-| rent_due_day | TINYINT UNSIGNED | NULLABLE | Day of month rent falls due (1–28). Falls back to the move-in day via `Reservation::rentDueDay()`, clamped to 28 so it exists in February |
-| occupants_count | INT | NULLABLE | |
-| rental_status | VARCHAR | DEFAULT 'Inquiry' | Inquiry → Under Negotiation → Pending Rental Agreement → Rental Agreement Signed → Occupied → **Completed**; or Rejected / Cancelled. `Completed` (July 24 2026) is the end-of-tenancy terminal state; before it an Occupied reservation had no exit and held its unit forever. **`Reservation::TERMINAL_STATUSES` = `['Cancelled','Rejected','Completed']`** is the single source every "is this unit spoken for" query filters on — see RULES.md note on the audit |
-| agreement_terms_notes | TEXT | NULLABLE | Landlord's extra lease terms ("Additional terms" clause) |
-| lease_snapshot | JSON | NULLABLE | Added Sept 28 2026. The lease terms frozen when issued — `advanceToPendingAgreement()` (online) or walk-in save — built by `App\Support\LeaseTerms::snapshot()`. The lease renders from this so editing the property later can't rewrite a signed document. **Null on rows issued before it existed; those render live** via `LeaseTerms::for()` |
-| lease_file_path / lease_file_name | VARCHAR | NULLABLE | Signed paper copy (walk-in, or any tenancy), private `local` disk under `leases/{landlord_id}/`, served only by `Landlord\LeaseController::file`. Replacing deletes the old file |
-| lease_uploaded_at | TIMESTAMP | NULLABLE | `Reservation::leaseStatus()` = `uploaded` / `signed_online` (`agreed_at`) / `missing` |
-| agreed_at / agreed_ip | TIMESTAMP / VARCHAR | NULLABLE | Set by `signAgreement()` |
-| landlord_tc_accepted_at | TIMESTAMP | NULLABLE | |
-| tenant_tc_accepted_at | TIMESTAMP | NULLABLE | |
-| tenant_confirmed_move_in_at | TIMESTAMP | NULLABLE | **Only** written by a genuine tenant confirmation — never by auto-expiry or admin release |
-| keys_turned_over_at | TIMESTAMP | NULLABLE | Turnover assertion. Null = Clock 1 running, set = Clock 2 running |
-| move_in_deadline_at | TIMESTAMP | NULLABLE | Whichever clock is active. Null = no clock |
-| move_in_disputed_at | TIMESTAMP | NULLABLE | Non-null = frozen, in the admin review queue |
-| move_in_dispute_reason | TEXT | NULLABLE | Tenant's own words, or the system sentence on a Clock 1 timeout |
-| move_in_last_reminder_on | DATE | NULLABLE | Per-day idempotency guard on reminders |
-| handover_at | TIMESTAMP | NULLABLE | The agreed key-handover slot. Once confirmed it becomes Clock 1's basis instead of `target_move_in_date` |
-| handover_proposed_by | FK → users.user_id | NULLABLE | Who put the current slot up — the *other* party is the one who may confirm it |
-| handover_proposed_at | TIMESTAMP | NULLABLE | When the current proposal was made |
-| handover_confirmed_at | TIMESTAMP | NULLABLE | Null = proposed only. Set = both agreed, and only then does the slot move `move_in_deadline_at` |
-| rejection_reason | TEXT | NULLABLE | |
-| remarks | TEXT | NULLABLE | |
-| created_at | TIMESTAMP | | |
-| updated_at | TIMESTAMP | | |
+One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquiry → Under Negotiation → Pending Rental Agreement → Rental Agreement Signed → Occupied → Completed, or ends Rejected / Cancelled.
 
-Index `reservations_move_in_deadline_index` on `(move_in_deadline_at, move_in_disputed_at)` — the nightly command scans on both together.
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| reservation_id | bigint unsigned | NN | PK | |
+| property_id | bigint unsigned | NN | FK → properties, cascade | Copy of the unit's property; index `(property_id, rental_status)` |
+| unit_id | bigint unsigned | null | FK → property_units, cascade | Index `(unit_id, rental_status)` |
+| tenant_id | bigint unsigned | NN | FK → users, cascade | Index `(tenant_id, rental_status)` |
+| conversation_id | bigint unsigned | null | FK → conversations, set null | The inquiry thread |
+| reservation_date | date | NN | | |
+| target_move_in_date | date | null | | Clock 1 derives from it until a handover is confirmed |
+| target_move_out_date | date | null | | |
+| duration_of_stay | varchar(255) | null | | Dead — the accessor of the same name shadows it |
+| agreed_monthly_rent | decimal(10,2) | null | | The ledger's "expected"; `monthlyRent()` falls back to `unit->rental_fee` |
+| rent_due_day | tinyint unsigned | null | | 1–28; `rentDueDay()` falls back to the move-in day |
+| occupants_count | int | null | | |
+| rejection_reason | text | null | | |
+| rental_status | enum('Inquiry','Under Negotiation','Pending Rental Agreement','Rental Agreement Signed','Reserved','Occupied','Completed','Rejected','Cancelled') | NN, = 'Inquiry' | | `Reservation::STATUSES`. `Reserved` = a walk-in waiting for its move-in date |
+| agreement_terms_notes | text | null | | Landlord's extra lease clause |
+| lease_snapshot | json | null | | Terms frozen at issue by `LeaseTerms::snapshot()`; null on older rows, which render live via `LeaseTerms::for()` |
+| lease_file_path | varchar(255) | null | | Signed paper copy, private disk |
+| lease_file_name | varchar(255) | null | | |
+| lease_uploaded_at | timestamp | null | | |
+| agreed_at | timestamp | null | | Set by `signAgreement()` |
+| agreed_ip | varchar(255) | null | | |
+| landlord_tc_accepted_at | timestamp | null | | |
+| tenant_tc_accepted_at | timestamp | null | | |
+| tenant_confirmed_move_in_at | timestamp | null | | Only a genuine tenant confirmation writes this |
+| keys_turned_over_at | timestamp | null | | The clock switch: null = Clock 1, set = Clock 2 |
+| move_in_deadline_at | timestamp | null | index with `move_in_disputed_at` | Whichever clock is active; null = no clock |
+| move_in_disputed_at | timestamp | null | | Non-null = frozen in the admin queue |
+| move_in_dispute_reason | text | null | | |
+| move_in_last_reminder_on | date | null | | Per-day reminder guard |
+| handover_at | timestamp | null | | Agreed key-handover slot |
+| handover_proposed_by | bigint unsigned | null | FK → users, set null | The *other* party confirms |
+| handover_proposed_at | timestamp | null | | |
+| handover_confirmed_at | timestamp | null | | Only a confirmed slot moves `move_in_deadline_at` |
+| remarks | text | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-**One deadline column, two clocks.** `keys_turned_over_at` is the switch: null means the deadline belongs to the landlord (turn over the keys), set means it belongs to the tenant (confirm move-in). Any code reading `move_in_deadline_at` must check which clock it is looking at — `Reservation::isTurnoverClock()` exists for exactly this.
-
-### conversations
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| conversation_id | BIGINT UNSIGNED | PK | `$primaryKey = 'conversation_id'` — permanent, no schema swap |
-| tenant_id | FK → users.user_id | NOT NULL | |
-| landlord_id | FK → users.user_id | NOT NULL | |
-| property_id | FK → properties.property_id | NOT NULL | |
-| unit_id | FK → property_units.unit_id | NULLABLE, `nullOnDelete` | Updated in place if the tenant inquires on a different unit within the same live thread |
-| type | VARCHAR(20) | default `'inquiry'` | Oct 14 2026. `inquiry` (the deal chat) \| `tenancy` (the chat between a tenant who has moved in and their landlord, holds concern cards). Unique key is `(tenant_id, landlord_id, property_id, type)`, so one of each per tenant, landlord and property |
-| reservation_id | FK → reservations.reservation_id | NULLABLE, `nullOnDelete` | Set on `tenancy` threads only: the tenancy it is about. Renting the same property again reuses the thread and re-points this |
-| status | STRING | default `'Open'` | `Open` \| `Resolved` \| `Cancelled`. On a tenancy thread, `Resolved` means the tenancy ended and the thread is read-only; it is never `Cancelled` |
-| created_at | TIMESTAMP | | |
-| updated_at | TIMESTAMP | | |
-
-### messages
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| message_id | BIGINT UNSIGNED | PK | `$primaryKey = 'message_id'`, `$timestamps = false` |
-| conversation_id | FK → conversations.conversation_id | NOT NULL | |
-| sender_id | FK → users.user_id | NULLABLE | Null only for `is_system` narration rows (`Reservation::postSystemMessage()`) |
-| message | TEXT | NOT NULL | |
-| is_system | BOOLEAN | default `false` | Status-narration bubble (centered divider), no sender shown |
-| is_inquiry_summary | BOOLEAN | default `false` | Aug 2026 — the first message on a reservation's conversation; renders as the property/rent/dates card in the thread instead of a plain bubble. Always created (not conditional on the tenant typing a note) by both the web and API `Tenant\ReservationController::store()` |
-| concern_id | FK → tenant_concerns.concern_id | NULLABLE, `nullOnDelete` | Oct 14 2026. On a concern's card message, and on the system lines that narrate its status changes |
-| is_read | BOOLEAN | default `false` | |
-| sent_at | TIMESTAMP | `useCurrent()` | Set in `Message::booted()`, not by the DB default, so it can be backdated by fixtures |
-
-### tenant_concerns
-Something a current tenant reported to their landlord, shown as a card in the tenancy chat (Oct 14 2026).
-
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| concern_id | BIGINT UNSIGNED | PK | `$primaryKey = 'concern_id'` |
-| conversation_id | FK → conversations.conversation_id | NOT NULL, cascade | Always a `tenancy` thread |
-| reservation_id | FK → reservations.reservation_id | NOT NULL, cascade | |
-| tenant_id | FK → users.user_id | NOT NULL, cascade | |
-| category | VARCHAR(30) | NOT NULL | One of `TenantConcern::CATEGORIES` |
-| description | TEXT | NOT NULL | Max 1000 chars (validated) |
-| photos | JSON | NULLABLE | `[{url, public_id}]`, max 3, Cloudinary folder `abanganan/concerns` |
-| status | VARCHAR(20) | default `'Open'` | `Open` \| `In Progress` \| `Fixed`. Landlord moves it to In Progress / Fixed; the tenant can only reopen a Fixed one |
-| fixed_at | TIMESTAMP | NULLABLE | Set on Fixed, cleared on reopen |
-| created_at / updated_at | TIMESTAMP | | |
-
-Index `(reservation_id, status)`.
-
-### favorites
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| favorite_id | BIGINT UNSIGNED | PK | `$primaryKey = 'favorite_id'` |
-| tenant_id | FK → users.user_id | NOT NULL | |
-| property_id | FK → properties.property_id | NOT NULL | |
-| created_at | TIMESTAMP | | |
-
-### reviews
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| review_id | BIGINT UNSIGNED | PK | `$primaryKey = 'review_id'` |
-| tenant_id | FK → users.user_id | NOT NULL | |
-| property_id | FK → properties.property_id | NOT NULL | |
-| landlord_id | FK → users.user_id | NOT NULL | Which landlord owns the property; lets reviews roll up to a landlord score |
-| rating | TINYINT UNSIGNED | NOT NULL | 1–5 |
-| review_comment | TEXT | NULLABLE | Audit: remove test comment "hahaha suled" before defense |
-| landlord_reply | TEXT | NULLABLE | Landlord's reply to the review |
-| landlord_replied_at | TIMESTAMP | NULLABLE | |
-| is_hidden | BOOLEAN | DEFAULT false | Admin-moderated; excluded from every average |
-| created_at / updated_at | TIMESTAMP | | |
-
-`unique(tenant_id, property_id)` — one review per tenant per property.
-
-**Reviews are PROPERTY-grain, not unit-grain** (verified against the migration July 24 2026 — there is **no `unit_id` column**). This table and the relationships list below claimed unit-grain reviews for months; they were wrong, the same filename-vs-body trap as `add_unit_type_floor_deposit_description_to_property_units`. The Overall Ratings feature therefore reports tenant→property (and rolls it up to landlord by `landlord_id`); tenant→unit is deferred until a real `unit_id` is added. `tenant→landlord` and `tenant→property` share this one source. `User::landlordRatingSummary()` aggregates it (hidden excluded).
-
-### reports
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| report_id | BIGINT UNSIGNED | PK | `$primaryKey = 'report_id'` |
-| reporter_id | FK → users.user_id | NOT NULL | |
-| property_id | FK → properties.property_id | NULLABLE | |
-| reported_user_id | FK → users.user_id | NULLABLE | |
-| report_reason | TEXT | NOT NULL | |
-| report_status | ENUM('Pending','Resolved') | DEFAULT 'Pending' | |
-| created_at | TIMESTAMP | | |
-
-### complaints
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| complaint_id | BIGINT UNSIGNED | PK | `$primaryKey = 'complaint_id'` |
-| (schema per implementation) | | | Modules 12.1–12.4 completed |
-
-### notifications
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| notification_id | BIGINT UNSIGNED | PK | `$primaryKey = 'notification_id'` |
-| user_id | FK → users.user_id | NOT NULL | |
-| title | VARCHAR(255) | NOT NULL | |
-| message | TEXT | NOT NULL | |
-| link | VARCHAR(255) | NULLABLE | Destination URL. Added July 21, 2026 — notifications previously had no target of their own, so anything that wasn't a message notification fell back to the index |
-| type | VARCHAR(255) | DEFAULT 'system' | reservation / agreement / payment / verification / listing / review / report / account — drives the dropdown's icon and tint |
-| is_read | BOOLEAN | DEFAULT FALSE | |
-| created_at | TIMESTAMP | | |
-
-### payments
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| payment_id | BIGINT UNSIGNED | PK | `$primaryKey = 'payment_id'` |
-| reservation_id | FK → reservations.reservation_id | NOT NULL, cascade | |
-| payment_type | ENUM('Initial','Monthly','Deposit','Utility','Other') | NOT NULL | Widened July 24 2026. **`Monthly` went live** with the rent ledger — it and `billing_period` were in the schema from day one and had never been written by any code until then |
-| billing_period | DATE | NULLABLE | The month a `Monthly` payment settles. The rent ledger derives its periods and matches payments to a month on this — required for `Monthly`, null otherwise |
-| amount | DECIMAL(10,2) | NOT NULL | Serializes as a **string** — `parseFloat()` client-side |
-| payment_method | ENUM('GCash','QRPh','Cash','Bank Transfer','Maya','Check','Other') | NOT NULL | Widened July 24 2026 (offline methods) and July 26 2026 (QRPh online). Escrow uses GCash/QRPh via PayMongo; the rest are for landlord-recorded offline payments |
-| paymongo_payment_intent_id | VARCHAR | NULLABLE, UNIQUE | |
-| paymongo_payment_id | VARCHAR | NULLABLE | |
-| paymongo_checkout_session_id | VARCHAR | NULLABLE, UNIQUE | |
-| status | ENUM('Pending','Paid','Held','Released','Failed','Refunded','Voided') | DEFAULT 'Pending' | `Held` = escrow. **`Paid` went live July 24 2026** — a landlord-recorded offline payment (rent ledger), money already received, never escrowed. It counts as revenue (`AnalyticsController::EARNED_STATUSES = ['Paid','Held','Released']`) and can never be released (`Admin\PaymentController::release` refuses anything not `Held`). **No code writes `Refunded`** — there is no refund action. **`Voided`** (Aug 31 2026) is a landlord striking their own wrongly-entered row — the original stays on record with a reason, actor and timestamp, never deleted. It is deliberately absent from `RentLedger::SETTLED_STATUSES` and `AnalyticsController::EARNED_STATUSES` **by design, not by an added guard**: both were already whitelists, so the new member falls out of every settlement/revenue calculation with zero changes to either class. See `Landlord\PaymentController::void()` and `plans/void-correct-payments.md` |
-| paid_at | TIMESTAMP | NULLABLE | Clock 1 falls back to this when there is no target move-in date |
-| released_at | TIMESTAMP | NULLABLE | |
-| released_by | BIGINT UNSIGNED | NULLABLE | Admin user id, or null when the platform released it |
-| release_reason | ENUM('tenant_confirmed','auto_expiry','admin_manual') | NULLABLE | |
-| recorded_by | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who typed this payment in. **Null = platform-settled (PayMongo); non-null = landlord-asserted.** The only field that distinguishes the two — same role `release_reason` plays for releases. Drives the "Recorded by landlord" badge on the admin payments screen. Added July 24 2026 |
-| reference_no | VARCHAR | NULLABLE | OR number / GCash reference for a recorded payment |
-| payment_notes | TEXT | NULLABLE | Free-text note on a recorded payment |
-| payout_status | ENUM('Pending Payout','Paid Out') | NULLABLE | Added July 26 2026. Null = not payout-eligible (most rows — `Pending`/`Held`/`Failed`, or landlord-recorded offline payments, which need no platform payout). Set to `Pending Payout` the instant a payment becomes money owed to a landlord (initial payment `Released`, or `Paid` monthly rent), by every code path that writes those statuses. See `docs/specs/2026-07-26-landlord-payout-design.md` |
-| paid_out_at | TIMESTAMP | NULLABLE | When an admin recorded the manual GCash transfer as sent |
-| paid_out_by | FK → users.user_id | NULLABLE, nullOnDelete | Admin who recorded the payout |
-| payout_reference | VARCHAR | NULLABLE | The GCash transaction reference the admin typed in after sending |
-| voided_at | TIMESTAMP | NULLABLE | Added Aug 31 2026. Null = never voided |
-| voided_by | FK → users.user_id | NULLABLE, nullOnDelete | The landlord who struck this entry |
-| void_reason | ENUM('wrong_amount','wrong_month','wrong_tenancy','duplicate','not_received','other') | NULLABLE | Named cause, not free text — same role `release_reason` plays for releases: the field a disputed ledger is argued from later |
-| void_note | VARCHAR(255) | NULLABLE | Required only when `void_reason = 'other'` |
-| replaces_payment_id | FK → payments.payment_id | NULLABLE, nullOnDelete | Set on the **new** row a "void and correct" flow writes, pointing back at the voided one — never the reverse, since one voided row can be replaced by several rows when `RentPaymentAllocator` splits the correction across months |
-
-Index `payments_reservation_period_index` on `(reservation_id, billing_period)` — the rent ledger's per-period lookup. Index on `payout_status` for the admin payouts queue.
-
-**Advance rent has no column and no enum member of its own (Aug 29 2026).** Rent paid ahead is
-stored as ordinary `Monthly` rows whose `billing_period` is a *future* month — the same shape
-`RentLedger` already reads, so a prepaid month settles through the identical code path as any other.
-A single `Advance`-typed row was considered and rejected: with no `billing_period` it would fall into
-`RentLedger::otherCharges()` and settle nothing, which is exactly the bug that made a walk-in
-tenant's move-in month read Overdue the day after they paid for it. **Do not add an `Advance` member
-to `payment_type`.**
-
-Consequently `RentLedger`'s period window reaches forward past the current month, but **only over
-months that already carry a payment**, and every period carries `is_future`. `summary()` excludes
-future periods from `outstanding`, `overdueCount`, `overdueAmount` and `nextDue`, and
-`unsettledPeriods()` drops them too — otherwise an overpayment that isn't a whole multiple of the
-rent would report the tenant as in arrears on a month nobody has reached yet. Anything new reading a
-period must decide what `is_future` means for it rather than treating every row as money owed.
-
-**Walk-in move-in money is written as several rows, not one (Aug 29 2026).** `Landlord\WalkInTenantController`
-and its API twin share `Concerns\RecordsMoveInPayments`, which runs `App\Support\MoveInPaymentBreakdown`
-over the single amount the landlord typed: deposit first, then rent month by month from the move-in
-month forward. All rows carry the same `payment_method`, `paid_at`, `reference_no` and `recorded_by` —
-they are one collection event split by purpose, and must never render as though the tenant paid
-several separate times. Rows written before this change are single `Initial` rows and were
-deliberately **not** backfilled: nothing in them records how much was rent versus deposit, so any
-split would be invented data on a money table.
-
-**The rent ledger has no schedule table.** A billing period is derived: a month between move-in and move-out, settled by a `Monthly` payment whose `billing_period` falls in it (`App\Services\RentLedger`). Editing rent, due day or move-out date can't leave stale rows because there are none — `payments` is the only stored fact. Serves walk-in and platform tenancies identically; the escrow only ever covered the initial payment.
-
-`released_by` is null for **both** a tenant confirmation and a timer expiry, so it cannot distinguish them on its own — `release_reason` is what carries that, and it is the field a disputed payout is argued from months later. Its three values are written by exactly three paths: `Reservation::confirmMoveIn()`, `ProcessMoveInDeadlines::releaseExpiredConfirmations()`, and `Admin\PaymentController::release()`.
-
-### tenant_ratings
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| rating_id | BIGINT UNSIGNED | PK | `$primaryKey = 'rating_id'` |
-| reservation_id | FK → reservations.reservation_id | UNIQUE, NOT NULL, cascade | One rating per reservation |
-| landlord_id | FK → users.user_id | NOT NULL | The rater |
-| tenant_id | FK → users.user_id | NOT NULL | The rated tenant |
-| rating | TINYINT UNSIGNED | NOT NULL | 1–5 |
-| comment | TEXT | NULLABLE | |
-| created_at / updated_at | TIMESTAMP | | |
-
-Landlord → tenant. **Collected since mid-2026 but never displayed until the Overall Ratings feature (July 24 2026)** — a tenant's received rating now surfaces on their profile, in the admin user detail, and in the admin `/admin/ratings` overview. `User::tenantRatingSummary()` aggregates it; `User::tenantRatingsReceived()` / `tenantRatingsGiven()` are the relations. Fixtures: `php artisan ratings:scenarios` (dev-only, `--clean`) seeds this table plus `reviews`, since the seeder ships neither.
-
-### rent_reminders
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| reminder_id | BIGINT UNSIGNED | PK | `$primaryKey = 'reminder_id'` |
-| reservation_id | FK → reservations.reservation_id | NOT NULL, cascade | |
-| billing_period | DATE | NOT NULL | The month the reminder is about |
-| milestone | VARCHAR(20) | NOT NULL | `due_soon` / `due_today` / `overdue_w1..wN` |
-| created_at | TIMESTAMP | | No `updated_at` — written once, never changed (`RentReminder::UPDATED_AT = null`) |
-
-`unique(reservation_id, billing_period, milestone)` (`rent_reminders_unique_milestone`). Idempotency guard for `reservations:process-rent-reminders` (July 24 2026): each fired milestone records one row, so a missed or repeated nightly run can't gap or double-notify. Same role the escrow loop's `move_in_last_reminder_on` plays, generalised to many periods per tenancy. `RentReminder::firstOrCreate(...)->wasRecentlyCreated` is the send gate.
-
-### occupancy_snapshots
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| snapshot_id | BIGINT UNSIGNED | PK | `$primaryKey = 'snapshot_id'` |
-| landlord_id | FK → users.user_id | NOT NULL | |
-| snapshot_date | DATE | NOT NULL | `unique(landlord_id, snapshot_date)` |
-| total_units / available_units / reserved_units / occupied_units / maintenance_units | INT | DEFAULT 0 | |
-| occupancy_rate | DECIMAL(5,2) | DEFAULT 0 | From `OccupancyRateCalculator` |
-| created_at / updated_at | TIMESTAMP | | |
-
-Written daily by the `occupancy:snapshot` command (scheduled 23:55). `updateOrCreate` on (landlord_id, date) so re-running is idempotent.
-
-**Write-only since July 26 2026, deliberately.** Its only reader was the occupancy trend chart, which was removed from `landlord/occupancy` (see ARCHITECTURE.md's decision log). The command still runs because occupancy history cannot be reconstructed after the fact — `property_units` stores only each unit's *current* status — so stopping it would permanently foreclose bringing a trend back. **Do not prune this table or its command as dead code.**
-
-Known inconsistency, unresolved: `SnapshotOccupancy` counts *all* units, while the `occupancy_rate` it stores comes from `OccupancyRateCalculator`, which counts only `verification_status = 'Approved'` ones. So `occupancy_rate` will not equal `occupied_units / total_units` for any landlord with unapproved units. Settle this before anything reads the table again.
-
-### occupancy_activities
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| activity_id | BIGINT UNSIGNED | PK | `$primaryKey = 'activity_id'` |
-| landlord_id | FK → users.user_id | NOT NULL | |
-| property_id | FK → properties.property_id | NOT NULL | |
-| unit_id | FK → property_units.unit_id | NOT NULL | onDelete cascade |
-| actor_id | FK → users.user_id | NULLABLE | Who triggered the change (null for system/CLI) |
-| tenant_id | FK → users.user_id | NULLABLE | Tenant involved, if any |
-| from_status | VARCHAR(20) | NULLABLE | |
-| to_status | VARCHAR(20) | NOT NULL | |
-| created_at / updated_at | TIMESTAMP | | `index(landlord_id, created_at)` |
-
-Written by `PropertyUnitObserver` whenever a unit's `availability_status` changes (any path); feeds the Recent Activities feed.
-
-### audit_logs
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| log_id | BIGINT UNSIGNED | PK | `$primaryKey = 'log_id'` |
-| actor_id | FK → users.user_id | NULLABLE | **`onDelete('set null')` — the one user FK in this schema that does NOT cascade** |
-| actor_name | VARCHAR(255) | NOT NULL | Snapshot, so the row survives the account |
-| actor_email | VARCHAR(255) | NOT NULL | Snapshot |
-| action | VARCHAR(60) | NOT NULL | `'payment.release'` — see `AuditLog::ACTION_LABELS` |
-| auditable_type | VARCHAR(255) | NULLABLE | Laravel morph; null when the target was deleted |
-| auditable_id | BIGINT UNSIGNED | NULLABLE | |
-| summary | VARCHAR(255) | NOT NULL | Human sentence, rendered verbatim |
-| reason | TEXT | NULLABLE | Rejection reason / admin note |
-| metadata | JSON | NULLABLE | Before/after values, amounts; cast to `array` |
-| ip_address | VARCHAR(45) | NULLABLE | 45 chars fits IPv6 |
-| created_at | TIMESTAMP | NULLABLE | **No `updated_at`** — `const UPDATED_AT = null` |
-
-Indexes: `created_at`, `(action, created_at)`, `(auditable_type, auditable_id)`.
-
-**Append-only.** Rows are written by `AuditLog::record()` called from inside the acting controller's
-existing `DB::transaction()` + `lockForUpdate()` block, so a rolled-back action leaves no phantom row
-and a 409 on the idempotency guard doesn't log twice (verified July 26 2026). Nothing updates or
-deletes an audit row — there is no route, controller method, or UI affordance for it, deliberately.
-
-**Why `set null` and not `cascade`:** every other FK to `users.user_id` cascades (see §Hard deletes in
-RULES.md). An audit log must not — deleting a user would erase exactly the history proving what they
-did. `actor_name`/`actor_email` are denormalized at write time so the row stays readable once the FK
-is nulled; the index view shows an "Account deleted" note when `actor_id` is null.
-
-Instrumented actions (15) live in `AuditLog::ACTION_LABELS`; the destructive subset that renders with
-a red pill is `AuditLog::DESTRUCTIVE_ACTIONS`. **When adding a new consequential admin action, add its
-key to `ACTION_LABELS` and call `AuditLog::record()` inside that action's transaction** — the filter
-dropdown reads from the same constant, so an unlisted action is invisible to the filter.
-
-### settings
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| setting_id | BIGINT UNSIGNED | PK | `$primaryKey = 'setting_id'` |
-| key | VARCHAR(100) | UNIQUE, NOT NULL | Must exist in `Setting::DEFINITIONS` or it is refused |
-| value | TEXT | NOT NULL | Cast per the key's `type` — `integer`, or `integer_list` stored comma-separated |
-| created_at / updated_at | TIMESTAMP | | |
-
-**Overrides only.** A key with no row falls through to `config/rentals.php`, which stays the defaults
-*and* the documentation for what each key means. Clearing a field in the admin form **deletes** the row
-rather than writing a copy of the default, so a key is never silently pinned to today's default.
-
-`Setting::overrides()` is `Cache::rememberForever`'d under `settings.rentals.overrides` and busted by
-`Setting::put()`, so the boot-time merge in `AppServiceProvider` costs a cache read, not a query. Only
-the 10 keys in `Setting::DEFINITIONS` are editable; each declares its type, validation rule, label,
-help text and group, and both the form and `UpdateSettingsRequest` derive from that one map.
-
-Every change writes a `settings.update` audit row with a `label => 'before → after'` metadata entry per
-changed key, inside the same transaction as the writes.
+Rules:
+- `Reservation::TERMINAL_STATUSES` (`Cancelled`, `Rejected`, `Completed`) is the single source for every "is this unit spoken for" query.
+- `move_in_deadline_at` is one column with two clocks. Check `Reservation::isTurnoverClock()` before reading it.
+- `Reservation::leaseStatus()` is `uploaded` / `signed_online` (`agreed_at`) / `missing`.
+- `Completed` is the end-of-tenancy state; without it an Occupied reservation holds its unit forever.
 
 ### viewing_requests
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| viewing_id | BIGINT UNSIGNED | PK | `$primaryKey = 'viewing_id'` |
-| source | ENUM('Online','Offline') | DEFAULT 'Online' | Online = tenant asked in the chat. Offline = landlord logged a visit arranged by phone/in person |
-| reservation_id | FK → reservations.reservation_id | NULLABLE, cascade | Set for Online, null for Offline |
-| property_id | FK → properties.property_id | NOT NULL, cascade | |
-| unit_id | FK → property_units.unit_id | NULLABLE, null on delete | |
-| tenant_id | FK → users.user_id | NULLABLE, cascade | Set for Online, null for Offline |
-| visitor_name / visitor_phone | VARCHAR(120) / VARCHAR(30) | NULLABLE | Offline only — the visitor has no account |
-| landlord_id | FK → users.user_id | NOT NULL | Denormalised from the property so the calendar is one indexed query |
-| scheduled_at | DATETIME | NOT NULL | On the hour, `viewing_first_hour`–`viewing_last_hour` (config/rentals.php) |
-| status | ENUM('Pending','Confirmed','Declined','Cancelled') | DEFAULT 'Pending' | Offline rows start Confirmed. **Completed** (Confirmed + past) and **Expired** (Pending + past) are derived, never stored |
-| proposed_by | FK → users.user_id | NOT NULL | Whoever put the current time forward; the *other* party confirms |
-| note / decline_reason | TEXT | NULLABLE | |
-| responded_at | TIMESTAMP | NULLABLE | |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| viewing_id | bigint unsigned | NN | PK | |
+| source | enum('Online','Offline') | NN, = 'Online' | | Offline = landlord logged a visit arranged by phone |
+| reservation_id | bigint unsigned | null | FK → reservations, cascade | Online only; index `(reservation_id, status)` |
+| property_id | bigint unsigned | NN | FK → properties, cascade | |
+| unit_id | bigint unsigned | null | FK → property_units, set null | |
+| tenant_id | bigint unsigned | null | FK → users, cascade | Online only |
+| visitor_name | varchar(120) | null | | Offline only (visitor has no account) |
+| visitor_phone | varchar(30) | null | | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | Copy of the property's landlord; index `(landlord_id, scheduled_at)` |
+| scheduled_at | datetime | NN | | On the hour, within `viewing_first_hour`–`viewing_last_hour` |
+| status | enum('Pending','Confirmed','Declined','Cancelled') | NN, = 'Pending' | | Offline rows start Confirmed. Completed and Expired are derived, never stored |
+| proposed_by | bigint unsigned | NN | FK → users, cascade | The other party confirms |
+| note | text | null | | |
+| decline_reason | text | null | | |
+| responded_at | timestamp | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-Indexes: `(landlord_id, scheduled_at)` for the calendar, `(reservation_id, status)` for the one-open-viewing check.
+### tenant_concerns
+Something a current tenant reported, shown as a card in the tenancy chat.
 
-### landlord_blocked_dates
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| blocked_date_id | BIGINT UNSIGNED | PK | |
-| landlord_id | FK → users.user_id | NOT NULL | Per landlord, across all their properties |
-| date | DATE | NOT NULL | UNIQUE with landlord_id |
-| reason | VARCHAR(255) | NULLABLE | |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| concern_id | bigint unsigned | NN | PK | |
+| conversation_id | bigint unsigned | NN | FK → conversations, cascade | Always a `tenancy` thread |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade | Index `(reservation_id, status)` |
+| tenant_id | bigint unsigned | NN | FK → users, cascade | |
+| category | varchar(30) | NN | | One of `TenantConcern::CATEGORIES` |
+| description | text | NN | | Max 1000 chars (validated) |
+| photos | json | null | | `[{url, public_id}]`, max 3 |
+| status | varchar(20) | NN, = 'Open' | | `Open` / `In Progress` / `Fixed`; the tenant can only reopen a Fixed one |
+| fixed_at | timestamp | null | | Cleared on reopen |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-A day with an active viewing on it can't be blocked — the landlord reschedules or cancels first.
+### tenant_ratings
+Landlord → tenant, one per reservation. Surfaces on the tenant profile, admin user detail and `/admin/ratings`.
 
-### landlord_viewing_hours
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| viewing_hour_id | BIGINT UNSIGNED | PK | |
-| landlord_id | FK → users.user_id | NOT NULL | UNIQUE with day_of_week |
-| day_of_week | TINYINT UNSIGNED | NOT NULL | Carbon `dayOfWeek`, 0 = Sunday |
-| start_hour / end_hour | TINYINT UNSIGNED | NOT NULL | Whole hours, 24h, within `viewing_hours_earliest`–`viewing_hours_latest`. Last viewing starts at `end_hour - 1` |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| rating_id | bigint unsigned | NN | PK | |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade, UNIQUE | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | The rater |
+| tenant_id | bigint unsigned | NN | FK → users, cascade | The rated tenant |
+| rating | tinyint unsigned | NN | | 1–5 |
+| comment | text | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-One row per weekday the landlord takes viewings; a missing weekday is a day off. **No rows at all = never
-set**, and `LandlordViewingHour::weekFor()` falls back to every day, `viewing_first_hour`–`viewing_last_hour`.
-Saving requires at least one day, so "no rows" can't be reached by unticking everything. Applies to online
-viewings only; offline ones use the default range.
+### rent_reminders
+Idempotency guard for `reservations:process-rent-reminders`: one row per fired milestone.
 
-### ai_search_logs
-One row per AI search (`App\Models\AiSearchLog`), so prompts can be tuned on real sentences and the daily free-tier quota watched. No FK on `user_id`: guests search too. Pruned after 30 days (`model:prune`, scheduled 03:00 in `routes/console.php`).
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| reminder_id | bigint unsigned | NN | PK | |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade | UNIQUE `(reservation_id, billing_period, milestone)` |
+| billing_period | date | NN | | |
+| milestone | varchar(20) | NN | | `due_soon` / `due_today` / `overdue_w1..wN` |
+| created_at | timestamp | null | | No `updated_at` (`UPDATED_AT = null`) |
 
-| Column | Type | Notes |
-|---|---|---|
-| id | BIGINT UNSIGNED | PK |
-| user_id | BIGINT UNSIGNED | NULLABLE, indexed. Null for guests |
-| query | VARCHAR(300) | The sentence as typed (tags stripped) |
-| language | VARCHAR(8) | en / tl / ceb / mixed, as read by the AI or the fallback |
-| intent | JSON | Validated filters (`IntentValidator`) |
-| result_count / exact_count | SMALLINT UNSIGNED | Results shown / results with no gaps |
-| relaxed | JSON | Which filters were loosened to find results, in order |
-| driver | VARCHAR(20) | gemini / anthropic / null |
-| used_ai | BOOLEAN | False when the keyword fallback answered |
-| fallback_reason | VARCHAR(30) | not_configured / unavailable / busy (daily cap) / rate_limited / network |
-| latency_ms | INT UNSIGNED | Server time for the results step |
-| created_at | TIMESTAMP | Indexed. No `updated_at` |
+Send gate: `RentReminder::firstOrCreate(...)->wasRecentlyCreated`.
 
 ### deposit_charges
-Claims a landlord makes against a tenancy's held security deposit (Sept 28 2026). A separate ledger: it never edits the `payments` row that funded the deposit. Voided rows stay; `voided_at` marks them, and `RentLedger` counts only active rows.
+Claims against a held security deposit. A separate ledger; never edits the funding `payments` row.
 
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| deposit_charge_id | BIGINT UNSIGNED | PK | `$primaryKey = 'deposit_charge_id'` |
-| reservation_id | FK → reservations.reservation_id | NOT NULL, cascade on delete | The tenancy the deposit belongs to |
-| amount | DECIMAL(10,2) | NOT NULL | Capped at the deposit still held: `RentLedger::summary()['depositRemaining']`, checked under `lockForUpdate()` |
-| category | ENUM('Damage','Cleaning','Missing Item','Unpaid Utility','Other') | NOT NULL | `DepositCharge::CATEGORIES` |
-| description | TEXT | NOT NULL | What the charge is for, in the landlord's words |
-| charged_at | DATE | NOT NULL | |
-| charged_by | FK → users.user_id | NULLABLE, set null on delete | Landlord (or admin) who recorded it |
-| voided_at | TIMESTAMP | NULLABLE | Non-null = voided; the row is kept on record |
-| voided_by | FK → users.user_id | NULLABLE, set null on delete | |
-| void_reason | ENUM('wrong_amount','wrong_tenancy','not_applicable','duplicate','other') | NULLABLE | `DepositCharge::VOID_REASONS`. Named causes, not free text |
-| void_note | VARCHAR(255) | NULLABLE | Required when `void_reason` is `other` |
-| created_at / updated_at | TIMESTAMP | | |
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| deposit_charge_id | bigint unsigned | NN | PK | |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade | Index `(reservation_id, voided_at)` |
+| amount | decimal(10,2) | NN | | Capped at `RentLedger::summary()['depositRemaining']`, checked under `lockForUpdate()` |
+| category | enum('Damage','Cleaning','Missing Item','Unpaid Utility','Other') | NN | | `DepositCharge::CATEGORIES` |
+| description | text | NN | | |
+| charged_at | date | NN | | |
+| charged_by | bigint unsigned | null | FK → users, set null | |
+| voided_at | timestamp | null | | Non-null = voided; the row stays. `RentLedger` counts only active rows |
+| voided_by | bigint unsigned | null | FK → users, set null | |
+| void_reason | enum('wrong_amount','wrong_tenancy','not_applicable','duplicate','other') | null | | `DepositCharge::VOID_REASONS` |
+| void_note | varchar(255) | null | | Required when `void_reason = 'other'` |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-Index: `(reservation_id, voided_at)`.
+## 2. Tables — Money
 
-## 3. Relationships
-- users → user_roles (1:many — a user can have multiple roles)
-- users → landlord_verifications (1:many — resubmission possible after rejection)
-- users → rental_businesses (1:many — one landlord, multiple businesses)
-- rental_businesses → properties (1:many)
-- users → properties (1:many — via landlord_id)
-- properties → property_units (1:many — units are the atomic rentable thing)
-- properties → property_documents (1:many — verification documents, admin-only)
-- properties → property_media (1:many)
-- property_units → unit_media (1:many)
-- properties ↔ amenities (many:many via property_amenities)
-- property_units ↔ amenities (many:many via unit_amenities)
-- property_units → reservations (1:many — unit-grain)
-- users → reservations (1:many — via tenant_id)
-- users + users + properties → conversations (tenant + landlord + property scoped)
-- conversations → messages (1:many)
-- users → favorites (1:many)
-- properties → reviews (1:many — **property-grain**, tenant→property; no unit_id)
-- users → reviews (1:many — via landlord_id, for the landlord roll-up)
-- reservations → tenant_ratings (1:1 — landlord→tenant, unique per reservation)
-- users → reports (1:many — as reporter)
-- users → notifications (1:many)
+### payments
+One money movement on a tenancy: online escrow, landlord-recorded, or a correction. The rent ledger has no schedule table; periods are derived from the reservation and settled by `Monthly` rows here.
 
-## 4. RLS Policies
-Not applicable — MySQL, no row-level security. Access control via Laravel Middleware + Policies.
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| payment_id | bigint unsigned | NN | PK | |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade | Index `(reservation_id, billing_period)` |
+| payment_type | enum('Initial','Monthly','Deposit','Utility','Other') | NN | | |
+| billing_period | date | null | | The month a `Monthly` payment settles; required for `Monthly`, null otherwise |
+| amount | decimal(10,2) | NN | | Serializes as a string; `parseFloat()` client-side |
+| payment_method | enum('GCash','QRPh','Cash','Bank Transfer','Maya','Check','Other') | NN | | Escrow uses GCash/QRPh via PayMongo; the rest are landlord-recorded |
+| paymongo_payment_intent_id | varchar(255) | null | UNIQUE | |
+| paymongo_payment_id | varchar(255) | null | | |
+| paymongo_checkout_session_id | varchar(255) | null | UNIQUE | |
+| status | enum('Pending','Paid','Held','Released','Failed','Refunded','Voided') | NN, = 'Pending' | index `(status, paid_at)` | See rules |
+| paid_at | timestamp | null | | Clock 1 falls back to this when there is no target move-in date |
+| released_at | timestamp | null | | |
+| released_by | bigint unsigned | null | | Admin user id; null for tenant confirmation and timer expiry alike. No FK |
+| release_reason | enum('tenant_confirmed','auto_expiry','admin_manual') | null | | What distinguishes the three release paths |
+| payout_owed_at | timestamp | null | index `(payout_owed_at, payout_id)` | Set the moment the money becomes owed to the landlord (initial payment `Released`, or online rent `Paid`); null = not payout-eligible |
+| payout_id | bigint unsigned | null | FK → payouts, restrict | The transfer that settled it. Pending payout = `payout_owed_at` set and `payout_id` null |
+| voided_at | timestamp | null | | |
+| voided_by | bigint unsigned | null | FK → users, set null | |
+| void_reason | enum('wrong_amount','wrong_month','wrong_tenancy','duplicate','not_received','other') | null | | |
+| void_note | varchar(255) | null | | Required when `void_reason = 'other'` |
+| replaces_payment_id | bigint unsigned | null | FK → payments, set null | On the *new* row of a "void and correct", pointing back at the voided one |
+| recorded_by | bigint unsigned | null | FK → users, set null | Null = platform-settled (PayMongo); non-null = landlord-asserted |
+| reference_no | varchar(255) | null | | OR number / GCash reference of a recorded payment |
+| payment_notes | text | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
 
-## 5. Migrations Log
-| Migration | Change | Reason | Date |
-|---|---|---|---|
-| create_users_table | Initial users schema — also creates the stock `password_reset_tokens` and `sessions` tables (Laravel default; `password_reset_tokens` backs the forgot-password flow) | Core auth | Early 2026 |
-| create_user_roles_table | Role system | Multi-role support | Early 2026 |
-| create_landlord_verifications_table | Verification pipeline + admin_notes | Identity verification module | Mid 2026 |
-| add_liveness_passed_to_landlord_verifications_table | `liveness_passed` flag | Upload path removed — flags manual-capture fallback for admin review | July 2026 |
-| add_handover_scheduling_to_reservations | 4 `handover_*` columns | Clock 1 anchored to a slot both parties agree on, not the tenant's frozen inquiry-time guess | July 2026 |
-| create_properties_table | Property listings | Core listing module | Mid 2026 |
-| create_property_media_table | Media storage | Cloudinary integration | Mid 2026 |
-| create_amenities_table | Amenity master list | Property features | Mid 2026 |
-| create_property_amenities_table | Pivot table | Many-to-many | Mid 2026 |
-| create_reservations_table | Reservation state machine | Booking module | Mid 2026 |
-| create_conversations_table | Chat conversations | Real-time messaging | Mid 2026 |
-| create_messages_table | Chat messages | Real-time messaging | Mid 2026 |
-| create_favorites_table | Tenant favorites | Browse enhancement | Mid 2026 |
-| create_reviews_table | Tenant reviews | Trust/reputation | Mid 2026 |
-| create_reports_table | User/property reports | Moderation | Mid 2026 |
-| create_notifications_table | In-app notifications | User alerts | Mid 2026 |
-| create_property_units_table | Multi-unit support | PM requirement for bedspace/room granularity | Mid 2026 |
-| create_unit_media_table | Unit-level media | Unit photos separate from property | Mid 2026 |
-| create_unit_amenities_table | Unit-level amenities | Joseph's table | Mid 2026 |
-| create_rental_businesses_table | Business entity layer | Landlord business management | Mid 2026 |
-| create_complaints_table | Complaints module | Modules 12.1–12.4 | Mid 2026 |
-| create_payments_table | PayMongo integration | Payment processing | Mid 2026 |
-| create_tenant_ratings_table | Landlord rates tenants | Tenant accountability | Mid 2026 |
-| add_vacated_at_to_property_units_table | Occupancy tracking | Track when a unit was vacated | July 2026 |
-| add_unit_type_floor_deposit_description_to_property_units | **Misnamed — adds none of those columns.** Body is one `ALTER TABLE property_units MODIFY COLUMN availability_status` adding the `Maintenance` member | Filename describes an intent that was never written; see the note under `property_units` | July 2026 |
-| add_caption_to_unit_media_table | Photo captions | Optional per-photo caption shown to tenants | July 2026 |
-| add_unit_type_floor_security_deposit_to_property_units | Actually adds the three columns the July 18 filename promised | Unit creation was throwing `SQLSTATE[42S22]`; sizes match the validation the controllers already enforced | July 27 2026 |
-| add_expo_push_token_to_users_table | Device push registration | Mobile client push notifications | July 27 2026 |
-| make_rental_businesses_columns_nullable | `business_name`/`contact_number`/`business_address` NOT NULL → nullable | Matches validation that was already `nullable`; fixes an `SQLSTATE[HY000] 1364` crash on a landlord's first profile save with any field left blank | July 27 2026 |
-| create_occupancy_snapshots_table | Daily occupancy history | Fed the occupancy trend chart; write-only since the chart's removal July 26 2026 — kept because the history can't be rebuilt later | July 2026 |
-| create_occupancy_activities_table | Unit status-change log | Feeds Recent Activities feed | July 2026 |
-| add_link_to_notifications_table | Per-notification destination URL | Notifications had no target except a conversation; every non-message type dead-ended at the index | July 2026 |
-| add_walk_in_fields_to_users_table | `is_walk_in`, `created_by_landlord_id`; `email` made nullable (raw `ALTER`) | Walk-in tenants entered by landlords; many have only a phone | July 24 2026 |
-| add_rent_terms_to_reservations_table | `agreed_monthly_rent`, `rent_due_day` | Rent ledger inputs; both nullable with fallbacks | July 24 2026 |
-| add_manual_recording_to_payments_table | Widened `payment_method` + `payment_type` enums (raw `ALTER`); added `recorded_by`, `reference_no`, `payment_notes` + `(reservation_id, billing_period)` index | Landlord-recorded offline rent; the escrow only ever covered the initial payment | July 24 2026 |
-| create_rent_reminders_table | Idempotency guard for the nightly rent-reminder command | Reminders need a persisted per-milestone guard so a missed/double run can't gap or spam | July 24 2026 |
-| add_locality_to_properties_table | `city_municipality` (NOT NULL, backfilled), `barangay` (nullable); repointed the 8 escrow/walk-in fixture rows off their placeholder Butuan City coordinate first | Cebu-only validation needed a structured locality, not just free-text `address` | Aug 2026 |
-| add_scope_and_category_to_amenities_table | `scope` ENUM('property','unit','both') DEFAULT 'both', `category` VARCHAR(50) nullable | Property-level and unit-level amenities needed to be distinguishable | Aug 2026 |
-| promote_building_amenities_to_properties | Moves every `unit_amenities` row whose amenity is `scope = 'property'` up to `property_amenities` (deduped per property), deletes the unit-side row. Invokes `AmenitySeeder` itself first so `scope` is populated before it reads it. **`down()` is a no-op** — collapsing several units' tags onto one property is lossy, not reversible | Without this, `property_amenities` would launch empty and ~half of `unit_amenities`'s 130 rows (the building-level ones landlords had already entered) would go from attached-but-invisible to silently dropped on the next unit edit | Aug 2026 |
-| add_publication_status_to_properties_table | `publication_status` ENUM('Draft','Published','Unpublished','Suspended') DEFAULT 'Published'. Every existing row backfills to `Published` — publication was never a concept before this column | Split "is this legitimate" from "should it be live right now", closing a real hole: the admin report flow's "delist property" action reused `verification_status = 'Rejected'`, which the next landlord edit + admin re-approval cycle silently undid | Aug 2026 |
-| create_property_documents_table | Proof of ownership / tax declaration / permits per property, private-disk file storage, admin verify/reject/request workflow | Admins were approving listings on the landlord's word alone — nothing proved the right to rent out *this* property. Second upload path (after `landlord_verifications`) off the public Cloudinary flow | Aug 2026 |
-| add_room_details_to_property_units | `bedrooms`, `bathrooms` (TINYINT UNSIGNED, nullable), `is_furnished` (BOOLEAN, nullable) | The property creation wizard's unit step asks for these; nothing on `property_units` captured them before | Aug 2026 |
-| add_floor_area_to_property_units_table | `floor_area_sqm` DECIMAL(6,2) nullable | Tenants compare unit size when choosing between similarly-priced rooms, and nothing captured it. `properties/show` had already been rendering `$unit->size` in four places against a column that never existed — this gives those dead slots real data. See ARCHITECTURE.md | Aug 28 2026 |
-| add_void_fields_to_payments_table | `status` enum widened with `Voided`; adds `voided_at`, `voided_by`, `void_reason`, `void_note`, `replaces_payment_id` | Landlords had no way to correct a wrongly-entered payment except a raw DB edit — no audit trail, no UI. See ARCHITECTURE.md and `plans/void-correct-payments.md` | Aug 31 2026 |
-| create_viewing_requests_table / create_landlord_blocked_dates_table | Two new tables, nothing existing changes | Unit viewings: tenant requests from the chat, landlord logs offline visits, landlord blocks days. See `plans/unit-viewing-scheduling.md` | Sept 2026 |
-| create_landlord_viewing_hours_table | Weekly viewing hours per landlord (`day_of_week`, `start_hour`, `end_hour`; unique per landlord and day) | Tenants can only request viewings inside the hours a landlord opens | Sept 28 2026 |
-| add_lease_fields_to_reservations_table | `lease_snapshot` (JSON), `lease_file_path`, `lease_file_name`, `lease_uploaded_at` | Formal lease: terms frozen when issued, plus the signed paper copy | Sept 28 2026 |
-| create_deposit_charges_table | Deposit claims ledger (see the `deposit_charges` section) | Landlords need to record what a held deposit is being claimed for | Sept 28 2026 |
-| add_condominium_to_properties_property_type / replace_room_with_boarding_house_property_type | `property_type` ENUM gains `Condominium`, and `Room` is renamed `Boarding House` (existing rows are rewritten). MySQL only, guarded by driver | Property types the listing form now offers | Sept 22 2026 |
-| replace_condominium_with_dormitory_property_type | `property_type` ENUM swaps `Condominium` for `Dormitory`; existing Condominium rows are renamed. MySQL only, guarded by driver | Dormitory type in forms, filters and AI search | Oct 13 2026 |
-| add_tenancy_threads_and_concerns (`2026_10_14_000000`) | `conversations.type` + `reservation_id`, unique key widened to include `type` (new key added before the old is dropped: the `tenant_id` foreign key needs an index at every step), `tenant_concerns` table, `messages.concern_id`; backfills one tenancy thread per Occupied, non-walk-in reservation | Tenant ↔ landlord chat after move-in, with concern cards | Oct 14 2026 |
-| add_geo_role_and_status_indexes | Indexes: `properties (latitude, longitude)`, `user_roles` UNIQUE `(user_id, role)` + `(role, user_id)`, `users.account_status`. No column changes | AI search near-place box filter, admin role / status counts | Oct 13 2026 |
-| add_occupancy_preference_to_properties_table | `occupancy_preference` ENUM ('No Preference','Men Only','Women Only'); old `Female only`/`Male only`/`Couples allowed`/`Family-friendly` living-arrangement values are moved out of `living_arrangement` | Gender preference was stored as a living arrangement, which mixed two questions | Sept 23 2026 |
-| add_rejection_reason_to_properties_table | `rejection_reason` TEXT | Landlord gets a reason when an admin rejects a listing | Sept 29 2026 |
-| add_browse_sort_indexes (`2026_10_08_000000`) | Indexes only, no column changes: `properties_created_at_index (created_at)`, `properties_type_index (property_type)`, `reviews_property_rating_index (property_id, is_hidden, rating)`. Each guarded with `Schema::hasIndex`, explicitly named | Browse sorts by newest / price / rating and filters by type; price and rating order by correlated subselects, and the reviews one had only the `property_id` foreign key. No measurable change on the 12-row dev data (~8 ms before and after); added for growth. **Rollback fixed Oct 8 2026 (`6a7240d`):** adding the composite index let MySQL drop the automatic `reviews.property_id` foreign-key index, so `down()` failed with error 1553; `down()` now adds `reviews_property_id_index` back first | Oct 8 2026 |
-| create_ai_search_logs_table (`2026_10_09_000000`) | New `ai_search_logs` table | AI search: tune prompts on real sentences, watch quota | Oct 2026 |
+Rules:
+- `Held` is escrow. `Paid` is a landlord-recorded offline payment: counts as revenue (`AnalyticsController::EARNED_STATUSES`), can never be released (`Admin\PaymentController::release` refuses anything not `Held`). Nothing writes `Refunded`.
+- `Voided` rows stay on record. Absence from `RentLedger::SETTLED_STATUSES` and `EARNED_STATUSES` is deliberate (both are whitelists); do not add a guard.
+- Advance rent is ordinary `Monthly` rows with a future `billing_period` (`is_future` in `RentLedger`). Never add an `Advance` member to `payment_type`.
+- A walk-in move-in is written as several rows (deposit, then rent per month) by `MoveInPaymentBreakdown`, all sharing method, `paid_at`, `reference_no` and `recorded_by`. They are one collection event; never render them as separate payments. Older single `Initial` rows are not backfilled.
+- There is no stored payout status. `Payment::scopePendingPayout()` / `scopePaidOut()` and the derived `payout_status` attribute (`Pending Payout` / `Paid Out` / null) read `payout_owed_at` and `payout_id`. Every path that makes money owed to a landlord sets `payout_owed_at`.
+- A payment with `payout_owed_at` set can no longer be voided (`Payment::canBeVoided()`).
 
-### Seeders
-- `AmenitySeeder` — 33 common amenities (idempotent via `updateOrCreate` on unique `amenity_name`, so re-seeding never shifts an `amenity_id`); runs before `PropertySeeder` in `DatabaseSeeder`. Also assigns `scope`/`category` per amenity (Aug 2026) — see the `amenities` table notes above.
-- `Amenity` model exposes a `name` accessor aliasing `amenity_name` (views use `$amenity->name`).
+### payouts
+One GCash transfer an admin sent to a landlord, covering one or more payments. The GCash details are copied on creation, so the record keeps saying where the money went after the landlord changes accounts. Written by `Admin\PayoutController::markPaidOut()` inside the locked batch.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| payout_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | |
+| amount | decimal(10,2) | NN | | Sum of the payments it covers |
+| gcash_number | varchar(255) | null | | Snapshot at send time |
+| gcash_account_name | varchar(255) | null | | Snapshot at send time |
+| payout_reference | varchar(255) | null | | GCash transaction reference the admin typed after sending |
+| paid_out_by | bigint unsigned | null | FK → users, set null | The admin who recorded it |
+| paid_out_at | timestamp | NN | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+## 2. Tables — Chat
+
+### conversations
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| conversation_id | bigint unsigned | NN | PK | |
+| tenant_id | bigint unsigned | NN | FK → users, cascade | UNIQUE `(tenant_id, landlord_id, property_id, type)` |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | |
+| property_id | bigint unsigned | NN | FK → properties, cascade | |
+| unit_id | bigint unsigned | null | FK → property_units, set null | Updated in place when the tenant inquires on another unit in the same thread |
+| type | varchar(20) | NN, = 'inquiry' | | `inquiry` (the deal chat) or `tenancy` (after move-in, holds concern cards) |
+| reservation_id | bigint unsigned | null | FK → reservations, set null | Tenancy threads only; re-pointed when the same property is rented again |
+| status | varchar(255) | NN, = 'Open' | | `Open` / `Resolved` / `Cancelled`. A tenancy thread is `Resolved` when the tenancy ends (read-only), never `Cancelled` |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### messages
+No `updated_at`; `Message::$timestamps = false`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| message_id | bigint unsigned | NN | PK | |
+| conversation_id | bigint unsigned | NN | FK → conversations, cascade | Indexes `(conversation_id, is_read, sender_id)` and `(conversation_id, sent_at)` |
+| sender_id | bigint unsigned | null | FK → users, cascade | Null only for `system` rows (`Reservation::postSystemMessage()`) |
+| message | text | NN | | |
+| kind | enum('user','system','inquiry_summary','concern') | NN, = 'user' | | `system` = status narration (no sender, centered divider); `inquiry_summary` = the first card (property/rent/dates); `concern` = a tenant's concern card. `is_system` and `is_inquiry_summary` remain as read-only attributes derived from it |
+| concern_id | bigint unsigned | null | FK → tenant_concerns, set null | A concern's card, and the system lines narrating its status |
+| is_read | boolean | NN, = 0 | | |
+| sent_at | timestamp | NN, = now | | Set in `Message::booted()`, so fixtures can backdate it |
+
+### notifications
+In-app alerts. Custom table (not Laravel's `notifications`).
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| notification_id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | NN | FK → users, cascade | Indexes `(user_id, type, is_read)` and `(user_id, is_read, created_at)` |
+| type | varchar(255) | NN, = 'system' | | reservation / agreement / payment / verification / listing / review / report / account; drives icon and tint |
+| notifiable_type | varchar(255) | null | index with `notifiable_id` | Morph target |
+| notifiable_id | bigint unsigned | null | | |
+| conversation_id | bigint unsigned | null | FK → conversations, cascade | |
+| title | varchar(255) | NN | | |
+| message | text | NN | | |
+| link | varchar(255) | null | | Destination URL; without it a notification falls back to the index |
+| is_read | boolean | NN, = 0 | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+## 2. Tables — Trust & moderation
+
+### reviews
+Tenant → property (and, via `landlord_id`, rolled up to the landlord). **Property-grain: there is no `unit_id`.** Hidden reviews are excluded from every average (`User::landlordRatingSummary()`).
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| review_id | bigint unsigned | NN | PK | |
+| tenant_id | bigint unsigned | NN | FK → users, cascade | UNIQUE with `property_id`: one review per tenant per property |
+| property_id | bigint unsigned | NN | FK → properties, cascade | Index `(property_id, is_hidden, rating)` |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | Copy of the property's landlord, for the roll-up |
+| rating | tinyint unsigned | NN | | 1–5 |
+| review_comment | text | null | | |
+| landlord_reply | text | null | | |
+| landlord_replied_at | timestamp | null | | |
+| is_hidden | boolean | NN, = 0 | | Admin-moderated |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### favorites
+No `updated_at`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| favorite_id | bigint unsigned | NN | PK | |
+| tenant_id | bigint unsigned | NN | FK → users, cascade | UNIQUE with `property_id` |
+| property_id | bigint unsigned | NN | FK → properties, cascade | |
+| created_at | timestamp | NN, = now | | |
+
+### reports
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| report_id | bigint unsigned | NN | PK | |
+| reporter_id | bigint unsigned | NN | FK → users, cascade | |
+| property_id | bigint unsigned | null | FK → properties, cascade | |
+| reported_user_id | bigint unsigned | null | FK → users, cascade | |
+| report_reason | text | NN | | |
+| report_status | enum('Pending','Resolved') | NN, = 'Pending' | | |
+| admin_notes | varchar(1000) | null | | |
+| action_taken | varchar(255) | null | | The "delist property" action sets the property to `Suspended` |
+| resolved_by | bigint unsigned | null | FK → users, set null | |
+| resolved_at | timestamp | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+## 2. Tables — Scheduling
+
+### landlord_blocked_dates
+A day with an active viewing on it cannot be blocked; reschedule or cancel first.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| blocked_date_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | UNIQUE with `date`; applies across all their properties |
+| date | date | NN | | |
+| reason | varchar(255) | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### landlord_viewing_hours
+One row per weekday the landlord takes viewings; a missing weekday is a day off. No rows at all = never set, and `LandlordViewingHour::weekFor()` falls back to every day at the default hours. Online viewings only.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| viewing_hour_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | UNIQUE with `day_of_week` |
+| day_of_week | tinyint unsigned | NN | | Carbon `dayOfWeek`, 0 = Sunday |
+| start_hour | tinyint unsigned | NN | | Whole hours, 24h |
+| end_hour | tinyint unsigned | NN | | The last viewing starts at `end_hour - 1` |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+## 2. Tables — Ops & logs
+
+### audit_logs
+Append-only record of consequential admin and landlord actions. Written by `AuditLog::record()` inside the acting transaction, so a rollback leaves no row. Nothing updates or deletes a row.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| log_id | bigint unsigned | NN | PK | |
+| actor_id | bigint unsigned | null | FK → users, set null | |
+| actor_name | varchar(255) | NN | | Snapshot, so the row outlives the account |
+| actor_email | varchar(255) | NN | | Snapshot |
+| action | varchar(60) | NN | index `(action, created_at)` | A key of `AuditLog::ACTION_LABELS` |
+| auditable_type | varchar(255) | null | index with `auditable_id` | Morph; null when the target was deleted |
+| auditable_id | bigint unsigned | null | | |
+| summary | varchar(255) | NN | | Rendered verbatim |
+| reason | text | null | | |
+| metadata | json | null | | Before/after values, amounts |
+| ip_address | varchar(45) | null | | Fits IPv6 |
+| created_at | timestamp | null | index | No `updated_at` (`UPDATED_AT = null`) |
+
+New consequential action: add its key to `ACTION_LABELS` (the filter dropdown reads it) and call `AuditLog::record()` inside that action's transaction.
+
+### settings
+Overrides only. A key with no row falls through to `config/rentals.php`; clearing a field in the admin form deletes the row.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| setting_id | bigint unsigned | NN | PK | |
+| key | varchar(100) | NN | UNIQUE | Must exist in `Setting::DEFINITIONS` or it is refused |
+| value | text | NN | | Cast per the key's type; `integer_list` is comma-separated |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+`Setting::overrides()` is cached forever and busted by `Setting::put()`. Every change writes a `settings.update` audit row.
+
+### occupancy_snapshots
+Daily counts per landlord from the `occupancy:snapshot` command. **Write-only on purpose**: history cannot be rebuilt (`property_units` stores only current status), so do not prune the table or command as dead code.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| snapshot_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | UNIQUE with `snapshot_date` |
+| snapshot_date | date | NN | | |
+| total_units | int unsigned | NN, = 0 | | Counts *all* units |
+| available_units | int unsigned | NN, = 0 | | |
+| reserved_units | int unsigned | NN, = 0 | | |
+| occupied_units | int unsigned | NN, = 0 | | |
+| maintenance_units | int unsigned | NN, = 0 | | |
+| occupancy_rate | decimal(5,2) | NN, = 0.00 | | From `OccupancyRateCalculator`, which counts only Approved units, so it will not equal `occupied/total`. Settle before anything reads it |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### occupancy_activities
+Unit status-change log written by `PropertyUnitObserver`; feeds Recent Activities.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| activity_id | bigint unsigned | NN | PK | |
+| landlord_id | bigint unsigned | NN | FK → users, cascade | Index `(landlord_id, created_at)` |
+| property_id | bigint unsigned | NN | FK → properties, cascade | |
+| unit_id | bigint unsigned | NN | FK → property_units, cascade | |
+| actor_id | bigint unsigned | null | | Null for system/CLI. No FK |
+| tenant_id | bigint unsigned | null | | No FK |
+| from_status | varchar(20) | null | | |
+| to_status | varchar(20) | NN | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### ai_search_logs
+One row per AI search. No FK on `user_id` because guests search too. Pruned after 30 days (`model:prune`, 03:00).
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| id | bigint unsigned | NN | PK | |
+| user_id | bigint unsigned | null | index | Null for guests |
+| query | varchar(300) | NN | | As typed, tags stripped |
+| language | varchar(8) | null | | en / tl / ceb / mixed |
+| intent | json | null | | Validated filters (`IntentValidator`) |
+| result_count | smallint unsigned | NN, = 0 | | |
+| exact_count | smallint unsigned | NN, = 0 | | Results with no gaps |
+| relaxed | json | null | | Filters loosened to find results, in order |
+| driver | varchar(20) | NN | | gemini / anthropic / null |
+| used_ai | boolean | NN, = 0 | | False when the keyword fallback answered |
+| fallback_reason | varchar(30) | null | | not_configured / unavailable / busy / rate_limited / network |
+| latency_ms | int unsigned | NN, = 0 | | |
+| created_at | timestamp | NN, = now | index | No `updated_at` |
+
+## 3. Copies kept on purpose
+
+These repeat a fact that could be derived. Each earns its place; do not "normalize" them away.
+
+| Column | Derivable from | Why it stays |
+|---|---|---|
+| `reservations.property_id` | `unit_id → property_units.property_id` | Index `(property_id, rental_status)` serves the landlord inquiries badge |
+| `viewing_requests.landlord_id` | the property's landlord | The calendar is one indexed query |
+| `occupancy_activities.landlord_id` / `property_id` | `unit_id` | Feed index `(landlord_id, created_at)` |
+| `property_units.availability_status` | live reservations | Browse filters on it; `PropertyUnitObserver` keeps it honest |
+| `occupancy_snapshots` counts | unit statuses that day | History cannot be rebuilt |
+| `reviews.landlord_id` | `properties.landlord_id` | Landlord roll-up without a join |
+| `audit_logs.actor_name` / `actor_email` | `users` | The row must outlive the account |
+
+## 4. Cleanup candidates
+
+Facts only; nothing here has been changed.
+
+- The mobile app (`AbangananHubMobile`) still sends and shows the removed unit fields (`unit_type`, `bathroom_type`, `kitchen_type`, `pets_allowed`, `smoking_allowed`, `visitors_allowed`). The API ignores them; remove them from its unit form.
+- `reservations.duration_of_stay` is dead; only dev fixtures still touch it.
+- `property_unit_amenities` is an orphan: 0 rows, no code reference, created by `2026_07_18_022328`. `unit_amenities` is the live pivot.
+- `landlord_verifications.business_name`, `description`, `logo_url`, `contact_number`, `business_address` duplicate `rental_businesses` after approval.
+- `payments.released_by` and `occupancy_activities.actor_id` / `tenant_id` have no FK.
+- The reservations split (`reservation_leases`, `reservation_move_ins`) and the payment splits (`payment_escrow`, `payment_voids`) were considered and deferred; see `plans/schema-cleanup-round-2.md`.
+- `reviews` contains a test comment ("hahaha suled") to remove before the defense.
+
+## 5. Framework tables
+
+Laravel's own, not documented column by column: `cache`, `cache_locks`, `failed_jobs`, `jobs`, `job_batches`, `migrations`, `password_reset_tokens`, `personal_access_tokens` (Sanctum, mobile API), `sessions`.
+
+## 6. Migration traps
+
+- `2026_07_18_022220_add_unit_type_floor_deposit_description_to_property_units` is **misnamed**: its body only widens `availability_status`. The three columns it promises came from `2026_07_27_000000`. Never trust a migration by its filename; check `Schema::hasColumn`.
+- Enum changes are raw `ALTER TABLE`, guarded to MySQL by driver (`property_type`, `payments`, `users.email`).
+- `promote_building_amenities_to_properties` has a no-op `down()`; collapsing units' tags onto a property is lossy.
+- `2026_10_08_000000_add_browse_sort_indexes`: adding the composite `reviews` index lets MySQL drop the FK's automatic index, so `down()` re-adds `reviews_property_id_index` first (fixed in `6a7240d`). The same applies to any composite index that starts with an FK column.
+- `2026_10_14_000000_add_tenancy_threads_and_concerns` adds the new `conversations` unique key before dropping the old one, because the `tenant_id` FK needs an index at every step.
+
+- `2026_10_18_000002` (`rental_status` ENUM): `up()` throws, naming the values, if any row holds a status outside the list rather than letting MySQL coerce it. MySQL only.
+- `2026_10_18_000006` (payouts): the GCash snapshot on back-filled payouts is the landlord's *current* details; history was never stored. Old `Paid Out` rows become one payout per batch (same landlord, reference, admin and second).
+- Several migrations here add a composite index that starts with a foreign-key column; their `down()` re-adds the FK's plain index first (error 1553 otherwise).
+
+## 7. Seeders
+
+- `AmenitySeeder` — 33 amenities, idempotent via `updateOrCreate` on `amenity_name` (an `amenity_id` never shifts); also sets `scope` and `category`. Runs before `PropertySeeder`.
+- Dev fixtures: `php artisan ratings:scenarios` (`--clean`) seeds `tenant_ratings` and `reviews`.
