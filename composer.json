@@ -12,7 +12,7 @@
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.3",
         "laravel/socialite": "^5.29",
-        "laravel/tinker": "^2.10.1",
+        "laravel/tinker": "^3.0.2",
         "thiagoalessio/tesseract_ocr": "^2.13"
     },
     "require-dev": {
