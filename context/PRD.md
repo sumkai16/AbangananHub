@@ -99,7 +99,7 @@ fail *at the provider*, meaning the app looks healthy and the feature is dead. O
 | OAuth apps published, **or** panel added as test users | **Decision open** | Both still in Testing/Development mode. Publishing needs provider review time; adding test users avoids that risk. Either is defensible — arriving at the defense without having chosen is not |
 | PayMongo webhook repointed + one live sandbox payment run | Not started | **Highest-risk item.** PayMongo cannot reach `localhost`, so this webhook has *never fired* in development — the poll-fallback in `ReconcilesPaymongoCheckout` has carried the entire payment path. It goes live untested |
 | Mail: keep Mailtrap sandbox, **or** wire a real sender | **Decision open** | Mailtrap captures mail and never delivers. Fine if the demo shows its console; not fine if a panel member must receive a reset link |
-| Test review comment removed | Not started | SCHEMA.md flags one reading "hahaha suled" in `reviews` |
+| Test review comment removed | Not started | One `reviews` row has a test comment reading "hahaha suled" (listed in SCHEMA.md §4) |
 | Off-server backups (`mysqldump` + `storage/app/private`) | Not started | That directory holds the **only** copy of every government ID and property document — Cloudinary is not a fallback for it |
 
 **Schedule risk:** several steps have provider-controlled waits that cannot be compressed — DNS
