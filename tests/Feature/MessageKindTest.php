@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Models\Message;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\Support\CreatesPaymentFixtures;
@@ -95,7 +96,7 @@ class MessageKindTest extends TestCase
     {
         [$t, $conversation] = $this->thread();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         $conversation->messages()->create(['sender_id' => $t['tenant']->user_id, 'message' => 'x', 'kind' => 'nonsense']);
     }

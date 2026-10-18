@@ -18,7 +18,9 @@ class AgreementTermsTest extends TestCase
     use CreatesMarketplaceFixtures, DatabaseTransactions;
 
     private User $landlord;
+
     private User $tenant;
+
     private Property $property;
 
     protected function setUp(): void

@@ -135,6 +135,7 @@ class Notification extends Model
         }
 
         $this->is_read = true;
+
         return $this->save();
     }
 

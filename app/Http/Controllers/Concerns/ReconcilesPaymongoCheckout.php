@@ -88,7 +88,7 @@ trait ReconcilesPaymongoCheckout
      *
      * Only stale rows are touched. A recent Pending one is left alone and blocks as before.
      *
-     * @param  string       $type           'Initial' or 'Monthly'
+     * @param  string  $type  'Initial' or 'Monthly'
      * @param  Carbon|null  $billingPeriod  for 'Monthly', the month being paid
      */
     protected function clearStaleCheckouts(Reservation $reservation, string $type, ?Carbon $billingPeriod = null): ?string

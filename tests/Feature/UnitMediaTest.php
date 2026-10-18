@@ -7,6 +7,7 @@ use Cloudinary\Api\Upload\UploadApi;
 use Cloudinary\Cloudinary;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Mockery;
+use Mockery\MockInterface;
 use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\TestCase;
 
@@ -19,7 +20,7 @@ class UnitMediaTest extends TestCase
     use CreatesMarketplaceFixtures, DatabaseTransactions;
 
     /** Replaces the Cloudinary client with a mock so no test reaches the network. */
-    private function fakeCloudinary(): \Mockery\MockInterface
+    private function fakeCloudinary(): MockInterface
     {
         $api = Mockery::mock(UploadApi::class);
         $client = Mockery::mock(Cloudinary::class);

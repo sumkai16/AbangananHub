@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReservationRequest;
 use App\Models\Conversation;
 use App\Models\Property;
+use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\PropertyUnit;
+
 class ReservationController extends Controller
 {
     public function index(Request $request)
@@ -34,7 +35,7 @@ class ReservationController extends Controller
         return view('tenant.reservations.index', compact('reservations', 'counts', 'status'));
     }
 
-public function store(StoreReservationRequest $request)
+    public function store(StoreReservationRequest $request)
     {
         $unit = PropertyUnit::where('unit_id', $request->unit_id)
             ->where('availability_status', 'Available')
@@ -95,7 +96,7 @@ public function store(StoreReservationRequest $request)
             ]);
         }
 
-       Reservation::create([
+        Reservation::create([
             'property_id'          => $property->property_id,
             'unit_id'              => $unit->unit_id,
             'tenant_id'            => Auth::id(),

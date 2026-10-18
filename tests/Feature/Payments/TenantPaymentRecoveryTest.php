@@ -9,6 +9,8 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\Support\CreatesPaymentFixtures;
 use Tests\TestCase;
@@ -175,7 +177,7 @@ class TenantPaymentRecoveryTest extends TestCase
         $t = $this->signed();
 
         $html = $this->actingAs($t['tenant'])
-            ->withSession(['errors' => (new \Illuminate\Support\ViewErrorBag)->put('default', new \Illuminate\Support\MessageBag(['payment' => ['Could not create payment session. Please try again.']]))])
+            ->withSession(['errors' => (new ViewErrorBag)->put('default', new MessageBag(['payment' => ['Could not create payment session. Please try again.']]))])
             ->get(route('agreements.show', $t['reservation']))
             ->assertOk()->getContent();
 

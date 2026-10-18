@@ -8,6 +8,7 @@ use App\Http\Resources\PublicReviewResource;
 use App\Models\PropertyUnit;
 use App\Models\Review;
 use App\Models\User;
+use App\Support\NameLock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -33,7 +34,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        \App\Support\NameLock::apply($request, $user);
+        NameLock::apply($request, $user);
 
         $validated = $request->validate([
             'first_name'            => ['required', 'string', 'max:255'],

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Conversation;
 use App\Models\Property;
 use App\Models\Report;
 use App\Models\User;
@@ -18,60 +19,60 @@ class ReportController extends Controller
         'Other',
     ];
 
-public function create(Request $request)
-{
-    $userId = Auth::id();
-    $prefillPropertyId = $request->integer('property_id') ?: null;
-    $prefillUserId = $request->integer('user_id') ?: null;
+    public function create(Request $request)
+    {
+        $userId = Auth::id();
+        $prefillPropertyId = $request->integer('property_id') ?: null;
+        $prefillUserId = $request->integer('user_id') ?: null;
 
-    // Determine target type from query params
-    $targetType = null;
-    $targetProperty = null;
-    $targetUser = null;
+        // Determine target type from query params
+        $targetType = null;
+        $targetProperty = null;
+        $targetUser = null;
 
-    if ($prefillPropertyId) {
-        $targetProperty = Property::with('landlord')->find($prefillPropertyId);
-        $targetType = $targetProperty ? 'property' : null;
-    } elseif ($prefillUserId) {
-        $targetUser = User::find($prefillUserId);
-        $targetType = $targetUser ? 'user' : null;
+        if ($prefillPropertyId) {
+            $targetProperty = Property::with('landlord')->find($prefillPropertyId);
+            $targetType = $targetProperty ? 'property' : null;
+        } elseif ($prefillUserId) {
+            $targetUser = User::find($prefillUserId);
+            $targetType = $targetUser ? 'user' : null;
+        }
+
+        // Fallback lists only needed if no target is pre-selected
+        $properties = collect();
+        $users = collect();
+
+        if (!$targetType || $targetType === 'property') {
+            $properties = Property::where('landlord_id', '!=', $userId)
+                ->orderBy('title')
+                ->get(['property_id', 'title', 'landlord_id']);
+        }
+
+        if (!$targetType || $targetType === 'user') {
+            // Only people this user has shared a conversation with. The list used to be every account, with email
+            // addresses, so any logged-in user could harvest them. Anyone else is reported from their profile's
+            // Report button (?user_id=), which pre-selects them.
+            $partnerIds = Conversation::where('tenant_id', $userId)->pluck('landlord_id')
+                ->merge(Conversation::where('landlord_id', $userId)->pluck('tenant_id'))
+                ->unique()
+                ->reject(fn ($id) => (int) $id === (int) $userId);
+
+            $users = User::whereIn('user_id', $partnerIds)
+                ->orderBy('first_name')
+                ->get(['user_id', 'first_name', 'last_name']);
+        }
+
+        return view('reports.create', [
+            'categories'       => self::CATEGORIES,
+            'properties'       => $properties,
+            'users'            => $users,
+            'targetType'       => $targetType,
+            'targetProperty'   => $targetProperty,
+            'targetUser'       => $targetUser,
+            'prefillPropertyId' => $prefillPropertyId,
+            'prefillUserId'    => $prefillUserId,
+        ]);
     }
-
-    // Fallback lists only needed if no target is pre-selected
-    $properties = collect();
-    $users = collect();
-
-    if (!$targetType || $targetType === 'property') {
-        $properties = Property::where('landlord_id', '!=', $userId)
-            ->orderBy('title')
-            ->get(['property_id', 'title', 'landlord_id']);
-    }
-
-    if (!$targetType || $targetType === 'user') {
-        // Only people this user has shared a conversation with. The list used to be every account, with email
-        // addresses, so any logged-in user could harvest them. Anyone else is reported from their profile's
-        // Report button (?user_id=), which pre-selects them.
-        $partnerIds = \App\Models\Conversation::where('tenant_id', $userId)->pluck('landlord_id')
-            ->merge(\App\Models\Conversation::where('landlord_id', $userId)->pluck('tenant_id'))
-            ->unique()
-            ->reject(fn ($id) => (int) $id === (int) $userId);
-
-        $users = User::whereIn('user_id', $partnerIds)
-            ->orderBy('first_name')
-            ->get(['user_id', 'first_name', 'last_name']);
-    }
-
-    return view('reports.create', [
-        'categories'       => self::CATEGORIES,
-        'properties'       => $properties,
-        'users'            => $users,
-        'targetType'       => $targetType,
-        'targetProperty'   => $targetProperty,
-        'targetUser'       => $targetUser,
-        'prefillPropertyId' => $prefillPropertyId,
-        'prefillUserId'    => $prefillUserId,
-    ]);
-}
 
     public function store(Request $request)
     {

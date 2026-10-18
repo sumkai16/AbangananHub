@@ -100,7 +100,7 @@ class TenancyController extends Controller
                 ->firstOrFail();
 
             $wasEnded = $locked->endTenancy(
-                isset($data['move_out_date']) ? \Illuminate\Support\Carbon::parse($data['move_out_date']) : null
+                isset($data['move_out_date']) ? Carbon::parse($data['move_out_date']) : null
             );
 
             if ($wasEnded) {

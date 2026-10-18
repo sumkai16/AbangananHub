@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\LandlordVerification;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\Support\CreatesMarketplaceFixtures;
 use Tests\TestCase;
@@ -14,7 +15,7 @@ class VerificationStatusAccessTest extends TestCase
 {
     use CreatesMarketplaceFixtures, DatabaseTransactions;
 
-    private function apply(string $status, array $extra = []): \App\Models\User
+    private function apply(string $status, array $extra = []): User
     {
         $tenant = $this->makeTenant();
         LandlordVerification::create($extra + [

@@ -46,6 +46,7 @@ class RentLedger
     private const SETTLED_STATUSES = ['Paid', 'Held', 'Released'];
 
     private Collection $payments;
+
     private Collection $depositCharges;
 
     public function __construct(private Reservation $reservation)
@@ -147,6 +148,7 @@ class RentLedger
             ])->values()->all(),
         ];
     }
+
     /**
      * Deposits, the initial payment, utilities and one-offs — money that
      * belongs to the tenancy but not to any single month, so it would silently

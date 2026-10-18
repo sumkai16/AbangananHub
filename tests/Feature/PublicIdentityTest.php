@@ -19,6 +19,7 @@ class PublicIdentityTest extends TestCase
     use CreatesMarketplaceFixtures, DatabaseTransactions;
 
     private User $landlord;
+
     private Property $property;
 
     protected function setUp(): void

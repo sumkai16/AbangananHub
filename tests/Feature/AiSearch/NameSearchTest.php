@@ -17,8 +17,11 @@ use App\Services\AiSearch\NameMatcher;
 class NameSearchTest extends AiSearchTestCase
 {
     private User $santos;
+
     private User $lozada;
+
     private Property $hilltop;
+
     private Property $mabolo;
 
     protected function setUp(): void

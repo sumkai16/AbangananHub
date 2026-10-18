@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\UserDevice;
+use App\Support\NameLock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -35,7 +36,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        \App\Support\NameLock::apply($request, $user);
+        NameLock::apply($request, $user);
 
         $validated = $request->validate([
             'first_name'      => ['sometimes', 'required', 'string', 'max:255'],

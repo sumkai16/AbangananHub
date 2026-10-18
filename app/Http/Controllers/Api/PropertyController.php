@@ -46,6 +46,7 @@ class PropertyController extends Controller
 
         $properties->getCollection()->transform(function (Property $property) use ($favoritedIds) {
             $property->setAttribute('is_favorited', in_array($property->property_id, $favoritedIds));
+
             return (new PropertyResource($property))->resolve();
         });
 

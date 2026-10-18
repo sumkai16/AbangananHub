@@ -43,6 +43,7 @@ class ExpoPushNotifier
                     'status'  => $response->status(),
                     'body'    => $response->body(),
                 ]);
+
                 return;
             }
 

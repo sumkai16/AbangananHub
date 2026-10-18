@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Conversation;
+use App\Models\Notification;
 use App\Models\Property;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use App\Models\Notification;
 
 class ConversationController extends Controller
 {
@@ -51,11 +51,11 @@ class ConversationController extends Controller
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->whereHas('property', fn($pq) => $pq->where('title', 'like', "%{$search}%"))
-                  ->orWhereHas('tenant', fn($uq) => $uq->where('first_name', 'like', "%{$search}%")
-                      ->orWhere('last_name', 'like', "%{$search}%"))
-                  ->orWhereHas('landlord', fn($uq) => $uq->where('first_name', 'like', "%{$search}%")
-                      ->orWhere('last_name', 'like', "%{$search}%"));
+                $q->whereHas('property', fn ($pq) => $pq->where('title', 'like', "%{$search}%"))
+                    ->orWhereHas('tenant', fn ($uq) => $uq->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%"))
+                    ->orWhereHas('landlord', fn ($uq) => $uq->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%"));
             });
         }
 
@@ -198,29 +198,30 @@ class ConversationController extends Controller
         return redirect()->route('conversations.show', $conversation)
             ->with('status', 'Conversation marked as resolved.');
     }
+
     public function recentMessages()
-{
-    $userId = Auth::id();
+    {
+        $userId = Auth::id();
 
-    $conversations = Conversation::where(function ($q) use ($userId) {
+        $conversations = Conversation::where(function ($q) use ($userId) {
             $q->where('tenant_id', $userId)
-              ->orWhere('landlord_id', $userId);
+                ->orWhere('landlord_id', $userId);
         })
-        ->with(['tenant', 'landlord', 'property', 'unit', 'latestMessage'])
-        ->orderByDesc('updated_at')
-        ->take(5)
-        ->get();
+            ->with(['tenant', 'landlord', 'property', 'unit', 'latestMessage'])
+            ->orderByDesc('updated_at')
+            ->take(5)
+            ->get();
 
-    $unreadCount = Conversation::where(function ($q) use ($userId) {
+        $unreadCount = Conversation::where(function ($q) use ($userId) {
             $q->where('tenant_id', $userId)
-              ->orWhere('landlord_id', $userId);
+                ->orWhere('landlord_id', $userId);
         })
-        ->whereHas('latestMessage', function ($q) use ($userId) {
-            $q->where('sender_id', '!=', $userId)
-              ->where('is_read', false);
-        })
-        ->count();
+            ->whereHas('latestMessage', function ($q) use ($userId) {
+                $q->where('sender_id', '!=', $userId)
+                    ->where('is_read', false);
+            })
+            ->count();
 
-    return view('conversations.partials.bubble-panel', compact('conversations', 'unreadCount'));
-}
+        return view('conversations.partials.bubble-panel', compact('conversations', 'unreadCount'));
+    }
 }

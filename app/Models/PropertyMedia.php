@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class PropertyMedia extends Model
 {
     protected $table = 'property_media';
+
     protected $primaryKey = 'media_id';
 
     protected $fillable = [

@@ -10,23 +10,23 @@ class PropertyUnit extends Model
 {
     protected $primaryKey = 'unit_id';
 
- protected $fillable = [
-    'property_id',
-    'unit_label',
-    'floor',
-    'bedrooms',
-    'bathrooms',
-    'floor_area_sqm',
-    'furnishing_status',
-    'description',
-    'rental_fee',
-    'security_deposit',
-    'occupancy_limit',
-    'availability_status',
-    'verification_status',
-    'rejection_reason',
-    'vacated_at',
-];
+    protected $fillable = [
+        'property_id',
+        'unit_label',
+        'floor',
+        'bedrooms',
+        'bathrooms',
+        'floor_area_sqm',
+        'furnishing_status',
+        'description',
+        'rental_fee',
+        'security_deposit',
+        'occupancy_limit',
+        'availability_status',
+        'verification_status',
+        'rejection_reason',
+        'vacated_at',
+    ];
 
     protected function casts(): array
     {
@@ -55,14 +55,16 @@ class PropertyUnit extends Model
     {
         return $this->belongsTo(Property::class, 'property_id', 'property_id');
     }
-public function scopeMaintenance($query)
-{
-    return $query->where('availability_status', 'Maintenance');
-}
- public function media()
-{
-    return $this->hasMany(UnitMedia::class, 'unit_id', 'unit_id');
-}
+
+    public function scopeMaintenance($query)
+    {
+        return $query->where('availability_status', 'Maintenance');
+    }
+
+    public function media()
+    {
+        return $this->hasMany(UnitMedia::class, 'unit_id', 'unit_id');
+    }
 
     public function amenities()
     {
@@ -72,8 +74,8 @@ public function scopeMaintenance($query)
     public function activeReservation()
     {
         return $this->hasOne(Reservation::class, 'unit_id', 'unit_id')
-                     ->whereIn('rental_status', ['Rental Agreement Signed', 'Reserved', 'Occupied'])
-                     ->latestOfMany('reservation_id');
+            ->whereIn('rental_status', ['Rental Agreement Signed', 'Reserved', 'Occupied'])
+            ->latestOfMany('reservation_id');
     }
 
     public function reservations()
@@ -106,7 +108,7 @@ public function scopeMaintenance($query)
     public function scopeAvailable($query)
     {
         return $query->where('availability_status', 'Available')
-                     ->where('verification_status', 'Approved');
+            ->where('verification_status', 'Approved');
     }
 
     public function scopeReserved($query)
@@ -118,6 +120,7 @@ public function scopeMaintenance($query)
     {
         return $query->where('availability_status', 'Occupied');
     }
+
     /**
      * The label/value rows the unit detail views (landlord modal and public panel)
      * list under the price. Only rows that have a value, in display order.

@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Payout;
+
 class PaymentResource extends ApiResource
 {
     public function toArray($request): array
@@ -39,7 +41,7 @@ class PaymentResource extends ApiResource
     }
 
     /** The settling payout, loaded on demand and only when there is one (no query for unpaid rows). */
-    private function payout(): ?\App\Models\Payout
+    private function payout(): ?Payout
     {
         if ($this->resource->payout_id === null) {
             return null;

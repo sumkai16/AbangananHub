@@ -54,23 +54,25 @@ class VerificationController extends Controller
 
         return view('landlord.verification.create', compact('verification'));
     }
-/**
- * AJAX — send or resend the verification email link.
- */
-public function sendEmailLink(Request $request)
-{
-    $user = $request->user();
 
-    $verification = $user->verificationApplication;
+    /**
+     * AJAX — send or resend the verification email link.
+     */
+    public function sendEmailLink(Request $request)
+    {
+        $user = $request->user();
 
-    if ($verification?->isApproved()) {
-        return response()->json(['message' => 'Already verified.'], 422);
+        $verification = $user->verificationApplication;
+
+        if ($verification?->isApproved()) {
+            return response()->json(['message' => 'Already verified.'], 422);
+        }
+
+        Mail::to($user->email)->send(new VerificationLinkMail($user));
+
+        return response()->json(['message' => 'Verification link sent to ' . $user->email]);
     }
 
-    Mail::to($user->email)->send(new VerificationLinkMail($user));
-
-    return response()->json(['message' => 'Verification link sent to ' . $user->email]);
-}
     /**
      * AJAX — OCR preview for step 5 of the wizard.
      * Receives base64 ID image, runs OCR, returns name match + type match result.

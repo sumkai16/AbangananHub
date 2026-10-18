@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 class UnitMedia extends Model
 {
     protected $table = 'unit_media';
+
     protected $primaryKey = 'media_id';
 
     protected $fillable = [

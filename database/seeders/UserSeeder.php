@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Models\UserRole;
 use App\Models\LandlordVerification;
 use App\Models\Property;
 use App\Models\Report;
+use App\Models\User;
+use App\Models\UserRole;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {

@@ -3,24 +3,26 @@
 namespace App\Models;
 
 use App\Mail\PasswordResetMail;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\HasApiTokens;
+
 class User extends Authenticatable
 {
-use HasApiTokens, HasFactory, Notifiable;
-protected $primaryKey = 'user_id';
+    use HasApiTokens, HasFactory, Notifiable;
+
+    protected $primaryKey = 'user_id';
 
     public function getRouteKeyName(): string
     {
         return 'user_id';
     }
-   protected $fillable = [
+
+    protected $fillable = [
         'first_name',
         'last_name',
         'email',
@@ -60,6 +62,7 @@ protected $primaryKey = 'user_id';
     {
         return $this->hasOne(LandlordVerification::class, 'user_id', 'user_id');
     }
+
     /**
      * The name on the account must keep matching the ID submitted for landlord verification:
      * the name check runs once, at submission, so a later rename would make a stale "matched"
@@ -77,6 +80,7 @@ protected $primaryKey = 'user_id';
     {
         return $this->hasMany(UserRole::class, 'user_id', 'user_id');
     }
+
     public function properties()
     {
         return $this->hasMany(Property::class, 'landlord_id', 'user_id');
@@ -116,7 +120,8 @@ protected $primaryKey = 'user_id';
     {
         return $this->hasMany(Conversation::class, 'landlord_id', 'user_id');
     }
-public function tenantRatingsReceived()
+
+    public function tenantRatingsReceived()
     {
         return $this->hasMany(TenantRating::class, 'tenant_id', 'user_id');
     }
@@ -323,6 +328,7 @@ public function tenantRatingsReceived()
             $this->unsetRelation('roles');
         }
     }
+
     public function rentalBusiness()
     {
         return $this->hasOne(RentalBusiness::class, 'landlord_id', 'user_id');
