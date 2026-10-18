@@ -268,7 +268,7 @@
                     // lg:gap-x-4 must stay equal to the content grid's own
                     // lg:gap-x-4 below (not lg:gap-8) or that alignment
                     // breaks again.
-                    $mediaCount >= 2 => 'grid grid-cols-3 lg:grid-cols-12 grid-rows-2 gap-2 lg:gap-4 aspect-[3/1] max-h-[420px] w-full',
+                    $mediaCount >= 2 => 'grid grid-cols-3 lg:grid-cols-12 grid-rows-2 gap-x-2 gap-y-1 lg:gap-x-4 aspect-[3/1] max-h-[420px] w-full',
                     default => 'grid grid-cols-1',
                 };
             @endphp
@@ -279,7 +279,7 @@
                         {{-- Big tile: same #hero-img element, same overlays,
                              same behaviour as before — only its container
                              changed from a standalone box to a grid cell. --}}
-                        <div class="relative rounded-2xl overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] group {{ $mediaCount >= 2 ? 'col-span-2 lg:col-span-8 row-span-2' : 'aspect-[3/1] max-h-[420px]' }}">
+                        <div class="relative overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] group {{ $mediaCount >= 2 ? 'rounded-l-2xl -mr-1 lg:-mr-3 col-span-2 lg:col-span-8 row-span-2' : 'rounded-2xl aspect-[3/1] max-h-[420px]' }}">
                             <img id="hero-img" src="{{ $property->media->first()->media_url }}" alt="{{ $property->title }}"
                                 class="w-full h-full object-cover cursor-pointer transition-opacity duration-150"
                                 onclick="openLightboxAtHero()">
@@ -408,13 +408,13 @@
                         @if($mediaCount >= 2)
                             @php $secondThumbIndex = $mediaCount >= 3 ? 2 : 1; @endphp
                             <button type="button" id="thumb-1" onclick="setHero(1)"
-                                class="group relative block w-full h-full lg:col-span-4 {{ $mediaCount === 2 ? 'row-span-2' : '' }} overflow-hidden rounded-2xl bg-[#E2E4EC] border border-[#ECEEF6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+                                class="group relative block w-full h-full lg:col-span-4 {{ $mediaCount === 2 ? 'row-span-2 rounded-r-2xl' : 'rounded-tr-2xl' }} overflow-hidden bg-[#E2E4EC] border border-[#ECEEF6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                                 <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($property->media->get(1)->media_url, 600) }}" alt="{{ $property->title }} photo 2"
                                     class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                             </button>
                             @if($mediaCount >= 3)
                             <button type="button" id="thumb-2" onclick="setHero({{ $secondThumbIndex }})"
-                                class="group relative block w-full h-full lg:col-span-4 overflow-hidden rounded-2xl bg-[#E2E4EC] border border-[#ECEEF6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+                                class="group relative block w-full h-full lg:col-span-4 overflow-hidden rounded-br-2xl bg-[#E2E4EC] border border-[#ECEEF6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                                 <img loading="lazy" decoding="async" src="{{ \App\Support\Images::resize($property->media->get($secondThumbIndex)->media_url, 600) }}" alt="{{ $property->title }} photo {{ $secondThumbIndex + 1 }}"
                                     class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                                 {{-- A small corner badge, not a full-image dark
@@ -522,6 +522,8 @@
                         $depositLabel = match (true) {
                             $approvedUnits->isEmpty() => '—',
                             $unitsRequiringDeposit === 0 => 'Not required',
+                            $unitsRequiringDeposit === $approvedUnits->count() && $approvedUnits->pluck('security_deposit')->unique(fn ($d) => (float) $d)->count() === 1
+                                => '₱' . number_format((float) $approvedUnits->first()->security_deposit),
                             $unitsRequiringDeposit === $approvedUnits->count() => 'Required',
                             default => 'Varies per unit',
                         };
@@ -594,36 +596,28 @@
                         </template>
                     </p>
 
-                    {{-- ===== LANDLORD ROW ===== --}}
+                    {{-- ===== LANDLORD ROW — the rental business, not the person (User::publicName()).
+                         Personal name, photo, email and number stay off public pages; see
+                         plans/business-first-identity-and-name-search.md. ===== --}}
                     <div class="mt-6 pt-6 border-t border-[#E2E4EC] flex items-center gap-3">
-                        {{-- Business logo when the landlord has a registered
-                             rental business (same logo_url shown on their own
-                             profile page), object-cover so it's centered/
-                             cropped to fill the circle rather than stretched
-                             — falls back to the plain initials otherwise. --}}
-                        <div class="w-12 h-12 shrink-0 rounded-full overflow-hidden {{ $property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url ? 'bg-white ring-1 ring-[#E2E4EC]' : 'bg-[#FF8A66]' }} text-[#060D26] flex items-center justify-center text-[15px] font-bold">
-                            @if($property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url)
-                                <img loading="lazy" decoding="async" src="{{ $property->landlord->rentalBusiness->logo_url }}" alt="{{ $property->landlord->rentalBusiness->business_name }}"
-                                    class="w-full h-full object-cover">
-                            @else
-                                {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
-                            @endif
-                        </div>
+                        <x-business-avatar :landlord="$property->landlord" />
                         <div class="min-w-0 flex-1">
                             <p class="flex items-center gap-1 text-[14px] font-bold text-[#060D26] truncate">
-                                {{ trim($property->landlord->first_name . ' ' . $property->landlord->last_name) }}
+                                {{ $property->landlord->publicName() }}
                                 @if($property->hasVerifiedDocuments())
                                     <svg class="w-3.5 h-3.5 text-[#B35A3D] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 @endif
                             </p>
-                            <p class="text-[12px] text-[#5B6A8E]">{{ $property->hasVerifiedDocuments() ? 'Verified Owner' : 'Owner' }} &middot; Listed since {{ $property->created_at->format('Y') }}</p>
+                            <p class="text-[12px] text-[#5B6A8E]">{{ $property->hasVerifiedDocuments() ? 'Verified landlord' : 'Landlord' }} &middot; Listed since {{ $property->created_at->format('Y') }}</p>
                             <p class="text-[12px] text-[#5B6A8E]">Usually responds within a few hours</p>
                         </div>
+                        {{-- A listing page only opens while the property is live, and a live listing makes the
+                             business page public (User::hasPublicBusinessPage()), so this link never dead-ends. --}}
                         <a href="{{ route('landlord.profile.show', $property->landlord_id) }}"
-                            class="shrink-0 text-[14px] font-bold text-[#B35A3D] hover:brightness-95 transition-all">
-                            View profile &rarr;
+                            class="shrink-0 text-[14px] font-bold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
+                            View business &rarr;
                         </a>
                     </div>
 
@@ -639,8 +633,9 @@
                                 <svg class="w-3.5 h-3.5 text-[#B35A3D] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span class="truncate">Unit: <span x-text="selected ? selected.label : ''"></span></span>
+                                <span class="truncate" x-text="selected ? selected.label : ''"></span>
                             </span>
+                            @if($approvedUnits->count() > 1)
                             <button type="button" x-on:click="selectedUnit = null"
                                 class="shrink-0 text-[#5B6A8E] hover:text-[#060D26] transition-colors cursor-pointer"
                                 aria-label="Clear selected unit">
@@ -648,6 +643,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
+                            @endif
                         </div>
                     </div>
 
@@ -698,7 +694,7 @@
                          login modal instead of the Alpine reveal toggle,
                          mirroring how Send Inquiry becomes "Log in to contact
                          landlord" for the same audience. ===== --}}
-                    @if(!$isOwner && $property->landlord->contact_number)
+                    @if(!$isOwner && $property->landlord->rentalBusiness?->contact_number)
                         <button type="button"
                             @auth
                                 x-on:click="phoneRevealed = !phoneRevealed"
@@ -712,7 +708,7 @@
                             </svg>
                             @auth
                                 <span x-show="!phoneRevealed" x-cloak>Show phone number</span>
-                                <span x-show="phoneRevealed" x-cloak>{{ $property->landlord->contact_number }}</span>
+                                <span x-show="phoneRevealed" x-cloak>{{ $property->landlord->rentalBusiness->contact_number }}</span>
                             @else
                                 <span>Show phone number</span>
                             @endauth
@@ -1028,9 +1024,11 @@
                             <div class="relative rounded-2xl border bg-white shadow-sm overflow-hidden transition-all {{ $isAvailable ? '' : 'opacity-60' }}"
                                 x-data="{ hovering: false }"
                                 x-on:mouseenter="hovering = true" x-on:mouseleave="hovering = false"
-                                :class="selectedUnit === {{ $unit->unit_id }} || hovering
+                                :class="selectedUnit === {{ $unit->unit_id }}
                                         ? 'border-[#FF8A66] ring-1 ring-[#FF8A66]'
-                                        : '{{ $isAvailable ? 'border-[#E2E4EC]' : 'border-[#E2E4EC] cursor-not-allowed' }}'"
+                                        : (hovering && {{ $isAvailable ? 'true' : 'false' }}
+                                            ? 'border-[#060D26]/40'
+                                            : '{{ $isAvailable ? 'border-[#E2E4EC]' : 'border-[#E2E4EC] cursor-not-allowed' }}')"
                                 @if($loop->index >= 4) x-show="moreUnits" x-cloak @endif>
                                 {{-- The whole card is the control: one click selects the unit (drives the contact card's price/chip) and opens its details modal. --}}
                                 <button type="button" x-on:click="selectUnit({{ $unit->unit_id }}); openSlideout({{ $unit->unit_id }})"
@@ -1054,7 +1052,8 @@
                                         @endif
 
                                         @if($unit->floor)
-                                            <span class="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white drop-shadow">{{ $unit->floor }}</span>
+                                            <span class="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#060D26]/70 to-transparent pointer-events-none" aria-hidden="true"></span>
+                                            <span class="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white">{{ $unit->floor }}</span>
                                         @endif
 
                                         <span class="absolute top-2.5 left-2.5 text-[12px] font-semibold px-2.5 py-1 rounded-full shadow-sm {{ $statusColors[$unit->availability_status] ?? $statusColors['Available'] }}">
@@ -1218,7 +1217,7 @@
                                         </div>
                                         <div>
                                             <div class="text-sm font-bold text-[#060D26]">
-                                                {{ $review->tenant->first_name }} {{ $review->tenant->last_name }}
+                                                {{ $review->tenant->shortName() }}
                                             </div>
                                             <div class="text-[11px] font-medium text-[#5B6A8E]">
                                                 {{ $review->created_at->format('M Y') }}
@@ -1246,10 +1245,10 @@
                                         <div class="flex items-center gap-2 mb-1.5">
                                             <div
                                                 class="w-6 h-6 rounded-lg bg-[#060D26] text-white text-[10px] font-black flex items-center justify-center shrink-0">
-                                                {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}
+                                                {{ mb_substr($property->landlord->publicInitials(), 0, 1) }}
                                             </div>
                                             <span class="text-xs font-bold text-[#060D26]">
-                                                {{ $property->landlord->first_name }} {{ $property->landlord->last_name }}
+                                                {{ $property->landlord->publicName() }}
                                             </span>
                                             <span class="text-[10px] font-medium text-[#5B6A8E]">
                                                 {{ $review->landlord_replied_at->format('M Y') }}
@@ -1358,9 +1357,12 @@
                                         </svg>
                                     </div>
                                 @endif
+                                @if($nearby->property_type)
+                                    <span class="absolute top-2 left-2 bg-white/90 text-[#060D26] text-[11px] font-semibold px-2 py-0.5 rounded-full shadow-sm">{{ $nearby->property_type }}</span>
+                                @endif
                             </div>
                             <div class="p-3">
-                                <p class="text-[12px] font-bold text-[#060D26] truncate">{{ $nearby->title }}</p>
+                                <p class="text-[12px] font-bold text-[#060D26] line-clamp-2 min-h-[2lh]">{{ $nearby->title }}</p>
                                 <p class="text-[11px] text-[#5B6A8E] truncate mt-0.5">{{ $nearby->address }}</p>
                                 <p class="text-[12px] font-bold text-[#060D26] mt-1">
                                     @if($nearby->min_rental_fee)
@@ -1559,12 +1561,12 @@
                                             <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
                                         </div>
                                         <div class="flex items-center justify-between text-[#5B6A8E] mt-1" x-show="selected?.depositRaw">
-                                            <span>Security deposit</span>
+                                            <span>Security deposit (paid to landlord)</span>
                                             <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.depositRaw ?? 0).toLocaleString()"></span>
                                         </div>
                                         <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-[#E2E4EC]">
-                                            <span class="font-bold text-[#060D26]">Due at move-in</span>
-                                            <span class="font-bold text-[#060D26]" x-text="'₱' + Number((selected?.rentRaw ?? 0) + (selected?.depositRaw ?? 0)).toLocaleString()"></span>
+                                            <span class="font-bold text-[#060D26]">Paid online (first month)</span>
+                                            <span class="font-bold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
                                         </div>
                                     </div>
                                 </template>
@@ -1713,7 +1715,7 @@
                                 </div>
                                 <div class="p-5">
                                     <p class="text-[12px] text-[#5B6A8E] mb-3">
-                                        To: <span class="font-bold text-[#060D26]">{{ $property->landlord->rentalBusiness->business_name ?? ($property->landlord->first_name . ' ' . $property->landlord->last_name) }}</span>
+                                        To: <span class="font-bold text-[#060D26]">{{ $property->landlord->publicName() }}</span>
                                         &middot; {{ $property->title }}
                                     </p>
 
@@ -1773,12 +1775,12 @@
                                                     <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
                                                 </div>
                                                 <div class="flex items-center justify-between text-[#5B6A8E] mt-1" x-show="selected?.depositRaw">
-                                                    <span>Security deposit</span>
+                                                    <span>Security deposit (paid to landlord)</span>
                                                     <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.depositRaw ?? 0).toLocaleString()"></span>
                                                 </div>
                                                 <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-[#E2E4EC]">
-                                                    <span class="font-bold text-[#060D26]">Due at move-in</span>
-                                                    <span class="font-bold text-[#060D26]" x-text="'₱' + Number((selected?.rentRaw ?? 0) + (selected?.depositRaw ?? 0)).toLocaleString()"></span>
+                                                    <span class="font-bold text-[#060D26]">Paid online (first month)</span>
+                                                    <span class="font-bold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
                                                 </div>
                                             </div>
                                         </template>

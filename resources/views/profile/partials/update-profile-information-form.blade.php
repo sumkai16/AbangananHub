@@ -19,6 +19,7 @@
         @csrf
         @method('patch')
 
+@php $nameLocked = $user->nameIsLocked(); @endphp
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {{-- First name --}}
             <div>
@@ -27,8 +28,8 @@
                     First name
                 </label>
                 <input id="first_name" name="first_name" type="text" value="{{ old('first_name', $user->first_name) }}"
-                    required autofocus autocomplete="given-name"
-                    class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+                    @readonly($nameLocked) required autofocus autocomplete="given-name"
+                    class="{{ $nameLocked ? 'cursor-not-allowed opacity-70 ' : '' }}h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
                            focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">
                 @error('first_name')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
@@ -42,13 +43,19 @@
                     Last name
                 </label>
                 <input id="last_name" name="last_name" type="text" value="{{ old('last_name', $user->last_name) }}"
-                    required autocomplete="family-name"
-                    class="h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
+                    @readonly($nameLocked) required autocomplete="family-name"
+                    class="{{ $nameLocked ? 'cursor-not-allowed opacity-70 ' : '' }}h-10 w-full rounded-xl border border-[#E2E4EC] bg-[#E2E4EC]/30 px-3.5 text-sm text-[#060D26] outline-none transition
                            focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/15 placeholder:text-[#5B6A8E]/50">
                 @error('last_name')
                     <span class="mt-1.5 block text-xs font-medium text-[#DC2626]">{{ $message }}</span>
                 @enderror
             </div>
+            @if($nameLocked)
+                <p class="sm:col-span-2 -mt-1 flex items-start gap-2 text-[12px] leading-relaxed text-[#5B6A8E]">
+                    <svg class="mt-0.5 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+                    {{ \App\Support\NameLock::NOTE }}
+                </p>
+            @endif
 
             {{-- Email --}}
             <div class="sm:col-span-2">

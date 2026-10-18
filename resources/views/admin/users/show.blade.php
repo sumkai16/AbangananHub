@@ -17,7 +17,9 @@
     $daysAsMember = $user->created_at ? (int) \Carbon\Carbon::parse($user->created_at)->diffInDays(now()) : 0;
 @endphp
 
-<div class="max-w-5xl mx-auto">
+<div class="max-w-5xl mx-auto" x-data="{ userFormOpen: @js(old('_form') === 'edit-user') }">
+
+    @include('admin.users._form-modal', ['user' => $user])
 
     {{-- Back + actions --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -31,13 +33,13 @@
 
         <div class="flex flex-wrap items-center gap-2" x-data="{ deleteOpen: false }">
             {{-- Edit --}}
-            <a href="{{ route('admin.users.edit', $user) }}"
-                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-semibold border border-[#E2E4EC] text-[#060D26] rounded-xl hover:bg-[#F7F8FC] transition-colors">
+            <button type="button" @click="userFormOpen = true"
+                class="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-semibold border border-[#E2E4EC] text-[#060D26] rounded-xl hover:bg-[#F7F8FC] transition-colors cursor-pointer">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
                 </svg>
                 Edit
-            </a>
+            </button>
 
             {{-- Status toggle --}}
             @php $isActive = strtolower($user->account_status ?? 'active') === 'active'; @endphp

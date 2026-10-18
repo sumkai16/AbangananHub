@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Payment;
 use App\Models\Reservation;
+use App\Services\ImageUploader;
 use App\Services\RentLedger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,6 +62,30 @@ class ProfileController extends Controller
         $request->user()->save();
 
         return Redirect::route('profile.edit')->with('success', 'Your profile has been updated.');
+    }
+
+    /**
+     * Set the profile photo from the avatar pencil on Account Settings. Works for every role,
+     * so the page needs no trip to a role-specific edit screen. Cropped square on the face,
+     * same as the tenant and landlord profile forms.
+     */
+    public function updatePhoto(Request $request, ImageUploader $uploader): RedirectResponse
+    {
+        $request->validate([
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'photo.image' => 'Choose a JPG, PNG or WebP image.',
+            'photo.mimes' => 'Choose a JPG, PNG or WebP image.',
+            'photo.max' => 'That photo is over 5 MB. Choose a smaller one.',
+        ]);
+
+        $uploaded = $uploader->upload($request->file('photo'), 'abanganganhub/profile-pictures', [
+            'transformation' => ['width' => 400, 'height' => 400, 'crop' => 'fill', 'gravity' => 'face'],
+        ]);
+
+        $request->user()->update(['profile_picture' => $uploaded['url']]);
+
+        return Redirect::route('profile.edit')->with('success', 'Profile photo updated.');
     }
 
     /**
@@ -123,6 +149,17 @@ class ProfileController extends Controller
 
         if ($liveReservations->isNotEmpty()) {
             return 'You have an active inquiry or reservation in progress. Cancel it before deleting your account.';
+        }
+
+        // payments.reservation_id cascades, so deleting the account would delete these rows too. A Cancelled or
+        // Completed tenancy is not "live" (checked above) but can still hold escrowed money, or rent the landlord
+        // has not been paid out yet. That money has to be settled first, not erased with the account.
+        $unsettled = Payment::whereHas('reservation', fn ($q) => $q->where('tenant_id', $user->user_id))
+            ->where(fn ($q) => $q->where('status', 'Held')->orWhere(fn ($q) => $q->pendingPayout()))
+            ->exists();
+
+        if ($unsettled) {
+            return 'You have payments that are still held by AbangananHub or waiting to be paid out to a landlord, so your account cannot be deleted yet. Contact support and we will settle them first.';
         }
 
         if ($user->properties()->exists()) {

@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Api\Landlord;
 use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PropertyUnitResource;
+use App\Models\Amenity;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -38,7 +38,7 @@ class UnitWriteController extends Controller
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
-            'amenities'           => ['nullable', 'array', \App\Models\Amenity::exclusiveRule()],
+            'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'required|array|min:3|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -84,6 +84,7 @@ class UnitWriteController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Image',
                     'media_url'  => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'] ?? null,
                     'source'     => ($sources[$i] ?? 'upload') === 'camera' ? 'camera' : 'upload',
                     'caption'    => $captions[$i] ?? null,
                 ]);
@@ -97,6 +98,7 @@ class UnitWriteController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Video',
                     'media_url'  => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'] ?? null,
                     'source'     => 'upload',
                 ]);
             }
@@ -122,7 +124,7 @@ class UnitWriteController extends Controller
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
-            'amenities'           => ['nullable', 'array', \App\Models\Amenity::exclusiveRule()],
+            'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'nullable|array|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -165,6 +167,7 @@ class UnitWriteController extends Controller
                     $unit->media()->create([
                         'media_type' => 'Image',
                         'media_url'  => $result['secure_url'],
+                        'cloudinary_public_id' => $result['public_id'] ?? null,
                         'source'     => 'upload',
                     ]);
                 }
@@ -178,6 +181,7 @@ class UnitWriteController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Video',
                     'media_url'  => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'] ?? null,
                     'source'     => 'upload',
                 ]);
             }
@@ -200,18 +204,7 @@ class UnitWriteController extends Controller
         }
 
         foreach ($unit->media as $media) {
-            if ($media->media_url) {
-                try {
-                    $publicId = pathinfo(parse_url($media->media_url, PHP_URL_PATH), PATHINFO_FILENAME);
-                    cloudinary()->uploadApi()->destroy('abanganan/units/'.$publicId);
-                } catch (\Exception $e) {
-                    Log::warning('Cloudinary media delete failed', [
-                        'media_id' => $media->media_id,
-                        'media_url' => $media->media_url,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
+            $media->destroyFromCloudinary();
             $media->delete();
         }
 
@@ -235,18 +228,7 @@ class UnitWriteController extends Controller
 
         $photo = $unit->media()->where('media_id', $media)->firstOrFail();
 
-        if ($photo->media_url) {
-            try {
-                $publicId = pathinfo(parse_url($photo->media_url, PHP_URL_PATH), PATHINFO_FILENAME);
-                cloudinary()->uploadApi()->destroy('abanganan/units/'.$publicId);
-            } catch (\Exception $e) {
-                Log::warning('Cloudinary media delete failed', [
-                    'media_id' => $photo->media_id,
-                    'media_url' => $photo->media_url,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $photo->destroyFromCloudinary();
         $photo->delete();
 
         return response()->json(['message' => 'Photo removed.']);

@@ -12,6 +12,7 @@ use App\Models\Review;
 use App\Support\BrowseFilters;
 use App\Support\Images;
 use App\Support\PropertyPolicies;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -65,19 +66,10 @@ class PropertyController extends Controller
             $areas = $this->areaTiles(20);
         }
 
-        $properties = Property::with([
-            'media', 'landlord', 'amenities', 'units',
-            'documents:document_id,property_id,document_type,status,expiry_date',
-        ])
-            ->browsable()
-            ->browseFilters(BrowseFilters::fromRequest($request) + [
-                'location'   => $request->query('location'),
-                'type'       => $request->query('type'),
-                'price_min'  => $request->query('price_min'),
-                'price_max'  => $request->query('price_max'),
-                'verified'   => $request->boolean('verified'),
-                'amenities'  => $request->query('amenities', []),
-                'sort'       => $request->query('sort'),
+        $properties = $this->browseQuery($request)
+            ->with([
+                'media', 'landlord', 'amenities', 'units',
+                'documents:document_id,property_id,document_type,status,expiry_date',
             ])
             // 25 = five full rows on the 5-column desktop grid.
             ->paginate(25)
@@ -133,6 +125,29 @@ class PropertyController extends Controller
             'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas',
             'amenityGroups', 'selectedAmenities', 'showDiscovery'
         ));
+    }
+
+    /**
+     * How many listings the Filters dialog's current choices would show: the number on its "Show N places" button.
+     * Same query as index(), so the two can never disagree.
+     */
+    public function count(Request $request): JsonResponse
+    {
+        return response()->json(['count' => $this->browseQuery($request)->paginate(1)->total()]);
+    }
+
+    /** The Browse page's listing query (live, bookable, filtered by the request), before eager loads and paging. */
+    private function browseQuery(Request $request)
+    {
+        return Property::browsable()->browseFilters(BrowseFilters::fromRequest($request) + [
+            'location'   => $request->query('location'),
+            'type'       => $request->query('type'),
+            'price_min'  => $request->query('price_min'),
+            'price_max'  => $request->query('price_max'),
+            'verified'   => $request->boolean('verified'),
+            'amenities'  => $request->query('amenities', []),
+            'sort'       => $request->query('sort'),
+        ]);
     }
 
     /**
@@ -295,7 +310,9 @@ class PropertyController extends Controller
 
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $request, $property) {
+        $requeued = false;
+
+        DB::transaction(function () use ($validated, $request, $property, &$requeued) {
             $photosAdded = $request->hasFile('photos');
 
             $property->fill([
@@ -319,7 +336,12 @@ class PropertyController extends Controller
 
             if ($detailsChanged || $photosAdded) {
                 $property->verification_status = 'Pending';
+                $requeued = true;
             }
+
+            // Set after the dirty check on purpose: standard lease terms are private to the landlord and
+            // never shown on the listing, so editing them must not send an approved listing back to review.
+            $property->default_lease_terms = $validated['default_lease_terms'] ?? null;
 
             $property->save();
 
@@ -340,7 +362,10 @@ class PropertyController extends Controller
             }
         });
 
-        return redirect()->route('landlord.properties.index')->with('success', 'Property updated. It\'s back in the approval queue.');
+        return redirect()->route('landlord.properties.index')->with(
+            'success',
+            $requeued ? 'Property updated. It\'s back in the approval queue.' : 'Property updated.'
+        );
     }
 
     /**

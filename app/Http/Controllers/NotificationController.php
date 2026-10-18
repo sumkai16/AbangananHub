@@ -27,7 +27,7 @@ class NotificationController extends Controller
         } elseif ($tab === 'review') {
             $query->where('notifiable_type', 'App\Models\Review');
         } elseif ($tab === 'reservation') {
-            $query->where('notifiable_type', 'App\Models\Reservation');
+            $query->whereIn('type', Notification::RESERVATION_TYPES);
         }
 
         $notifications = $query->paginate(20)->withQueryString();
@@ -41,10 +41,10 @@ class NotificationController extends Controller
         $selected = null;
         if ($request->filled('selected')) {
             $selected = Notification::with(['notifiable' => function (MorphTo $morphTo) {
-                    $morphTo->morphWith([
-                        Review::class => ['tenant', 'property.media', 'landlord'],
-                    ]);
-                }])
+                $morphTo->morphWith([
+                    Review::class => ['tenant', 'property.media', 'landlord'],
+                ]);
+            }])
                 ->where('notification_id', $request->selected)
                 ->where('user_id', auth()->id())
                 ->first();
@@ -77,6 +77,7 @@ class NotificationController extends Controller
     {
         abort_if($notification->user_id !== auth()->id(), 403);
         $notification->markAsRead();
+
         return response()->noContent();
     }
 

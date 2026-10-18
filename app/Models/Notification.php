@@ -10,6 +10,17 @@ use Illuminate\Support\Facades\Log;
 
 class Notification extends Model
 {
+    /**
+     * The types that belong on the "Reservations" tab: everything about a tenancy's life, from inquiry to move-in
+     * and concerns. The tab used to filter on `notifiable_type`, which only review notifications ever set, so it
+     * was always empty.
+     */
+    public const RESERVATION_TYPES = [
+        'reservation', 'agreement', 'payment', 'payment_released',
+        'move_in_confirmation_due', 'move_in_confirmation_reminder', 'move_in_disputed',
+        'turnover_overdue', 'concern',
+    ];
+
     protected $primaryKey = 'notification_id';
 
     protected $fillable = [
@@ -124,6 +135,7 @@ class Notification extends Model
         }
 
         $this->is_read = true;
+
         return $this->save();
     }
 

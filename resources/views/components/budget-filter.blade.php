@@ -1,5 +1,5 @@
 {{--
-    Monthly budget card for the Filters modal. Moved out of the search pill so the pill is just
+    Monthly budget block for the Filters modal (flat, no card). Moved out of the search pill so the pill is just
     Where / Type / Search and every price control lives with the other filters.
 
     Nothing here is hardcoded to a price: the quick ranges are percentile breaks of the rents
@@ -24,11 +24,11 @@
         . ' [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-solid [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#FF8A66] [&::-webkit-slider-thumb]:shadow-[0_1px_5px_rgba(6,13,38,0.4)] [&::-webkit-slider-thumb]:cursor-grab'
         . ' [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-solid [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#FF8A66] [&::-moz-range-thumb]:shadow-[0_1px_5px_rgba(6,13,38,0.4)] [&::-moz-range-thumb]:cursor-grab'
         . ' focus-visible:[&::-webkit-slider-thumb]:ring-2 focus-visible:[&::-webkit-slider-thumb]:ring-[#FF8A66]/40';
-    $field = 'mt-1 flex items-center rounded-xl border border-[#E2E4EC] bg-white px-3 h-10 focus-within:border-[#FF8A66] focus-within:ring-2 focus-within:ring-[#FF8A66]/25 transition-all duration-200';
+    $field = 'mt-1 flex items-center rounded-xl border border-[#E2E4EC] bg-white px-3 h-9 focus-within:border-[#FF8A66] focus-within:ring-2 focus-within:ring-[#FF8A66]/25 transition-all duration-200';
     $number = 'p-0 border-none bg-transparent text-[14px] text-[#060D26] focus:ring-0 placeholder-[#5B6A8E]/70 w-full min-w-0 outline-none ml-1.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
 @endphp
 
-<section {{ $attributes->merge(['class' => 'bg-white border border-[#E2E4EC] rounded-2xl p-3.5']) }}
+<section {{ $attributes->merge(['class' => 'pb-4']) }}
     aria-label="Monthly budget"
     x-data="{
         min: @js((string) request('price_min', '')),
@@ -67,90 +67,74 @@
             return hit.size;
         },
     }"
+    @budget-clear.window="clear()"
     x-effect="$dispatch('price-changed', ! any)">
 
-    {{-- Header: what this is, what is picked, and a one-tap reset. --}}
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-3">
-        <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        </span>
-        <div class="min-w-0">
-            <h4 class="font-jakarta text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">Monthly budget</h4>
-            @if($median)
-                <p class="text-[12px] text-[#5B6A8E]">Typical rent right now: <span class="font-semibold text-[#060D26]">&#8369;{{ number_format($median) }}</span> / month</p>
-            @endif
+    {{-- Title, then what is picked (with a live count) and a one-tap reset. --}}
+    <div class="flex items-baseline justify-between gap-3">
+        <h4 class="font-jakarta text-[12px] font-bold uppercase tracking-[0.07em] text-[#060D26]">Monthly budget</h4>
+        @if($median)
+            <p class="text-[12px] text-[#5B6A8E]">Typical rent <span class="font-semibold text-[#060D26]">&#8369;{{ number_format($median) }}</span></p>
+        @endif
+    </div>
+    <p class="mt-1 flex items-center gap-2 text-[12.5px] text-[#5B6A8E]">
+        <span :class="any ? '' : 'font-semibold text-[#060D26]'" x-text="summary"></span>
+        <template x-if="matching !== null">
+            <span class="tabular-nums" x-text="'· ' + matching + (matching === 1 ? ' listing' : ' listings')"></span>
+        </template>
+        <button type="button" @click="clear()" x-show="! any" x-cloak
+            class="ml-auto text-[12.5px] font-semibold text-[#060D26] underline underline-offset-2 hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">Clear</button>
+    </p>
+
+    {{-- Histogram + slider. Bars inside the chosen range are coral. The rail and bars are inset by half a handle (12px)
+         so they line up with where the handles actually travel. --}}
+    <div class="mt-3">
+        <div class="mx-3 flex h-12 items-end gap-px" aria-hidden="true">
+            <template x-for="(c, i) in histogram" :key="i">
+                <div class="flex-1 rounded-t-[3px] transition-colors duration-200"
+                    :title="barTitle(i)"
+                    :class="i >= lo && i < hi ? 'bg-[#FF8A66]' : 'bg-[#E2E4EC]'"
+                    :style="`height: ${c === 0 ? '2px' : Math.max(c / peak * 100, 10) + '%'}`"></div>
+            </template>
         </div>
-        <div class="ml-auto flex items-center gap-3">
-            <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] font-semibold transition-colors duration-200"
-                :class="any ? 'bg-[#ECEEF6] text-[#5B6A8E]' : 'bg-[#FF8A66]/15 text-[#060D26] ring-1 ring-[#FF8A66]/40'">
-                <span x-text="summary"></span>
-                <template x-if="matching !== null">
-                    <span class="font-normal text-[#5B6A8E] tabular-nums" x-text="'· ' + matching + (matching === 1 ? ' listing' : ' listings')"></span>
-                </template>
-            </span>
-            <button type="button" @click="clear()" x-show="! any" x-cloak
-                class="text-[12.5px] font-semibold text-[#060D26] underline underline-offset-2 hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">Clear</button>
+        <div class="relative h-6">
+            <div class="absolute inset-x-3 top-1/2 h-1.5 -translate-y-1/2">
+                <div class="absolute inset-0 rounded-full bg-[#E2E4EC]"></div>
+                <div class="absolute inset-y-0 rounded-full bg-[#FF8A66]" :style="`left: ${lo / last * 100}%; right: ${100 - hi / last * 100}%`"></div>
+            </div>
+            <input type="range" min="0" :max="last" step="1" :value="lo" @input="setLo($event)" aria-label="Minimum budget" class="{{ $thumb }}">
+            <input type="range" min="0" :max="last" step="1" :value="hi" @input="setHi($event)" aria-label="Maximum budget" class="{{ $thumb }}">
         </div>
     </div>
 
-    <div class="grid gap-5 lg:grid-cols-2 lg:gap-8">
-        {{-- Quick ranges: each holds roughly a fifth of what is available, with a live count. Tap again to unselect. --}}
-        <div>
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">Popular ranges</p>
-            <div class="mt-2 flex flex-wrap gap-2">
-                <template x-for="b in bands" :key="b.label">
-                    <button type="button" @click="pick(b)" :disabled="b.count === 0 && ! isPicked(b)" :aria-pressed="isPicked(b)"
-                        :class="isPicked(b) ? 'border-[#FF8A66] bg-[#FF8A66]/10' : 'border-[#E2E4EC] bg-white hover:bg-[#ECEEF6] disabled:opacity-50 disabled:hover:bg-white'"
-                        class="relative flex flex-col items-start rounded-xl border px-3.5 py-2 text-left transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed">
-                        <span class="text-[13px] font-semibold text-[#060D26]" x-text="b.label"></span>
-                        <span class="flex items-center gap-1.5 text-[11.5px] text-[#5B6A8E] tabular-nums">
-                            <span x-text="b.count + (b.count === 1 ? ' listing' : ' listings')"></span>
-                            <span x-show="b.popular" x-cloak class="rounded-full bg-[#FF8A66]/20 px-1.5 text-[10px] font-bold uppercase tracking-wide text-[#B35A3D]">Most</span>
-                        </span>
-                    </button>
-                </template>
-            </div>
-        </div>
+    {{-- Typed values: the real form fields, on one line. --}}
+    <div class="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        <label class="block">
+            <span class="sr-only">Minimum budget</span>
+            <span class="{{ $field }}">
+                <span class="text-[13px] text-[#5B6A8E]" aria-hidden="true">&#8369;</span>
+                <input type="number" inputmode="numeric" name="price_min" min="0" step="100" x-model="min" @change="tidy()" placeholder="No min" class="{{ $number }}">
+            </span>
+        </label>
+        <span class="text-[#5B6A8E]" aria-hidden="true">–</span>
+        <label class="block">
+            <span class="sr-only">Maximum budget</span>
+            <span class="{{ $field }}">
+                <span class="text-[13px] text-[#5B6A8E]" aria-hidden="true">&#8369;</span>
+                <input type="number" inputmode="numeric" name="price_max" min="0" step="100" x-model="max" @change="tidy()" placeholder="No max" class="{{ $number }}">
+            </span>
+        </label>
+    </div>
 
-        {{-- Custom: histogram + slider + typed values. Bars inside the chosen range are coral. The rail and bars are
-             inset by half a handle (12px) so they line up with where the handles actually travel. --}}
-        <div>
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-[#5B6A8E]">Or set your own</p>
-            <div class="mt-2">
-                <div class="mx-3 flex h-14 items-end gap-px" aria-hidden="true">
-                    <template x-for="(c, i) in histogram" :key="i">
-                        <div class="flex-1 rounded-t-[3px] transition-colors duration-200"
-                            :title="barTitle(i)"
-                            :class="i >= lo && i < hi ? 'bg-[#FF8A66]' : 'bg-[#E2E4EC]'"
-                            :style="`height: ${c === 0 ? '2px' : Math.max(c / peak * 100, 10) + '%'}`"></div>
-                    </template>
-                </div>
-                <div class="relative h-6">
-                    <div class="absolute inset-x-3 top-1/2 h-1.5 -translate-y-1/2">
-                        <div class="absolute inset-0 rounded-full bg-[#E2E4EC]"></div>
-                        <div class="absolute inset-y-0 rounded-full bg-[#FF8A66]" :style="`left: ${lo / last * 100}%; right: ${100 - hi / last * 100}%`"></div>
-                    </div>
-                    <input type="range" min="0" :max="last" step="1" :value="lo" @input="setLo($event)" aria-label="Minimum budget" class="{{ $thumb }}">
-                    <input type="range" min="0" :max="last" step="1" :value="hi" @input="setHi($event)" aria-label="Maximum budget" class="{{ $thumb }}">
-                </div>
-            </div>
-
-            <div class="mt-3 grid grid-cols-2 gap-3">
-                <label class="block">
-                    <span class="block text-[11.5px] font-semibold text-[#5B6A8E]">Min</span>
-                    <span class="{{ $field }}">
-                        <span class="text-[13px] text-[#5B6A8E]" aria-hidden="true">&#8369;</span>
-                        <input type="number" inputmode="numeric" name="price_min" min="0" step="100" x-model="min" @change="tidy()" placeholder="No min" class="{{ $number }}">
-                    </span>
-                </label>
-                <label class="block">
-                    <span class="block text-[11.5px] font-semibold text-[#5B6A8E]">Max</span>
-                    <span class="{{ $field }}">
-                        <span class="text-[13px] text-[#5B6A8E]" aria-hidden="true">&#8369;</span>
-                        <input type="number" inputmode="numeric" name="price_max" min="0" step="100" x-model="max" @change="tidy()" placeholder="No max" class="{{ $number }}">
-                    </span>
-                </label>
-            </div>
-        </div>
+    {{-- Quick ranges: each holds roughly a fifth of what is available, with a live count. Tap again to unselect. --}}
+    <div class="mt-3 flex flex-wrap gap-1.5">
+        <template x-for="b in bands" :key="b.label">
+            <button type="button" @click="pick(b)" :disabled="b.count === 0 && ! isPicked(b)" :aria-pressed="isPicked(b)"
+                :class="isPicked(b) ? 'border-[#FF8A66] bg-[#FF8A66] text-[#060D26]' : 'border-[#E2E4EC] bg-white text-[#5B6A8E] hover:border-[#FF8A66] disabled:opacity-50 disabled:hover:border-[#E2E4EC]'"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 md:py-1 rounded-full border font-jakarta text-[12px] font-semibold transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed">
+                <span x-text="b.label"></span>
+                <span class="font-medium tabular-nums opacity-60" x-text="b.count"></span>
+            </button>
+        </template>
     </div>
 </section>

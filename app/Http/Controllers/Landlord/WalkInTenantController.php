@@ -8,6 +8,7 @@ use App\Http\Requests\Landlord\StoreWalkInTenantRequest;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
+use App\Models\TenantDetail;
 use App\Models\User;
 use App\Support\LeaseTerms;
 use Illuminate\Http\Request;
@@ -155,6 +156,9 @@ class WalkInTenantController extends Controller
             );
 
             $tenant = $this->resolveTenant($data, $landlordId);
+
+            // Only fills blanks: an existing walk-in's details are never overwritten by an empty form.
+            TenantDetail::saveFor($tenant, $data);
 
             // A walk-in agreed offline can be backdated (moved in already) or
             // forward-dated (reserved now, moving in later) — only the former

@@ -128,8 +128,8 @@
                                 <p class="text-[13.5px] font-semibold text-[#060D26] truncate">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</p>
                                 <p class="text-[13.5px] font-semibold text-[#060D26] shrink-0">₱{{ number_format($payment->amount, 2) }}</p>
                             </div>
-                            <p class="mt-0.5 text-[12px] text-[#5B6A8E]">Ref: {{ $payment->payout_reference }}</p>
-                            <p class="mt-0.5 text-[11.5px] text-[#94A3B8]">Paid out {{ $payment->paid_out_at?->format('M d, Y') }}</p>
+                            <p class="mt-0.5 text-[12px] text-[#5B6A8E]">Ref: {{ $payment->payout?->payout_reference }}</p>
+                            <p class="mt-0.5 text-[11.5px] text-[#94A3B8]">Paid out {{ $payment->payout?->paid_out_at?->format('M d, Y') }}</p>
                         </div>
                     @endforeach
                 </div>
@@ -150,8 +150,8 @@
                                 <tr class="transition-colors duration-150 hover:bg-[#ECEEF6]">
                                     <td class="px-5 py-3 text-[13px] font-medium text-[#060D26] sm:px-6">{{ $tenant ? trim($tenant->first_name.' '.$tenant->last_name) : '—' }}</td>
                                     <td class="px-5 py-3 text-[13px] font-semibold text-[#060D26] sm:px-6">₱{{ number_format($payment->amount, 2) }}</td>
-                                    <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payout_reference }}</td>
-                                    <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->paid_out_at?->format('M d, Y') }}</td>
+                                    <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payout?->payout_reference }}</td>
+                                    <td class="px-5 py-3 text-[13px] text-[#5B6A8E] sm:px-6">{{ $payment->payout?->paid_out_at?->format('M d, Y') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

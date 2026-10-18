@@ -45,8 +45,7 @@ class CandidateFinder
         $rows = $properties->map(function (Property $property) use ($intent) {
             return ['property' => $property] + $this->explainer->explain($property, $intent);
         })
-            ->sort(fn ($a, $b) => [empty($a['misses']) ? 0 : 1, -$a['score'], -(float) $a['property']->avg_rating, (float) $a['property']->min_rental_fee]
-                <=> [empty($b['misses']) ? 0 : 1, -$b['score'], -(float) $b['property']->avg_rating, (float) $b['property']->min_rental_fee])
+            ->sort(fn ($a, $b) => $this->sortKey($a, $intent) <=> $this->sortKey($b, $intent))
             ->take((int) config('ai_search.max_candidates', 20))
             ->values();
 
@@ -54,8 +53,74 @@ class CandidateFinder
             'rows' => $rows,
             'exact_count' => $rows->filter(fn ($r) => empty($r['misses']))->count(),
             'relaxed' => $relaxed,
-            'alternatives' => $rows->count() < $min ? $this->alternatives($intent, $rows->pluck('property.property_id')->all()) : collect(),
+            // A named business has its own "More from ..." strip (moreFromHost), which already covers its other types.
+            'alternatives' => $rows->count() < $min && ! ($intent['host'] ?? null) ? $this->alternatives($intent, $rows->pluck('property.property_id')->all()) : collect(),
         ];
+    }
+
+    /**
+     * The other places of a business the sentence named, for the "More from ..." strip under the results: its
+     * live listings that are not already on the page, whatever the filters said. Nearest first when the tenant
+     * shared a position, otherwise best rated. Only for one business; two matching businesses (a shared
+     * surname) would make the strip ambiguous, and a named single listing has no "business" to show more of.
+     *
+     * @param  list<int>  $skipIds  properties already on the page (results and suggestions)
+     * @return null|array{properties: Collection<int, Property>, total: int, distances: array<int, float>, landlord_id: int}
+     */
+    public function moreFromHost(array $intent, array $skipIds, int $limit = 6): ?array
+    {
+        $host = $intent['host'] ?? null;
+        if (! $host || $host['kind'] !== 'business' || count($host['landlord_ids']) !== 1) {
+            return null;
+        }
+
+        $landlordId = $host['landlord_ids'][0];
+        $others = Property::with(['media', 'landlord', 'amenities', 'units.amenities'])
+            ->browsable()
+            ->where('landlord_id', $landlordId)
+            ->whereNotIn('property_id', $skipIds ?: [0])
+            ->limit(60)
+            ->get();
+
+        if ($others->isEmpty()) {
+            return null;
+        }
+
+        $loc = $intent['location'] ?? null;
+        $distances = [];
+        if (is_array($loc) && ($loc['kind'] ?? null) === 'point') {
+            foreach ($others as $property) {
+                $distances[$property->property_id] = Landmarks::distanceKm((float) $property->latitude, (float) $property->longitude, $loc['lat'], $loc['lng']);
+            }
+        }
+
+        $sorted = $distances !== []
+            ? $others->sortBy(fn (Property $p) => $distances[$p->property_id])
+            : $others->sortBy(fn (Property $p) => [-(float) $p->avg_rating, (float) $p->min_rental_fee]);
+
+        return [
+            'properties' => $sorted->take($limit)->values(),
+            'total' => $others->count(),
+            'distances' => $distances,
+            'landlord_id' => $landlordId,
+        ];
+    }
+
+    /**
+     * Exact fits first, then the score, then (for "near me") how far it is, then rating and price. Distance only
+     * leads for a point: "near me" means nearest, while a landmark search keeps ranking by rating.
+     *
+     * @return list<float|int>
+     */
+    private function sortKey(array $row, array $intent): array
+    {
+        $key = [empty($row['misses']) ? 0 : 1, -$row['score']];
+
+        if (($intent['location']['kind'] ?? null) === 'point') {
+            $key[] = $row['distance_km'] ?? INF;
+        }
+
+        return [...$key, -(float) $row['property']->avg_rating, (float) $row['property']->min_rental_fee];
     }
 
     /**
@@ -96,10 +161,19 @@ class CandidateFinder
                 'cities' => $query->whereIn('city_municipality', $loc['value']),
                 'barangay' => $query->where('barangay', $loc['value']),
                 'landmark' => $this->withinBox($query, $loc, $intent['radius_km']),
+                // A named business shows all of its places, nearest first, so there is no radius to cut at.
+                'point' => ($intent['host'] ?? null) ? null : $this->withinBox($query, $loc, $intent['radius_km']),
                 default => $query->where(fn ($q) => $q
                     ->where('address', 'like', '%' . addcslashes($loc['value'], '%_\\') . '%')
                     ->orWhere('title', 'like', '%' . addcslashes($loc['value'], '%_\\') . '%')),
             };
+        }
+
+        // Named business or listing. Never relaxed by ladder(): asking for Santos Rentals' places means only theirs.
+        if ($host = $intent['host'] ?? null) {
+            $query->where(fn ($q) => $q
+                ->whereIn('landlord_id', $host['landlord_ids'] ?: [0])
+                ->orWhereIn('property_id', $host['property_ids'] ?: [0]));
         }
 
         $amenityIds = $intent['amenities'] === [] ? [] : Amenity::whereIn('amenity_name', $intent['amenities'])->pluck('amenity_id')->all();
@@ -118,7 +192,7 @@ class CandidateFinder
         $found = $query->limit(60)->get();
 
         // The box is a cheap pre-filter; the circle is the real test.
-        if (($loc['kind'] ?? null) === 'landmark') {
+        if (($loc['kind'] ?? null) === 'landmark' || (($loc['kind'] ?? null) === 'point' && ! ($intent['host'] ?? null))) {
             $found = $found->filter(fn (Property $p) => Landmarks::distanceKm((float) $p->latitude, (float) $p->longitude, $loc['lat'], $loc['lng']) <= $intent['radius_km'])->values();
         }
 
@@ -160,7 +234,7 @@ class CandidateFinder
         }
 
         if ($loc = $current['location']) {
-            if ($loc['kind'] === 'landmark') {
+            if ($loc['kind'] === 'landmark' || ($loc['kind'] === 'point' && ! ($current['host'] ?? null))) {
                 $add('wider area', array_merge($current, ['radius_km' => min(10.0, $intent['radius_km'] * 2)]));
                 $add('much wider area', array_merge($current, ['radius_km' => min(10.0, $intent['radius_km'] * 4)]));
             } elseif ($loc['kind'] === 'barangay' && ! empty($loc['city'])) {

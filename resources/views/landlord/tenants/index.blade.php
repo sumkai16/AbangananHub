@@ -304,13 +304,16 @@
                                 </button>
                             @endif
 
-                            @if($reservation->conversation)
-                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200" title="Open conversation">
+                            @if(! $reservation->tenant->is_walk_in && in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
+                                <a href="{{ route('tenancy.chat', $reservation) }}"
+                                    class="relative h-9 w-9 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200" title="{{ $reservation->open_concerns_count ? 'Message tenant · '.$reservation->open_concerns_count.' open '.Str::plural('concern', $reservation->open_concerns_count) : 'Message tenant' }}">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                                     </svg>
+                                    @if($reservation->open_concerns_count > 0)
+                                        <span class="absolute -right-1 -top-1 min-w-[16px] rounded-full bg-[#FF8A66] px-1 text-center text-[10px] font-bold leading-4 text-[#060D26]">{{ $reservation->open_concerns_count }}</span>
+                                    @endif
                                 </a>
                             @endif
                         </div>
@@ -471,13 +474,16 @@
                                                 </button>
                                             @endif
 
-                                            @if($reservation->conversation)
-                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200" title="Open conversation">
+                                            @if(! $reservation->tenant->is_walk_in && in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
+                                                <a href="{{ route('tenancy.chat', $reservation) }}"
+                                                    class="relative h-9 w-9 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200" title="{{ $reservation->open_concerns_count ? 'Message tenant · '.$reservation->open_concerns_count.' open '.Str::plural('concern', $reservation->open_concerns_count) : 'Message tenant' }}">
                                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                                                     </svg>
+                                                    @if($reservation->open_concerns_count > 0)
+                                                        <span class="absolute -right-1 -top-1 min-w-[16px] rounded-full bg-[#FF8A66] px-1 text-center text-[10px] font-bold leading-4 text-[#060D26]">{{ $reservation->open_concerns_count }}</span>
+                                                    @endif
                                                 </a>
                                             @endif
                                         </div>

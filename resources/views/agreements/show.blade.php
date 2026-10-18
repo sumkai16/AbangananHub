@@ -9,7 +9,11 @@
         $terms = \App\Support\LeaseTerms::for($reservation);
         $agreementRef = $terms['reference'];
         $heldPayment = $reservation->payments->where('status', 'Held')->first();
-        $hasPayment = $reservation->payments->whereIn('status', ['Pending', 'Held', 'Paid', 'Released'])->isNotEmpty();
+        // A checkout the tenant walked away from (Payment::isStalePending) is not a payment: counting it hid Pay Now
+        // for good, and the tenant had no way to try again.
+        $hasPayment = $reservation->payments->whereIn('status', ['Pending', 'Held', 'Paid', 'Released'])
+            ->reject(fn ($p) => $p->isStalePending())->isNotEmpty();
+        $hadAbandonedCheckout = ! $hasPayment && $reservation->payments->contains(fn ($p) => $p->isStalePending());
         $processingPayment = $hasPayment && !$heldPayment && !$reservation->isOccupied();
     @endphp
 
@@ -174,6 +178,29 @@
                             <p class="text-[11px] font-semibold text-[#EF4444] -mt-2 mb-4 ml-7">{{ $message }}</p>
                         @enderror
 
+                        {{-- The landlord keeps an emergency contact and your ID on file. Asked once; later agreements reuse it. --}}
+                        @php
+                            $signer = auth()->user()->load('tenantDetail');
+                        @endphp
+                        @if (\App\Models\TenantDetail::completeFor($signer))
+                            <div class="mb-5 rounded-xl bg-[#ECEEF6] px-4 py-3">
+                                <p class="text-[12px] font-semibold text-[#060D26]">Emergency contact on file</p>
+                                <p class="text-[12px] text-[#5B6A8E] mt-0.5">
+                                    {{ $signer->tenantDetail->emergency_contact_name }}
+                                    @if ($signer->tenantDetail->emergency_contact_relationship) ({{ $signer->tenantDetail->emergency_contact_relationship }}) @endif
+                                    &middot; <a href="{{ route('profile.edit') }}#emergency-contact" class="font-semibold text-[#060D26] underline underline-offset-2">Edit in Account Settings</a>
+                                </p>
+                            </div>
+                        @else
+                            <fieldset class="mb-5 rounded-xl border border-[#E2E4EC] p-4">
+                                <legend class="px-1.5 text-[12px] font-bold text-[#060D26]">Emergency contact &amp; ID</legend>
+                                <p class="text-[12px] text-[#5B6A8E] leading-relaxed mb-4">
+                                    Your landlord keeps these on file in case of an emergency. Only the landlord of this property can see them, and your ID number is stored encrypted.
+                                </p>
+                                <x-tenant-details-fields :detail="$signer->tenantDetail" id-prefix="sign" :required="true" />
+                            </fieldset>
+                        @endif
+
                         <button type="submit"
                             class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
                             Sign Agreement
@@ -198,11 +225,21 @@
                     @if(!$hasPayment)
                         <form action="{{ route('payments.checkout', $reservation) }}" method="POST" class="mt-4">
                             @csrf
+                            @if($errors->has('payment'))
+                                <div role="alert" class="mb-3 flex items-start gap-2.5 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/10 px-4 py-3 text-[13px] font-semibold text-[#B91C1C]">
+                                    <svg class="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                                    {{ $errors->first('payment') }}
+                                </div>
+                            @elseif($hadAbandonedCheckout)
+                                <p class="mb-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] text-[#92600A]">
+                                    Your last payment attempt wasn't completed. You can try again below.
+                                </p>
+                            @endif
                             <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 flex flex-wrap items-center justify-between gap-4">
                                 <div class="min-w-0">
                                     <p class="text-sm font-bold text-[#060D26]">Initial Payment</p>
                                     <p class="text-xs text-[#5B6A8E] mt-0.5">
-                                        &#8369;{{ number_format($reservation->unit->rental_fee, 2) }} via GCash — you will be redirected to complete payment.
+                                        &#8369;{{ number_format($reservation->monthlyRent(), 2) }} via GCash — you will be redirected to complete payment.
                                     </p>
                                 </div>
                                 <button type="submit"

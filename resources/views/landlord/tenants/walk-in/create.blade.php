@@ -410,6 +410,12 @@
                                         their identity has not been verified by AbangananHub.
                                     </p>
                                 </div>
+
+                                <div class="mt-5 border-t border-[#E2E4EC] pt-5">
+                                    <p class="text-[13px] font-semibold text-[#060D26]">Emergency contact &amp; ID <span class="font-normal text-[#5B6A8E]">(optional)</span></p>
+                                    <p class="text-[12px] text-[#5B6A8E] mt-0.5 mb-4">Kept private to you. You can add or change them later from the tenancy page. The ID number is stored encrypted.</p>
+                                    <x-tenant-details-fields id-prefix="walkin" />
+                                </div>
                             </div>
                         </x-card>
 

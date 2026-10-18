@@ -101,6 +101,17 @@ class ReservationPolicy
     }
 
     /**
+     * Either side of a tenancy can open its chat — the tenant, or the landlord who
+     * owns the property. A tenancy that never started (still negotiating) has none.
+     */
+    public function viewTenancyChat(User $user, Reservation $reservation): bool
+    {
+        return in_array($reservation->rental_status, ['Occupied', 'Completed'], true)
+            && ($reservation->tenant_id === $user->user_id
+                || $reservation->property?->landlord_id === $user->user_id);
+    }
+
+    /**
      * A tenant may pay rent online only while the tenancy is actually running
      * — there is nothing to bill against once it has ended.
      */
@@ -189,6 +200,30 @@ class ReservationPolicy
     public function manageLease(User $user, Reservation $reservation): bool
     {
         return $reservation->property?->landlord_id === $user->user_id;
+    }
+
+    /**
+     * The tenant's emergency contact and ID on file: the landlord of the property, once the tenant is
+     * committed to the place (Reserved, Occupied) or has been (Completed). Not while still negotiating
+     * or signing, and never to a landlord the tenant has no booking with, so a tenant who inquires
+     * hands nothing over until there is a real tenancy.
+     */
+    public function viewTenantDetails(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property?->landlord_id === $user->user_id
+            && in_array($reservation->rental_status, ['Reserved', 'Occupied', 'Completed'], true);
+    }
+
+    /**
+     * A walk-in cannot log in, so the landlord who recorded them keeps their details. Only that
+     * landlord, and only while the tenancy is live; an online tenant edits their own in Account Settings.
+     */
+    public function editWalkInDetails(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property?->landlord_id === $user->user_id
+            && $reservation->tenant?->is_walk_in
+            && $reservation->tenant->created_by_landlord_id === $user->user_id
+            && in_array($reservation->rental_status, ['Reserved', 'Occupied'], true);
     }
 
     /**

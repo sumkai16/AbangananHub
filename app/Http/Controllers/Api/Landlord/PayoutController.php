@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Landlord;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
+use App\Models\Payout;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -22,14 +23,15 @@ class PayoutController extends Controller
             fn ($q) => $q->where('landlord_id', $landlordId)
         )->with(['reservation.tenant', 'reservation.property:property_id,title', 'reservation.unit:unit_id,unit_label']);
 
-        $pending = (clone $query)->where('payout_status', 'Pending Payout')
+        $pending = (clone $query)->pendingPayout()
             ->latest('released_at')
             ->get();
 
-        $paidOutTotal = (clone $query)->where('payout_status', 'Paid Out')->sum('amount');
+        $paidOutTotal = (clone $query)->paidOut()->sum('amount');
 
-        $paidOut = (clone $query)->where('payout_status', 'Paid Out')
-            ->latest('paid_out_at')
+        $paidOut = (clone $query)->paidOut()
+            ->with('payout')
+            ->orderByDesc(Payout::select('paid_out_at')->whereColumn('payouts.payout_id', 'payments.payout_id'))
             ->paginate(15);
 
         $paidOut->getCollection()->transform(fn (Payment $p) => (new PaymentResource($p))->resolve());

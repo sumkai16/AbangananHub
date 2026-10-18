@@ -275,18 +275,26 @@ function drawOrigin(map) {
     if (!origin) return;
     const lat = parseFloat(origin.lat);
     const lng = parseFloat(origin.lng);
+    // radius_km 0 = no radius to show (a named business's places are listed nearest first, not cut at a distance).
+    const noRadius = origin.radius_km !== undefined && Number(origin.radius_km) === 0;
     const km = Number(origin.radius_km) > 0 ? Number(origin.radius_km) : 2;
-
-    const circle = L.circle([lat, lng], {
-        radius: km * 1000, color: '#FF8A66', weight: 1.5, dashArray: '6 5', fillColor: '#FF8A66', fillOpacity: 0.1, interactive: false,
-    }).addTo(map);
+    const glyph = origin.kind === 'point' ? PIN_ICON.replace('#B35A3D', '#FFFFFF') : GRAD_CAP; // a person's own position is a pin, a school is a cap
 
     const dot = L.marker([lat, lng], {
         interactive: false, keyboard: false, zIndexOffset: -500,
         icon: L.divIcon({
             className: 'ai-origin-wrapper', iconSize: [0, 0], iconAnchor: [0, 0],
-            html: `<div class="ai-origin__dot">${GRAD_CAP}</div><div class="ai-origin__label">${esc(origin.name)}</div>`,
+            html: `<div class="ai-origin__dot">${glyph}</div><div class="ai-origin__label">${esc(origin.name)}</div>`,
         }),
+    }).addTo(map);
+
+    if (noRadius) {
+        layers = [dot];
+        return;
+    }
+
+    const circle = L.circle([lat, lng], {
+        radius: km * 1000, color: '#FF8A66', weight: 1.5, dashArray: '6 5', fillColor: '#FF8A66', fillOpacity: 0.1, interactive: false,
     }).addTo(map);
 
     // The radius label sits on the circle's north edge.
@@ -332,7 +340,7 @@ function drawControls(map) {
         icon.innerHTML = PIN_ICON;
         const text = el('span', 'ai-chip__text');
         if (origin) {
-            text.append(el('span', 'ai-chip__title', `Around ${origin.name}`));
+            text.append(el('span', 'ai-chip__title', origin.kind === 'point' ? 'Near you' : `Around ${origin.name}`));
             text.append(el('span', 'ai-chip__sub', nearest != null ? `${count} · nearest is ${nearest.toFixed(1)} km away` : count));
         } else {
             text.append(el('span', 'ai-chip__title', count));

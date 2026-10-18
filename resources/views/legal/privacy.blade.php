@@ -29,6 +29,7 @@
                         'Activity: favorites, inquiries, reservations, rental agreements, reviews, reports you file, and notifications.',
                         'Messages you send to other users through the in-app chat.',
                         'Payment records: amounts, dates and status of rent or fees paid through the platform. Card and wallet details are handled by our payment provider and are not stored by us.',
+                        'Your location, only if you search “near me”: your browser shares your position for that one search so places can be sorted by distance. It is used once, is not saved, and is not sent to the AI service.',
                         'Technical data: device and browser type, IP address, pages visited and error logs, collected automatically to run and protect the service.',
                     ]],
                 ],

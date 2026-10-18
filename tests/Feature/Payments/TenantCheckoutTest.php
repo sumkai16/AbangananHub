@@ -347,10 +347,11 @@ class TenantCheckoutTest extends TestCase
     // ─── (3) amount correctness: initial checkout ───────────────
 
     #[DataProvider('surfaces')]
-    public function test_the_initial_checkout_asks_paymongo_for_the_unit_rental_fee_in_centavos(string $surface): void
+    public function test_the_initial_checkout_asks_paymongo_for_the_agreed_rent_in_centavos(string $surface): void
     {
         $this->fakeCheckoutCreated('cs_checkout_initial');
-        $t = $this->signedTenancy(unit: ['rental_fee' => 7500.50, 'security_deposit' => 9000]);
+        // The rent charged is the one agreed in the lease (agreed_monthly_rent), not the unit's live price.
+        $t = $this->signedTenancy(['agreed_monthly_rent' => 7500.50], ['security_deposit' => 9000]);
         $reservation = $t['reservation'];
 
         // A client that tries to name its own price must be ignored.
@@ -380,10 +381,23 @@ class TenantCheckoutTest extends TestCase
     }
 
     #[DataProvider('surfaces')]
+    public function test_a_unit_price_edited_after_signing_does_not_change_what_the_tenant_is_charged(string $surface): void
+    {
+        $this->fakeCheckoutCreated('cs_checkout_frozen');
+        // Agreed rent is the fixture's 5,000; the landlord then raises the unit to 9,999.
+        $t = $this->signedTenancy(unit: ['rental_fee' => 9999]);
+
+        $this->startCheckout($surface, 'initial', $t['tenant'], $t['reservation']);
+
+        $this->assertSame(500000, $this->sentCheckoutAttributes()['line_items'][0]['amount'], 'The tenant pays what they signed, PHP 5,000.');
+        $this->assertSame('5000.00', (string) $this->paymentsOf($t['reservation'])->first()->amount);
+    }
+
+    #[DataProvider('surfaces')]
     public function test_an_initial_amount_with_centavos_reaches_paymongo_without_losing_one(string $surface): void
     {
         $this->fakeCheckoutCreated('cs_checkout_centavo');
-        $t = $this->signedTenancy(unit: ['rental_fee' => 512.05]);
+        $t = $this->signedTenancy(['agreed_monthly_rent' => 512.05]);
 
         $this->startCheckout($surface, 'initial', $t['tenant'], $t['reservation']);
 

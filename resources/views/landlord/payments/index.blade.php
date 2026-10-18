@@ -333,7 +333,7 @@
 
             {{-- Desktop: table --}}
             <x-card flush class="hidden lg:block">
-                <div class="overflow-x-auto">
+                <div class="relative overflow-x-auto">
                     <table class="w-full min-w-[900px]">
                         <thead class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
                             <tr>

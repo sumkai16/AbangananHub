@@ -31,6 +31,12 @@
                 </div>
             </div>
 
+            @if(auth()->user()->hasRole('Tenant'))
+                <p class="-mt-3 mb-6 text-[13px] text-[#5B6A8E]">
+                    Already reported something? <a href="{{ route('tenant.reports.index') }}" class="font-semibold text-[#060D26] underline underline-offset-2 hover:text-[#B35A3D]">See your reports and their status</a>.
+                </p>
+            @endif
+
             {{-- Errors --}}
             @if($errors->any())
                 <div class="mb-6 px-4 py-3 rounded-xl bg-[#EF4444]/[0.07] border border-[#EF4444]/20 text-[#DC2626] text-sm font-medium">
@@ -142,11 +148,14 @@
                             </label>
                             @php
                                 $reportedUserOptions = ['' => 'Select a user...'] + $users->mapWithKeys(fn ($user) => [
-                                    (string) $user->user_id => $user->first_name . ' ' . $user->last_name . ' (' . $user->email . ')',
+                                    (string) $user->user_id => trim($user->first_name . ' ' . $user->last_name),
                                 ])->all();
                             @endphp
                             <x-styled-select name="reported_user_id" :options="$reportedUserOptions" :selected="(string) old('reported_user_id', '')"
                                 class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26]" />
+                            <p class="mt-1.5 text-[12px] text-[#5B6A8E]">
+                                Lists people you have messaged. To report anyone else, use the Report button on their profile.
+                            </p>
                         </div>
 
                         <div class="h-px bg-[#E2E4EC]"></div>

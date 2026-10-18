@@ -17,11 +17,13 @@
             x-data="{ slides: [
                     '{{ asset('images/pexels-photo-10530237.webp') }}',
                     '{{ asset('images/photo-1448630360428-65456885c650.webp') }}'
-                ], active: -1 }"
-            x-init="setInterval(() => active = active >= slides.length - 1 ? -1 : active + 1, 12000)">
-            <img src="{{ asset('images/hero-bg.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+                ], active: -1, ready: false }"
+            x-init="setTimeout(() => ready = true, 4000); setInterval(() => active = active >= slides.length - 1 ? -1 : active + 1, 12000)">
+            {{-- The one eager image: it is the page's largest paint, so it is fetched first. The slideshow photos
+                 only start downloading 4 s in (first swap is at 12 s), so they never compete with it on a slow phone. --}}
+            <img src="{{ asset('images/hero-bg.jpg') }}" alt="" fetchpriority="high" decoding="async" class="absolute inset-0 w-full h-full object-cover">
             <template x-for="(slide, i) in slides" :key="i">
-                <img :src="slide" alt="" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out motion-reduce:transition-none"
+                <img :src="ready ? slide : null" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out motion-reduce:transition-none"
                     :class="active === i ? 'opacity-100' : 'opacity-0'">
             </template>
             <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/35 via-[#060D26]/45 to-[#060D26]/55"></div>
@@ -55,11 +57,10 @@
 
     {{-- ===== BROWSE ===== --}}
     <div class="relative isolate overflow-clip">
-    @if($heroStats)
-        {{-- Background texture for the wide side margins on the landing page: soft colour glows, a dot
-             grid, diagonal hairlines and flowing curves. Purely decorative, low contrast, behind content. --}}
-        <x-section-texture />
-    @endif
+    {{-- Background texture for the wide side margins: soft colour glows, a dot grid, diagonal
+         hairlines and flowing curves. Purely decorative, low contrast, behind content. Shown on
+         the filtered/browse view too, not just the landing arrival, so both read as one page. --}}
+    <x-section-texture />
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 min-h-[60vh]" x-data="{ mobileView: 'list', mapVisible: false, filtersOpen: false }"
         @if(! $heroStats) data-browse-live @endif
         x-effect="window.dispatchEvent(new CustomEvent('browse-map-state', { detail: mapVisible }))"
@@ -124,65 +125,15 @@
                             <h2 class="mt-1.5 font-jakarta text-[20px] sm:text-[24px] font-bold leading-tight text-[#060D26]">Popular places to stay</h2>
                         </div>
                     </div>
-                    {{-- A different card treatment than the main grid's borderless
-                         image-is-the-card pattern (DESIGN.md §6), deliberately — this
-                         boxed white-card style is specific to this section, mirroring
-                         the reference mockup exactly. Only one use site, so inlined
-                         rather than a new shared component. --}}
+                    {{-- Same shared card as the main grid (x-property-card) so the two never drift apart. --}}
                     {{-- One swipeable row (scroll-snap): ~5 cards visible on desktop, ~1.5 on phones
                          so the next card peeks in as a swipe hint. "View all" is the last item. --}}
                     <div class="relative">
                         <div x-ref="track" @scroll.passive="sync()" class="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         @foreach($popularProperties as $property)
-                            @php
-                                $availableCount = $property->units->where('availability_status', 'Available')->count();
-                                $photo = $property->media->firstWhere('media_type', 'Image')?->media_url;
-                            @endphp
-                            <a href="{{ route('properties.show', $property->property_id) }}"
-                                class="block shrink-0 snap-start w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)] bg-white border border-[#E2E4EC] rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FF8A66]/60 hover:shadow-[0_10px_24px_rgba(6,13,38,0.14)] motion-reduce:hover:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
-                                <div class="relative h-[110px] bg-[#ECEEF6]">
-                                    @if($photo)
-                                        <img src="{{ \App\Support\Images::resize($photo, 480) }}" alt="{{ $property->title }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
-                                    @endif
-                                    @if($property->hasVerifiedDocuments())
-                                        <span class="absolute top-2.5 left-2.5 inline-flex items-center gap-0.5 bg-white/95 text-[#060D26] text-[10.5px] font-semibold px-2 py-1 rounded-full">
-                                            &#10003; Verified
-                                        </span>
-                                    @endif
-                                </div>
-                                <div class="p-3.5">
-                                    <p class="text-[11px] text-[#5B6A8E] mb-0.5 truncate">
-                                        {{ $property->property_type }} &middot; {{ $property->city_municipality }}
-                                    </p>
-                                    <h3 class="font-jakarta text-[14px] font-bold text-[#060D26] truncate mb-2.5">
-                                        {{ $property->title }}
-                                    </h3>
-                                    <div class="flex items-end justify-between gap-2">
-                                        <div>
-                                            <p class="font-jakarta text-[19px] font-extrabold text-[#060D26] leading-none">
-                                                @if($property->min_rental_fee)
-                                                    &#8369;{{ number_format($property->min_rental_fee) }}
-                                                @else
-                                                    &#8212;
-                                                @endif
-                                            </p>
-                                            <p class="text-[11px] text-[#5B6A8E] mt-0.5">/ month &middot; from</p>
-                                        </div>
-                                        <div class="text-right shrink-0">
-                                            @if($availableCount > 0)
-                                                <p class="inline-block font-jakarta text-[10px] font-bold uppercase tracking-[0.04em] text-[#060D26] px-2 py-0.5 rounded-full bg-[#ECEEF6]">
-                                                    {{ $availableCount }} {{ Str::plural('unit', $availableCount) }} free
-                                                </p>
-                                            @endif
-                                            @if($property->review_count > 0)
-                                                <p class="text-[11px] text-[#060D26] mt-0.5">
-                                                    &#9733; {{ number_format($property->avg_rating, 1) }} ({{ $property->review_count }})
-                                                </p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
+                            <div class="shrink-0 snap-start w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]">
+                                <x-property-card :property="$property" :favorited-ids="$favoritedIds" />
+                            </div>
                         @endforeach
 
                         <x-view-all-tile :href="route('properties.index', ['sort' => 'top_rated'])" label="View all popular properties"
@@ -190,7 +141,7 @@
                             :photos="$popularProperties->reverse()->map(fn ($p) => $p->media->firstWhere('media_type', 'Image')?->media_url)->all()"
                             class="w-[72%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]" />
                     </div>
-                        <x-row-arrows top="top-[56px]" />
+                        <x-row-arrows top="top-[88px]" />
                     </div>
                 </div>
             @endif
@@ -363,7 +314,11 @@
                         @php $isActive = $type === null ? ! $activeType : $activeType === $type; @endphp
                         <a href="{{ $type ? route('properties.index', ['type' => $type]) : route('properties.index') }}"
                             @if($isActive) aria-current="page" @endif
-                            class="flex-shrink-0 h-9 inline-flex items-center px-4 rounded-full border font-jakarta text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#FF8A66] hover:text-[#060D26]' }}">
+                            class="flex-shrink-0 h-9 inline-flex items-center gap-1.5 px-3.5 rounded-full border font-jakarta text-[12.5px] font-bold transition-all duration-200 {{ $isActive ? 'bg-[#060D26] border-[#060D26] text-white shadow-md' : 'bg-white border-[#E2E4EC] text-[#5B6A8E] hover:border-[#FF8A66] hover:text-[#060D26]' }}">
+                            {{-- Same icons as the header's category strip (one source: PropertyType::icon()). --}}
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="{{ $isActive ? 'text-[#FF8A66]' : '' }}" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $type ? \App\Enums\PropertyType::from($type)->icon() : \App\Enums\PropertyType::ALL_ICON }}" />
+                            </svg>
                             {{ $label }}
                         </a>
                     @endforeach
@@ -410,19 +365,12 @@
             </div>
         </div>
 
-        {{-- ===== FILTERS PANEL — bottom sheet on mobile, wide two-column modal from
-             `md:` up so all amenity categories fit without scrolling. Header and
-             footer are fixed; only the body scrolls (phones, short screens).
-             Same x-teleport overlay shell as the inquiry modal on properties/show. ===== --}}
+        {{-- ===== FILTERS PANEL — bottom sheet on mobile; from `md:` up a two-column dialog (budget + place on the
+             left, house rules + amenities on the right) with flat sections instead of a card per group.
+             Header and footer are fixed; only the body scrolls (phones, short screens). A "Selected" row on top
+             lists what is chosen with a remove button each, and the footer button shows how many places the
+             choices give (properties.count). Same x-teleport overlay shell as the inquiry modal on properties/show. ===== --}}
         @php
-            $categoryIcons = [
-                'Bath & comfort' => 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z',
-                'Building & access' => 'M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21',
-                'Connectivity & power' => 'M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z',
-                'Kitchen & laundry' => 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z',
-                'Rules & extras' => 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z',
-            ];
-            $fallbackCategoryIcon = 'M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z';
             $initialSelected = \App\Support\BrowseFilters::activeCount(request());
             $bf = \App\Support\BrowseFilters::fromRequest(request());
             // Display-only: the category that's left once the rule-like amenities moved to House rules.
@@ -433,9 +381,59 @@
                 x-on:keydown.escape.window="filtersOpen = false">
                 <div class="absolute inset-0 bg-[#060D26]/50" x-on:click="filtersOpen = false"></div>
                 <form method="GET" action="{{ route('properties.index') }}"
-                    x-data="{ priceSet: {{ (request()->filled('price_min') || request()->filled('price_max')) ? 'true' : 'false' }}, selected: {{ $initialSelected }}, count() { this.selected = Array.from(this.$el.querySelectorAll('input[type=checkbox]:checked, input[type=radio]:checked')).filter(i => i.value !== '').length + (this.priceSet ? 1 : 0) } }"
-                    @change="count()" @price-changed="priceSet = $event.detail; count()"
-                    class="relative w-full sm:max-w-7xl max-h-[94vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+                    x-data="{
+                        selected: {{ $initialSelected }},
+                        places: {{ $properties->total() }},
+                        items: [],
+                        timer: null,
+                        seq: 0,
+                        init() { this.$nextTick(() => this.count()); },
+                        money(v) { return '₱' + Number(v).toLocaleString('en-PH'); },
+                        // What is chosen right now, read from the form itself so it can never drift from what gets submitted.
+                        collect() {
+                            const out = [];
+                            this.$root.querySelectorAll('input[type=checkbox]:checked, input[type=radio]:checked').forEach((i) => {
+                                if (i.value === '') return;
+                                out.push({ key: i.name + ':' + i.value, label: i.closest('label').querySelector('span').textContent.trim(), name: i.name, value: i.value, type: i.type });
+                            });
+                            const lo = this.$root.querySelector('[name=price_min]')?.value, hi = this.$root.querySelector('[name=price_max]')?.value;
+                            if (lo || hi) {
+                                const label = lo && hi ? this.money(lo) + ' – ' + this.money(hi) : (lo ? this.money(lo) + ' & up' : 'Up to ' + this.money(hi));
+                                out.unshift({ key: 'price', label, type: 'price' });
+                            }
+                            return out;
+                        },
+                        count() {
+                            this.$nextTick(() => {
+                                this.items = this.collect();
+                                this.selected = this.items.length;
+                                this.recount();
+                            });
+                        },
+                        // The button's number: ask the server how many places these choices give (same query as the page).
+                        recount() {
+                            clearTimeout(this.timer);
+                            const id = ++this.seq;
+                            this.timer = setTimeout(async () => {
+                                try {
+                                    const res = await fetch(@js(route('properties.count')) + '?' + new URLSearchParams(new FormData(this.$root)), { headers: { Accept: 'application/json' } });
+                                    if (res.ok && id === this.seq) this.places = (await res.json()).count;
+                                } catch { /* offline: keep the last number */ }
+                            }, 250);
+                        },
+                        // `$root` (the form), not `$el`: from a chip's click handler `$el` is the chip.
+                        // Items hold names, not elements: Alpine wraps state in proxies, and a proxied DOM node cannot be changed.
+                        remove(item) {
+                            if (item.type === 'price') { window.dispatchEvent(new CustomEvent('budget-clear')); return; }
+                            const find = (value) => this.$root.querySelector(`input[name='${item.name}'][value='${value}']`);
+                            const target = item.type === 'radio' ? (find('') ?? find(item.value)) : find(item.value);
+                            if (! target) return;
+                            target.checked = item.type === 'radio';
+                            target.dispatchEvent(new Event('change', { bubbles: true }));
+                        },
+                    }"
+                    @change="count()" @price-changed="count()"
+                    class="relative w-full sm:max-w-5xl max-h-[94vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
                     x-show="filtersOpen" x-transition>
 
                     {{-- Header --}}
@@ -453,8 +451,19 @@
                     </div>
 
                     {{-- Body (only this scrolls) --}}
-                    <div class="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-[#F7F8FC]">
-                        {{-- Carries location/type/sort through untouched. The price fields are owned by the budget card below,
+                    @php
+                        // One chip look for every option in the dialog; chosen = coral, including "Any" (one selected style).
+                        $chip = 'inline-flex items-center px-3 py-1.5 md:py-1 rounded-full border border-[#E2E4EC] bg-white font-jakarta text-[12px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all';
+                        $sectionTitle = 'font-jakarta text-[12px] font-bold uppercase tracking-[0.07em] text-[#060D26]';
+                        $groupLabel = 'text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[#5B6A8E]';
+                        $factRows = [
+                            ['Living arrangement', 'living', ['' => 'Any'] + array_combine(array_keys(\App\Support\PropertyPolicies::LIVING_ARRANGEMENTS), array_keys(\App\Support\PropertyPolicies::LIVING_ARRANGEMENTS)), $bf['living']],
+                            ['Suitable for', 'for', ['' => 'Anyone', 'Men' => 'Men', 'Women' => 'Women'], $bf['for']],
+                            ['Furnishing', 'furnishing', ['' => 'Any'] + array_combine(\App\Support\BrowseFilters::FURNISHING, \App\Support\BrowseFilters::FURNISHING), $bf['furnishing']],
+                        ];
+                    @endphp
+                    <div class="flex-1 overflow-y-auto px-5 md:px-6 py-4 bg-white">
+                        {{-- Carries location/type/sort through untouched. The price fields are owned by the budget block below,
                              so they are left out here (a second copy would submit the old value). --}}
                         @foreach(request()->except(['amenities', 'verified', 'page', 'living', 'for', 'furnishing', 'rules', 'price_min', 'price_max']) as $key => $value)
                             @if(is_array($value))
@@ -466,111 +475,106 @@
                             @endif
                         @endforeach
 
-                        {{-- Budget first: price is the filter most people start with. --}}
-                        <x-budget-filter />
-
-                        {{-- Property facts. One card of labelled rows (each option set stays on one line) beside the house
-                             rules — the two together span the same five columns as the amenity groups below, so
-                             nothing is stretched to the height of its neighbour. --}}
-                        @php
-                            $factRows = [
-                                ['Living arrangement', 'living', ['' => 'Any'] + array_combine(array_keys(\App\Support\PropertyPolicies::LIVING_ARRANGEMENTS), array_keys(\App\Support\PropertyPolicies::LIVING_ARRANGEMENTS)), $bf['living']],
-                                ['Suitable for', 'for', ['' => 'Anyone', 'Men' => 'Men', 'Women' => 'Women'], $bf['for']],
-                                ['Furnishing', 'furnishing', ['' => 'Any'] + array_combine(\App\Support\BrowseFilters::FURNISHING, \App\Support\BrowseFilters::FURNISHING), $bf['furnishing']],
-                            ];
-                        @endphp
-                        <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
-                            <section class="md:col-span-2 lg:col-span-3 bg-white border border-[#E2E4EC] rounded-2xl p-3.5">
-                                <div class="flex items-center gap-2.5 mb-1">
-                                    <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
-                                    </span>
-                                    <h4 class="font-jakarta text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">The place</h4>
-                                </div>
-                                <div class="divide-y divide-[#E2E4EC]">
-                                    @foreach($factRows as [$factTitle, $factName, $factOptions, $factSelected])
-                                        <div class="py-3 last:pb-0 sm:flex sm:items-center sm:gap-4">
-                                            <p class="mb-2 sm:mb-0 sm:w-40 shrink-0 text-[12px] font-semibold uppercase tracking-wide text-[#5B6A8E]">{{ $factTitle }}</p>
-                                            <div class="flex flex-wrap gap-2">
-                                                @foreach($factOptions as $optValue => $optLabel)
-                                                    <label class="relative cursor-pointer">
-                                                        <input type="radio" name="{{ $factName }}" value="{{ $optValue }}" @checked((string) $factSelected === (string) $optValue) class="peer sr-only">
-                                                        <span class="{{ (string) $optValue === '' ? 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-jakarta text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#060D26]/40 peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#060D26]/25 peer-checked:bg-[#ECEEF6] peer-checked:text-[#060D26] transition-all' : 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-jakarta text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all' }}">{{ $optLabel }}</span>
-                                                    </label>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </section>
-
-                            <section class="md:col-span-2 lg:col-span-2 bg-white border border-[#E2E4EC] rounded-2xl p-3.5">
-                                <div class="flex items-center gap-2.5 mb-3">
-                                    <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $categoryIcons['Rules & extras'] }}" /></svg>
-                                    </span>
-                                    <h4 class="font-jakarta text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">House rules</h4>
-                                </div>
-                                <p class="mb-2.5 text-[12px] text-[#5B6A8E]">Show only places that allow…</p>
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach(\App\Support\BrowseFilters::RULES as $ruleKey => [$ruleLabel])
-                                        <label class="relative cursor-pointer">
-                                            <input type="checkbox" name="rules[]" value="{{ $ruleKey }}" @checked(in_array($ruleKey, $bf['rules'], true)) class="peer sr-only">
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-jakarta text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all">{{ $ruleLabel }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </section>
+                        {{-- Selected: everything chosen, one tap to drop each. Nothing stays hidden inside a collapsed group. --}}
+                        <div x-show="items.length" x-cloak class="flex flex-wrap items-center gap-1.5 pb-4 mb-4 border-b border-[#E2E4EC]" aria-label="Selected filters">
+                            <span class="{{ $groupLabel }} mr-1">Selected</span>
+                            <template x-for="item in items" :key="item.key">
+                                <button type="button" @click="remove(item)" :aria-label="'Remove ' + item.label"
+                                    class="inline-flex items-center gap-1.5 h-8 md:h-7 pl-3 pr-2 rounded-full bg-[#060D26] text-white font-jakarta text-[12px] font-semibold hover:bg-[#1B2547] transition-colors cursor-pointer">
+                                    <span x-text="item.label"></span>
+                                    <svg class="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </template>
                         </div>
-                        <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
-                            @foreach($amenityGroups as $category => $group)
-                                {{-- Phones: each group is an accordion (one long column of ~35 chips is a lot of scrolling in a
-                                     bottom sheet). A group that already holds a chosen amenity starts open, so an active filter is
-                                     never hidden; from `md:` up everything is open and the header is not interactive. --}}
-                                @php $selectedHere = $group->filter(fn ($a) => in_array($a->amenity_id, (array) request('amenities', [])))->count(); @endphp
-                                <section class="bg-white border border-[#E2E4EC] rounded-2xl p-3.5"
-                                    x-data="{ open: {{ $selectedHere > 0 ? 'true' : 'false' }}, n: {{ $selectedHere }} }"
-                                    @change="n = $el.querySelectorAll('input[type=checkbox]:checked').length">
-                                    <h4 class="m-0">
-                                        <button type="button" @click="open = !open" :aria-expanded="open.toString()"
-                                            class="w-full flex items-center gap-2.5 text-left cursor-pointer md:pointer-events-none md:cursor-default">
-                                            <span class="w-8 h-8 rounded-full bg-[#060D26] text-white flex items-center justify-center flex-shrink-0">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $categoryIcons[$category] ?? $fallbackCategoryIcon }}" /></svg>
-                                            </span>
-                                            <span class="font-jakarta text-[13px] font-bold uppercase tracking-[0.06em] text-[#060D26]">{{ $categoryLabels[$category] ?? $category }}</span>
-                                            <span class="md:hidden ml-auto flex items-center gap-2">
-                                                <span x-show="n > 0" x-cloak class="min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-[11px] font-bold tabular-nums" x-text="n"></span>
-                                                <svg class="w-4 h-4 text-[#5B6A8E] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
-                                            </span>
-                                        </button>
-                                    </h4>
-                                    <div class="mt-3 flex-wrap gap-2" :class="open ? 'flex' : 'hidden md:flex'" x-cloak>
-                                        @foreach($group as $amenity)
+
+                        <div class="md:grid md:grid-cols-[minmax(0,.9fr)_minmax(0,1.3fr)] md:gap-x-8">
+                            {{-- Left: budget first (price is the filter most people start with), then the property facts. --}}
+                            <div>
+                                <x-budget-filter />
+
+                                <section class="py-4 border-t border-[#E2E4EC]" aria-labelledby="bf-place">
+                                    <h4 id="bf-place" class="{{ $sectionTitle }}">The place</h4>
+                                    <div class="mt-3 space-y-3">
+                                        @foreach($factRows as [$factTitle, $factName, $factOptions, $factSelected])
+                                            <div>
+                                                <p class="mb-1.5 {{ $groupLabel }}">{{ $factTitle }}</p>
+                                                <div class="flex flex-wrap gap-1.5">
+                                                    @foreach($factOptions as $optValue => $optLabel)
+                                                        <label class="relative cursor-pointer">
+                                                            <input type="radio" name="{{ $factName }}" value="{{ $optValue }}" @checked((string) $factSelected === (string) $optValue) class="peer sr-only">
+                                                            <span class="{{ $chip }}">{{ $optLabel }}</span>
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </section>
+                            </div>
+
+                            {{-- Right: house rules, then every amenity group. --}}
+                            <div>
+                                <section class="py-4 border-t border-[#E2E4EC] md:border-t-0 md:pt-0" aria-labelledby="bf-rules">
+                                    <h4 id="bf-rules" class="{{ $sectionTitle }}">House rules <span class="ml-1 font-sans text-[12px] font-normal normal-case tracking-normal text-[#5B6A8E]">Show only places that allow…</span></h4>
+                                    <div class="mt-3 flex flex-wrap gap-1.5">
+                                        @foreach(\App\Support\BrowseFilters::RULES as $ruleKey => [$ruleLabel])
                                             <label class="relative cursor-pointer">
-                                                <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
-                                                    @checked(in_array($amenity->amenity_id, (array) request('amenities', [])))
-                                                    class="peer sr-only">
-                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E2E4EC] bg-white font-jakarta text-[12.5px] font-semibold text-[#5B6A8E] hover:border-[#FF8A66] peer-focus-visible:ring-2 peer-focus-visible:ring-[#FF8A66]/50 peer-checked:border-[#FF8A66] peer-checked:bg-[#FF8A66] peer-checked:text-[#060D26] transition-all">
-                                                    <x-amenity-icon :name="$amenity->name" class="w-3.5 h-3.5" />
-                                                    {{ $amenity->name }}
-                                                </span>
+                                                <input type="checkbox" name="rules[]" value="{{ $ruleKey }}" @checked(in_array($ruleKey, $bf['rules'], true)) class="peer sr-only">
+                                                <span class="{{ $chip }}">{{ $ruleLabel }}</span>
                                             </label>
                                         @endforeach
                                     </div>
                                 </section>
-                            @endforeach
+
+                                <section class="py-4 border-t border-[#E2E4EC]" aria-labelledby="bf-amenities">
+                                    <h4 id="bf-amenities" class="{{ $sectionTitle }}">Amenities</h4>
+                                    <div class="mt-1 md:mt-3 md:space-y-3.5">
+                                        @foreach($amenityGroups as $category => $group)
+                                            {{-- Phones: each group is an accordion (one long column of ~35 chips is a lot of scrolling in a
+                                                 bottom sheet). A group that already holds a chosen amenity starts open, so an active filter is
+                                                 never hidden; from `md:` up every group is open and its label is plain text. --}}
+                                            @php $selectedHere = $group->filter(fn ($a) => in_array($a->amenity_id, (array) request('amenities', [])))->count(); @endphp
+                                            <div class="border-t border-[#E2E4EC] first:border-t-0 md:border-t-0"
+                                                x-data="{ open: {{ $selectedHere > 0 ? 'true' : 'false' }}, n: {{ $selectedHere }} }"
+                                                @change="n = $el.querySelectorAll('input[type=checkbox]:checked').length">
+                                                <h5 class="m-0">
+                                                    <button type="button" @click="open = !open" :aria-expanded="open.toString()"
+                                                        class="w-full min-h-11 md:min-h-0 flex items-center gap-2 text-left cursor-pointer md:pointer-events-none md:cursor-default">
+                                                        <span class="{{ $groupLabel }}">{{ $categoryLabels[$category] ?? $category }}</span>
+                                                        <span class="md:hidden ml-auto flex items-center gap-2">
+                                                            <span x-show="n > 0" x-cloak class="min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-[#FF8A66] text-[#060D26] text-[11px] font-bold tabular-nums" x-text="n"></span>
+                                                            <svg class="w-4 h-4 text-[#5B6A8E] transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                                        </span>
+                                                    </button>
+                                                </h5>
+                                                <div class="mt-1.5 mb-3 md:mb-0 flex-wrap gap-1.5" :class="open ? 'flex' : 'hidden md:flex'" x-cloak>
+                                                    @foreach($group as $amenity)
+                                                        <label class="relative cursor-pointer">
+                                                            <input type="checkbox" name="amenities[]" value="{{ $amenity->amenity_id }}"
+                                                                @checked(in_array($amenity->amenity_id, (array) request('amenities', [])))
+                                                                class="peer sr-only">
+                                                            <span class="{{ $chip }}">{{ $amenity->name }}</span>
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </section>
+                            </div>
                         </div>
                     </div>
 
                     {{-- Footer --}}
-                    <div class="flex items-center gap-4 px-6 py-4 border-t border-[#E2E4EC] bg-white flex-shrink-0">
+                    <div class="flex items-center gap-4 px-5 md:px-6 py-3.5 border-t border-[#E2E4EC] bg-white flex-shrink-0">
                         <a href="{{ route('properties.index', request()->except(['amenities', 'verified', 'page', 'living', 'for', 'furnishing', 'rules', 'price_min', 'price_max'])) }}"
-                            class="font-jakarta text-[13px] font-bold text-[#EF4444] hover:brightness-95">
+                            class="font-jakarta text-[13px] font-semibold text-[#060D26] underline underline-offset-4 decoration-[#060D26]/30 hover:decoration-[#060D26]">
                             Clear all
                         </a>
-                        <span class="hidden sm:inline font-jakarta text-[10.5px] font-bold uppercase tracking-[0.08em] text-[#5B6A8E]" x-text="selected + ' selected'"></span>
-                        <button type="submit"
-                            class="ml-auto px-6 py-2.5 rounded-full font-jakarta text-[13.5px] font-bold text-[#060D26] bg-[#FF8A66] shadow-[0_8px_20px_rgba(255,138,102,0.35)] hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                        <span class="hidden sm:inline text-[12px] text-[#5B6A8E] tabular-nums" x-text="selected + ' selected'"></span>
+                        <button type="submit" :disabled="places === 0"
+                            class="ml-auto px-6 h-11 rounded-full font-jakarta text-[13.5px] font-bold text-[#060D26] bg-[#FF8A66] shadow-[0_8px_20px_rgba(255,138,102,0.35)] hover:bg-[#E96F4F] disabled:opacity-50 disabled:shadow-none disabled:hover:bg-[#FF8A66] disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
+                            x-text="places === 0 ? 'No places match' : 'Show ' + places.toLocaleString('en-PH') + (places === 1 ? ' place' : ' places')">
                             Apply filters
                         </button>
                     </div>

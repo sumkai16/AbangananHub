@@ -24,6 +24,9 @@ class ReservationObserver
 {
     public function created(Reservation $reservation): void
     {
+        // A tenancy recorded straight as Occupied (rather than reaching it through the pipeline).
+        $this->syncTenancyThread($reservation);
+
         if (! $reservation->conversation_id) {
             return;
         }
@@ -44,6 +47,12 @@ class ReservationObserver
 
     public function updated(Reservation $reservation): void
     {
+        // Before the early return below: a tenancy thread does not depend on the
+        // inquiry thread, and walk-ins (which have none) are skipped inside.
+        if ($reservation->wasChanged('rental_status')) {
+            $this->syncTenancyThread($reservation);
+        }
+
         // A reservation created outside the inquiry flow has no thread to
         // push into; nothing is listening.
         if (! $reservation->conversation_id) {
@@ -71,6 +80,20 @@ class ReservationObserver
         $this->cancelViewingsIfEnded($reservation);
 
         $this->notifyTransition($reservation);
+    }
+
+    /**
+     * Occupied opens the post-move-in chat; Completed closes it (read-only).
+     * Hooked on the save for the same reason as everything else here: tenant
+     * confirmation, the deadline timer and an admin release all end in Occupied.
+     */
+    private function syncTenancyThread(Reservation $reservation): void
+    {
+        if ($reservation->rental_status === 'Occupied') {
+            $reservation->openTenancyThread();
+        } elseif ($reservation->rental_status === 'Completed') {
+            $reservation->tenancyThread()->update(['status' => 'Resolved']);
+        }
     }
 
     /**

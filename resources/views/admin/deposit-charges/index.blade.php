@@ -7,7 +7,7 @@
     x-data="{ voidTarget: { id: null, label: '' }, openVoid(id, label) { this.voidTarget = { id, label }; window.dispatchEvent(new CustomEvent('open-modal', { detail: 'void-deposit-charge' })); } }">
 
     {{-- Page header --}}
-    <x-page-header title="Deposit Charges" subtitle="Oversight of landlord claims against a tenant's held security deposit." />
+    <x-page-header title="Deposit Charges" icon-path="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" subtitle="Oversight of landlord claims against a tenant's held security deposit." />
 
     {{-- Tabs --}}
     <div class="flex items-center gap-0.5 border-b border-[#E2E4EC] mb-6 overflow-x-auto">

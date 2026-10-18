@@ -16,10 +16,18 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-semibold tracking-tight text-[#060D26]">
-                        {{ $isLandlord ? 'Inquiries' : 'Messages' }}
+                        @if($box === 'tenancy')
+                            {{ $isLandlord ? 'Tenants' : 'My home' }}
+                        @else
+                            {{ $isLandlord ? 'Inquiries' : 'Messages' }}
+                        @endif
                     </h1>
                     <p class="mt-0.5 text-sm text-[#5B6A8E]">
-                        {{ $isLandlord ? 'Respond to tenant inquiries across your properties.' : 'Manage your active inquiries and conversation threads.' }}
+                        @if($box === 'tenancy')
+                            {{ $isLandlord ? 'Chat with the people living in your properties and track their concerns.' : 'Chat with your landlord and report anything that needs fixing.' }}
+                        @else
+                            {{ $isLandlord ? 'Respond to tenant inquiries across your properties.' : 'Manage your active inquiries and conversation threads.' }}
+                        @endif
                     </p>
                 </div>
             </div>
@@ -41,12 +49,12 @@
                         x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95"
                         x-transition:enter-end="opacity-100 scale-100"
                         class="absolute right-0 top-[calc(100%+6px)] z-50 w-[240px] rounded-xl bg-white py-1 shadow-[0_4px_24px_rgba(0,0,0,0.12)] ring-1 ring-black/5">
-                        <a href="{{ route('conversations.index', array_filter(['status' => $status !== 'all' ? $status : null])) }}"
+                        <a href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $status !== 'all' ? $status : null])) }}"
                             class="block px-4 py-2.5 text-[13px] font-medium text-[#060D26] transition hover:bg-[#F7F8FC] {{ !$propertyId ? 'bg-[#ECEEF6]' : '' }}">
                             All Properties
                         </a>
                         @foreach($landlordProperties as $prop)
-                            <a href="{{ route('conversations.index', array_filter(['status' => $status !== 'all' ? $status : null, 'property_id' => $prop->property_id])) }}"
+                            <a href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $status !== 'all' ? $status : null, 'property_id' => $prop->property_id])) }}"
                                 class="block truncate px-4 py-2.5 text-[13px] font-medium text-[#060D26] transition hover:bg-[#F7F8FC] {{ $propertyId == $prop->property_id ? 'bg-[#ECEEF6]' : '' }}">
                                 {{ $prop->title }}
                             </a>
@@ -63,18 +71,39 @@
             <div class="w-full lg:w-[340px] flex-shrink-0 lg:border-r border-[#5B6A8E]/10 flex-col"
                 :class="activeId ? 'hidden lg:flex' : 'flex'">
 
+                {{-- Box switch: deal chats vs. chats with people already living here --}}
+                @if($isLandlord || $hasTenancy)
+                    <div class="flex-shrink-0 border-b border-[#E2E4EC] p-2">
+                        <div class="grid grid-cols-2 gap-1 rounded-xl bg-[#ECEEF6] p-1">
+                            @foreach ([['inquiry', 'Inquiries'], ['tenancy', $isLandlord ? 'Tenants' : 'My home']] as [$boxKey, $boxLabel])
+                                <a href="{{ route('conversations.index', array_filter(['box' => $boxKey === 'tenancy' ? 'tenancy' : null, 'property_id' => $propertyId])) }}"
+                                    @if($box === $boxKey) aria-current="page" @endif
+                                    class="flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold transition-colors {{ $box === $boxKey ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]' }}">
+                                    {{ $boxLabel }}
+                                    @if(($boxUnread[$boxKey] ?? 0) > 0)
+                                        <span class="min-w-[18px] rounded-full bg-[#FF8A66] px-1.5 text-center text-[10px] font-bold leading-[18px] text-[#060D26]">{{ $boxUnread[$boxKey] }}</span>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Tabs --}}
                 <div class="flex flex-shrink-0 items-center gap-0.5 overflow-x-auto border-b border-[#E2E4EC] px-2">
                     @php
                         $tabs = [
                             'all' => ['label' => 'Active', 'count' => $activeCount],
                             'unread' => ['label' => 'Unread', 'count' => $unreadCount],
-                            'resolved' => ['label' => 'Resolved', 'count' => $resolvedCount],
-                            'cancelled' => ['label' => 'Cancelled', 'count' => $cancelledCount],
+                            'resolved' => ['label' => $box === 'tenancy' ? 'Ended' : 'Resolved', 'count' => $resolvedCount],
                         ];
+                        // A tenancy chat is never "cancelled" — it only ends.
+                        if ($box !== 'tenancy') {
+                            $tabs['cancelled'] = ['label' => 'Cancelled', 'count' => $cancelledCount];
+                        }
                     @endphp
                     @foreach ($tabs as $key => $tab)
-                                <a href="{{ route('conversations.index', array_filter(['status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
+                                <a href="{{ route('conversations.index', array_filter(['box' => $box === 'tenancy' ? 'tenancy' : null, 'status' => $key, 'search' => request('search'), 'property_id' => $propertyId])) }}"
                                     class="flex-1 whitespace-nowrap border-b-2 px-1 py-3 text-center text-[13px] font-semibold transition-colors
                                         {{ $status === $key ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                                     {{ $tab['label'] }}
@@ -89,6 +118,7 @@
                 <div class="flex-shrink-0 border-b border-[#E2E4EC] px-3 py-3">
                     <form method="GET" action="{{ route('conversations.index') }}" class="relative">
                         <input type="hidden" name="status" value="{{ $status }}">
+                        @if($box === 'tenancy')<input type="hidden" name="box" value="tenancy">@endif
                         @if($propertyId)<input type="hidden" name="property_id" value="{{ $propertyId }}">@endif
                         <svg class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#94A3B8]"
                             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -171,7 +201,15 @@
                                     @if($conversation->unit) &middot; {{ $conversation->unit->unit_label }} @endif
                                 </p>
 
-                                @if($rowStatus)
+                                @if($conversation->isTenancy())
+                                    @if($conversation->open_concerns_count > 0)
+                                        <div class="mt-1.5">
+                                            <span class="rounded-full bg-[#FBBF24]/20 px-2 py-0.5 text-[10px] font-bold text-[#060D26]">
+                                                {{ $conversation->open_concerns_count }} open {{ Str::plural('concern', $conversation->open_concerns_count) }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                @elseif($rowStatus)
                                     <div class="mt-1.5">
                                         <span data-stage-pill="{{ $rowStatus }}"
                                             class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold {{ $rowTerminal ? 'bg-[#E2E4EC] text-[#EF4444]' : 'bg-[#ECEEF6] text-[#060D26]' }}">
@@ -196,9 +234,13 @@
                             </div>
                             <p class="text-[14px] font-semibold text-[#060D26]">No conversations yet</p>
                             <p class="mx-auto mt-1 max-w-[220px] text-[13px] leading-5 text-[#5B6A8E]">
-                                {{ $isLandlord ? 'Inquiries from tenants will appear here.' : 'When you send inquiries, your conversations will appear here.' }}
+                                @if($box === 'tenancy')
+                                    {{ $isLandlord ? 'Once a tenant moves in, your chat with them appears here.' : 'Once you move in, your chat with your landlord appears here.' }}
+                                @else
+                                    {{ $isLandlord ? 'Inquiries from tenants will appear here.' : 'When you send inquiries, your conversations will appear here.' }}
+                                @endif
                             </p>
-                            @if(!$isLandlord)
+                            @if(!$isLandlord && $box !== 'tenancy')
                                 <a href="{{ route('properties.index') }}"
                                     class="mt-4 inline-flex h-9 items-center gap-1.5 rounded-full bg-[#FF8A66] px-4 text-[13px] font-semibold text-[#060D26] transition-colors duration-200 hover:bg-[#E96F4F]">
                                     Browse properties
@@ -268,7 +310,10 @@
                     echoListener: null,
 
                     init() {
-                        const active = {{ request('active', 'null') }};
+                        // Lets the concern buttons (rendered inside the injected panel) refresh it.
+                        window.refreshInboxPanel = () => this.refreshPanel();
+
+                        const active = @js(request()->integer('active') ?: null);
                         if (active) this.loadConversation(active);
 
                         // Bound once for the page lifetime, not per-conversation:
@@ -417,6 +462,9 @@
                         this.echoListener = conversationId;
                         window.Echo.private('conversation.' + conversationId)
                             .listen('.MessageSent', (e) => {
+                                // Concern cards and their status lines depend on who is
+                                // looking (the buttons differ), so refetch the panel.
+                                if (e.concern_id) { this.refreshPanel(); return; }
                                 this.appendMessage({
                                     sender_id: e.sender_id,
                                     sender_name: e.sender_name,
@@ -468,6 +516,10 @@
 
                         const wrapper = document.getElementById('chat-panel-wrapper');
                         if (!wrapper) return;
+
+                        // Someone is filling in the report sheet: a refresh would wipe it.
+                        // Their own submit (or the next event) refreshes the panel anyway.
+                        if (wrapper.querySelector('[data-sheet-open="true"]')) return;
 
                         const oldList = wrapper.querySelector('#message-list');
                         const oldInput = document.getElementById('message-input');
@@ -714,6 +766,124 @@
                 const time = bubble.querySelector('.message-time');
                 if (time) time.classList.toggle('!opacity-100');
             });
+
+            // "Report a concern" sheet. Lives here because injected panels don't run their own scripts.
+            function concernSheet(conversationId) {
+                return {
+                    open: false, busy: false,
+                    category: '', description: '',
+                    files: [], previews: [],
+                    errors: {},
+
+                    init() {
+                        // Arriving from "Report a concern" on the rental page: open straight away.
+                        const url = new URL(window.location.href);
+                        if (url.searchParams.get('concern') === 'new') {
+                            this.open = true;
+                            url.searchParams.delete('concern');
+                            window.history.replaceState({}, '', url);
+                        }
+                    },
+
+                    close() {
+                        if (this.busy) return;
+                        this.open = false;
+                    },
+
+                    async pick(event) {
+                        const chosen = Array.from(event.target.files || []);
+                        event.target.value = '';
+                        for (const file of chosen) {
+                            if (this.files.length >= 3) { this.errors.photos = 'You can attach up to 3 photos.'; break; }
+                            const small = await shrinkImage(file);
+                            this.files.push(small);
+                            this.previews.push(URL.createObjectURL(small));
+                            delete this.errors.photos;
+                        }
+                    },
+
+                    remove(i) {
+                        URL.revokeObjectURL(this.previews[i]);
+                        this.files.splice(i, 1);
+                        this.previews.splice(i, 1);
+                    },
+
+                    async submit() {
+                        this.errors = {};
+                        if (!this.category) this.errors.category = 'Pick what the concern is about.';
+                        if (!this.description.trim()) this.errors.description = 'Tell your landlord what is wrong.';
+                        if (Object.keys(this.errors).length) return;
+
+                        const body = new FormData();
+                        body.append('category', this.category);
+                        body.append('description', this.description.trim());
+                        this.files.forEach((f) => body.append('photos[]', f));
+
+                        this.busy = true;
+                        try {
+                            const res = await fetch('/conversations/' + conversationId + '/concerns', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                    'Accept': 'application/json',
+                                },
+                                body,
+                            });
+                            if (res.status === 422) {
+                                const data = await res.json();
+                                for (const [field, msgs] of Object.entries(data.errors || {})) {
+                                    this.errors[field.split('.')[0]] = msgs[0];
+                                }
+                                return;
+                            }
+                            if (!res.ok) { this.errors.general = 'Could not send. Please try again.'; return; }
+
+                            this.previews.forEach((u) => URL.revokeObjectURL(u));
+                            this.category = ''; this.description = ''; this.files = []; this.previews = [];
+                            this.open = false;
+                            window.refreshInboxPanel?.();
+                        } catch (e) {
+                            this.errors.general = 'Could not send. Check your connection and try again.';
+                        } finally {
+                            this.busy = false;
+                        }
+                    },
+                };
+            }
+
+            // Phone photos are often 5–10 MB; the server caps each at 5 MB. Scale down in the
+            // browser first. Falls back to the original file if anything about it fails.
+            async function shrinkImage(file, maxSide = 1600) {
+                try {
+                    const bitmap = await createImageBitmap(file);
+                    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+                    if (scale === 1 && file.size < 1.5 * 1024 * 1024) return file;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(bitmap.width * scale);
+                    canvas.height = Math.round(bitmap.height * scale);
+                    canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+                    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.82));
+                    if (!blob) return file;
+                    return new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+                } catch (e) {
+                    return file;
+                }
+            }
+
+            async function setConcernStatus(concernId, status) {
+                try {
+                    const res = await fetch('/concerns/' + concernId + '/status', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({ status }),
+                    });
+                    if (res.ok) window.refreshInboxPanel?.();
+                } catch (e) { }
+            }
 
             async function resolveConversation(id) {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;

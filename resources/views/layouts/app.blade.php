@@ -82,11 +82,7 @@
                  buttons), so the back link lives in the page content instead. --}}
             <a href="{{ route('home') }}"
                 class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group {{ $backNavData ? $mobileBp.':hidden' : '' }}">
-                <img src="{{ asset('images/brand/logo-mark.svg') }}" alt="AbangananHub"
-                    class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
-                <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
-                    Abanganan<span class="text-[#FF8A66]">Hub</span>
-                </span>
+                <x-brand-logo mark="w-8 h-8 sm:w-10 sm:h-10" text="text-[16px] sm:text-[18px]" gap="gap-1.5 sm:gap-2.5" />
             </a>
 
             @if($backNavData)
@@ -103,11 +99,7 @@
                      pill uses elsewhere in this file. --}}
                 <a href="{{ route('home') }}"
                     class="hidden xl:flex items-center gap-2.5 no-underline absolute left-1/2 -translate-x-1/2 group">
-                    <img src="{{ asset('images/brand/logo-mark.svg') }}" alt="AbangananHub"
-                        class="w-9 h-9 object-contain transition-transform group-hover:scale-105">
-                    <span class="text-[18px] font-extrabold text-[#060D26] tracking-tight">
-                        Abanganan<span class="text-[#FF8A66]">Hub</span>
-                    </span>
+                    <x-brand-logo mark="w-9 h-9" text="text-[18px]" />
                 </a>
             @else
                 {{-- Primary nav — sits beside the logo, deliberately not centred: the
@@ -140,9 +132,10 @@
             @endif
 
             {{-- Right Actions --}}
-            <div class="flex items-center gap-3">
+            {{-- gap-1.5 below sm: on a 375px phone the logo, theme toggle, menu, messages, bell and avatar did not fit in one row and the avatar was pushed off screen. The theme toggle also moves into the menu panel below sm. --}}
+            <div class="flex items-center gap-1.5 sm:gap-3">
 
-                <x-theme-toggle />
+                <div class="hidden sm:block"><x-theme-toggle /></div>
 
                 {{-- Mobile nav toggle — this header has no `lg:flex` primary nav
                      below `lg` (see the comment above), so this is the only way a
@@ -159,18 +152,20 @@
 
                 {{-- Messages — mobile equivalent of the floating chat bubble,
                      which is desktop-only (see partials.message-notifications).
-                     Dispatches the same event that bubble's panel listens for. --}}
+                     Links to the full messages page; a popup panel is wrong on a phone. --}}
                 @auth
                     @php
                         $mobileUnreadMsgCount = $unreadMessageCount;
                     @endphp
-                    <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
-                        class="{{ $mobileBp }}:hidden relative flex items-center gap-1.5 h-10 px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
-                        Messages
+                    <a href="{{ route('conversations.index') }}"
+                        aria-label="Messages"
+                        class="{{ $mobileBp }}:hidden relative flex items-center justify-center gap-1.5 h-10 w-10 sm:w-auto sm:px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
+                        <svg class="sm:hidden" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>
+                        <span class="hidden sm:inline">Messages</span>
                         @if($mobileUnreadMsgCount > 0)
-                            <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
+                            <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold absolute -top-1 -right-1 sm:static">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
                         @endif
-                    </button>
+                    </a>
                 @endauth
 
                 @auth
@@ -223,9 +218,10 @@
                                 </div>
                             </div>
                         @else
-                            <a href="{{ route('landlord.verification.create') }}"
+                            @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                            <a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}"
                                 class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#ECEEF6] text-[13.5px] font-semibold text-[#060D26] hover:brightness-95 transition-all cursor-pointer">
-                                Become a Landlord
+                                {{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}
                             </a>
                         @endif
                     </div>
@@ -278,7 +274,7 @@
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
                             :class="open ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]'"
-                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+                            class="flex items-center gap-2.5 pl-1 pr-1 sm:pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                             @if(auth()->user()->profile_picture)
                                 <img loading="lazy" decoding="async" src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
                                     class="w-9 h-9 rounded-full object-cover shrink-0">
@@ -394,6 +390,14 @@
                                 </svg>
                                 Report a Problem
                             </a>
+                            @if(auth()->user()->hasRole('Tenant'))
+                                <a href="{{ route('tenant.reports.index') }}" class="{{ $menuRow }}">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" />
+                                    </svg>
+                                    My Reports
+                                </a>
+                            @endif
 
                             <div class="h-px bg-[#E2E4EC] mx-2 my-1.5"></div>
 
@@ -440,6 +444,12 @@
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
             class="{{ $mobileBp }}:hidden border-t border-[#E2E4EC] bg-white px-4 py-3">
+
+            {{-- The header's theme toggle is hidden below sm (no room), so it lives here on phones. --}}
+            <div class="sm:hidden flex items-center justify-between px-3.5 py-1.5">
+                <span class="text-[14px] font-semibold text-[#060D26]">Dark mode</span>
+                <x-theme-toggle />
+            </div>
 
             <a href="{{ route('home') }}" @click="mobileNavOpen = false"
                 @if($onHome) aria-current="page" @endif
@@ -488,9 +498,10 @@
                         </a>
                     @endforeach
                 @else
-                    <a href="{{ route('landlord.verification.create') }}" @click="mobileNavOpen = false"
+                    @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                    <a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" @click="mobileNavOpen = false"
                         class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] bg-[#ECEEF6] hover:brightness-95">
-                        Become a Landlord
+                        {{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}
                     </a>
                 @endif
             @endauth
@@ -526,8 +537,7 @@
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-                <img src="{{ asset('images/brand/logo-mark-on-dark.svg') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
-                <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#FF8A66]">Hub</span></span>
+                <x-brand-logo tone="on-dark" mark="w-8 h-8" text="text-[16px]" />
             </a>
 
             {{-- Link columns --}}
@@ -558,7 +568,8 @@
                     <div>
                         <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">For Landlords</p>
                         <ul class="space-y-3 text-[14px]">
-                            <li><a href="{{ route('landlord.verification.create') }}" class="text-white/75 hover:text-white transition-colors">Become a Landlord</a></li>
+                            @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                            <li><a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" class="text-white/75 hover:text-white transition-colors">{{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}</a></li>
                             <li><a href="{{ route('landlord.dashboard') }}" class="text-white/75 hover:text-white transition-colors">Landlord Dashboard</a></li>
                             <li><a href="{{ route('landlord.analytics.index') }}" class="text-white/75 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
                         </ul>
@@ -614,7 +625,8 @@
                     {{-- Not lazy: this img sits inside a display:none ancestor until the modal opens, so
                          native lazy-loading can't compute intersection until then — it would only start
                          fetching on open, popping the photo in after the panel is already visible. --}}
-                    <img src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover">
+                    {{-- src is set a moment after the page has loaded (script below) or when the modal opens, whichever comes first, so this 170 KB photo no longer competes with the page's own images on every guest page. --}}
+                    <img id="auth-bg-img" data-src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 via-[#060D26]/45 to-[#060D26]/90"></div>
 
                     {{-- Floating trust chips — same recipe as the landlord CTA figure on
@@ -635,11 +647,7 @@
                     </div>
 
                     <div class="relative z-10">
-                        <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                        </div>
+                        <x-brand-logo tone="on-dark" mark="w-10 h-10" text="text-[18px]" class="mb-5" />
                         <h3 id="auth-side-title" class="font-jakarta text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
                         <p id="auth-side-subtitle" class="text-white/75 text-[13px] mt-3 leading-relaxed max-w-[17rem]">
                             Pick up where you left off.
@@ -837,7 +845,15 @@
         <script>
             let authModalCloseTimer = null;
 
+            function loadAuthBg() {
+                const img = document.getElementById('auth-bg-img');
+                if (img && img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; }
+            }
+            if (document.readyState === 'complete') setTimeout(loadAuthBg, 1500);
+            else window.addEventListener('load', () => setTimeout(loadAuthBg, 1500));
+
             function openAuthModal(mode) {
+                loadAuthBg();
                 const modal = document.getElementById('auth-modal');
                 const panel = document.getElementById('auth-modal-content');
                 const views = {

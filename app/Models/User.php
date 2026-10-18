@@ -3,39 +3,37 @@
 namespace App\Models;
 
 use App\Mail\PasswordResetMail;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\HasApiTokens;
+
 class User extends Authenticatable
 {
-use HasApiTokens, HasFactory, Notifiable;
-protected $primaryKey = 'user_id';
+    use HasApiTokens, HasFactory, Notifiable;
+
+    protected $primaryKey = 'user_id';
 
     public function getRouteKeyName(): string
     {
         return 'user_id';
     }
-   protected $fillable = [
+
+    protected $fillable = [
         'first_name',
         'last_name',
         'email',
         'password',
         'contact_number',
-        'gcash_number',
-        'gcash_account_name',
         'profile_picture',
         'account_status',
         'bio',
         'profile_visibility',
         'is_walk_in',
         'created_by_landlord_id',
-        'provider',
-        'provider_id',
-        'expo_push_token',
     ];
 
     protected $hidden = [
@@ -54,14 +52,35 @@ protected $primaryKey = 'user_id';
 
     // ─── Relationships ───────────────────────────────────────
 
+    /** Emergency contact and ID reference a landlord keeps on file. Kept off `users`; see TenantDetail. */
+    public function tenantDetail(): HasOne
+    {
+        return $this->hasOne(TenantDetail::class, 'user_id', 'user_id');
+    }
+
     public function verificationApplication()
     {
         return $this->hasOne(LandlordVerification::class, 'user_id', 'user_id');
     }
+
+    /**
+     * The name on the account must keep matching the ID submitted for landlord verification:
+     * the name check runs once, at submission, so a later rename would make a stale "matched"
+     * result. Locked while the application is Pending or Approved. Rejected applicants can
+     * still fix a typo before resubmitting.
+     */
+    public function nameIsLocked(): bool
+    {
+        $application = $this->verificationApplication;
+
+        return $application !== null && ($application->isPending() || $application->isApproved());
+    }
+
     public function roles(): HasMany
     {
         return $this->hasMany(UserRole::class, 'user_id', 'user_id');
     }
+
     public function properties()
     {
         return $this->hasMany(Property::class, 'landlord_id', 'user_id');
@@ -101,7 +120,8 @@ protected $primaryKey = 'user_id';
     {
         return $this->hasMany(Conversation::class, 'landlord_id', 'user_id');
     }
-public function tenantRatingsReceived()
+
+    public function tenantRatingsReceived()
     {
         return $this->hasMany(TenantRating::class, 'tenant_id', 'user_id');
     }
@@ -230,6 +250,52 @@ public function tenantRatingsReceived()
         return $full !== '' ? $full : ($this->email ?? '');
     }
 
+    // ─── Public identity ─────────────────────────────────────
+    //
+    // Before a deal, the public sees a landlord's rental business, not the person; once there is a
+    // reservation the two parties see each other. These helpers are for the public surfaces (listing
+    // page, business page, search, public API). Private surfaces between the parties keep `name`.
+
+    /**
+     * What the public sees for a landlord: the business name, or "Maria S." for the rare landlord with
+     * no business name on file. Reads `rentalBusiness`, so eager-load it wherever this is called in a loop.
+     */
+    public function publicName(): string
+    {
+        $business = $this->rentalBusiness?->business_name;
+
+        return filled($business) ? $business : $this->shortName();
+    }
+
+    /** Up to two initials of the public name, for the avatar when there is no logo. */
+    public function publicInitials(): string
+    {
+        $words = preg_split('/\s+/u', trim($this->publicName())) ?: [];
+        $letters = array_map(fn ($word) => mb_substr($word, 0, 1), array_slice(array_filter($words), 0, 2));
+
+        return mb_strtoupper(implode('', $letters)) ?: '?';
+    }
+
+    /** "Juan D.": first name and the initial of the last, for tenants on public pages. */
+    public function shortName(): string
+    {
+        $first = trim((string) $this->first_name);
+        $last = trim((string) $this->last_name);
+
+        return trim($first . ($last !== '' ? ' ' . mb_strtoupper(mb_substr($last, 0, 1)) . '.' : ''));
+    }
+
+    /**
+     * Whether the landlord's business page may be shown to anyone. It holds only business information, so
+     * a landlord with a live listing is always public, whatever `profile_visibility` says (that setting
+     * governs personal profiles). Without a live listing the setting still decides, so a landlord who
+     * wants to be invisible can unpublish.
+     */
+    public function hasPublicBusinessPage(): bool
+    {
+        return $this->properties()->live()->exists();
+    }
+
     /**
      * Tenants this landlord entered by hand through the walk-in flow.
      *
@@ -262,6 +328,7 @@ public function tenantRatingsReceived()
             $this->unsetRelation('roles');
         }
     }
+
     public function rentalBusiness()
     {
         return $this->hasOne(RentalBusiness::class, 'landlord_id', 'user_id');
@@ -274,7 +341,42 @@ public function tenantRatingsReceived()
      */
     public function hasPayoutDestination(): bool
     {
-        return filled($this->gcash_number) && filled($this->gcash_account_name);
+        $account = $this->payoutAccount;
+
+        return $account !== null && filled($account->gcash_number) && filled($account->gcash_account_name);
+    }
+
+    public function payoutAccount(): HasOne
+    {
+        return $this->hasOne(UserPayoutAccount::class, 'user_id', 'user_id');
+    }
+
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(SocialAccount::class, 'user_id', 'user_id');
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(UserDevice::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * Set or clear the landlord's GCash payout details. Both blank deletes the row, so "no payout
+     * destination" is the absence of a row rather than a row of nulls.
+     */
+    public function savePayoutAccount(?string $number, ?string $name): void
+    {
+        if (blank($number) && blank($name)) {
+            $this->payoutAccount()->delete();
+        } else {
+            $this->payoutAccount()->updateOrCreate(
+                ['user_id' => $this->user_id],
+                ['gcash_number' => $number, 'gcash_account_name' => $name],
+            );
+        }
+
+        $this->unsetRelation('payoutAccount');
     }
 
     // ─── Password Reset ──────────────────────────────────────

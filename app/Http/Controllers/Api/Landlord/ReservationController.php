@@ -90,7 +90,7 @@ class ReservationController extends Controller
         ]);
 
         if (! $reservation->reject($request->rejection_reason)) {
-            throw ValidationException::withMessages(['reservation' => ['This reservation can no longer be rejected.']]);
+            throw ValidationException::withMessages(['reservation' => [$reservation->cancellationBlockedReason() ?? 'This reservation can no longer be rejected.']]);
         }
 
         return response()->json(['data' => new ReservationResource($reservation->fresh(['unit']))]);
@@ -101,7 +101,7 @@ class ReservationController extends Controller
         Gate::authorize('cancel', $reservation);
 
         if (! $reservation->cancel()) {
-            throw ValidationException::withMessages(['reservation' => ['This reservation can no longer be cancelled.']]);
+            throw ValidationException::withMessages(['reservation' => [$reservation->cancellationBlockedReason() ?? 'This reservation can no longer be cancelled.']]);
         }
 
         return response()->json(['data' => new ReservationResource($reservation->fresh(['unit']))]);
