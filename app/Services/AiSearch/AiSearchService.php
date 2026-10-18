@@ -25,12 +25,16 @@ class AiSearchService
         private KeywordFallback $fallback,
         private SummaryComposer $composer,
         private ChipBuilder $chips,
+        private NameMatcher $names,
     ) {}
 
     /** @return array{query: string, intent: array<string, mixed>, chips: list<array<string, mixed>>, used_ai: bool, fallback_reason: ?string} */
     public function interpret(string $query, ?string $skipAi = null): array
     {
-        $query = $this->clean($query);
+        $original = $this->clean($query);
+        // "near me" comes out first: the AI would file it as a place that matches nothing. The page asks the
+        // browser for the position and sends it back with the results call, never with this one.
+        [$query, $nearMe] = NearMe::split($original);
         $reason = $skipAi; // e.g. 'rate_limited': keyword search only
         $usedAi = false;
         $intent = null;
@@ -71,7 +75,12 @@ class AiSearchService
         }
 
         // The model often answers "mixed" for plain Tagalog or Bisaya; the words typed tell us better.
-        $intent['language'] = LanguageDetector::detect($query) ?? $intent['language'];
+        $intent['language'] = LanguageDetector::detect($original) ?? $intent['language'];
+        $intent['near_me'] = $nearMe;
+
+        // A business or listing named in the sentence ("property ni maria santos"). Read from our own tables,
+        // after the AI and keyword readings, so both paths agree and the cached AI intent stays name-free.
+        $intent = $this->names->apply($query, $intent);
 
         return [
             'query' => $query,
@@ -100,7 +109,9 @@ class AiSearchService
         $language = $intent['language'];
 
         $alternatives = $found['alternatives'];
-        $summary = $this->composer->compose($rows, $exact, $language, $alternatives, $intent['property_type']);
+        $more = $this->finder->moreFromHost($intent, $rows->pluck('property.property_id')->merge($alternatives->pluck('property.property_id'))->all());
+        $nearest = ($intent['location']['kind'] ?? null) === 'point';
+        $summary = $this->composer->compose($rows, $exact, $language, $alternatives, $intent['property_type'], $intent['host'], $nearest);
         $aiSummary = false;
 
         if ($usedAi && $rows->isNotEmpty() && config('ai_search.rank_with_ai')) {
@@ -121,8 +132,11 @@ class AiSearchService
             'query' => $query,
             'intent' => $intent,
             'chips' => $this->chips->build($intent, $rows),
+            'name_notice' => $this->nameNotice($intent, $rows),
+            'location_notice' => $this->locationNotice($intent),
             'rows' => $rows,
             'alternatives' => $alternatives,
+            'more_from_host' => $more === null ? null : $more + ['name' => $intent['host']['name']],
             'alt_note' => $summary['alt_note'] ?? '',
             'exact_count' => $exact,
             'relaxed' => $found['relaxed'],
@@ -137,6 +151,53 @@ class AiSearchService
         $this->log($result, $userId, (int) round((microtime(true) - $started) * 1000));
 
         return $result;
+    }
+
+    /**
+     * What the results page says about "near me": which spot was used (so the tenant can correct it), or why
+     * there is none. Coordinates stay out of it; only the area name goes to the page.
+     *
+     * @return null|array{kind: string, area?: string}
+     */
+    private function locationNotice(array $intent): ?array
+    {
+        $location = $intent['location'];
+
+        if (is_array($location) && ($location['kind'] ?? null) === 'point') {
+            return ['kind' => 'using', 'area' => (string) $location['name']];
+        }
+
+        if ($intent['near_me']) {
+            return ['kind' => $intent['geo_outside'] ? 'outside' : 'unavailable'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Tells the tenant when what they typed names something we do not have, instead of a bare "nothing
+     * matches". `name` is a business or listing name they typed after "ni" / "owned by" and so on; `place` is
+     * an unknown place (no area or landmark we know) that found nothing. Wording never says "no landlord
+     * named ...": personal names are not searchable, and the page must not confirm or deny that a person exists.
+     *
+     * @return null|array{kind: string, name: string, others: bool}
+     */
+    private function nameNotice(array $intent, Collection $rows): ?array
+    {
+        if ($intent['host'] !== null) {
+            return null;
+        }
+
+        if (filled($intent['name_miss'])) {
+            return ['kind' => 'name', 'name' => $intent['name_miss'], 'others' => $rows->isNotEmpty()];
+        }
+
+        $location = $intent['location'];
+        if ($rows->isEmpty() && is_array($location) && ($location['kind'] ?? null) === 'text') {
+            return ['kind' => 'place', 'name' => (string) ($location['name'] ?? $location['value']), 'others' => false];
+        }
+
+        return null;
     }
 
     /** Ask the AI to order + summarize, cached for a few minutes per (intent, candidate set). */
@@ -215,11 +276,17 @@ class AiSearchService
     private function log(array $result, ?int $userId, int $latencyMs): void
     {
         try {
+            // A tenant's position is for one search: the log keeps the area it was named as, never the coordinates.
+            $intent = $result['intent'];
+            if (($intent['location']['kind'] ?? null) === 'point') {
+                $intent['location'] = ['kind' => 'point', 'name' => $intent['location']['name']];
+            }
+
             AiSearchLog::create([
                 'user_id' => $userId,
                 'query' => $result['query'],
                 'language' => $result['language'],
-                'intent' => $result['intent'],
+                'intent' => $intent,
                 'result_count' => $result['rows']->count(),
                 'exact_count' => $result['exact_count'],
                 'relaxed' => $result['relaxed'],

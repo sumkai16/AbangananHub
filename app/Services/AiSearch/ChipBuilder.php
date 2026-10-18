@@ -28,8 +28,15 @@ class ChipBuilder
         };
 
         if ($loc = $intent['location']) {
-            $label = $loc['kind'] === 'landmark' ? 'Near ' . $loc['name'] : $loc['name'];
+            $label = match ($loc['kind']) {
+                'landmark' => 'Near ' . $loc['name'],
+                'point' => 'Near you · ' . $loc['name'],
+                default => $loc['name'],
+            };
             $chips[] = ['label' => $label, 'icon' => 'pin', 'state' => $miss('location'), 'remove' => ['field' => 'location', 'value' => null]];
+        }
+        if ($host = $intent['host'] ?? null) {
+            $chips[] = ['label' => ($host['kind'] === 'listing' ? 'Listing: ' : 'By ') . $host['name'], 'icon' => 'people', 'state' => $miss('host'), 'remove' => ['field' => 'host', 'value' => null]];
         }
         if ($intent['property_type']) {
             $chips[] = ['label' => $intent['property_type'], 'icon' => 'home', 'state' => $miss('type'), 'remove' => ['field' => 'property_type', 'value' => null]];

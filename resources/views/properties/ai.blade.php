@@ -73,7 +73,7 @@
                 <div class="rounded-2xl bg-[#060D26] px-4 py-4 lg:max-w-none max-w-3xl">
                     <span class="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-[#FF8A66]">
                         <span class="w-3.5 h-3.5 rounded-full border-2 border-[#FF8A66] border-r-[#FF8A66]/25 animate-spin"></span>
-                        <span x-text="phase === 'reading' ? 'Reading your request…' : 'Checking listings…'"></span>
+                        <span x-text="phase === 'reading' ? 'Reading your request…' : (phase === 'locating' ? 'Finding your location…' : 'Checking listings…')"></span>
                         <button type="button" x-on:click="cancel()" aria-hidden="false" class="hidden lg:inline ml-auto px-2 h-8 normal-case tracking-normal text-[13px] font-semibold text-white/70 hover:text-white cursor-pointer">Cancel</button>
                     </span>
                     <div class="mt-3 h-3 w-11/12 rounded-md bg-white/15"></div>

@@ -57,6 +57,22 @@ const post = async (url, body, signal) => {
     return res.json();
 };
 
+// "Near me" (plans/near-me-search.md): ask the browser where the tenant is, once per search. The position is
+// rounded to about 110 m, lives only in the page component, and goes to the server only with the results call,
+// never with the sentence the AI reads. Rejects when location is blocked, unavailable or slow.
+const getPosition = () => new Promise((resolve, reject) => {
+    if (!('geolocation' in navigator)) {
+        reject(new Error('unsupported'));
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000, maximumAge: 300000 });
+});
+
+const round3 = (n) => Math.round(Number(n) * 1000) / 1000;
+
+// The AI read and the page's own results differ in the position (only the page has it), so leave it out when comparing.
+const withoutPoint = (intent) => ({ ...intent, location: intent?.location?.kind === 'point' ? null : intent?.location });
+
 const NOTICES = {
     not_configured: ['Showing keyword results', 'Smart search is not switched on yet, so only the words you typed were matched.'],
     unavailable: ['Smart search is busy right now', 'Below are plain keyword matches. Your full request was not read. Try again in a few minutes.'],
@@ -76,6 +92,7 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
         upgrading: false, // keyword results are showing while the AI reads the full sentence
         chips: [],
         intent: null,
+        geo: null, // {lat, lng} once the browser has told us where the tenant is ("near me"); never stored
         usedAi: false,
         reason: null,
         html: '',
@@ -97,7 +114,7 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
         },
 
         get loading() {
-            return this.phase === 'reading' || this.phase === 'finding';
+            return this.phase === 'reading' || this.phase === 'locating' || this.phase === 'finding';
         },
 
         // Two readings run side by side: the keyword one answers at once, the AI one can take
@@ -116,6 +133,8 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
                 const quick = await post(interpretUrl, { q: this.query, fast: true }, signal);
                 if (id !== runId) return;
                 this.apply(quick);
+                await this.locate(id);
+                if (id !== runId) return;
                 this.phase = 'finding';
                 this.html = '';
                 await this.fetchResults(id);
@@ -126,7 +145,7 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
                 if (id !== runId) return;
                 this.upgrading = false;
                 this.reason = read.fallback_reason;
-                if (read.used_ai && JSON.stringify(read.intent) !== JSON.stringify(this.intent)) {
+                if (read.used_ai && JSON.stringify(withoutPoint(read.intent)) !== JSON.stringify(withoutPoint(this.intent))) {
                     this.apply(read);
                     this.phase = 'finding';
                     this.html = '';
@@ -142,10 +161,64 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
 
         apply(read) {
             this.intent = read.intent;
+            this.attachGeo();
             this.syncDraft();
             this.chips = read.chips;
             this.usedAi = read.used_ai;
             this.reason = read.fallback_reason;
+        },
+
+        // "near me": once the sentence says so, ask the browser for the position (once; a later read reuses it).
+        // If it is blocked or slow the search still runs, and the results page says why and offers a typed area.
+        async locate(id) {
+            if (!this.intent?.near_me) return;
+            if (!this.geo) {
+                this.phase = 'locating';
+                try {
+                    const pos = await getPosition();
+                    if (id !== runId) return;
+                    this.geo = { lat: round3(pos.coords.latitude), lng: round3(pos.coords.longitude) };
+                } catch {
+                    if (id !== runId) return;
+                    this.geo = null;
+                }
+            }
+            this.attachGeo();
+        },
+
+        attachGeo() {
+            if (this.intent?.near_me && this.geo) {
+                this.intent.location = { kind: 'point', lat: this.geo.lat, lng: this.geo.lng };
+            }
+        },
+
+        // "Not here? Type your area": the typed place replaces the position, and the server resolves it like any place.
+        changeArea(text) {
+            const area = String(text || '').trim().slice(0, 80);
+            if (!area) return;
+            this.geo = null;
+            this.intent = { ...(this.intent || {}), near_me: false, geo_outside: false, location: { kind: 'text', value: area } };
+            // A still-running AI read would overwrite this: stop it, the typed area wins.
+            runId++;
+            this.abort();
+            this.upgrading = false;
+            this.phase = 'finding';
+            this.html = '';
+            this.fetchResults();
+        },
+
+        // The retry button after location was blocked or timed out.
+        async useMyLocation() {
+            const id = ++runId;
+            this.abort();
+            this.upgrading = false;
+            this.geo = null;
+            this.intent = { ...(this.intent || {}), near_me: true, geo_outside: false };
+            await this.locate(id);
+            if (id !== runId) return;
+            this.phase = 'finding';
+            this.html = '';
+            await this.fetchResults(id);
         },
 
         async fetchResults(id = runId) {
@@ -276,6 +349,10 @@ export function aiSearch({ query, interpretUrl, resultsUrl }) {
         // Drop one filter and search again without re-reading the sentence.
         removeChip(chip) {
             const { field, value } = chip.remove;
+            if (field === 'location') {
+                this.intent.near_me = false;
+                this.geo = null;
+            }
             if (field === 'price') {
                 this.intent.price_min = this.intent.price_max = null;
             } else if (field === 'amenities' || field === 'rules') {
