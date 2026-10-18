@@ -57,6 +57,8 @@ Key rule: **the AI never touches the database and never invents facts.**
 `living` (`PropertyPolicies::LIVING_ARRANGEMENTS`), `for` (`BrowseFilters::SUITABLE_FOR`),
 `furnishing` (`BrowseFilters::FURNISHING`), `occupants` (int), `language` (en|tl|ceb|mixed),
 `unmapped` (phrases it understood but we can't filter on, e.g. "quiet street" — mentioned in the summary, never queried).
+Two keys are **not** from the model: `host` (the sentence named a business or listing we have: `{kind, landlord_ids, property_ids, name, typed}`) and `name_miss` (it named one we do not have; a note for the results page, never a filter). `NameMatcher` writes both after the AI answers, from our own tables, and `IntentValidator` re-checks the ids on every post-back. `host` is never relaxed by the ladder. See `plans/business-first-identity-and-name-search.md`.
+"Near me" adds `near_me` (bool, from the sentence, read by `NearMe` before the AI) and `geo_outside`, and a location kind `point` that only the page can supply (the browser's position, clamped and rounded by `IntentValidator`, named by `NearestArea`). See `plans/near-me-search.md`.
 "5k", "4k", "₱5,000", "limang libo", "lima ka libo" → 5000 (prompt examples + PHP sanity clamp 500–200,000).
 
 ### Relaxation ladder (when exact < 3 results)

@@ -21,6 +21,7 @@ erDiagram
     users ||--o| rental_businesses : "landlord_id"
     users ||--o{ social_accounts : "user_id"
     users ||--o| user_payout_accounts : "user_id"
+    users ||--o| tenant_details : "user_id"
     users ||--o{ user_devices : "user_id"
     users ||--o{ payouts : "landlord_id"
     payouts ||--o{ payments : "payout_id"
@@ -110,6 +111,22 @@ A landlord's GCash payout destination. A row exists only while details are set (
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
 
+### tenant_details
+A tenant's emergency contact and the ID they showed, kept for the landlord. One row per user, created on first save (signing an agreement, Account Settings, the walk-in form, or a landlord filling in a walk-in). Never part of a nested user payload, a CSV export or `lease_snapshot`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| user_id | bigint unsigned | NN | PK, FK → users, cascade | |
+| emergency_contact_name | varchar(150) | null | | |
+| emergency_contact_relationship | varchar(50) | null | | One of `TenantDetail::RELATIONSHIPS` |
+| emergency_contact_number | varchar(20) | null | | |
+| id_type | varchar(50) | null | | One of `TenantDetail::ID_TYPES` |
+| id_number | text | null | | `encrypted` cast, so the column holds ciphertext. Masked to the last 4 by `TenantDetail::maskedIdNumber()`; shown in full only to the tenant and, behind a Show button, the landlord on the tenancy page |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+Rules: `TenantDetail::isComplete()` needs name, number, ID type and ID number (the relationship is optional). Signing an agreement requires a complete row; `saveFor()` skips blank fields so an empty form never wipes saved values. Only the landlord of a property with a `Reserved`, `Occupied` or `Completed` reservation for this tenant may read it (`ReservationPolicy::viewTenantDetails`).
+
 ### user_devices
 One row per phone registered for mobile push. A token that changes hands moves to the new user; a row is deleted when Expo reports `DeviceNotRegistered`.
 
@@ -189,6 +206,7 @@ A listing (building or house). Price, occupancy and availability live on its uni
 | title | varchar(255) | NN | | |
 | description | text | NN | | |
 | house_rules | json | null | | Flat list of strings: preset labels from `PropertyPolicies::HOUSE_RULES`, then custom lines. Cast to array; every unit inherits it |
+| default_lease_terms | text | null | | Landlord's standard extra terms, private (never on the listing or in an API resource). Prefills "Additional terms" when an agreement is sent; the agreed text is frozen per reservation in `agreement_terms_notes`. Editing it does not send an approved listing back to review |
 | property_type | enum('Apartment','Dormitory','House','Boarding House','Bedspace') | NN | index | A single room is a *unit*, not a type |
 | living_arrangement | enum('Private','Shared','Mixed') | null | | Required by forms; null only on legacy rows |
 | occupancy_preference | enum('No Preference','Men Only','Women Only') | NN, = 'No Preference' | | |

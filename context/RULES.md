@@ -110,6 +110,8 @@ Every controller / request-path change gets a two-front check before it's done �
 
 - **Never echo request input into a `<script>`.** `{{ }}` escapes for HTML, not for JavaScript, so `const x = {{ request('x') }};` runs `?x=alert(1)`. Pass values with `@js(...)`, cast to the type you expect (`request()->integer('x')`) first. Found in `conversations/index.blade.php` Oct 15 2026.
 - **A picker must not be a directory.** A dropdown of users, or anything else personal, lists only what the viewer already has a relationship with, and never shows email addresses (the report form listed every account with its email).
+- **Before a deal, people see the business; once there is a reservation, they see each other (Oct 19 2026).** Public surfaces (listing page, business page, search, public API) show a landlord's rental business through `User::publicName()` and the logo, and a tenant on a public review as `User::shortName()` ("Juan D."). Never print a landlord's personal name, photo, email or personal number there, and never nest the full `UserResource` in a public payload (use `PublicLandlordResource`; reviews use `PublicReviewResource`). The agreement, lease, tenancy pages, reservations, chat, notifications and receipts keep personal names, because the lease has to name both parties. `PublicIdentityTest` greps `properties/show.blade.php` for the personal fields so an edit cannot quietly bring them back.
+- **Search matches business and listing names, never personal names (Oct 19 2026).** `NameMatcher` reads names from our own tables after the AI has answered; the model never sees or returns them. Otherwise anyone could type a person's name and get the list of what they own. When a typed name is not found, the page says there is no *listing or business* by that name, never "no landlord named ...", so it does not confirm or deny that a person exists.
 
 ## Blade Compile Traps (July 24 2026)
 Blade tokenises a template with `token_get_all()` **before** it strips comments or compiles directives. Two failure modes come out of that, and both were hit in one sitting:
@@ -240,6 +242,7 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
 - **Every driver failure must throw `AiSearchUnavailable`** (no key, HTTP error, quota, bad JSON). The service turns it into the keyword fallback; a search never returns an error page.
 - **Untrusted text:** the tenant's sentence and listing titles are data. Prompts wrap the sentence in `<query>` tags and say so; never put them in the system prompt.
 - Send only the sentence and public listing facts to a provider. No names, emails, ids or account data (the privacy page says so).
+- **A tenant's position is for one search (Oct 19 2026).** "Near me" is read out of the sentence by `NearMe` before the AI sees it; the page asks the browser for the position and sends it back with the results call only, as a `point` location. `IntentValidator` clamps it to Cebu, rounds it to about 110 m and names it from our own listings (`NearestArea`); never trust a name sent with it. It is never stored, never sent to a provider or a third-party geocoder, and `AiSearchService::log` keeps only the area name. The privacy page says so.
 - Prompt or model changes: run `php artisan ai-search:eval` before and after and compare the per-field rates. It spends real quota.
 
 ## Dev environment gotchas (Oct 2026)
@@ -266,6 +269,23 @@ Each teammate has their own branch (`axci`, `joseph`, `emman`); `main` changes o
    `properties/index`, `properties/show`, `landlord/tenancies/show`, `tenant/reservations/index`, `resources/js/ai-search.js`.
 5. **Merge, don't rebase, on any branch someone else may have pulled, and never force-push it.**
 6. **After every pull:** `composer install`, `npm install`, `php artisan migrate` (see Dev environment gotchas).
+
+### Protecting `main` on GitHub (one-time setup by the repo owner)
+The rules above are only a habit until GitHub enforces them. As of Oct 18 2026 `main` has no protection, so anyone
+with write access can push straight to it, and a red CI run does not block a merge. Set this up in the repo's
+**Settings → Rules → Rulesets → New ruleset → New branch ruleset**:
+1. **Name:** `protect-main`. **Enforcement status:** Active.
+2. **Target branches:** Add target → Include default branch (`main`).
+3. **Tick:** Restrict deletions, Block force pushes, Require a pull request before merging.
+4. **Pull request settings:** set required approvals to **0** (a solo owner can't approve their own PR, so 1 would
+   block you every time). Leave "Allow merge commits" on; untick squash and rebase to match "merge, don't rebase".
+5. **Tick** Require status checks to pass, then Add checks → `test` (the job in `.github/workflows/ci.yml`; it only
+   appears in the list after CI has run once on a PR). Also tick "Require branches to be up to date before merging".
+6. **Bypass list:** leave empty. The owner can still merge a PR once CI is green; add yourself only if you ever need
+   an emergency direct push.
+7. **Check it works:** try `git push origin main` from a branch checkout; GitHub should reject it.
+
+Teammates then cannot push to `main` or merge a red PR. Only the lead merges, by habit, since approvals are 0.
 
 ### Resolving a merge conflict
 1. **Whoever is behind resolves it, on their own branch** (merge `main` in and fix it there), never on `main`.
