@@ -50,6 +50,12 @@ protected $primaryKey = 'user_id';
 
     // ─── Relationships ───────────────────────────────────────
 
+    /** Emergency contact and ID reference a landlord keeps on file. Kept off `users`; see TenantDetail. */
+    public function tenantDetail(): HasOne
+    {
+        return $this->hasOne(TenantDetail::class, 'user_id', 'user_id');
+    }
+
     public function verificationApplication()
     {
         return $this->hasOne(LandlordVerification::class, 'user_id', 'user_id');

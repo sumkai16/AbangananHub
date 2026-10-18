@@ -211,6 +211,7 @@
                         <form action="{{ route('landlord.reservations.advanceAgreement', $reservation) }}" method="POST">
                             @csrf @method('PATCH')
                             <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
+                                <x-agreement-terms-field id="agreement_terms_{{ $reservation->reservation_id }}" :value="old('agreement_terms_notes', $conversation->property->default_lease_terms)" />
                                 <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
                                     <input type="checkbox" name="accept_tc" required
                                         class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">

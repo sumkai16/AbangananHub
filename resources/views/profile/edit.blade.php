@@ -151,6 +151,21 @@
                                 <span class="block text-[11px] opacity-60 leading-tight mt-0.5">Login &amp; security</span>
                             </span>
                         </a>
+                        @if($user->hasRole('Tenant'))
+                            <a href="#emergency-contact"
+                                class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
+                                data-section="emergency-contact">
+                                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                                    class="shrink-0 mt-0.5 opacity-60 group-hover:opacity-100">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                                </svg>
+                                <span>
+                                    <span class="block text-sm font-medium leading-tight">Emergency contact</span>
+                                    <span class="block text-[11px] opacity-60 leading-tight mt-0.5">Contact &amp; ID on file</span>
+                                </span>
+                            </a>
+                        @endif
                         <a href="#danger-zone"
                             class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#DC2626]"
                             data-section="danger-zone">
@@ -237,6 +252,11 @@
                 <div id="security" class="scroll-mt-28" data-animate>
                     @include('profile.partials.update-password-form')
                 </div>
+                @if($user->hasRole('Tenant'))
+                    <div id="emergency-contact" class="scroll-mt-28" data-animate>
+                        @include('profile.partials.update-tenant-details-form')
+                    </div>
+                @endif
                 <div id="danger-zone" class="scroll-mt-28" data-animate>
                     @include('profile.partials.delete-user-form')
                 </div>
@@ -259,7 +279,7 @@
     @push('scripts')
         <script>
             (function () {
-                const sections = ['personal-info', 'security', 'danger-zone'];
+                const sections = ['personal-info', 'security', 'emergency-contact', 'danger-zone'];
                 const indicator = document.getElementById('nav-indicator');
 
                 function setActive(id) {

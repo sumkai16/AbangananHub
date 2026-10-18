@@ -68,6 +68,15 @@
             </div>
         @endif
 
+        {{-- Tenants who signed before the emergency contact was asked for at signing have none on file. --}}
+        @if($reservation->rental_status === 'Occupied' && ! \App\Models\TenantDetail::completeFor(auth()->user()))
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] px-4 py-3">
+                <p class="text-[13px] text-[#B45309] font-medium">Your landlord has no emergency contact on file for you.</p>
+                <a href="{{ route('profile.edit') }}#emergency-contact"
+                    class="text-[13px] font-semibold text-[#060D26] underline underline-offset-2 cursor-pointer">Add it in Account Settings</a>
+            </div>
+        @endif
+
         {{-- Header --}}
         <x-card class="mb-5">
             <div class="flex flex-col lg:flex-row lg:items-center gap-5">

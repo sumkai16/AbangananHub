@@ -40,6 +40,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Tenant\AgreementController;
 use App\Http\Controllers\Tenant\FavoriteController;
+use App\Http\Controllers\TenantDetailController;
 use App\Http\Controllers\Tenant\LeaseController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
@@ -68,6 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/settings', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
+    Route::patch('/profile/tenant-details', [TenantDetailController::class, 'update'])->name('profile.tenantDetails.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Landlord verification — open to any authenticated user, no role gate
@@ -241,6 +243,7 @@ Route::middleware('auth')->group(function () {
         // tenancies alike — the escrow only ever covered the initial payment.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
+        Route::patch('/tenancies/{reservation}/tenant-details', [App\Http\Controllers\Landlord\TenancyController::class, 'updateTenantDetails'])->name('tenancies.tenantDetails.update');
         // Lease — printable document + the signed copy (private disk)
         Route::get('/tenancies/{reservation}/lease', [App\Http\Controllers\Landlord\LeaseController::class, 'show'])->name('leases.show');
         Route::post('/tenancies/{reservation}/lease-file', [App\Http\Controllers\Landlord\LeaseController::class, 'upload'])->name('leases.upload');

@@ -25,6 +25,7 @@ class Property extends Model
         'title',
         'description',
         'house_rules',
+        'default_lease_terms',
         'property_type',
         'living_arrangement',
         'occupancy_preference',

@@ -56,7 +56,7 @@
             'End date'         => $terms['end'] ? $date($terms['end']) : 'Month-to-month',
             'Monthly rent'     => $peso($terms['monthly_rent']),
             'Rent due'         => 'Every ' . $ordinal((int) $terms['due_day']) . ' of the month',
-            'Security deposit' => $terms['deposit'] !== null ? $peso($terms['deposit']) : 'None',
+            'Security deposit' => $terms['deposit'] !== null && $terms['deposit'] > 0 ? $peso($terms['deposit']) : 'None',
             'Occupants'        => $terms['occupants'] ? $terms['occupants'] . ' ' . \Illuminate\Support\Str::plural('person', $terms['occupants']) : null,
         ]) as $label => $value)
             <div class="flex items-baseline justify-between gap-4 py-2.5">

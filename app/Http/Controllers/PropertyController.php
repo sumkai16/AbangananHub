@@ -310,7 +310,9 @@ class PropertyController extends Controller
 
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $request, $property) {
+        $requeued = false;
+
+        DB::transaction(function () use ($validated, $request, $property, &$requeued) {
             $photosAdded = $request->hasFile('photos');
 
             $property->fill([
@@ -334,7 +336,12 @@ class PropertyController extends Controller
 
             if ($detailsChanged || $photosAdded) {
                 $property->verification_status = 'Pending';
+                $requeued = true;
             }
+
+            // Set after the dirty check on purpose: standard lease terms are private to the landlord and
+            // never shown on the listing, so editing them must not send an approved listing back to review.
+            $property->default_lease_terms = $validated['default_lease_terms'] ?? null;
 
             $property->save();
 
@@ -355,7 +362,10 @@ class PropertyController extends Controller
             }
         });
 
-        return redirect()->route('landlord.properties.index')->with('success', 'Property updated. It\'s back in the approval queue.');
+        return redirect()->route('landlord.properties.index')->with(
+            'success',
+            $requeued ? 'Property updated. It\'s back in the approval queue.' : 'Property updated.'
+        );
     }
 
     /**

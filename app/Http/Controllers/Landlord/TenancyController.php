@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Models\TenantDetail;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class TenancyController extends Controller
         // Eager-loaded up front: the ledger reads payments, the header reads
         // the tenant and unit, and Model::preventLazyLoading is on in dev.
         $reservation->load([
-            'tenant',
+            'tenant.tenantDetail',
             'property',
             'unit.media',
             'payments.recorder',
@@ -52,6 +53,26 @@ class TenancyController extends Controller
             'monthlyTransactions' => $ledger->monthlyTransactions(),
             'voidedTransactions'  => $ledger->voidedTransactions(),
         ]);
+    }
+
+    /**
+     * Fill in or correct a walk-in tenant's emergency contact and ID. A walk-in cannot log in, so the
+     * landlord who recorded them is the only one who can; an online tenant edits their own in Account
+     * Settings, which is why the policy refuses everything but the landlord's own walk-ins.
+     */
+    public function updateTenantDetails(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('editWalkInDetails', $reservation);
+
+        $validated = $request->validate(TenantDetail::rules(false), TenantDetail::messages());
+
+        if (TenantDetail::saveFor($reservation->tenant, $validated) === null) {
+            return back()->with('warning', 'Nothing to save. Fill in at least one field.');
+        }
+
+        return redirect()
+            ->route('landlord.tenancies.show', $reservation)
+            ->with('success', 'Emergency contact and ID saved.');
     }
 
     /**

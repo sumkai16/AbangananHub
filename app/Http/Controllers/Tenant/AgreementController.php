@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Models\TenantDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -38,23 +39,33 @@ public function sign(Request $request, Reservation $reservation)
 {
     Gate::authorize('sign', $reservation);
 
-    $request->validate([
+    // The landlord needs a person to call and an ID reference on file before the tenancy starts. Asked once:
+    // a tenant who already filled them in (Account Settings, an earlier agreement) is not asked again.
+    $needsDetails = ! TenantDetail::completeFor($request->user());
+
+    $validated = $request->validate([
         'agree' => 'accepted',
         'accept_tc' => 'accepted',
+        ...($needsDetails ? TenantDetail::rules(true) : []),
     ], [
         'agree.accepted' => 'You must agree to the rental agreement terms.',
         'accept_tc.accepted' => 'You must accept the platform terms and conditions.',
+        ...TenantDetail::messages(),
     ]);
 
     // Signing is also a one-way transition that posts a system message and
     // unlocks payment — same locking rationale as confirmMoveIn().
-    $signed = DB::transaction(function () use ($reservation, $request) {
+    $signed = DB::transaction(function () use ($reservation, $request, $validated, $needsDetails) {
         $locked = Reservation::whereKey($reservation->getKey())
             ->lockForUpdate()
             ->firstOrFail();
 
         if (! $locked->signAgreement($request->ip())) {
             return false;
+        }
+
+        if ($needsDetails) {
+            TenantDetail::saveFor($request->user(), $validated);
         }
 
         $locked->update(['tenant_tc_accepted_at' => now()]);

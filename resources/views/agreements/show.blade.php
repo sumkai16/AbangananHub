@@ -178,6 +178,29 @@
                             <p class="text-[11px] font-semibold text-[#EF4444] -mt-2 mb-4 ml-7">{{ $message }}</p>
                         @enderror
 
+                        {{-- The landlord keeps an emergency contact and your ID on file. Asked once; later agreements reuse it. --}}
+                        @php
+                            $signer = auth()->user()->load('tenantDetail');
+                        @endphp
+                        @if (\App\Models\TenantDetail::completeFor($signer))
+                            <div class="mb-5 rounded-xl bg-[#ECEEF6] px-4 py-3">
+                                <p class="text-[12px] font-semibold text-[#060D26]">Emergency contact on file</p>
+                                <p class="text-[12px] text-[#5B6A8E] mt-0.5">
+                                    {{ $signer->tenantDetail->emergency_contact_name }}
+                                    @if ($signer->tenantDetail->emergency_contact_relationship) ({{ $signer->tenantDetail->emergency_contact_relationship }}) @endif
+                                    &middot; <a href="{{ route('profile.edit') }}#emergency-contact" class="font-semibold text-[#060D26] underline underline-offset-2">Edit in Account Settings</a>
+                                </p>
+                            </div>
+                        @else
+                            <fieldset class="mb-5 rounded-xl border border-[#E2E4EC] p-4">
+                                <legend class="px-1.5 text-[12px] font-bold text-[#060D26]">Emergency contact &amp; ID</legend>
+                                <p class="text-[12px] text-[#5B6A8E] leading-relaxed mb-4">
+                                    Your landlord keeps these on file in case of an emergency. Only the landlord of this property can see them, and your ID number is stored encrypted.
+                                </p>
+                                <x-tenant-details-fields :detail="$signer->tenantDetail" id-prefix="sign" :required="true" />
+                            </fieldset>
+                        @endif
+
                         <button type="submit"
                             class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
                             Sign Agreement

@@ -345,6 +345,8 @@
                     $depositCategoryLabels = \App\Models\DepositCharge::CATEGORIES;
                 @endphp
 
+                @include('landlord.tenancies._tenant-details')
+
                 @if($hasStarted)
                 {{-- Money summary — labels stay plain; only overdue earns colour when it is > 0 --}}
                 @php
