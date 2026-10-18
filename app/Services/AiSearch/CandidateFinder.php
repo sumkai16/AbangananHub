@@ -189,7 +189,8 @@ class CandidateFinder
             'rules' => $intent['rules'],
         ]);
 
-        $found = $query->limit(60)->get();
+        // browseFilters already orders newest first; property_id breaks created_at ties so the 60 are stable.
+        $found = $query->orderByDesc('property_id')->limit(60)->get();
 
         // The box is a cheap pre-filter; the circle is the real test.
         if (($loc['kind'] ?? null) === 'landmark' || (($loc['kind'] ?? null) === 'point' && ! ($intent['host'] ?? null))) {

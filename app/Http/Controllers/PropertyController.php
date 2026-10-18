@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -177,6 +178,12 @@ class PropertyController extends Controller
      * replicated instead, and the aggregate columns this doesn't need skipped.
      */
     private function areaTiles(?int $limit = null): Collection
+    {
+        // 10 minutes, like the other home-page lookups: a new listing's area shows up within that.
+        return Cache::remember('home.area_tiles.'.($limit ?? 'all'), now()->addMinutes(10), fn () => $this->buildAreaTiles($limit));
+    }
+
+    private function buildAreaTiles(?int $limit): Collection
     {
         $bookable = fn ($q) => $q->where('availability_status', 'Available')
             ->where('verification_status', 'Approved');
@@ -409,15 +416,13 @@ class PropertyController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $wasDraft = $property->isDraft();
-
-        foreach ($property->media as $media) {
-            if ($media->cloudinary_public_id) {
-                cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);
-            }
-            $media->delete();
+        if ($reason = $property->deletionBlockedReason()) {
+            return back()->with('error', $reason);
         }
 
+        $wasDraft = $property->isDraft();
+
+        $property->purgeFiles();
         $property->delete();
 
         return redirect()->route('landlord.properties.index')

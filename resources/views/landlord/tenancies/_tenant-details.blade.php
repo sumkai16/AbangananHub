@@ -9,9 +9,29 @@
         $detail = $reservation->tenant?->tenantDetail;
         $canEditDetails = Gate::allows('editWalkInDetails', $reservation);
         $hasErrors = $errors->hasAny(\App\Models\TenantDetail::FIELDS);
+        // Echoed with {{ }} below: Blade does not compile @js() inside a <x-card ...> attribute.
+        $idUrl = route('landlord.tenancies.tenantDetails.id', $reservation);
     @endphp
 
-    <x-card x-data="{ showId: false, editing: {{ $hasErrors ? 'true' : 'false' }} }" class="!p-5 sm:!p-6">
+    <x-card x-data="{
+            showId: false, fullId: null, loadingId: false, idError: '',
+            editing: {{ $hasErrors ? 'true' : 'false' }},
+            async toggleId() {
+                this.idError = '';
+                if (this.showId) { this.showId = false; this.fullId = null; return; }
+                this.loadingId = true;
+                try {
+                    const res = await fetch('{{ $idUrl }}', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+                    if (!res.ok) throw new Error('failed');
+                    this.fullId = (await res.json()).id_number;
+                    this.showId = true;
+                } catch (e) {
+                    this.idError = 'Could not load the ID number. Try again.';
+                } finally {
+                    this.loadingId = false;
+                }
+            }
+        }" class="!p-5 sm:!p-6">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
                 <h2 class="text-[16px] font-semibold text-[#060D26]">Emergency contact &amp; ID</h2>
@@ -45,10 +65,12 @@
                         <dt class="text-[12px] font-semibold text-[#5B6A8E]">ID shown</dt>
                         <dd class="mt-0.5 text-[#060D26] font-medium">{{ $detail->id_type ?: '—' }}</dd>
                         @if ($detail->id_number)
-                            <dd class="mt-0.5 flex items-center gap-3">
-                                <span class="tabular-nums text-[#060D26]" x-text="showId ? @js($detail->id_number) : @js($detail->maskedIdNumber())">{{ $detail->maskedIdNumber() }}</span>
-                                <button type="button" @click="showId = !showId" x-text="showId ? 'Hide' : 'Show'"
-                                    class="text-[12px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline underline-offset-2 cursor-pointer"></button>
+                            <dd class="mt-0.5 flex flex-wrap items-center gap-3">
+                                <span class="tabular-nums text-[#060D26]" x-text="showId && fullId ? fullId : @js($detail->maskedIdNumber())">{{ $detail->maskedIdNumber() }}</span>
+                                <button type="button" :disabled="loadingId" @click="toggleId()"
+                                    x-text="loadingId ? 'Loading…' : (showId ? 'Hide' : 'Show')"
+                                    class="text-[12px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline underline-offset-2 cursor-pointer disabled:opacity-60 disabled:cursor-wait"></button>
+                                <span x-show="idError" x-cloak x-text="idError" class="text-[12px] text-[#B91C1C]"></span>
                             </dd>
                         @endif
                     </div>

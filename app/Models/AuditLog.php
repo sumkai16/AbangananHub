@@ -40,6 +40,7 @@ class AuditLog extends Model
 
     /** Every action this app writes, with its human label (drives the filter dropdown). */
     public const ACTION_LABELS = [
+        'tenant_details.reveal_id'  => 'Tenant ID number viewed',
         'reservation.force_cancel'  => 'Reservation force-cancelled',
         'reservation.force_reject'  => 'Reservation force-rejected',
         'verification.approve'      => 'Verification approved',

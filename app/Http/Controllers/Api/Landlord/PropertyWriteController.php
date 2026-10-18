@@ -8,8 +8,10 @@ use App\Http\Requests\Landlord\StorePropertyRequest;
 use App\Http\Requests\Landlord\UpdatePropertyRequest;
 use App\Http\Resources\PropertyResource;
 use App\Models\Property;
+use App\Support\PropertyPolicies;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Mobile equivalent of the shared (unnamespaced) PropertyController's
@@ -29,12 +31,12 @@ class PropertyWriteController extends Controller
         $property = null;
 
         DB::transaction(function () use ($validated, $request, &$property) {
-            $property = new Property();
+            $property = new Property;
             $property->landlord_id         = auth()->id();
             $property->title               = $validated['title'];
             $property->description         = $validated['description'];
             $property->property_type       = $validated['property_type'];
-            $property->fill(\App\Support\PropertyPolicies::fromRequest($request));
+            $property->fill(PropertyPolicies::fromRequest($request));
             $property->address             = $validated['address'];
             $property->city_municipality   = $validated['city_municipality'];
             $property->barangay            = $validated['barangay'] ?? null;
@@ -74,7 +76,7 @@ class PropertyWriteController extends Controller
                 'title'             => $validated['title'],
                 'description'       => $validated['description'],
                 'property_type'     => $validated['property_type'],
-                ...\App\Support\PropertyPolicies::fromRequest($request),
+                ...PropertyPolicies::fromRequest($request),
                 'address'           => $validated['address'],
                 'city_municipality' => $validated['city_municipality'],
                 'barangay'          => $validated['barangay'] ?? null,
@@ -114,13 +116,11 @@ class PropertyWriteController extends Controller
     {
         $this->authorizeProperty($property);
 
-        foreach ($property->media as $media) {
-            if ($media->cloudinary_public_id) {
-                cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);
-            }
-            $media->delete();
+        if ($reason = $property->deletionBlockedReason()) {
+            throw ValidationException::withMessages(['property' => [$reason]]);
         }
 
+        $property->purgeFiles();
         $property->delete();
 
         return response()->json(['message' => 'Property removed successfully.']);

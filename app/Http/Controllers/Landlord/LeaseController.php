@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\Reservation;
 use App\Support\LeaseTerms;
 use Illuminate\Http\Request;
@@ -73,6 +74,15 @@ class LeaseController extends Controller
         if ($oldPath) {
             Storage::disk('local')->delete($oldPath);
         }
+
+        $reservation->loadMissing('tenant');
+        Notification::notify(
+            $reservation->tenant?->is_walk_in ? null : $reservation->tenant_id,
+            'agreement',
+            $oldPath ? 'Signed lease replaced' : 'Signed lease uploaded',
+            'Your landlord attached the signed lease to your tenancy.',
+            route('tenancy.show', $reservation),
+        );
 
         return back()->with('success', $oldPath ? 'Signed lease replaced.' : 'Signed lease uploaded.');
     }

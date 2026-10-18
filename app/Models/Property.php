@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Property extends Model
@@ -108,6 +110,63 @@ class Property extends Model
     public function documents()
     {
         return $this->hasMany(PropertyDocument::class, 'property_id', 'property_id');
+    }
+
+    /**
+     * Why this property cannot be deleted right now, or null when it can. The FKs cascade to
+     * reservations and payments, so deleting under a live tenancy or unreleased money would erase both.
+     */
+    public function deletionBlockedReason(): ?string
+    {
+        $liveReservation = $this->reservations()
+            ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
+            ->exists();
+
+        if ($liveReservation) {
+            return 'This property still has active reservations or tenancies. Finish or cancel them before deleting it.';
+        }
+
+        $paymentOwed = Payment::whereIn('reservation_id', $this->reservations()->select('reservation_id'))
+            ->where(fn ($q) => $q->where('status', 'Held')->orWhere(fn ($q2) => $q2->pendingPayout()))
+            ->exists();
+
+        if ($paymentOwed) {
+            return 'This property has payments that are held or still waiting to be paid out. They must be settled before it can be deleted.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Remove every stored file belonging to this property (listing and unit media, private documents,
+     * lease files). Best effort: failures are logged and never stop the delete.
+     */
+    public function purgeFiles(): void
+    {
+        foreach ($this->media as $media) {
+            try {
+                if ($media->cloudinary_public_id) {
+                    cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Property media delete failed', ['media_id' => $media->media_id, 'error' => $e->getMessage()]);
+            }
+        }
+
+        foreach (UnitMedia::whereIn('unit_id', $this->units()->select('unit_id'))->get() as $unitMedia) {
+            $unitMedia->destroyFromCloudinary();
+        }
+
+        $paths = $this->documents()->whereNotNull('file_path')->pluck('file_path')
+            ->merge($this->reservations()->whereNotNull('lease_file_path')->pluck('lease_file_path'));
+
+        foreach ($paths as $path) {
+            try {
+                Storage::disk('local')->delete($path);
+            } catch (\Throwable $e) {
+                Log::warning('Property file delete failed', ['path' => $path, 'error' => $e->getMessage()]);
+            }
+        }
     }
 
     // ─── Status Helpers ──────────────────────────────────────

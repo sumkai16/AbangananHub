@@ -8,6 +8,7 @@ use App\Models\LandlordViewingHour;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\ViewingRequest;
+use App\Support\BusinessTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -231,7 +232,7 @@ class ViewingController extends Controller
     public function block(Request $request)
     {
         $data = $request->validate([
-            'date'   => ['required', 'date', 'after_or_equal:today'],
+            'date'   => ['required', 'date', 'after_or_equal:' . BusinessTime::today()],
             'reason' => ['nullable', 'string', 'max:255'],
         ], [
             'date.after_or_equal' => 'You can only block today or a future day.',

@@ -73,7 +73,7 @@ class RentReminderNotifier
 
     private function timing(Carbon $dueOn, Carbon $today): string
     {
-        $days = $today->diffInDays($dueOn, false); // positive = due date is ahead
+        $days = (int) round($today->diffInDays($dueOn, false)); // positive = due date is ahead
 
         return match (true) {
             $days > 1   => "is due in {$days} days",

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Landlord;
 
 use App\Models\PropertyUnit;
 use App\Models\TenantDetail;
+use App\Support\BusinessTime;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
@@ -79,7 +80,7 @@ class StoreWalkInTenantRequest extends FormRequest
                 'nullable', 'numeric', 'min:1', 'max:1000000',
             ],
             'payment_method'       => ['required_with:initial_amount', 'nullable', Rule::in(['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'])],
-            'payment_date'         => ['nullable', 'date', 'before_or_equal:today'],
+            'payment_date'         => ['nullable', 'date', 'before_or_equal:' . BusinessTime::today()],
             // Cash has no reference to give; every other method produces one,
             // and it is the only evidence the payment happened, so it is
             // required there. prepareForValidation() nulls it for Cash so a

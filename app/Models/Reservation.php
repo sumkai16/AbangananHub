@@ -114,6 +114,11 @@ class Reservation extends Model
             return false;
         }
 
+        // One occupant per unit: never release the deposit into a unit someone else already occupies.
+        if ($this->unitHeldByAnother(['Occupied'])) {
+            return false;
+        }
+
         // Locked, not just checked: this row is about to move money.
         $heldPayment = $this->payments()
             ->where('status', 'Held')
@@ -752,14 +757,55 @@ class Reservation extends Model
 
     // ─── State Transitions ───────────────────────────────────
 
+    /** Statuses in which a reservation holds its unit against every other one. */
+    public const UNIT_HOLDING_STATUSES = ['Pending Rental Agreement', 'Rental Agreement Signed', 'Reserved', 'Occupied'];
+
+    /**
+     * Another reservation on this unit that already holds it, or null. Only one agreement may be in progress
+     * per unit; competing inquiries before that point are fine.
+     *
+     * @param  array<int, string>|null  $statuses  narrow the statuses that count (default UNIT_HOLDING_STATUSES)
+     */
+    public function unitHeldByAnother(?array $statuses = null): ?Reservation
+    {
+        if (! $this->unit_id) {
+            return null;
+        }
+
+        return static::where('unit_id', $this->unit_id)
+            ->where('reservation_id', '!=', $this->getKey())
+            ->whereIn('rental_status', $statuses ?? self::UNIT_HOLDING_STATUSES)
+            ->first();
+    }
+
+    /** Why an agreement cannot be sent for this reservation right now because of its unit, or null. */
+    public function agreementBlockedReason(): ?string
+    {
+        if ($this->rental_status !== 'Under Negotiation' || ! $this->unitHeldByAnother()) {
+            return null;
+        }
+
+        return 'Another reservation on this unit already has an agreement in progress, or the unit is occupied. Cancel or complete that one first.';
+    }
+
     public function advanceToNegotiation(): bool
     {
         if ($this->rental_status !== 'Inquiry') {
             return false;
         }
-        $this->rental_status = 'Under Negotiation';
 
-        return $this->save();
+        return DB::transaction(function () {
+            static::whereKey($this->getKey())->lockForUpdate()->first();
+            $this->refresh();
+
+            if ($this->rental_status !== 'Inquiry') {
+                return false;
+            }
+
+            $this->rental_status = 'Under Negotiation';
+
+            return $this->save();
+        });
     }
 
     public function advanceToPendingAgreement(?string $terms = null): bool
@@ -767,20 +813,34 @@ class Reservation extends Model
         if ($this->rental_status !== 'Under Negotiation') {
             return false;
         }
-        if ($terms !== null) {
-            $this->agreement_terms_notes = $terms;
-        }
-        // Pin the rent to what the tenant is about to sign. Online tenancies never had an agreed rent (only
-        // walk-ins did), so checkout and the ledger read the unit's live price, and a landlord editing it after
-        // signing changed what the tenant paid. Set before the snapshot so the lease and the charge agree.
-        $this->agreed_monthly_rent ??= $this->unit?->rental_fee;
 
-        // Freeze the lease the tenant is about to sign. Done here, not at
-        // the call sites, so every path that issues the agreement does it.
-        $this->lease_snapshot = LeaseTerms::snapshot($this);
-        $this->rental_status = 'Pending Rental Agreement';
+        return DB::transaction(function () use ($terms) {
+            // The unit row is the lock two landlord clicks (or two competing reservations) serialise on.
+            if ($this->unit_id) {
+                PropertyUnit::whereKey($this->unit_id)->lockForUpdate()->first();
+            }
 
-        return $this->save();
+            $this->refresh();
+
+            if ($this->rental_status !== 'Under Negotiation' || $this->unitHeldByAnother()) {
+                return false;
+            }
+
+            if ($terms !== null) {
+                $this->agreement_terms_notes = $terms;
+            }
+            // Pin the rent to what the tenant is about to sign. Online tenancies never had an agreed rent (only
+            // walk-ins did), so checkout and the ledger read the unit's live price, and a landlord editing it after
+            // signing changed what the tenant paid. Set before the snapshot so the lease and the charge agree.
+            $this->agreed_monthly_rent ??= $this->unit?->rental_fee;
+
+            // Freeze the lease the tenant is about to sign. Done here, not at
+            // the call sites, so every path that issues the agreement does it.
+            $this->lease_snapshot = LeaseTerms::snapshot($this);
+            $this->rental_status = 'Pending Rental Agreement';
+
+            return $this->save();
+        });
     }
 
     public function signAgreement(string $ip): bool
@@ -800,6 +860,11 @@ class Reservation extends Model
         if ($this->rental_status !== 'Rental Agreement Signed') {
             return false;
         }
+
+        if ($this->unitHeldByAnother(['Occupied'])) {
+            return false;
+        }
+
         $this->rental_status = 'Occupied';
         $this->save();
 
@@ -896,8 +961,12 @@ class Reservation extends Model
         return DB::transaction(function () use ($reason) {
             // Same row the checkout locks, so a payment being started and this cannot both pass.
             static::whereKey($this->getKey())->lockForUpdate()->first();
-
+            $this->refresh();
             $this->unsetRelation('payments');
+
+            if (in_array($this->rental_status, ['Occupied', ...self::TERMINAL_STATUSES], true)) {
+                return false;
+            }
 
             if ($this->cancellationBlockedReason() !== null) {
                 return false;
@@ -926,8 +995,12 @@ class Reservation extends Model
 
         return DB::transaction(function () {
             static::whereKey($this->getKey())->lockForUpdate()->first();
-
+            $this->refresh();
             $this->unsetRelation('payments');
+
+            if (in_array($this->rental_status, ['Occupied', ...self::TERMINAL_STATUSES], true)) {
+                return false;
+            }
 
             if ($this->cancellationBlockedReason() !== null) {
                 return false;

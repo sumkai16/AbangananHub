@@ -14,12 +14,6 @@ use Illuminate\Support\Facades\Gate;
 
 class ReservationController extends Controller
 {
-    /** Statuses the index tabs and the export both accept. */
-    private const VALID_STATUSES = [
-        'Inquiry', 'Under Negotiation', 'Pending Rental Agreement',
-        'Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed', 'Cancelled', 'Rejected',
-    ];
-
     /**
      * The landlord's reservations with the search/property/date-range filters
      * applied — but NOT the status filter, because index() needs this query to
@@ -62,11 +56,11 @@ class ReservationController extends Controller
     {
         $base = $this->filteredQuery($request);
 
-        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Reserved', 'Occupied', 'Cancelled', 'Rejected']);
+        $counts = Reservation::statusCounts($base, Reservation::STATUSES);
 
         $status = $request->query('status', 'all');
 
-        if (in_array($status, self::VALID_STATUSES, true)) {
+        if (in_array($status, Reservation::STATUSES, true)) {
             $base->where('rental_status', $status);
         }
 
@@ -101,7 +95,7 @@ class ReservationController extends Controller
         $query = $this->filteredQuery($request);
 
         $status = $request->query('status', 'all');
-        if (in_array($status, self::VALID_STATUSES, true)) {
+        if (in_array($status, Reservation::STATUSES, true)) {
             $query->where('rental_status', $status);
         }
 
@@ -189,7 +183,7 @@ class ReservationController extends Controller
         ]);
 
         if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
-            return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
+            return back()->withErrors(['reservation' => $reservation->agreementBlockedReason() ?? 'This reservation cannot move to Pending Rental Agreement right now.']);
         }
 
         $reservation->update(['landlord_tc_accepted_at' => now()]);

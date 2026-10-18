@@ -50,13 +50,28 @@ class PaymentController extends Controller
         $placeholder = DB::transaction(function () use ($reservation) {
             $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
 
+            // Re-checked under the lock: the checks above ran before it, on a row that may have moved on.
+            if ($locked->rental_status !== 'Rental Agreement Signed') {
+                return 'Agreement must be signed before payment.';
+            }
+
+            if ($locked->hasSettledInitialPayment()) {
+                return 'The initial payment for this reservation has already been made.';
+            }
+
+            if ($locked->unitHeldByAnother(['Rental Agreement Signed', 'Reserved', 'Occupied'])) {
+                return 'This unit is no longer available. Please contact your landlord.';
+            }
+
+            // Any Pending row blocks, session id or not: a placeholder still waiting for its id is a live click.
+            // Stale ones were cleared by clearStaleCheckouts() above.
             $existingPending = Payment::where('reservation_id', $locked->reservation_id)
+                ->where('payment_type', 'Initial')
                 ->where('status', 'Pending')
-                ->whereNotNull('paymongo_checkout_session_id')
                 ->exists();
 
             if ($existingPending) {
-                return null;
+                return 'A payment session is already in progress.';
             }
 
             return Payment::create([
@@ -68,8 +83,8 @@ class PaymentController extends Controller
             ]);
         });
 
-        if (! $placeholder) {
-            throw ValidationException::withMessages(['payment' => ['A payment session is already in progress.']]);
+        if (is_string($placeholder)) {
+            throw ValidationException::withMessages(['payment' => [$placeholder]]);
         }
 
         $amount = Payment::toCentavos($reservation->monthlyRent());
@@ -172,7 +187,6 @@ class PaymentController extends Controller
                 ->where('payment_type', 'Monthly')
                 ->whereDate('billing_period', $billingPeriod->toDateString())
                 ->where('status', 'Pending')
-                ->whereNotNull('paymongo_checkout_session_id')
                 ->exists();
 
             if ($existingPending) {

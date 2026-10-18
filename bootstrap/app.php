@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountActive;
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureLandlord;
+use App\Http\Middleware\EnsureTenant;
+use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,24 +18,24 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
-   ->withMiddleware(function (Middleware $middleware) {
-      $middleware->web(append: [
-            \App\Http\Middleware\EnsureAccountActive::class,
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->web(append: [
+            EnsureAccountActive::class,
         ]);
         $middleware->alias([
-            'tenant'   => \App\Http\Middleware\EnsureTenant::class,
-            'landlord' => \App\Http\Middleware\EnsureLandlord::class,
-            'admin'    => \App\Http\Middleware\EnsureAdmin::class,
+            'tenant'   => EnsureTenant::class,
+            'landlord' => EnsureLandlord::class,
+            'admin'    => EnsureAdmin::class,
             // Aliased for the API, where it must run *after* auth:sanctum has
             // resolved the guard. Appending it to the api group instead would
             // run it before, find no authenticated user, and pass everything
             // through. The web stack appends it (above) because the session
             // guard is already resolved by then.
-            'active'   => \App\Http\Middleware\EnsureAccountActive::class,
+            'active'   => EnsureAccountActive::class,
         ]);
 
         $middleware->api(prepend: [
-            \App\Http\Middleware\ForceJsonResponse::class,
+            ForceJsonResponse::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
@@ -38,5 +43,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Never flash these into the session when validation fails.
+        $exceptions->dontFlash([
+            'id_number',
+            'emergency_contact_name',
+            'emergency_contact_relationship',
+            'emergency_contact_number',
+        ]);
     })->create();

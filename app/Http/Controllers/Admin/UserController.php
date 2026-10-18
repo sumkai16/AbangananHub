@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\UserRole;
+use App\Services\AccountFilePurger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -254,6 +255,9 @@ class UserController extends Controller
         // afterwards, so a lost log entry leaves no other trace of the action.
         // auditable is null by design — the referenced row no longer exists, so
         // the identifying detail is snapshotted into metadata instead.
+        // The verification and business rows cascade away with the user, so list their files first.
+        $files = AccountFilePurger::snapshot($user);
+
         \DB::transaction(function () use ($user) {
             AuditLog::record(
                 'user.delete',
@@ -270,6 +274,8 @@ class UserController extends Controller
 
             $user->delete();
         });
+
+        AccountFilePurger::purge($files);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User deleted successfully.');

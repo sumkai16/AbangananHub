@@ -99,7 +99,7 @@ class RentLedger
 
         while ($cursor->lessThanOrEqualTo($last)) {
             $paidPayments = $this->monthlyPaymentsFor($cursor);
-            $paid = (float) $paidPayments->sum(fn (Payment $p) => (float) $p->amount);
+            $paid = round((float) $paidPayments->sum(fn (Payment $p) => (float) $p->amount), 2);
             // Safe without overflow handling because rentDueDay() clamps to 28.
             $dueOn = $cursor->copy()->day($dueDay);
 
@@ -471,7 +471,7 @@ class RentLedger
      */
     private function periodStatus(float $expected, float $paid, Carbon $dueOn, int $grace): string
     {
-        if ($expected <= 0 || $paid >= $expected) {
+        if ($expected <= 0 || round($paid, 2) >= round($expected, 2)) {
             return 'paid';
         }
 

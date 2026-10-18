@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\Reservation;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
+use App\Support\BusinessTime;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -51,7 +52,7 @@ class TenancyController extends Controller
         Gate::authorize('endTenancy', $reservation);
 
         $data = $request->validate([
-            'move_out_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'move_out_date' => ['nullable', 'date', 'before_or_equal:' . BusinessTime::today()],
         ], [
             'move_out_date.before_or_equal' => 'A move-out date cannot be in the future.',
         ]);

@@ -65,6 +65,14 @@
                             $landlordId = $conversation->landlord_id ?? null;
                         @endphp
                         @foreach($conversation->messages as $msg)
+                            @if($msg->is_system)
+                                <div class="flex items-center gap-3 my-2 px-2">
+                                    <div class="flex-1 h-px bg-[#E2E4EC]"></div>
+                                    <p class="text-[11px] text-[#5B6A8E] text-center max-w-[70%] leading-relaxed">{{ $msg->message }}</p>
+                                    <div class="flex-1 h-px bg-[#E2E4EC]"></div>
+                                </div>
+                                @continue
+                            @endif
                             @php
                                 $isTenant   = $msg->sender_id === $tenantId;
                                 $senderName = trim(($msg->sender->first_name ?? '') . ' ' . ($msg->sender->last_name ?? '')) ?: 'Unknown';
@@ -85,7 +93,15 @@
                                         {{ $isTenant
                                             ? 'bg-[#FF8A66]/10 text-[#060D26] rounded-bl-sm border border-[#FF8A66]/10'
                                             : 'bg-[#ECEEF6] text-[#060D26] rounded-br-sm border border-[#E2E4EC]' }}">
-                                        {{ $msg->message }}
+                                        @if($msg->is_inquiry_summary)
+                                            <p class="text-[10.5px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Inquiry summary</p>
+                                            {{ $msg->message !== '' ? $msg->message : 'No note from the tenant. Move-in details are on the reservation.' }}
+                                        @elseif($msg->concern)
+                                            <p class="text-[10.5px] font-bold uppercase tracking-wider text-[#5B6A8E] mb-1">Concern &middot; {{ $msg->concern->category }} &middot; {{ $msg->concern->status }}</p>
+                                            {{ $msg->concern->description }}
+                                        @else
+                                            {{ $msg->message }}
+                                        @endif
                                     </div>
                                     <p class="text-[10.5px] text-[#94A3B8] mt-1 {{ $isTenant ? '' : 'text-right' }}">
                                         {{ $msg->sent_at?->format('M d, Y · g:i A') ?? $msg->created_at->format('M d, Y · g:i A') }}

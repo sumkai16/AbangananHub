@@ -57,6 +57,11 @@ return [
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
 
+    // Read via config() so OCR keeps working after `php artisan config:cache` (env() returns null then).
+    'google_vision' => [
+        'key' => env('GOOGLE_VISION_API_KEY'),
+    ],
+
     // AI search (config/ai_search.php picks the driver). Gemini's free tier is for
     // testing; model IDs change, so read the current one from AI Studio.
     'gemini' => [

@@ -7,6 +7,7 @@ use App\Http\Resources\ReservationResource;
 use App\Models\Conversation;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
+use App\Support\BusinessTime;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -51,7 +52,7 @@ class ReservationController extends Controller
     {
         $request->validate([
             'unit_id'             => 'required|integer|exists:property_units,unit_id',
-            'target_move_in_date' => 'nullable|date|after_or_equal:today',
+            'target_move_in_date' => 'nullable|date|after_or_equal:' . BusinessTime::today(),
             // Mirrors the web StoreReservationRequest: the app is
             // monthly-only, so duration is months, not a free move-out date —
             // target_move_out_date is derived below, never taken from the
@@ -98,12 +99,19 @@ class ReservationController extends Controller
         $conversation = Conversation::inquiries()->where('tenant_id', $tenantId)
             ->where('landlord_id', $property->landlord_id)
             ->where('property_id', $property->property_id)
-            ->where('status', '!=', 'Cancelled')
             ->first();
 
         if ($conversation) {
+            // Reopen a cancelled thread: the unique key allows one per (tenant, landlord, property, type).
+            $changes = [];
             if ($conversation->unit_id !== $unit->unit_id) {
-                $conversation->update(['unit_id' => $unit->unit_id]);
+                $changes['unit_id'] = $unit->unit_id;
+            }
+            if ($conversation->status === 'Cancelled') {
+                $changes['status'] = 'Open';
+            }
+            if ($changes) {
+                $conversation->update($changes);
             }
         } else {
             $conversation = Conversation::create([
@@ -164,15 +172,6 @@ class ReservationController extends Controller
 
     private function statusCounts($base): array
     {
-        return [
-            'all'                      => (clone $base)->count(),
-            'Inquiry'                  => (clone $base)->where('rental_status', 'Inquiry')->count(),
-            'Under Negotiation'        => (clone $base)->where('rental_status', 'Under Negotiation')->count(),
-            'Pending Rental Agreement' => (clone $base)->where('rental_status', 'Pending Rental Agreement')->count(),
-            'Rental Agreement Signed'  => (clone $base)->where('rental_status', 'Rental Agreement Signed')->count(),
-            'Occupied'                 => (clone $base)->where('rental_status', 'Occupied')->count(),
-            'Cancelled'                => (clone $base)->where('rental_status', 'Cancelled')->count(),
-            'Rejected'                 => (clone $base)->where('rental_status', 'Rejected')->count(),
-        ];
+        return Reservation::statusCounts($base, Reservation::STATUSES);
     }
 }
