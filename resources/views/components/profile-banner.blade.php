@@ -3,6 +3,10 @@
     'subtitle' => null,
     'avatarShape' => 'circle', // 'circle' | 'square'
     'container' => 'max-w-[1400px]', // page max-width; sidebar shells pass their own
+    // The landlord business page shows the business, not the person. Leave these unset for a person.
+    'name' => null,         // heading text; defaults to the user's full name
+    'photo' => false,       // image url; false = the user's profile picture, null = none (initials)
+    'initials' => null,     // avatar text when there is no photo; defaults to the user's initials
 ])
 
 {{--
@@ -16,7 +20,9 @@
 @php
     $wrap = $container . ' mx-auto px-4 sm:px-6 lg:px-8';
     $avatarRadius = $avatarShape === 'square' ? 'rounded-2xl' : 'rounded-full';
-    $initials = mb_strtoupper(mb_substr($user->first_name, 0, 1) . mb_substr($user->last_name, 0, 1));
+    $displayName = $name ?? trim($user->first_name . ' ' . $user->last_name);
+    $imageUrl = $photo === false ? $user->profile_picture : $photo;
+    $initials = $initials ?? mb_strtoupper(mb_substr($user->first_name, 0, 1) . mb_substr($user->last_name, 0, 1));
 @endphp
 
 {{-- The coral glow is the one decorative flourish, kept to a corner so the page stays calm. --}}
@@ -34,15 +40,15 @@
          the name block starts below the banner so text never lands on navy. --}}
     <div class="flex flex-col sm:flex-row sm:gap-5">
         <div class="relative z-10 -mt-10 sm:-mt-12 shrink-0">
-            @if($user->profile_picture)
-                <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="h-20 w-20 sm:h-24 sm:w-24 {{ $avatarRadius }} object-cover ring-4 ring-[#F7F8FC] bg-[#060D26]">
+            @if($imageUrl)
+                <img loading="lazy" decoding="async" src="{{ $imageUrl }}" alt="{{ $displayName }}" class=""h-20 w-20 sm:h-24 sm:w-24 {{ $avatarRadius }} object-cover ring-4 ring-[#F7F8FC] bg-[#060D26]">
             @else
                 <div class="h-20 w-20 sm:h-24 sm:w-24 {{ $avatarRadius }} bg-[#060D26] ring-4 ring-[#F7F8FC] flex items-center justify-center text-[26px] sm:text-[30px] font-bold text-white" aria-hidden="true">{{ $initials }}</div>
             @endif
         </div>
         <div class="mt-3 sm:mt-4 min-w-0">
             <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                <h1 class="text-[22px] sm:text-[24px] font-bold tracking-tight leading-tight text-[#060D26]">{{ $user->first_name }} {{ $user->last_name }}</h1>
+                <h1 class="text-[22px] sm:text-[24px] font-bold tracking-tight leading-tight text-[#060D26]">{{ $displayName }}</h1>
                 {{ $badges ?? '' }}
             </div>
             @if($subtitle)

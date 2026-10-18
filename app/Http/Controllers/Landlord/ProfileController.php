@@ -76,6 +76,13 @@ class ProfileController extends Controller
 
     private function ensureVisible(User $user): void
     {
+        // The page holds only business information, so a landlord with a live listing is always public:
+        // the listing page links here, and a 404 behind a "View business" link helps nobody.
+        // `profile_visibility` still decides for a landlord with nothing live.
+        if ($user->hasPublicBusinessPage()) {
+            return;
+        }
+
         $visibility = $user->profile_visibility ?? 'private';
 
         if ($visibility === 'private') {

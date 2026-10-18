@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PropertyResource;
-use App\Http\Resources\ReviewResource;
+use App\Http\Resources\PublicReviewResource;
 use App\Models\PropertyUnit;
 use App\Models\Review;
 use App\Models\User;
@@ -118,7 +118,9 @@ class ProfileController extends Controller
         $viewer = auth('sanctum')->user();
         $isOwner = $viewer && $viewer->user_id === $user->user_id;
 
-        if (! $isOwner) {
+        // Same rule as the web page: business information only, so a landlord with a live listing is public
+        // whatever profile_visibility says; the setting decides for one with nothing live.
+        if (! $isOwner && ! $user->hasPublicBusinessPage()) {
             $visibility = $user->profile_visibility ?? 'private';
 
             if ($visibility === 'private') {
@@ -141,7 +143,7 @@ class ProfileController extends Controller
         $units = PropertyUnit::whereIn('property_id', $propertyIds)->get();
 
         $reviews = Review::whereIn('property_id', $propertyIds)
-            ->with(['tenant:user_id,first_name,last_name,profile_picture', 'property:property_id,title'])
+            ->with(['tenant:user_id,first_name,last_name', 'property:property_id,title'])
             ->latest('created_at')
             ->take(10)
             ->get();
@@ -150,16 +152,20 @@ class ProfileController extends Controller
 
         return response()->json([
             'data' => [
-                'user' => $user->only([
-                    'user_id', 'first_name', 'last_name', 'profile_picture', 'bio', 'created_at',
-                ]),
+                // The owner sees their own record; everyone else gets the business only, with the phone
+                // number behind a token (the web page puts it behind a login).
+                'user' => $isOwner
+                    ? $user->only(['user_id', 'first_name', 'last_name', 'profile_picture', 'bio', 'created_at'])
+                    : ['user_id' => $user->user_id, 'business_name' => $user->publicName(), 'created_at' => $user->created_at],
                 'is_owner'        => $isOwner,
-                'business'        => $user->rentalBusiness,
+                'business'        => $isOwner || $viewer
+                    ? $user->rentalBusiness
+                    : $user->rentalBusiness?->only(['business_id', 'business_name', 'description', 'logo_url', 'business_address']),
                 'is_verified'     => (bool) $user->rentalBusiness,
                 'properties'      => PropertyResource::collection($properties),
                 'total_units'     => $units->count(),
                 'occupied_units'  => $units->where('availability_status', 'Occupied')->count(),
-                'reviews'         => ReviewResource::collection($reviews),
+                'reviews'         => PublicReviewResource::collection($reviews),
                 'average_rating'  => $averageRating ? round($averageRating, 1) : null,
             ],
         ]);

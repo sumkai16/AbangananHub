@@ -245,6 +245,52 @@ public function tenantRatingsReceived()
         return $full !== '' ? $full : ($this->email ?? '');
     }
 
+    // ─── Public identity ─────────────────────────────────────
+    //
+    // Before a deal, the public sees a landlord's rental business, not the person; once there is a
+    // reservation the two parties see each other. These helpers are for the public surfaces (listing
+    // page, business page, search, public API). Private surfaces between the parties keep `name`.
+
+    /**
+     * What the public sees for a landlord: the business name, or "Maria S." for the rare landlord with
+     * no business name on file. Reads `rentalBusiness`, so eager-load it wherever this is called in a loop.
+     */
+    public function publicName(): string
+    {
+        $business = $this->rentalBusiness?->business_name;
+
+        return filled($business) ? $business : $this->shortName();
+    }
+
+    /** Up to two initials of the public name, for the avatar when there is no logo. */
+    public function publicInitials(): string
+    {
+        $words = preg_split('/\s+/u', trim($this->publicName())) ?: [];
+        $letters = array_map(fn ($word) => mb_substr($word, 0, 1), array_slice(array_filter($words), 0, 2));
+
+        return mb_strtoupper(implode('', $letters)) ?: '?';
+    }
+
+    /** "Juan D.": first name and the initial of the last, for tenants on public pages. */
+    public function shortName(): string
+    {
+        $first = trim((string) $this->first_name);
+        $last = trim((string) $this->last_name);
+
+        return trim($first . ($last !== '' ? ' ' . mb_strtoupper(mb_substr($last, 0, 1)) . '.' : ''));
+    }
+
+    /**
+     * Whether the landlord's business page may be shown to anyone. It holds only business information, so
+     * a landlord with a live listing is always public, whatever `profile_visibility` says (that setting
+     * governs personal profiles). Without a live listing the setting still decides, so a landlord who
+     * wants to be invisible can unpublish.
+     */
+    public function hasPublicBusinessPage(): bool
+    {
+        return $this->properties()->live()->exists();
+    }
+
     /**
      * Tenants this landlord entered by hand through the walk-in flow.
      *

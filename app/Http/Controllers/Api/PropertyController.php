@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PropertyResource;
-use App\Http\Resources\ReviewResource;
+use App\Http\Resources\PublicReviewResource;
 use App\Models\Favorite;
 use App\Models\Property;
 use App\Models\Review;
@@ -25,7 +25,7 @@ class PropertyController extends Controller
         // request. The parallel web PropertyController::index() already does
         // this; this endpoint never had — found via a probe, since nothing has
         // ever sent it a real HTTP request before now (July 27 2026).
-        $properties = Property::with(['media', 'landlord:user_id,first_name,last_name,profile_picture', 'amenities', 'units'])
+        $properties = Property::with(['media', 'landlord:user_id,first_name,last_name,created_at', 'landlord.rentalBusiness', 'amenities', 'units'])
             ->browsable()
             ->browseFilters([
                 'location'  => $request->query('location'),
@@ -64,7 +64,7 @@ class PropertyController extends Controller
         $property->load([
             'media',
             'amenities',
-            'landlord:user_id,first_name,last_name,profile_picture,created_at',
+            'landlord:user_id,first_name,last_name,created_at',
             'landlord.rentalBusiness',
             'units' => fn ($q) => $q->where('verification_status', 'Approved'),
             'units.media',
@@ -72,7 +72,7 @@ class PropertyController extends Controller
         ]);
 
         $reviews = $property->reviews()
-            ->with('tenant:user_id,first_name,last_name,profile_picture')
+            ->with('tenant:user_id,first_name,last_name')
             ->where('is_hidden', false)
             ->latest()
             ->get();
@@ -83,7 +83,7 @@ class PropertyController extends Controller
 
         return response()->json([
             'data' => array_merge((new PropertyResource($property))->resolve(), [
-                'reviews'      => ReviewResource::collection($reviews),
+                'reviews'      => PublicReviewResource::collection($reviews),
                 'avg_rating'   => $avgRating ? round($avgRating, 1) : null,
                 'review_count' => $reviews->count(),
                 'can_review'   => $user ? Review::canReview($user->user_id, $property->property_id) : false,

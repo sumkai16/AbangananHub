@@ -108,11 +108,11 @@
                 </div>
 
                 <div>
-                    <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Bio</label>
+                    <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">Bio <span class="font-normal text-[#5B6A8E]">(private)</span></label>
                     <div x-data="{ count: {{ strlen(old('bio', $user->bio ?? '')) }} }">
                         <textarea name="bio" rows="3" maxlength="1000" x-on:input="count = $event.target.value.length"
                             class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] placeholder-[#5B6A8E]/50 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all resize-none"
-                            placeholder="Tell tenants a bit about yourself...">{{ old('bio', $user->bio) }}</textarea>
+                            placeholder="A note about yourself. Tenants do not see this; they see your business description.">{{ old('bio', $user->bio) }}</textarea>
                         <p class="text-[11px] text-[#5B6A8E] mt-1 text-right"><span x-text="count">0</span> / 1,000</p>
                         @error('bio')
                             <p class="text-[11px] text-[#EF4444] mt-1.5 font-semibold">{{ $message }}</p>
@@ -151,7 +151,7 @@
             {{-- Business info --}}
             <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 mb-5">
                 <h2 class="text-[15px] font-normal text-[#060D26] mb-1">Business information</h2>
-                <p class="text-[12px] text-[#5B6A8E] mb-4">Shown on your public landlord profile.</p>
+                <p class="text-[12px] text-[#5B6A8E] mb-4">Shown on your public business page and on your listings. Your personal name, photo, email and phone number are not. While you have a live listing the business page is always public.</p>
 
                 {{-- Logo --}}
                 <div x-data="{ preview: null }" class="flex items-center gap-5 mb-5 pb-5 border-b border-[#E2E4EC]">

@@ -596,36 +596,28 @@
                         </template>
                     </p>
 
-                    {{-- ===== LANDLORD ROW ===== --}}
+                    {{-- ===== LANDLORD ROW — the rental business, not the person (User::publicName()).
+                         Personal name, photo, email and number stay off public pages; see
+                         plans/business-first-identity-and-name-search.md. ===== --}}
                     <div class="mt-6 pt-6 border-t border-[#E2E4EC] flex items-center gap-3">
-                        {{-- Business logo when the landlord has a registered
-                             rental business (same logo_url shown on their own
-                             profile page), object-cover so it's centered/
-                             cropped to fill the circle rather than stretched
-                             — falls back to the plain initials otherwise. --}}
-                        <div class="w-12 h-12 shrink-0 rounded-full overflow-hidden {{ $property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url ? 'bg-white ring-1 ring-[#E2E4EC]' : 'bg-[#FF8A66]' }} text-[#060D26] flex items-center justify-center text-[15px] font-bold">
-                            @if($property->landlord->rentalBusiness && $property->landlord->rentalBusiness->logo_url)
-                                <img loading="lazy" decoding="async" src="{{ $property->landlord->rentalBusiness->logo_url }}" alt="{{ $property->landlord->rentalBusiness->business_name }}"
-                                    class="w-full h-full object-cover">
-                            @else
-                                {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}{{ strtoupper(substr($property->landlord->last_name, 0, 1)) }}
-                            @endif
-                        </div>
+                        <x-business-avatar :landlord="$property->landlord" />
                         <div class="min-w-0 flex-1">
                             <p class="flex items-center gap-1 text-[14px] font-bold text-[#060D26] truncate">
-                                {{ trim($property->landlord->first_name . ' ' . $property->landlord->last_name) }}
+                                {{ $property->landlord->publicName() }}
                                 @if($property->hasVerifiedDocuments())
                                     <svg class="w-3.5 h-3.5 text-[#B35A3D] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 @endif
                             </p>
-                            <p class="text-[12px] text-[#5B6A8E]">{{ $property->hasVerifiedDocuments() ? 'Verified Owner' : 'Owner' }} &middot; Listed since {{ $property->created_at->format('Y') }}</p>
+                            <p class="text-[12px] text-[#5B6A8E]">{{ $property->hasVerifiedDocuments() ? 'Verified landlord' : 'Landlord' }} &middot; Listed since {{ $property->created_at->format('Y') }}</p>
                             <p class="text-[12px] text-[#5B6A8E]">Usually responds within a few hours</p>
                         </div>
+                        {{-- A listing page only opens while the property is live, and a live listing makes the
+                             business page public (User::hasPublicBusinessPage()), so this link never dead-ends. --}}
                         <a href="{{ route('landlord.profile.show', $property->landlord_id) }}"
                             class="shrink-0 text-[14px] font-bold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
-                            View profile &rarr;
+                            View business &rarr;
                         </a>
                     </div>
 
@@ -702,7 +694,7 @@
                          login modal instead of the Alpine reveal toggle,
                          mirroring how Send Inquiry becomes "Log in to contact
                          landlord" for the same audience. ===== --}}
-                    @if(!$isOwner && $property->landlord->contact_number)
+                    @if(!$isOwner && $property->landlord->rentalBusiness?->contact_number)
                         <button type="button"
                             @auth
                                 x-on:click="phoneRevealed = !phoneRevealed"
@@ -716,7 +708,7 @@
                             </svg>
                             @auth
                                 <span x-show="!phoneRevealed" x-cloak>Show phone number</span>
-                                <span x-show="phoneRevealed" x-cloak>{{ $property->landlord->contact_number }}</span>
+                                <span x-show="phoneRevealed" x-cloak>{{ $property->landlord->rentalBusiness->contact_number }}</span>
                             @else
                                 <span>Show phone number</span>
                             @endauth
@@ -1225,7 +1217,7 @@
                                         </div>
                                         <div>
                                             <div class="text-sm font-bold text-[#060D26]">
-                                                {{ $review->tenant->first_name }} {{ $review->tenant->last_name }}
+                                                {{ $review->tenant->shortName() }}
                                             </div>
                                             <div class="text-[11px] font-medium text-[#5B6A8E]">
                                                 {{ $review->created_at->format('M Y') }}
@@ -1253,10 +1245,10 @@
                                         <div class="flex items-center gap-2 mb-1.5">
                                             <div
                                                 class="w-6 h-6 rounded-lg bg-[#060D26] text-white text-[10px] font-black flex items-center justify-center shrink-0">
-                                                {{ strtoupper(substr($property->landlord->first_name, 0, 1)) }}
+                                                {{ mb_substr($property->landlord->publicInitials(), 0, 1) }}
                                             </div>
                                             <span class="text-xs font-bold text-[#060D26]">
-                                                {{ $property->landlord->first_name }} {{ $property->landlord->last_name }}
+                                                {{ $property->landlord->publicName() }}
                                             </span>
                                             <span class="text-[10px] font-medium text-[#5B6A8E]">
                                                 {{ $review->landlord_replied_at->format('M Y') }}
@@ -1723,7 +1715,7 @@
                                 </div>
                                 <div class="p-5">
                                     <p class="text-[12px] text-[#5B6A8E] mb-3">
-                                        To: <span class="font-bold text-[#060D26]">{{ $property->landlord->rentalBusiness->business_name ?? ($property->landlord->first_name . ' ' . $property->landlord->last_name) }}</span>
+                                        To: <span class="font-bold text-[#060D26]">{{ $property->landlord->publicName() }}</span>
                                         &middot; {{ $property->title }}
                                     </p>
 
