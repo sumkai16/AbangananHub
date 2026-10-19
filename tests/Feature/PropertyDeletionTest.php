@@ -130,7 +130,27 @@ class PropertyDeletionTest extends TestCase
         Storage::disk('local')->assertExists('property-documents/keep.pdf');
     }
 
-    public function test_purge_files_never_aborts_on_a_missing_file(): void
+    public function test_files_are_kept_when_the_delete_is_refused(): void
+    {
+        Storage::fake('local');
+
+        ['reservation' => $reservation] = $this->tenancy('Occupied');
+        $property = $reservation->property;
+        Storage::disk('local')->put('property-documents/deed.pdf', 'x');
+        PropertyDocument::create([
+            'property_id'   => $property->property_id,
+            'document_type' => 'Proof of Ownership',
+            'file_path'     => 'property-documents/deed.pdf',
+            'file_name'     => 'deed.pdf',
+        ]);
+
+        $this->assertNotNull($property->deleteWithFiles());
+
+        Storage::disk('local')->assertExists('property-documents/deed.pdf');
+        $this->assertInstanceOf(Property::class, $property->fresh());
+    }
+
+    public function test_delete_with_files_never_aborts_on_a_missing_file(): void
     {
         Storage::fake('local');
 
@@ -142,8 +162,8 @@ class PropertyDeletionTest extends TestCase
             'file_name'     => 'x.pdf',
         ]);
 
-        $property->purgeFiles();
+        $this->assertNull($property->deleteWithFiles());
 
-        $this->assertInstanceOf(Property::class, $property->fresh());
+        $this->assertNull($property->fresh());
     }
 }

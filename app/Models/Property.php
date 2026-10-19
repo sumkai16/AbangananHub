@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -138,12 +139,50 @@ class Property extends Model
     }
 
     /**
-     * Remove every stored file belonging to this property (listing and unit media, private documents,
-     * lease files). Best effort: failures are logged and never stop the delete.
+     * Delete the property and, once the delete has committed, its stored files (listing and unit media,
+     * private documents, lease files). The block check is repeated under a row lock so a reservation created
+     * a moment ago is not cascade-deleted, and nothing irreversible is removed unless the row is really gone.
+     * Returns the blocking reason, or null when it was deleted.
      */
-    public function purgeFiles(): void
+    public function deleteWithFiles(): ?string
     {
-        foreach ($this->media as $media) {
+        $files = null;
+
+        $reason = DB::transaction(function () use (&$files) {
+            static::whereKey($this->getKey())->lockForUpdate()->first();
+
+            if ($reason = $this->deletionBlockedReason()) {
+                return $reason;
+            }
+
+            $files = $this->fileManifest();
+            $this->delete();
+
+            return null;
+        });
+
+        if ($files !== null) {
+            $this->purgeManifest($files);
+        }
+
+        return $reason;
+    }
+
+    /** Everything stored outside the database for this property, read before the rows cascade away. */
+    private function fileManifest(): array
+    {
+        return [
+            'media'  => $this->media()->get(),
+            'unit'   => UnitMedia::whereIn('unit_id', $this->units()->select('unit_id'))->get(),
+            'paths'  => $this->documents()->whereNotNull('file_path')->pluck('file_path')
+                ->merge($this->reservations()->whereNotNull('lease_file_path')->pluck('lease_file_path')),
+        ];
+    }
+
+    /** Best effort: failures are logged and never stop the delete. */
+    private function purgeManifest(array $files): void
+    {
+        foreach ($files['media'] as $media) {
             try {
                 if ($media->cloudinary_public_id) {
                     cloudinary()->uploadApi()->destroy($media->cloudinary_public_id);
@@ -153,14 +192,11 @@ class Property extends Model
             }
         }
 
-        foreach (UnitMedia::whereIn('unit_id', $this->units()->select('unit_id'))->get() as $unitMedia) {
+        foreach ($files['unit'] as $unitMedia) {
             $unitMedia->destroyFromCloudinary();
         }
 
-        $paths = $this->documents()->whereNotNull('file_path')->pluck('file_path')
-            ->merge($this->reservations()->whereNotNull('lease_file_path')->pluck('lease_file_path'));
-
-        foreach ($paths as $path) {
+        foreach ($files['paths'] as $path) {
             try {
                 Storage::disk('local')->delete($path);
             } catch (\Throwable $e) {
