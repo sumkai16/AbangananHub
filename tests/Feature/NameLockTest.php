@@ -81,8 +81,8 @@ class NameLockTest extends TestCase
     {
         $landlord = $this->applicant('Approved', 'Landlord');
 
-        $this->actingAs($landlord)->patch(route('landlord.profile.update'), [
-            'first_name' => 'Someone', 'last_name' => 'Else',
+        $this->actingAs($landlord)->patch(route('profile.update'), [
+            'first_name' => 'Someone', 'last_name' => 'Else', 'email' => $landlord->email,
         ])->assertSessionHasNoErrors();
 
         $this->assertSame('Roberto', $landlord->fresh()->first_name);

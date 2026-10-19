@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\PropertyUnit;
 use App\Models\Review;
 use App\Models\User;
-use App\Support\NameLock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -169,55 +168,19 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function edit()
-    {
-        $user = Auth::user();
-        $business = $user->rentalBusiness;
-
-        return view('landlord.profile.edit', compact('user', 'business'));
-    }
-
     public function update(Request $request)
     {
         $user = Auth::user();
 
-        NameLock::apply($request, $user);
-
         $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'contact_number' => ['nullable', 'string', 'max:20'],
             'gcash_number' => ['nullable', 'string', 'max:20'],
             'gcash_account_name' => ['nullable', 'string', 'max:255'],
-            'bio' => ['nullable', 'string', 'max:1000'],
-            'profile_picture' => ['nullable', 'image', 'max:2048'],
             'business_name' => ['nullable', 'string', 'max:255'],
             'business_description' => ['nullable', 'string', 'max:1000'],
             'business_contact' => ['nullable', 'string', 'max:20'],
             'business_address' => ['nullable', 'string', 'max:500'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
-
-        if ($request->hasFile('profile_picture')) {
-            $result = cloudinary()->uploadApi()->upload(
-                $request->file('profile_picture')->getRealPath(),
-                [
-                    'folder' => 'abanganganhub/profile-pictures',
-                    'transformation' => [
-                        'width' => 400,
-                        'height' => 400,
-                        'crop' => 'fill',
-                        'gravity' => 'face',
-                    ],
-                ]
-            );
-            $validated['profile_picture'] = $result['secure_url'];
-        }
-
-        // Update user fields
-        $user->update(collect($validated)->only([
-            'first_name', 'last_name', 'contact_number', 'bio', 'profile_picture',
-        ])->toArray());
 
         // A key left out of the request keeps its stored value, like every other field above.
         $payout = $user->payoutAccount;
@@ -264,6 +227,6 @@ class ProfileController extends Controller
                 ->updateOrCreate(['landlord_id' => $user->user_id], $businessData);
         }
 
-        return redirect()->route('landlord.profile.me')->with('success', 'Profile updated successfully.');
+        return redirect()->route('profile.edit', [], 303)->with('success', 'Payout and business details saved.');
     }
 }

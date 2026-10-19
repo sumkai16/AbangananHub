@@ -222,7 +222,9 @@ Route::middleware('auth')->group(function () {
 
         // Profile
         Route::get('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'me'])->name('profile.me');
-        Route::get('/profile/edit', [App\Http\Controllers\Landlord\ProfileController::class, 'edit'])->name('profile.edit');
+        // The landlord edit form was folded into Account Settings (personal info there; payout and business
+        // details are its own sections). The old URL stays as a redirect for bookmarks.
+        Route::get('/profile/edit', fn () => redirect()->route('profile.edit'))->name('profile.edit');
         Route::patch('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'update'])->name('profile.update');
 
         // Tenant Ratings

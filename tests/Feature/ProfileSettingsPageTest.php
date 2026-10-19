@@ -28,6 +28,33 @@ class ProfileSettingsPageTest extends TestCase
             ->assertSee('Your account is fully set up.');
     }
 
+    public function test_a_landlord_manages_payout_and_business_details_on_account_settings(): void
+    {
+        $landlord = $this->makeLandlord();
+        $this->actingAs($landlord);
+
+        $this->get(route('profile.edit'))->assertOk()
+            ->assertSee('Payout details')->assertSee('Business information')->assertSee('gcash_number', false);
+
+        $this->patch(route('landlord.profile.update'), [
+            'gcash_number' => '09171112222', 'gcash_account_name' => 'Maria Santos',
+            'business_name' => 'Santos Rentals', 'business_address' => 'Cebu City',
+        ])->assertRedirect(route('profile.edit'));
+
+        $landlord = $landlord->fresh();
+        $this->assertSame('09171112222', $landlord->payoutAccount->gcash_number);
+        $this->assertSame('Santos Rentals', $landlord->rentalBusiness->business_name);
+    }
+
+    public function test_the_old_landlord_edit_url_redirects_and_a_tenant_sees_no_landlord_sections(): void
+    {
+        $landlord = $this->makeLandlord();
+        $this->actingAs($landlord)->get(route('landlord.profile.edit'))->assertRedirect(route('profile.edit'));
+
+        $this->actingAs($this->makeTenant())->get(route('profile.edit'))
+            ->assertOk()->assertDontSee('Payout details')->assertDontSee('Business information');
+    }
+
     private function fakeUploader(): void
     {
         $this->app->instance(ImageUploader::class, new class extends ImageUploader

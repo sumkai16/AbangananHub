@@ -259,7 +259,7 @@ class DashboardController extends Controller
                 'level' => 'warn',
                 'text' => 'Add your GCash details so AbangananHub can send your payouts.',
                 'cta' => 'Add details',
-                'url' => route('landlord.profile.edit'),
+                'url' => route('profile.edit').'#payout',
             ]);
         }
         if ($counts['rejected'] > 0) {
