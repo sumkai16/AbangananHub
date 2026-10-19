@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -28,6 +29,8 @@ class AgreementController extends Controller
             'Pending Rental Agreement',
             'Rental Agreement Signed',
             'Occupied',
+            // A past tenant can still read what they signed, same as the web page.
+            'Completed',
         ], true)) {
             abort(404);
         }
@@ -38,7 +41,10 @@ class AgreementController extends Controller
             abort(404, 'This unit is no longer available.');
         }
 
-        return response()->json(['data' => new ReservationResource($reservation)]);
+        return response()->json([
+            'data'                 => new ReservationResource($reservation),
+            'needs_tenant_details' => ! TenantDetail::completeFor(request()->user()),
+        ]);
     }
 
     public function sign(Request $request, Reservation $reservation): JsonResponse
@@ -48,7 +54,7 @@ class AgreementController extends Controller
         // Same rule as the web form: emergency contact and ID on file before signing, asked once.
         $needsDetails = ! TenantDetail::completeFor($request->user());
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'agree'     => 'accepted',
             'accept_tc' => 'accepted',
             ...($needsDetails ? TenantDetail::rules(true) : []),
@@ -57,6 +63,16 @@ class AgreementController extends Controller
             'accept_tc.accepted' => 'You must accept the platform terms and conditions.',
             ...TenantDetail::messages(),
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message'              => $validator->errors()->first(),
+                'errors'               => $validator->errors(),
+                'needs_tenant_details' => $needsDetails,
+            ], 422);
+        }
+
+        $validated = $validator->validated();
 
         $signed = DB::transaction(function () use ($reservation, $request, $validated, $needsDetails) {
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();

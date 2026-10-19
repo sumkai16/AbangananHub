@@ -17,12 +17,11 @@ class ReservationController extends Controller
     {
         $base = Reservation::where('tenant_id', Auth::id());
 
-        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected']);
+        $counts = Reservation::statusCounts($base, Reservation::STATUSES);
 
         $status = $request->query('status', 'all');
-        $validStatuses = ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Completed', 'Cancelled', 'Rejected'];
 
-        if (in_array($status, $validStatuses, true)) {
+        if (in_array($status, Reservation::STATUSES, true)) {
             $base->where('rental_status', $status);
         }
 

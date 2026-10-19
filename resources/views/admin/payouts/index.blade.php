@@ -49,7 +49,7 @@
                             @if ($landlord && $landlord->hasPayoutDestination())
                                 <button type="button"
                                     x-data
-                                    x-on:click="$dispatch('open-payout-modal', { userId: {{ $landlord->user_id }}, name: '{{ trim(($landlord->first_name ?? '').' '.($landlord->last_name ?? '')) }}', amount: '{{ number_format($row['total'], 2) }}' })"
+                                    x-on:click="$dispatch('open-payout-modal', { userId: {{ $landlord->user_id }}, name: '{{ trim(($landlord->first_name ?? '').' '.($landlord->last_name ?? '')) }}', amount: '{{ number_format($row['total'], 2) }}', rawAmount: '{{ number_format($row['total'], 2, '.', '') }}' })"
                                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FF8A66] text-[12px] font-semibold text-[#060D26] hover:bg-[#E96F4F] shadow-sm transition-all duration-200 cursor-pointer">
                                     Mark Paid Out
                                 </button>
@@ -125,8 +125,8 @@
 
     {{-- Mark-paid-out modal --}}
     <template x-teleport="body">
-        <div x-data="{ open: false, userId: null, name: '', amount: '' }"
-            x-on:open-payout-modal.window="open = true; userId = $event.detail.userId; name = $event.detail.name; amount = $event.detail.amount"
+        <div x-data="{ open: false, userId: null, name: '', amount: '', rawAmount: '' }"
+            x-on:open-payout-modal.window="open = true; userId = $event.detail.userId; name = $event.detail.name; amount = $event.detail.amount; rawAmount = $event.detail.rawAmount"
             x-show="open" x-cloak
             class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-4">
             <div x-show="open" x-on:click.outside="open = false" class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
@@ -137,6 +137,7 @@
                 </p>
                 <form method="POST" x-bind:action="'/admin/payouts/' + userId + '/mark-paid-out'">
                     @csrf
+                    <input type="hidden" name="expected_total" x-bind:value="rawAmount">
                     <label class="block text-[13px] font-semibold text-[#060D26] mb-1.5">GCash transaction reference</label>
                     <input type="text" name="payout_reference" required
                         class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4EC] rounded-lg text-[14px] text-[#060D26] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all mb-4"

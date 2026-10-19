@@ -2,6 +2,47 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 19 2026 — Future-proofing pass after pulling `main` (branch `joseph`)
+Plan: `plans/future-proofing-pass.md`. Three read-only audits (security and races, schema/config/deploy, behaviour and contracts) started from this file's own "found, not fixed" lists; every item was re-checked in the code before it was fixed, and a few claims were dropped as not real (listed at the end). No new migrations. Suite: **642 passed, 1 skipped** (was 545; about 100 new tests). Not verified in a browser: the tenant-ID Show button, the "another agreement is already in progress" message on Send agreement, the admin chat bubbles, the AI-search "unavailable" note, the payout modal.
+
+**Money and reservations**
+- **One agreement per unit.** Two tenants could be sent agreements for the same unit, both sign and pay, and both be set Occupied (two deposits released). `Reservation::unitHeldByAnother()` now blocks a second agreement while another reservation on the unit is at Pending Agreement, Signed, Reserved or Occupied; the check runs under a lock on the unit row, again at checkout (before any money moves), and `confirmMoveIn`, `markOccupied` and the nightly auto-release refuse to set a unit Occupied twice. Landlord web and mobile API show the reason (`agreementBlockedReason()`).
+- **Double-click on Pay opened two PayMongo sessions.** The lock ignored a placeholder that had no session id yet. Inside the lock it now blocks on any Pending payment of that type and re-checks status, settled payment and unit availability (web and API, initial and rent).
+- **Webhook and success-page poll could both settle one payment** (duplicate messages, and a replay could rewrite `Released` back to `Held`). One `Payment::settlePending()` takes the row lock, re-checks `Pending`, and only the call that settled posts the message.
+- `cancel()` / `reject()` now re-read the status after taking the lock; `advanceToNegotiation` is locked (a double-click posted the system message twice).
+- **Admin payouts:** the form posts the total the admin was shown and the server returns 409 if it changed (a payment released while the admin was sending GCash would have been marked paid out but never sent). `expected_total` is required.
+- Rent reminders said "1 days overdue" for "due tomorrow" (Carbon float); the ledger could mark a fully paid month partial (float sums). Both rounded.
+- Landlord, admin, tenant and API reservation lists now come from `Reservation::STATUSES`, so Reserved and Completed no longer hide and totals add up.
+
+**Security and data loss**
+- **Deleting a property** (web and API) had no guard and cascaded to live reservations and held escrow. `Property::deletionBlockedReason()` refuses while any reservation is not terminal or any payment is Held or owed to the landlord; when it is allowed, unit photos and videos, property documents and lease files are removed too (`Property::purgeFiles()`).
+- **Social login** linked to any account with the same email without checking it was verified, so someone could pre-register a victim's address. It now links only verified accounts and never walk-in or inactive placeholders. It also fixes an old bug: `email_verified_at` was passed to `User::create()` but is not mass-assignable, so no social account was ever verified; it is now set, only for Google, which reports confirmation (Facebook accounts stay unverified).
+- **Tenant ID number** is no longer in the landlord page's HTML: the page carries the masked value and Show fetches it from `landlord.tenancies.tenantDetails.id` (policy-checked, audited without the number, `no-store`, throttled). A failed validation no longer flashes it into the session, and an undecryptable value (changed `APP_KEY`) reads as "not on file" instead of a 500.
+- Admin-hidden reviews and unpublished listings no longer appear on the public business page or its API; the OCR endpoint is throttled and size-capped; deleting a user now removes the files they left behind (`AccountFilePurger`).
+
+**Reliability and config**
+- Reverb being down no longer turns the PayMongo webhook into a 500 (the "payment received" notices were lost) and no longer duplicates chat messages on retry. **Latent bug found by the tests:** with the settle now inside a transaction, `PaymentObserver` (which runs after commit) saw the new status as the old one and sent no escrow notifications; the previous status is now recorded on the model (`Payment::$previousStatus`).
+- New notices: rent paid online (landlord and tenant), landlord-recorded payment, lease upload, tenant rating.
+- `OcrService` used `env()` outside config (dead after `config:cache`); `.env.example` now lists the Cloudinary variables that are actually read (an empty `CLOUDINARY_URL=` made every upload fail), the AI-search keys and a production warning; the AI daily cap has one default (8, free-tier sized) instead of 8 and 600.
+- Migration `2026_10_13_000100` is guarded and its `down()` no longer hits error 1553.
+- **Time:** `app.timezone` stays UTC (changing it would shift stored timestamps). The four scheduled commands now run on `rentals.timezone` (Manila), so reminders go out at 08:00 Manila, not 16:00, and "today" validation uses `BusinessTime::today()` in nine places (a payment dated today was refused before 08:00 Manila).
+- AI search: a failing slow AI call no longer replaces good keyword results with an error page, a failed call gives back its daily-cap count, and the default timeout is 20 s (PHP's limit is 30).
+
+**Consistency and cleanup**
+- Admin chat view renders system lines and inquiry summaries properly (was an "Unknown" landlord bubble). The mobile API hides payout and gateway ids from tenants, reports `needs_tenant_details` when signing is refused, reopens a cancelled inquiry instead of returning 500, and a landlord can only start a thread with a tenant they already deal with.
+- `ProcessRentReminders` reads in chunks; the business-name index refreshes when a business or listing changes; the home page's area tiles are cached for 10 minutes (it uses the `cache` table, so a frozen MariaDB now also hangs the home page).
+- `@tailwindcss/vite` (v4) removed (the build runs Tailwind 3) and Dependabot ignores Tailwind majors.
+
+**Bugs the new tests caught in the work itself** (fixed before this entry): `@js()` is not compiled inside a `<x-card ...>` attribute, so the ID-reveal URL would have rendered as raw source and broken the Show and Edit buttons; two controllers used a class without importing it; two old tests encoded behaviour that changed on purpose (online rent now notifies; resources hide fields from non-owners).
+
+**Environment, not code (read this before the next pull)**
+- **PHP 8.4 is required.** `composer.json` says `^8.4` and the lock pins Symfony 8.1 packages that need 8.4.1. This machine's XAMPP runs **PHP 8.2.12** with the old Symfony 7.4 in `vendor/`, so `composer install` here will fail. Upgrade XAMPP's PHP to 8.4 first. CI already uses 8.4.
+- After a pull, run `php artisan migrate`, and also on the test database (`DB_DATABASE=abanganan_hub_test php artisan migrate`), or tests that need new tables fail until a `RefreshDatabase` test rebuilds it.
+- `main` still has no branch protection (steps in RULES.md). Mobile app to do: tenant details on sign, `landlord.business_name`, `kind` on messages, `needs_tenant_details`.
+
+**Before committing:** Pint (the CI style gate) was run on the changed files (19 needed fixes: import order and fully qualified names) and the suite was re-run: still 642 passed, 1 skipped. Committed as two commits on `joseph`: the code and tests, then these docs.
+
+**Checked and dropped:** account deletion vs the payouts foreign key (a landlord with properties is blocked first); the landlord payments page loading all of one landlord's tenancies (bounded per landlord); `CandidateFinder` was not arbitrary (it already ordered newest first, only a tie-break was added). Left for the team: tracked clutter (`TODO.md`, `update-coords.cjs`, a 743 KB CSV, a 1.7 MB .docx) and the unused `thiagoalessio/tesseract_ocr` Composer dependency (remove it on a PHP 8.4 machine so the lock stays consistent).
 ## Oct 19 2026 — "More from this business" under named-business results (branch `axci`)
 - When a search names one business ("places listed by tudtud boarding houses", with or without "near me"), a **"More from Tudtud Boarding Houses"** strip sits under the best fits: that business's other live places that are not already shown, whatever the filters said (a search for Tunghaan still shows their Tubod and Carcar places). Up to 6, best rated first, or nearest first with "X km from you" when the tenant shared a position; "See all places by …" opens the business page's Properties tab when there are more. `CandidateFinder::moreFromHost()`, `more_from_host` in `AiSearchService::results()`, `ai-results.blade.php`.
 - **The "You might also like" strip no longer appears for a named business**: its other types are in the new strip, so the two would repeat each other.

@@ -8,6 +8,12 @@ return [
      */
     'terms_version' => '2026-09',
     /*
+     * The clock the business runs on. app.timezone stays UTC (changing it would shift every stored
+     * timestamp), so anything that means "today" or "08:00" to a landlord or tenant (scheduled
+     * reminders, date validation) uses this zone via App\Support\BusinessTime and ->timezone().
+     */
+    'timezone' => 'Asia/Manila',
+    /*
      * Clock 2 — days the tenant has to confirm move-in after keys are turned over.
      * Expiry releases the held deposit to the landlord.
      */

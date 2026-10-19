@@ -274,6 +274,13 @@ class ProcessMoveInDeadlines extends Command
                         return null;
                     }
 
+                    // Never release a deposit into a unit another tenant already occupies; an admin sorts it out.
+                    if ($locked->unitHeldByAnother(['Occupied'])) {
+                        Log::warning("ProcessMoveInDeadlines: skipped auto-release for reservation {$id}, another reservation already occupies unit {$locked->unit_id}");
+
+                        return null;
+                    }
+
                     // tenant_confirmed_move_in_at stays null on purpose. It means
                     // what it says; conflating "confirmed" with "timed out" would
                     // poison occupancy reporting.

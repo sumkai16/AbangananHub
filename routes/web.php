@@ -75,7 +75,7 @@ Route::middleware('auth')->group(function () {
     // Landlord verification — open to any authenticated user, no role gate
     Route::get('/landlord/apply', [VerificationController::class, 'create'])->name('landlord.verification.create');
     Route::post('/landlord/apply', [VerificationController::class, 'store'])->name('landlord.verification.store');
-    Route::post('/landlord/apply/ocr-check', [VerificationController::class, 'ocrCheck'])->name('landlord.verification.ocrCheck');
+    Route::post('/landlord/apply/ocr-check', [VerificationController::class, 'ocrCheck'])->middleware('throttle:10,1')->name('landlord.verification.ocrCheck');
     Route::post('/landlord/apply/send-email-link', [VerificationController::class, 'sendEmailLink'])
         ->name('landlord.verification.sendEmailLink')
         ->middleware('throttle:3,5');
@@ -244,6 +244,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
         Route::patch('/tenancies/{reservation}/tenant-details', [App\Http\Controllers\Landlord\TenancyController::class, 'updateTenantDetails'])->name('tenancies.tenantDetails.update');
+        Route::get('/tenancies/{reservation}/tenant-details/id', [App\Http\Controllers\Landlord\TenancyController::class, 'revealTenantId'])
+            ->middleware('throttle:20,1')->name('tenancies.tenantDetails.id');
         // Lease — printable document + the signed copy (private disk)
         Route::get('/tenancies/{reservation}/lease', [App\Http\Controllers\Landlord\LeaseController::class, 'show'])->name('leases.show');
         Route::post('/tenancies/{reservation}/lease-file', [App\Http\Controllers\Landlord\LeaseController::class, 'upload'])->name('leases.upload');

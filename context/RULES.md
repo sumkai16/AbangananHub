@@ -113,6 +113,10 @@ Every controller / request-path change gets a two-front check before it's done �
 - **Before a deal, people see the business; once there is a reservation, they see each other (Oct 19 2026).** Public surfaces (listing page, business page, search, public API) show a landlord's rental business through `User::publicName()` and the logo, and a tenant on a public review as `User::shortName()` ("Juan D."). Never print a landlord's personal name, photo, email or personal number there, and never nest the full `UserResource` in a public payload (use `PublicLandlordResource`; reviews use `PublicReviewResource`). The agreement, lease, tenancy pages, reservations, chat, notifications and receipts keep personal names, because the lease has to name both parties. `PublicIdentityTest` greps `properties/show.blade.php` for the personal fields so an edit cannot quietly bring them back.
 - **Search matches business and listing names, never personal names (Oct 19 2026).** `NameMatcher` reads names from our own tables after the AI has answered; the model never sees or returns them. Otherwise anyone could type a person's name and get the list of what they own. When a typed name is not found, the page says there is no *listing or business* by that name, never "no landlord named ...", so it does not confirm or deny that a person exists.
 
+- **`env()` only inside `config/`.** After `php artisan config:cache` it returns null everywhere else (the Google Vision key silently stopped working). Read keys with `config()`.
+- **Never put a secret in the page.** Anything in the HTML is readable by whoever can open the page source, including a stored ID number behind a Show button: fetch it on demand from an authorized, audited route.
+- **Scheduled times and "today" are Manila time.** `app.timezone` is UTC on purpose, so every `Schedule::command` needs `->timezone(config('rentals.timezone'))` and date rules use `BusinessTime::today()`, not `today`.
+
 ## Blade Compile Traps (July 24 2026)
 Blade tokenises a template with `token_get_all()` **before** it strips comments or compiles directives. Two failure modes come out of that, and both were hit in one sitting:
 
@@ -122,6 +126,8 @@ Blade tokenises a template with `token_get_all()` **before** it strips comments 
 - **A JS comment inside `x-data="{ ... }"` cannot contain a literal `"`, even inside `//` text.** Blade/HTML has no idea it's looking at JavaScript — the attribute is just `x-data="…"`, and the first unescaped `"` inside it closes the attribute early, whatever it's nested in. A comment reading `// the "Add Walk-in Tenant" action` broke `landlord/tenants/walk-in/create.blade.php` this way: everything from that quote onward spilled out as literal visible page text instead of compiling as part of the Alpine object. No compile error, no blank page — it renders, just wrong. Write comments inside `x-data` with single quotes only, or keep them outside the attribute entirely.
 
 **Verify a compile without loading the page:** `Blade::compileString(file_get_contents($view))` written to a temp file and run through `php -l` localises the real error far faster than a stack trace.
+
+- **`@js()` is not compiled inside a `<x-component ...>` tag's attribute.** The directive text is printed as-is and breaks the Alpine block (found when the ID-reveal URL rendered as `route('...')`). Compute the value in `@php` and echo it with `{{ }}`, or put the script in a plain element.
 
 ## `route()` on a nullable relation (found and fixed July 25 2026)
 `route('conversations.show', $reservation->conversation)` 500s with `UrlGenerationException: Missing required parameter` whenever `$reservation->conversation` is `null` — a reservation doesn't get a conversation until messaging actually starts, so this is a normal, expected state, not an edge case. Every view that links to a model's optional relation via `route()` must guard it first: `@if($reservation->conversation) <a href="{{ route('conversations.show', $reservation->conversation) }}">…</a> @endif`. This had already been done correctly in `landlord/tenancies/show.blade.php` and `landlord/tenants/index.blade.php`, but was missing in `landlord/reservations/index.blade.php` (both grid and table views) and `tenant/reservations/index.blade.php` (three status branches) — it only surfaced once a landlord with an unmessaged reservation loaded the page. **Before wiring a `route()` call to a relation, check whether that relation can be null; if it can, wrap the link, not just the icon or the label.**
@@ -181,6 +187,9 @@ The move-in escrow is the only place in the app where money moves with no human 
 - **Ending a reservation must not strand money.** Cancel and reject go through `Reservation::cancellationBlockedReason()` (Held payment, or a fresh open checkout). Never add a new path that sets `rental_status` to `Cancelled` / `Rejected` without it, unless it is an admin override.
 - **Charge the frozen number.** Use `Reservation::monthlyRent()`, never `unit->rental_fee`, for anything a tenant is billed or shown as their price. The unit's price is what the landlord asks today; `agreed_monthly_rent` is what was signed.
 - **Anything that deletes a user must check the cascade.** `payments.reservation_id` cascades from the tenant; a delete path has to refuse while money is Held or `Pending Payout` (see `ProfileController::activeObligation()` and `Admin\UserController::destroy`).
+- **One reservation holds a unit between agreement and move-in.** Anything that sends an agreement, starts a payment or sets a unit Occupied must go through `Reservation::unitHeldByAnother()` under a lock on the `PropertyUnit` row. Two signed and paid reservations on one unit has no refund path.
+- **Settle a PayMongo payment only through `Payment::settlePending()`.** Never `update()` a `Pending` payment from a controller or the poll: two deliveries race and double-post.
+- **An `afterCommit` observer must not call `getOriginal()`.** By the time it runs inside a transaction the original already holds the new value. Capture what you need in a model event that fires immediately (`Payment::$previousStatus` is the pattern).
 - Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Concerns\RecordsMoveInPayments`.
 
 ## Testing
@@ -249,6 +258,9 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
 - **Run `npm install` after every pull.** `@fontsource/*` and `chart.js` were declared in `package.json` but never installed, which made Vite show a full-page error overlay (`ENOENT ... @fontsource\inter\latin-300.css`) and `npm run build` fail. With the CSS failing, the browser shows unstyled default Times text. Restart `npm run dev` afterwards, then hard-refresh.
 - **If every page and every `artisan` command hangs with no CPU use**, check `information_schema.processlist` for stuck `select * from cache` queries, then restart `mysqld` (see ARCHITECTURE.md Known Tradeoffs). Do not retry in a loop.
 - To catch Blade syntax errors across every view, run `php artisan view:cache`, then `php artisan view:clear` to leave dev as it was.
+
+- **Run `php artisan migrate` on the test database after every pull** (`DB_DATABASE=abanganan_hub_test php artisan migrate`). A stale test DB makes tests that need new tables or columns fail until a `RefreshDatabase` test happens to rebuild it, which depends on test order.
+- **PHP must be 8.4.** `composer.json` requires `^8.4` and the lock pins Symfony 8.1 (needs 8.4.1). On an older PHP `composer install` fails; do not work around it with `--ignore-platform-reqs`.
 
 ## Git Discipline
 - Commit message format: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)

@@ -394,11 +394,12 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-[15px] font-normal text-[#060D26]">Reservations Overview</h2>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     @php
                         $resOverview = [
-                            ['label' => 'In Progress', 'value' => ($reservationStats['Inquiry'] ?? 0) + ($reservationStats['Under Negotiation'] ?? 0) + ($reservationStats['Pending Rental Agreement'] ?? 0) + ($reservationStats['Rental Agreement Signed'] ?? 0), 'cls' => 'bg-[#FBBF24]/[0.10] border-[#FBBF24]/25 text-[#B45309]'],
+                            ['label' => 'In Progress', 'value' => ($reservationStats['Inquiry'] ?? 0) + ($reservationStats['Under Negotiation'] ?? 0) + ($reservationStats['Pending Rental Agreement'] ?? 0) + ($reservationStats['Rental Agreement Signed'] ?? 0) + ($reservationStats['Reserved'] ?? 0), 'cls' => 'bg-[#FBBF24]/[0.10] border-[#FBBF24]/25 text-[#B45309]'],
                             ['label' => 'Occupied', 'value' => $reservationStats['Occupied'] ?? 0, 'cls' => 'bg-[#22C55E]/[0.07] border-[#22C55E]/20 text-[#15803D]'],
+                            ['label' => 'Completed', 'value' => $reservationStats['Completed'] ?? 0, 'cls' => 'bg-[#F7F8FC] border-[#E2E4EC] text-[#5B6A8E]'],
                             ['label' => 'Cancelled', 'value' => $reservationStats['Cancelled'] ?? 0, 'cls' => 'bg-[#F7F8FC] border-[#E2E4EC] text-[#5B6A8E]'],
                             ['label' => 'Rejected', 'value' => $reservationStats['Rejected'] ?? 0, 'cls' => 'bg-[#ECEEF6] border-[#FF8A66]/20 text-[#060D26]'],
                         ];
