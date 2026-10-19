@@ -110,9 +110,9 @@ class SocialiteController extends Controller
     /**
      * Find-or-create the account behind a social identity. A provider identity already stored in
      * social_accounts always resolves to its account. An existing account with the same email is linked
-     * ONLY when its own email_verified_at is set (otherwise anyone could pre-register someone's address
-     * and inherit their Google login) and it is not a walk-in/inactive placeholder; in those cases this
-     * returns null and the caller refuses. Brand-new emails get an account with the Tenant role,
+     * ONLY when its own email_verified_at is set, or when the provider itself vouches for the address (then
+     * the account is claimed, see claimUnverifiedAccount), and it is not a walk-in/inactive placeholder;
+     * otherwise this returns null and the caller refuses. Brand-new emails get an account with the Tenant role,
      * matching RegisteredUserController's web self-registration and Api\AuthController's mobile one.
      */
     private function resolveSocialUser(string $provider, SocialiteUser $socialUser): ?User
@@ -129,8 +129,19 @@ class SocialiteController extends Controller
         $user = User::where('email', $socialUser->getEmail())->first();
 
         if ($user) {
-            if ($user->email_verified_at === null || $user->is_walk_in || $user->account_status === 'inactive') {
+            if ($user->is_walk_in || $user->account_status === 'inactive') {
                 return null;
+            }
+
+            if ($user->email_verified_at === null) {
+                // Nobody has proved they own this address yet. Only a provider that vouches for the email may
+                // claim it; otherwise whoever registered first (Facebook, or a pre-registered password) would
+                // lock the real owner out of social login.
+                if (! $this->providerVerifiedEmail($provider, $socialUser)) {
+                    return null;
+                }
+
+                $this->claimUnverifiedAccount($user);
             }
 
             // Adds a row; an existing link (this or another provider) is never overwritten.
@@ -175,6 +186,21 @@ class SocialiteController extends Controller
     }
 
     /** Google reports whether the address is confirmed; other providers do not reliably, so they count as unverified. */
+    /**
+     * The provider just proved ownership of an address whose account was never verified. Whatever else was
+     * attached to that account was set up by someone who had not proved it, so drop their other social links,
+     * scramble the password (the owner can reset it by email) and mark the address verified.
+     */
+    private function claimUnverifiedAccount(User $user): void
+    {
+        $user->socialAccounts()->delete();
+        $user->forceFill([
+            'password'          => Hash::make(Str::random(40)),
+            'email_verified_at' => now(),
+        ])->save();
+        $user->tokens()->delete();
+    }
+
     private function providerVerifiedEmail(string $provider, SocialiteUser $socialUser): bool
     {
         if ($provider !== 'google' || ! $socialUser instanceof AbstractUser) {

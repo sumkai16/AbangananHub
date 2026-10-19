@@ -416,14 +416,11 @@ class PropertyController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if ($reason = $property->deletionBlockedReason()) {
-            return back()->with('error', $reason);
-        }
-
         $wasDraft = $property->isDraft();
 
-        $property->purgeFiles();
-        $property->delete();
+        if ($reason = $property->deleteWithFiles()) {
+            return back()->with('error', $reason);
+        }
 
         return redirect()->route('landlord.properties.index')
             ->with('success', $wasDraft ? 'Draft deleted.' : 'Property removed successfully.');
