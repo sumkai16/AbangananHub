@@ -172,7 +172,7 @@ class TenancyController extends Controller
         $tenant = $reservation->tenant;
 
         if (! $tenant || $tenant->is_walk_in || $tenant->account_status !== 'active') {
-            return back()->with('warning', 'This tenant has no AbangananHub account to notify.');
+            return $this->remindReply('warning', 'This tenant has no AbangananHub account to notify.');
         }
 
         $target = RentLedger::for($reservation)
@@ -180,11 +180,21 @@ class TenancyController extends Controller
             ->firstWhere(fn ($p) => $p['status'] !== 'paid');
 
         if (! $target) {
-            return back()->with('warning', $tenant->first_name . ' has no outstanding rent to be reminded about.');
+            return $this->remindReply('warning', $tenant->first_name . ' has no outstanding rent to be reminded about.');
         }
 
         $notifier->sendToTenant($reservation, $target, Carbon::today());
 
-        return back()->with('success', 'Rent reminder sent to ' . $tenant->first_name . '.');
+        return $this->remindReply('success', 'Rent reminder sent to ' . $tenant->first_name . '.');
+    }
+
+    /** The chat page posts this by fetch and wants JSON; the tenant cards post a form and want the flash. */
+    private function remindReply(string $level, string $message)
+    {
+        if (request()->expectsJson()) {
+            return response()->json(['ok' => $level === 'success', 'message' => $message], $level === 'success' ? 200 : 422);
+        }
+
+        return back()->with($level, $message);
     }
 }

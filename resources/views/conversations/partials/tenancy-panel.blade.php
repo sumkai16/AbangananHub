@@ -15,9 +15,27 @@
     $openConcerns = $conversation->concerns->whereIn('status', ['Open', 'In Progress'])->count();
     $since = ($reservation?->tenant_confirmed_move_in_at ?? $reservation?->target_move_in_date)?->format('M j, Y');
     $endedOn = $reservation?->target_move_out_date;
+    // The landlord's Tenants page shows the chat and the stayed property as two separate cards.
+    $sheet = $isLandlord && auth()->user()->usesLandlordShell();
+    $stay = $conversation->property;
+    $rent = $sheet && $reservation ? \App\Services\RentLedger::for($reservation)->summary() : null;
+    $rentLabel = match ($rent['paymentStatus'] ?? null) {
+        'paid' => ['Paid', 'text-[#16A34A]'],
+        'paid_ahead' => ['Paid ahead', 'text-[#16A34A]'],
+        'partial' => ['Partly paid', 'text-[#8A5A00]'],
+        'overdue' => ['Overdue ₱'.number_format($rent['overdueAmount'] ?? 0, 2), 'text-[#DC2626]'],
+        default => ['Not due yet', 'text-[#5B6A8E]'],
+    };
+    $tenantUser = $conversation->tenant;
+    $canRemind = $sheet && ! $ended && $tenantUser && ! $tenantUser->is_walk_in && $tenantUser->account_status === 'active'
+        && ($rent['outstanding'] ?? 0) > 0;
+    $unresolved = $conversation->concerns->whereIn('status', ['Open', 'In Progress'])->sortByDesc('created_at');
+    $stayPhoto = $conversation->unit?->media->firstWhere('media_type', 'Image')?->media_url
+        ?? $stay?->media->firstWhere('media_type', 'Image')?->media_url;
 @endphp
-<div class="flex flex-col h-full" id="chat-panel-root" data-conversation-id="{{ $conversation->conversation_id }}"
+<div class="flex h-full {{ $sheet ? 'gap-4' : 'flex-col' }}" id="chat-panel-root" data-conversation-id="{{ $conversation->conversation_id }}"
     x-data="{ photo: null }" @keydown.escape.window="photo = null">
+<div class="flex flex-col min-h-0 min-w-0 flex-1 {{ $sheet ? 'overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]' : '' }}">
 
     {{-- Header --}}
     <div class="px-5 py-3.5 border-b border-[#E2E4EC] flex items-center gap-3 flex-shrink-0">
@@ -120,4 +138,84 @@
         </button>
         <img :src="photo" alt="Concern photo" @click.stop class="max-h-[85vh] max-w-full cursor-default rounded-lg">
     </div>
+</div>
+
+@if($sheet && $stay)
+    {{-- Where this tenant lives now --}}
+    <x-property-side-card :property="$stay" :unit="$conversation->unit" :photo="$stayPhoto" eyebrow="Currently staying at">
+        <div class="border-t border-[#E2E4EC] pt-3">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">Tenancy</p>
+            <dl class="mt-2 flex flex-col gap-1.5 text-[13px]">
+                @if($rent)
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Monthly rent</dt><dd class="font-semibold text-[#060D26]">₱{{ number_format($rent['monthlyRent'], 2) }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Due every</dt><dd class="font-semibold text-[#060D26]">{{ \Illuminate\Support\Number::ordinal($rent['dueDay']) }}</dd></div>
+                    @if(! $ended)
+                        <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Rent status</dt><dd class="font-semibold {{ $rentLabel[1] }}">{{ $rentLabel[0] }}</dd></div>
+                        @if($rent['nextDueDate'] && $rent['paymentStatus'] !== 'overdue')
+                            <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Next due</dt><dd class="font-semibold text-[#060D26]">{{ $rent['nextDueDate']->format('M j, Y') }}</dd></div>
+                        @endif
+                    @endif
+                @endif
+                @if($since)
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Tenant since</dt><dd class="font-semibold text-[#060D26]">{{ $since }}</dd></div>
+                @endif
+                @if($ended && $endedOn)
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Ended</dt><dd class="font-semibold text-[#060D26]">{{ $endedOn->format('M j, Y') }}</dd></div>
+                @endif
+            </dl>
+            @if($canRemind)
+                {{-- Rent reminder: the same notification the Tenants cards send, posted by fetch so the chat stays open. --}}
+                <div class="relative mt-3" x-data="{
+                        busy: false, note: null, ok: true,
+                        async send() {
+                            if (this.busy) return;
+                            this.busy = true;
+                            try {
+                                const r = await fetch('{{ route('landlord.tenancies.remind', $reservation) }}', {
+                                    method: 'POST',
+                                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                });
+                                const d = await r.json().catch(() => ({}));
+                                this.ok = r.ok;
+                                this.note = d.message || (r.ok ? 'Reminder sent.' : 'Could not send the reminder.');
+                            } catch (e) {
+                                this.ok = false;
+                                this.note = 'Could not send the reminder.';
+                            }
+                            this.busy = false;
+                            setTimeout(() => this.note = null, 4000);
+                        }
+                    }">
+                    <button type="button" @click="send()" :disabled="busy"
+                        title="Notify {{ $otherParty->first_name }} that rent is due"
+                        class="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border px-3 text-[12px] font-bold transition-colors duration-200 disabled:opacity-60 {{ ($rent['overdueCount'] ?? 0) > 0 ? 'border-[#EF4444]/40 text-[#DC2626] hover:bg-[#EF4444]/[0.06]' : 'border-[#E2E4EC] text-[#060D26] hover:bg-[#F7F8FC]' }}">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
+                        <span>Remind about rent</span>
+                    </button>
+                    <p x-show="note" x-cloak x-text="note" role="status"
+                        :class="ok ? 'bg-[#060D26] text-white' : 'bg-[#EF4444] text-white'"
+                        class="absolute bottom-[calc(100%+6px)] left-0 right-0 z-10 rounded-lg px-3 py-1.5 text-center text-[12px] font-medium shadow-lg"></p>
+                </div>
+            @endif
+        </div>
+        <div class="border-t border-[#E2E4EC] pt-3">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">Open concerns</p>
+            @forelse($unresolved->take(3) as $concern)
+                <div class="mt-2 rounded-xl border border-[#E2E4EC] px-3 py-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="text-[12px] font-semibold text-[#060D26]">{{ $concern->category }}</p>
+                        <span class="rounded-full px-2 text-[10px] font-bold {{ $concern->status === 'Open' ? 'bg-[#FBBF24]/20 text-[#8A5A00]' : 'bg-[#ECEEF6] text-[#5B6A8E]' }}">{{ $concern->status }}</span>
+                    </div>
+                    <p class="mt-0.5 line-clamp-2 text-[12px] leading-5 text-[#5B6A8E]">{{ $concern->description }}</p>
+                    <p class="mt-1 text-[11px] text-[#5B6A8E]">{{ $concern->created_at->diffForHumans() }}</p>
+                </div>
+            @empty
+                <p class="mt-1.5 text-[12px] text-[#5B6A8E]">Nothing to fix right now.</p>
+            @endforelse
+            @if($unresolved->count() > 3)
+                <p class="mt-2 text-[11px] text-[#5B6A8E]">+ {{ $unresolved->count() - 3 }} more in the chat</p>
+            @endif
+        </div>
+    </x-property-side-card>
+@endif
 </div>

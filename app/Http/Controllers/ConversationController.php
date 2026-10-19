@@ -162,9 +162,9 @@ class ConversationController extends Controller
 
         // One load() with every path: a second load('messages.…') would re-fetch the
         // messages and drop the sender eager load (Model::preventLazyLoading then throws).
-        $relations = ['tenant', 'landlord', 'property.media', 'unit', 'messages.sender', 'activeReservation.payments'];
+        $relations = ['tenant', 'landlord', 'property.media', 'unit.media', 'messages.sender', 'activeReservation.payments'];
         if ($conversation->isTenancy()) {
-            array_push($relations, 'reservation', 'concerns', 'messages.concern.tenant');
+            array_push($relations, 'reservation', 'concerns', 'messages.concern.tenant', 'reservation.payments', 'reservation.depositCharges', 'reservation.unit');
         }
         $conversation->load($relations);
 

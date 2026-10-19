@@ -36,10 +36,16 @@
         'Occupied' => 'Occupied',
         default => $rentalStatus,
     };
+
+    // The landlord's page shows the chat and the property as two separate cards.
+    $sheet = $isLandlord && auth()->user()->usesLandlordShell() && $conversation->property;
+    $sheetPhoto = $conversation->unit?->media->firstWhere('media_type', 'Image')?->media_url
+        ?? $conversation->property?->media->firstWhere('media_type', 'Image')?->media_url;
 @endphp
 
-<div class="flex flex-col h-full" id="chat-panel-root" data-conversation-id="{{ $conversation->conversation_id }}"
+<div class="flex h-full {{ $sheet ? 'gap-4' : 'flex-col' }}" id="chat-panel-root" data-conversation-id="{{ $conversation->conversation_id }}"
     x-data="{ detailsOpen: false }">
+<div class="flex flex-col min-h-0 min-w-0 flex-1 {{ $sheet ? 'overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)]' : '' }}">
 
     {{-- Chat header --}}
     <div class="px-5 py-3.5 border-b border-[#E2E4EC] flex items-center justify-between gap-3 flex-shrink-0">
@@ -123,7 +129,7 @@
             {{-- Sticky terms strip: property + rent/deposit/due breakdown +
                  stage pill, always visible so neither party has to open
                  Details to see what's being negotiated. --}}
-            <div class="px-5 py-3 border-b border-[#E2E4EC] bg-[#F7F8FC] flex-shrink-0 flex items-center gap-4 flex-wrap">
+            <div class="px-5 py-3 border-b border-[#E2E4EC] bg-[#F7F8FC] flex-shrink-0 flex items-center gap-4 flex-wrap {{ $sheet ? 'xl:hidden' : '' }}">
                 <div class="flex items-center gap-3 min-w-0">
                     @if($stripThumb)
                         <img loading="lazy" decoding="async" src="{{ $stripThumb->media_url }}" alt="" class="w-11 h-9 rounded-lg object-cover flex-shrink-0">
@@ -539,4 +545,41 @@
             </form>
         </div>
     @endif
+</div>
+
+@if($sheet)
+    <x-property-side-card :property="$conversation->property" :unit="$conversation->unit" :photo="$sheetPhoto" eyebrow="Inquiring about">
+        @php
+            $sideUnit = $conversation->unit;
+            $sideRent = $sideUnit?->rental_fee ?? $conversation->property->rental_fee;
+            $sideDeposit = $sideUnit?->security_deposit ?? 0;
+        @endphp
+        <div class="border-t border-[#E2E4EC] pt-3">
+            <div class="flex items-center justify-between gap-2">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">Request</p>
+                @if($reservation)
+                    <span class="rounded-full border border-[#FF8A66]/20 bg-[#ECEEF6] px-2.5 py-0.5 text-[11px] font-bold text-[#060D26]">{{ $stageLabel }}</span>
+                @endif
+            </div>
+            <dl class="mt-2 flex flex-col gap-1.5 text-[13px]">
+                <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Monthly rent</dt><dd class="font-semibold text-[#060D26]">₱{{ number_format($sideRent, 2) }}</dd></div>
+                @if($sideDeposit > 0)
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Security deposit</dt><dd class="font-semibold text-[#060D26]">₱{{ number_format($sideDeposit, 2) }}</dd></div>
+                @endif
+                @if($reservation?->target_move_in_date)
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Move-in</dt><dd class="font-semibold text-[#060D26]">{{ $reservation->target_move_in_date->format('M j, Y') }}</dd></div>
+                @endif
+                @if($reservation?->target_move_out_date)
+                    <div class="flex justify-between gap-3"><dt class="text-[#5B6A8E]">Move-out</dt><dd class="font-semibold text-[#060D26]">{{ $reservation->target_move_out_date->format('M j, Y') }}</dd></div>
+                @endif
+            </dl>
+        </div>
+        @if($reservation?->remarks)
+            <div class="border-t border-[#E2E4EC] pt-3">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-[#5B6A8E]">Original message</p>
+                <p class="mt-1 line-clamp-6 whitespace-pre-line text-[12px] leading-5 text-[#060D26]">{{ $reservation->remarks }}</p>
+            </div>
+        @endif
+    </x-property-side-card>
+@endif
 </div>
