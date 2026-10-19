@@ -500,6 +500,11 @@ class Reservation extends Model
         return $this->hasMany(Payment::class, 'reservation_id', 'reservation_id');
     }
 
+    public function lateFeeWaivers()
+    {
+        return $this->hasMany(LateFeeWaiver::class, 'reservation_id', 'reservation_id');
+    }
+
     /**
      * True once the initial payment is in escrow, paid out, or recorded by the
      * landlord. The reservation stays "Rental Agreement Signed" while escrow is

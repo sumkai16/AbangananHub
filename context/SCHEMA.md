@@ -40,6 +40,7 @@ erDiagram
     payments ||--o{ payments : "replaces_payment_id"
     reservations ||--o{ deposit_charges : "reservation_id"
     reservations ||--o{ rent_reminders : "reservation_id"
+    reservations ||--o{ late_fee_waivers : "reservation_id"
     reservations ||--o| tenant_ratings : "reservation_id"
     reservations ||--o{ tenant_concerns : "reservation_id"
     reservations ||--o{ viewing_requests : "reservation_id"
@@ -207,6 +208,9 @@ A listing (building or house). Price, occupancy and availability live on its uni
 | description | text | NN | | |
 | house_rules | json | null | | Flat list of strings: preset labels from `PropertyPolicies::HOUSE_RULES`, then custom lines. Cast to array; every unit inherits it |
 | default_lease_terms | text | null | | Landlord's standard extra terms, private (never on the listing or in an API resource). Prefills "Additional terms" when an agreement is sent; the agreed text is frozen per reservation in `agreement_terms_notes`. Editing it does not send an approved listing back to review |
+| rent_grace_days | tinyint unsigned | null | | Days after the due date before rent counts as late. null = platform default (`rentals.rent_overdue_grace_days`). A default only: frozen into the lease snapshot as `grace_days` |
+| late_fee_type | enum('percent','fixed') | null | | null = no late fee. Frozen into the lease snapshot as `late_fee` |
+| late_fee_value | decimal(10,2) | null | | Percent of monthly rent (0.01 to 100) or a peso amount, per `late_fee_type` |
 | property_type | enum('Apartment','Dormitory','House','Boarding House','Bedspace') | NN | index | A single room is a *unit*, not a type |
 | living_arrangement | enum('Private','Shared','Mixed') | null | | Required by forms; null only on legacy rows |
 | occupancy_preference | enum('No Preference','Men Only','Women Only') | NN, = 'No Preference' | | |
@@ -445,6 +449,19 @@ Landlord → tenant, one per reservation. Surfaces on the tenant profile, admin 
 | tenant_id | bigint unsigned | NN | FK → users, cascade | The rated tenant |
 | rating | tinyint unsigned | NN | | 1–5 |
 | comment | text | null | | |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### late_fee_waivers
+A landlord dropping the late fee on one month. The ledger gives a waived month `late_fee = 0`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| waiver_id | bigint unsigned | NN | PK | |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade | UNIQUE `(reservation_id, billing_period)` |
+| billing_period | date | NN | | First of the month |
+| waived_by | bigint unsigned | null | FK → users, set null | |
+| reason | varchar(255) | null | | |
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
 

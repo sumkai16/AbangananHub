@@ -253,6 +253,8 @@ Route::middleware('auth')->group(function () {
         // On-demand rent reminder; throttled so a jumpy landlord can't spam a tenant.
         Route::post('/tenancies/{reservation}/remind', [App\Http\Controllers\Landlord\TenancyController::class, 'remind'])
             ->middleware('throttle:10,1')->name('tenancies.remind');
+        Route::post('/tenancies/{reservation}/late-fee/waive', [App\Http\Controllers\Landlord\TenancyController::class, 'waiveLateFee'])
+            ->name('tenancies.waiveLateFee');
 
         // Rent collection
         Route::get('/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'index'])->name('payments.index');

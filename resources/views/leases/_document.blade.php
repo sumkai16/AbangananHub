@@ -91,6 +91,18 @@
     <h3 class="{{ $heading }}">{{ ++$n }}. Rent</h3>
     <p class="{{ $body }}">
         The Tenant pays {{ $peso($terms['monthly_rent']) }} per month, due on the {{ $ordinal((int) $terms['due_day']) }} day of each month.
+        @php
+            $grace = $terms['grace_days'] ?? null;
+            $lateFee = $terms['late_fee'] ?? null;
+        @endphp
+        @if ($lateFee)
+            Rent paid in full within {{ (int) $grace }} {{ \Illuminate\Support\Str::plural('day', (int) $grace) }} after the due date is on time.
+            After that, a one-time late fee of
+            {{ $lateFee['type'] === 'percent' ? rtrim(rtrim(number_format($lateFee['value'], 2), '0'), '.') . '% of the monthly rent (' . $peso(round($terms['monthly_rent'] * $lateFee['value'] / 100, 2)) . ')' : $peso($lateFee['value']) }}
+            is added for that month. It is charged once per month, not daily, and the Landlord may waive it.
+        @elseif ($grace)
+            Rent paid in full within {{ (int) $grace }} {{ \Illuminate\Support\Str::plural('day', (int) $grace) }} after the due date is on time. No late fee is charged.
+        @endif
         Payments made through AbangananHub or recorded there by the Landlord form the rent ledger for this tenancy.
     </p>
 

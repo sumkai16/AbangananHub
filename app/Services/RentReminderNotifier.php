@@ -35,7 +35,7 @@ class RentReminderNotifier
             $landlordId,
             'payment',
             $this->title($today->greaterThan($period['due_on'])),
-            $name . "'s " . $period['label'] . ' rent (' . $this->peso($period['balance']) . ') '
+            $name . "'s " . $period['label'] . ' rent (' . $this->amount($period) . ') '
                 . $this->timing($period['due_on'], $today) . '.',
             route('landlord.tenancies.show', $reservation),
         );
@@ -58,7 +58,7 @@ class RentReminderNotifier
             $tenant->user_id,
             'payment',
             $this->title($today->greaterThan($period['due_on'])),
-            'Your ' . $period['label'] . ' rent (' . $this->peso($period['balance']) . ') '
+            'Your ' . $period['label'] . ' rent (' . $this->amount($period) . ') '
                 . $this->timing($period['due_on'], $today) . '. You can pay it online from your tenancy page, or arrange it with your landlord.',
             route('tenancy.show', $reservation),
         );
@@ -81,6 +81,16 @@ class RentReminderNotifier
             $days === 0 => 'is due today',
             default     => 'is ' . abs($days) . ' ' . (abs($days) === 1 ? 'day' : 'days') . ' overdue',
         };
+    }
+
+    /** The balance, and a mention of the late fee when it is part of it. */
+    private function amount(array $period): string
+    {
+        $text = $this->peso($period['balance']);
+
+        return ($period['late_fee'] ?? 0) > 0
+            ? $text . ', including a ' . $this->peso($period['late_fee']) . ' late fee'
+            : $text;
     }
 
     private function peso(float $amount): string

@@ -197,7 +197,7 @@ class PaymentController extends Controller
                             [
                                 'currency' => 'PHP',
                                 'amount' => $amount,
-                                'name' => $reservation->unit->unit_name . ' — Rent (' . $period['label'] . ')',
+                                'name' => $reservation->unit->unit_name . ' — Rent (' . $period['label'] . ')' . ($period['late_fee'] > 0 ? ' + late fee' : ''),
                                 'quantity' => 1,
                             ],
                         ],

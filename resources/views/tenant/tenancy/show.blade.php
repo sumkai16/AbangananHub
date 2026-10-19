@@ -297,7 +297,8 @@
                                     @endif
                                     <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2.5 text-[12.5px]">
                                         <p class="text-[#5B6A8E]">Due on <span class="text-[#060D26] font-medium">{{ $period['due_on']->format('M d, Y') }}</span></p>
-                                        <p class="text-[#5B6A8E] text-right">Expected <span class="text-[#060D26] font-medium">₱{{ number_format($period['expected'], 2) }}</span></p>
+                                        <p class="text-[#5B6A8E] text-right">Expected <span class="text-[#060D26] font-medium">₱{{ number_format($period['expected'], 2) }}</span>
+                                            @if($period['late_fee'] > 0)<span class="block text-[11px] text-[#B45309]">incl. ₱{{ number_format($period['late_fee'], 2) }} late fee</span>@elseif($period['late_fee_waived'])<span class="block text-[11px]">late fee waived</span>@endif</p>
                                         <p class="text-[#5B6A8E]">Paid <span class="text-[#060D26] font-medium">₱{{ number_format($period['paid'], 2) }}</span></p>
                                         {{-- Neutral for a month that hasn't arrived: not owed yet. --}}
                                         <p class="text-[#5B6A8E] text-right">Balance <span class="font-medium {{ $period['balance'] > 0 && ! $period['is_future'] ? 'text-[#DC2626]' : 'text-[#060D26]' }}">₱{{ number_format(max(0, $period['balance']), 2) }}</span></p>
@@ -342,6 +343,11 @@
                                             </td>
                                             <td class="px-4 py-3.5 text-[13px] text-[#5B6A8E] text-right whitespace-nowrap">
                                                 ₱{{ number_format($period['expected'], 2) }}
+                                                @if($period['late_fee'] > 0)
+                                                    <span class="block text-[11px] text-[#B45309]">incl. ₱{{ number_format($period['late_fee'], 2) }} late fee</span>
+                                                @elseif($period['late_fee_waived'])
+                                                    <span class="block text-[11px] text-[#5B6A8E]">late fee waived</span>
+                                                @endif
                                             </td>
                                             <td class="px-4 py-3.5 text-[13px] font-semibold text-[#060D26] text-right whitespace-nowrap">
                                                 ₱{{ number_format($period['paid'], 2) }}

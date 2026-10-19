@@ -1,6 +1,6 @@
 # Stakeholder feedback pass: direct payments, late fees, tenant records, lease terms
 
-**Status:** Phases 1 and 2 implemented Oct 18 2026 on branch `axci`, pending manual verification (checklist below). Phases 3 and 4 not started.
+**Status:** Phases 1 and 2 implemented Oct 18 2026 and phase 3 on Oct 20 2026, all on branch `axci`, pending manual verification (checklist below). Phase 4 not started.
 **Source:** 41-minute Q&A with two landlords (a couple, both nurses, who own a multi-floor dormitory
 near St. Cecilia's). The project manager ran the demo. Transcript notes: see "Source notes" at the end.
 
