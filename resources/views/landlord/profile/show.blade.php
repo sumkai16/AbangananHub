@@ -3,7 +3,10 @@
     @php
         $hasPayout = $isOwner && $user->hasPayoutDestination();
         $isVerified = $verification && $verification->verification_status === 'Approved';
-        $subtitle = ($business?->business_name ? $business->business_name . ' · ' : 'Independent landlord · ') . 'Member since ' . $user->created_at->format('F Y');
+        // Public identity: the business, never the person (User::publicName()). The owner sees their own
+        // name in the subtitle so they know whose page this is; visitors never get it.
+        $publicName = $user->publicName();
+        $subtitle = ($isOwner ? trim($user->first_name . ' ' . $user->last_name) . ' · ' : '') . 'Member since ' . $user->created_at->format('F Y');
         $visibilityLabels = [
             'public' => ['Public', 'Anyone can view this page'],
             'landlords_only' => ['Landlords only', 'Only other landlords can view this page'],
@@ -18,7 +21,8 @@
                 go(t) { this.tab = t; history.replaceState(null, '', '#' + t); }
             }">
 
-        <x-profile-banner :user="$user" :subtitle="$subtitle" :container="auth()->user()->shellContainerClass($isOwner)">
+        <x-profile-banner :user="$user" :name="$publicName" :photo="$business?->logo_url" :initials="$user->publicInitials()" avatar-shape="square"
+            :subtitle="$subtitle" :container="auth()->user()->shellContainerClass($isOwner)">
             <x-slot:badges>
                 <span class="rounded-full bg-[#ECEEF6] px-2.5 py-1 text-[11.5px] font-semibold text-[#060D26]">Landlord</span>
                 @if($isVerified)
@@ -52,8 +56,8 @@
                             </svg>
                             Report
                         </button>
-                        <x-report-modal target-type="user" :target-id="$user->user_id" heading="Report this user"
-                            :subtitle="trim($user->first_name . ' ' . $user->last_name)" />
+                        <x-report-modal target-type="user" :target-id="$user->user_id" heading="Report this landlord"
+                            :subtitle="$publicName" />
                     @endauth
                 @endif
             </x-slot:actions>
@@ -119,12 +123,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <p class="text-[12px] font-semibold text-[#5B6A8E] mb-1.5">About</p>
-                            @if($user->bio)
-                                <p class="text-[14px] leading-relaxed text-[#060D26] whitespace-pre-line">{{ $user->bio }}</p>
+                            @if($business?->description)
+                                <p class="text-[14px] leading-relaxed text-[#060D26] whitespace-pre-line">{{ $business->description }}</p>
                             @elseif($isOwner)
-                                <p class="text-[14px] text-[#5B6A8E]">No bio yet. <a href="{{ route('landlord.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Tell tenants a bit about yourself.</a></p>
+                                <p class="text-[14px] text-[#5B6A8E]">No description yet. <a href="{{ route('landlord.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Tell tenants about your rentals.</a></p>
                             @else
-                                <p class="text-[14px] text-[#5B6A8E]">This landlord has not added a bio.</p>
+                                <p class="text-[14px] text-[#5B6A8E]">This landlord has not added a description.</p>
                             @endif
                         </div>
                         <div>
@@ -135,47 +139,59 @@
                                         <img loading="lazy" decoding="async" src="{{ $business->logo_url }}" alt="{{ $business->business_name }}" class="w-12 h-12 rounded-xl object-cover shrink-0">
                                     @endif
                                     <div class="min-w-0">
-                                        <p class="text-[14.5px] font-semibold text-[#060D26]">{{ $business->business_name }}</p>
+                                        <p class="text-[14.5px] font-semibold text-[#060D26]">{{ $publicName }}</p>
                                         @if($business->business_address)
                                             <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">{{ $business->business_address }}</p>
                                         @endif
                                         @if($business->contact_number)
-                                            <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">
-                                                <a href="tel:{{ preg_replace('/[^\d+]/', '', $business->contact_number) }}" class="hover:text-[#B35A3D] hover:underline">{{ $business->contact_number }}</a>
-                                            </p>
+                                            {{-- The page itself needs a login, and the number needs one more tap, so it is not
+                                                 sitting in the open on a page someone left on screen. --}}
+                                            @if($isOwner)
+                                                <p class="mt-0.5 text-[13.5px] text-[#5B6A8E]">
+                                                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $business->contact_number) }}" class="hover:text-[#B35A3D] hover:underline">{{ $business->contact_number }}</a>
+                                                </p>
+                                            @else
+                                                <div class="mt-1.5" x-data="{ shown: false }">
+                                                    <button type="button" x-show="!shown" x-on:click="shown = true"
+                                                        class="inline-flex h-9 items-center gap-2 rounded-xl border border-[#E2E4EC] bg-white px-3.5 text-[13px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] cursor-pointer transition-colors duration-200">
+                                                        Show phone number
+                                                    </button>
+                                                    <a x-show="shown" x-cloak href="tel:{{ preg_replace('/[^\d+]/', '', $business->contact_number) }}"
+                                                        class="text-[13.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] hover:underline">{{ $business->contact_number }}</a>
+                                                </div>
+                                            @endif
                                         @endif
                                     </div>
                                 </div>
-                                @if($business->description)
-                                    <p class="mt-3 text-[13.5px] leading-relaxed text-[#5B6A8E]">{{ $business->description }}</p>
-                                @endif
                             @elseif($isOwner)
-                                <p class="text-[14px] text-[#5B6A8E]">No business details yet. <a href="{{ route('landlord.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Add them</a> if you rent under a business name.</p>
+                                <p class="text-[14px] text-[#5B6A8E]">No business details yet. <a href="{{ route('landlord.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Add them</a> to show tenants who you rent as.</p>
                             @else
-                                <p class="text-[14px] text-[#5B6A8E]">Renting as an individual.</p>
+                                <p class="text-[14px] text-[#5B6A8E]">No business details yet.</p>
                             @endif
                         </div>
                     </div>
 
                     {{-- Contact + account facts. Name, role, member-since and the counts already sit in the header and tiles above. --}}
                     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 border-t border-[#E2E4EC] pt-6">
-                        <div class="min-w-0">
-                            <dt class="text-[12px] font-semibold text-[#5B6A8E]">Email</dt>
-                            <dd class="mt-1 text-[14px] font-semibold text-[#060D26] truncate" title="{{ $user->email }}">
-                                <a href="mailto:{{ $user->email }}" class="hover:text-[#B35A3D] hover:underline">{{ $user->email }}</a>
-                            </dd>
-                            <p class="text-[12px] text-[#5B6A8E]">{{ $user->email_verified_at ? 'Email verified' : 'Email not verified' }}</p>
-                        </div>
-                        <div class="min-w-0">
-                            <dt class="text-[12px] font-semibold text-[#5B6A8E]">Contact number</dt>
-                            <dd class="mt-1 text-[14px] font-semibold text-[#060D26]">
-                                @if($user->contact_number)
-                                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $user->contact_number) }}" class="hover:text-[#B35A3D] hover:underline">{{ $user->contact_number }}</a>
-                                @else
-                                    <span class="font-normal text-[#5B6A8E]">Not provided</span>
-                                @endif
-                            </dd>
-                        </div>
+                        @if($isOwner)
+                            {{-- Personal details: tenants never see these (see the business page rule in RULES.md). --}}
+                            <div class="min-w-0">
+                                <dt class="text-[12px] font-semibold text-[#5B6A8E]">Email</dt>
+                                <dd class="mt-1 text-[14px] font-semibold text-[#060D26] truncate" title="{{ $user->email }}">{{ $user->email }}</dd>
+                                <p class="text-[12px] text-[#5B6A8E]">Only you can see this</p>
+                            </div>
+                            <div class="min-w-0">
+                                <dt class="text-[12px] font-semibold text-[#5B6A8E]">Personal contact number</dt>
+                                <dd class="mt-1 text-[14px] font-semibold text-[#060D26]">
+                                    @if($user->contact_number)
+                                        {{ $user->contact_number }}
+                                    @else
+                                        <span class="font-normal text-[#5B6A8E]">Not provided</span>
+                                    @endif
+                                </dd>
+                                <p class="text-[12px] text-[#5B6A8E]">Only you can see this</p>
+                            </div>
+                        @endif
                         <div class="min-w-0">
                             <dt class="text-[12px] font-semibold text-[#5B6A8E]">Identity</dt>
                             <dd class="mt-1 text-[14px] font-semibold {{ $isVerified ? 'text-[#15803D]' : 'text-[#060D26]' }}">
@@ -194,8 +210,8 @@
                             <div class="min-w-0">
                                 <dt class="text-[12px] font-semibold text-[#5B6A8E]">Payout (GCash)</dt>
                                 @if($hasPayout)
-                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26] tabular-nums">&bull;&bull;&bull;&bull;{{ substr(preg_replace('/\D/', '', $user->gcash_number), -4) }}</dd>
-                                    <p class="text-[12px] text-[#5B6A8E] truncate">{{ $user->gcash_account_name }}</p>
+                                    <dd class="mt-1 text-[14px] font-semibold text-[#060D26] tabular-nums">&bull;&bull;&bull;&bull;{{ substr(preg_replace('/\D/', '', $user->payoutAccount->gcash_number), -4) }}</dd>
+                                    <p class="text-[12px] text-[#5B6A8E] truncate">{{ $user->payoutAccount->gcash_account_name }}</p>
                                 @else
                                     <dd class="mt-1 text-[14px] font-semibold text-[#B45309]">Not set</dd>
                                     <p class="text-[12px] text-[#5B6A8E]"><a href="{{ route('landlord.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Add GCash details</a> to get paid</p>
@@ -291,7 +307,7 @@
                             @if($latest)
                                 <figure class="mt-4 rounded-xl bg-[#F7F8FC] p-3.5">
                                     <blockquote class="text-[13px] leading-relaxed text-[#060D26] line-clamp-3">&ldquo;{{ $latest->review_comment }}&rdquo;</blockquote>
-                                    <figcaption class="mt-2 text-[12px] text-[#5B6A8E]">{{ $latest->tenant->first_name }} {{ $latest->tenant->last_name }} &middot; {{ $latest->property->title }}</figcaption>
+                                    <figcaption class="mt-2 text-[12px] text-[#5B6A8E]">{{ $latest->tenant->shortName() }} &middot; {{ $latest->property->title }}</figcaption>
                                 </figure>
                             @endif
                         @else
@@ -384,7 +400,7 @@
                             @continue(!$review->property)
                             <div class="py-4">
                                 <div class="flex items-center justify-between gap-2 mb-1">
-                                    <p class="text-[14px] font-semibold text-[#060D26] truncate">{{ $review->tenant->first_name }} {{ $review->tenant->last_name }}</p>
+                                    <p class="text-[14px] font-semibold text-[#060D26] truncate">{{ $review->tenant->shortName() }}</p>
                                     <div class="flex gap-0.5 shrink-0" aria-label="{{ $review->rating }} out of 5 stars">
                                         @for($i = 1; $i <= 5; $i++)
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="{{ $i <= $review->rating ? '#FBBF24' : '#E2E4EC' }}" stroke="none" aria-hidden="true"><path d="{{ $starPath }}" /></svg>

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Landlord;
 
 use App\Models\PropertyUnit;
+use App\Models\TenantDetail;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
@@ -88,6 +89,10 @@ class StoreWalkInTenantRequest extends FormRequest
                     && $this->input('payment_method') !== 'Cash'),
                 'nullable', 'string', 'max:255',
             ],
+
+            // Optional here: the landlord may not have the tenant's ID to hand, and can add it later from
+            // the tenancy page (a walk-in cannot log in to do it themselves).
+            ...TenantDetail::rules(false),
         ];
     }
 
@@ -153,6 +158,7 @@ class StoreWalkInTenantRequest extends FormRequest
             'lease_file.required_if'          => 'Choose the signed lease file, or pick "Upload later".',
             'lease_file.mimes'                => 'Upload the signed lease as a PDF, JPG or PNG.',
             'lease_file.max'                  => 'The lease file must be 10 MB or smaller.',
+            ...TenantDetail::messages(),
         ];
     }
 

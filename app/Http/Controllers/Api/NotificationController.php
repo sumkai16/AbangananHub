@@ -35,7 +35,7 @@ class NotificationController extends Controller
         } elseif ($tab === 'review') {
             $query->where('notifiable_type', Review::class);
         } elseif ($tab === 'reservation') {
-            $query->where('notifiable_type', \App\Models\Reservation::class);
+            $query->whereIn('type', Notification::RESERVATION_TYPES);
         }
 
         $notifications = $query->paginate(20)->withQueryString();

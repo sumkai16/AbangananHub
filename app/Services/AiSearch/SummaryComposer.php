@@ -23,6 +23,9 @@ class SummaryComposer
             'suggest_only' => "I couldn't find any :wanted for that, but I have a suggestion: :alt, a :type in :area from :price.",
             'note' => 'No other :wanted fits. These are other types in your budget and area.',
             'and' => 'and',
+            'host' => 'Showing places by :name.',
+            'host_near' => 'Showing places by :name, the closest business name to “:typed”.',
+            'nearest' => 'Nearest to you first.',
         ],
         'tl' => [
             'exact_one' => 'Swak ang :best sa lahat ng hiniling mo: :hits, :price/month.',
@@ -34,6 +37,9 @@ class SummaryComposer
             'suggest_only' => 'Wala akong makitang :wanted para diyan, pero may suggestion ako: :alt, isang :type sa :area, :price/month.',
             'note' => 'Wala nang ibang :wanted na pasok. Ito ang ibang uri sa budget at lugar mo.',
             'and' => 'at',
+            'host' => 'Mga lugar ng :name.',
+            'host_near' => 'Mga lugar ng :name, ang pinakamalapit na pangalan ng negosyo sa “:typed”.',
+            'nearest' => 'Pinakamalapit sa iyo muna.',
         ],
         'ceb' => [
             'exact_one' => 'Haum ang :best sa tanan nimong gihangyo: :hits, :price/month.',
@@ -45,6 +51,9 @@ class SummaryComposer
             'suggest_only' => 'Wala koy nakita nga :wanted para ana, apan naa koy suggestion: :alt, usa ka :type sa :area, :price/month.',
             'note' => 'Wala nay lain nga :wanted nga mohaum. Kini ang ubang klase sa imong budget ug lugar.',
             'and' => 'ug',
+            'host' => 'Mga lugar sa :name.',
+            'host_near' => 'Mga lugar sa :name, ang pinakaduol nga ngalan sa negosyo sa “:typed”.',
+            'nearest' => 'Pinakaduol nimo una.',
         ],
     ];
 
@@ -52,18 +61,47 @@ class SummaryComposer
      * @param  Collection<int, array<string, mixed>>  $rows  CandidateFinder rows
      * @param  Collection<int, array<string, mixed>>  $alternatives  other-type rows that still fit (CandidateFinder)
      * @param  ?string  $wanted  the property type the tenant asked for, if any
+     * @param  ?array<string, mixed>  $host  the business or listing the sentence named (NameMatcher), if any
+     * @param  bool  $nearest  the results are ordered by distance from the tenant ("near me")
      * @return array{summary: string, summary_en: string, alt_note: string}
      */
-    public function compose(Collection $rows, int $exactCount, string $language, ?Collection $alternatives = null, ?string $wanted = null): array
+    public function compose(Collection $rows, int $exactCount, string $language, ?Collection $alternatives = null, ?string $wanted = null, ?array $host = null, bool $nearest = false): array
     {
         $lang = in_array($language, ['tl', 'ceb'], true) ? $language : 'en';
         $alternatives ??= collect();
 
         return [
-            'summary' => $this->build($rows, $exactCount, $lang, $alternatives, $wanted),
-            'summary_en' => $this->build($rows, $exactCount, 'en', $alternatives, $wanted),
+            'summary' => $this->withLead($this->build($rows, $exactCount, $lang, $alternatives, $wanted), $rows, $host, $nearest, $lang),
+            'summary_en' => $this->withLead($this->build($rows, $exactCount, 'en', $alternatives, $wanted), $rows, $host, $nearest, 'en'),
             'alt_note' => $alternatives->isEmpty() ? '' : strtr(self::WORDS[$lang]['note'], [':wanted' => $this->label($wanted)]),
         ];
+    }
+
+    /**
+     * What goes in front of the summary: "Showing places by Santos Rentals Cebu." when the sentence named a
+     * business (and, when the tenant typed a fuller name than the business has, that this is the closest name,
+     * so a near miss is never passed off as an exact match), then "Nearest to you first." for "near me".
+     */
+    private function withLead(string $summary, Collection $rows, ?array $host, bool $nearest, string $lang): string
+    {
+        if ($rows->isEmpty()) {
+            return $summary;
+        }
+
+        $lead = [];
+
+        if ($host !== null) {
+            $lead[] = strtr(self::WORDS[$lang][$host['typed'] ? 'host_near' : 'host'], [
+                ':name' => $host['name'],
+                ':typed' => mb_convert_case((string) $host['typed'], MB_CASE_TITLE),
+            ]);
+        }
+
+        if ($nearest) {
+            $lead[] = self::WORDS[$lang]['nearest'];
+        }
+
+        return $lead === [] ? $summary : implode(' ', $lead) . ' ' . $summary;
     }
 
     private function build(Collection $rows, int $exactCount, string $lang, Collection $alternatives, ?string $wanted): string

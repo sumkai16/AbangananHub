@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\SocialAccount;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
@@ -89,7 +90,7 @@ class SocialiteController extends Controller
         $user = $this->resolveSocialUser($provider, $socialUser);
 
         return response()->json([
-            'user'  => new UserResource($user),
+            'user'  => new UserResource($user->load('payoutAccount')),
             'token' => $user->createToken($request->string('device_name'))->plainTextToken,
             'roles' => $user->roles()->pluck('role'),
         ]);
@@ -104,14 +105,27 @@ class SocialiteController extends Controller
      */
     private function resolveSocialUser(string $provider, SocialiteUser $socialUser): User
     {
+        // A provider identity we have seen before always resolves to the same account.
+        $linked = SocialAccount::where('provider', $provider)
+            ->where('provider_id', $socialUser->getId())
+            ->first();
+
+        if ($linked) {
+            return $linked->user;
+        }
+
         $user = User::where('email', $socialUser->getEmail())->first();
 
         if ($user) {
-            $user->forceFill([
-                'provider'        => $provider,
-                'provider_id'     => $socialUser->getId(),
-                'profile_picture' => $user->profile_picture ?: $socialUser->getAvatar(),
-            ])->save();
+            // Adds a row; an existing link (this or another provider) is never overwritten.
+            SocialAccount::firstOrCreate(
+                ['user_id' => $user->user_id, 'provider' => $provider],
+                ['provider_id' => $socialUser->getId()],
+            );
+
+            if (! $user->profile_picture && $socialUser->getAvatar()) {
+                $user->forceFill(['profile_picture' => $socialUser->getAvatar()])->save();
+            }
 
             return $user;
         }
@@ -123,10 +137,13 @@ class SocialiteController extends Controller
             'last_name'         => $lastName,
             'email'             => $socialUser->getEmail(),
             'password'          => Hash::make(Str::random(40)),
-            'provider'          => $provider,
-            'provider_id'       => $socialUser->getId(),
             'profile_picture'   => $socialUser->getAvatar(),
             'email_verified_at' => now(),
+        ]);
+
+        $user->socialAccounts()->create([
+            'provider'    => $provider,
+            'provider_id' => $socialUser->getId(),
         ]);
 
         $user->assignRole('Tenant');

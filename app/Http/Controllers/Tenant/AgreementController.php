@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Models\TenantDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -15,7 +16,7 @@ class AgreementController extends Controller
     {
         Gate::authorize('viewAgreement', $reservation);
 
-       if (!in_array($reservation->rental_status, [
+        if (!in_array($reservation->rental_status, [
             'Pending Rental Agreement',
             'Rental Agreement Signed',
             'Occupied',
@@ -34,83 +35,94 @@ class AgreementController extends Controller
         return view('agreements.show', compact('reservation'));
     }
 
-public function sign(Request $request, Reservation $reservation)
-{
-    Gate::authorize('sign', $reservation);
+    public function sign(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('sign', $reservation);
 
-    $request->validate([
-        'agree' => 'accepted',
-        'accept_tc' => 'accepted',
-    ], [
-        'agree.accepted' => 'You must agree to the rental agreement terms.',
-        'accept_tc.accepted' => 'You must accept the platform terms and conditions.',
-    ]);
+        // The landlord needs a person to call and an ID reference on file before the tenancy starts. Asked once:
+        // a tenant who already filled them in (Account Settings, an earlier agreement) is not asked again.
+        $needsDetails = ! TenantDetail::completeFor($request->user());
 
-    // Signing is also a one-way transition that posts a system message and
-    // unlocks payment — same locking rationale as confirmMoveIn().
-    $signed = DB::transaction(function () use ($reservation, $request) {
-        $locked = Reservation::whereKey($reservation->getKey())
-            ->lockForUpdate()
-            ->firstOrFail();
+        $validated = $request->validate([
+            'agree' => 'accepted',
+            'accept_tc' => 'accepted',
+            ...($needsDetails ? TenantDetail::rules(true) : []),
+        ], [
+            'agree.accepted' => 'You must agree to the rental agreement terms.',
+            'accept_tc.accepted' => 'You must accept the platform terms and conditions.',
+            ...TenantDetail::messages(),
+        ]);
 
-        if (! $locked->signAgreement($request->ip())) {
-            return false;
+        // Signing is also a one-way transition that posts a system message and
+        // unlocks payment — same locking rationale as confirmMoveIn().
+        $signed = DB::transaction(function () use ($reservation, $request, $validated, $needsDetails) {
+            $locked = Reservation::whereKey($reservation->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (! $locked->signAgreement($request->ip())) {
+                return false;
+            }
+
+            if ($needsDetails) {
+                TenantDetail::saveFor($request->user(), $validated);
+            }
+
+            $locked->update(['tenant_tc_accepted_at' => now()]);
+            $locked->postSystemMessage($locked->tenant->name . ' signed the rental agreement.');
+
+            return true;
+        });
+
+        if (! $signed) {
+            return back()->with('error', 'This agreement cannot be signed right now.');
         }
 
-        $locked->update(['tenant_tc_accepted_at' => now()]);
-        $locked->postSystemMessage($locked->tenant->name . ' signed the rental agreement.');
-
-        return true;
-    });
-
-    if (! $signed) {
-        return back()->with('error', 'This agreement cannot be signed right now.');
+        return redirect()
+            ->route('agreements.show', $reservation)
+            ->with('success', 'Agreement signed. You can now proceed to payment.');
     }
 
-    return redirect()
-        ->route('agreements.show', $reservation)
-        ->with('success', 'Agreement signed. You can now proceed to payment.');
-}
-public function confirmMoveIn(Reservation $reservation)
-{
-    Gate::authorize('sign', $reservation);
+    public function confirmMoveIn(Reservation $reservation)
+    {
+        Gate::authorize('sign', $reservation);
 
-    // This transition releases escrow, so the check-then-write has to be
-    // atomic — a double-click could otherwise pass the status check twice
-    // before either write commits and fire the release (and the system
-    // message) twice. See RULES.md → Concurrency & State Transitions;
-    // Admin\PaymentController::release is the reference implementation.
-    $released = DB::transaction(function () use ($reservation) {
-        $locked = Reservation::whereKey($reservation->getKey())
-            ->lockForUpdate()
-            ->firstOrFail();
+        // This transition releases escrow, so the check-then-write has to be
+        // atomic — a double-click could otherwise pass the status check twice
+        // before either write commits and fire the release (and the system
+        // message) twice. See RULES.md → Concurrency & State Transitions;
+        // Admin\PaymentController::release is the reference implementation.
+        $released = DB::transaction(function () use ($reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if (! $locked->confirmMoveIn()) {
-            return null;
+            if (! $locked->confirmMoveIn()) {
+                return null;
+            }
+
+            $landlord = $locked->property?->landlord;
+            $landlordName = $landlord
+                ? trim($landlord->first_name . ' ' . $landlord->last_name)
+                : 'the landlord';
+
+            $locked->postSystemMessage(
+                $locked->tenant->name . " confirmed move-in. The unit is now occupied and the payment has been released to {$landlordName}."
+            );
+
+            return $locked->releasedPayment;
+        });
+
+        if (! $released) {
+            return back()->with('error', 'Move-in cannot be confirmed right now. Your payment must be completed first.');
         }
 
-        $landlord = $locked->property?->landlord;
-        $landlordName = $landlord
-            ? trim($landlord->first_name . ' ' . $landlord->last_name)
-            : 'the landlord';
-
-        $locked->postSystemMessage(
-            $locked->tenant->name . " confirmed move-in. The unit is now occupied and the payment has been released to {$landlordName}."
-        );
-
-        return $locked->releasedPayment;
-    });
-
-    if (! $released) {
-        return back()->with('error', 'Move-in cannot be confirmed right now. Your payment must be completed first.');
+        // PaymentObserver broadcasts the Held -> Released transition, and its
+        // $afterCommit keeps that announcement outside this transaction.
+        return redirect()
+            ->route('agreements.show', $reservation)
+            ->with('success', 'Move-in confirmed. Your payment has been released to the landlord.');
     }
-
-    // PaymentObserver broadcasts the Held -> Released transition, and its
-    // $afterCommit keeps that announcement outside this transaction.
-    return redirect()
-        ->route('agreements.show', $reservation)
-        ->with('success', 'Move-in confirmed. Your payment has been released to the landlord.');
-}
 
     /**
      * Tenant asserts the keys never arrived, freezing the clock for admin review.

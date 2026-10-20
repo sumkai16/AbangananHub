@@ -35,11 +35,14 @@ class MatchExplainer
 
         // ── Location ──
         if ($loc = $intent['location']) {
-            if ($loc['kind'] === 'landmark') {
+            if ($loc['kind'] === 'landmark' || $loc['kind'] === 'point') {
                 $distance = Landmarks::distanceKm((float) $property->latitude, (float) $property->longitude, $loc['lat'], $loc['lng']);
                 $km = number_format($distance, 1);
-                if ($distance <= $intent['radius_km']) {
-                    $hits[] = ['facet' => 'location', 'text' => $km . ' km from ' . $loc['name']];
+                $from = $loc['kind'] === 'point' ? 'you' : $loc['name'];
+                // A named business shows all of its places (nearest first), so distance is never a miss there.
+                $named = $loc['kind'] === 'point' && ($intent['host'] ?? null) !== null;
+                if ($named || $distance <= $intent['radius_km']) {
+                    $hits[] = ['facet' => 'location', 'text' => $km . ' km from ' . $from];
                 } else {
                     // Reads inside "it fits X, but 7.7 km away" as well as on its own chip.
                     $misses[] = ['facet' => 'location', 'text' => $km . ' km away'];
@@ -57,6 +60,17 @@ class MatchExplainer
                     $misses[] = ['facet' => 'location', 'text' => 'Not in ' . $loc['name']];
                     $penalty += 30;
                 }
+            }
+        }
+
+        // ── Named business or listing ──
+        if ($host = $intent['host'] ?? null) {
+            $mine = in_array($property->landlord_id, $host['landlord_ids'], true) || in_array($property->property_id, $host['property_ids'], true);
+            if ($mine) {
+                $hits[] = ['facet' => 'host', 'text' => 'Listed by ' . $host['name']];
+            } else {
+                $misses[] = ['facet' => 'host', 'text' => 'Not by ' . $host['name']];
+                $penalty += 30;
             }
         }
 

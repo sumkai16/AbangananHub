@@ -15,7 +15,7 @@
 --}}
 <div data-property-card="{{ $property->property_id }}"
     class="group relative cursor-pointer overflow-hidden rounded-2xl border border-[#E2E4EC] bg-white transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-[#FFF7F4] hover:border-[#FF8A66] hover:shadow-[0_12px_28px_rgba(6,13,38,0.12)] motion-reduce:hover:translate-y-0"
-    onclick="window.location='{{ route('properties.show', $property->property_id) }}'">
+    onclick="if (event.target.closest('a')) return; const u = '{{ route('properties.show', $property->property_id) }}'; (event.ctrlKey || event.metaKey) ? window.open(u, '_blank') : window.location = u">
 
     {{-- IMAGE CAROUSEL --}}
     {{--
@@ -149,8 +149,9 @@
                 : 0;
         @endphp
         <div class="flex items-center justify-between gap-2">
+            {{-- A real link, so the title can be opened in a new tab, middle-clicked, or reached by keyboard. The whole card still navigates on click (the root onclick), which keeps the image carousel and heart working. --}}
             <h3 class="font-jakarta text-[16px] font-bold text-[#060D26] leading-snug truncate min-w-0">
-                {{ $property->title }}
+                <a href="{{ route('properties.show', $property->property_id) }}" class="hover:underline focus-visible:underline outline-none">{{ $property->title }}</a>
             </h3>
             <div class="flex items-center gap-1 shrink-0">
             @if($property->review_count > 0)

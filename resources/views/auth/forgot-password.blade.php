@@ -26,12 +26,7 @@
             {{-- Branding --}}
             <div class="mb-5">
                 <a href="/" class="flex items-center gap-2 mb-4 group inline-flex">
-                    <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shadow-md shadow-[#060D26]/10 transition-transform duration-300 group-hover:scale-105">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </div>
-                    <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
+                    <x-brand-logo mark="w-8 h-8" text="text-base" />
                 </a>
                 <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Reset your password</h2>
                 <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">We'll email you a link to choose a new one.</p>

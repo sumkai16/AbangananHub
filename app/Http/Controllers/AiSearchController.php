@@ -118,15 +118,26 @@ class AiSearchController extends Controller
             ->values()->all();
     }
 
-    /** The place the tenant searched near, for the circle and marker; null unless it was a landmark. */
+    /**
+     * The place the tenant searched near, for the circle and marker; null unless it was a landmark or their own
+     * position. A named business shows all of its places, so there is no radius to draw (radius_km 0).
+     */
     private function mapOrigin(array $intent): ?array
     {
         $loc = $intent['location'];
-        if (! $loc || $loc['kind'] !== 'landmark') {
+        if (! $loc || ! in_array($loc['kind'], ['landmark', 'point'], true)) {
             return null;
         }
 
-        return ['name' => $loc['name'], 'lat' => (float) $loc['lat'], 'lng' => (float) $loc['lng'], 'radius_km' => (float) $intent['radius_km']];
+        $isPoint = $loc['kind'] === 'point';
+
+        return [
+            'kind' => $loc['kind'],
+            'name' => $isPoint ? 'You' : $loc['name'],
+            'lat' => (float) $loc['lat'],
+            'lng' => (float) $loc['lng'],
+            'radius_km' => $isPoint && $intent['host'] !== null ? 0.0 : (float) $intent['radius_km'],
+        ];
     }
 
     /** One interpret per search counts against the hour's allowance; over it the keyword fallback answers. */

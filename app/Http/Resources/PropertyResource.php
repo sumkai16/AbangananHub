@@ -35,7 +35,8 @@ class PropertyResource extends ApiResource
             'review_count'         => $this->attr('review_count'),
             'is_favorited'         => $this->attr('is_favorited'),
 
-            'landlord'             => new UserResource($this->whenLoaded('landlord')),
+            // The business, not the person: see PublicLandlordResource.
+            'landlord'             => $this->whenLoaded('landlord', fn () => new PublicLandlordResource($this->landlord)),
             'media'                => PropertyMediaResource::collection($this->whenLoaded('media')),
             'amenities'            => $this->whenLoaded('amenities'),
             'units'                => PropertyUnitResource::collection($this->whenLoaded('units')),

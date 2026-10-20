@@ -12,8 +12,10 @@
             },
             agreementOpen: false,
             agreementAction: '',
-            openAgreement(action) {
+            agreementTerms: '',
+            openAgreement(action, terms) {
                 this.agreementAction = action;
+                this.agreementTerms = terms || '';
                 this.agreementOpen = true;
             },
             rateOpen: false,
@@ -375,7 +377,7 @@
                                                 </form>
                                             @elseif($reservation->rental_status === 'Under Negotiation')
                                                 <button type="button"
-                                                    @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}')"
+                                                    @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}', @js($reservation->property?->default_lease_terms))"
                                                     class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                                     Send agreement
                                                 </button>
@@ -387,6 +389,11 @@
                                                     </button>
                                                 </form>
                                             @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
+                                                {{-- Held money (or an open checkout) means cancelling would strand it: say why instead of offering a button that only fails. --}}
+                                                @php $cancelBlocked = $reservation->cancellationBlockedReason(); @endphp
+                                                @if($cancelBlocked)
+                                                    <p class="basis-full max-w-[280px] text-[11.5px] leading-snug text-[#5B6A8E]">{{ $cancelBlocked }}</p>
+                                                @else
                                                 <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                                     data-confirm="Cancel this reservation?"
                                                     data-confirm-type="warning"
@@ -399,6 +406,7 @@
                                                         Cancel
                                                     </button>
                                                 </form>
+                                                @endif
                                                 @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
                                                     <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
                                                         data-confirm="Mark keys as turned over?"
@@ -578,7 +586,7 @@
                                     </form>
                                 @elseif($reservation->rental_status === 'Under Negotiation')
                                     <button type="button"
-                                        @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}')"
+                                        @click="openAgreement('{{ route('landlord.reservations.advanceAgreement', $reservation) }}', @js($reservation->property?->default_lease_terms))"
                                         class="h-8 px-3 rounded-lg bg-[#FF8A66] text-[#060D26] text-[12px] font-semibold hover:bg-[#E96F4F] cursor-pointer transition-all duration-200 whitespace-nowrap">
                                         Send agreement
                                     </button>
@@ -590,6 +598,11 @@
                                         </button>
                                     </form>
                                 @elseif(in_array($reservation->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed']))
+                                    {{-- Held money (or an open checkout) means cancelling would strand it: say why instead of offering a button that only fails. --}}
+                                    @php $cancelBlocked = $reservation->cancellationBlockedReason(); @endphp
+                                    @if($cancelBlocked)
+                                        <p class="basis-full max-w-[280px] text-[11.5px] leading-snug text-[#5B6A8E]">{{ $cancelBlocked }}</p>
+                                    @else
                                     <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                         data-confirm="Cancel this reservation?"
                                         data-confirm-type="warning"
@@ -602,6 +615,7 @@
                                             Cancel
                                         </button>
                                     </form>
+                                    @endif
                                     @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
                                         <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
                                             data-confirm="Mark keys as turned over?"
@@ -940,6 +954,7 @@
                     <form :action="agreementAction" method="POST">
                         @csrf @method('PATCH')
                         <div class="p-3 bg-[#ECEEF6] rounded-xl border border-[#FF8A66]/20">
+                            <x-agreement-terms-field id="agreement_terms_modal" x-model="agreementTerms" />
                             <label class="flex items-start gap-2.5 cursor-pointer group mb-3">
                                 <input type="checkbox" name="accept_tc" required
                                     class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">

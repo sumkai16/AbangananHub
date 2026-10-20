@@ -22,6 +22,10 @@ class MessageController extends Controller
             return response()->json(['message' => 'This conversation has been cancelled.'], 403);
         }
 
+        if ($conversation->isTenancy() && $conversation->isResolved()) {
+            return response()->json(['message' => 'This tenancy has ended. The chat is read-only.'], 403);
+        }
+
         $message = $conversation->messages()->create([
             'sender_id' => $request->user()->user_id,
             'message'   => $request->validated('message'),

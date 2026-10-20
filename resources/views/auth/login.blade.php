@@ -14,12 +14,7 @@
 
         {{-- Branding --}}
         <a href="/" class="group inline-flex items-center gap-2 self-start">
-            <div class="w-9 h-9 rounded-lg bg-[#060D26] flex items-center justify-center transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-            </div>
-            <span class="text-[#060D26] font-bold text-[17px] tracking-tight">AbangananHub</span>
+            <x-brand-logo mark="w-9 h-9" text="text-[18px]" />
         </a>
 
         <h2 class="mt-10 font-jakarta text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Welcome back</h2>

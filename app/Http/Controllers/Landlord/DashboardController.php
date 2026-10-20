@@ -66,7 +66,7 @@ class DashboardController extends Controller
         $pendingPayout = (float) Payment::whereHas(
             'reservation.property',
             fn ($q) => $q->where('landlord_id', $landlordId)
-        )->where('payout_status', 'Pending Payout')->sum('amount');
+        )->pendingPayout()->sum('amount');
 
         $actionQueue = $this->actionQueue($landlordId, $propertyIds, $overdueItems);
 

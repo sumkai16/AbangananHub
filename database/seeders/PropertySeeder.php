@@ -197,13 +197,11 @@ class PropertySeeder extends Seeder
 
         $unit = $property->units()->create([
             'unit_label'          => $label,
-            'unit_type'           => $d['type'],
             'floor'               => $d['floor'],
             'bedrooms'            => $d['beds'],
             'bathrooms'           => $d['baths'],
             'floor_area_sqm'      => $d['sqm'],
             'furnishing_status'   => $d['furn'],
-            'is_furnished'        => $d['furn'] === 'Furnished',
             'description'         => $d['desc'],
             'rental_fee'          => $fee,
             'security_deposit'    => $fee * ($opts['deposit'] ?? ($type === 'House' ? 2 : 1)),

@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-[1600px] mx-auto">
 
-    <x-page-header title="Landlord Payouts"
+    <x-page-header title="Landlord Payouts" icon-path="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3"
         subtitle="Money the platform owes landlords, waiting on a manual GCash transfer." />
 
     @if ($pending->isEmpty())
@@ -35,7 +35,7 @@
                                     {{ trim(($landlord->first_name ?? '').' '.($landlord->last_name ?? '')) ?: '—' }}
                                 </p>
                                 @if ($landlord && $landlord->hasPayoutDestination())
-                                    <p class="text-[12px] text-[#5B6A8E]">GCash: {{ $landlord->gcash_number }} ({{ $landlord->gcash_account_name }})</p>
+                                    <p class="text-[12px] text-[#5B6A8E]">GCash: {{ $landlord->payoutAccount?->gcash_number }} ({{ $landlord->payoutAccount?->gcash_account_name }})</p>
                                 @else
                                     <p class="text-[12px] font-semibold text-[#DC2626]">No GCash number on file — cannot pay out yet</p>
                                 @endif
@@ -104,14 +104,17 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2E4EC]">
-                        @foreach ($recentlyPaidOut as $payment)
-                            @php $landlord = $payment->reservation?->property?->landlord; @endphp
+                        @foreach ($recentlyPaidOut as $payout)
+                            @php $landlord = $payout->landlord; @endphp
                             <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                 <td class="px-6 py-3 text-[13px] text-[#060D26]">{{ $landlord ? trim($landlord->first_name.' '.$landlord->last_name) : '—' }}</td>
-                                <td class="px-6 py-3 text-[13px] font-semibold text-[#060D26]">₱{{ number_format($payment->amount, 2) }}</td>
-                                <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">{{ $payment->payout_reference }}</td>
-                                <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">{{ $payment->paid_out_at?->format('M d, Y') }}</td>
-                                <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">{{ $payment->payoutRecorder?->first_name }}</td>
+                                <td class="px-6 py-3 text-[13px] font-semibold text-[#060D26]">
+                                    ₱{{ number_format($payout->amount, 2) }}
+                                    <span class="block text-[11px] font-normal text-[#5B6A8E]">{{ $payout->payments_count }} {{ Str::plural('payment', $payout->payments_count) }}</span>
+                                </td>
+                                <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">{{ $payout->payout_reference }}</td>
+                                <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">{{ $payout->paid_out_at?->format('M d, Y') }}</td>
+                                <td class="px-6 py-3 text-[13px] text-[#5B6A8E]">{{ $payout->paidOutBy?->first_name }}</td>
                             </tr>
                         @endforeach
                     </tbody>

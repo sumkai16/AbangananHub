@@ -76,8 +76,6 @@ class LandlordSeeder extends Seeder
                     'last_name'          => $l['last_name'],
                     'password'           => Hash::make('password'),
                     'contact_number'     => $l['contact'],
-                    'gcash_number'       => $l['contact'],
-                    'gcash_account_name' => $l['first_name'].' '.$l['last_name'],
                     'profile_picture'    => 'https://i.pravatar.cc/300?img='.(3 + $i * 9),
                     'bio'                => $l['bio'],
                     'profile_visibility' => 'public',
@@ -85,6 +83,9 @@ class LandlordSeeder extends Seeder
                 ]
             );
             UserRole::firstOrCreate(['user_id' => $user->user_id, 'role' => 'Landlord']);
+            if (! $user->payoutAccount()->exists()) {
+                $user->savePayoutAccount($l['contact'], $l['first_name'].' '.$l['last_name']);
+            }
 
             LandlordVerification::firstOrCreate(
                 ['user_id' => $user->user_id],

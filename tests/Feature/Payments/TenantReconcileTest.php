@@ -262,7 +262,7 @@ class TenantReconcileTest extends TestCase
 
         $this->reconcile($flow, $surface, $t['tenant'], $t['reservation'])->assertOk();
 
-        $system = Message::where('conversation_id', $t['reservation']->conversation_id)->where('is_system', true)->get();
+        $system = Message::where('conversation_id', $t['reservation']->conversation_id)->where('kind', 'system')->get();
         $this->assertCount(1, $system);
 
         if ($flow === 'initial') {

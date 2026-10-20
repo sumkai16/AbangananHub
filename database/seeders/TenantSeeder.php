@@ -123,8 +123,6 @@ class TenantSeeder extends Seeder
                     'last_name'          => $t['last_name'],
                     'password'           => Hash::make('password'),
                     'contact_number'     => $t['contact'],
-                    'gcash_number'       => $t['contact'],
-                    'gcash_account_name' => $t['first_name'].' '.$t['last_name'],
                     'profile_picture'    => 'https://i.pravatar.cc/300?img='.(11 + $i * 7),
                     'bio'                => $t['bio'],
                     'profile_visibility' => 'public',
@@ -185,7 +183,7 @@ class TenantSeeder extends Seeder
             ->take($count);
     }
 
-    private function rent(User $tenant, PropertyUnit $unit, array $t): void
+    protected function rent(User $tenant, PropertyUnit $unit, array $t): void
     {
         $moveIn     = now()->subMonths($t['months_in'])->startOfMonth();
         $rent       = (float) $unit->rental_fee;
@@ -247,7 +245,7 @@ class TenantSeeder extends Seeder
      *
      * @return list<string> 'Y-m' of every month the payment settled
      */
-    private function moveInPayment(Reservation $reservation, array $t, Carbon $moveIn, float $rent, float $deposit): array
+    protected function moveInPayment(Reservation $reservation, array $t, Carbon $moveIn, float $rent, float $deposit): array
     {
         $breakdown = MoveInPaymentBreakdown::make(
             $deposit + $rent * (1 + $t['advance']),
@@ -279,7 +277,7 @@ class TenantSeeder extends Seeder
         return $months;
     }
 
-    private function monthlyPayment(Reservation $reservation, array $t, Carbon $period, int $m, float $amount, int $landlordId): void
+    protected function monthlyPayment(Reservation $reservation, array $t, Carbon $period, int $m, float $amount, int $landlordId): void
     {
         $offset = $t['pay_offsets'][($m - 1) % count($t['pay_offsets'])];
         $paidAt = $period->copy()->day($t['due_day'])->addDays($offset)->setTime(9 + $m % 8, ($m * 17) % 60);
@@ -307,7 +305,7 @@ class TenantSeeder extends Seeder
     }
 
     /** Stable 13-digit wallet-style reference, e.g. "5023189774210". */
-    private function gcashRef(string $seed, string $salt): string
+    protected function gcashRef(string $seed, string $salt): string
     {
         return substr(sprintf('%u%u', crc32($seed.$salt), crc32($salt.$seed)), 0, 13);
     }

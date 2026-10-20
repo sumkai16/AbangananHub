@@ -364,7 +364,7 @@ class PaymentController extends Controller
             abort_unless($locked->status === 'Paid', 409, 'This payment has already been voided, or was settled through the platform.');
             // Unreachable today — landlord-recorded rows never carry a payout
             // status — and here so that stays true if a future path changes it.
-            abort_if($locked->payout_status !== null, 409, 'This payment has already been paid out and can no longer be voided.');
+            abort_if($locked->payout_owed_at !== null, 409, 'This payment has already been paid out and can no longer be voided.');
 
             $locked->update([
                 'status'      => 'Voided',

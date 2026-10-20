@@ -39,8 +39,8 @@ class ReservationController extends Controller
                         ->orWhere('last_name', 'like', "%{$search}%")
                         ->orWhere('contact_number', 'like', "%{$search}%");
                 })
-                    ->orWhereHas('property', fn($q) => $q->where('title', 'like', "%{$search}%"))
-                    ->orWhereHas('unit', fn($q) => $q->where('unit_label', 'like', "%{$search}%"));
+                    ->orWhereHas('property', fn ($q) => $q->where('title', 'like', "%{$search}%"))
+                    ->orWhereHas('unit', fn ($q) => $q->where('unit_label', 'like', "%{$search}%"));
             });
         }
 
@@ -71,7 +71,7 @@ class ReservationController extends Controller
         }
 
         $reservations = $base
-            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'tenantRating'])
+            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'tenantRating', 'payments'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -147,7 +147,7 @@ class ReservationController extends Controller
         ]);
 
         if (!$reservation->reject($request->rejection_reason)) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be rejected.']);
+            return back()->withErrors(['reservation' => $reservation->cancellationBlockedReason() ?? 'This reservation can no longer be rejected.']);
         }
 
         return back()->with('success', 'Reservation rejected.');
@@ -158,7 +158,7 @@ class ReservationController extends Controller
         Gate::authorize('cancel', $reservation);
 
         if (!$reservation->cancel()) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
+            return back()->withErrors(['reservation' => $reservation->cancellationBlockedReason() ?? 'This reservation can no longer be cancelled.']);
         }
 
         return back()->with('success', 'Reservation cancelled.');
@@ -177,27 +177,27 @@ class ReservationController extends Controller
         return back()->with('success', 'Moved to Under Negotiation.');
     }
 
-public function advanceToPendingAgreement(Request $request, Reservation $reservation)
-{
-    Gate::authorize('advanceStatus', $reservation);
+    public function advanceToPendingAgreement(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('advanceStatus', $reservation);
 
-    $request->validate([
-        'agreement_terms_notes' => 'nullable|string|max:2000',
-        'accept_tc' => 'accepted',
-    ], [
-        'accept_tc.accepted' => 'You must accept the terms and conditions to proceed.',
-    ]);
+        $request->validate([
+            'agreement_terms_notes' => 'nullable|string|max:2000',
+            'accept_tc' => 'accepted',
+        ], [
+            'accept_tc.accepted' => 'You must accept the terms and conditions to proceed.',
+        ]);
 
-    if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
-        return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
+        if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
+            return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
+        }
+
+        $reservation->update(['landlord_tc_accepted_at' => now()]);
+
+        $reservation->postSystemMessage(Auth::user()->name . ' sent the rental agreement.');
+
+        return back()->with('success', 'Agreement sent to tenant.');
     }
-
-    $reservation->update(['landlord_tc_accepted_at' => now()]);
-
-    $reservation->postSystemMessage(Auth::user()->name . ' sent the rental agreement.');
-
-    return back()->with('success', 'Agreement sent to tenant.');
-}
 
     /**
      * Landlord asserts the keys changed hands, starting the tenant's clock.

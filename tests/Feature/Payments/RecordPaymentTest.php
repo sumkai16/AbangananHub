@@ -443,7 +443,7 @@ class RecordPaymentTest extends TestCase
 
     public function test_payments_cannot_be_added_unless_the_tenancy_is_occupied(): void
     {
-        foreach (['Completed', 'Cancelled', 'Rejected', 'Approved', 'Inquiry'] as $status) {
+        foreach (['Completed', 'Cancelled', 'Rejected', 'Reserved', 'Inquiry'] as $status) {
             $t = $this->makeTenancy(['rental_status' => $status]);
 
             $this->record($t)->assertForbidden();
@@ -493,6 +493,8 @@ class RecordPaymentTest extends TestCase
         $this->record($t, [
             'status'        => 'Held',
             'payout_status' => 'Pending Payout',
+            'payout_owed_at' => now()->toDateTimeString(),
+            'payout_id'     => 1,
             'recorded_by'   => $t['tenant']->user_id,
             'released_by'   => $t['landlord']->user_id,
         ]);
@@ -500,6 +502,7 @@ class RecordPaymentTest extends TestCase
         $payment = $this->rows($t)->sole();
         $this->assertSame('Paid', $payment->status);
         $this->assertNull($payment->payout_status);
+        $this->assertNull($payment->payout_id);
         $this->assertSame($t['landlord']->user_id, $payment->recorded_by);
         $this->assertNull($payment->released_by);
     }

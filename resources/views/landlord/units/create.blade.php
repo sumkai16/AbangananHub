@@ -171,6 +171,7 @@
                                     max="999999.99" step="0.01" placeholder="e.g. 3500"
                                     x-on:input="securityDepositTouched = true"
                                     class="h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition">
+                                <p class="text-[11.5px] text-[#5B6A8E] mt-1">Enter 0 if you don't collect a deposit.</p>
                                 @error('security_deposit')
                                     <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                                 @enderror

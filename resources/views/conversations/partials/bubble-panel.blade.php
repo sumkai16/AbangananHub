@@ -29,7 +29,7 @@
             $isSender = $lastMsg && $lastMsg->sender_id === $currentUserId;
         @endphp
 
-        <a href="{{ route('conversations.index', ['active' => $conversation->conversation_id]) }}"
+        <a href="{{ route('conversations.index', array_filter(['active' => $conversation->conversation_id, 'box' => $conversation->isTenancy() ? 'tenancy' : null])) }}"
             class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#E2E4EC]/50 border-b border-[#E2E4EC] last:border-b-0
                     {{ $hasUnread ? 'bg-[#ECEEF6]/30 border-l-[3px] border-l-[#FF8A66]' : 'border-l-[3px] border-l-transparent' }}">
 

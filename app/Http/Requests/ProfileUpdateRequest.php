@@ -3,12 +3,18 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use App\Support\NameLock;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        NameLock::apply($this, $this->user());
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *

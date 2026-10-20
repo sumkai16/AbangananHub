@@ -45,6 +45,8 @@ use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\Tenant\ProfileController as TenantProfileController;
 use App\Http\Controllers\Tenant\ReservationController;
 use App\Http\Controllers\Tenant\TenancyController;
+use App\Http\Controllers\TenantConcernController;
+use App\Http\Controllers\TenantDetailController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\ViewingController;
 use App\Models\Reservation;
@@ -66,6 +68,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/settings', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
+    Route::patch('/profile/tenant-details', [TenantDetailController::class, 'update'])->name('profile.tenantDetails.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Landlord verification — open to any authenticated user, no role gate
@@ -168,8 +172,9 @@ Route::middleware('auth')->group(function () {
 
         // Profile
         Route::get('/profile', [TenantProfileController::class, 'show'])->name('tenant.profile.show');
-        Route::get('/profile/edit', [TenantProfileController::class, 'edit'])->name('tenant.profile.edit');
-        Route::patch('/profile', [TenantProfileController::class, 'update'])->name('tenant.profile.update');
+        // The tenant edit form was folded into Account Settings (name, contact, bio, photo are all
+        // there now). The old URL stays as a redirect for bookmarks.
+        Route::get('/profile/edit', fn () => redirect()->route('profile.edit'))->name('tenant.profile.edit');
     });
     // Public landlord profile (visibility-gated in controller)
     Route::get('/landlord/{user}/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'show'])->name('landlord.profile.show');
@@ -202,7 +207,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/reservations/{reservation}/confirm-walk-in-move-in', [App\Http\Controllers\Landlord\ReservationController::class, 'confirmWalkInMoveIn'])->name('reservations.confirmWalkInMoveIn');
 
         // Units
-        Route::resource('properties.units', PropertyUnitController::class);
+        Route::resource('properties.units', PropertyUnitController::class)->except('show');
         Route::delete('/properties/{property}/units/{unit}/media/{media}', [PropertyUnitController::class, 'destroyMedia'])->name('properties.units.media.destroy');
 
         // Property verification documents (proof of ownership, tax dec, permits — private disk, policy-gated)
@@ -238,6 +243,7 @@ Route::middleware('auth')->group(function () {
         // tenancies alike — the escrow only ever covered the initial payment.
         Route::get('/tenancies/{reservation}', [App\Http\Controllers\Landlord\TenancyController::class, 'show'])->name('tenancies.show');
         Route::post('/tenancies/{reservation}/end', [App\Http\Controllers\Landlord\TenancyController::class, 'endTenancy'])->name('tenancies.end');
+        Route::patch('/tenancies/{reservation}/tenant-details', [App\Http\Controllers\Landlord\TenancyController::class, 'updateTenantDetails'])->name('tenancies.tenantDetails.update');
         // Lease — printable document + the signed copy (private disk)
         Route::get('/tenancies/{reservation}/lease', [App\Http\Controllers\Landlord\LeaseController::class, 'show'])->name('leases.show');
         Route::post('/tenancies/{reservation}/lease-file', [App\Http\Controllers\Landlord\LeaseController::class, 'upload'])->name('leases.upload');
@@ -380,6 +386,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
 
+    // Post-move-in chat and its concern cards. Both sides use the same URLs; policies decide.
+    Route::get('/tenancy/{reservation}/chat', [ConversationController::class, 'tenancyChat'])->name('tenancy.chat');
+    Route::post('/conversations/{conversation}/concerns', [TenantConcernController::class, 'store'])->name('concerns.store');
+    Route::patch('/concerns/{concern}/status', [TenantConcernController::class, 'updateStatus'])->name('concerns.status');
+
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
@@ -390,6 +401,7 @@ Route::middleware('auth')->group(function () {
 
 // Publicly accessible property routes
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/properties/count', [PropertyController::class, 'count'])->middleware('throttle:120,1')->name('properties.count');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 // PayMongo webhook — no auth, CSRF excluded in bootstrap/app.php
 Route::post('/webhooks/paymongo', [PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
