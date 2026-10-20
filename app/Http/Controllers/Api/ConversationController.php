@@ -121,6 +121,7 @@ class ConversationController extends Controller
             'landlord_id' => $property->landlord_id,
             'property_id' => $property->property_id,
             'unit_id'     => $validated['unit_id'] ?? null,
+            'type'        => Conversation::TYPE_INQUIRY,
         ]);
 
         $conversation->load([

@@ -39,6 +39,14 @@ class PaymentController extends Controller
             throw ValidationException::withMessages(['payment' => ['This unit is no longer available. Please contact your landlord.']]);
         }
 
+        if ($reservation->hasSettledInitialPayment()) {
+            throw ValidationException::withMessages(['payment' => ['The initial payment for this reservation has already been made.']]);
+        }
+
+        if ($message = $this->clearStaleCheckouts($reservation, 'Initial')) {
+            throw ValidationException::withMessages(['payment' => [$message]]);
+        }
+
         $placeholder = DB::transaction(function () use ($reservation) {
             $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
 
@@ -54,7 +62,7 @@ class PaymentController extends Controller
             return Payment::create([
                 'reservation_id' => $locked->reservation_id,
                 'payment_type'   => 'Initial',
-                'amount'         => $locked->unit->rental_fee,
+                'amount'         => $locked->monthlyRent(),
                 'payment_method' => 'GCash',
                 'status'         => 'Pending',
             ]);
@@ -64,7 +72,7 @@ class PaymentController extends Controller
             throw ValidationException::withMessages(['payment' => ['A payment session is already in progress.']]);
         }
 
-        $amount = (int) ($reservation->unit->rental_fee * 100);
+        $amount = Payment::toCentavos($reservation->monthlyRent());
 
         $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
             ->post('https://api.paymongo.com/v1/checkout_sessions', [
@@ -149,6 +157,10 @@ class PaymentController extends Controller
         $billingPeriod = $period['period']->copy()->startOfMonth();
         $balance = round((float) $period['balance'], 2);
 
+        if ($message = $this->clearStaleCheckouts($reservation, 'Monthly', $billingPeriod)) {
+            throw ValidationException::withMessages(['payment' => [$message]]);
+        }
+
         $placeholder = DB::transaction(function () use ($reservation, $billingPeriod, $balance) {
             $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
 
@@ -181,7 +193,7 @@ class PaymentController extends Controller
             throw ValidationException::withMessages(['payment' => ['A payment session is already in progress, or this tenancy is no longer active.']]);
         }
 
-        $amount = (int) round($balance * 100);
+        $amount = Payment::toCentavos($balance);
 
         $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
             ->post('https://api.paymongo.com/v1/checkout_sessions', [

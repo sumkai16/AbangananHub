@@ -4,13 +4,12 @@ namespace App\Http\Controllers\Api\Landlord;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReservationResource;
-use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use App\Services\RentPaymentRecorder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -24,6 +23,7 @@ use Illuminate\Validation\Rule;
 class PaymentController extends Controller
 {
     private const METHODS = ['Cash', 'GCash', 'Bank Transfer', 'Maya', 'Check', 'Other'];
+
     private const TYPES = ['Monthly', 'Deposit', 'Initial', 'Utility', 'Other'];
 
     public function index(Request $request): JsonResponse
@@ -48,8 +48,8 @@ class PaymentController extends Controller
         if ($search = $request->input('search')) {
             $query->whereHas('tenant', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -95,12 +95,14 @@ class PaymentController extends Controller
             'paid_at'        => ['required', 'date', 'before_or_equal:today'],
             'reference_no'   => ['nullable', 'string', 'max:255'],
             'payment_notes'  => ['nullable', 'string', 'max:1000'],
+            // Set only by the "void and record a correction" flow, same as the web form.
+            'replaces_payment_id' => ['nullable', 'integer'],
         ], [
             'billing_period.required_if' => 'Choose which month this rent payment covers.',
             'paid_at.before_or_equal'    => 'A payment cannot be recorded for a future date.',
         ]);
 
-        DB::transaction(function () use ($data, $reservation) {
+        $monthsCovered = DB::transaction(function () use ($data, $reservation) {
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
             abort_unless(
@@ -109,23 +111,12 @@ class PaymentController extends Controller
                 'This tenancy is no longer active, so payments cannot be added to it.'
             );
 
-            Payment::create([
-                'reservation_id' => $locked->reservation_id,
-                'payment_type'   => $data['payment_type'],
-                'billing_period' => $data['payment_type'] === 'Monthly'
-                    ? Carbon::parse($data['billing_period'])->startOfMonth()
-                    : null,
-                'amount'         => $data['amount'],
-                'payment_method' => $data['payment_method'],
-                'status'         => 'Paid',
-                'paid_at'        => $data['paid_at'],
-                'reference_no'   => $data['reference_no'] ?? null,
-                'payment_notes'  => $data['payment_notes'] ?? null,
-                'recorded_by'    => auth()->id(),
-            ]);
+            return RentPaymentRecorder::record($locked, $data, auth()->id());
         });
 
-        return response()->json(['message' => 'Payment recorded.'], 201);
+        return response()->json([
+            'message' => $monthsCovered > 1 ? "Payment recorded across {$monthsCovered} billing months." : 'Payment recorded.',
+        ], 201);
     }
 
     private function standingFor(array $summary): string

@@ -266,7 +266,7 @@
                             </thead>
                             <tbody class="divide-y divide-[#E2E4EC]">
                                 @foreach($perProperty->take(6) as $row)
-                                    <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-150">
+                                    <tr class="hover:bg-[#ECEEF6] transition-colors duration-150">
                                         <td class="px-5 sm:px-6 py-2.5 text-[12px] text-[#060D26] truncate max-w-[180px]">{{ $row['title'] }}</td>
                                         <td class="px-3 py-2.5 text-[12px] font-semibold text-[#060D26] text-right">{{ $row['rate'] }}%</td>
                                         <td class="px-5 sm:px-6 py-2.5 text-[12px] font-bold text-[#060D26] text-right">&#8369;{{ number_format($row['revenue'], 0) }}</td>

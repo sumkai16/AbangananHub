@@ -20,8 +20,9 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6, .font-heading {
-    font-family: 'Montserrat', sans-serif;
+/* Headings inherit body's Inter (DESIGN.md §4). Explicit weight utilities (font-normal, font-bold…) still win over this element rule. */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
 }
 
 [x-cloak] {
@@ -30,6 +31,16 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 
 [x-cloak] {
     display: none !important;
+}
+
+/* Formal 1" margin on every printed page (lease, tenant agreement, payment
+   receipt — all three print via the same window.print() pattern). Without
+   this the browser's own print-dialog default applies instead, which varies
+   by browser/printer and can be as tight as ~0.4" — sloppy for a document
+   meant to be signed. Card padding is zeroed with print:p-0 on these pages
+   so this margin is the only spacing, not stacked on top of it. */
+@page {
+    margin: 1in;
 }
 
 /* Slim, theme-matched scrollbar for dark sidebars (admin/landlord nav) —
@@ -84,7 +95,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-thumb:hover {
-    background-color: #DA8E77;
+    background-color: #FF8A66;
 }
 
 .scrollbar-thin-light::-webkit-scrollbar-button {
@@ -116,6 +127,8 @@ html.dark .bg-\[\#ECEEF6\] { background-color: #1A2448; }
 html.dark .bg-\[\#FFF7F4\],
 html.dark .hover\:bg-\[\#FFF7F4\]:hover { background-color: #1A2448; }
 html.dark .hover\:bg-\[\#F7F8FC\]:hover { background-color: #1A2448; }
+html.dark .hover\:bg-\[\#ECEEF6\]:hover,
+html.dark .focus-within\:bg-\[\#ECEEF6\]:focus-within { background-color: #26325C; }
 html.dark .bg-white\/95 { background-color: rgba(17, 26, 58, 0.95); }
 html.dark .bg-white\/90 { background-color: rgba(17, 26, 58, 0.9); }
 html.dark .bg-white\/70 { background-color: rgba(17, 26, 58, 0.7); }
@@ -125,9 +138,9 @@ html.dark .text-\[\#060D26\] { color: #F1F3FA; }
 html.dark .text-\[\#5B6A8E\] { color: #9AA6C6; }
 html.dark .text-\[\#94A3B8\] { color: #7C89AD; }
 html.dark .text-\[\#334155\] { color: #C9D1E8; }
-html.dark .text-\[\#A8573F\] { color: #DA8E77; }
+html.dark .text-\[\#B35A3D\] { color: #FF8A66; }
 html.dark .hover\:text-\[\#060D26\]:hover { color: #FFFFFF; }
-html.dark .hover\:text-\[\#A8573F\]:hover { color: #DA8E77; }
+html.dark .hover\:text-\[\#B35A3D\]:hover { color: #FF8A66; }
 
 html.dark .border-\[\#E2E4EC\],
 html.dark .border-\[\#E2E4EC\]\/80 { border-color: rgba(255, 255, 255, 0.12); }
@@ -136,7 +149,7 @@ html.dark .border-\[\#5B6A8E\]\/30 { border-color: rgba(255, 255, 255, 0.14); }
 html.dark .bg-\[\#E2E4EC\] { background-color: rgba(255, 255, 255, 0.14); }
 
 /* Coral-filled chips keep navy text (contrast on coral), even though navy text is remapped. */
-html.dark .bg-\[\#DA8E77\] { color: #060D26; }
+html.dark .bg-\[\#FF8A66\] { color: #060D26; }
 html.dark .peer:checked ~ span { color: #060D26; }
 html.dark .to-white { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
 html.dark .from-\[\#ECEEF6\] { --tw-gradient-from: #1A2448 var(--tw-gradient-from-position); --tw-gradient-to: rgb(26 36 72 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
@@ -245,6 +258,10 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
 @keyframes page-fade-out { to { opacity: 0; } }
 @keyframes page-fade-in { from { opacity: 0; transform: translateY(6px); } }
 
+/* Gentle float for small white trust/status chips over a photo or dark ground
+   (auth modal brand panel, landlord CTA figure on properties/index). */
+@keyframes owner-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
 ::view-transition-old(root) { animation: 140ms ease-in both page-fade-out; }
 ::view-transition-new(root) { animation: 260ms ease-out both page-fade-in; }
 #site-header { view-transition-name: site-header; }
@@ -278,9 +295,45 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
 /* Thin coral progress bar shown from the moment a navigation starts until the next page paints. */
 #nav-progress {
     position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 10000;
-    background: linear-gradient(90deg, #DA8E77, #FFB59F);
+    background: linear-gradient(90deg, #FF8A66, #FFB59F);
     box-shadow: 0 0 10px rgba(255, 138, 102, 0.6);
     opacity: 0; pointer-events: none;
     transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 200ms ease;
 }
 #nav-progress.is-active { width: 85%; opacity: 1; }
+
+/* Inline validation (resources/js/field-validation.js): short tag on the field border; full text is screen-reader only (checkboxes keep a visible line). */
+.fv-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.fv-bad {
+    border-color: #DC2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.14) !important;
+}
+.fv-tag {
+    position: absolute; z-index: 2; pointer-events: none; width: max-content; white-space: nowrap;
+    transform: translate(calc(-100% - 12px), -50%);
+    background: #DC2626; color: #fff;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1;
+    padding: 4px 8px; border-radius: 999px;
+    animation: fv-rise 180ms ease-out;
+}
+.fv-msg {
+    display: flex; align-items: center; gap: 6px; margin: 6px 0 0;
+    color: #DC2626; font-size: 12.5px; font-weight: 500; line-height: 1.4;
+    animation: fv-rise 180ms ease-out;
+}
+.fv-ico {
+    flex: none; width: 16px; height: 16px; border-radius: 50%; background: #DC2626; color: #fff;
+    display: grid; place-items: center; font-size: 11px; font-weight: 700; line-height: 1;
+}
+@keyframes fv-rise { from { opacity: 0; transform: translateY(-4px); } }
+.fv-tag { animation-name: fv-tag-in; }
+@keyframes fv-tag-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .fv-tag, .fv-msg { animation: none; } }
+
+/* Password strength meter */
+.fv-strength { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11.5px; color: #5B6A8E; }
+.fv-strength[hidden] { display: none; }
+.fv-bars { display: flex; gap: 4px; flex: none; }
+.fv-bars i { width: 28px; height: 4px; border-radius: 999px; background: rgba(148, 163, 184, 0.3); transition: background-color 150ms; }
+.fv-bars i.on { background: var(--fv-c); }
+.fv-strength-label { color: var(--fv-c); font-weight: 600; }

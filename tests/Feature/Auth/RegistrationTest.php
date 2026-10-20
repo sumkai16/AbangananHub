@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,12 +22,15 @@ class RegistrationTest extends TestCase
         $response = $this->post('/register', [
             'first_name' => 'Test',
             'last_name' => 'User',
+            'contact_number' => '09170000000',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertTrue(User::where('email', 'test@example.com')->firstOrFail()->hasRole('Tenant'));
+        // Tenants land on the public browse page (User::homeRoute).
+        $response->assertRedirect(route('properties.index'));
     }
 }

@@ -9,8 +9,8 @@ use App\Models\Reservation;
 use App\Services\RentLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Http;
 
 class PaymentController extends Controller
 {
@@ -26,6 +26,14 @@ class PaymentController extends Controller
 
         if (!$reservation->unit) {
             return back()->withErrors(['payment' => 'This unit is no longer available. Please contact your landlord.']);
+        }
+
+        if ($reservation->hasSettledInitialPayment()) {
+            return back()->withErrors(['payment' => 'The initial payment for this reservation has already been made.']);
+        }
+
+        if ($message = $this->clearStaleCheckouts($reservation, 'Initial')) {
+            return back()->withErrors(['payment' => $message]);
         }
 
         // Lock the reservation row so two concurrent requests (e.g. a double
@@ -48,7 +56,7 @@ class PaymentController extends Controller
             return Payment::create([
                 'reservation_id' => $locked->reservation_id,
                 'payment_type' => 'Initial',
-                'amount' => $locked->unit->rental_fee,
+                'amount' => $locked->monthlyRent(),
                 'payment_method' => 'GCash',
                 'status' => 'Pending',
             ]);
@@ -58,7 +66,7 @@ class PaymentController extends Controller
             return back()->withErrors(['payment' => 'A payment session is already in progress.']);
         }
 
-        $amount = (int) ($reservation->unit->rental_fee * 100); // PayMongo expects cents
+        $amount = Payment::toCentavos($reservation->monthlyRent()); // PayMongo expects cents
 
         $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
             ->post('https://api.paymongo.com/v1/checkout_sessions', [
@@ -99,20 +107,20 @@ class PaymentController extends Controller
         return redirect($checkoutData['attributes']['checkout_url']);
     }
 
-public function success(Reservation $reservation)
-{
-    Gate::authorize('sign', $reservation);
+    public function success(Reservation $reservation)
+    {
+        Gate::authorize('sign', $reservation);
 
-    $reservation->load(['unit', 'tenant']);
+        $reservation->load(['unit', 'tenant']);
 
-    $latestPayment = Payment::where('reservation_id', $reservation->reservation_id)
-        ->latest('payment_id')
-        ->first();
+        $latestPayment = Payment::where('reservation_id', $reservation->reservation_id)
+            ->latest('payment_id')
+            ->first();
 
-    $latestPayment = $this->reconcilePayment($reservation, $latestPayment);
+        $latestPayment = $this->reconcilePayment($reservation, $latestPayment);
 
-    return view('payments.pending', compact('reservation', 'latestPayment'));
-}
+        return view('payments.pending', compact('reservation', 'latestPayment'));
+    }
 
     /**
      * Rent payment checkout — settles the tenant's single earliest unsettled
@@ -138,6 +146,10 @@ public function success(Reservation $reservation)
 
         $billingPeriod = $period['period']->copy()->startOfMonth();
         $balance = round((float) $period['balance'], 2);
+
+        if ($message = $this->clearStaleCheckouts($reservation, 'Monthly', $billingPeriod)) {
+            return back()->withErrors(['payment' => $message]);
+        }
 
         $placeholder = DB::transaction(function () use ($reservation, $billingPeriod, $balance) {
             $locked = Reservation::whereKey($reservation->reservation_id)->lockForUpdate()->first();
@@ -171,7 +183,7 @@ public function success(Reservation $reservation)
             return back()->withErrors(['payment' => 'A payment session is already in progress, or this tenancy is no longer active.']);
         }
 
-        $amount = (int) round($balance * 100); // PayMongo expects cents
+        $amount = Payment::toCentavos($balance); // PayMongo expects cents
 
         $response = Http::withBasicAuth(config('services.paymongo.secret_key'), '')
             ->post('https://api.paymongo.com/v1/checkout_sessions', [

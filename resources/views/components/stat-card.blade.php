@@ -15,8 +15,9 @@
 
 <{{ $tag }} @if($href) href="{{ $href }}" @endif
     class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 {{ $href ? 'block transition-all duration-200 hover:shadow-lg' : '' }} {{ $attributes->get('class') }}">
-    <div class="flex items-center justify-between mb-3">
-        <span class="text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">{{ $label }}</span>
+    <div class="flex items-center justify-between gap-2 mb-3">
+        {{-- min-w-0 + <wbr> after "/": a long unbroken label ("Cancelled/Rejected") pushed the icon out of the card on a 360-375px phone. --}}
+        <span class="min-w-0 text-[11px] font-bold text-[#5B6A8E] uppercase tracking-wide">{!! str_replace('/', '/<wbr>', e($label)) !!}</span>
         @isset($icon)
             <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: {{ $iconBg }};">
                 {{ $icon }}

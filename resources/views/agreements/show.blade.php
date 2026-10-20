@@ -4,11 +4,16 @@
     @php
         $landlord = $reservation->property->landlord;
         $tenant = $reservation->tenant;
-        // Stable, human-quotable identifier. A contract people are asked to
-        // sign needs something to reference it by in a dispute or a message.
-        $agreementRef = 'AGR-' . $reservation->created_at->format('Y') . '-' . str_pad($reservation->reservation_id, 5, '0', STR_PAD_LEFT);
+        // Frozen when the landlord sent the agreement, so what the tenant
+        // signed can't change when the property is edited later.
+        $terms = \App\Support\LeaseTerms::for($reservation);
+        $agreementRef = $terms['reference'];
         $heldPayment = $reservation->payments->where('status', 'Held')->first();
-        $hasPayment = $reservation->payments->whereIn('status', ['Pending', 'Held', 'Paid', 'Released'])->isNotEmpty();
+        // A checkout the tenant walked away from (Payment::isStalePending) is not a payment: counting it hid Pay Now
+        // for good, and the tenant had no way to try again.
+        $hasPayment = $reservation->payments->whereIn('status', ['Pending', 'Held', 'Paid', 'Released'])
+            ->reject(fn ($p) => $p->isStalePending())->isNotEmpty();
+        $hadAbandonedCheckout = ! $hasPayment && $reservation->payments->contains(fn ($p) => $p->isStalePending());
         $processingPayment = $hasPayment && !$heldPayment && !$reservation->isOccupied();
     @endphp
 
@@ -39,9 +44,9 @@
 
         {{-- Page header — bare on the background per DESIGN.md §6b --}}
         <div class="mb-6">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h1 class="text-2xl font-normal text-[#060D26]">Rental Agreement</h1>
-                <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider">{{ $agreementRef }}</p>
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5">
+                <h1 class="text-2xl font-semibold text-[#060D26] tracking-tight">Lease Agreement</h1>
+                <p class="text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums border border-[#E2E4EC] rounded-full px-2.5 py-1">{{ $agreementRef }}</p>
             </div>
             <p class="text-sm text-[#5B6A8E] mt-1 print:hidden">Please read the terms below carefully before signing.</p>
         </div>
@@ -53,99 +58,8 @@
         {{-- flush: the card's default p-5 sm:p-6 would collide with the wider
              padding this document wants, and with print:p-0. --}}
         <x-card flush class="p-5 sm:p-8 print:border-none print:shadow-none print:p-0">
-
-            {{-- ===== Parties ===== --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
-                    <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">Landlord</p>
-                    <p class="text-[14px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
-                    <p class="text-[11.5px] text-[#5B6A8E] mt-0.5 break-words">{{ $landlord->email }}</p>
-                    @if($landlord->contact_number)
-                        <p class="text-[11.5px] text-[#5B6A8E]">{{ $landlord->contact_number }}</p>
-                    @endif
-                </div>
-                <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4">
-                    <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">Tenant</p>
-                    <p class="text-[14px] font-bold text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
-                    <p class="text-[11.5px] text-[#5B6A8E] mt-0.5 break-words">{{ $tenant->email }}</p>
-                    @if($tenant->contact_number)
-                        <p class="text-[11.5px] text-[#5B6A8E]">{{ $tenant->contact_number }}</p>
-                    @endif
-                </div>
-            </div>
-
-            {{-- ===== The agreement body =====
-                 No border or tint: this is the document text itself, so it sits
-                 directly on the sheet. Boxing it inside the card that already
-                 frames it was a third nested border for no added meaning. --}}
-            <div class="text-[#060D26] leading-relaxed">
-                <p class="text-[13.5px] leading-relaxed">
-                    This Rental Agreement is entered into between
-                    <strong>{{ $landlord->first_name }} {{ $landlord->last_name }}</strong> ("Landlord")
-                    and <strong>{{ $tenant->first_name }} {{ $tenant->last_name }}</strong> ("Tenant"),
-                    concerning the rental of the property located at:
-                </p>
-
-                <p class="font-bold text-[#060D26] text-[14px] mt-3">{{ $reservation->property->address }}</p>
-                <p class="text-[12px] text-[#5B6A8E] mt-0.5">
-                    {{ $reservation->property->title }} &middot; {{ $reservation->unit->unit_label }}
-                    @if($reservation->unit->unit_type) &middot; {{ $reservation->unit->unit_type }} @endif
-                </p>
-
-                <dl class="mt-5 divide-y divide-[#E2E4EC] border-t border-[#E2E4EC]">
-                    <div class="flex items-baseline justify-between gap-4 py-2.5">
-                        <dt class="text-[13px] text-[#5B6A8E]">Rental Fee</dt>
-                        <dd class="text-[13px] font-bold text-[#060D26] text-right">&#8369;{{ number_format($reservation->monthlyRent(), 2) }} / month</dd>
-                    </div>
-                    @if($reservation->unit->security_deposit)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Security Deposit</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
-                        </div>
-                    @endif
-                    <div class="flex items-baseline justify-between gap-4 py-2.5">
-                        <dt class="text-[13px] text-[#5B6A8E]">Reservation Date</dt>
-                        <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->reservation_date->format('F j, Y') }}</dd>
-                    </div>
-                    @if($reservation->target_move_in_date)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Target Move-In</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->target_move_in_date->format('F j, Y') }}</dd>
-                        </div>
-                    @endif
-                    @if($reservation->target_move_out_date)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Target Move-Out</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->target_move_out_date->format('F j, Y') }}</dd>
-                        </div>
-                    @endif
-                    @if($reservation->duration_of_stay)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Lease Term</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->duration_of_stay }}</dd>
-                        </div>
-                    @endif
-                    @if($reservation->occupants_count)
-                        <div class="flex items-baseline justify-between gap-4 py-2.5">
-                            <dt class="text-[13px] text-[#5B6A8E]">Occupants</dt>
-                            <dd class="text-[13px] font-bold text-[#060D26] text-right">{{ $reservation->occupants_count }}</dd>
-                        </div>
-                    @endif
-                </dl>
-
-                @if($reservation->agreement_terms_notes)
-                    <div class="mt-5 pt-4 border-t border-[#E2E4EC]">
-                        <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-1.5">Additional Terms</p>
-                        <p class="whitespace-pre-wrap text-[13px] text-[#060D26] leading-relaxed">{{ $reservation->agreement_terms_notes }}</p>
-                    </div>
-                @endif
-
-                <p class="text-[11.5px] text-[#5B6A8E] leading-relaxed mt-5 pt-4 border-t border-[#E2E4EC]">
-                    By signing this agreement, both parties acknowledge the terms above as the basis for this rental
-                    arrangement. AbangananHub facilitates this agreement as a record-keeping tool between Landlord and
-                    Tenant and is not a party to, nor liable for, the terms herein.
-                </p>
-            </div>
+            {{-- ===== The lease — frozen terms, see App\Support\LeaseTerms ===== --}}
+            @include('leases._document', ['terms' => $terms])
 
             {{-- ===== Signature block — the evidentiary record ===== --}}
             @if($reservation->agreed_at || $reservation->landlord_tc_accepted_at)
@@ -193,30 +107,28 @@
             <div class="rounded-2xl border border-[#E2E4EC] bg-white shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 mb-4">
                 <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider">At a glance</p>
                 <p class="mt-2 text-2xl font-bold tracking-tight text-[#060D26]">
-                    &#8369;{{ number_format($reservation->monthlyRent(), 2) }}
+                    &#8369;{{ number_format($terms['monthly_rent'], 2) }}
                     <span class="text-sm font-medium text-[#5B6A8E]">/ month</span>
                 </p>
                 <dl class="mt-4 space-y-2 text-[13px]">
                     <div class="flex items-baseline justify-between gap-3">
-                        <dt class="text-[#5B6A8E]">Property</dt>
-                        <dd class="font-medium text-[#060D26] text-right truncate">{{ $reservation->unit->unit_label }}</dd>
+                        <dt class="text-[#5B6A8E]">Unit</dt>
+                        <dd class="font-medium text-[#060D26] text-right truncate">{{ $terms['unit'] ?? $terms['property']['title'] }}</dd>
                     </div>
-                    @if($reservation->target_move_in_date)
+                    @if($terms['start'])
                         <div class="flex items-baseline justify-between gap-3">
-                            <dt class="text-[#5B6A8E]">Target move-in</dt>
-                            <dd class="font-medium text-[#060D26]">{{ $reservation->target_move_in_date->format('M j, Y') }}</dd>
+                            <dt class="text-[#5B6A8E]">Starts</dt>
+                            <dd class="font-medium text-[#060D26]">{{ \Illuminate\Support\Carbon::parse($terms['start'])->format('M j, Y') }}</dd>
                         </div>
                     @endif
-                    @if($reservation->duration_of_stay)
-                        <div class="flex items-baseline justify-between gap-3">
-                            <dt class="text-[#5B6A8E]">Lease term</dt>
-                            <dd class="font-medium text-[#060D26]">{{ $reservation->duration_of_stay }}</dd>
-                        </div>
-                    @endif
-                    @if($reservation->unit->security_deposit)
+                    <div class="flex items-baseline justify-between gap-3">
+                        <dt class="text-[#5B6A8E]">Ends</dt>
+                        <dd class="font-medium text-[#060D26]">{{ $terms['end'] ? \Illuminate\Support\Carbon::parse($terms['end'])->format('M j, Y') : 'Month-to-month' }}</dd>
+                    </div>
+                    @if($terms['deposit'])
                         <div class="flex items-baseline justify-between gap-3">
                             <dt class="text-[#5B6A8E]">Security deposit</dt>
-                            <dd class="font-medium text-[#060D26]">&#8369;{{ number_format($reservation->unit->security_deposit, 2) }}</dd>
+                            <dd class="font-medium text-[#060D26]">&#8369;{{ number_format($terms['deposit'], 2) }}</dd>
                         </div>
                     @endif
                     <div class="flex items-baseline justify-between gap-3">
@@ -245,7 +157,7 @@
 
                         <label for="agree" class="flex items-start gap-3 mb-4 cursor-pointer">
                             <input type="checkbox" name="agree" id="agree" required
-                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#DA8E77] focus:ring-offset-0 transition">
+                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
                             <span class="text-[13px] text-[#060D26] leading-relaxed">
                                 I have read and agree to the terms of this Rental Agreement.
                             </span>
@@ -256,7 +168,7 @@
 
                         <label for="accept_tc" class="flex items-start gap-3 mb-4 cursor-pointer">
                             <input type="checkbox" name="accept_tc" id="accept_tc" required
-                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#DA8E77] focus:ring-offset-0 transition">
+                                class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
                             <span class="text-[13px] text-[#060D26] leading-relaxed">
                                 I understand that my payment will be held by AbangananHub until I confirm move-in. Funds will only
                                 be released to the landlord after I verify that the unit matches the listing.
@@ -266,8 +178,31 @@
                             <p class="text-[11px] font-semibold text-[#EF4444] -mt-2 mb-4 ml-7">{{ $message }}</p>
                         @enderror
 
+                        {{-- The landlord keeps an emergency contact and your ID on file. Asked once; later agreements reuse it. --}}
+                        @php
+                            $signer = auth()->user()->load('tenantDetail');
+                        @endphp
+                        @if (\App\Models\TenantDetail::completeFor($signer))
+                            <div class="mb-5 rounded-xl bg-[#ECEEF6] px-4 py-3">
+                                <p class="text-[12px] font-semibold text-[#060D26]">Emergency contact on file</p>
+                                <p class="text-[12px] text-[#5B6A8E] mt-0.5">
+                                    {{ $signer->tenantDetail->emergency_contact_name }}
+                                    @if ($signer->tenantDetail->emergency_contact_relationship) ({{ $signer->tenantDetail->emergency_contact_relationship }}) @endif
+                                    &middot; <a href="{{ route('profile.edit') }}#emergency-contact" class="font-semibold text-[#060D26] underline underline-offset-2">Edit in Account Settings</a>
+                                </p>
+                            </div>
+                        @else
+                            <fieldset class="mb-5 rounded-xl border border-[#E2E4EC] p-4">
+                                <legend class="px-1.5 text-[12px] font-bold text-[#060D26]">Emergency contact &amp; ID</legend>
+                                <p class="text-[12px] text-[#5B6A8E] leading-relaxed mb-4">
+                                    Your landlord keeps these on file in case of an emergency. Only the landlord of this property can see them, and your ID number is stored encrypted.
+                                </p>
+                                <x-tenant-details-fields :detail="$signer->tenantDetail" id-prefix="sign" :required="true" />
+                            </fieldset>
+                        @endif
+
                         <button type="submit"
-                            class="w-full bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
+                            class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
                             Sign Agreement
                         </button>
                     </form>
@@ -290,24 +225,35 @@
                     @if(!$hasPayment)
                         <form action="{{ route('payments.checkout', $reservation) }}" method="POST" class="mt-4">
                             @csrf
+                            @if($errors->has('payment'))
+                                <div role="alert" class="mb-3 flex items-start gap-2.5 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/10 px-4 py-3 text-[13px] font-semibold text-[#B91C1C]">
+                                    <svg class="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                                    {{ $errors->first('payment') }}
+                                </div>
+                            @elseif($hadAbandonedCheckout)
+                                <p class="mb-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/10 px-4 py-3 text-[13px] text-[#92600A]">
+                                    Your last payment attempt wasn't completed. You can try again below.
+                                </p>
+                            @endif
                             <div class="rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] p-4 flex flex-wrap items-center justify-between gap-4">
                                 <div class="min-w-0">
                                     <p class="text-sm font-bold text-[#060D26]">Initial Payment</p>
                                     <p class="text-xs text-[#5B6A8E] mt-0.5">
-                                        &#8369;{{ number_format($reservation->unit->rental_fee, 2) }} via GCash — you will be redirected to complete payment.
+                                        &#8369;{{ number_format($reservation->monthlyRent(), 2) }} via GCash — you will be redirected to complete payment.
                                     </p>
                                 </div>
                                 <button type="submit"
-                                    class="shrink-0 px-5 py-2.5 rounded-xl bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] font-bold text-sm shadow-sm cursor-pointer transition-all duration-200">
+                                    class="shrink-0 px-5 py-2.5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm shadow-sm cursor-pointer transition-all duration-200">
                                     Pay Now
                                 </button>
                             </div>
+                            <x-payment-test-notice class="mt-2" />
                         </form>
 
                     @elseif($heldPayment)
-                        <div class="mt-4 rounded-xl border border-[#DA8E77]/25 bg-[#ECEEF6]/60 p-4">
+                        <div class="mt-4 rounded-xl border border-[#FF8A66]/25 bg-[#ECEEF6]/60 p-4">
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="w-8 h-8 rounded-full bg-[#DA8E77]/15 flex items-center justify-center shrink-0">
+                                <div class="w-8 h-8 rounded-full bg-[#FF8A66]/15 flex items-center justify-center shrink-0">
                                     <svg class="w-4 h-4 text-[#060D26]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                     </svg>
@@ -329,7 +275,7 @@
                                     {{-- Clock 1: nothing for the tenant to do yet. No countdown — showing one
                                          here would imply a deadline the tenant can miss, and this one is the
                                          landlord's. --}}
-                                    <div class="rounded-lg border border-[#DA8E77]/25 bg-[#ECEEF6] p-4 mb-4">
+                                    <div class="rounded-lg border border-[#FF8A66]/25 bg-[#ECEEF6] p-4 mb-4">
                                         <p class="text-sm font-medium text-[#060D26]">Payment secured</p>
                                         <p class="mt-1 text-sm text-[#060D26]">
                                             Your deposit is held safely and is not released until you confirm your move-in.
@@ -376,7 +322,7 @@
                                         </p>
                                     </div>
                                     <button type="submit"
-                                        class="w-full bg-[#DA8E77] hover:bg-[#C97A61] text-[#060D26] font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
+                                        class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] font-bold text-sm py-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200">
                                         I Have Moved In — Confirm Occupancy
                                     </button>
                                 </form>
@@ -420,7 +366,7 @@
                                                         <button type="button" @click="show = false"
                                                                 class="rounded-xl px-4 py-2 text-sm text-[#5B6A8E] cursor-pointer">Cancel</button>
                                                         <button type="submit"
-                                                                class="rounded-xl bg-[#DA8E77] hover:bg-[#C97A61] px-4 py-2 text-sm font-bold text-[#060D26] cursor-pointer transition-all duration-200">
+                                                                class="rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] px-4 py-2 text-sm font-bold text-[#060D26] cursor-pointer transition-all duration-200">
                                                             Submit report
                                                         </button>
                                                     </div>

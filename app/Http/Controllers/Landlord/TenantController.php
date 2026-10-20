@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,11 +17,13 @@ class TenantController extends Controller
      * signed/approved but not yet moved in — a real tenant relationship,
      * just not moved-in yet; Inactive = no longer renting. A bare Inquiry or
      * Under Negotiation isn't a tenant yet, so those funnel stages are left
-     * out of every group rather than folded into "Pending".
+     * out of every group rather than folded into "Pending". A walk-in
+     * reserved for a future move-in (Reserved) is the walk-in equivalent of
+     * "signed, not yet moved in", so it joins Pending too.
      */
     public const STATUS_GROUPS = [
         'active'   => ['Occupied'],
-        'pending'  => ['Pending Rental Agreement', 'Rental Agreement Signed'],
+        'pending'  => ['Pending Rental Agreement', 'Rental Agreement Signed', 'Reserved'],
         'inactive' => ['Cancelled', 'Rejected', 'Completed'],
     ];
 
@@ -33,7 +36,7 @@ class TenantController extends Controller
     {
         $landlordId = Auth::user()->user_id;
 
-        $query = Reservation::whereHas('property', fn($q) => $q->where('landlord_id', $landlordId));
+        $query = Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId));
 
         $status = $request->input('status');
         if ($status && isset(self::STATUS_GROUPS[$status])) {
@@ -48,8 +51,8 @@ class TenantController extends Controller
         if ($search = $request->input('search')) {
             $query->whereHas('tenant', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -57,7 +60,30 @@ class TenantController extends Controller
             $query->where('property_id', $propertyId);
         }
 
+        // The two stat cards double as filters — clicking one narrows the
+        // table to exactly what it counted, on top of whatever else is set.
+        if ($request->boolean('lease_missing')) {
+            $query->whereNull('lease_file_path')->whereNull('agreed_at');
+        }
+
+        if ($request->boolean('moving_in_soon')) {
+            $query->where('rental_status', 'Reserved');
+        }
+
         return $query;
+    }
+
+    /**
+     * Landlord's whole active-or-pending tenant base, ignoring the page's own
+     * filters — what the stat cards count against, so they always read the
+     * true total rather than reacting to search/status/property selections.
+     */
+    private function activeOrPendingQuery(): Builder
+    {
+        $landlordId = Auth::user()->user_id;
+
+        return Reservation::whereHas('property', fn ($q) => $q->where('landlord_id', $landlordId))
+            ->whereIn('rental_status', array_merge(self::STATUS_GROUPS['active'], self::STATUS_GROUPS['pending']));
     }
 
     /**
@@ -78,7 +104,8 @@ class TenantController extends Controller
     public function index(Request $request)
     {
         $reservations = $this->filteredQuery($request)
-            ->with(['tenant', 'property.media', 'unit', 'conversation', 'payments'])
+            ->with(['tenant', 'property.media', 'unit', 'conversation', 'payments', 'depositCharges'])
+            ->withCount(['concerns as open_concerns_count' => fn ($q) => $q->unresolved()])
             ->latest('reservation_date')->paginate(12)->withQueryString();
 
         // Rent standing per card, so each knows whether the tenant has anything
@@ -93,7 +120,15 @@ class TenantController extends Controller
             ->orderBy('title')
             ->get(['property_id', 'title']);
 
-        return view('landlord.tenants.index', compact('reservations', 'properties', 'ledger'));
+        $leaseMissingCount = $this->activeOrPendingQuery()
+            ->whereNull('lease_file_path')->whereNull('agreed_at')->count();
+
+        $movingInSoonCount = $this->activeOrPendingQuery()
+            ->where('rental_status', 'Reserved')->count();
+
+        return view('landlord.tenants.index', compact(
+            'reservations', 'properties', 'ledger', 'leaseMissingCount', 'movingInSoonCount'
+        ));
     }
 
     /**

@@ -8,17 +8,27 @@ use App\Models\Favorite;
 use App\Models\Property;
 use App\Models\PropertyMedia;
 use App\Models\PropertyUnit;
+use App\Models\Review;
+use App\Support\BrowseFilters;
 use App\Support\Images;
-use Illuminate\Support\Collection;
+use App\Support\PropertyPolicies;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\Review;
+use Illuminate\Support\Str;
 
 class PropertyController extends Controller
 {
     public function index(Request $request)
     {
+        // A described search ("room near USC under 5k"): the page shell loads at once and
+        // resources/js/ai-search.js fills it in. See plans/ai-search.md.
+        if (filled($request->query('q'))) {
+            return view('properties.ai', ['query' => Str::limit(strip_tags((string) $request->query('q')), (int) config('ai_search.max_query_length', 300), '')]);
+        }
+
         // The hero + "Browse by area" + "Popular places" sections are the Home page
         // (route `home`, `/`) only — /properties (Browse Rentals) is always the
         // filter bar + grid, so clearing filters or picking "All" stays on Browse
@@ -29,9 +39,9 @@ class PropertyController extends Controller
         $heroStats = null;
         $popularProperties = collect();
         $areas = collect();
-        $showDiscovery = !$request->hasAny(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page']);
+        $showDiscovery = !$request->hasAny(array_merge(['location', 'type', 'price_max', 'verified', 'amenities', 'sort', 'page'], BrowseFilters::KEYS));
 
-        if ($request->routeIs('home') && ! $request->hasAny(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'])) {
+        if ($request->routeIs('home') && ! $request->hasAny(array_merge(['location', 'type', 'price_min', 'price_max', 'verified', 'amenities', 'sort', 'page'], BrowseFilters::KEYS))) {
             $heroStats = [
                 'listings' => Property::browsable()->count(),
                 'units' => PropertyUnit::where('availability_status', 'Available')
@@ -56,19 +66,10 @@ class PropertyController extends Controller
             $areas = $this->areaTiles(20);
         }
 
-        $properties = Property::with([
+        $properties = $this->browseQuery($request)
+            ->with([
                 'media', 'landlord', 'amenities', 'units',
                 'documents:document_id,property_id,document_type,status,expiry_date',
-            ])
-            ->browsable()
-            ->browseFilters([
-                'location'   => $request->query('location'),
-                'type'       => $request->query('type'),
-                'price_min'  => $request->query('price_min'),
-                'price_max'  => $request->query('price_max'),
-                'verified'   => $request->boolean('verified'),
-                'amenities'  => $request->query('amenities', []),
-                'sort'       => $request->query('sort'),
             ])
             // 25 = five full rows on the 5-column desktop grid.
             ->paginate(25)
@@ -79,7 +80,10 @@ class PropertyController extends Controller
         // Property::scopeBrowseFilters). Grouped to mirror the landlord
         // amenities wizard step, whose own copy anticipated this: "Optional,
         // but tenants filter on these."
-        $amenityGroups = Amenity::orderBy('category')->orderBy('amenity_name')->get()->groupBy('category');
+        // Curfew / Pet Friendly / Visitors Allowed are house rules now, filtered under "House rules" instead.
+        $amenityGroups = Amenity::orderBy('category')->orderBy('amenity_name')->get()
+            ->reject(fn ($a) => in_array($a->amenity_name, BrowseFilters::AMENITIES_REPLACED_BY_RULES, true))
+            ->groupBy('category');
 
         // Names for the "Filtering by:" chip row — the query string only
         // carries amenity_ids, and that row needs the label to display.
@@ -97,6 +101,7 @@ class PropertyController extends Controller
                 ->where('availability_status', 'Available')
                 ->where('verification_status', 'Approved')
                 ->min('rental_fee');
+
             return [
                 'property_id'   => $property->property_id,
                 'title'         => $property->title,
@@ -106,6 +111,9 @@ class PropertyController extends Controller
                 'url'           => route('properties.show', $property->property_id),
                 'property_type' => $property->property_type,
                 'image'         => Images::resize($property->media->first()?->media_url, 480),
+                'rating'        => $property->avg_rating !== null ? round((float) $property->avg_rating, 1) : null,
+                'reviews'       => (int) $property->review_count,
+                'area'          => trim(($property->barangay ? $property->barangay . ', ' : '') . $property->city_municipality),
             ];
         })->values();
 
@@ -117,6 +125,29 @@ class PropertyController extends Controller
             'properties', 'favoritedIds', 'mapProperties', 'heroStats', 'popularProperties', 'areas',
             'amenityGroups', 'selectedAmenities', 'showDiscovery'
         ));
+    }
+
+    /**
+     * How many listings the Filters dialog's current choices would show: the number on its "Show N places" button.
+     * Same query as index(), so the two can never disagree.
+     */
+    public function count(Request $request): JsonResponse
+    {
+        return response()->json(['count' => $this->browseQuery($request)->paginate(1)->total()]);
+    }
+
+    /** The Browse page's listing query (live, bookable, filtered by the request), before eager loads and paging. */
+    private function browseQuery(Request $request)
+    {
+        return Property::browsable()->browseFilters(BrowseFilters::fromRequest($request) + [
+            'location'   => $request->query('location'),
+            'type'       => $request->query('type'),
+            'price_min'  => $request->query('price_min'),
+            'price_max'  => $request->query('price_max'),
+            'verified'   => $request->boolean('verified'),
+            'amenities'  => $request->query('amenities', []),
+            'sort'       => $request->query('sort'),
+        ]);
     }
 
     /**
@@ -158,8 +189,8 @@ class PropertyController extends Controller
             ->when($limit, fn ($q) => $q->take($limit))
             ->get();
 
-        // One image per city, fetched for all cities at once.
-        $photos = PropertyMedia::query()
+        // Every candidate image per city, fetched for all cities at once.
+        $candidates = PropertyMedia::query()
             ->join('properties', 'properties.property_id', '=', 'property_media.property_id')
             ->whereIn('properties.city_municipality', $areas->pluck('city_municipality'))
             ->where('properties.verification_status', 'Approved')
@@ -172,8 +203,22 @@ class PropertyController extends Controller
             ->orderBy('properties.property_id')
             ->orderBy('property_media.media_id')
             ->get(['properties.city_municipality', 'property_media.media_url'])
-            ->unique('city_municipality')
-            ->pluck('media_url', 'city_municipality');
+            ->groupBy('city_municipality')
+            ->map->pluck('media_url');
+
+        // Each tile takes the first candidate no earlier tile already used, so tiles
+        // don't repeat a photo just because two cities' first listings share one.
+        // A city whose photos are all taken falls back to its first.
+        $used = [];
+        $photos = $areas->mapWithKeys(function ($row) use ($candidates, &$used) {
+            $urls = $candidates[$row->city_municipality] ?? collect();
+            $pick = $urls->first(fn ($u) => ! isset($used[strtok($u, '?')])) ?? $urls->first();
+            if ($pick) {
+                $used[strtok($pick, '?')] = true;
+            }
+
+            return [$row->city_municipality => $pick];
+        });
 
         return $areas
             ->map(fn ($row) => [
@@ -234,9 +279,7 @@ class PropertyController extends Controller
             ->take(6)
             ->values();
 
-        $backUrl = session('browse_url', route('home'));
-
-        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited', 'nearbyProperties', 'backUrl'));
+        return view('properties.show', compact('property', 'reviews', 'avgRating', 'canReview', 'isFavorited', 'nearbyProperties'));
     }
 
     public function edit(Property $property)
@@ -267,14 +310,16 @@ class PropertyController extends Controller
 
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $request, $property) {
+        $requeued = false;
+
+        DB::transaction(function () use ($validated, $request, $property, &$requeued) {
             $photosAdded = $request->hasFile('photos');
 
             $property->fill([
                 'title'                          => $validated['title'],
                 'description'                    => $validated['description'],
                 'property_type'                  => $validated['property_type'],
-                'living_arrangement'             => $validated['living_arrangement'] ?? null,
+                ...PropertyPolicies::fromRequest($request),
                 'water_included'                 => $request->boolean('water_included'),
                 'electricity_included'           => $request->boolean('electricity_included'),
                 'internet_included'              => $request->boolean('internet_included'),
@@ -291,7 +336,12 @@ class PropertyController extends Controller
 
             if ($detailsChanged || $photosAdded) {
                 $property->verification_status = 'Pending';
+                $requeued = true;
             }
+
+            // Set after the dirty check on purpose: standard lease terms are private to the landlord and
+            // never shown on the listing, so editing them must not send an approved listing back to review.
+            $property->default_lease_terms = $validated['default_lease_terms'] ?? null;
 
             $property->save();
 
@@ -312,7 +362,10 @@ class PropertyController extends Controller
             }
         });
 
-        return redirect()->route('landlord.properties.index')->with('success', 'Property updated. It\'s back in the approval queue.');
+        return redirect()->route('landlord.properties.index')->with(
+            'success',
+            $requeued ? 'Property updated. It\'s back in the approval queue.' : 'Property updated.'
+        );
     }
 
     /**

@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ ($title ?? 'Admin') }} · AbangananHub</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/logo-app-icon.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         (function () {
@@ -64,7 +64,7 @@
             {{-- Logo + Notification bell --}}
             <div class="flex items-center justify-between h-[64px] border-b border-white/[0.06] shrink-0 px-5">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 overflow-hidden no-underline">
-                    <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
+                    <img src="{{ asset('images/brand/logo-mark-on-dark.svg') }}" alt="AbangananHub"
                         class="w-8 h-8 object-contain shrink-0">
                     <div data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="overflow-hidden">
                         <p class="text-[15px] font-extrabold text-white tracking-tight whitespace-nowrap leading-tight">
@@ -332,6 +332,20 @@
                     </span>
                 </a>
 
+                {{-- Deposit Charges --}}
+                <a href="{{ route('admin.deposit-charges.index') }}"
+                    class="group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200
+                        {{ str_starts_with($cur ?? '', 'admin.deposit-charges') ? 'bg-[#060D26] text-white border-l-[3px] border-[#FF8A66]' : 'text-white/60 border-l-[3px] border-transparent hover:bg-white/[0.06] hover:text-[#FF8A66]' }}">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                    <span data-sidebar-label x-show="!sidebarCollapsed" x-cloak class="whitespace-nowrap flex-1">Deposit Charges</span>
+                    <span x-show="sidebarCollapsed" x-cloak
+                        class="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1e293b] border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
+                        Deposit Charges
+                    </span>
+                </a>
+
                 {{-- ── CONTENT & REVIEWS ── --}}
                 <p data-sidebar-label x-show="!sidebarCollapsed" x-cloak
                     class="px-3 pt-4 pb-1.5 text-[10px] font-bold text-white/30 uppercase tracking-widest whitespace-nowrap">
@@ -485,7 +499,8 @@
                         <span class="block text-[12px] font-semibold text-white truncate">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
                         <span class="block text-[10px] text-white/40">Administrator</span>
                     </span>
-                    <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                    <form action="{{ route('logout') }}" method="POST" class="shrink-0"
+                        data-confirm="Sign out?" data-confirm-message="You'll need to log in again to continue." data-confirm-button="Sign out">
                         @csrf
                         <button type="submit" title="Sign out"
                             class="group/so relative w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-[#DC2626] hover:bg-white/[0.06] transition-colors">

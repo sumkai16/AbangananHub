@@ -39,10 +39,7 @@ class ReservationController extends Controller
                 });
             });
 
-        $counts = ['all' => (clone $base)->count()];
-        foreach (self::STATUSES as $s) {
-            $counts[$s] = (clone $base)->where('rental_status', $s)->count();
-        }
+        $counts = Reservation::statusCounts($base, self::STATUSES);
 
         if (in_array($status, self::STATUSES, true)) {
             $base->where('rental_status', $status);

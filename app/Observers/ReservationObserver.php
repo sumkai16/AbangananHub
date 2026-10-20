@@ -6,6 +6,8 @@ use App\Events\HandoverScheduleUpdated;
 use App\Events\ReservationStatusUpdated;
 use App\Models\Notification;
 use App\Models\Reservation;
+use Illuminate\Broadcasting\BroadcastException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Broadcasts every rental_status transition and raises the matching
@@ -22,6 +24,9 @@ class ReservationObserver
 {
     public function created(Reservation $reservation): void
     {
+        // A tenancy recorded straight as Occupied (rather than reaching it through the pipeline).
+        $this->syncTenancyThread($reservation);
+
         if (! $reservation->conversation_id) {
             return;
         }
@@ -42,6 +47,12 @@ class ReservationObserver
 
     public function updated(Reservation $reservation): void
     {
+        // Before the early return below: a tenancy thread does not depend on the
+        // inquiry thread, and walk-ins (which have none) are skipped inside.
+        if ($reservation->wasChanged('rental_status')) {
+            $this->syncTenancyThread($reservation);
+        }
+
         // A reservation created outside the inquiry flow has no thread to
         // push into; nothing is listening.
         if (! $reservation->conversation_id) {
@@ -54,19 +65,54 @@ class ReservationObserver
         // future, can change the slot without the other party's open panel
         // being told.
         if ($reservation->wasChanged(['handover_at', 'handover_confirmed_at'])) {
-            HandoverScheduleUpdated::dispatch($reservation);
+            $this->broadcastQuietly(fn () => HandoverScheduleUpdated::dispatch($reservation));
         }
 
         if (! $reservation->wasChanged('rental_status')) {
             return;
         }
 
-        ReservationStatusUpdated::dispatch(
+        $this->broadcastQuietly(fn () => ReservationStatusUpdated::dispatch(
             $reservation,
             $reservation->getOriginal('rental_status'),
-        );
+        ));
+
+        $this->cancelViewingsIfEnded($reservation);
 
         $this->notifyTransition($reservation);
+    }
+
+    /**
+     * Occupied opens the post-move-in chat; Completed closes it (read-only).
+     * Hooked on the save for the same reason as everything else here: tenant
+     * confirmation, the deadline timer and an admin release all end in Occupied.
+     */
+    private function syncTenancyThread(Reservation $reservation): void
+    {
+        if ($reservation->rental_status === 'Occupied') {
+            $reservation->openTenancyThread();
+        } elseif ($reservation->rental_status === 'Completed') {
+            $reservation->tenancyThread()->update(['status' => 'Resolved']);
+        }
+    }
+
+    /**
+     * A rejected, cancelled or completed reservation can't still have a
+     * viewing on the landlord's calendar. Hooked here for the same reason as
+     * the broadcast: every path that ends a reservation goes through save().
+     * The status change's own notification already tells both parties, so
+     * no separate viewing notice.
+     */
+    private function cancelViewingsIfEnded(Reservation $reservation): void
+    {
+        if (! in_array($reservation->rental_status, Reservation::TERMINAL_STATUSES, true)) {
+            return;
+        }
+
+        $reservation->viewings()->active()->update([
+            'status'       => 'Cancelled',
+            'responded_at' => now(),
+        ]);
     }
 
     private function notifyTransition(Reservation $reservation): void
@@ -98,6 +144,15 @@ class ReservationObserver
                 break;
 
             case 'Occupied':
+                // Only the tenant's own confirmation reads as "you confirmed".
+                // The deadline timer and an admin release also end in Occupied
+                // but leave tenant_confirmed_move_in_at null on purpose, and
+                // both send their own "deposit released" notices; telling the
+                // landlord the tenant confirmed would be untrue and a duplicate.
+                if (! $reservation->wasChanged('tenant_confirmed_move_in_at')) {
+                    break;
+                }
+
                 Notification::notify($landlordId, 'payment', 'Move-in confirmed — payment released',
                     "{$tenantName} confirmed move-in for {$unitLabel}. The held payment has been released to you.",
                     $thread, $conversationId);
@@ -137,5 +192,26 @@ class ReservationObserver
     private function threadLink(Reservation $reservation): string
     {
         return route('conversations.index', ['active' => $reservation->conversation_id]);
+    }
+
+    /**
+     * Both events here implement ShouldBroadcastNow, so they reach out to
+     * Reverb synchronously from inside whatever transaction triggered the
+     * save() (e.g. AgreementController::sign()). A stopped/unreachable
+     * Reverb throws BroadcastException here, which would otherwise abort
+     * and roll back the entire caller action just because nobody's
+     * listening for the live update — the rental_status row is already
+     * written and is the change of record; the broadcast is a nice-to-have
+     * real-time nudge on top of it. Same pattern as Notification::notify().
+     */
+    private function broadcastQuietly(\Closure $dispatch): void
+    {
+        try {
+            $dispatch();
+        } catch (BroadcastException $e) {
+            Log::warning('Reservation event broadcast failed, continuing without it', [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

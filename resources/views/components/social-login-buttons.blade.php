@@ -6,12 +6,12 @@
         <div class="w-full border-t border-[#E2E4EC]"></div>
     </div>
     <div class="relative flex justify-center text-[11px]">
-        <span class="bg-white px-3 text-[#5B6A8E] font-['Plus_Jakarta_Sans',_Inter,_sans-serif] font-bold uppercase tracking-[0.14em]">or continue with</span>
+        <span class="bg-white px-3 text-[#5B6A8E] font-jakarta font-bold uppercase tracking-[0.14em]">or continue with</span>
     </div>
 </div>
 <div class="grid grid-cols-2 gap-3">
     <a href="{{ route('social.redirect', 'google') }}"
-        class="flex items-center justify-center gap-2 border border-[#E2E4EC] rounded-xl py-3 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[14px] font-bold text-[#060D26] hover:border-[#FF8A66] hover:bg-[#FF8A66]/5 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20">
+        class="flex items-center justify-center gap-2 border border-[#E2E4EC] rounded-xl py-3 font-jakarta text-[14px] font-bold text-[#060D26] hover:border-[#FF8A66] hover:bg-[#FF8A66]/5 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20">
         <svg class="w-4 h-4" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.43 3.58v2.98h3.93c2.3-2.12 3.62-5.24 3.62-8.8z"/>
             <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.92l-3.93-2.98c-1.09.73-2.48 1.16-4 1.16-3.08 0-5.69-2.08-6.62-4.87H1.32v3.07C3.29 21.3 7.31 24 12 24z"/>
@@ -21,7 +21,7 @@
         Google
     </a>
     <a href="{{ route('social.redirect', 'facebook') }}"
-        class="flex items-center justify-center gap-2 border border-[#E2E4EC] rounded-xl py-3 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[14px] font-bold text-[#060D26] hover:border-[#FF8A66] hover:bg-[#FF8A66]/5 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20">
+        class="flex items-center justify-center gap-2 border border-[#E2E4EC] rounded-xl py-3 font-jakarta text-[14px] font-bold text-[#060D26] hover:border-[#FF8A66] hover:bg-[#FF8A66]/5 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20">
         <svg class="w-4 h-4" fill="#1877F2" viewBox="0 0 24 24">
             <path d="M24 12.07C24 5.68 18.63.4 12 .4S0 5.68 0 12.07c0 5.77 4.39 10.56 10.13 11.44v-8.09H7.08v-3.35h3.05V9.41c0-3 1.79-4.66 4.53-4.66 1.31 0 2.68.24 2.68.24v2.94h-1.51c-1.49 0-1.95.92-1.95 1.87v2.24h3.32l-.53 3.35h-2.79v8.09C19.61 22.63 24 17.84 24 12.07z"/>
         </svg>

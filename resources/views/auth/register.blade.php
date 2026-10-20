@@ -14,23 +14,18 @@
 
         {{-- Branding --}}
         <a href="/" class="group inline-flex items-center gap-2 self-start">
-            <div class="w-9 h-9 rounded-lg bg-[#060D26] flex items-center justify-center transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-            </div>
-            <span class="text-[#060D26] font-bold text-[17px] tracking-tight">AbangananHub</span>
+            <x-brand-logo mark="w-9 h-9" text="text-[18px]" />
         </a>
 
-        <h2 class="mt-8 font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create your account</h2>
+        <h2 class="mt-8 font-jakarta text-[28px] sm:text-[32px] font-extrabold text-[#060D26] tracking-tight leading-tight">Create your account</h2>
         <p class="mt-1.5 text-[15px] text-[#5B6A8E]">Join AbangananHub and find your place to stay.</p>
 
-        <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-4">
+        <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-4" novalidate>
             @csrf
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="first_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">First name</label>
+                    <label for="first_name" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">First name</label>
                     <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" required
                         autofocus autocomplete="given-name" placeholder="First name"
                         class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
@@ -39,7 +34,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label for="last_name" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Last name</label>
+                    <label for="last_name" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">Last name</label>
                     <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" required
                         autocomplete="family-name" placeholder="Last name"
                         class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
@@ -50,7 +45,7 @@
             </div>
 
             <div>
-                <label for="email" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                <label for="email" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">Email address</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
                     placeholder="you@example.com"
                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
@@ -60,7 +55,7 @@
             </div>
 
             <div>
-                <label for="contact_number" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Contact number</label>
+                <label for="contact_number" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">Contact number</label>
                 <input id="contact_number" type="tel" name="contact_number" value="{{ old('contact_number') }}"
                     required autocomplete="tel" inputmode="tel" placeholder="09XX XXX XXXX"
                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
@@ -71,9 +66,9 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="password" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
+                    <label for="password" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">Password</label>
                     <div class="relative">
-                        <input id="password" type="password" name="password" required autocomplete="new-password"
+                        <input id="password" type="password" name="password" minlength="8" data-strength required autocomplete="new-password"
                             placeholder="Create a password"
                             class="w-full pl-4 pr-12 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[16px] sm:text-[15px] text-[#060D26] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/25 focus:outline-none transition-colors" />
                         <button type="button" onclick="togglePassword('password', this)" aria-label="Show password"
@@ -90,7 +85,7 @@
                 </div>
 
                 <div>
-                    <label for="password_confirmation" class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[13px] font-bold text-[#060D26] mb-1.5">Confirm password</label>
+                    <label for="password_confirmation" class="block font-jakarta text-[13px] font-bold text-[#060D26] mb-1.5">Confirm password</label>
                     <div class="relative">
                         <input id="password_confirmation" type="password" name="password_confirmation" required
                             autocomplete="new-password" placeholder="Repeat password"
@@ -117,7 +112,7 @@
             </p>
 
             <button type="submit"
-                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3.5 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
+                class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3.5 rounded-xl hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66] focus-visible:ring-offset-2">
                 Create account
             </button>
         </form>

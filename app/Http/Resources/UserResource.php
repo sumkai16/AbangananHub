@@ -13,16 +13,16 @@ class UserResource extends ApiResource
             'email'                  => $this->attr('email'),
             'email_verified_at'      => $this->attr('email_verified_at'),
             'contact_number'         => $this->attr('contact_number'),
-            'gcash_number'           => $this->attr('gcash_number'),
-            'gcash_account_name'     => $this->attr('gcash_account_name'),
+            // Payout details only appear on the user's own record: the own-profile endpoints load
+            // `payoutAccount`; a user nested in a conversation, review or payment never does.
+            'gcash_number'           => $this->when($this->resource->relationLoaded('payoutAccount'), fn () => $this->resource->payoutAccount?->gcash_number),
+            'gcash_account_name'     => $this->when($this->resource->relationLoaded('payoutAccount'), fn () => $this->resource->payoutAccount?->gcash_account_name),
             'profile_picture'        => $this->attr('profile_picture'),
             'account_status'         => $this->attr('account_status'),
             'bio'                    => $this->attr('bio'),
             'profile_visibility'     => $this->attr('profile_visibility'),
             'is_walk_in'             => $this->attr('is_walk_in'),
             'created_by_landlord_id' => $this->attr('created_by_landlord_id'),
-            'provider'               => $this->attr('provider'),
-            'provider_id'            => $this->attr('provider_id'),
             'created_at'             => $this->attr('created_at'),
             'updated_at'             => $this->attr('updated_at'),
 

@@ -3,13 +3,16 @@
 @section('page-title', 'Property Verifications')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto">
+<div class="max-w-[1600px] mx-auto" x-data="{ rejectTarget: { id: null, title: '' }, openReject(id, title) { this.rejectTarget = { id, title }; window.dispatchEvent(new CustomEvent('open-modal', { detail: 'reject-listing' })); } }">
 
     {{-- Page header --}}
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">Property Verifications</h1>
-            <p class="text-sm text-[#5B6A8E] mt-1">Review pending property listings before they go live.</p>
+        <div class="flex items-center gap-3.5">
+            <x-page-icon path="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75" />
+            <div>
+                <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">Property Verifications</h1>
+                <p class="text-sm text-[#5B6A8E] mt-1">Review pending property listings before they go live.</p>
+            </div>
         </div>
         @if ($counts['Pending'] > 0)
             <span class="inline-flex items-center gap-1.5 rounded-full bg-[#FBBF24]/15 px-3 py-1.5 text-xs font-semibold text-[#92600A]">
@@ -160,16 +163,13 @@
                                         Approve
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ route('admin.listings.reject', $property->property_id) }}" class="flex-1 sm:flex-none">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:brightness-95 text-white text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(185,28,28,0.35)] cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                        Reject
-                                    </button>
-                                </form>
+                                <button type="button" x-on:click="openReject({{ $property->property_id }}, @js($property->title))"
+                                    class="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:brightness-95 text-white text-[13px] font-bold transition-all duration-200 shadow-[0_1px_2px_rgba(185,28,28,0.35)] cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Reject
+                                </button>
                             </div>
                         @elseif ($property->publication_status === 'Suspended')
                             <div class="flex sm:flex-col gap-2 sm:items-stretch shrink-0 sm:w-[130px]">
@@ -197,6 +197,42 @@
             </div>
         @endif
     @endif
+
+    {{-- Reject reason modal — shared across every row instead of an inline
+         per-row form, since this page can list dozens of pending listings.
+         The landlord previously got no reason at all when rejected (see
+         admin/documents/show.blade.php for the pattern this mirrors, which
+         already required one for document rejection). --}}
+    <x-modal name="reject-listing" focusable>
+        <form method="POST" x-bind:action="`{{ url('admin/listings') }}/${rejectTarget.id}/reject`" class="p-6">
+            @csrf
+            <h2 class="text-[15px] font-bold text-[#060D26]">Reject listing</h2>
+            <p class="mt-1 text-[13px] text-[#5B6A8E]">
+                <span x-text="rejectTarget.title"></span> will be rejected and the landlord notified with your reason below.
+            </p>
+
+            <label for="rejection_reason" class="block mt-4 text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+                Reason for rejection
+            </label>
+            <textarea name="rejection_reason" id="rejection_reason" rows="4" required
+                class="w-full rounded-lg border border-[#E2E4EC] px-3 py-2.5 text-[13px] text-[#060D26] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all resize-none"
+                placeholder="Explain what needs to change — the landlord will see this and can resubmit."></textarea>
+            @error('rejection_reason')
+                <p class="mt-1 text-xs text-[#DC2626]">{{ $message }}</p>
+            @enderror
+
+            <div class="mt-4 flex justify-end gap-2">
+                <button type="button" x-on:click="show = false"
+                    class="h-10 px-4 rounded-lg border border-[#E2E4EC] text-[13px] font-semibold text-[#5B6A8E] hover:text-[#060D26] transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="h-10 px-4 rounded-lg bg-[#EF4444] hover:brightness-95 text-white text-[13px] font-bold transition-all">
+                    Confirm rejection
+                </button>
+            </div>
+        </form>
+    </x-modal>
 
 </div>
 @endsection

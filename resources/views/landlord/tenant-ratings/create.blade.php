@@ -76,7 +76,7 @@
                 <label for="comment" class="block text-sm font-semibold text-[#060D26] mb-2">Comment <span
                         class="font-normal text-[#5B6A8E]">(optional)</span></label>
                 <textarea name="comment" id="comment" rows="4" maxlength="1000"
-                    class="w-full border border-[#E2E4EC] rounded-xl px-4 py-3 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:ring-2 focus:ring-[#DA8E77]/30 focus:border-[#DA8E77] transition-colors duration-150 resize-none"
+                    class="w-full border border-[#E2E4EC] rounded-xl px-4 py-3 text-sm text-[#060D26] placeholder-[#5B6A8E]/50 focus:ring-2 focus:ring-[#FF8A66]/30 focus:border-[#FF8A66] transition-colors duration-150 resize-none"
                     placeholder="How was your experience with this tenant?" x-data="{ count: 0 }"
                     x-on:input="count = $el.value.length">{{ old('comment') }}</textarea>
                 <p class="text-[11px] text-[#5B6A8E] mt-1 text-right"><span x-text="count || 0"></span>/1000</p>
@@ -88,7 +88,7 @@
             {{-- Submit --}}
             <div class="flex items-center gap-3">
                 <button type="submit" x-bind:disabled="rating === 0"
-                    class="px-6 py-2.5 bg-[#DA8E77] text-[#060D26] text-sm font-semibold rounded-xl hover:bg-[#C97A61] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed">
+                    class="px-6 py-2.5 bg-[#FF8A66] text-[#060D26] text-sm font-semibold rounded-xl hover:bg-[#E96F4F] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed">
                     Submit Rating
                 </button>
                 <a href="{{ route('landlord.reservations.index', ['status' => 'Occupied']) }}"

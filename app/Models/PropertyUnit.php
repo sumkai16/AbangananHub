@@ -3,45 +3,36 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class PropertyUnit extends Model
 {
     protected $primaryKey = 'unit_id';
 
- protected $fillable = [
-    'property_id',
-    'unit_label',
-    'unit_type',
-    'floor',
-    'bedrooms',
-    'bathrooms',
-    'floor_area_sqm',
-    'is_furnished',
-    'bathroom_type',
-    'furnishing_status',
-    'kitchen_type',
-    'pets_allowed',
-    'smoking_allowed',
-    'visitors_allowed',
-    'description',
-    'rental_fee',
-    'security_deposit',
-    'occupancy_limit',
-    'availability_status',
-    'verification_status',
-    'rejection_reason',
-    'vacated_at',
-];
+    protected $fillable = [
+        'property_id',
+        'unit_label',
+        'floor',
+        'bedrooms',
+        'bathrooms',
+        'floor_area_sqm',
+        'furnishing_status',
+        'description',
+        'rental_fee',
+        'security_deposit',
+        'occupancy_limit',
+        'availability_status',
+        'verification_status',
+        'rejection_reason',
+        'vacated_at',
+    ];
 
     protected function casts(): array
     {
         return [
             'rental_fee'        => 'decimal:2',
             'floor_area_sqm'    => 'decimal:2',
-            'is_furnished'      => 'boolean',
-            'pets_allowed'      => 'boolean',
-            'smoking_allowed'   => 'boolean',
-            'visitors_allowed'  => 'boolean',
             'vacated_at'        => 'datetime',
         ];
     }
@@ -64,14 +55,16 @@ class PropertyUnit extends Model
     {
         return $this->belongsTo(Property::class, 'property_id', 'property_id');
     }
-public function scopeMaintenance($query)
-{
-    return $query->where('availability_status', 'Maintenance');
-}
- public function media()
-{
-    return $this->hasMany(UnitMedia::class, 'unit_id', 'unit_id');
-}
+
+    public function scopeMaintenance($query)
+    {
+        return $query->where('availability_status', 'Maintenance');
+    }
+
+    public function media()
+    {
+        return $this->hasMany(UnitMedia::class, 'unit_id', 'unit_id');
+    }
 
     public function amenities()
     {
@@ -81,8 +74,8 @@ public function scopeMaintenance($query)
     public function activeReservation()
     {
         return $this->hasOne(Reservation::class, 'unit_id', 'unit_id')
-                     ->whereIn('rental_status', ['Rental Agreement Signed', 'Occupied'])
-                     ->latestOfMany('reservation_id');
+            ->whereIn('rental_status', ['Rental Agreement Signed', 'Reserved', 'Occupied'])
+            ->latestOfMany('reservation_id');
     }
 
     public function reservations()
@@ -115,7 +108,7 @@ public function scopeMaintenance($query)
     public function scopeAvailable($query)
     {
         return $query->where('availability_status', 'Available')
-                     ->where('verification_status', 'Approved');
+            ->where('verification_status', 'Approved');
     }
 
     public function scopeReserved($query)
@@ -126,5 +119,38 @@ public function scopeMaintenance($query)
     public function scopeOccupied($query)
     {
         return $query->where('availability_status', 'Occupied');
+    }
+
+    /**
+     * The label/value rows the unit detail views (landlord modal and public panel)
+     * list under the price. Only rows that have a value, in display order.
+     *
+     * @return list<array{0: string, 1: string}>
+     */
+    public function specRows(): array
+    {
+        $bathroom = $this->bathrooms === null
+            ? null
+            : $this->bathrooms.' '.Str::plural('bath', $this->bathrooms);
+
+        return collect([
+            ['Capacity', $this->occupancy_limit ? $this->occupancy_limit.' '.($this->occupancy_limit == 1 ? 'person' : 'people') : null],
+            ['Security deposit', $this->security_deposit !== null ? '₱'.number_format($this->security_deposit, 0) : 'No deposit'],
+            ['Floor area', $this->floor_area_label],
+            ['Furnishing', $this->furnishing_status],
+            ['Bedrooms', $this->bedrooms === null ? null : ($this->bedrooms == 0 ? 'Studio' : (string) $this->bedrooms)],
+            ['Bathroom', $bathroom],
+        ])->filter(fn ($row) => filled($row[1]))->values()->all();
+    }
+
+    /**
+     * Amenities minus the ones that only restate a spec row above
+     * ("Shared Bathroom" next to a "Bathroom: 1 shared bath" row).
+     */
+    public function amenitiesBeyondSpecs(): Collection
+    {
+        $skip = $this->bathrooms !== null ? ['Private Bathroom', 'Shared Bathroom'] : [];
+
+        return $this->amenities->reject(fn ($a) => in_array($a->amenity_name, $skip, true))->values();
     }
 }

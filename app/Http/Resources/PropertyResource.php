@@ -13,6 +13,8 @@ class PropertyResource extends ApiResource
             'description'          => $this->attr('description'),
             'house_rules'          => $this->attr('house_rules'),
             'property_type'        => $this->attr('property_type'),
+            'living_arrangement'   => $this->attr('living_arrangement'),
+            'occupancy_preference' => $this->attr('occupancy_preference'),
             'address'              => $this->attr('address'),
             'city_municipality'    => $this->attr('city_municipality'),
             'barangay'             => $this->attr('barangay'),
@@ -33,7 +35,8 @@ class PropertyResource extends ApiResource
             'review_count'         => $this->attr('review_count'),
             'is_favorited'         => $this->attr('is_favorited'),
 
-            'landlord'             => new UserResource($this->whenLoaded('landlord')),
+            // The business, not the person: see PublicLandlordResource.
+            'landlord'             => $this->whenLoaded('landlord', fn () => new PublicLandlordResource($this->landlord)),
             'media'                => PropertyMediaResource::collection($this->whenLoaded('media')),
             'amenities'            => $this->whenLoaded('amenities'),
             'units'                => PropertyUnitResource::collection($this->whenLoaded('units')),

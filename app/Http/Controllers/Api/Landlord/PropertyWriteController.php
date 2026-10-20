@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Landlord;
 
+use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\StorePropertyRequest;
 use App\Http\Requests\Landlord\UpdatePropertyRequest;
@@ -19,10 +20,7 @@ use Illuminate\Support\Facades\DB;
  */
 class PropertyWriteController extends Controller
 {
-    private function authorizeProperty(Property $property): void
-    {
-        abort_if($property->landlord_id !== auth()->id(), 403);
-    }
+    use AuthorizesPropertyOwnership;
 
     public function store(StorePropertyRequest $request): JsonResponse
     {
@@ -36,6 +34,7 @@ class PropertyWriteController extends Controller
             $property->title               = $validated['title'];
             $property->description         = $validated['description'];
             $property->property_type       = $validated['property_type'];
+            $property->fill(\App\Support\PropertyPolicies::fromRequest($request));
             $property->address             = $validated['address'];
             $property->city_municipality   = $validated['city_municipality'];
             $property->barangay            = $validated['barangay'] ?? null;
@@ -75,6 +74,7 @@ class PropertyWriteController extends Controller
                 'title'             => $validated['title'],
                 'description'       => $validated['description'],
                 'property_type'     => $validated['property_type'],
+                ...\App\Support\PropertyPolicies::fromRequest($request),
                 'address'           => $validated['address'],
                 'city_municipality' => $validated['city_municipality'],
                 'barangay'          => $validated['barangay'] ?? null,

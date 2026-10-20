@@ -61,6 +61,20 @@ class ReservationPolicy
     }
 
     /**
+     * Only the landlord who owns the property, and only while the walk-in is
+     * sitting in Reserved waiting for its move-in date. Not date-gated — the
+     * landlord may confirm early or late, their own judgment is what starts
+     * the tenancy for a walk-in, same as markTurnedOver() is an assertion
+     * rather than a verified event.
+     */
+    public function confirmWalkInMoveIn(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property
+            && $reservation->property->landlord_id === $user->user_id
+            && $reservation->rental_status === 'Reserved';
+    }
+
+    /**
      * The landlord who owns the property can open a tenancy's detail page and
      * its rent ledger.
      *
@@ -84,6 +98,17 @@ class ReservationPolicy
     public function viewOwnTenancy(User $user, Reservation $reservation): bool
     {
         return $reservation->tenant_id === $user->user_id;
+    }
+
+    /**
+     * Either side of a tenancy can open its chat — the tenant, or the landlord who
+     * owns the property. A tenancy that never started (still negotiating) has none.
+     */
+    public function viewTenancyChat(User $user, Reservation $reservation): bool
+    {
+        return in_array($reservation->rental_status, ['Occupied', 'Completed'], true)
+            && ($reservation->tenant_id === $user->user_id
+                || $reservation->property?->landlord_id === $user->user_id);
     }
 
     /**
@@ -120,6 +145,21 @@ class ReservationPolicy
     }
 
     /**
+     * Deliberately NOT restricted to 'Occupied', same reasoning as
+     * voidPayment — damage is often found around move-out, after the
+     * tenancy has already been marked Completed.
+     */
+    public function recordDepositCharge(User $user, Reservation $reservation): bool
+    {
+        return $this->viewTenancy($user, $reservation);
+    }
+
+    public function voidDepositCharge(User $user, Reservation $reservation): bool
+    {
+        return $this->viewTenancy($user, $reservation) || $user->hasRole('Admin');
+    }
+
+    /**
      * Ending a tenancy hands the unit back to the available pool, so only the
      * owner may do it and only while it is actually running.
      */
@@ -141,5 +181,58 @@ class ReservationPolicy
                 $reservation->tenant_id === $user->user_id
                 || $reservation->property?->landlord_id === $user->user_id
             );
+    }
+
+    /**
+     * The lease: its tenant, or the landlord of its property. Unlike
+     * viewAgreement (the tenant's signing page), the landlord needs this to
+     * print a walk-in's lease and to check what an online tenant signed.
+     */
+    public function viewLease(User $user, Reservation $reservation): bool
+    {
+        return $reservation->tenant_id === $user->user_id
+            || $reservation->property?->landlord_id === $user->user_id;
+    }
+
+    /**
+     * Attaching the signed paper copy — landlord of the property only.
+     */
+    public function manageLease(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property?->landlord_id === $user->user_id;
+    }
+
+    /**
+     * The tenant's emergency contact and ID on file: the landlord of the property, once the tenant is
+     * committed to the place (Reserved, Occupied) or has been (Completed). Not while still negotiating
+     * or signing, and never to a landlord the tenant has no booking with, so a tenant who inquires
+     * hands nothing over until there is a real tenancy.
+     */
+    public function viewTenantDetails(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property?->landlord_id === $user->user_id
+            && in_array($reservation->rental_status, ['Reserved', 'Occupied', 'Completed'], true);
+    }
+
+    /**
+     * A walk-in cannot log in, so the landlord who recorded them keeps their details. Only that
+     * landlord, and only while the tenancy is live; an online tenant edits their own in Account Settings.
+     */
+    public function editWalkInDetails(User $user, Reservation $reservation): bool
+    {
+        return $reservation->property?->landlord_id === $user->user_id
+            && $reservation->tenant?->is_walk_in
+            && $reservation->tenant->created_by_landlord_id === $user->user_id
+            && in_array($reservation->rental_status, ['Reserved', 'Occupied'], true);
+    }
+
+    /**
+     * Only the reservation's tenant asks to see the unit, and only between
+     * the landlord accepting the inquiry and the agreement being signed.
+     */
+    public function requestViewing(User $user, Reservation $reservation): bool
+    {
+        return $reservation->tenant_id === $user->user_id
+            && $reservation->canRequestViewing();
     }
 }

@@ -36,7 +36,7 @@
                 @endif
             </x-slot:badges>
             <x-slot:actions>
-                <a href="{{ route('tenant.profile.edit') }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white text-[13px] font-semibold text-[#060D26] hover:brightness-95 transition duration-200">
+                <a href="{{ route('profile.edit') }}" class="inline-flex h-10 items-center gap-2 px-4 rounded-xl bg-white text-[13px] font-semibold text-[#060D26] hover:brightness-95 transition duration-200">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                     </svg>
@@ -101,7 +101,7 @@
                                 @if($user->bio)
                                     <p class="text-[14px] leading-relaxed text-[#060D26] whitespace-pre-line">{{ $user->bio }}</p>
                                 @else
-                                    <p class="text-[14px] text-[#5B6A8E]">No bio yet. <a href="{{ route('tenant.profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Tell landlords a bit about yourself.</a></p>
+                                    <p class="text-[14px] text-[#5B6A8E]">No bio yet. <a href="{{ route('profile.edit') }}" class="font-semibold text-[#B35A3D] hover:underline">Tell landlords a bit about yourself.</a></p>
                                 @endif
                             </div>
                             <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-5 border-t border-[#E2E4EC] pt-6">

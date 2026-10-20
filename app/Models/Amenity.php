@@ -12,6 +12,31 @@ class Amenity extends Model
     ];
 protected $primaryKey = 'amenity_id';
 
+    /** Unit amenities that contradict each other: a unit has one or the other, never both. */
+    public const EXCLUSIVE_UNIT_AMENITIES = ['Private Bathroom', 'Shared Bathroom'];
+
+    /** True when the selection (amenity ids) ticks more than one of the mutually exclusive amenities. */
+    public static function hasConflict(array $ids): bool
+    {
+        if ($ids === []) {
+            return false;
+        }
+
+        return static::whereIn('amenity_id', $ids)
+            ->whereIn('amenity_name', self::EXCLUSIVE_UNIT_AMENITIES)
+            ->count() > 1;
+    }
+
+    /** Validation rule for a unit's `amenities` array. */
+    public static function exclusiveRule(): \Closure
+    {
+        return function ($attribute, $value, $fail) {
+            if (self::hasConflict((array) $value)) {
+                $fail('A unit has a private or a shared bathroom, not both.');
+            }
+        };
+    }
+
     // ─── Query scopes ────────────────────────────────────────
 
     public function scopeForProperty($query)

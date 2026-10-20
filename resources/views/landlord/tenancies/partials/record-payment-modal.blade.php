@@ -11,7 +11,7 @@
         ?? $periods->reject(fn ($p) => $p['is_future'])->last()
         ?? $periods->last();
 
-    $modalInput = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition';
+    $modalInput = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition';
     $modalLabel = 'block text-[12px] font-semibold text-[#060D26] mb-1.5';
 
     $paymentTypeOptions = [
@@ -71,7 +71,11 @@
             ->map(fn ($p) => ['period' => $p['period']->toDateString(), 'balance' => round($p['balance'], 2)])
             ->values()),
         monthlyRent: @js($summary['monthlyRent']),
-        open() { this.show = true; },
+        // A bare open (header button) keeps the defaults; a row's Record button passes its period + balance.
+        open(detail) {
+            if (detail && detail.period) { this.type = 'Monthly'; this.period = detail.period; this.amount = detail.balance; }
+            this.show = true;
+        },
         close() { this.show = false; },
         round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; },
         /*
@@ -116,7 +120,7 @@
             return '₱' + (value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
      }"
-     x-on:open-record-payment.window="open()"
+     x-on:open-record-payment.window="open($event.detail)"
      x-on:keydown.escape.window="close()">
 
     <template x-teleport="body">
@@ -165,7 +169,7 @@
                         value="{{ old('replaces_payment_id', $correction['payment_id'] ?? '') }}">
 
                     @if($correction)
-                        <div class="flex items-start gap-2.5 rounded-xl bg-[#ECEEF6] border border-[#DA8E77]/25 px-3.5 py-3 mb-4">
+                        <div class="flex items-start gap-2.5 rounded-xl bg-[#ECEEF6] border border-[#FF8A66]/25 px-3.5 py-3 mb-4">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2"
                                 class="shrink-0 mt-0.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
@@ -218,7 +222,7 @@
                     {{-- Only appears once the amount reaches past one month —
                          an ordinary single-month payment never shows this. --}}
                     <div x-show="type === 'Monthly' && splitsMultipleMonths" x-cloak
-                        class="mb-4 rounded-xl border border-[#DA8E77]/25 bg-[#ECEEF6] px-3.5 py-3">
+                        class="mb-4 rounded-xl border border-[#FF8A66]/25 bg-[#ECEEF6] px-3.5 py-3">
                         <p class="text-[12px] font-semibold text-[#060D26] mb-2">
                             This covers <span x-text="splitPreview.length"></span> billing months:
                         </p>
@@ -273,7 +277,7 @@
                         </label>
                         <textarea id="payment_notes" name="payment_notes" rows="2" maxlength="1000"
                             placeholder="Anything worth noting about this payment…"
-                            class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition resize-y">{{ old('payment_notes') }}</textarea>
+                            class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition resize-y">{{ old('payment_notes') }}</textarea>
                         @error('payment_notes')
                             <p class="text-[11.5px] text-[#EF4444] mt-1">{{ $message }}</p>
                         @enderror
@@ -297,7 +301,7 @@
                             Cancel
                         </button>
                         <button type="submit"
-                            class="h-11 px-6 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200 cursor-pointer">
+                            class="h-11 px-6 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                             Record payment
                         </button>
                     </div>

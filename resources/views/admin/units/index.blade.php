@@ -32,7 +32,7 @@
             @foreach ($stats as $key => $stat)
                 <x-stat-card :label="$stat['label']" :value="$stat['value']" :value-color="$stat['valueColor']" :icon-bg="$stat['iconBg']"
                     :href="route('admin.units.index', ['status' => $key])"
-                    :class="$status === $key ? 'ring-2 ring-[#DA8E77]' : ''">
+                    :class="$status === $key ? 'ring-2 ring-[#FF8A66]' : ''">
                     <x-slot:icon>
                         @switch($key)
                             @case('Pending')
@@ -65,7 +65,7 @@
             @foreach (['Pending', 'Approved', 'Rejected', 'All'] as $tab)
                 <a href="{{ route('admin.units.index', ['status' => $tab]) }}"
                     class="px-4 py-2.5 text-[13px] font-semibold border-b-2 whitespace-nowrap transition-colors
-                        {{ $status === $tab ? 'border-[#DA8E77] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
+                        {{ $status === $tab ? 'border-[#FF8A66] text-[#060D26]' : 'border-transparent text-[#94A3B8] hover:text-[#060D26]' }}">
                     {{ $tab }}
                     <span class="ml-1 text-[11px] {{ $status === $tab ? 'text-[#060D26]' : 'text-[#94A3B8]' }}">{{ $counts[$tab] }}</span>
                 </a>
@@ -75,7 +75,7 @@
         @if ($units->isEmpty())
             <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
                 <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-7 h-7 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm9.75 0A2.25 2.25 0 0115.75 3.75H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zm-9.75 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zm9.75 0a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                     </svg>
@@ -95,7 +95,7 @@
                             @if($thumb)
                                 <img src="{{ $thumb->media_url }}" alt="{{ $unit->unit_label }}" loading="lazy" class="w-full h-full object-cover">
                             @else
-                                <svg class="w-5 h-5 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <svg class="w-5 h-5 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
                                 </svg>
                             @endif
@@ -122,7 +122,7 @@
                             <x-verification-status-badge :status="$unit->verification_status" />
                         </div>
 
-                        <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#A8573F] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#B35A3D] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>

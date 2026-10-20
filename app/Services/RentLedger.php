@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\DepositCharge;
 use App\Models\Payment;
 use App\Models\Reservation;
 use Illuminate\Support\Carbon;
@@ -27,7 +28,7 @@ use Illuminate\Support\Collection;
  */
 class RentLedger
 {
-    /** Charges that sit outside the monthly cycle. */
+    /** Charges that sit outside the monthly cycle. (A platform checkout's 'Initial' is the exception: see isPlatformInitial().) */
     private const NON_MONTHLY_TYPES = ['Initial', 'Deposit', 'Utility', 'Other'];
 
     /**
@@ -46,6 +47,8 @@ class RentLedger
 
     private Collection $payments;
 
+    private Collection $depositCharges;
+
     public function __construct(private Reservation $reservation)
     {
         // Loaded once and filtered in memory: a tenancy has a handful of
@@ -54,6 +57,10 @@ class RentLedger
         $this->payments = $reservation->relationLoaded('payments')
             ? $reservation->payments
             : $reservation->payments()->get();
+
+        $this->depositCharges = $reservation->relationLoaded('depositCharges')
+            ? $reservation->depositCharges
+            : $reservation->depositCharges()->get();
     }
 
     public static function for(Reservation $reservation): self
@@ -118,6 +125,31 @@ class RentLedger
     }
 
     /**
+     * A period reduced to what the ledger's detail modal shows — the month's
+     * figures plus the individual payments behind them. Plain scalars only, so
+     * it can be embedded straight into an Alpine event payload.
+     */
+    public static function periodPayload(array $period): array
+    {
+        return [
+            'label'     => $period['label'],
+            'due_on'    => $period['due_on']->format('M d, Y'),
+            'expected'  => (float) $period['expected'],
+            'paid'      => (float) $period['paid'],
+            'balance'   => max(0, (float) $period['balance']),
+            'is_future' => (bool) $period['is_future'],
+            'payments'  => $period['payments']->map(fn (Payment $p) => [
+                'id'        => $p->payment_id,
+                'date'      => optional($p->paid_at)->format('M d, Y') ?? '—',
+                'amount'    => (float) $p->amount,
+                'method'    => $p->payment_method ?: ($p->isManuallyRecorded() ? 'Recorded manually' : 'Online'),
+                'reference' => $p->reference_no,
+                'can_void'  => $p->canBeVoided(),
+            ])->values()->all(),
+        ];
+    }
+
+    /**
      * Deposits, the initial payment, utilities and one-offs — money that
      * belongs to the tenancy but not to any single month, so it would silently
      * inflate a period's "paid" column if it were folded in.
@@ -126,6 +158,7 @@ class RentLedger
     {
         return $this->payments
             ->filter(fn (Payment $p) => in_array($p->payment_type, self::NON_MONTHLY_TYPES, true)
+                && ! $this->isPlatformInitial($p)
                 && in_array($p->status, self::SETTLED_STATUSES, true))
             ->sortByDesc(fn (Payment $p) => $p->paid_at ?? $p->created_at)
             ->values();
@@ -141,7 +174,7 @@ class RentLedger
     public function monthlyTransactions(): Collection
     {
         return $this->payments
-            ->filter(fn (Payment $p) => $p->payment_type === 'Monthly'
+            ->filter(fn (Payment $p) => ($p->payment_type === 'Monthly' || $this->isPlatformInitial($p))
                 && in_array($p->status, self::SETTLED_STATUSES, true))
             ->sortByDesc(fn (Payment $p) => $p->paid_at ?? $p->created_at)
             ->values();
@@ -185,6 +218,13 @@ class RentLedger
             ->where('payment_type', 'Deposit')
             ->sum(fn (Payment $p) => (float) $p->amount);
 
+        // Claims a landlord has made against the held deposit (damage,
+        // cleaning, etc.) — a voided charge no longer counts against it.
+        $depositCharged = (float) $this->depositCharges
+            ->reject(fn (DepositCharge $c) => $c->isVoided())
+            ->sum(fn (DepositCharge $c) => (float) $c->amount);
+        $depositRemaining = max(0, $depositCollected - $depositCharged);
+
         // The current calendar month's own row, if this tenancy is billed at
         // all this month — absent for a tenancy that starts later or already
         // ended before this month arrived.
@@ -203,6 +243,8 @@ class RentLedger
             'monthlyCollected' => round($monthlyCollected, 2),
             'otherCollected'   => round($otherCollected, 2),
             'depositCollected' => round($depositCollected, 2),
+            'depositCharged'   => round($depositCharged, 2),
+            'depositRemaining' => round($depositRemaining, 2),
             'outstanding'      => round((float) $billed->sum(fn ($p) => max(0, $p['balance'])), 2),
             'overdueCount'     => $overdue->count(),
             'overdueAmount'    => round((float) $overdue->sum(fn ($p) => max(0, $p['balance'])), 2),
@@ -378,6 +420,19 @@ class RentLedger
     }
 
     /**
+     * The initial payment an online tenant makes at checkout. It is the first month's rent (the checkout
+     * charges the agreed monthly rent and nothing else), so it settles the first billing period instead of
+     * sitting in otherCharges() while the move-in month still reads Due and offers "Pay now" again.
+     *
+     * Only platform checkouts qualify. A walk-in's lump the landlord typed in carries recorded_by and is
+     * split into Deposit + Monthly rows at entry (MoveInPaymentBreakdown), so it is left alone here.
+     */
+    private function isPlatformInitial(Payment $payment): bool
+    {
+        return $payment->payment_type === 'Initial' && ! $payment->isManuallyRecorded();
+    }
+
+    /**
      * Settled monthly payments whose billing_period falls in this month.
      *
      * Matched on the month rather than the exact date so a payment recorded
@@ -386,13 +441,20 @@ class RentLedger
      */
     private function monthlyPaymentsFor(Carbon $period): Collection
     {
+        $firstPeriod = $this->reservation->tenancyStartDate()?->copy()->startOfMonth();
+
         return $this->payments
-            ->filter(function (Payment $payment) use ($period) {
-                if ($payment->payment_type !== 'Monthly') {
+            ->filter(function (Payment $payment) use ($period, $firstPeriod) {
+                if (! in_array($payment->status, self::SETTLED_STATUSES, true)) {
                     return false;
                 }
 
-                if (! in_array($payment->status, self::SETTLED_STATUSES, true)) {
+                // The move-in payment taken at checkout pays the first month (see isPlatformInitial()).
+                if ($this->isPlatformInitial($payment)) {
+                    return $firstPeriod !== null && $period->isSameMonth($firstPeriod);
+                }
+
+                if ($payment->payment_type !== 'Monthly') {
                     return false;
                 }
 

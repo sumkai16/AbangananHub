@@ -7,9 +7,12 @@
 
     {{-- Header --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-            <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">Conversations</h1>
-            <p class="text-sm text-[#5B6A8E] mt-1">Read-only access to all tenant–landlord conversations for dispute support.</p>
+        <div class="flex items-center gap-3.5">
+            <x-page-icon path="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+            <div>
+                <h1 class="text-2xl font-normal text-[#060D26] tracking-tight">Conversations</h1>
+                <p class="text-sm text-[#5B6A8E] mt-1">Read-only access to all tenant–landlord conversations for dispute support.</p>
+            </div>
         </div>
     </div>
 
@@ -47,13 +50,13 @@
             <input type="text" name="search" value="{{ $search }}"
                 placeholder="Search by tenant, landlord, or property…" aria-label="Search by tenant, landlord, or property"
                 x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC]/50 focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] transition-all">
+                class="w-full h-10 pl-9 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC]/50 focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all">
         </div>
         <x-styled-select name="status" :options="['all' => 'All statuses', 'Open' => 'Open', 'Resolved' => 'Resolved']"
             :selected="$status"
             class="h-10 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC]/50 px-3" />
         <button type="submit"
-            class="h-10 px-5 text-[13.5px] font-bold bg-[#DA8E77] text-[#060D26] rounded-xl hover:bg-[#C97A61] transition-all duration-200 shadow-sm cursor-pointer">
+            class="h-10 px-5 text-[13.5px] font-bold bg-[#FF8A66] text-[#060D26] rounded-xl hover:bg-[#E96F4F] transition-all duration-200 shadow-sm cursor-pointer">
             Filter
         </button>
         @if($search || $status !== 'all')
@@ -68,7 +71,7 @@
     @if($conversations->isEmpty())
         <div class="bg-white border border-[#E2E4EC] rounded-2xl p-16 text-center shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
             <div class="w-14 h-14 rounded-2xl bg-[#ECEEF6] border border-[#E2E4EC] flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-[#A8573F]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <svg class="w-7 h-7 text-[#B35A3D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                 </svg>
             </div>
@@ -118,7 +121,7 @@
                         </span>
                     </div>
 
-                    <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#A8573F] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-4 h-4 text-[#94A3B8] group-hover:text-[#B35A3D] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                 </a>

@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ $title ?? 'AbangananHub' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/logo-app-icon.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <script>
@@ -28,62 +28,114 @@
         class="bg-white border-b border-[#E2E4EC] sticky top-0 z-[100] transition-all duration-300">
 
         {{-- 1. Nav Row --}}
-        <div class="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-[64px] relative">
+        @php
+            // A detail page opts in via @extends('layouts.app', ['backNav' =>
+            // ['route' => ..., 'label' => ...]]) to swap Home/Browse/Areas/How
+            // it works for a single back link at `lg`, with the logo moving to
+            // dead-centre — see properties/show.blade.php for the first use.
+            // Same "reuse the previous URL only if it's that index page" rule
+            // as any other back link here, computed fresh from the given route
+            // so callers don't have to duplicate the parse_url check.
+            $backNavData = null;
+            if (!empty($backNav)) {
+                $backNavIndexUrl = route($backNav['route']);
+                $backNavPrevUrl = url()->previous();
+                $backNavData = [
+                    'url' => parse_url($backNavPrevUrl, PHP_URL_PATH) === parse_url($backNavIndexUrl, PHP_URL_PATH)
+                        ? $backNavPrevUrl
+                        : $backNavIndexUrl,
+                    'label' => $backNav['label'] ?? 'Back',
+                ];
+            }
 
-            {{-- Logo --}}
+            // backNav's right-actions cluster (theme toggle + Become a
+            // Landlord/dashboard pill + notifications + avatar) is wide
+            // enough that a dead-centred logo can collide with it once the
+            // primary nav's flex space is gone, at widths just above `lg`.
+            // Pushing the mobile-style header (logo left + hamburger) out to
+            // `xl` on a backNav page buys enough room that it can't happen —
+            // ordinary pages keep switching at `lg` as before.
+            $mobileBp = $backNavData ? 'xl' : 'lg';
+
+            // Needed by both the primary nav below (desktop) and the mobile
+            // nav panel further down, so computed unconditionally rather than
+            // inside the @if/@else — the mobile panel still shows these links
+            // (via the hamburger) even on a backNav page, since there's no
+            // room for them in the header at that width either way.
+            $onHome = request()->routeIs('home');
+            $onBrowse = request()->routeIs('properties.index');
+            $onAreas = request()->routeIs('properties.areas');
+        @endphp
+        {{-- max-w-[1400px] mx-auto to match the standard content container
+             (gallery, footer below, every page built on it) — same full-bleed
+             bg + capped-and-centred inner row the search band two sections
+             down already uses. Without this the row was edge-to-edge of the
+             *window*, not the 1400px column, so on anything wider than
+             ~1462px the logo/back-link/actions drifted further from the
+             photo edges the wider the screen got — a small lg:px-10 vs
+             lg:px-8 padding mismatch (since fixed) was masking the real gap. --}}
+        <div class="max-w-[1400px] mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-[64px] relative">
+
+            {{-- Logo — hidden at `lg` on a backNav page, since the centred
+                 logo below takes over at that width. Unaffected on mobile:
+                 the header stays tight there (logo + hamburger + auth
+                 buttons), so the back link lives in the page content instead. --}}
             <a href="{{ route('home') }}"
-                class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group">
-                <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
-                    class="w-8 h-8 sm:w-10 sm:h-10 object-contain transition-transform group-hover:scale-105">
-                <span class="text-[16px] sm:text-[18px] font-extrabold text-[#060D26] tracking-tight">
-                    Abanganan<span class="text-[#FF8A66]">Hub</span>
-                </span>
+                class="flex items-center gap-1.5 sm:gap-2.5 no-underline flex-shrink-0 group {{ $backNavData ? $mobileBp.':hidden' : '' }}">
+                <x-brand-logo mark="w-8 h-8 sm:w-10 sm:h-10" text="text-[16px] sm:text-[18px]" gap="gap-1.5 sm:gap-2.5" />
             </a>
 
-            {{-- Primary nav — sits beside the logo, deliberately not centred: the
-                 collapsed search pill below is `absolute left-1/2`, and a centred
-                 nav would land underneath it on scroll. Hidden below `lg`; phones
-                 get the same links via the `mobileNavOpen` hamburger panel instead
-                 (see `#mobile-nav-panel` further down). --}}
-            <nav aria-label="Primary" class="hidden lg:flex items-center gap-1 ml-8 mr-auto">
-                {{-- Block form, not the inline parenthesised one: that emitted an
-                     unterminated PHP open tag here and swallowed the rest of the
-                     header. Never write a literal PHP open tag in a Blade comment
-                     either — Blade tokenises with token_get_all(), so one inside a
-                     comment still opens a PHP block and silently drops the markup
-                     that follows it. --}}
-                @php
-                    $onHome = request()->routeIs('home');
-                    $onBrowse = request()->routeIs('properties.index');
-                    $onAreas = request()->routeIs('properties.areas');
-                @endphp
-
-                <a href="{{ route('home') }}" @if($onHome) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onHome ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
-                    Home
+            @if($backNavData)
+                <a href="{{ $backNavData['url'] }}"
+                    class="hidden xl:inline-flex items-center gap-2 text-[13.5px] font-semibold text-[#060D26] hover:text-[#B35A3D] transition-colors duration-200">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+                    </svg>
+                    {{ $backNavData['label'] }}
                 </a>
 
-
-                <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
-                    Browse Rentals
+                {{-- Centred logo — `absolute left-1/2 -translate-x-1/2` inside
+                     this row's own `relative`, same trick the collapsed search
+                     pill uses elsewhere in this file. --}}
+                <a href="{{ route('home') }}"
+                    class="hidden xl:flex items-center gap-2.5 no-underline absolute left-1/2 -translate-x-1/2 group">
+                    <x-brand-logo mark="w-9 h-9" text="text-[18px]" />
                 </a>
+            @else
+                {{-- Primary nav — sits beside the logo, deliberately not centred: the
+                     collapsed search pill below is `absolute left-1/2`, and a centred
+                     nav would land underneath it on scroll. Hidden below `lg`; phones
+                     get the same links via the `mobileNavOpen` hamburger panel instead
+                     (see `#mobile-nav-panel` further down). --}}
+                <nav aria-label="Primary" class="hidden lg:flex items-center gap-1 ml-8 mr-auto">
+                    <a href="{{ route('home') }}" @if($onHome) aria-current="page" @endif
+                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onHome ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                        Home
+                    </a>
 
-                <a href="{{ route('properties.areas') }}" @if($onAreas) aria-current="page" @endif
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onAreas ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
-                    Areas
-                </a>
 
-                <a href="{{ route('about') }}#how-it-works"
-                    class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
-                    How it works
-                </a>
-            </nav>
+                    <a href="{{ route('properties.index') }}" @if($onBrowse) aria-current="page" @endif
+                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onBrowse ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                        Browse Rentals
+                    </a>
+
+                    <a href="{{ route('properties.areas') }}" @if($onAreas) aria-current="page" @endif
+                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ $onAreas ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                        Areas
+                    </a>
+
+                    <a href="{{ route('about') }}#how-it-works"
+                        class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
+                        How it works
+                    </a>
+                </nav>
+            @endif
 
             {{-- Right Actions --}}
-            <div class="flex items-center gap-3">
+            {{-- gap-1.5 below sm: on a 375px phone the logo, theme toggle, menu, messages, bell and avatar did not fit in one row and the avatar was pushed off screen. The theme toggle also moves into the menu panel below sm. --}}
+            <div class="flex items-center gap-1.5 sm:gap-3">
 
-                <x-theme-toggle />
+                <div class="hidden sm:block"><x-theme-toggle /></div>
 
                 {{-- Mobile nav toggle — this header has no `lg:flex` primary nav
                      below `lg` (see the comment above), so this is the only way a
@@ -91,7 +143,7 @@
                 <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Menu"
                     :aria-expanded="mobileNavOpen ? 'true' : 'false'" aria-haspopup="true" aria-controls="mobile-nav-panel"
                     :class="mobileNavOpen ? 'bg-[#ECEEF6] text-[#060D26]' : 'text-[#5B6A8E] hover:bg-[#F7F8FC] hover:text-[#B35A3D]'"
-                    class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+                    class="{{ $mobileBp }}:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path x-show="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         <path x-show="mobileNavOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -100,18 +152,20 @@
 
                 {{-- Messages — mobile equivalent of the floating chat bubble,
                      which is desktop-only (see partials.message-notifications).
-                     Dispatches the same event that bubble's panel listens for. --}}
+                     Links to the full messages page; a popup panel is wrong on a phone. --}}
                 @auth
                     @php
                         $mobileUnreadMsgCount = $unreadMessageCount;
                     @endphp
-                    <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
-                        class="lg:hidden relative flex items-center gap-1.5 h-10 px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
-                        Messages
+                    <a href="{{ route('conversations.index') }}"
+                        aria-label="Messages"
+                        class="{{ $mobileBp }}:hidden relative flex items-center justify-center gap-1.5 h-10 w-10 sm:w-auto sm:px-3 rounded-full border border-[#E2E4EC] text-[#060D26] text-[12.5px] font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
+                        <svg class="sm:hidden" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>
+                        <span class="hidden sm:inline">Messages</span>
                         @if($mobileUnreadMsgCount > 0)
-                            <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
+                            <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold absolute -top-1 -right-1 sm:static">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
                         @endif
-                    </button>
+                    </a>
                 @endauth
 
                 @auth
@@ -164,9 +218,10 @@
                                 </div>
                             </div>
                         @else
-                            <a href="{{ route('landlord.verification.create') }}"
+                            @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                            <a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}"
                                 class="flex items-center gap-2 h-10 px-5 rounded-full bg-[#ECEEF6] text-[13.5px] font-semibold text-[#060D26] hover:brightness-95 transition-all cursor-pointer">
-                                Become a Landlord
+                                {{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}
                             </a>
                         @endif
                     </div>
@@ -219,7 +274,7 @@
                         <button type="button" @click="open = !open" @click.outside="open = false"
                             :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true"
                             :class="open ? 'bg-[#ECEEF6]' : 'hover:bg-[#F7F8FC]'"
-                            class="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
+                            class="flex items-center gap-2.5 pl-1 pr-1 sm:pr-2.5 py-1 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]/40 cursor-pointer">
                             @if(auth()->user()->profile_picture)
                                 <img loading="lazy" decoding="async" src="{{ auth()->user()->profile_picture }}" alt="{{ $abgFullName }}"
                                     class="w-9 h-9 rounded-full object-cover shrink-0">
@@ -335,11 +390,20 @@
                                 </svg>
                                 Report a Problem
                             </a>
+                            @if(auth()->user()->hasRole('Tenant'))
+                                <a href="{{ route('tenant.reports.index') }}" class="{{ $menuRow }}">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" />
+                                    </svg>
+                                    My Reports
+                                </a>
+                            @endif
 
                             <div class="h-px bg-[#E2E4EC] mx-2 my-1.5"></div>
 
                             {{-- Sign out --}}
-                            <form action="{{ route('logout') }}" method="POST">
+                            <form action="{{ route('logout') }}" method="POST"
+                                data-confirm="Sign out?" data-confirm-message="You'll need to log in again to continue." data-confirm-button="Sign out">
                                 @csrf
                                 <button type="submit"
                                     class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-[#EF4444] hover:bg-[#EF4444]/[0.07] transition-colors cursor-pointer">
@@ -379,7 +443,13 @@
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
-            class="lg:hidden border-t border-[#E2E4EC] bg-white px-4 py-3">
+            class="{{ $mobileBp }}:hidden border-t border-[#E2E4EC] bg-white px-4 py-3">
+
+            {{-- The header's theme toggle is hidden below sm (no room), so it lives here on phones. --}}
+            <div class="sm:hidden flex items-center justify-between px-3.5 py-1.5">
+                <span class="text-[14px] font-semibold text-[#060D26]">Dark mode</span>
+                <x-theme-toggle />
+            </div>
 
             <a href="{{ route('home') }}" @click="mobileNavOpen = false"
                 @if($onHome) aria-current="page" @endif
@@ -428,9 +498,10 @@
                         </a>
                     @endforeach
                 @else
-                    <a href="{{ route('landlord.verification.create') }}" @click="mobileNavOpen = false"
+                    @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                    <a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" @click="mobileNavOpen = false"
                         class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] bg-[#ECEEF6] hover:brightness-95">
-                        Become a Landlord
+                        {{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}
                     </a>
                 @endif
             @endauth
@@ -445,11 +516,12 @@
     @if(($searchBar ?? true) && !View::hasSection('hide_search'))
         <div id="header-search-expanded" class="{{ View::hasSection('sticky_search') ? 'relative lg:sticky lg:top-[64px]' : 'relative' }} z-[60] bg-white border-b border-[#E2E4EC]">
             <div class="bg-[#060D26]">
-                <div class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-4">
-                    <x-search-pill variant="header" />
+                <div id="browse-search-pill" class="max-w-[1400px] mx-auto flex justify-center px-4 sm:px-6 py-5">
+                    <x-ai-search-box variant="header" />
                 </div>
             </div>
 
+            {{-- Same column as the listings below (1400px), so the chips line up with the grid. The chips are content-sized and sit left; the toolbar sits right. --}}
             <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
                 <x-category-strip />
             </div>
@@ -465,8 +537,7 @@
 
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 no-underline mb-10">
-                <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub" class="w-8 h-8 object-contain shrink-0">
-                <span class="text-[16px] font-bold text-white tracking-tight">Abanganan<span class="text-[#FF8A66]">Hub</span></span>
+                <x-brand-logo tone="on-dark" mark="w-8 h-8" text="text-[16px]" />
             </a>
 
             {{-- Link columns --}}
@@ -497,7 +568,8 @@
                     <div>
                         <p class="text-[12px] font-semibold text-white/55 uppercase tracking-widest mb-4">For Landlords</p>
                         <ul class="space-y-3 text-[14px]">
-                            <li><a href="{{ route('landlord.verification.create') }}" class="text-white/75 hover:text-white transition-colors">Become a Landlord</a></li>
+                            @php $hasVerification = auth()->user()->verificationApplication !== null; @endphp
+                            <li><a href="{{ route($hasVerification ? 'landlord.verification.show' : 'landlord.verification.create') }}" class="text-white/75 hover:text-white transition-colors">{{ $hasVerification ? 'Verification status' : 'Become a Landlord' }}</a></li>
                             <li><a href="{{ route('landlord.dashboard') }}" class="text-white/75 hover:text-white transition-colors">Landlord Dashboard</a></li>
                             <li><a href="{{ route('landlord.analytics.index') }}" class="text-white/75 hover:text-white transition-colors">Analytics &amp; Occupancy</a></li>
                         </ul>
@@ -546,13 +618,37 @@
             <div class="bg-white rounded-[24px] shadow-2xl max-w-[820px] w-full relative transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 scale-95 translate-y-4 motion-reduce:transform-none max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col md:flex-row"
                 id="auth-modal-content" role="dialog" aria-modal="true" aria-label="Log in or create an account">
 
-                {{-- Left brand panel (split) — photo + navy overlay, same language as the landing hero --}}
+                {{-- Left brand panel (split) — photo + navy overlay, same language as the landing hero.
+                     Floating trust chips + glyph + heading/subtitle form one shared shell (§6k) — only
+                     the two text nodes swap per view via the sideCopy map in openAuthModal(). --}}
                 <div class="hidden md:flex md:w-[42%] shrink-0 relative overflow-hidden bg-[#060D26] p-8 flex-col justify-end text-white">
-                    <img src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover">
+                    {{-- Not lazy: this img sits inside a display:none ancestor until the modal opens, so
+                         native lazy-loading can't compute intersection until then — it would only start
+                         fetching on open, popping the photo in after the panel is already visible. --}}
+                    {{-- src is set a moment after the page has loaded (script below) or when the modal opens, whichever comes first, so this 170 KB photo no longer competes with the page's own images on every guest page. --}}
+                    <img id="auth-bg-img" data-src="{{ asset('images/auth-bg-1600.jpg') }}" alt="" decoding="async" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-b from-[#060D26]/25 via-[#060D26]/45 to-[#060D26]/90"></div>
 
+                    {{-- Floating trust chips — same recipe as the landlord CTA figure on
+                         properties/index.blade.php (white rounded-2xl chip, tinted icon circle,
+                         motion-safe float via the global `owner-float` keyframe in app.css). Real
+                         platform claims already used elsewhere, not invented stats. --}}
+                    <div class="absolute top-6 left-6 z-10 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_6s_ease-in-out_infinite]">
+                        <span class="w-8 h-8 rounded-full bg-[#E7F6EC] text-[#1F8A4C] flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        </span>
+                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Verified<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Landlords only</span></span>
+                    </div>
+                    <div class="absolute top-[6.75rem] right-6 z-10 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.3)] motion-safe:animate-[owner-float_7s_ease-in-out_-2s_infinite]">
+                        <span class="w-8 h-8 rounded-full bg-[#FFE9E1] text-[#B35A3D] flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        </span>
+                        <span class="text-[12.5px] font-bold text-[#060D26] leading-tight">Deposits<span class="block text-[10.5px] font-medium text-[#5B6A8E]">Escrow-protected</span></span>
+                    </div>
+
                     <div class="relative z-10">
-                        <h3 id="auth-side-title" class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
+                        <x-brand-logo tone="on-dark" mark="w-10 h-10" text="text-[18px]" class="mb-5" />
+                        <h3 id="auth-side-title" class="font-jakarta text-[28px] font-extrabold tracking-tight leading-[1.1]">Welcome back</h3>
                         <p id="auth-side-subtitle" class="text-white/75 text-[13px] mt-3 leading-relaxed max-w-[17rem]">
                             Pick up where you left off.
                         </p>
@@ -575,19 +671,19 @@
 
                     {{-- Login View --}}
                     <div id="login-form-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Log in</h2>
+                        <h2 class="font-jakarta text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Log in</h2>
 
                         <form id="ajax-login-form" onsubmit="handleAuthSubmit(event, '{{ route('login') }}')">
                             @csrf
                             <div class="mb-4">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
                                 <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="username"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-login-email"></span>
                             </div>
 
                             <div class="mb-4">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <div class="relative">
                                     <input type="password" name="password" id="modal-login-password" required placeholder="Your password" aria-label="Password" autocomplete="current-password"
                                         class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
@@ -616,7 +712,7 @@
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
+                                class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                                 Log in
                             </button>
                         </form>
@@ -631,20 +727,20 @@
 
                     {{-- Register View --}}
                     <div id="register-form-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Create your account</h2>
+                        <h2 class="font-jakarta text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight mb-6">Create your account</h2>
 
                         <form id="ajax-register-form" onsubmit="handleAuthSubmit(event, '{{ route('register') }}')">
                             @csrf
                             <div class="grid grid-cols-2 gap-3 mb-3">
                                 <div>
-                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">First name</label>
+                                    <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">First name</label>
                                     <input type="text" name="first_name" required placeholder="Maria" aria-label="First name" autocomplete="given-name"
                                         class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                         id="error-register-first_name"></span>
                                 </div>
                                 <div>
-                                    <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Last name</label>
+                                    <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Last name</label>
                                     <input type="text" name="last_name" required placeholder="Santos" aria-label="Last name" autocomplete="family-name"
                                         class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                     <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
@@ -653,24 +749,24 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact number</label>
-                                <input type="tel" name="contact_number" required placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Contact number</label>
+                                <input type="tel" name="contact_number" required pattern="[0-9+()\s\-]{7,20}" data-error-tag="Numbers only" title="Use digits only, e.g. 0917 123 4567" placeholder="e.g. 0917 123 4567" aria-label="Contact number" autocomplete="tel" inputmode="tel"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field"
                                     id="error-register-contact_number"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
                                 <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="email"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-register-email"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Password</label>
                                 <div class="relative">
-                                    <input type="password" name="password" id="modal-register-password" autocomplete="new-password" required placeholder="At least 8 characters" aria-label="Password"
+                                    <input type="password" name="password" id="modal-register-password" autocomplete="new-password" required minlength="8" data-strength placeholder="At least 8 characters" aria-label="Password"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all pr-11">
                                     <button type="button" onclick="toggleModalPassword('modal-register-password', this)"
                                         class="absolute right-4 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26]" aria-label="Show password"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
@@ -680,7 +776,7 @@
                             </div>
 
                             <div class="mb-5">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Confirm Password</label>
                                 <div class="relative">
                                     <input type="password" name="password_confirmation" id="modal-register-password-confirm" autocomplete="new-password" required placeholder="Repeat your password" aria-label="Confirm password"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all pr-11">
@@ -690,7 +786,7 @@
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
+                                class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                                 Sign Up
                             </button>
                         </form>
@@ -705,20 +801,20 @@
 
                     {{-- Forgot Password View --}}
                     <div id="forgot-password-form-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Forgot your password?</h2>
+                        <h2 class="font-jakarta text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Forgot your password?</h2>
                         <p class="text-[13.5px] text-[#5B6A8E] mt-1.5 mb-6">No problem. We'll email you a reset link.</p>
 
                         <form id="ajax-forgot-password-form" onsubmit="handleForgotPasswordSubmit(event, '{{ route('password.email') }}')">
                             @csrf
                             <div class="mb-5">
-                                <label class="block font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
+                                <label class="block font-jakarta text-[12.5px] font-bold text-[#060D26] mb-1.5">Email address</label>
                                 <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="email"
                                     class="w-full px-4 py-3 bg-[#F7F8FC] focus:bg-white border border-[#E2E4EC] rounded-xl text-[14px] placeholder-[#5B6A8E]/70 focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all">
                                 <span class="text-xs text-[#DC2626] mt-1 hidden error-field" id="error-forgot-password-email"></span>
                             </div>
 
                             <button type="submit"
-                                class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
+                                class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                                 Email Password Reset Link
                             </button>
                         </form>
@@ -731,13 +827,13 @@
 
                     {{-- Forgot Password: Email Sent View --}}
                     <div id="forgot-password-sent-view" class="hidden">
-                        <h2 class="font-['Plus_Jakarta_Sans',_Inter,_sans-serif] text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Check your email</h2>
+                        <h2 class="font-jakarta text-[26px] font-extrabold text-[#060D26] tracking-tight leading-tight">Check your email</h2>
                         <p id="forgot-password-sent-message" class="text-sm text-[#5B6A8E] mt-1 mb-6 leading-relaxed">
                             We've emailed you a link to reset your password. It'll expire in 60 minutes.
                         </p>
 
                         <button type="button" onclick="openAuthModal('login')"
-                            class="w-full font-['Plus_Jakarta_Sans',_Inter,_sans-serif] bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
+                            class="w-full font-jakarta bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-full hover:bg-[#E96F4F] active:scale-[0.99] transition-all duration-200 text-[15px] cursor-pointer">
                             Back to login
                         </button>
                     </div>
@@ -749,7 +845,15 @@
         <script>
             let authModalCloseTimer = null;
 
+            function loadAuthBg() {
+                const img = document.getElementById('auth-bg-img');
+                if (img && img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; }
+            }
+            if (document.readyState === 'complete') setTimeout(loadAuthBg, 1500);
+            else window.addEventListener('load', () => setTimeout(loadAuthBg, 1500));
+
             function openAuthModal(mode) {
+                loadAuthBg();
                 const modal = document.getElementById('auth-modal');
                 const panel = document.getElementById('auth-modal-content');
                 const views = {
@@ -863,8 +967,14 @@
 
                     if (!res.ok) {
                         if (data?.errors) {
-                            errorBag.classList.remove('hidden');
-                            errorBag.innerText = Object.values(data.errors).flat().join(' ');
+                            // Register: each error sits on its own field. Anything with no visible field (and all of login) uses the banner.
+                            window.fieldValidation?.clear(form);
+                            const unplaced = Object.entries(data.errors).filter(([name, msgs]) =>
+                                form.id === 'ajax-login-form' || !window.fieldValidation?.show(form, name, [].concat(msgs)[0]));
+                            if (unplaced.length) {
+                                errorBag.classList.remove('hidden');
+                                errorBag.innerText = unplaced.flatMap(([, msgs]) => msgs).join(' ');
+                            }
                             return;
                         }
                         errorBag.classList.remove('hidden');

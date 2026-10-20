@@ -119,7 +119,7 @@
                 <button type="button" x-on:click="confirm()"
                     class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all hover:brightness-95"
                     :class="{
-                        'bg-[#DA8E77] text-[#060D26]': type === 'confirm',
+                        'bg-[#FF8A66] text-[#060D26]': type === 'confirm',
                         'bg-[#22C55E] text-white': type === 'success',
                         'bg-[#FBBF24] text-[#060D26]': type === 'warning',
                         'bg-[#EF4444] text-white': type === 'error'

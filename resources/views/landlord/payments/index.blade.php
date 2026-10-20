@@ -255,6 +255,10 @@
                             const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' } });
                             if (!res.ok) throw new Error();
                             this.$refs.cal.innerHTML = await res.text();
+                            // Swapped in as plain HTML, so Alpine never saw it —
+                            // without this, every x-data/x-show/@click inside the
+                            // fresh markup (including the day-click modal) is inert.
+                            window.Alpine.initTree(this.$refs.cal);
                             if (push) history.pushState({ cal: true }, '', url);
                             if (focusKey) this.$nextTick(() => this.$refs.cal.querySelector('[data-cal-nav=' + focusKey + ']')?.focus());
                         } catch (e) { window.location.href = url; return; }
@@ -276,8 +280,11 @@
         @else
             {{-- Mobile: stacked cards. Landlord surfaces are mobile-first
                  (CLAUDE.md → Device priority) and this table has grown to 8
-                 columns, past what a 375px screen can host even scrolled. --}}
-            <div class="sm:hidden space-y-3">
+                 columns, past what a 375px screen can host even scrolled.
+                 lg breakpoint (not sm — DESIGN.md's table→card rule is lg-wide),
+                 since an 8-column min-w-[900px] table doesn't fit a tablet
+                 viewport any better than a phone one. --}}
+            <div class="lg:hidden space-y-3">
                 @foreach($displayRows as $item)
                     @php $reservation = $item['reservation']; $summary = $item['summary']; @endphp
                     <x-card class="!p-4">
@@ -324,9 +331,9 @@
                 @endforeach
             </div>
 
-            {{-- Desktop / tablet: table --}}
-            <x-card flush class="hidden sm:block">
-                <div class="overflow-x-auto">
+            {{-- Desktop: table --}}
+            <x-card flush class="hidden lg:block">
+                <div class="relative overflow-x-auto">
                     <table class="w-full min-w-[900px]">
                         <thead class="bg-[#F7F8FC] border-b border-[#E2E4EC]">
                             <tr>
@@ -360,7 +367,7 @@
                         <tbody class="divide-y divide-[#E2E4EC]">
                             @foreach($displayRows as $item)
                                 @php $reservation = $item['reservation']; $summary = $item['summary']; @endphp
-                                <tr class="hover:bg-[#F7F8FC] transition-colors duration-150 {{ $item['style']['label'] === 'Overdue' ? 'shadow-[inset_3px_0_0_#DC2626]' : '' }}">
+                                <tr class="hover:bg-[#ECEEF6] transition-colors duration-150 {{ $item['style']['label'] === 'Overdue' ? 'shadow-[inset_3px_0_0_#DC2626]' : '' }}">
                                     <td class="px-5 sm:px-6 py-4">
                                         <div class="flex items-center gap-3">
                                             <div

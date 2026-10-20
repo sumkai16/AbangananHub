@@ -53,7 +53,7 @@ class ProcessRentReminders extends Command
         // Occupied only: a Completed tenancy's ledger is frozen, so there is
         // nothing left to chase.
         $reservations = Reservation::where('rental_status', 'Occupied')
-            ->with(['tenant', 'property', 'unit', 'payments'])
+            ->with(['tenant', 'property', 'unit', 'payments', 'depositCharges'])
             ->whereHas('property')
             ->get();
 

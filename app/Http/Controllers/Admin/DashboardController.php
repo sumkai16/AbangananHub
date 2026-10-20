@@ -10,7 +10,6 @@ use App\Models\Reservation;
 use App\Models\User;
 use App\Models\UserRole;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -34,13 +33,14 @@ class DashboardController extends Controller
             ->pluck('total', 'rental_status');
 
         // ── User distribution ─────────────────────────────────────
-        $totalLandlords        = UserRole::where('role', 'Landlord')->count();
-        $totalTenants          = UserRole::where('role', 'Tenant')->count();
-        $totalAdmins           = UserRole::where('role', 'Admin')->count();
+        $roleTotals            = UserRole::selectRaw('role, COUNT(*) as total')->groupBy('role')->pluck('total', 'role');
+        $totalLandlords        = $roleTotals['Landlord'] ?? 0;
+        $totalTenants          = $roleTotals['Tenant'] ?? 0;
+        $totalAdmins           = $roleTotals['Admin'] ?? 0;
         $unverifiedLandlords   = max(0, $totalLandlords - $verifiedLandlords);
 
         // ── Platform chart – last 7 days ──────────────────────────
-        $days = collect(range(6, 0))->map(fn($i) => now()->subDays($i)->format('Y-m-d'));
+        $days = collect(range(6, 0))->map(fn ($i) => now()->subDays($i)->format('Y-m-d'));
 
         $usersByDay = User::selectRaw('DATE(created_at) as day, COUNT(*) as total')
             ->where('created_at', '>=', now()->subDays(6)->startOfDay())
@@ -54,10 +54,10 @@ class DashboardController extends Controller
             ->where('created_at', '>=', now()->subDays(6)->startOfDay())
             ->groupBy('day')->pluck('total', 'day');
 
-        $chartLabels        = $days->map(fn($d) => Carbon::parse($d)->format('M j'))->values();
-        $chartUsers         = $days->map(fn($d) => $usersByDay[$d] ?? 0)->values();
-        $chartProperties    = $days->map(fn($d) => $propertiesByDay[$d] ?? 0)->values();
-        $chartReservations  = $days->map(fn($d) => $reservationsByDay[$d] ?? 0)->values();
+        $chartLabels        = $days->map(fn ($d) => Carbon::parse($d)->format('M j'))->values();
+        $chartUsers         = $days->map(fn ($d) => $usersByDay[$d] ?? 0)->values();
+        $chartProperties    = $days->map(fn ($d) => $propertiesByDay[$d] ?? 0)->values();
+        $chartReservations  = $days->map(fn ($d) => $reservationsByDay[$d] ?? 0)->values();
 
         // ── Pending items for the table ───────────────────────────
         $pendingVerificationList = LandlordVerification::where('verification_status', 'Pending')

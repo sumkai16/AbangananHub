@@ -68,6 +68,7 @@ Reference implementations: `Admin\VerificationController::approve/reject`, `Admi
 ## Laravel Conventions
 - Eloquent ORM over raw queries, always
 - Migrations for all schema changes — never manual SQL
+- **An index that starts with a foreign-key column can't simply be dropped in `down()` (MySQL, found Oct 8 2026).** When you add such an index, MySQL silently drops the automatic index it made for that foreign key, and the key then depends on yours. Dropping it fails with error 1553 ("needed in a foreign key constraint"). In `down()`, add a plain index on the foreign-key column first. Example: `2026_10_08_000000_add_browse_sort_indexes`. Test every new migration's rollback on `abanganan_hub_test` (`DB_DATABASE=abanganan_hub_test php artisan migrate:rollback --step=1`), never on the dev database.
 - Middleware for role gating (`EnsureTenant`, `EnsureLandlord`, `EnsureAdmin`) — never if-else role checks in controllers
 - Resource controllers where applicable
 - Named routes throughout — no hardcoded URLs in Blade
@@ -106,6 +107,11 @@ Every controller / request-path change gets a two-front check before it's done �
 - "Is logged in" is **not** authorization. Route-model-bound resources are the IDOR surface — that's where a new endpoint most easily leaks another user's data.
 - Validate then assign explicit fields — never `Model::create($request->all())` / `->fill($request->all())`. No raw SQL with user input (`selectRaw` is fine for hardcoded aggregates only). Validate file uploads (mime + size).
 - Run `composer audit` periodically; dependency advisories are a free catch.
+
+- **Never echo request input into a `<script>`.** `{{ }}` escapes for HTML, not for JavaScript, so `const x = {{ request('x') }};` runs `?x=alert(1)`. Pass values with `@js(...)`, cast to the type you expect (`request()->integer('x')`) first. Found in `conversations/index.blade.php` Oct 15 2026.
+- **A picker must not be a directory.** A dropdown of users, or anything else personal, lists only what the viewer already has a relationship with, and never shows email addresses (the report form listed every account with its email).
+- **Before a deal, people see the business; once there is a reservation, they see each other (Oct 19 2026).** Public surfaces (listing page, business page, search, public API) show a landlord's rental business through `User::publicName()` and the logo, and a tenant on a public review as `User::shortName()` ("Juan D."). Never print a landlord's personal name, photo, email or personal number there, and never nest the full `UserResource` in a public payload (use `PublicLandlordResource`; reviews use `PublicReviewResource`). The agreement, lease, tenancy pages, reservations, chat, notifications and receipts keep personal names, because the lease has to name both parties. `PublicIdentityTest` greps `properties/show.blade.php` for the personal fields so an edit cannot quietly bring them back.
+- **Search matches business and listing names, never personal names (Oct 19 2026).** `NameMatcher` reads names from our own tables after the AI has answered; the model never sees or returns them. Otherwise anyone could type a person's name and get the list of what they own. When a typed name is not found, the page says there is no *listing or business* by that name, never "no landlord named ...", so it does not confirm or deny that a person exists.
 
 ## Blade Compile Traps (July 24 2026)
 Blade tokenises a template with `token_get_all()` **before** it strips comments or compiles directives. Two failure modes come out of that, and both were hit in one sitting:
@@ -171,12 +177,19 @@ The move-in escrow is the only place in the app where money moves with no human 
 - **One collection event that covers several obligations is several rows, not one lump.** A walk-in landlord types a single figure at the door; `App\Support\MoveInPaymentBreakdown` splits it into a `Deposit` row plus one `Monthly` row per month it reaches, all sharing the same `payment_method`, `paid_at`, `reference_no` and `recorded_by` so they stay readable as one event rather than several payments. The lump version of this shipped for months and was a real defect: `RentLedger` only settles a period from a `Monthly` row carrying a `billing_period`, so a tenant who paid rent and deposit on day one still read **Overdue for their own move-in month**. **Before writing a payment row, ask which ledger period it is supposed to settle** — if the answer is "one of them" but the row can't say which, the row is wrong.
 - **Never invent a split when backfilling money.** The pre-existing lump `Initial` rows were deliberately left untouched: nothing in them records how much was rent versus deposit, and a migration guessing the proportion would write amounts nobody asserted onto the one table a dispute is argued from. A wrong-looking old row beats a plausible fabricated one.
 - **A validation rule that refuses to record what actually happened is not a control.** The move-in form warns when the collected amount is short of rent + deposit; it does not block. Walk-in exists to write down an arrangement made offline, so a landlord blocked from entering ₱3,000 enters ₱4,000 instead and the ledger becomes fiction. Blocking rules on a *record-what-happened* surface push falsification; blocking rules on a *do-something-now* surface (escrow release, payout) are correct. Know which kind of surface you are on.
+- **A `Pending` payment is not a payment.** Anything that decides "has this tenant paid?" or "may a new session be opened?" must treat a stale Pending row as nothing (`Payment::isStalePending()`), and anything that clears one must first prove the PayMongo session can no longer be paid (`PaymongoCheckout::abandon()`), failing closed. Otherwise one abandoned checkout locks a tenant out for good, or two live sessions double-charge.
+- **Ending a reservation must not strand money.** Cancel and reject go through `Reservation::cancellationBlockedReason()` (Held payment, or a fresh open checkout). Never add a new path that sets `rental_status` to `Cancelled` / `Rejected` without it, unless it is an admin override.
+- **Charge the frozen number.** Use `Reservation::monthlyRent()`, never `unit->rental_fee`, for anything a tenant is billed or shown as their price. The unit's price is what the landlord asks today; `agreed_monthly_rent` is what was signed.
+- **Anything that deletes a user must check the cascade.** `payments.reservation_id` cascades from the tenant; a delete path has to refuse while money is Held or `Pending Payout` (see `ProfileController::activeObligation()` and `Admin\UserController::destroy`).
 - Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Concerns\RecordsMoveInPayments`.
 
 ## Testing
-- **DO NOT run the full `php artisan test` / `phpunit` against the dev database.** `phpunit.xml` has the sqlite override commented out, and the Breeze tests in `tests/Feature/Auth/*` + `ProfileTest` use `RefreshDatabase`, which **wipes the MySQL `abanganan_hub` data** (seeded properties, users, reviews). Run only `--filter=PerformanceBaseline` (read-only GETs). To make the suite safe, uncomment the sqlite `DB_CONNECTION`/`DB_DATABASE` lines in `phpunit.xml` first.
-- To verify a fixture-dependent change, insert rows inside `DB::beginTransaction()` … `DB::rollBack()` in a throwaway test and delete the file afterwards.
-- Manual testing for capstone scope (no automated test suite)
+- **Tests run against `abanganan_hub_test`, never the dev database.** `phpunit.xml` sets `DB_DATABASE=abanganan_hub_test`. Many tests use `RefreshDatabase`, which drops and rebuilds every table in the database they point at, so pointing `DB_DATABASE` back at `abanganan_hub` wipes the dev data (this happened in Oct 2026 and the seeded data had to be re-created). The test database must exist before the first run: `CREATE DATABASE abanganan_hub_test`. `RefreshDatabase` builds the schema itself, so no migrate step is needed.
+- **Run the suite with `php artisan test`.** It should be fully green before a commit. Use `--filter=<ClassName>` for one class.
+- **Tests build their own data; never rely on seeded rows.** Use the helpers in `tests/Support/CreatesMarketplaceFixtures.php` (`makeLandlord`, `makeTenant`, `makeProperty`, `makeUnit`). Tests that don't use `RefreshDatabase` wrap themselves in `DatabaseTransactions`, so their rows roll back.
+- **Use `getKey()`, not `->id`, on `User` in tests.** `User` has the custom primary key `user_id`, so `$user->id` is null.
+- **Outgoing password-reset mail is `App\Mail\PasswordResetMail`.** Tests fake `Mail` and read the token from the mailable's `resetUrl`. Laravel's `ResetPassword` notification is not used.
+- **UI is still checked by hand.** The suite covers routes, rules and data. It does not check how a page looks or behaves in the browser.
 - **Axcee tests manually.** When a feature needs verifying, build the fixtures that put the app into each state plus a checklist of what to look at — not a test suite. `escrow:scenarios` is the pattern: additive, tagged, `--clean` teardown, prints login credentials and expected appearance per state.
 - **Time-based features need backdated fixtures.** Anything measured in days cannot be observed by using the app; `Carbon::setTestNow()` does not reach a separate `php artisan` process, so backdate the data instead.
 - Any dev tool that creates or deletes users must refuse to run in production and must restore rows it did not create (see `EscrowVerify::snapshotRealRows`).
@@ -217,12 +230,74 @@ Full procedure: `plans/hostinger-vps-deployment.md`. The rules that generalize b
   same lesson the admin document-preview routes already encode. Re-check this when wiring anything
   new across roles in production.
 
+## Forms: validation (established Oct 8 2026)
+- **Auth and profile forms carry `novalidate`** (login, register, forgot/reset password, profile edit, password change, delete account). The server's Laravel validation decides, and its messages show inline under the field that failed, so the browser's native popup never appears. Server rules already cover every field, so nothing relies on `required` / `type=email` in the HTML.
+- **Show errors per field**: `<x-input-error :messages="$errors->get('email')" />` (or an `@error` block). A single `$errors->first()` banner is not enough once `novalidate` is on. Login used one; it now shows the email and password errors under their own fields.
+- **Before adding `novalidate` to any other form**, confirm every input has its own error display and that the endpoint validates the same constraints. Of the ~86 forms, many (landlord, admin, conversations) show nothing on failure, so adding it blindly would make them fail silently. Forms submitted with `fetch` or `x-on:submit.prevent` also need their own 422 handling.
+- Keep `maxlength` as is; it is not a validation popup.
+- **Client-side field errors (Oct 8 2026):** `resources/js/field-validation.js` (loaded from `app.js`) replaces the browser's "Please fill out this field." bubble on **every** form. On submit it sets `noValidate`, runs the browser's own checks (`required`, `type=email`, `minlength`, `pattern`, …), and shows a short tag on the field border — "Required", "Invalid email", "Min 8 characters", "Numbers only" — with the full sentence for screen readers only (design D; styles: `.fv-*` in `app.css`). `type="tel"` inputs drop letters as they are typed. Forms that submit with `fetch` can place a 422 error on its field with `window.fieldValidation.show(form, name, message)` (the auth modal does this for register; login keeps its banner). Nothing is skipped vs. before, so unlike adding `novalidate` by hand it does not make forms fail silently. Hidden controls are ignored (server decides). Opt out with `data-native-validation` on the `<form>`; `formnovalidate` buttons still bypass it. Label text comes from `<label for>` (override with `data-label`).
+
+## AI search (established Oct 9 2026)
+- **A model never queries the database or states facts.** Whatever a driver returns goes through `IntentValidator` (whitelists from our own tables/config) before any query; the ✓/gap chips come from `MatchExplainer`; the rank call may only reorder ids it was given. Add a new filter by extending `IntentValidator`, `CandidateFinder`, `MatchExplainer` and the prompt vocabulary together.
+- **Every driver failure must throw `AiSearchUnavailable`** (no key, HTTP error, quota, bad JSON). The service turns it into the keyword fallback; a search never returns an error page.
+- **Untrusted text:** the tenant's sentence and listing titles are data. Prompts wrap the sentence in `<query>` tags and say so; never put them in the system prompt.
+- Send only the sentence and public listing facts to a provider. No names, emails, ids or account data (the privacy page says so).
+- **A tenant's position is for one search (Oct 19 2026).** "Near me" is read out of the sentence by `NearMe` before the AI sees it; the page asks the browser for the position and sends it back with the results call only, as a `point` location. `IntentValidator` clamps it to Cebu, rounds it to about 110 m and names it from our own listings (`NearestArea`); never trust a name sent with it. It is never stored, never sent to a provider or a third-party geocoder, and `AiSearchService::log` keeps only the area name. The privacy page says so.
+- Prompt or model changes: run `php artisan ai-search:eval` before and after and compare the per-field rates. It spends real quota.
+
+## Dev environment gotchas (Oct 2026)
+- **Run `npm install` after every pull.** `@fontsource/*` and `chart.js` were declared in `package.json` but never installed, which made Vite show a full-page error overlay (`ENOENT ... @fontsource\inter\latin-300.css`) and `npm run build` fail. With the CSS failing, the browser shows unstyled default Times text. Restart `npm run dev` afterwards, then hard-refresh.
+- **If every page and every `artisan` command hangs with no CPU use**, check `information_schema.processlist` for stuck `select * from cache` queries, then restart `mysqld` (see ARCHITECTURE.md Known Tradeoffs). Do not retry in a loop.
+- To catch Blade syntax errors across every view, run `php artisan view:cache`, then `php artisan view:clear` to leave dev as it was.
+
 ## Git Discipline
 - Commit message format: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)
 - Separate commits per concern: backend fixes, feature additions, UI changes committed separately
 - Never `git add .` across unrelated work
 - Branch: `axci` (Axcee's working branch)
 - Claude provides commit message text only — Axcee uses VSCode source control
+
+### Team flow (established Oct 15 2026)
+Each teammate has their own branch (`axci`, `joseph`, `emman`); `main` changes only through PRs. Written after
+`emman` fell 22 commits behind `main` and `joseph` was built on unmerged `axci`, which made one pull cost 3 conflicts.
+1. **Pull `main` into your branch at the start of every work session and before opening a PR:** `git fetch` then
+   `git merge origin/main`. The longer a branch drifts, the bigger the conflicts.
+2. **Small, frequent PRs.** One feature or a few days of work per PR, not a week of mixed changes.
+3. **Branch from `main`, not from a teammate's unmerged branch.** If you must build on someone's unmerged work,
+   say so in the group chat first, because your PR will carry their commits too.
+4. **Announce before reworking a shared file.** Hot spots: `components/property-card`, `layouts/app`,
+   `properties/index`, `properties/show`, `landlord/tenancies/show`, `tenant/reservations/index`, `resources/js/ai-search.js`.
+5. **Merge, don't rebase, on any branch someone else may have pulled, and never force-push it.**
+6. **After every pull:** `composer install`, `npm install`, `php artisan migrate` (see Dev environment gotchas).
+
+### Protecting `main` on GitHub (one-time setup by the repo owner)
+The rules above are only a habit until GitHub enforces them. As of Oct 18 2026 `main` has no protection, so anyone
+with write access can push straight to it, and a red CI run does not block a merge. Set this up in the repo's
+**Settings → Rules → Rulesets → New ruleset → New branch ruleset**:
+1. **Name:** `protect-main`. **Enforcement status:** Active.
+2. **Target branches:** Add target → Include default branch (`main`).
+3. **Tick:** Restrict deletions, Block force pushes, Require a pull request before merging.
+4. **Pull request settings:** set required approvals to **0** (a solo owner can't approve their own PR, so 1 would
+   block you every time). Leave "Allow merge commits" on; untick squash and rebase to match "merge, don't rebase".
+5. **Tick** Require status checks to pass, then Add checks → `test` (the job in `.github/workflows/ci.yml`; it only
+   appears in the list after CI has run once on a PR). Also tick "Require branches to be up to date before merging".
+6. **Bypass list:** leave empty. The owner can still merge a PR once CI is green; add yourself only if you ever need
+   an emergency direct push.
+7. **Check it works:** try `git push origin main` from a branch checkout; GitHub should reject it.
+
+Teammates then cannot push to `main` or merge a red PR. Only the lead merges, by habit, since approvals are 0.
+
+### Resolving a merge conflict
+1. **Whoever is behind resolves it, on their own branch** (merge `main` in and fix it there), never on `main`.
+2. **Read what each side meant before choosing.** `git log origin/main..origin/<branch> -- <file>` shows each
+   side's commits on that file. Most conflicts are two changes that both belong.
+3. **Pick per hunk: keep both, combine, or keep one.** Never take "ours" or "theirs" for a whole file without
+   reading it, because that silently deletes a teammate's work.
+4. **If you can't tell why the other side made a change, ask its author.** Don't guess.
+5. **Check before committing:** no markers left (`grep -rn '<<<<<<<' app resources routes tests`),
+   `php artisan test`, `npm run build`, and a browser pass over the screens that conflicted.
+6. **List each resolved file and what you kept in the merge commit message**, so the other author can check it.
+   Example: `638c1c3`.
 
 ## Build Order (Layer-by-Layer)
 1. Migration (+ `$fillable` audit)

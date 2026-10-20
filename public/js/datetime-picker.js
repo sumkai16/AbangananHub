@@ -7,7 +7,12 @@
  * with no thread selected, click one, and the pushed script would never have
  * run — the component would reference an undefined function.
  *
- * Config: { date: 'YYYY-MM-DD'|null, time: 'HH:mm'|null, min: 'YYYY-MM-DD', deadline: 'YYYY-MM-DD'|null }
+ * Config: { date: 'YYYY-MM-DD'|null, time: 'HH:mm'|null, min: 'YYYY-MM-DD', deadline: 'YYYY-MM-DD'|null,
+ *          max?: 'YYYY-MM-DD', blocked?: ['YYYY-MM-DD'], slots?: [{ value: 'HH:mm', label }],
+ *          weekSlots?: { 0..6: [{ value, label }] } }
+ *
+ * Also used by unit viewings: `blocked` greys out the landlord's unavailable
+ * days, `max` stops at the booking horizon, `slots` replaces the presets.
  */
 function datetimePicker(config) {
     return {
@@ -15,10 +20,25 @@ function datetimePicker(config) {
         time: config.time || null,
         minIso: config.min,
         deadlineIso: config.deadline || null,
+        maxIso: config.max || null,
+        blocked: config.blocked || [],
         viewY: null,
         viewM: null,
 
-        presets: [
+        // { 0: [slots], 1: [slots], … } keyed by weekday (0 = Sunday). When
+        // set, a weekday with no entry can't be picked and each day offers
+        // only its own slots — the landlord's weekly viewing hours.
+        weekSlots: config.weekSlots || null,
+
+        get presets() {
+            if (this.weekSlots) {
+                const d = this.toDate(this.date);
+                return d ? (this.weekSlots[d.getDay()] || []) : [];
+            }
+            return this.baseSlots;
+        },
+
+        baseSlots: config.slots || [
             { value: '08:00', label: '8 AM' },
             { value: '09:00', label: '9 AM' },
             { value: '10:00', label: '10 AM' },
@@ -35,6 +55,14 @@ function datetimePicker(config) {
             const base = this.toDate(this.date) || this.toDate(this.minIso) || new Date();
             this.viewY = base.getFullYear();
             this.viewM = base.getMonth();
+
+            // Switching to a day with different hours drops a time that
+            // day doesn't offer, rather than posting one the server refuses.
+            this.$watch('date', () => {
+                if (this.weekSlots && this.time && !this.presets.some(t => t.value === this.time)) {
+                    this.time = null;
+                }
+            });
         },
 
         // Parse as local midnight. new Date('2026-08-01') is read as UTC and
@@ -60,6 +88,13 @@ function datetimePicker(config) {
                 || (this.viewY === min.getFullYear() && this.viewM > min.getMonth());
         },
 
+        get canGoForward() {
+            const max = this.toDate(this.maxIso);
+            if (!max) return true;
+            return this.viewY < max.getFullYear()
+                || (this.viewY === max.getFullYear() && this.viewM < max.getMonth());
+        },
+
         shiftMonth(delta) {
             const next = new Date(this.viewY, this.viewM + delta, 1);
             this.viewY = next.getFullYear();
@@ -75,6 +110,7 @@ function datetimePicker(config) {
             const first = new Date(this.viewY, this.viewM, 1);
             const dayCount = new Date(this.viewY, this.viewM + 1, 0).getDate();
             const min = this.minDate;
+            const max = this.toDate(this.maxIso);
             const deadline = this.toDate(this.deadlineIso);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -100,6 +136,8 @@ function datetimePicker(config) {
             for (let d = 1; d <= dayCount; d++) {
                 const iso = this.iso(this.viewY, this.viewM, d);
                 const cur = new Date(this.viewY, this.viewM, d);
+                const isBlocked = this.blocked.includes(iso);
+                const isDayOff = this.weekSlots ? !(this.weekSlots[cur.getDay()] || []).length : false;
 
                 cells.push({
                     key: iso,
@@ -109,7 +147,8 @@ function datetimePicker(config) {
                     label: cur.toLocaleDateString(undefined, {
                         weekday: 'long', month: 'long', day: 'numeric',
                     }),
-                    disabled: min ? cur < min : false,
+                    disabled: (min ? cur < min : false) || (max ? cur > max : false) || isBlocked || isDayOff,
+                    isBlocked,
                     isToday: cur.getTime() === today.getTime(),
                     isDeadline: deadline ? cur.getTime() === deadline.getTime() : false,
                     beyondDeadline: deadline ? cur > deadline : false,

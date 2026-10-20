@@ -33,7 +33,7 @@
             'contact' => $tenant->contact_number ?: ($tenant->email ?: 'No contact on file'),
         ])->values();
 
-        $inputClass = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition';
+        $inputClass = 'h-11 w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition';
         $labelClass = 'block text-[12px] font-semibold text-[#060D26] mb-1.5';
         $errorClass = 'text-[11.5px] text-[#EF4444] mt-1';
 
@@ -66,8 +66,9 @@
         <div class="mb-6">
             <h1 class="text-2xl font-normal text-[#060D26] leading-tight">Add Walk-in Tenant</h1>
             <p class="text-sm text-[#5B6A8E] mt-1">
-                Record a tenant who arranged the rental with you directly. The unit is marked occupied straight away — there is no
-                inquiry, agreement or online payment step.
+                Record a tenant who arranged the rental with you directly — there is no inquiry, agreement or online payment
+                step. If the move-in date is today or earlier the unit is marked occupied straight away; a future date reserves
+                the unit until you confirm the actual move-in.
             </p>
             @if($scopedPropertyId && $properties->isNotEmpty())
                 <p class="text-[12.5px] text-[#060D26] font-medium mt-1.5">
@@ -104,12 +105,12 @@
                     A walk-in tenant needs an admin-approved unit that is currently vacant and has no active reservation against it.
                 </p>
                 <a href="{{ route('landlord.units.index') }}"
-                    class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200 cursor-pointer">
+                    class="mt-5 inline-flex items-center justify-center h-11 px-5 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
                     Go to my units
                 </a>
             </x-card>
         @else
-            <form method="POST" action="{{ route('landlord.tenants.walkIn.store') }}"
+            <form method="POST" action="{{ route('landlord.tenants.walkIn.store') }}" enctype="multipart/form-data"
                 data-confirm="Add walk-in tenant?"
                 :data-confirm-message="confirmMessage"
                 data-confirm-button="Add tenant"
@@ -124,6 +125,8 @@
                     rent: @js(old('agreed_monthly_rent', '')),
                     dueDay: @js(old('rent_due_day', '')),
                     hasPayment: @js((bool) old('initial_amount')),
+                    leaseMode: @js(old('lease_mode', 'now')),
+                    leaseFileName: '',
                     initialAmount: @js(old('initial_amount', '')),
                     paymentMethod: @js(old('payment_method', 'Cash')),
                     // Server's 'today', not the browser's — a landlord in a
@@ -284,7 +287,9 @@
                        modal-confirm.js reads dataset at submit time, so this
                        binding is live. */
                     get confirmMessage() {
-                        const base = 'The unit will be marked Occupied straight away and will stop appearing to tenants browsing the site.';
+                        const base = this.paymentRequired
+                            ? 'The unit will be marked Occupied straight away and will stop appearing to tenants browsing the site.'
+                            : 'The unit will be marked Reserved and will stop appearing to tenants browsing the site until you confirm move-in.';
                         if (this.hasPayment && this.isShort) {
                             return base + ' The ' + this.peso(this.received) + ' recorded is '
                                 + this.peso(this.shortfall) + ' short of the ' + this.peso(this.requiredMoveIn)
@@ -393,7 +398,7 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-4 flex items-start gap-2.5 rounded-xl bg-[#ECEEF6]/60 border border-[#DA8E77]/20 px-3.5 py-3">
+                                <div class="mt-4 flex items-start gap-2.5 rounded-xl bg-[#ECEEF6]/60 border border-[#FF8A66]/20 px-3.5 py-3">
                                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2"
                                         class="shrink-0 mt-0.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -404,6 +409,12 @@
                                         gets no login, and everywhere they appear they are labelled <strong>Walk-in</strong> because
                                         their identity has not been verified by AbangananHub.
                                     </p>
+                                </div>
+
+                                <div class="mt-5 border-t border-[#E2E4EC] pt-5">
+                                    <p class="text-[13px] font-semibold text-[#060D26]">Emergency contact &amp; ID <span class="font-normal text-[#5B6A8E]">(optional)</span></p>
+                                    <p class="text-[12px] text-[#5B6A8E] mt-0.5 mb-4">Kept private to you. You can add or change them later from the tenancy page. The ID number is stored encrypted.</p>
+                                    <x-tenant-details-fields id-prefix="walkin" />
                                 </div>
                             </div>
                         </x-card>
@@ -436,7 +447,7 @@
 
                                 {{-- Empty state --}}
                                 <button type="button" x-show="!unit" @click="openPicker()"
-                                    class="w-full flex items-center gap-3 rounded-xl border border-dashed border-[#5B6A8E]/40 bg-[#F7F8FC] px-4 py-3.5 text-left hover:border-[#DA8E77]/60 hover:bg-[#ECEEF6]/40 transition-all duration-200 cursor-pointer">
+                                    class="w-full flex items-center gap-3 rounded-xl border border-dashed border-[#5B6A8E]/40 bg-[#F7F8FC] px-4 py-3.5 text-left hover:border-[#FF8A66]/60 hover:bg-[#ECEEF6]/40 transition-all duration-200 cursor-pointer">
                                     <span class="w-9 h-9 rounded-lg bg-white ring-1 ring-[#5B6A8E]/10 flex items-center justify-center shrink-0">
                                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -454,7 +465,7 @@
 
                                 {{-- Selected state --}}
                                 <div x-show="unit" x-cloak
-                                    class="flex items-center gap-3 rounded-xl border border-[#DA8E77]/30 bg-[#ECEEF6]/40 p-2.5">
+                                    class="flex items-center gap-3 rounded-xl border border-[#FF8A66]/30 bg-[#ECEEF6]/40 p-2.5">
                                     <div class="w-14 h-14 rounded-lg bg-white overflow-hidden shrink-0 ring-1 ring-[#5B6A8E]/10">
                                         <template x-if="unit && unit.photo">
                                             <img :src="unit ? unit.photo : ''" :alt="unit ? unit.label : ''" class="w-full h-full object-cover">
@@ -472,12 +483,12 @@
                                         <p class="text-[13.5px] font-bold text-[#060D26] truncate" x-text="unit ? unit.label : ''"></p>
                                         <p class="text-[11.5px] text-[#5B6A8E] truncate" x-text="selectedProperty ? selectedProperty.title : ''"></p>
                                         <div class="flex items-center gap-2.5 mt-0.5">
-                                            <span class="text-[12.5px] font-bold text-[#A8573F]" x-text="unit ? '₱' + unit.rent.toLocaleString('en-PH') : ''"></span>
+                                            <span class="text-[12.5px] font-bold text-[#B35A3D]" x-text="unit ? '₱' + unit.rent.toLocaleString('en-PH') : ''"></span>
                                             <span class="text-[11px] text-[#5B6A8E]" x-show="unit && unit.cap" x-text="unit ? unit.cap + ' pax' : ''"></span>
                                         </div>
                                     </div>
                                     <button type="button" @click="openPicker()"
-                                        class="h-9 px-4 shrink-0 rounded-full border border-[#DA8E77] text-[#A8573F] text-[12px] font-semibold hover:bg-white transition-colors duration-200 cursor-pointer">
+                                        class="h-9 px-4 shrink-0 rounded-full border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-white transition-colors duration-200 cursor-pointer">
                                         Change
                                     </button>
                                 </div>
@@ -558,7 +569,7 @@
                                                     :class="String(occupants) === String(n) ? 'text-[#060D26] font-semibold bg-[#ECEEF6]/70' : 'text-[#060D26]'">
                                                     <span x-text="n + ' ' + (n === 1 ? 'person' : 'persons')" class="truncate"></span>
                                                     <svg x-show="String(occupants) === String(n)" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                                        stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#A8573F]" aria-hidden="true">
+                                                        stroke="currentColor" stroke-width="3" class="flex-shrink-0 text-[#B35A3D]" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                                     </svg>
                                                 </button>
@@ -576,10 +587,60 @@
                                 <label for="notes" class="{{ $labelClass }}">Notes <span class="text-[#5B6A8E] font-normal">(optional)</span></label>
                                 <textarea id="notes" name="notes" rows="2" maxlength="1000"
                                     placeholder="Anything worth remembering about this arrangement…"
-                                    class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/30 transition resize-y">{{ old('notes') }}</textarea>
+                                    class="w-full rounded-xl border border-[#5B6A8E]/30 px-3.5 py-2.5 text-[13.5px] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/30 transition resize-y">{{ old('notes') }}</textarea>
                                 @error('notes')
                                     <p class="{{ $errorClass }}">{{ $message }}</p>
                                 @enderror
+                            </div>
+                        </x-card>
+
+                        {{-- Lease — before payment: the agreement comes first, then the money.
+                             See plans/formal-lease-agreement.md. --}}
+                        <x-card>
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="w-9 h-9 rounded-xl bg-[#ECEEF6] flex items-center justify-center shrink-0">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-[15px] font-normal text-[#060D26]">Lease</h2>
+                                    <p class="text-[12px] text-[#5B6A8E]">The signed agreement for this tenancy.</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" role="radiogroup" aria-label="Signed lease">
+                                <label class="flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition-colors"
+                                    :class="leaseMode === 'now' ? 'border-[#060D26] bg-[#F7F8FC]' : 'border-[#E2E4EC] hover:border-[#5B6A8E]/40'">
+                                    <input type="radio" name="lease_mode" value="now" x-model="leaseMode" class="mt-0.5 text-[#060D26] focus:ring-[#FF8A66]">
+                                    <span>
+                                        <span class="block text-[13.5px] font-semibold text-[#060D26]">Upload signed lease now</span>
+                                        <span class="block text-[12px] text-[#5B6A8E]">A photo or PDF of the lease you both signed.</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition-colors"
+                                    :class="leaseMode === 'later' ? 'border-[#060D26] bg-[#F7F8FC]' : 'border-[#E2E4EC] hover:border-[#5B6A8E]/40'">
+                                    <input type="radio" name="lease_mode" value="later" x-model="leaseMode" class="mt-0.5 text-[#060D26] focus:ring-[#FF8A66]">
+                                    <span>
+                                        <span class="block text-[13.5px] font-semibold text-[#060D26]">Upload later</span>
+                                        <span class="block text-[12px] text-[#5B6A8E]">Print our lease from the tenancy page, sign it, then upload it there.</span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div x-show="leaseMode === 'now'" class="mt-4">
+                                <label for="lease_file" class="{{ $labelClass }}">Signed lease <span class="font-normal text-[#94A3B8]">· PDF, JPG or PNG, up to 10 MB</span></label>
+                                <input type="file" id="lease_file" name="lease_file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*"
+                                    :required="leaseMode === 'now'" :disabled="leaseMode !== 'now'"
+                                    @change="leaseFileName = $event.target.files[0]?.name || ''"
+                                    class="block w-full text-[13px] text-[#060D26] file:mr-3 file:h-10 file:px-4 file:rounded-lg file:border-0 file:bg-[#ECEEF6] file:text-[#060D26] file:font-semibold file:cursor-pointer">
+                                @error('lease_file')
+                                    <p class="{{ $errorClass }}">{{ $message }}</p>
+                                @enderror
+                                @if ($errors->any() && old('lease_mode', 'now') === 'now')
+                                    <p class="mt-1.5 text-[12px] text-[#B45309]">Browsers don't keep a chosen file after an error — please choose it again.</p>
+                                @endif
                             </div>
                         </x-card>
 
@@ -605,7 +666,7 @@
                                 <label for="has_payment" class="flex items-center gap-2 cursor-pointer shrink-0 pt-1"
                                     x-show="!paymentRequired">
                                     <input type="checkbox" id="has_payment" x-model="hasPayment"
-                                        class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#A8573F] focus:ring-[#DA8E77]/30 cursor-pointer">
+                                        class="w-4 h-4 rounded border-[#5B6A8E]/40 text-[#B35A3D] focus:ring-[#FF8A66]/30 cursor-pointer">
                                     <span class="text-[12.5px] font-semibold text-[#060D26]">Record one now</span>
                                 </label>
                                 <span x-show="paymentRequired" x-cloak
@@ -676,7 +737,7 @@
                                          MoveInPaymentBreakdown; the server allocates
                                          again from its own figures on submit. --}}
                                     <div x-show="received > 0" x-cloak
-                                        class="rounded-xl border border-[#DA8E77]/25 bg-[#ECEEF6]/50 px-4 py-3.5">
+                                        class="rounded-xl border border-[#FF8A66]/25 bg-[#ECEEF6]/50 px-4 py-3.5">
                                         <p class="text-[11px] font-bold uppercase tracking-wider text-[#060D26] mb-2.5">
                                             Recorded as
                                         </p>
@@ -697,7 +758,7 @@
                                                 </span>
                                                 <span class="text-[#060D26] tabular-nums" x-text="peso(allocation.advance)"></span>
                                             </div>
-                                            <div class="h-px bg-[#DA8E77]/20 my-2"></div>
+                                            <div class="h-px bg-[#FF8A66]/20 my-2"></div>
                                             <div class="flex items-center justify-between gap-3">
                                                 <span class="font-semibold text-[#060D26]">Total received</span>
                                                 <span class="font-bold text-[#060D26] tabular-nums" x-text="peso(received)"></span>
@@ -792,12 +853,18 @@
                                     <span class="text-[#5B6A8E]">Move-in</span>
                                     <span class="font-semibold text-[#060D26] text-right" x-text="moveIn || '—'"></span>
                                 </div>
+                                <div class="flex items-start justify-between gap-3">
+                                    <span class="text-[#5B6A8E]">Lease</span>
+                                    <span class="font-semibold text-right"
+                                        :class="leaseMode === 'now' && leaseFileName ? 'text-[#15803D]' : 'text-[#B45309]'"
+                                        x-text="leaseMode === 'now' ? (leaseFileName ? 'Signed copy attached' : 'Not attached yet') : 'Upload later'"></span>
+                                </div>
 
                                 <div class="h-px bg-[#E2E4EC]"></div>
 
                                 <div class="flex items-start justify-between gap-3">
                                     <span class="text-[#5B6A8E]">Monthly rent</span>
-                                    <span class="font-bold text-[#A8573F] text-right" x-text="peso(effectiveRent)"></span>
+                                    <span class="font-bold text-[#B35A3D] text-right" x-text="peso(effectiveRent)"></span>
                                 </div>
                                 <div class="flex items-start justify-between gap-3">
                                     <span class="text-[#5B6A8E]">Rent due</span>
@@ -839,15 +906,19 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                                 </svg>
-                                <p class="text-[12px] text-[#B45309] leading-relaxed">
+                                <p class="text-[12px] text-[#B45309] leading-relaxed" x-show="paymentRequired">
                                     Saving marks the unit <strong>Occupied</strong> immediately and it will stop appearing to tenants
                                     browsing the site.
+                                </p>
+                                <p class="text-[12px] text-[#B45309] leading-relaxed" x-show="!paymentRequired" x-cloak>
+                                    Saving marks the unit <strong>Reserved</strong> and it will stop appearing to tenants browsing the
+                                    site until you confirm the actual move-in.
                                 </p>
                             </div>
 
                             <button type="submit"
-                                class="mt-5 w-full h-11 rounded-full bg-[#DA8E77] text-[#060D26] text-sm font-semibold hover:bg-[#C97A61] transition-all duration-200 cursor-pointer">
-                                Add tenant &amp; occupy unit
+                                class="mt-5 w-full h-11 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                                <span x-text="paymentRequired ? 'Add tenant &amp; occupy unit' : 'Add tenant &amp; reserve unit'"></span>
                             </button>
                             <a href="{{ route('landlord.tenants.index') }}"
                                 class="mt-2.5 w-full h-11 flex items-center justify-center rounded-full border border-[#E2E4EC] text-[#5B6A8E] text-sm font-semibold hover:bg-[#F7F8FC] hover:text-[#060D26] transition-all duration-200 cursor-pointer">
@@ -906,7 +977,7 @@
                                     <label for="unit-search" class="sr-only">Search units</label>
                                     <input type="text" id="unit-search" x-model="unitSearch"
                                         placeholder="Search by unit or property…"
-                                        class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/20 focus:border-[#DA8E77] focus:bg-white transition-all duration-200">
+                                        class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                                 </div>
                             </div>
 
@@ -924,9 +995,9 @@
                                             <template x-for="u in property.units" :key="u.id">
                                                 <button type="button" @click="pick(u.id)"
                                                     :class="String(unitId) === String(u.id)
-                                                        ? 'border-[#DA8E77] ring-2 ring-[#DA8E77]/30'
-                                                        : 'border-[#E2E4EC] hover:border-[#DA8E77]/50 hover:shadow-[0_4px_16px_rgba(6,13,38,0.08)]'"
-                                                    class="group relative text-left rounded-xl border overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#DA8E77]/40">
+                                                        ? 'border-[#FF8A66] ring-2 ring-[#FF8A66]/30'
+                                                        : 'border-[#E2E4EC] hover:border-[#FF8A66]/50 hover:shadow-[0_4px_16px_rgba(6,13,38,0.08)]'"
+                                                    class="group relative text-left rounded-xl border overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/40">
 
                                                     <span x-show="String(unitId) === String(u.id)" x-cloak
                                                         class="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-[#060D26] flex items-center justify-center shadow">
@@ -952,7 +1023,7 @@
                                                     <div class="p-2.5">
                                                         <p class="text-[12.5px] font-bold text-[#060D26] truncate" x-text="u.label"></p>
                                                         <div class="flex items-center justify-between gap-2 mt-1">
-                                                            <span class="text-[12.5px] font-bold text-[#A8573F]"
+                                                            <span class="text-[12.5px] font-bold text-[#B35A3D]"
                                                                 x-text="'₱' + u.rent.toLocaleString('en-PH')"></span>
                                                             <span class="inline-flex items-center gap-1 text-[11px] text-[#5B6A8E]" x-show="u.cap">
                                                                 <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

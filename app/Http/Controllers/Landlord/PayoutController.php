@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Models\Payout;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -27,14 +28,15 @@ class PayoutController extends Controller
         // column alone leaves rent rows NULL and unsorted relative to each
         // other, out of step with the "Settled" column the view actually
         // displays (released_at ?? paid_at).
-        $pending = (clone $query)->where('payout_status', 'Pending Payout')
+        $pending = (clone $query)->pendingPayout()
             ->orderByRaw('COALESCE(released_at, paid_at) DESC')
             ->get();
 
-        $paidOutTotal = (clone $query)->where('payout_status', 'Paid Out')->sum('amount');
+        $paidOutTotal = (clone $query)->paidOut()->sum('amount');
 
-        $paidOut = (clone $query)->where('payout_status', 'Paid Out')
-            ->latest('paid_out_at')
+        $paidOut = (clone $query)->paidOut()
+            ->with('payout')
+            ->orderByDesc(Payout::select('paid_out_at')->whereColumn('payouts.payout_id', 'payments.payout_id'))
             ->paginate(15);
 
         return view('landlord.payouts.index', [

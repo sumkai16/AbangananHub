@@ -27,7 +27,7 @@
     </div>
 
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
-        <form method="post" action="{{ route('profile.destroy') }}" class="p-6 sm:p-8">
+        <form method="post" action="{{ route('profile.destroy') }}" class="p-6 sm:p-8" novalidate>
             @csrf
             @method('delete')
 

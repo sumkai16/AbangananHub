@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ReservationResource;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Models\TenantDetail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,19 +45,28 @@ class AgreementController extends Controller
     {
         Gate::authorize('sign', $reservation);
 
-        $request->validate([
+        // Same rule as the web form: emergency contact and ID on file before signing, asked once.
+        $needsDetails = ! TenantDetail::completeFor($request->user());
+
+        $validated = $request->validate([
             'agree'     => 'accepted',
             'accept_tc' => 'accepted',
+            ...($needsDetails ? TenantDetail::rules(true) : []),
         ], [
             'agree.accepted'     => 'You must agree to the rental agreement terms.',
             'accept_tc.accepted' => 'You must accept the platform terms and conditions.',
+            ...TenantDetail::messages(),
         ]);
 
-        $signed = DB::transaction(function () use ($reservation, $request) {
+        $signed = DB::transaction(function () use ($reservation, $request, $validated, $needsDetails) {
             $locked = Reservation::whereKey($reservation->getKey())->lockForUpdate()->firstOrFail();
 
             if (! $locked->signAgreement($request->ip())) {
                 return false;
+            }
+
+            if ($needsDetails) {
+                TenantDetail::saveFor($request->user(), $validated);
             }
 
             $locked->update(['tenant_tc_accepted_at' => now()]);

@@ -12,7 +12,6 @@
     $prevMonth = $month->copy()->subMonthNoOverflow()->format('Y-m');
     $nextMonth = $month->copy()->addMonthNoOverflow()->format('Y-m');
     $todayKey = now()->format('Y-m-d');
-    $defaultDay = $month->isSameMonth(now()) ? $todayKey : ($eventDays[0] ?? $month->format('Y-m-01'));
     $chipTone = [
         'overdue'    => 'bg-[#EF4444]/[0.08] text-[#DC2626]',
         'partial'    => 'bg-[#FBBF24]/[0.14] text-[#B45309]',
@@ -21,7 +20,7 @@
         'paid_ahead' => 'bg-[#ECEEF6] text-[#060D26]',
     ];            @endphp
 
-<div x-data="{ selected: '{{ $defaultDay }}', eventDays: @js($eventDays) }" class="space-y-3">
+<div x-data="{ selected: null, eventDays: @js($eventDays) }" class="space-y-3">
     <x-card flush>
         <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 sm:px-6 py-4">
             <div class="min-w-0">
@@ -68,14 +67,14 @@
                     $isToday = $key === $todayKey;
                 @endphp
                 @if(! $inMonth)
-                    <div class="bg-[#F7F8FC] min-h-[64px] lg:min-h-[116px] p-1.5 lg:p-2.5">
+                    <div class="bg-[#F7F8FC] min-h-[56px] lg:min-h-[88px] p-1.5 lg:p-2">
                         <span class="inline-flex h-6 min-w-6 items-center justify-center text-[12px] tabular-nums text-[#94A3B8]/70">{{ $d->day }}</span>
                     </div>
                 @else
                     <button type="button" @click="selected = '{{ $key }}'"
                         :class="selected === '{{ $key }}' ? 'ring-2 ring-inset ring-[#FF8A66]' : 'hover:bg-[#F7F8FC]'"
                         aria-label="{{ $d->format('F j') }}{{ count($entries) ? ', ' . count($entries) . ' due' : '' }}"
-                        class="{{ $isToday ? 'bg-[#FFF7F4]' : 'bg-white' }} min-h-[64px] lg:min-h-[116px] p-1.5 lg:p-2.5 flex flex-col items-stretch gap-1.5 text-left cursor-pointer transition-colors duration-150">
+                        class="{{ $isToday ? 'bg-[#FFF7F4]' : 'bg-white' }} min-h-[56px] lg:min-h-[88px] p-1.5 lg:p-2 flex flex-col items-stretch gap-1 text-left cursor-pointer transition-colors duration-150">
                         <span class="inline-flex h-6 min-w-6 items-center justify-center self-start rounded-full px-1 text-[12px] font-semibold tabular-nums {{ $isToday ? 'bg-[#FF8A66] text-[#060D26]' : 'text-[#060D26]' }}">{{ $d->day }}</span>
 
                         {{-- Phone: one dot per payment --}}
@@ -89,7 +88,7 @@
                             {{-- Desktop: named chips --}}
                             <span class="hidden lg:flex flex-col gap-1">
                                 @foreach(array_slice($entries, 0, 2) as $e)
-                                    <span class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[11.5px] font-semibold leading-none {{ $chipTone[$e['status']] }}">
+                                    <span class="flex items-center gap-1.5 rounded-md px-2 py-1 text-[11.5px] font-semibold leading-none {{ $chipTone[$e['status']] }}">
                                         <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $paymentStyles[$e['status']]['dot'] }}"></span>
                                         <span class="truncate">{{ explode(' ', $e['name'])[0] }}</span>
                                         <span class="ml-auto tabular-nums font-medium opacity-80">₱{{ number_format($e['expected'], 0) }}</span>
@@ -114,16 +113,36 @@
         </ul>
     </x-card>
 
-    {{-- Selected day --}}
+    {{-- Selected day — pops up as a modal instead of sitting inline, so
+         picking a day never needs a scroll down the page. Each day already
+         renders once for its own unique key, so showing whichever is
+         selected as a fixed overlay duplicates nothing. --}}
+    <div x-show="selected" x-cloak @click="selected = null" @keydown.escape.window="selected = null"
+        class="fixed inset-0 z-[199] bg-black/40 backdrop-blur-sm"
+        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+        x-transition:leave="transition ease-in duration-150" x-transition:leave-end="opacity-0"></div>
+
     @foreach($days as $key => $entries)
-        <x-card flush x-show="selected === '{{ $key }}'" x-cloak>
-            <div class="px-5 sm:px-6 py-3.5 border-b border-[#E2E4EC]">
-                <h3 class="text-[14px] font-semibold text-[#060D26]">
+        {{-- Scale/opacity only, never translate-y: the element is already
+             centered with -translate-x/y-1/2, and Tailwind's translate-y-*
+             utilities share one CSS variable, so an entrance transition using
+             translate-y would fight the centering transform mid-animation. --}}
+        <x-card flush x-show="selected === '{{ $key }}'" x-cloak role="dialog" aria-modal="true"
+            aria-label="{{ \Carbon\Carbon::parse($key)->format('l, F j') }}"
+            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-end="opacity-0 scale-95"
+            class="fixed z-[200] inset-3 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-2xl sm:max-h-[80vh] flex flex-col">
+            <div class="px-5 sm:px-6 py-3.5 border-b border-[#E2E4EC] flex items-center gap-3 shrink-0">
+                <h3 class="flex-1 min-w-0 text-[14px] font-semibold text-[#060D26]">
                     {{ \Carbon\Carbon::parse($key)->format('l, F j') }}
                     <span class="font-normal text-[#5B6A8E]">· {{ count($entries) }} {{ \Illuminate\Support\Str::plural('payment', count($entries)) }} due</span>
                 </h3>
+                <button type="button" @click="selected = null" aria-label="Close"
+                    class="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] cursor-pointer transition-colors">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                </button>
             </div>
-            <ul class="divide-y divide-[#E2E4EC]">
+            <ul class="divide-y divide-[#E2E4EC] overflow-y-auto flex-1">
                 @foreach($entries as $e)
                     <li class="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 sm:px-6 py-3.5">
                         <div class="min-w-0 flex-1 basis-48">
@@ -146,7 +165,15 @@
             </ul>
         </x-card>
     @endforeach
-    <x-card x-show="! eventDays.includes(selected)" x-cloak class="!py-3.5 !px-5 sm:!px-6">
+
+    <x-card flush x-show="selected && ! eventDays.includes(selected)" x-cloak role="dialog" aria-modal="true" aria-label="No rent due"
+        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
+        x-transition:leave="transition ease-in duration-150" x-transition:leave-end="opacity-0 scale-95"
+        class="fixed z-[200] inset-3 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md py-3.5 px-5 sm:px-6 flex items-center justify-between gap-3">
         <p class="text-[13px] text-[#5B6A8E]">No rent falls due on this day.</p>
+        <button type="button" @click="selected = null" aria-label="Close"
+            class="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] cursor-pointer transition-colors">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
     </x-card>
 </div>

@@ -40,6 +40,14 @@
         // tenant can review while living there or after moving out; this page
         // is one of the few places that CTA is actually reachable from.
         $canReview = \App\Models\Review::canReview(auth()->id(), $reservation->property_id);
+
+        // For the "View lease" modal below — by the time a tenant reaches this
+        // page the agreement is already signed (route only links here once
+        // rental_status is Occupied/Completed), so there is no sign/pay flow
+        // to render, just the frozen terms and the signature record.
+        $terms = \App\Support\LeaseTerms::for($reservation);
+        $landlord = $reservation->property->landlord;
+        $tenant = $reservation->tenant;
     @endphp
 
     <div class="{{ auth()->user()->shellContainerClass() }} mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16">
@@ -57,6 +65,15 @@
         @if($errors->any())
             <div class="mb-5 bg-[#EF4444]/[0.07] border border-[#EF4444]/25 text-[#DC2626] rounded-xl px-4 py-3 text-[13px] font-medium">
                 {{ $errors->first() }}
+            </div>
+        @endif
+
+        {{-- Tenants who signed before the emergency contact was asked for at signing have none on file. --}}
+        @if($reservation->rental_status === 'Occupied' && ! \App\Models\TenantDetail::completeFor(auth()->user()))
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] px-4 py-3">
+                <p class="text-[13px] text-[#B45309] font-medium">Your landlord has no emergency contact on file for you.</p>
+                <a href="{{ route('profile.edit') }}#emergency-contact"
+                    class="text-[13px] font-semibold text-[#060D26] underline underline-offset-2 cursor-pointer">Add it in Account Settings</a>
             </div>
         @endif
 
@@ -88,6 +105,13 @@
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" x-data="" x-on:click="$dispatch('open-modal', 'lease-agreement')"
+                        class="h-11 px-4 inline-flex items-center gap-2 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] text-sm font-semibold hover:bg-[#F7F8FC] transition-colors cursor-pointer">
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                        View lease
+                    </button>
                     @if($canReview)
                         <a href="{{ route('properties.show', $reservation->property) }}#reviews"
                             class="h-11 px-4 inline-flex items-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
@@ -98,14 +122,23 @@
                             Leave a review
                         </a>
                     @endif
-                    @if($reservation->conversation)
-                        <a href="{{ route('conversations.show', $reservation->conversation) }}"
+                    @if(in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
+                        <a href="{{ route('tenancy.chat', $reservation) }}"
                             class="h-11 px-4 inline-flex items-center gap-2 rounded-full border border-[#E2E4EC] bg-white text-[#060D26] text-sm font-semibold hover:bg-[#F7F8FC] transition-all duration-200 cursor-pointer">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                             </svg>
-                            Message
+                            Message landlord
+                        </a>
+                    @endif
+                    @if($reservation->rental_status === 'Occupied')
+                        <a href="{{ route('tenancy.chat', [$reservation, 'concern' => 'new']) }}"
+                            class="h-11 px-4 inline-flex items-center gap-2 rounded-full bg-[#FF8A66] text-[#060D26] text-sm font-semibold hover:bg-[#E96F4F] transition-all duration-200 cursor-pointer">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                            </svg>
+                            Report a concern
                         </a>
                     @endif
                 </div>
@@ -160,14 +193,59 @@
                                 </button>
                             </form>
                         </div>
+                        <x-payment-test-notice class="mt-4" />
+                    </x-card>
+                @endif
+
+                {{-- Security deposit — read-only: only the landlord can add or void a charge. --}}
+                @php
+                    $activeDepositCharges = $reservation->depositCharges->reject->isVoided()->values();
+                    $depositCategoryLabels = \App\Models\DepositCharge::CATEGORIES;
+                @endphp
+                @if($summary['depositCollected'] > 0)
+                    <x-card flush>
+                        <div class="px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">
+                            <h2 class="text-[16px] font-semibold text-[#060D26]">Security deposit</h2>
+                            <p class="text-[12px] text-[#5B6A8E] mt-0.5">
+                                ₱{{ number_format($summary['depositRemaining'], 2) }} of ₱{{ number_format($summary['depositCollected'], 2) }} still held, refundable at move-out.
+                            </p>
+                        </div>
+
+                        @if($activeDepositCharges->isEmpty())
+                            <p class="px-5 sm:px-6 py-5 text-[13px] text-[#5B6A8E]">
+                                No charges have been made against your deposit.
+                            </p>
+                        @else
+                            <ul class="divide-y divide-[#E2E4EC]">
+                                @foreach($activeDepositCharges as $charge)
+                                    <li class="px-5 sm:px-6 py-3.5">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $depositCategoryLabels[$charge->category] ?? $charge->category }}</p>
+                                            <p class="text-[13.5px] font-semibold text-[#DC2626] tabular-nums whitespace-nowrap">-₱{{ number_format((float) $charge->amount, 2) }}</p>
+                                        </div>
+                                        <p class="mt-0.5 text-[12px] text-[#5B6A8E]">{{ $charge->description }}</p>
+                                        <p class="mt-1 text-[11.5px] text-[#5B6A8E]">{{ optional($charge->charged_at)->format('M d, Y') }}</p>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
                     </x-card>
                 @endif
 
                 {{-- Rent ledger --}}
-                <x-card flush>
+                @php
+                    // Latest 6 periods by default; an older Overdue/Partial one is never hidden —
+                    // an unpaid month is exactly what this table is for.
+                    $ledgerCap = 6;
+                    $ledgerTotal = $periods->count();
+                    $isCollapsed = fn (array $period, int $i) => $i < $ledgerTotal - $ledgerCap
+                        && ($period['is_future'] || ! in_array($period['status'], ['overdue', 'partial'], true));
+                    $hiddenPeriods = $periods->filter(fn ($period, $i) => $isCollapsed($period, $i))->count();
+                @endphp
+                <x-card flush x-data="{ moreRows: false }">
                     <div class="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">
                         <div>
-                            <h2 class="text-[15px] font-normal text-[#060D26]">Rent ledger</h2>
+                            <h2 class="text-[16px] font-semibold text-[#060D26]">Rent ledger</h2>
                             <p class="text-[12px] text-[#5B6A8E] mt-0.5">
                                 ₱{{ number_format($summary['monthlyRent'], 2) }} per month, due on day {{ $summary['dueDay'] }}.
                             </p>
@@ -177,6 +255,12 @@
                                 </p>
                             @endif
                         </div>
+                        @if($hiddenPeriods > 0)
+                            <button type="button" @click="moreRows = !moreRows" :aria-expanded="moreRows"
+                                class="h-9 px-3.5 rounded-lg border border-[#E2E4EC] text-[12.5px] font-semibold text-[#060D26] hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
+                                <span x-text="moreRows ? 'Show latest only' : 'Show all {{ $ledgerTotal }} periods'"></span>
+                            </button>
+                        @endif
                     </div>
 
                     @if($periods->isEmpty())
@@ -190,8 +274,16 @@
                         {{-- Mobile card list — same data as the table below, stacked for a phone screen --}}
                         <div class="lg:hidden divide-y divide-[#E2E4EC]">
                             @foreach($periods as $period)
-                                @php $mStyle = $periodStyleFor($period); @endphp
-                                <div class="px-5 py-4">
+                                @php
+                                    $mStyle = $periodStyleFor($period);
+                                    $detail = \App\Services\RentLedger::periodPayload($period);
+                                    $detail['pill'] = $mStyle['pill'];
+                                    $detail['status_label'] = $mStyle['label'];
+                                @endphp
+                                <div class="px-5 py-4 cursor-pointer active:bg-[#F7F8FC]" role="button" tabindex="0" aria-haspopup="dialog"
+                                    @if($isCollapsed($period, $loop->index)) x-show="moreRows" x-cloak @endif
+                                    @click="$dispatch('open-period-detail', {{ Js::from($detail) }})"
+                                    @keydown.enter.prevent="$el.click()">
                                     <div class="flex items-center justify-between gap-3">
                                         <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $period['label'] }}</p>
                                         <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold shrink-0 {{ $mStyle['pill'] }}">
@@ -228,10 +320,17 @@
                                 </thead>
                                 <tbody class="divide-y divide-[#E2E4EC]">
                                     @foreach($periods as $period)
-                                        @php $style = $periodStyleFor($period); @endphp
-                                        <tr class="hover:bg-[#F7F8FC] transition-colors duration-150">
+                                        @php
+                                            $style = $periodStyleFor($period);
+                                            $detail = \App\Services\RentLedger::periodPayload($period);
+                                            $detail['pill'] = $style['pill'];
+                                            $detail['status_label'] = $style['label'];
+                                        @endphp
+                                        <tr class="hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer"
+                                            @if($isCollapsed($period, $loop->index)) x-show="moreRows" x-cloak @endif
+                                            @click="$dispatch('open-period-detail', {{ Js::from($detail) }})">
                                             <td class="px-5 sm:px-6 py-3.5">
-                                                <p class="text-[13.5px] font-semibold text-[#060D26]">{{ $period['label'] }}</p>
+                                                <button type="button" aria-haspopup="dialog" class="text-left text-[13.5px] font-semibold text-[#060D26] cursor-pointer focus-visible:underline">{{ $period['label'] }}</button>
                                                 @if($period['payments']->isNotEmpty())
                                                     <p class="text-[11px] text-[#5B6A8E] mt-0.5">
                                                         {{ $period['payments']->pluck('payment_method')->unique()->join(', ') }}
@@ -251,9 +350,14 @@
                                                 ₱{{ number_format(max(0, $period['balance']), 2) }}
                                             </td>
                                             <td class="px-5 sm:px-6 py-3.5">
-                                                <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $style['pill'] }}">
-                                                    {{ $style['label'] }}
-                                                </span>
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <span class="inline-flex items-center h-6 px-2.5 rounded-full border text-[11px] font-bold {{ $style['pill'] }}">
+                                                        {{ $style['label'] }}
+                                                    </span>
+                                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-[#94A3B8]" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                                    </svg>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -309,7 +413,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-[#E2E4EC]">
                                     @foreach($otherCharges as $charge)
-                                        <tr class="hover:bg-[#F7F8FC] transition-colors duration-150">
+                                        <tr class="hover:bg-[#ECEEF6] transition-colors duration-150">
                                             <td class="px-5 sm:px-6 py-3.5 text-[13px] text-[#060D26] whitespace-nowrap">
                                                 {{ optional($charge->paid_at)->format('M d, Y') ?? '—' }}
                                             </td>
@@ -395,4 +499,71 @@
             </script>
         @endpush
     @endif
+    <x-rent-period-modal />
+
+    {{-- "View lease" — read-only, since a tenant only reaches this page once
+         the agreement is already signed. Opens over this page instead of
+         navigating away; agreements.show (full page, printable) is still
+         linked from the footer for printing/saving a copy. --}}
+    <x-modal name="lease-agreement" maxWidth="2xl">
+        <div class="flex flex-col max-h-[85vh]">
+            <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-4 border-b border-[#E2E4EC] shrink-0">
+                <div>
+                    <h2 class="text-lg font-semibold text-[#060D26]">Lease Agreement</h2>
+                    <p class="mt-1 text-[11px] font-bold text-[#5B6A8E] tracking-wider tabular-nums">{{ $terms['reference'] }}</p>
+                </div>
+                <button type="button" x-on:click="$dispatch('close')" aria-label="Close"
+                    class="-mr-1.5 -mt-1 h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg text-[#5B6A8E] hover:bg-[#ECEEF6] hover:text-[#060D26] transition-colors duration-200 cursor-pointer">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto px-6 py-5">
+                @include('leases._document', ['terms' => $terms])
+
+                @if($reservation->agreed_at || $reservation->landlord_tc_accepted_at)
+                    <div class="mt-6 rounded-xl border border-[#E2E4EC] p-5">
+                        <p class="text-[10px] font-bold text-[#5B6A8E] uppercase tracking-wider mb-3">Signatures</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[13px] font-bold text-[#060D26]">{{ $landlord->first_name }} {{ $landlord->last_name }}</p>
+                                <p class="text-[11px] text-[#5B6A8E]">Landlord</p>
+                                @if($reservation->landlord_tc_accepted_at)
+                                    <p class="text-[11px] text-[#15803D] font-semibold mt-1.5">
+                                        Accepted {{ $reservation->landlord_tc_accepted_at->format('F j, Y \a\t g:i A') }}
+                                    </p>
+                                @else
+                                    <p class="text-[11px] text-[#5B6A8E] mt-1.5">Awaiting acceptance</p>
+                                @endif
+                            </div>
+                            <div class="sm:border-l sm:border-[#E2E4EC] sm:pl-4">
+                                <p class="text-[13px] font-bold text-[#060D26]">{{ $tenant->first_name }} {{ $tenant->last_name }}</p>
+                                <p class="text-[11px] text-[#5B6A8E]">Tenant</p>
+                                @if($reservation->agreed_at)
+                                    <p class="text-[11px] text-[#15803D] font-semibold mt-1.5">
+                                        Signed {{ $reservation->agreed_at->format('F j, Y \a\t g:i A') }}
+                                    </p>
+                                @else
+                                    <p class="text-[11px] text-[#5B6A8E] mt-1.5">Not yet signed</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <div class="px-6 py-4 border-t border-[#E2E4EC] flex items-center justify-between gap-3 shrink-0">
+                <a href="{{ route('tenancy.lease', $reservation) }}" target="_blank" rel="noopener"
+                    class="text-[12.5px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline underline-offset-2">
+                    Open full page / Print
+                </a>
+                <button type="button" x-on:click="$dispatch('close')"
+                    class="h-10 px-5 rounded-xl border border-[#E2E4EC] text-[13px] font-semibold text-[#060D26] hover:border-[#060D26]/40 hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
+                    Close
+                </button>
+            </div>
+        </div>
+    </x-modal>
 @endsection

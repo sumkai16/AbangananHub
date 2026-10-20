@@ -34,7 +34,7 @@
             <div class="min-w-0">
                 <p class="text-[11px] font-bold uppercase tracking-[0.11em] text-[#060D26]">Step 2 of 6</p>
                 <h1 class="mt-1.5 text-2xl font-normal tracking-tight text-[#060D26]">Where is it located?</h1>
-                <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Pin the exact spot, then add a few photos of the building.</p>
+                <p class="mt-2 text-sm text-[#5B6A8E] leading-relaxed max-w-md">Pin the exact spot, then add a few photos of the property.</p>
 
                 <form method="POST" action="{{ $property ? route('properties.wizard.location.update', $property) : route('properties.wizard.location.store') }}"
                     enctype="multipart/form-data" x-data="{ submitting: false }" x-on:submit="submitting = true"

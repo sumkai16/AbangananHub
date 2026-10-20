@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api\Landlord;
 
+use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PropertyUnitResource;
+use App\Models\Amenity;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
@@ -20,10 +22,7 @@ use Illuminate\Validation\ValidationException;
  */
 class UnitWriteController extends Controller
 {
-    private function authorizeProperty(Property $property): void
-    {
-        abort_if($property->landlord_id !== auth()->id(), 403);
-    }
+    use AuthorizesPropertyOwnership;
 
     public function store(Request $request, Property $property): JsonResponse
     {
@@ -31,7 +30,6 @@ class UnitWriteController extends Controller
 
         $validated = $request->validate([
             'unit_label'          => 'required|string|max:100',
-            'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
             'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
@@ -40,7 +38,7 @@ class UnitWriteController extends Controller
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
-            'amenities'           => 'nullable|array',
+            'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'required|array|min:3|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -64,7 +62,6 @@ class UnitWriteController extends Controller
         $unit = DB::transaction(function () use ($validated, $property, $photos, $sources, $captions, $request) {
             $unit = $property->units()->create([
                 'unit_label'          => $validated['unit_label'],
-                'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
@@ -87,6 +84,7 @@ class UnitWriteController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Image',
                     'media_url'  => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'] ?? null,
                     'source'     => ($sources[$i] ?? 'upload') === 'camera' ? 'camera' : 'upload',
                     'caption'    => $captions[$i] ?? null,
                 ]);
@@ -100,6 +98,7 @@ class UnitWriteController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Video',
                     'media_url'  => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'] ?? null,
                     'source'     => 'upload',
                 ]);
             }
@@ -117,7 +116,6 @@ class UnitWriteController extends Controller
 
         $validated = $request->validate([
             'unit_label'          => 'required|string|max:100',
-            'unit_type'           => 'nullable|string|max:50',
             'floor'               => 'nullable|string|max:50',
             'floor_area_sqm'      => 'nullable|numeric|min:1|max:9999.99',
             'rental_fee'          => 'required|numeric|min:500|max:999999.99',
@@ -126,7 +124,7 @@ class UnitWriteController extends Controller
             'occupancy_limit'     => 'required|integer|min:1|max:100',
             'availability_status' => 'required|in:Available,Reserved,Occupied,Maintenance',
             'description'         => 'nullable|string|max:300',
-            'amenities'           => 'nullable|array',
+            'amenities'           => ['nullable', 'array', Amenity::exclusiveRule()],
             'amenities.*'         => 'exists:amenities,amenity_id',
             'photos'              => 'nullable|array|max:10',
             'photos.*'            => 'image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -148,7 +146,6 @@ class UnitWriteController extends Controller
         DB::transaction(function () use ($validated, $request, $unit, $materialChanged) {
             $unit->update([
                 'unit_label'          => $validated['unit_label'],
-                'unit_type'           => $validated['unit_type'] ?? null,
                 'floor'               => $validated['floor'] ?? null,
                 'floor_area_sqm'      => $validated['floor_area_sqm'] ?? null,
                 'rental_fee'          => $validated['rental_fee'],
@@ -170,6 +167,7 @@ class UnitWriteController extends Controller
                     $unit->media()->create([
                         'media_type' => 'Image',
                         'media_url'  => $result['secure_url'],
+                        'cloudinary_public_id' => $result['public_id'] ?? null,
                         'source'     => 'upload',
                     ]);
                 }
@@ -183,6 +181,7 @@ class UnitWriteController extends Controller
                 $unit->media()->create([
                     'media_type' => 'Video',
                     'media_url'  => $result['secure_url'],
+                    'cloudinary_public_id' => $result['public_id'] ?? null,
                     'source'     => 'upload',
                 ]);
             }
@@ -205,14 +204,7 @@ class UnitWriteController extends Controller
         }
 
         foreach ($unit->media as $media) {
-            if ($media->media_url) {
-                try {
-                    $publicId = pathinfo(parse_url($media->media_url, PHP_URL_PATH), PATHINFO_FILENAME);
-                    cloudinary()->uploadApi()->destroy('abanganan/units/'.$publicId);
-                } catch (\Exception $e) {
-                    // Log but don't block deletion — same as web.
-                }
-            }
+            $media->destroyFromCloudinary();
             $media->delete();
         }
 
@@ -236,14 +228,7 @@ class UnitWriteController extends Controller
 
         $photo = $unit->media()->where('media_id', $media)->firstOrFail();
 
-        if ($photo->media_url) {
-            try {
-                $publicId = pathinfo(parse_url($photo->media_url, PHP_URL_PATH), PATHINFO_FILENAME);
-                cloudinary()->uploadApi()->destroy('abanganan/units/'.$publicId);
-            } catch (\Exception $e) {
-                // Log but don't block deletion — same as web.
-            }
-        }
+        $photo->destroyFromCloudinary();
         $photo->delete();
 
         return response()->json(['message' => 'Photo removed.']);

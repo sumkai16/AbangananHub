@@ -71,10 +71,48 @@ class TenantSeeder extends Seeder
             'advance' => 0, 'current' => 'unpaid',
             'bio' => 'Junior accountant, just moved to the city for work. Early sleeper, keeps the place clean.',
         ],
+        [
+            'first_name' => 'Marvin', 'last_name' => 'Lapaz', 'email' => 'marvin@abangananhub.com',
+            'contact' => '09171230006', 'months_in' => 5, 'occupants' => 1, 'due_day' => 1,
+            'pay_offsets' => [0, 0, 1, 0, 0], 'cash_every' => 0, 'methods' => ['Maya'],
+            'advance' => 0, 'current' => 'paid',
+            'bio' => 'Machine operator at a Mactan factory, day shift. Rides a motorcycle and needs a safe place to park it.',
+        ],
+        [
+            'first_name' => 'Ella Mae', 'last_name' => 'Gimenez', 'email' => 'ellamae@abangananhub.com',
+            'contact' => '09171230007', 'months_in' => 8, 'occupants' => 1, 'due_day' => 10,
+            'pay_offsets' => [0, 3, 6, 0, 2, 0, 8, 1], 'cash_every' => 4, 'methods' => ['GCash', 'QRPh'],
+            'advance' => 0, 'current' => 'unpaid',
+            'bio' => 'Public school teacher, first posting in Cebu province. Often pays a few days late when payday is delayed.',
+        ],
+        [
+            'first_name' => 'Ronaldo', 'last_name' => 'Tabada', 'email' => 'ronaldo@abangananhub.com',
+            'contact' => '09171230008', 'months_in' => 12, 'occupants' => 4, 'due_day' => 5,
+            'pay_offsets' => [0, 0, -1, 0, 1, 0, 0, -2, 0, 0, 1, 0], 'cash_every' => 6, 'methods' => ['Bank Transfer', 'GCash'],
+            'advance' => 0, 'current' => 'paid',
+            'bio' => 'Port worker renting with his wife and two kids. A year in, no missed months.',
+        ],
+        [
+            'first_name' => 'Precious', 'last_name' => 'Dacillo', 'email' => 'precious@abangananhub.com',
+            'contact' => '09171230009', 'months_in' => 3, 'occupants' => 1, 'due_day' => 1,
+            'pay_offsets' => [-1, 0, 0], 'cash_every' => 0, 'methods' => ['GCash'],
+            'advance' => 2, 'current' => 'paid',
+            'bio' => 'Remote UX writer who pays several months ahead. Works from the room, needs steady Wi-Fi.',
+        ],
+        [
+            'first_name' => 'Nathaniel', 'last_name' => 'Quiñones', 'email' => 'nathaniel@abangananhub.com',
+            'contact' => '09171230010', 'months_in' => 6, 'occupants' => 2, 'due_day' => 20,
+            'pay_offsets' => [0, 1, 0, 4, 0, 2], 'cash_every' => 0, 'methods' => ['Maya', 'GCash'],
+            'advance' => 0, 'current' => 'partial',
+            'bio' => 'Sous chef at a Mactan resort, rooming with his sister. Irregular hours, always calls ahead.',
+        ],
     ];
 
     public function run(): void
     {
+        // First, so the other tenants can't use up all of Maria's free units.
+        $this->rentForAxcee();
+
         $units = $this->pickUnits(count(self::TENANTS));
 
         foreach (self::TENANTS as $i => $t) {
@@ -85,8 +123,6 @@ class TenantSeeder extends Seeder
                     'last_name'          => $t['last_name'],
                     'password'           => Hash::make('password'),
                     'contact_number'     => $t['contact'],
-                    'gcash_number'       => $t['contact'],
-                    'gcash_account_name' => $t['first_name'].' '.$t['last_name'],
                     'profile_picture'    => 'https://i.pravatar.cc/300?img='.(11 + $i * 7),
                     'bio'                => $t['bio'],
                     'profile_visibility' => 'public',
@@ -104,6 +140,35 @@ class TenantSeeder extends Seeder
         }
     }
 
+    /**
+     * Axcee (the main test tenant from UserSeeder) rents a unit from Maria Santos,
+     * the main test landlord, so both demo logins see the same active tenancy.
+     */
+    private function rentForAxcee(): void
+    {
+        $axcee = User::where('email', 'axcee@abangananhub.com')->first();
+        if (! $axcee || Reservation::where('tenant_id', $axcee->user_id)->where('rental_status', 'Occupied')->exists()) {
+            return;
+        }
+
+        $unit = PropertyUnit::with('property')->where('availability_status', 'Available')
+            ->where('verification_status', 'Approved')
+            ->whereHas('property.landlord', fn ($q) => $q->where('email', 'landlord@abangananhub.com'))
+            ->orderBy('property_id')->orderBy('unit_id')
+            ->first();
+        if (! $unit) {
+            throw new \RuntimeException('No available approved unit under landlord@abangananhub.com for Axcee.');
+        }
+
+        $this->rent($axcee, $unit, self::AXCEE);
+    }
+
+    private const AXCEE = [
+        'email' => 'axcee@abangananhub.com', 'months_in' => 3, 'occupants' => 1, 'due_day' => 1,
+        'pay_offsets' => [0, -1, 1], 'cash_every' => 0, 'methods' => ['GCash'],
+        'advance' => 0, 'current' => 'unpaid',
+    ];
+
     /** One available, approved unit from every third property, so the tenants spread across the listings. */
     private function pickUnits(int $count)
     {
@@ -118,7 +183,7 @@ class TenantSeeder extends Seeder
             ->take($count);
     }
 
-    private function rent(User $tenant, PropertyUnit $unit, array $t): void
+    protected function rent(User $tenant, PropertyUnit $unit, array $t): void
     {
         $moveIn     = now()->subMonths($t['months_in'])->startOfMonth();
         $rent       = (float) $unit->rental_fee;
@@ -180,7 +245,7 @@ class TenantSeeder extends Seeder
      *
      * @return list<string> 'Y-m' of every month the payment settled
      */
-    private function moveInPayment(Reservation $reservation, array $t, Carbon $moveIn, float $rent, float $deposit): array
+    protected function moveInPayment(Reservation $reservation, array $t, Carbon $moveIn, float $rent, float $deposit): array
     {
         $breakdown = MoveInPaymentBreakdown::make(
             $deposit + $rent * (1 + $t['advance']),
@@ -212,7 +277,7 @@ class TenantSeeder extends Seeder
         return $months;
     }
 
-    private function monthlyPayment(Reservation $reservation, array $t, Carbon $period, int $m, float $amount, int $landlordId): void
+    protected function monthlyPayment(Reservation $reservation, array $t, Carbon $period, int $m, float $amount, int $landlordId): void
     {
         $offset = $t['pay_offsets'][($m - 1) % count($t['pay_offsets'])];
         $paidAt = $period->copy()->day($t['due_day'])->addDays($offset)->setTime(9 + $m % 8, ($m * 17) % 60);
@@ -240,7 +305,7 @@ class TenantSeeder extends Seeder
     }
 
     /** Stable 13-digit wallet-style reference, e.g. "5023189774210". */
-    private function gcashRef(string $seed, string $salt): string
+    protected function gcashRef(string $seed, string $salt): string
     {
         return substr(sprintf('%u%u', crc32($seed.$salt), crc32($salt.$seed)), 0, 13);
     }

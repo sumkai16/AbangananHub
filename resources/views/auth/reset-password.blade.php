@@ -11,7 +11,7 @@
         <div class="max-w-xl mx-auto">
             <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Choose a new<br>
-                <span class="italic text-[#DA8E77]">password.</span>
+                <span class="italic text-[#FF8A66]">password.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 Almost done. Set a new password to secure your AbangananHub account.
@@ -26,28 +26,13 @@
             {{-- Branding --}}
             <div class="mb-5">
                 <a href="/" class="flex items-center gap-2 mb-4 group inline-flex">
-                    <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shadow-md shadow-[#060D26]/10 transition-transform duration-300 group-hover:scale-105">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </div>
-                    <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
+                    <x-brand-logo mark="w-8 h-8" text="text-base" />
                 </a>
                 <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Reset your password</h2>
                 <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">Choose a strong password you haven't used before.</p>
             </div>
 
-            {{-- Session alerts --}}
-            @if ($errors->any())
-                <div class="mb-4 flex items-start gap-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg px-4 py-2.5">
-                    <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                    </svg>
-                    <p class="text-xs text-[#EF4444] font-semibold">{{ $errors->first() }}</p>
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('password.store') }}" class="space-y-3.5">
+            <form method="POST" action="{{ route('password.store') }}" class="space-y-3.5" novalidate>
                 @csrf
 
                 <input type="hidden" name="token" value="{{ $request->route('token') }}">
@@ -56,15 +41,16 @@
                 <div>
                     <label for="email" class="block text-xs font-bold text-[#060D26] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email', $request->email) }}" required autofocus autocomplete="username" placeholder="Enter your email"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                    <x-input-error :messages="$errors->get('email')" class="mt-1.5 !text-xs" role="alert" />
                 </div>
 
                 {{-- New Password --}}
                 <div>
                     <label for="password" class="block text-xs font-bold text-[#060D26] mb-1">New Password</label>
                     <div class="relative">
-                        <input id="password" type="password" name="password" required autocomplete="new-password" placeholder="Create a new password"
-                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
+                        <input id="password" type="password" name="password" minlength="8" data-strength required autocomplete="new-password" placeholder="Create a new password"
+                            class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                         <button type="button" onclick="togglePassword('password', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6A8E] hover:text-[#060D26] transition-colors focus:outline-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -73,18 +59,19 @@
                             </svg>
                         </button>
                     </div>
+                    <x-input-error :messages="$errors->get('password')" class="mt-1.5 !text-xs" role="alert" />
                 </div>
 
                 {{-- Confirm Password --}}
                 <div>
                     <label for="password_confirmation" class="block text-xs font-bold text-[#060D26] mb-1">Confirm New Password</label>
                     <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your new password"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
                 </div>
 
                 {{-- Action Submission Button --}}
                 <div class="pt-1">
-                    <button type="submit" class="w-full bg-[#DA8E77] text-[#060D26] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
+                    <button type="submit" class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
                         Reset Password
                     </button>
                 </div>

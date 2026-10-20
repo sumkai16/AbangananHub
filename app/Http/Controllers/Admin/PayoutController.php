@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Payment;
+use App\Models\Payout;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,8 +20,8 @@ class PayoutController extends Controller
 {
     public function index()
     {
-        $pending = Payment::with(['reservation.property.landlord'])
-            ->where('payout_status', 'Pending Payout')
+        $pending = Payment::with(['reservation.property.landlord.payoutAccount'])
+            ->pendingPayout()
             ->get()
             ->groupBy(fn (Payment $payment) => $payment->reservation?->property?->landlord_id)
             ->filter(fn ($rows, $landlordId) => $landlordId !== null)
@@ -36,8 +37,8 @@ class PayoutController extends Controller
             ->sortByDesc('total')
             ->values();
 
-        $recentlyPaidOut = Payment::with(['reservation.property.landlord', 'payoutRecorder'])
-            ->where('payout_status', 'Paid Out')
+        $recentlyPaidOut = Payout::with(['landlord', 'paidOutBy'])
+            ->withCount('payments')
             ->latest('paid_out_at')
             ->take(25)
             ->get();
@@ -64,7 +65,7 @@ class PayoutController extends Controller
                 'reservation.property',
                 fn ($q) => $q->where('landlord_id', $user->user_id)
             )
-                ->where('payout_status', 'Pending Payout')
+                ->pendingPayout()
                 ->lockForUpdate()
                 ->get();
 
@@ -72,14 +73,21 @@ class PayoutController extends Controller
 
             $total = $payments->sum('amount');
 
-            foreach ($payments as $payment) {
-                $payment->update([
-                    'payout_status' => 'Paid Out',
-                    'paid_out_at' => now(),
-                    'paid_out_by' => auth()->id(),
-                    'payout_reference' => $data['payout_reference'],
-                ]);
-            }
+            // The GCash details are copied onto the payout: the record must keep saying where this
+            // transfer went even after the landlord changes their payout account.
+            $account = $user->payoutAccount;
+
+            $payout = Payout::create([
+                'landlord_id' => $user->user_id,
+                'amount' => $total,
+                'gcash_number' => $account?->gcash_number,
+                'gcash_account_name' => $account?->gcash_account_name,
+                'payout_reference' => $data['payout_reference'],
+                'paid_out_by' => auth()->id(),
+                'paid_out_at' => now(),
+            ]);
+
+            Payment::whereIn('payment_id', $payments->pluck('payment_id'))->update(['payout_id' => $payout->payout_id]);
 
             AuditLog::record(
                 'payout.mark_paid_out',
@@ -88,6 +96,7 @@ class PayoutController extends Controller
                 null,
                 [
                     'amount' => $total,
+                    'payout_id' => $payout->payout_id,
                     'payment_ids' => $payments->pluck('payment_id'),
                     'payout_reference' => $data['payout_reference'],
                 ],

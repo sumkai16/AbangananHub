@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ $title ?? 'AbangananHub' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/AbangananHub-icon-256.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/logo-app-icon.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         (function () {
@@ -103,7 +103,7 @@
         {{-- ============ SIDEBAR ============ --}}
         <aside id="landlord-sidebar" x-cloak
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 z-50 w-64 lg:w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="print:hidden fixed inset-y-0 left-0 z-50 w-64 lg:w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
             {{-- Collapse toggle --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
@@ -120,7 +120,7 @@
             <div class="flex items-center justify-between h-[64px] border-b border-white/[0.06] shrink-0 px-5">
                 <a href="{{ route('landlord.dashboard') }}"
                     class="flex items-center gap-2.5 overflow-hidden no-underline">
-                    <img src="{{ asset('images/AbangananHub-icon-256.png') }}" alt="AbangananHub"
+                    <img src="{{ asset('images/brand/logo-mark-on-dark.svg') }}" alt="AbangananHub"
                         class="w-9 h-9 object-contain shrink-0">
                     <span data-sidebar-label x-show="!sidebarCollapsed"
                         class="text-[16px] font-extrabold text-white tracking-tight whitespace-nowrap">
@@ -320,7 +320,8 @@
                             {{ auth()->user()->last_name }}</span>
                         <span class="block text-[12px] text-white/50">Landlord</span>
                     </span>
-                    <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                    <form action="{{ route('logout') }}" method="POST" class="shrink-0"
+                        data-confirm="Sign out?" data-confirm-message="You'll need to log in again to continue." data-confirm-button="Sign out">
                         @csrf
                         <button type="submit" title="Sign out" aria-label="Sign out"
                             class="group/so relative w-10 h-10 flex items-center justify-center rounded-lg text-white/30 hover:text-[#DC2626] hover:bg-white/[0.06] transition-colors">
@@ -341,11 +342,11 @@
 
         {{-- ============ MAIN ============ --}}
         <div id="landlord-main"
-            class="lg:ml-64 flex-1 flex flex-col min-w-0 transition-all duration-300">
+            class="lg:ml-64 print:!ml-0 flex-1 flex flex-col min-w-0 transition-all duration-300">
 
             {{-- Mobile-only slim bar --}}
             <div
-                class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">
+                class="lg:hidden print:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">
                 <button @click="sidebarOpen = !sidebarOpen"
                     class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#E2E4EC] text-[#060D26] transition-colors duration-200">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -359,18 +360,18 @@
 
                     {{-- Messages — mobile equivalent of the floating chat bubble,
                          which is desktop-only (see partials.message-notifications).
-                         Dispatches the same event that bubble's panel listens for. --}}
+                         Links to the full messages page instead of a popup panel. --}}
                     @auth
                         @php
                             $mobileUnreadMsgCount = $unreadMessageCount;
                         @endphp
-                        <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-messages-panel'))"
+                        <a href="{{ route('conversations.index') }}"
                             class="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
                             Messages
                             @if($mobileUnreadMsgCount > 0)
                                 <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
                             @endif
-                        </button>
+                        </a>
                     @endauth
 
                     <div class="relative" x-data="notificationDropdown()" @click.away="close()"
@@ -403,7 +404,7 @@
                 </div>
             </div>
 
-            <main id="main" class="flex-1 overflow-x-hidden">
+            <main id="main" class="flex-1 overflow-x-clip">
                 @yield('content')
             </main>
         </div>

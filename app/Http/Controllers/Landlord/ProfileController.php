@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Review;
+use App\Models\User;
+use App\Support\NameLock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
     private const FIRST_PAGE_SIZE = 6;
+
     private const MORE_PAGE_SIZE = 12;
 
     /**
@@ -76,6 +77,13 @@ class ProfileController extends Controller
 
     private function ensureVisible(User $user): void
     {
+        // The page holds only business information, so a landlord with a live listing is always public:
+        // the listing page links here, and a 404 behind a "View business" link helps nobody.
+        // `profile_visibility` still decides for a landlord with nothing live.
+        if ($user->hasPublicBusinessPage()) {
+            return;
+        }
+
         $visibility = $user->profile_visibility ?? 'private';
 
         if ($visibility === 'private') {
@@ -169,84 +177,93 @@ class ProfileController extends Controller
         return view('landlord.profile.edit', compact('user', 'business'));
     }
 
-public function update(Request $request)
-{
-    $user = Auth::user();
+    public function update(Request $request)
+    {
+        $user = Auth::user();
 
-    $validated = $request->validate([
-        'first_name' => ['required', 'string', 'max:255'],
-        'last_name' => ['required', 'string', 'max:255'],
-        'contact_number' => ['nullable', 'string', 'max:20'],
-        'gcash_number' => ['nullable', 'string', 'max:20'],
-        'gcash_account_name' => ['nullable', 'string', 'max:255'],
-        'bio' => ['nullable', 'string', 'max:1000'],
-        'profile_picture' => ['nullable', 'image', 'max:2048'],
-        'business_name' => ['nullable', 'string', 'max:255'],
-        'business_description' => ['nullable', 'string', 'max:1000'],
-        'business_contact' => ['nullable', 'string', 'max:20'],
-        'business_address' => ['nullable', 'string', 'max:500'],
-        'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-    ]);
+        NameLock::apply($request, $user);
 
-    if ($request->hasFile('profile_picture')) {
-        $result = cloudinary()->uploadApi()->upload(
-            $request->file('profile_picture')->getRealPath(),
-            [
-                'folder' => 'abanganganhub/profile-pictures',
-                'transformation' => [
-                    'width' => 400,
-                    'height' => 400,
-                    'crop' => 'fill',
-                    'gravity' => 'face',
-                ],
-            ]
-        );
-        $validated['profile_picture'] = $result['secure_url'];
-    }
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:20'],
+            'gcash_number' => ['nullable', 'string', 'max:20'],
+            'gcash_account_name' => ['nullable', 'string', 'max:255'],
+            'bio' => ['nullable', 'string', 'max:1000'],
+            'profile_picture' => ['nullable', 'image', 'max:2048'],
+            'business_name' => ['nullable', 'string', 'max:255'],
+            'business_description' => ['nullable', 'string', 'max:1000'],
+            'business_contact' => ['nullable', 'string', 'max:20'],
+            'business_address' => ['nullable', 'string', 'max:500'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ]);
 
-    // Update user fields
-    $user->update(collect($validated)->only([
-        'first_name', 'last_name', 'contact_number', 'gcash_number', 'gcash_account_name', 'bio', 'profile_picture',
-    ])->toArray());
-
-    // Update or create rental business
-    $businessData = array_filter([
-        'business_name' => $validated['business_name'] ?? null,
-        'description' => $validated['business_description'] ?? null,
-        'contact_number' => $validated['business_contact'] ?? null,
-        'business_address' => $validated['business_address'] ?? null,
-    ], fn($v) => $v !== null);
-
-    // Handle logo upload
-    if ($request->hasFile('logo')) {
-        $business = $user->rentalBusiness;
-
-        if ($business && $business->logo_public_id) {
-            cloudinary()->uploadApi()->destroy($business->logo_public_id);
+        if ($request->hasFile('profile_picture')) {
+            $result = cloudinary()->uploadApi()->upload(
+                $request->file('profile_picture')->getRealPath(),
+                [
+                    'folder' => 'abanganganhub/profile-pictures',
+                    'transformation' => [
+                        'width' => 400,
+                        'height' => 400,
+                        'crop' => 'fill',
+                        'gravity' => 'face',
+                    ],
+                ]
+            );
+            $validated['profile_picture'] = $result['secure_url'];
         }
 
-        $logoResult = cloudinary()->uploadApi()->upload(
-            $request->file('logo')->getRealPath(),
-            [
-                'folder' => 'abanganganhub/business-logos',
-                'transformation' => [
-                    'width' => 400,
-                    'height' => 400,
-                    'crop' => 'fill',
-                    'gravity' => 'face',
-                ],
-            ]
+        // Update user fields
+        $user->update(collect($validated)->only([
+            'first_name', 'last_name', 'contact_number', 'bio', 'profile_picture',
+        ])->toArray());
+
+        // A key left out of the request keeps its stored value, like every other field above.
+        $payout = $user->payoutAccount;
+        $user->savePayoutAccount(
+            array_key_exists('gcash_number', $validated) ? $validated['gcash_number'] : $payout?->gcash_number,
+            array_key_exists('gcash_account_name', $validated) ? $validated['gcash_account_name'] : $payout?->gcash_account_name,
         );
 
-        $businessData['logo_url'] = $logoResult['secure_url'];
-        $businessData['logo_public_id'] = $logoResult['public_id'];
-    }
+        // Update or create rental business
+        $businessData = array_filter([
+            'business_name' => $validated['business_name'] ?? null,
+            'description' => $validated['business_description'] ?? null,
+            'contact_number' => $validated['business_contact'] ?? null,
+            'business_address' => $validated['business_address'] ?? null,
+        ], fn ($v) => $v !== null);
 
-    if (!empty($businessData)) {
-        $user->rentalBusiness()
-            ->updateOrCreate(['landlord_id' => $user->user_id], $businessData);
-    }
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $business = $user->rentalBusiness;
 
-    return redirect()->route('landlord.profile.me')->with('success', 'Profile updated successfully.');
-}
+            if ($business && $business->logo_public_id) {
+                cloudinary()->uploadApi()->destroy($business->logo_public_id);
+            }
+
+            $logoResult = cloudinary()->uploadApi()->upload(
+                $request->file('logo')->getRealPath(),
+                [
+                    'folder' => 'abanganganhub/business-logos',
+                    'transformation' => [
+                        'width' => 400,
+                        'height' => 400,
+                        'crop' => 'fill',
+                        'gravity' => 'face',
+                    ],
+                ]
+            );
+
+            $businessData['logo_url'] = $logoResult['secure_url'];
+            $businessData['logo_public_id'] = $logoResult['public_id'];
+        }
+
+        if (!empty($businessData)) {
+            $user->rentalBusiness()
+                ->updateOrCreate(['landlord_id' => $user->user_id], $businessData);
+        }
+
+        return redirect()->route('landlord.profile.me')->with('success', 'Profile updated successfully.');
+    }
 }

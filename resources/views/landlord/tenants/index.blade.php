@@ -36,8 +36,9 @@
             </x-slot:actions>
         </x-page-header>
 
-        {{-- Stat cards --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        {{-- Stat cards — the last two double as filters: click one to jump
+             straight to the tenants it's counting. --}}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             @php
                 $statusSub = match(request('status')) {
                     'active'   => 'Currently occupying units',
@@ -54,15 +55,38 @@
                     </svg>
                 </x-slot:icon>
             </x-stat-card>
-            <x-stat-card label="Properties with Tenants" :value="$reservations->pluck('property_id')->unique()->count()" sub="Out of your approved properties">
+            <x-stat-card label="Lease Missing" :value="$leaseMissingCount"
+                value-color="{{ $leaseMissingCount > 0 ? '#B45309' : '#060D26' }}" icon-bg="rgba(251,191,36,0.15)"
+                sub="{{ $leaseMissingCount > 0 ? 'Needs a signed lease on file' : 'All tenants have a lease on file' }}"
+                :href="route('landlord.tenants.index', request()->only('property') + ['lease_missing' => 1])">
                 <x-slot:icon>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-8.99 3.75h.008v.008h-.008v-.008Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+            <x-stat-card label="Moving In Soon" :value="$movingInSoonCount" value-color="#B45309" icon-bg="rgba(251,191,36,0.15)"
+                sub="Recorded active, not yet moved in"
+                :href="route('landlord.tenants.index', request()->only('property') + ['moving_in_soon' => 1])">
+                <x-slot:icon>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B45309" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                     </svg>
                 </x-slot:icon>
             </x-stat-card>
         </div>
+
+        @if(request()->boolean('lease_missing') || request()->boolean('moving_in_soon'))
+            <div class="flex items-center gap-2 mb-4 -mt-2">
+                <span class="text-[12px] text-[#5B6A8E]">
+                    Showing only {{ request()->boolean('lease_missing') ? 'tenants with no lease on file' : 'tenants not yet moved in' }}.
+                </span>
+                <a href="{{ route('landlord.tenants.index', request()->only('property')) }}"
+                    class="text-[12px] font-semibold text-[#5B6A8E] hover:text-[#060D26] underline transition-colors">
+                    Clear
+                </a>
+            </div>
+        @endif
 
         {{-- Filter bar --}}
         <form method="GET" action="{{ route('landlord.tenants.index') }}"
@@ -97,7 +121,7 @@
                         Filter
                     </button>
 
-                    @if(request()->hasAny(['search', 'property', 'status']))
+                    @if(request()->hasAny(['search', 'property', 'status', 'lease_missing', 'moving_in_soon']))
                         <a href="{{ route('landlord.tenants.index') }}"
                             class="h-11 px-4 rounded-xl border border-[#5B6A8E]/25 text-[13.5px] text-[#5B6A8E] hover:text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200 inline-flex items-center gap-1.5">
                             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -119,7 +143,7 @@
                         </button>
                         <button type="button" x-on:click="setView('table')" aria-label="Table view"
                             :class="view === 'table' ? 'bg-white text-[#060D26] shadow-sm' : 'text-[#5B6A8E] hover:text-[#060D26]'"
-                            class="h-9 w-9 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
+                            class="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg cursor-pointer transition-all duration-200">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
@@ -168,6 +192,17 @@
                             'pending'  => 'bg-[#FBBF24]/[0.12] text-[#B45309]',
                             'inactive' => 'bg-[#94A3B8]/[0.15] text-[#5B6A8E]',
                         ][$statusGroup];
+                        // Occupied doesn't mean "already living there" for a walk-in
+                        // recorded ahead of a future move-in date. Still grouped and
+                        // filtered as active (rental_status/STATUS_GROUPS untouched) —
+                        // only the pill borrows Pending's "hasn't happened yet" amber
+                        // so it reads correctly at a glance instead of claiming Active.
+                        $movingIn = $statusGroup === 'active' && $reservation->target_move_in_date?->isFuture()
+                            ? $reservation->target_move_in_date->format('M j')
+                            : null;
+                        $statusLabel = $movingIn ? 'Moving in ' . $movingIn : ucfirst($statusGroup);
+                        $statusStyle = $movingIn ? 'bg-[#FBBF24]/[0.12] text-[#B45309]' : $statusStyle;
+                        $statusTitle = $movingIn ? "Tracked as an active tenant; hasn't moved into the unit yet" : null;
                     @endphp
                     <div class="group flex flex-col rounded-2xl overflow-hidden bg-white border border-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)] hover:shadow-[0_8px_28px_rgba(6,13,38,0.1)] transition-all duration-300">
 
@@ -186,11 +221,17 @@
                                             Walk-in
                                         </span>
                                     @endif
+                                    @if($reservation->leaseStatus() === 'missing')
+                                        <span class="inline-flex items-center h-5 px-2 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[10px] font-bold shrink-0"
+                                            title="No signed lease on file — upload it from the tenancy page">
+                                            Lease missing
+                                        </span>
+                                    @endif
                                 </div>
                                 <p class="text-[12px] text-[#5B6A8E] truncate">{{ $reservation->tenant->email ?: 'No email' }}</p>
                             </div>
-                            <span class="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold shrink-0 {{ $statusStyle }}">
-                                {{ ucfirst($statusGroup) }}
+                            <span class="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold shrink-0 whitespace-nowrap {{ $statusStyle }}" @if($statusTitle) title="{{ $statusTitle }}" @endif>
+                                {{ $statusLabel }}
                             </span>
                         </div>
 
@@ -263,13 +304,16 @@
                                 </button>
                             @endif
 
-                            @if($reservation->conversation)
-                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200" title="Open conversation">
+                            @if(! $reservation->tenant->is_walk_in && in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
+                                <a href="{{ route('tenancy.chat', $reservation) }}"
+                                    class="relative h-9 w-9 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200" title="{{ $reservation->open_concerns_count ? 'Message tenant · '.$reservation->open_concerns_count.' open '.Str::plural('concern', $reservation->open_concerns_count) : 'Message tenant' }}">
                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                                     </svg>
+                                    @if($reservation->open_concerns_count > 0)
+                                        <span class="absolute -right-1 -top-1 min-w-[16px] rounded-full bg-[#FF8A66] px-1 text-center text-[10px] font-bold leading-4 text-[#060D26]">{{ $reservation->open_concerns_count }}</span>
+                                    @endif
                                 </a>
                             @endif
                         </div>
@@ -277,8 +321,14 @@
                 @endforeach
             </div>
 
-            {{-- Table view --}}
-            <x-card flush x-show="view === 'table'" x-cloak>
+            {{-- Table view — max-lg:hidden guards against a stale 'table'
+                 preference from localStorage: without it, a landlord who once
+                 switched to table view on desktop would get the horizontal-
+                 scroll table on their phone too, with no way back to cards
+                 short of clearing storage. Grid view has no such gap (it's
+                 already the default and works at every width), so this is
+                 the one place the toggle needed a floor. --}}
+            <x-card flush x-show="view === 'table'" x-cloak class="max-lg:hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[820px] text-left">
                         <thead>
@@ -309,7 +359,7 @@
                                             ? 'This tenant’s account is inactive'
                                             : ($outstanding <= 0 ? 'No outstanding rent to remind about' : ''));
                                 @endphp
-                                <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
+                                <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                     {{-- Tenant --}}
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">
@@ -325,6 +375,12 @@
                                                         <span class="inline-flex items-center h-4 px-1.5 rounded-full border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] text-[#B45309] text-[9.5px] font-bold shrink-0"
                                                             title="Added by you — identity not verified by AbangananHub">
                                                             Walk-in
+                                                        </span>
+                                                    @endif
+                                                    @if($reservation->leaseStatus() === 'missing')
+                                                        <span class="inline-flex items-center h-4 px-1.5 rounded-full border border-[#E2E4EC] text-[#5B6A8E] text-[9.5px] font-bold shrink-0"
+                                                            title="No signed lease on file — upload it from the tenancy page">
+                                                            No lease
                                                         </span>
                                                     @endif
                                                 </div>
@@ -368,10 +424,16 @@
                                             'pending'  => 'bg-[#FBBF24]/[0.12] text-[#B45309]',
                                             'inactive' => 'bg-[#94A3B8]/[0.15] text-[#5B6A8E]',
                                         ][$statusGroup];
+                                        $movingIn = $statusGroup === 'active' && $reservation->target_move_in_date?->isFuture()
+                                            ? $reservation->target_move_in_date->format('M j')
+                                            : null;
+                                        $statusLabel = $movingIn ? 'Moving in ' . $movingIn : ucfirst($statusGroup);
+                                        $statusStyle = $movingIn ? 'bg-[#FBBF24]/[0.12] text-[#B45309]' : $statusStyle;
+                                        $statusTitle = $movingIn ? "Tracked as an active tenant; hasn't moved into the unit yet" : null;
                                     @endphp
                                     <td class="px-4 py-3.5">
-                                        <span class="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold {{ $statusStyle }}">
-                                            {{ ucfirst($statusGroup) }}
+                                        <span class="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-bold whitespace-nowrap {{ $statusStyle }}" @if($statusTitle) title="{{ $statusTitle }}" @endif>
+                                            {{ $statusLabel }}
                                         </span>
                                     </td>
 
@@ -412,13 +474,16 @@
                                                 </button>
                                             @endif
 
-                                            @if($reservation->conversation)
-                                                <a href="{{ route('conversations.show', $reservation->conversation) }}"
-                                                    class="h-9 w-9 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200" title="Open conversation">
+                                            @if(! $reservation->tenant->is_walk_in && in_array($reservation->rental_status, ['Occupied', 'Completed'], true))
+                                                <a href="{{ route('tenancy.chat', $reservation) }}"
+                                                    class="relative h-9 w-9 flex items-center justify-center rounded-full border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6] transition-colors duration-200" title="{{ $reservation->open_concerns_count ? 'Message tenant · '.$reservation->open_concerns_count.' open '.Str::plural('concern', $reservation->open_concerns_count) : 'Message tenant' }}">
                                                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                                                     </svg>
+                                                    @if($reservation->open_concerns_count > 0)
+                                                        <span class="absolute -right-1 -top-1 min-w-[16px] rounded-full bg-[#FF8A66] px-1 text-center text-[10px] font-bold leading-4 text-[#060D26]">{{ $reservation->open_concerns_count }}</span>
+                                                    @endif
                                                 </a>
                                             @endif
                                         </div>

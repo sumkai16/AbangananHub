@@ -1,9 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Events\MessageSent;
 use App\Http\Requests\SendMessageRequest;
 use App\Models\Conversation;
 use Illuminate\Support\Facades\Auth;
+
 class MessageController extends Controller
 {
     public function store(SendMessageRequest $request, Conversation $conversation)
@@ -12,12 +15,17 @@ class MessageController extends Controller
             return response()->json(['error' => 'This conversation has been cancelled.'], 403);
         }
 
+        if ($conversation->isTenancy() && $conversation->isResolved()) {
+            return response()->json(['error' => 'This tenancy has ended. The chat is read-only.'], 403);
+        }
+
         $message = $conversation->messages()->create([
             'sender_id' => Auth::id(),
             'message' => $request->validated('message'),
         ]);
         $message->load('sender');
         broadcast(new MessageSent($message))->toOthers();
+
         return response()->json([
             'message_id' => $message->message_id,
             'sender_id' => $message->sender_id,

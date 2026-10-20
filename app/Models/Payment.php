@@ -10,40 +10,38 @@ class Payment extends Model
 {
     protected $primaryKey = 'payment_id';
 
-  protected $fillable = [
-    'reservation_id',
-    'payment_type',
-    'billing_period',
-    'amount',
-    'payment_method',
-    'paymongo_payment_intent_id',
-    'paymongo_payment_id',
-    'paymongo_checkout_session_id',
-    'status',
-    'paid_at',
-    'released_at',
-    'released_by',
-    'release_reason',
-    'payout_status',
-    'paid_out_at',
-    'paid_out_by',
-    'payout_reference',
-    'recorded_by',
-    'reference_no',
-    'payment_notes',
-    'voided_at',
-    'voided_by',
-    'void_reason',
-    'void_note',
-    'replaces_payment_id',
-];
+    protected $fillable = [
+        'reservation_id',
+        'payment_type',
+        'billing_period',
+        'amount',
+        'payment_method',
+        'paymongo_payment_intent_id',
+        'paymongo_payment_id',
+        'paymongo_checkout_session_id',
+        'status',
+        'paid_at',
+        'released_at',
+        'released_by',
+        'release_reason',
+        'payout_id',
+        'payout_owed_at',
+        'recorded_by',
+        'reference_no',
+        'payment_notes',
+        'voided_at',
+        'voided_by',
+        'void_reason',
+        'void_note',
+        'replaces_payment_id',
+    ];
 
     protected $casts = [
         'billing_period' => 'date',
         'paid_at' => 'datetime',
         'amount' => 'decimal:2',
         'released_at' => 'datetime',
-        'paid_out_at' => 'datetime',
+        'payout_owed_at' => 'datetime',
         'voided_at' => 'datetime',
     ];
 
@@ -71,11 +69,45 @@ class Payment extends Model
     }
 
     /**
-     * The admin who recorded that this payment's payout was actually sent.
+     * The transfer that settled this payment, once an admin has sent it. Null while the money is
+     * still owed to the landlord (or was never payout-eligible).
      */
-    public function payoutRecorder(): BelongsTo
+    public function payout(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'paid_out_by', 'user_id');
+        return $this->belongsTo(Payout::class, 'payout_id', 'payout_id');
+    }
+
+    /** Owed to the landlord and not yet in a payout: the admin payout queue. */
+    public function scopePendingPayout($query)
+    {
+        return $query->whereNotNull('payout_owed_at')->whereNull('payout_id');
+    }
+
+    public function scopePaidOut($query)
+    {
+        return $query->whereNotNull('payout_id');
+    }
+
+    /**
+     * 'Pending Payout' / 'Paid Out' / null, derived from `payout_owed_at` and `payout_id` (there is
+     * no stored status). Kept as an attribute so views and the mobile payload read the same name.
+     */
+    public function getPayoutStatusAttribute(): ?string
+    {
+        if ($this->payout_id !== null) {
+            return 'Paid Out';
+        }
+
+        return $this->payout_owed_at !== null ? 'Pending Payout' : null;
+    }
+
+    /**
+     * Pesos to PayMongo's centavos. Rounds rather than truncating: 512.05 * 100
+     * is 51204.99999999999 in floating point, and a plain (int) cast sends 51204.
+     */
+    public static function toCentavos(float|int|string $pesos): int
+    {
+        return (int) round((float) $pesos * 100);
     }
 
     public function isPaid(): bool
@@ -112,24 +144,74 @@ class Payment extends Model
     {
         return $this->recorded_by !== null;
     }
-    public function isHeld(): bool
-{
-    return $this->status === 'Held';
-}
 
-public function isReleased(): bool
-{
-    return $this->status === 'Released';
-}
+    /**
+     * An unfinished checkout the tenant has walked away from. With a PayMongo session it takes
+     * `rentals.checkout_stale_minutes`; a placeholder that never got a session id (the request died between
+     * creating the row and saving the id) is dead after a few minutes. Nothing else ever clears a Pending row,
+     * so without this the tenant is locked out of paying.
+     */
+    public function isStalePending(): bool
+    {
+        if ($this->status !== 'Pending' || $this->created_at === null) {
+            return false;
+        }
+
+        $minutes = $this->paymongo_checkout_session_id
+            ? (int) config('rentals.checkout_stale_minutes', 30)
+            : 5;
+
+        return $this->created_at->lt(now()->subMinutes($minutes));
+    }
+
+    /**
+     * Money can still arrive after a reservation ended: the tenant opened a checkout, the reservation was
+     * cancelled or rejected, then the checkout was paid. The payment is real, there is no refund path in the
+     * app, and nothing else looks at a Cancelled reservation's payments, so tell the admins instead of leaving
+     * it Held where nobody will find it.
+     */
+    public function alertAdminsIfStranded(): void
+    {
+        $reservation = $this->reservation;
+
+        if (! $reservation || ! in_array($reservation->rental_status, ['Cancelled', 'Rejected'], true)) {
+            return;
+        }
+
+        User::whereHas('roles', fn ($q) => $q->where('role', 'Admin'))
+            ->pluck('user_id')
+            ->each(fn ($adminId) => Notification::notify(
+                $adminId,
+                'payment',
+                'Payment received for an ended reservation',
+                sprintf(
+                    '₱%s was paid on reservation #%d after it was %s. The money is held and needs an administrator to resolve.',
+                    number_format((float) $this->amount, 2),
+                    $reservation->reservation_id,
+                    strtolower($reservation->rental_status),
+                ),
+                route('admin.payments.index', ['status' => 'Held']),
+            ));
+    }
+
+    public function isHeld(): bool
+    {
+        return $this->status === 'Held';
+    }
+
+    public function isReleased(): bool
+    {
+        return $this->status === 'Released';
+    }
 
     public function isPendingPayout(): bool
     {
-        return $this->payout_status === 'Pending Payout';
+        return $this->payout_owed_at !== null && $this->payout_id === null;
     }
 
     public function isPaidOut(): bool
     {
-        return $this->payout_status === 'Paid Out';
+        return $this->payout_id !== null;
     }
 
     public function isVoided(): bool
@@ -150,7 +232,7 @@ public function isReleased(): bool
     {
         return $this->isManuallyRecorded()
             && $this->status === 'Paid'
-            && $this->payout_status === null;
+            && $this->payout_owed_at === null;
     }
 
     public function voidReasonLabel(): ?string

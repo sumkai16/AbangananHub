@@ -279,7 +279,7 @@
                     <tbody class="divide-y divide-[#E2E4EC]">
                         @foreach($units as $unit)
                             @php extract($derived[$unit->unit_id]); @endphp
-                            <tr class="hover:bg-[#F7F8FC]/70 transition-colors duration-200">
+                            <tr class="hover:bg-[#ECEEF6] transition-colors duration-200">
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 rounded-lg bg-[#ECEEF6] overflow-hidden shrink-0">

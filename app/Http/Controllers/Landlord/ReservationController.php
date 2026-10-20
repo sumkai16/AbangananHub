@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Models\ViewingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ class ReservationController extends Controller
     /** Statuses the index tabs and the export both accept. */
     private const VALID_STATUSES = [
         'Inquiry', 'Under Negotiation', 'Pending Rental Agreement',
-        'Rental Agreement Signed', 'Occupied', 'Completed', 'Cancelled', 'Rejected',
+        'Rental Agreement Signed', 'Reserved', 'Occupied', 'Completed', 'Cancelled', 'Rejected',
     ];
 
     /**
@@ -38,8 +39,8 @@ class ReservationController extends Controller
                         ->orWhere('last_name', 'like', "%{$search}%")
                         ->orWhere('contact_number', 'like', "%{$search}%");
                 })
-                    ->orWhereHas('property', fn($q) => $q->where('title', 'like', "%{$search}%"))
-                    ->orWhereHas('unit', fn($q) => $q->where('unit_label', 'like', "%{$search}%"));
+                    ->orWhereHas('property', fn ($q) => $q->where('title', 'like', "%{$search}%"))
+                    ->orWhereHas('unit', fn ($q) => $q->where('unit_label', 'like', "%{$search}%"));
             });
         }
 
@@ -61,7 +62,7 @@ class ReservationController extends Controller
     {
         $base = $this->filteredQuery($request);
 
-        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Cancelled', 'Rejected']);
+        $counts = Reservation::statusCounts($base, ['Inquiry', 'Under Negotiation', 'Pending Rental Agreement', 'Rental Agreement Signed', 'Reserved', 'Occupied', 'Cancelled', 'Rejected']);
 
         $status = $request->query('status', 'all');
 
@@ -70,7 +71,7 @@ class ReservationController extends Controller
         }
 
         $reservations = $base
-            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'tenantRating'])
+            ->with(['property.media', 'property.landlord', 'unit', 'tenant', 'conversation', 'tenantRating', 'payments'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -79,7 +80,14 @@ class ReservationController extends Controller
             ->orderBy('title')
             ->get(['property_id', 'title']);
 
-        return view('landlord.reservations.index', compact('reservations', 'counts', 'status', 'properties'));
+        // Badge on the Viewings tab: requests the landlord still has to answer.
+        $pendingViewings = ViewingRequest::where('landlord_id', Auth::id())
+            ->open()
+            ->where('status', 'Pending')
+            ->where('proposed_by', '!=', Auth::id())
+            ->count();
+
+        return view('landlord.reservations.index', compact('reservations', 'counts', 'status', 'properties', 'pendingViewings'));
     }
 
     /**
@@ -139,12 +147,7 @@ class ReservationController extends Controller
         ]);
 
         if (!$reservation->reject($request->rejection_reason)) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be rejected.']);
-        }
-
-        // Release unit if it was reserved
-        if ($reservation->unit && $reservation->unit->availability_status === 'Reserved') {
-            $reservation->unit->update(['availability_status' => 'Available']);
+            return back()->withErrors(['reservation' => $reservation->cancellationBlockedReason() ?? 'This reservation can no longer be rejected.']);
         }
 
         return back()->with('success', 'Reservation rejected.');
@@ -154,21 +157,8 @@ class ReservationController extends Controller
     {
         Gate::authorize('cancel', $reservation);
 
-        $unitWasReserved = $reservation->unit && $reservation->unit->availability_status === 'Reserved';
-
         if (!$reservation->cancel()) {
-            return back()->withErrors(['reservation' => 'This reservation can no longer be cancelled.']);
-        }
-
-        if ($unitWasReserved) {
-            $otherActiveExists = Reservation::where('unit_id', $reservation->unit_id)
-                ->where('reservation_id', '!=', $reservation->reservation_id)
-                ->whereNotIn('rental_status', Reservation::TERMINAL_STATUSES)
-                ->exists();
-
-            if (!$otherActiveExists) {
-                $reservation->unit->update(['availability_status' => 'Available']);
-            }
+            return back()->withErrors(['reservation' => $reservation->cancellationBlockedReason() ?? 'This reservation can no longer be cancelled.']);
         }
 
         return back()->with('success', 'Reservation cancelled.');
@@ -187,27 +177,27 @@ class ReservationController extends Controller
         return back()->with('success', 'Moved to Under Negotiation.');
     }
 
-public function advanceToPendingAgreement(Request $request, Reservation $reservation)
-{
-    Gate::authorize('advanceStatus', $reservation);
+    public function advanceToPendingAgreement(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('advanceStatus', $reservation);
 
-    $request->validate([
-        'agreement_terms_notes' => 'nullable|string|max:2000',
-        'accept_tc' => 'accepted',
-    ], [
-        'accept_tc.accepted' => 'You must accept the terms and conditions to proceed.',
-    ]);
+        $request->validate([
+            'agreement_terms_notes' => 'nullable|string|max:2000',
+            'accept_tc' => 'accepted',
+        ], [
+            'accept_tc.accepted' => 'You must accept the terms and conditions to proceed.',
+        ]);
 
-    if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
-        return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
+        if (!$reservation->advanceToPendingAgreement($request->agreement_terms_notes)) {
+            return back()->withErrors(['reservation' => 'This reservation cannot move to Pending Rental Agreement right now.']);
+        }
+
+        $reservation->update(['landlord_tc_accepted_at' => now()]);
+
+        $reservation->postSystemMessage(Auth::user()->name . ' sent the rental agreement.');
+
+        return back()->with('success', 'Agreement sent to tenant.');
     }
-
-    $reservation->update(['landlord_tc_accepted_at' => now()]);
-
-    $reservation->postSystemMessage(Auth::user()->name . ' sent the rental agreement.');
-
-    return back()->with('success', 'Agreement sent to tenant.');
-}
 
     /**
      * Landlord asserts the keys changed hands, starting the tenant's clock.
@@ -252,5 +242,31 @@ public function advanceToPendingAgreement(Request $request, Reservation $reserva
         }
 
         return back()->with('success', 'Keys marked as turned over. The tenant has been asked to confirm their move-in.');
+    }
+
+    /**
+     * Landlord confirms a walk-in reserved for a future date has actually
+     * moved in. No system message, no notification — unlike markTurnedOver(),
+     * a walk-in has no conversation_id and its tenant account is an inactive
+     * placeholder login (see WalkInTenantController::resolveTenant()), so
+     * there is no thread or notifiable account to reach.
+     */
+    public function confirmWalkInMoveIn(Reservation $reservation)
+    {
+        Gate::authorize('confirmWalkInMoveIn', $reservation);
+
+        $confirmed = DB::transaction(function () use ($reservation) {
+            $locked = Reservation::whereKey($reservation->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            return $locked->confirmWalkInMoveIn();
+        });
+
+        if (! $confirmed) {
+            return back()->with('error', 'This reservation can no longer be confirmed as moved in.');
+        }
+
+        return back()->with('success', 'Move-in confirmed. The unit is now marked occupied.');
     }
 }

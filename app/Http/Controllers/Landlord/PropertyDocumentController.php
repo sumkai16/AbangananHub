@@ -2,22 +2,17 @@
 
 namespace App\Http\Controllers\Landlord;
 
+use App\Http\Controllers\Concerns\AuthorizesPropertyOwnership;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\StorePropertyDocumentRequest;
 use App\Models\Property;
 use App\Models\PropertyDocument;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class PropertyDocumentController extends Controller
 {
-    private function authorizeProperty(Property $property): void
-    {
-        if ($property->landlord_id !== Auth::user()->user_id) {
-            abort(403);
-        }
-    }
+    use AuthorizesPropertyOwnership;
 
     public function index(Property $property)
     {

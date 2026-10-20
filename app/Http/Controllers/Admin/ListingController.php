@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RejectListingRequest;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Property;
@@ -39,13 +40,19 @@ class ListingController extends Controller
             ? $query->oldest()->paginate(15)->withQueryString()
             : $query->latest()->paginate(15)->withQueryString();
 
+        // One grouped query for the verification tabs instead of one count each.
+        $byStatus = Property::submitted()
+            ->selectRaw('verification_status, COUNT(*) as total')
+            ->groupBy('verification_status')
+            ->pluck('total', 'verification_status');
+
         $counts = [
-            'Pending' => Property::submitted()->where('verification_status', 'Pending')->count(),
-            'Approved' => Property::submitted()->where('verification_status', 'Approved')->count(),
-            'Rejected' => Property::submitted()->where('verification_status', 'Rejected')->count(),
+            'Pending' => (int) ($byStatus['Pending'] ?? 0),
+            'Approved' => (int) ($byStatus['Approved'] ?? 0),
+            'Rejected' => (int) ($byStatus['Rejected'] ?? 0),
             'Suspended' => Property::where('publication_status', 'Suspended')->count(),
+            'All' => (int) $byStatus->sum(),
         ];
-        $counts['All'] = Property::submitted()->count();
 
         return view('admin.listings.approval', compact('pendingListings', 'status', 'counts'));
     }
@@ -85,19 +92,21 @@ class ListingController extends Controller
     /**
      * Reject a property listing.
      */
-    public function reject($property_id)
+    public function reject(RejectListingRequest $request, $property_id)
     {
-        $property = DB::transaction(function () use ($property_id) {
+        $reason = $request->validated('rejection_reason');
+
+        $property = DB::transaction(function () use ($property_id, $reason) {
             $property = Property::where('property_id', $property_id)->lockForUpdate()->firstOrFail();
             abort_if($property->verification_status !== 'Pending', 409, 'This listing has already been reviewed.');
-            $property->update(['verification_status' => 'Rejected']);
+            $property->update(['verification_status' => 'Rejected', 'rejection_reason' => $reason]);
 
             AuditLog::record(
                 'listing.reject',
                 "Rejected listing '{$property->title}'.",
                 $property,
                 null,
-                ['landlord_id' => $property->landlord_id],
+                ['landlord_id' => $property->landlord_id, 'reason' => $reason],
             );
 
             return $property;
@@ -107,7 +116,7 @@ class ListingController extends Controller
             $property->landlord_id,
             'listing',
             'Listing not approved',
-            "Your listing '{$property->title}' was not approved. Review the details and resubmit.",
+            "Your listing '{$property->title}' was not approved: {$reason}",
             route('landlord.properties.index'),
         );
 

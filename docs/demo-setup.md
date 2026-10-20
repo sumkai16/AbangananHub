@@ -51,3 +51,14 @@ not `localhost`.
 2. Anything from `images.unsplash.com` at `w=1200`? A view is missing `Images::resize()` / `loading="lazy"`.
 3. Any request to `fonts.googleapis.com` or `cdn.jsdelivr.net`? Something re-added a CDN tag.
 4. `php artisan test --filter=PerformanceBaseline` — compare **query counts** to the table in the plan.
+
+## Demo data
+
+`php artisan migrate:fresh --seed` builds the whole demo (Maria Santos, her 10 tenants, three requests in
+progress, a listing waiting for admin approval). **It wipes the local database.** To add the demo extras
+to a database that already has the base seed, run `php artisan db:seed --class=DemoSeeder` (safe to repeat).
+All seeded logins use the password `password`.
+
+## Running on a weaker laptop
+
+`composer dev` starts the server, a queue worker, a log viewer and the Vite dev server. On a laptop with little free RAM that is too much, and pages take seconds. Use `composer dev:lite` instead: it builds the assets once (about 6 s), then runs only the web server (4 workers) and Reverb for live chat. Nothing in the demo needs the queue worker (broadcasts are sent straight away). Run it again after you change CSS or JS, because it serves the built files.

@@ -18,9 +18,11 @@ class TenancyController extends Controller
         Gate::authorize('viewOwnTenancy', $reservation);
 
         $reservation->load([
-            'property',
+            'property.landlord',
+            'tenant',
             'unit.media',
             'payments.recorder',
+            'depositCharges',
         ]);
 
         $ledger = RentLedger::for($reservation);

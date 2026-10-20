@@ -11,7 +11,7 @@
         <div class="max-w-xl mx-auto">
             <h1 class="text-3xl font-black text-white leading-tight tracking-tight mb-3 drop-shadow-sm">
                 Forgot your password?<br>
-                <span class="italic text-[#DA8E77]">No problem.</span>
+                <span class="italic text-[#FF8A66]">No problem.</span>
             </h1>
             <p class="text-white/90 font-medium text-xs leading-relaxed mb-6 drop-shadow">
                 Enter the email address linked to your account and we'll send you a secure link to reset your password.
@@ -26,40 +26,26 @@
             {{-- Branding --}}
             <div class="mb-5">
                 <a href="/" class="flex items-center gap-2 mb-4 group inline-flex">
-                    <div class="w-8 h-8 rounded-lg bg-[#060D26] flex items-center justify-center shadow-md shadow-[#060D26]/10 transition-transform duration-300 group-hover:scale-105">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </div>
-                    <span class="text-[#060D26] font-bold text-base tracking-tight">Abanganan<span class="text-[#060D26]">Hub</span></span>
+                    <x-brand-logo mark="w-8 h-8" text="text-base" />
                 </a>
                 <h2 class="text-lg sm:text-xl font-normal text-[#060D26] tracking-tight">Reset your password</h2>
                 <p class="text-[#5B6A8E] text-xs font-medium mt-0.5">We'll email you a link to choose a new one.</p>
             </div>
 
-            {{-- Session alerts --}}
-            @if ($errors->any())
-                <div class="mb-4 flex items-start gap-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg px-4 py-2.5">
-                    <svg class="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                    </svg>
-                    <p class="text-xs text-[#EF4444] font-semibold">{{ $errors->first() }}</p>
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('password.email') }}" class="space-y-3.5">
+            <form method="POST" action="{{ route('password.email') }}" class="space-y-3.5" novalidate>
                 @csrf
 
                 {{-- Email Address --}}
                 <div>
                     <label for="email" class="block text-xs font-bold text-[#060D26] mb-1">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="Enter your email"
-                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#DA8E77] focus:ring-2 focus:ring-[#DA8E77]/20 focus:outline-none transition-all" />
+                        class="w-full px-4 py-2.5 bg-white border border-[#E2E4EC] rounded-xl text-[14px] text-[#060D26] placeholder-[#94A3B8] focus:border-[#FF8A66] focus:ring-2 focus:ring-[#FF8A66]/20 focus:outline-none transition-all" />
+                    <x-input-error :messages="$errors->get('email')" class="mt-1.5 !text-xs" role="alert" />
                 </div>
 
                 {{-- Action Submission Button --}}
                 <div class="pt-1">
-                    <button type="submit" class="w-full bg-[#DA8E77] text-[#060D26] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
+                    <button type="submit" class="w-full bg-[#FF8A66] text-[#060D26] font-bold py-3 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-md shadow-[#060D26]/20 text-[15px]">
                         Email Password Reset Link
                     </button>
                 </div>
