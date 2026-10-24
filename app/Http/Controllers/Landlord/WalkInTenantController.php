@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Landlord;
 
-use App\Http\Controllers\Concerns\RecordsMoveInPayments;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Landlord\StoreWalkInTenantRequest;
 use App\Models\Property;
@@ -10,6 +9,7 @@ use App\Models\PropertyUnit;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
 use App\Models\User;
+use App\Services\MoveInPaymentRecorder;
 use App\Support\LeaseTerms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -37,8 +37,6 @@ use Illuminate\Support\Str;
  */
 class WalkInTenantController extends Controller
 {
-    use RecordsMoveInPayments;
-
     public function create(Request $request)
     {
         $landlordId = Auth::id();
@@ -199,7 +197,7 @@ class WalkInTenantController extends Controller
             $unit->update(['availability_status' => $status]);
 
             if (! empty($data['initial_amount'])) {
-                $this->recordMoveInPayments($reservation, $unit, $data, $landlordId);
+                MoveInPaymentRecorder::record($reservation, $unit, $data, $landlordId);
             }
 
             return $reservation;

@@ -315,3 +315,13 @@ and `walkin:scenarios` already build the states that are otherwise unreachable
 the mobile client should be pointed at, unchanged. `escrow:verify`'s 33 assertions
 continue to cover the money paths server-side; the API endpoints in Phase 2 route
 through the same methods it already asserts, so they inherit that coverage.
+
+## Direct payments (added Oct 24 2026)
+See `plans/direct-payments-record-and-confirm.md`. The API already refuses checkout (409) while online payments are off,
+and the tenant agreement and tenancy payloads carry `online_payments_enabled` and `payment_qr`
+(`account_name`, `note`, `payload` (the QR Ph text, draw it as a QR), `shared_at`). **Still to build for the app:**
+- Tenant: file and withdraw a payment report (`POST /tenant/reservations/{r}/payment-claims`, `DELETE /tenant/payment-claims/{id}`),
+  and a "Save QR image" button on the shared QR.
+- Landlord: share a QR in chat (decode the screenshot on the phone, post only the text to `POST /conversations/{id}/payment-qr`),
+  confirm or reject a report, record move-in money, confirm a direct move-in.
+- Chat: render messages with `kind = payment_qr`.

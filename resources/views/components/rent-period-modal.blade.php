@@ -89,6 +89,26 @@
                                 </div>
                             </dl>
 
+                            {{-- Late fee: what it is, and the landlord's way to drop it --}}
+                            <template x-if="period.late_fee > 0 || period.late_fee_waived">
+                                <p class="mt-4 rounded-xl bg-[#F7F8FC] px-4 py-3 text-[13px] leading-5 text-[#060D26]">
+                                    <template x-if="period.late_fee > 0">
+                                        <span>Rent <span class="font-semibold tabular-nums" x-text="peso(period.rent)"></span> + late fee <span class="font-semibold tabular-nums" x-text="peso(period.late_fee)"></span>. Rent was not paid in full by the end of the grace period.</span>
+                                    </template>
+                                    <template x-if="period.late_fee_waived">
+                                        <span class="font-semibold">Late fee waived.</span>
+                                    </template>
+                                </p>
+                            </template>
+                            <form x-show="period.waive_action" method="POST" :action="period.waive_action" class="mt-3">
+                                @csrf
+                                <input type="hidden" name="billing_period" :value="period.billing_period">
+                                <button type="submit"
+                                    class="h-9 px-3 rounded-lg border border-[#E2E4EC] text-[12.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200 cursor-pointer">
+                                    Waive late fee
+                                </button>
+                            </form>
+
                             {{-- Payments that made up this month --}}
                             <h3 class="mt-6 text-[13px] font-semibold text-[#060D26]">Payments received</h3>
                             <template x-if="period.payments.length === 0">

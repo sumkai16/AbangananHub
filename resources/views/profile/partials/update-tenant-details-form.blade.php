@@ -22,6 +22,15 @@
         @csrf
         @method('patch')
 
+        @php $missing = \App\Models\TenantDetail::missingFor($detail); @endphp
+        @if ($missing === [])
+            <p class="mb-5 rounded-lg bg-[#16A34A]/[0.08] px-3 py-2 text-[12.5px] font-medium text-[#15803D]">Complete. You can sign agreements without being asked again.</p>
+        @else
+            <p class="mb-5 rounded-lg bg-[#FBBF24]/[0.12] px-3 py-2 text-[12.5px] font-medium text-[#B45309]">
+                Saving is optional here, but you need these before you can sign an agreement: {{ implode(', ', $missing) }}.
+            </p>
+        @endif
+
         <x-tenant-details-fields :detail="$detail" id-prefix="settings" />
 
         <p class="mt-4 text-[12px] text-[#5B6A8E]">Your ID number is stored encrypted. Leave a box empty to keep what is already saved.</p>

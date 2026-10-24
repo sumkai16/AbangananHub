@@ -25,6 +25,13 @@ class UpdatePropertyRequest extends FormRequest
             'property_type'     => ['required', 'in:' . PropertyType::rule()],
             ...PropertyPolicies::rules(),
             'default_lease_terms' => ['nullable', 'string', 'max:2000'],
+            'rent_grace_days'   => ['nullable', 'integer', 'between:0,30'],
+            'late_fee_type'     => ['nullable', 'in:percent,fixed'],
+            'late_fee_value'    => [
+                Rule::requiredIf(fn () => $this->filled('late_fee_type')),
+                'nullable', 'numeric', 'gt:0',
+                $this->input('late_fee_type') === 'percent' ? 'max:100' : 'max:100000',
+            ],
             'address'          => ['required', 'string', 'min:10', 'max:255'],
             'city_municipality' => ['required', 'string', Rule::in(config('cebu.lgus'))],
             'barangay'          => ['nullable', 'string', 'max:100'],

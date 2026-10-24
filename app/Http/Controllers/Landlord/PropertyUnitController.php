@@ -20,6 +20,10 @@ class PropertyUnitController extends Controller
     {
         $this->authorizeProperty($property);
 
+        // This route only forwards to the all-units page. Flash data lives for one request, so without
+        // reflash() every "Unit updated." message sent here would be gone before the page renders.
+        session()->reflash();
+
         return redirect()->route('landlord.units.index', ['property' => $property->property_id]);
     }
 

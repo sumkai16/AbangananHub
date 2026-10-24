@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Events\MessageSent;
 use App\Support\LeaseTerms;
+use App\Support\Payments;
 use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -56,6 +57,7 @@ class Reservation extends Model
         'landlord_tc_accepted_at',
         'tenant_tc_accepted_at',
         'tenant_confirmed_move_in_at',
+        'move_in_paid_at',
         'keys_turned_over_at',
         'move_in_deadline_at',
         'move_in_disputed_at',
@@ -80,6 +82,7 @@ class Reservation extends Model
             'landlord_tc_accepted_at' => 'datetime',
             'tenant_tc_accepted_at' => 'datetime',
             'tenant_confirmed_move_in_at' => 'datetime',
+            'move_in_paid_at' => 'datetime',
             'keys_turned_over_at' => 'datetime',
             'move_in_deadline_at' => 'datetime',
             'move_in_disputed_at' => 'datetime',
@@ -500,13 +503,28 @@ class Reservation extends Model
         return $this->hasMany(Payment::class, 'reservation_id', 'reservation_id');
     }
 
+    public function lateFeeWaivers()
+    {
+        return $this->hasMany(LateFeeWaiver::class, 'reservation_id', 'reservation_id');
+    }
+
+    public function paymentClaims()
+    {
+        return $this->hasMany(PaymentClaim::class, 'reservation_id', 'reservation_id');
+    }
+
     /**
      * True once the initial payment is in escrow, paid out, or recorded by the
-     * landlord. The reservation stays "Rental Agreement Signed" while escrow is
-     * funded, so the status alone cannot stop a second charge.
+     * landlord, or the move-in money was paid to the landlord directly and confirmed.
+     * The reservation stays "Rental Agreement Signed" while escrow is funded, so the
+     * status alone cannot stop a second charge.
      */
     public function hasSettledInitialPayment(): bool
     {
+        if ($this->move_in_paid_at !== null) {
+            return true;
+        }
+
         return $this->payments()
             ->where('payment_type', 'Initial')
             ->whereIn('status', ['Held', 'Paid', 'Released'])
@@ -666,6 +684,22 @@ class Reservation extends Model
     }
 
     /**
+     * The security deposit the tenant agreed to. Once a lease is issued this is the frozen amount, so a
+     * landlord editing the unit afterwards can't change what the tenant signed or has to pay. Before that
+     * (an inquiry), it is the unit's current deposit.
+     */
+    public function agreedDeposit(): float
+    {
+        $snapshot = $this->lease_snapshot;
+
+        if (is_array($snapshot) && array_key_exists('deposit', $snapshot)) {
+            return (float) ($snapshot['deposit'] ?? 0);
+        }
+
+        return (float) ($this->unit?->security_deposit ?? 0);
+    }
+
+    /**
      * Day of the month rent falls due.
      *
      * Defaults to the day they moved in, which is how an informal Philippine
@@ -795,12 +829,28 @@ class Reservation extends Model
         return $this->save();
     }
 
-    public function markOccupied(): bool
+    /**
+     * Move in once the tenant has paid the landlord directly (move_in_paid_at set by a confirmed claim or
+     * a landlord-recorded payment). No escrow: nothing is held, so nothing is released, and either party
+     * may confirm, the same reasoning as confirmWalkInMoveIn(). Refused while a Held payment exists, which
+     * must go through confirmMoveIn() so the money is released.
+     *
+     * Callers must hold a lock on this reservation.
+     */
+    public function markOccupied(bool $byTenant = false): bool
     {
-        if ($this->rental_status !== 'Rental Agreement Signed') {
+        if ($this->rental_status !== 'Rental Agreement Signed' || $this->move_in_paid_at === null) {
             return false;
         }
+
+        if ($this->move_in_disputed_at !== null || $this->payments()->where('status', 'Held')->exists()) {
+            return false;
+        }
+
         $this->rental_status = 'Occupied';
+        if ($byTenant) {
+            $this->tenant_confirmed_move_in_at = now();
+        }
         $this->save();
 
         if ($this->unit) {
@@ -866,6 +916,23 @@ class Reservation extends Model
     }
 
     /**
+     * Warning for a cancel confirmation when move-in money went straight to the landlord: nothing is held,
+     * so nothing can be returned here. Null when no direct payment was settled.
+     */
+    public function directPaymentNotice(string $payee): ?string
+    {
+        if ($this->move_in_paid_at === null) {
+            return null;
+        }
+
+        $payments = $this->relationLoaded('payments') ? $this->payments : $this->payments()->get();
+        $paid = (float) $payments->where('status', 'Paid')->whereNotNull('recorded_by')->sum('amount');
+
+        return ($paid > 0 ? '₱'.number_format($paid, 2).' was' : 'The move-in payment was')
+            ." paid directly to {$payee}. AbangananHub does not hold it and cannot return it, so settle it with each other.";
+    }
+
+    /**
      * The one thing this tenant should do next on a reservation, for the list's primary button (label + url),
      * or null when there is nothing to do. Before this the list offered only Cancel and Chat on an agreement
      * waiting to be signed or paid, and the agreement was reachable only from inside the chat.
@@ -874,13 +941,13 @@ class Reservation extends Model
      */
     public function tenantNextStep(): ?array
     {
-        $paid = $this->relationLoaded('payments')
+        $paid = $this->move_in_paid_at !== null || ($this->relationLoaded('payments')
             ? $this->payments->contains(fn ($p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true))
-            : $this->hasSettledInitialPayment();
+            : $this->hasSettledInitialPayment());
 
         return match ($this->rental_status) {
             'Pending Rental Agreement' => ['label' => 'Review & sign', 'url' => route('agreements.show', $this)],
-            'Rental Agreement Signed'  => ['label' => $paid ? 'Open agreement' : 'Pay now', 'url' => route('agreements.show', $this)],
+            'Rental Agreement Signed'  => ['label' => $paid ? 'Open agreement' : (Payments::online() ? 'Pay now' : 'Pay your landlord'), 'url' => route('agreements.show', $this)],
             'Occupied'                 => ['label' => 'Rent & payments', 'url' => route('tenancy.show', $this)],
             'Completed'                => ['label' => 'View tenancy', 'url' => route('tenancy.show', $this)],
             default                    => null,

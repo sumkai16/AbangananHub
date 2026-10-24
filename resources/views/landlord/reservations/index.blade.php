@@ -397,7 +397,7 @@
                                                 <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                                     data-confirm="Cancel this reservation?"
                                                     data-confirm-type="warning"
-                                                    data-confirm-message="The unit will be marked Available again."
+                                                    data-confirm-message="{{ $reservation->directPaymentNotice('you') ? $reservation->directPaymentNotice('you').' The unit will be marked Available again.' : 'The unit will be marked Available again.' }}"
                                                     data-confirm-button="Cancel reservation"
                                                     data-confirm-cancel="Keep it">
                                                     @csrf @method('PATCH')
@@ -407,7 +407,10 @@
                                                     </button>
                                                 </form>
                                                 @endif
-                                                @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
+                                                @if($reservation->rental_status === 'Rental Agreement Signed')
+                                                    @include('landlord.reservations._direct-actions', ['reservation' => $reservation])
+                                                @endif
+                                                @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at && $reservation->payments->contains('status', 'Held'))
                                                     <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
                                                         data-confirm="Mark keys as turned over?"
                                                         data-confirm-type="confirm"
@@ -442,7 +445,7 @@
                                                 <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                                     data-confirm="Cancel this reservation?"
                                                     data-confirm-type="warning"
-                                                    data-confirm-message="The unit will be marked Available again."
+                                                    data-confirm-message="{{ $reservation->directPaymentNotice('you') ? $reservation->directPaymentNotice('you').' The unit will be marked Available again.' : 'The unit will be marked Available again.' }}"
                                                     data-confirm-button="Cancel reservation"
                                                     data-confirm-cancel="Keep it">
                                                     @csrf @method('PATCH')
@@ -606,7 +609,7 @@
                                     <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                         data-confirm="Cancel this reservation?"
                                         data-confirm-type="warning"
-                                        data-confirm-message="The unit will be marked Available again."
+                                        data-confirm-message="{{ $reservation->directPaymentNotice('you') ? $reservation->directPaymentNotice('you').' The unit will be marked Available again.' : 'The unit will be marked Available again.' }}"
                                         data-confirm-button="Cancel reservation"
                                         data-confirm-cancel="Keep it">
                                         @csrf @method('PATCH')
@@ -616,7 +619,10 @@
                                         </button>
                                     </form>
                                     @endif
-                                    @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at)
+                                    @if($reservation->rental_status === 'Rental Agreement Signed')
+                                                    @include('landlord.reservations._direct-actions', ['reservation' => $reservation])
+                                                @endif
+                                                @if($reservation->rental_status === 'Rental Agreement Signed' && ! $reservation->keys_turned_over_at && ! $reservation->move_in_disputed_at && $reservation->payments->contains('status', 'Held'))
                                         <form action="{{ route('landlord.reservations.markTurnedOver', $reservation) }}" method="POST"
                                             data-confirm="Mark keys as turned over?"
                                             data-confirm-type="confirm"
@@ -651,7 +657,7 @@
                                     <form action="{{ route('landlord.reservations.cancel', $reservation) }}" method="POST"
                                         data-confirm="Cancel this reservation?"
                                         data-confirm-type="warning"
-                                        data-confirm-message="The unit will be marked Available again."
+                                        data-confirm-message="{{ $reservation->directPaymentNotice('you') ? $reservation->directPaymentNotice('you').' The unit will be marked Available again.' : 'The unit will be marked Available again.' }}"
                                         data-confirm-button="Cancel reservation"
                                         data-confirm-cancel="Keep it">
                                         @csrf @method('PATCH')
@@ -959,7 +965,7 @@
                                 <input type="checkbox" name="accept_tc" required
                                     class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
                                 <span class="text-xs text-[#060D26] leading-relaxed">
-                                    I agree that the tenant's payment will be held by AbangananHub until the tenant confirms move-in. Funds will be released only after tenant verification.
+                                    <x-payment-consent role="landlord" />
                                 </span>
                             </label>
                             <button type="submit"

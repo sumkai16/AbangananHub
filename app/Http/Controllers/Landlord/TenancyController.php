@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
+use App\Models\LateFeeWaiver;
 use App\Models\Notification;
 use App\Models\Reservation;
 use App\Models\TenantDetail;
@@ -10,6 +12,7 @@ use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -39,6 +42,7 @@ class TenancyController extends Controller
             'depositCharges.charger',
             'depositCharges.voider',
             'conversation',
+            'paymentClaims',
         ]);
 
         $ledger = RentLedger::for($reservation);
@@ -172,7 +176,7 @@ class TenancyController extends Controller
         $tenant = $reservation->tenant;
 
         if (! $tenant || $tenant->is_walk_in || $tenant->account_status !== 'active') {
-            return back()->with('warning', 'This tenant has no AbangananHub account to notify.');
+            return $this->remindReply('warning', 'This tenant has no AbangananHub account to notify.');
         }
 
         $target = RentLedger::for($reservation)
@@ -180,11 +184,63 @@ class TenancyController extends Controller
             ->firstWhere(fn ($p) => $p['status'] !== 'paid');
 
         if (! $target) {
-            return back()->with('warning', $tenant->first_name . ' has no outstanding rent to be reminded about.');
+            return $this->remindReply('warning', $tenant->first_name . ' has no outstanding rent to be reminded about.');
         }
 
         $notifier->sendToTenant($reservation, $target, Carbon::today());
 
-        return back()->with('success', 'Rent reminder sent to ' . $tenant->first_name . '.');
+        return $this->remindReply('success', 'Rent reminder sent to ' . $tenant->first_name . '.');
+    }
+
+    /**
+     * Drop the late fee on one month. Only a month that really carries a fee can be waived, so the button cannot
+     * be used to pre-waive a fee that has not happened. Idempotent: a second click finds the waiver and says so.
+     * Audit-logged like a void, because it changes what a tenant owes.
+     */
+    public function waiveLateFee(Request $request, Reservation $reservation)
+    {
+        Gate::authorize('viewTenancy', $reservation);
+
+        $data = $request->validate([
+            'billing_period' => ['required', 'date_format:Y-m-d'],
+            'reason'         => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $month = Carbon::parse($data['billing_period'])->startOfMonth();
+        $reservation->load(['payments', 'depositCharges', 'lateFeeWaivers', 'property']);
+
+        $period = RentLedger::for($reservation)->periods()
+            ->first(fn ($p) => $p['period']->isSameMonth($month));
+
+        if (! $period || ($period['late_fee'] <= 0 && ! $period['late_fee_waived'])) {
+            return back()->with('warning', 'There is no late fee on that month to waive.');
+        }
+
+        $waiver = LateFeeWaiver::firstOrCreate(
+            ['reservation_id' => $reservation->reservation_id, 'billing_period' => $month->toDateString()],
+            ['waived_by' => Auth::id(), 'reason' => $data['reason'] ?? null],
+        );
+
+        if ($waiver->wasRecentlyCreated) {
+            AuditLog::record(
+                'late_fee.waive',
+                'Late fee waived for ' . $period['label'] . ' on ' . ($reservation->property->title ?? 'a tenancy'),
+                $reservation,
+                $data['reason'] ?? null,
+                ['reservation_id' => $reservation->reservation_id, 'billing_period' => $month->toDateString(), 'amount' => $period['late_fee']],
+            );
+        }
+
+        return back()->with('success', 'Late fee waived for ' . $period['label'] . '.');
+    }
+
+    /** The chat page posts this by fetch and wants JSON; the tenant cards post a form and want the flash. */
+    private function remindReply(string $level, string $message)
+    {
+        if (request()->expectsJson()) {
+            return response()->json(['ok' => $level === 'success', 'message' => $message], $level === 'success' ? 200 : 422);
+        }
+
+        return back()->with($level, $message);
     }
 }
