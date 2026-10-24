@@ -92,14 +92,9 @@
                                     @error('property_type')<p class="{{ $error }}">{{ $message }}</p>@enderror
                                 </div>
                                 <div>
-                                    <label for="rental_fee" class="{{ $label }}">Monthly rent</label>
-                                    <div class="relative">
-                                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#5B6A8E] font-semibold text-sm" aria-hidden="true">₱</span>
-                                        <input type="number" step="0.01" min="500" max="999999" name="rental_fee" id="rental_fee"
-                                            value="{{ old('rental_fee', $property->rental_fee) }}"
-                                            class="{{ $input }} !pl-8 font-semibold" required>
-                                    </div>
-                                    @error('rental_fee')<p class="{{ $error }}">{{ $message }}</p>@enderror
+                                    <span class="{{ $label }}">Rent and deposit</span>
+                                    <p class="text-[13px] text-[#5B6A8E] leading-snug">Set per unit, not per property. Change them on each unit's own edit page.</p>
+                                    <a href="{{ route('landlord.properties.show', $property) }}" class="inline-block mt-1 text-[13px] font-semibold text-[#FF8A66] hover:underline">Open units</a>
                                 </div>
                             </div>
 

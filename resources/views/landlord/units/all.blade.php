@@ -362,7 +362,9 @@
                         </div>
                         <div class="flex items-center gap-4 text-[12px] font-semibold">
                             <a href="{{ route('landlord.properties.show', $groupProperty) }}" class="text-[#B35A3D] hover:underline">View property</a>
-                            <a href="{{ route('landlord.properties.units.create', $groupProperty) }}" class="text-[#B35A3D] hover:underline">+ Add unit</a>
+                            @unless(request('property'))
+                                <a href="{{ route('landlord.properties.units.create', $groupProperty) }}" class="text-[#B35A3D] hover:underline">+ Add unit</a>
+                            @endunless
                         </div>
                     </div>
                 @endunless
