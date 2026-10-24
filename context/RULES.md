@@ -181,7 +181,7 @@ The move-in escrow is the only place in the app where money moves with no human 
 - **Ending a reservation must not strand money.** Cancel and reject go through `Reservation::cancellationBlockedReason()` (Held payment, or a fresh open checkout). Never add a new path that sets `rental_status` to `Cancelled` / `Rejected` without it, unless it is an admin override.
 - **Charge the frozen number.** Use `Reservation::monthlyRent()`, never `unit->rental_fee`, for anything a tenant is billed or shown as their price. The unit's price is what the landlord asks today; `agreed_monthly_rent` is what was signed.
 - **Anything that deletes a user must check the cascade.** `payments.reservation_id` cascades from the tenant; a delete path has to refuse while money is Held or `Pending Payout` (see `ProfileController::activeObligation()` and `Admin\UserController::destroy`).
-- Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Concerns\RecordsMoveInPayments`.
+- Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Services\MoveInPaymentRecorder`.
 
 ## Testing
 - **Tests run against `abanganan_hub_test`, never the dev database.** `phpunit.xml` sets `DB_DATABASE=abanganan_hub_test`. Many tests use `RefreshDatabase`, which drops and rebuilds every table in the database they point at, so pointing `DB_DATABASE` back at `abanganan_hub` wipes the dev data (this happened in Oct 2026 and the seeded data had to be re-created). The test database must exist before the first run: `CREATE DATABASE abanganan_hub_test`. `RefreshDatabase` builds the schema itself, so no migrate step is needed.

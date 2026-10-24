@@ -470,7 +470,7 @@
                             .listen('.MessageSent', (e) => {
                                 // Concern cards and their status lines depend on who is
                                 // looking (the buttons differ), so refetch the panel.
-                                if (e.concern_id) { this.refreshPanel(); return; }
+                                if (e.concern_id || e.kind === 'payment_qr') { this.refreshPanel(); return; }
                                 this.appendMessage({
                                     sender_id: e.sender_id,
                                     sender_name: e.sender_name,
@@ -850,6 +850,82 @@
                             window.refreshInboxPanel?.();
                         } catch (e) {
                             this.errors.general = 'Could not send. Check your connection and try again.';
+                        } finally {
+                            this.busy = false;
+                        }
+                    },
+                };
+            }
+
+            // "Share payment QR" sheet (landlord). The browser reads the screenshot and posts only the decoded text.
+            function paymentQrSheet(conversationId, lastShareId = null) {
+                return {
+                    open: false, busy: false, reuseId: lastShareId,
+                    payload: '', preview: '', note: '',
+                    errors: {},
+
+                    close() {
+                        if (this.busy) return;
+                        this.open = false;
+                    },
+
+                    async pick(event) {
+                        const file = (event.target.files || [])[0];
+                        event.target.value = '';
+                        if (!file) return;
+
+                        this.errors = {};
+                        this.payload = '';
+                        if (this.preview) URL.revokeObjectURL(this.preview);
+                        this.preview = URL.createObjectURL(file);
+
+                        try {
+                            const text = await window.readPaymentQr(file);
+                            if (!text) {
+                                this.preview = '';
+                                this.errors.payload = 'No QR code found in that picture. Use a clear, full screenshot of your QR.';
+                                return;
+                            }
+                            this.payload = text;
+                        } catch (e) {
+                            this.preview = '';
+                            this.errors.payload = 'That picture could not be read. Try a screenshot instead of a photo.';
+                        }
+                    },
+
+                    async submit() {
+                        this.errors = {};
+                        if (!this.payload && !this.reuseId) { this.errors.payload = 'Choose a picture of your QR first.'; return; }
+
+                        this.busy = true;
+                        try {
+                            const res = await fetch('/conversations/' + conversationId + '/payment-qr', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                },
+                                body: JSON.stringify(this.reuseId
+                                    ? { reuse_share_id: this.reuseId, note: this.note.trim() || null }
+                                    : { payload: this.payload, note: this.note.trim() || null }),
+                            });
+                            if (res.status === 422) {
+                                const data = await res.json();
+                                for (const [field, msgs] of Object.entries(data.errors || {})) {
+                                    this.errors[field] = msgs[0];
+                                }
+                                return;
+                            }
+                            if (!res.ok) { this.errors.general = 'Could not share. Please try again.'; return; }
+
+                            if (this.preview) URL.revokeObjectURL(this.preview);
+                            this.payload = ''; this.preview = ''; this.note = '';
+                            this.reuseId = lastShareId;
+                            this.open = false;
+                            window.refreshInboxPanel?.();
+                        } catch (e) {
+                            this.errors.general = 'Could not share. Check your connection and try again.';
                         } finally {
                             this.busy = false;
                         }

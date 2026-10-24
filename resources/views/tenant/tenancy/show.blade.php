@@ -170,8 +170,13 @@
                     @endforeach
                 </div>
 
+                {{-- Pay your landlord directly (online payments off) --}}
+                @if($isActive && ! \App\Support\Payments::online() && ($payablePeriod || $advancePeriod))
+                    @include('payments.partials._direct-pay', ['reservation' => $reservation, 'type' => 'Monthly', 'period' => $payablePeriod ?? $advancePeriod])
+                @endif
+
                 {{-- Pay now --}}
-                @if($isActive && $payablePeriod)
+                @if($isActive && $payablePeriod && \App\Support\Payments::online())
                     <x-card class="!bg-[#ECEEF6] !border-[#FF8A66]/25">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>

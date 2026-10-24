@@ -2,6 +2,13 @@
 
 return [
     /*
+     * Whether tenants can pay online through PayMongo checkout (and held payments, payouts and the move-in
+     * clocks come with it). Off by default: tenants pay the landlord directly by QR, report it, and the
+     * landlord confirms. See plans/direct-payments-record-and-confirm.md. Admin-editable in System Settings.
+     */
+    'online_payments_enabled' => env('ONLINE_PAYMENTS_ENABLED', false),
+
+    /*
      * Version tag for the Terms & Conditions / Privacy Policy. The property page remembers a visitor's
      * "I agree" tick on their device against this value — change it whenever the legal text changes and
      * everyone is asked once more.

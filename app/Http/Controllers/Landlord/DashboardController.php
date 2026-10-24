@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Models\Payment;
+use App\Models\PaymentClaim;
 use App\Models\Property;
 use App\Models\PropertyUnit;
 use App\Models\Reservation;
@@ -254,7 +255,20 @@ class DashboardController extends Controller
 
         $listings = fn (int $n) => $n . ' ' . ($n === 1 ? 'listing' : 'listings');
 
-        if (! Auth::user()->hasPayoutDestination()) {
+        $toConfirm = PaymentClaim::pending()
+            ->whereHas('reservation.property', fn ($q) => $q->where('landlord_id', $landlordId))
+            ->count();
+
+        if ($toConfirm > 0) {
+            $alerts->push([
+                'level' => 'danger',
+                'text' => $toConfirm.' '.($toConfirm === 1 ? 'payment is' : 'payments are').' waiting for you to confirm.',
+                'cta' => 'Review',
+                'url' => route('landlord.reservations.index'),
+            ]);
+        }
+
+        if (Auth::user()->showsPayoutTools() && ! Auth::user()->hasPayoutDestination()) {
             $alerts->push([
                 'level' => 'warn',
                 'text' => 'Add your GCash details so AbangananHub can send your payouts.',

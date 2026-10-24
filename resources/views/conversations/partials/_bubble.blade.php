@@ -10,9 +10,9 @@
     // of a consecutive run, not every one. A run ends at the
     // thread end, at a system divider, an inquiry summary card,
     // or a sender change.
-    $endsRun = !$next || $next->is_system || $next->is_inquiry_summary || $next->concern_id || $next->sender_id !== $message->sender_id;
+    $endsRun = !$next || $next->is_system || $next->is_inquiry_summary || $next->concern_id || $next->kind === 'payment_qr' || $next->sender_id !== $message->sender_id;
     $prev = $msgs[$i - 1] ?? null;
-    $startsRun = !$prev || $prev->is_system || $prev->is_inquiry_summary || $prev->concern_id || $prev->sender_id !== $message->sender_id;
+    $startsRun = !$prev || $prev->is_system || $prev->is_inquiry_summary || $prev->concern_id || $prev->kind === 'payment_qr' || $prev->sender_id !== $message->sender_id;
 @endphp
 
 @if($isSelf)

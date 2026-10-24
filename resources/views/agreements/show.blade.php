@@ -15,6 +15,9 @@
             ->reject(fn ($p) => $p->isStalePending())->isNotEmpty();
         $hadAbandonedCheckout = ! $hasPayment && $reservation->payments->contains(fn ($p) => $p->isStalePending());
         $processingPayment = $hasPayment && !$heldPayment && !$reservation->isOccupied();
+        // Direct payments: money paid to the landlord and confirmed (or recorded by them) sets move_in_paid_at.
+        $online = \App\Support\Payments::online();
+        $directPaid = $reservation->move_in_paid_at !== null;
     @endphp
 
     {{-- 1200 = 768 document + 400 action rail + gap. The document keeps the
@@ -170,8 +173,7 @@
                             <input type="checkbox" name="accept_tc" id="accept_tc" required
                                 class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
                             <span class="text-[13px] text-[#060D26] leading-relaxed">
-                                I understand that my payment will be held by AbangananHub until I confirm move-in. Funds will only
-                                be released to the landlord after I verify that the unit matches the listing.
+                                <x-payment-consent role="tenant" />
                             </span>
                         </label>
                         @error('accept_tc')
@@ -197,6 +199,12 @@
                                 <p class="text-[12px] text-[#5B6A8E] leading-relaxed mb-4">
                                     Your landlord keeps these on file in case of an emergency. Only the landlord of this property can see them, and your ID number is stored encrypted.
                                 </p>
+                                @php $missing = \App\Models\TenantDetail::missingFor($signer->tenantDetail); @endphp
+                                @if ($signer->tenantDetail && count($missing) < 4)
+                                    <p class="mb-4 rounded-lg bg-[#FBBF24]/[0.12] px-3 py-2 text-[12px] font-medium text-[#B45309]">
+                                        Your saved details are filled in below. Still needed: {{ implode(', ', $missing) }}.
+                                    </p>
+                                @endif
                                 <x-tenant-details-fields :detail="$signer->tenantDetail" id-prefix="sign" :required="true" />
                             </fieldset>
                         @endif
@@ -222,7 +230,23 @@
                         </div>
                     </div>
 
-                    @if(!$hasPayment)
+                    @if($directPaid && !$heldPayment)
+                        <div class="mt-4 rounded-xl border border-[#22C55E]/25 bg-[#22C55E]/[0.07] p-4">
+                            <p class="text-sm font-bold text-[#060D26]">Payment confirmed by {{ $landlord->first_name }}</p>
+                            <p class="mt-0.5 text-xs text-[#5B6A8E]">Your move-in payment was received directly by your landlord. Once you have the keys and the unit is as listed, confirm your move-in.</p>
+                            <form action="{{ route('agreements.confirmDirectMoveIn', $reservation) }}" method="POST" class="mt-3"
+                                data-confirm="Confirm you have moved in?" data-confirm-message="This starts your tenancy and your rent schedule." data-confirm-button="I've moved in">
+                                @csrf
+                                <button type="submit" class="w-full rounded-xl bg-[#FF8A66] py-2.5 text-sm font-bold text-[#060D26] shadow-sm transition-all duration-200 hover:bg-[#E96F4F]">I've moved in</button>
+                            </form>
+                        </div>
+
+                    @elseif(!$hasPayment && !$online)
+                        <div class="mt-4">
+                            @include('payments.partials._direct-pay', ['reservation' => $reservation, 'type' => 'MoveIn'])
+                        </div>
+
+                    @elseif(!$hasPayment)
                         <form action="{{ route('payments.checkout', $reservation) }}" method="POST" class="mt-4">
                             @csrf
                             @if($errors->has('payment'))

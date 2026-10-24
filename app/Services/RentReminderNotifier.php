@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Support\Payments;
 use Illuminate\Support\Carbon;
 
 /**
@@ -59,7 +60,9 @@ class RentReminderNotifier
             'payment',
             $this->title($today->greaterThan($period['due_on'])),
             'Your ' . $period['label'] . ' rent (' . $this->amount($period) . ') '
-                . $this->timing($period['due_on'], $today) . '. You can pay it online from your tenancy page, or arrange it with your landlord.',
+                . $this->timing($period['due_on'], $today) . (Payments::online()
+                    ? '. You can pay it online from your tenancy page, or arrange it with your landlord.'
+                    : '. Pay your landlord, then tap "I paid" on your tenancy page so they can confirm it.'),
             route('tenancy.show', $reservation),
         );
 

@@ -122,7 +122,7 @@
         @else
             @php
                 $stripUnit = $conversation->unit;
-                $stripRent = $stripUnit?->rental_fee ?? $conversation->property->rental_fee;
+                $stripRent = $stripUnit?->rental_fee ?? $conversation->property->min_rental_fee;
                 $stripDeposit = $stripUnit?->security_deposit ?? 0;
                 $stripThumb = $conversation->property->media->firstWhere('media_type', 'Image');
             @endphp
@@ -222,7 +222,7 @@
                                     <input type="checkbox" name="accept_tc" required
                                         class="mt-0.5 w-4 h-4 rounded border-[#5B6A8E]/40 text-[#060D26] focus:ring-[#FF8A66] focus:ring-offset-0 transition">
                                     <span class="text-[11px] text-[#060D26] leading-relaxed">
-                                        I agree that the tenant's payment will be held by AbangananHub until the tenant confirms move-in. Funds will be released only after tenant verification.
+                                        <x-payment-consent role="landlord" />
                                     </span>
                                 </label>
                                 <button type="submit"
@@ -254,8 +254,24 @@
                         ])
                     @elseif($pendingPayment)
                         <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">{{ $otherParty->first_name }}'s payment is processing</p>
+                    @elseif($reservation->move_in_paid_at)
+                        <div class="rounded-xl border border-[#22C55E]/25 bg-[#22C55E]/[0.07] p-3">
+                            <p class="text-[12px] font-bold text-[#060D26]">Move-in payment confirmed</p>
+                            <p class="mt-0.5 text-[11px] text-[#5B6A8E]">Hand over the keys, then confirm the move-in. {{ $otherParty->first_name }} can confirm it too.</p>
+                            <form action="{{ route('landlord.reservations.confirmDirectMoveIn', $reservation) }}" method="POST" class="mt-2"
+                                data-confirm="Confirm move-in?" data-confirm-message="This starts the tenancy and the rent schedule." data-confirm-button="Confirm move-in">
+                                @csrf
+                                <button type="submit" class="w-full rounded-xl bg-[#FF8A66] py-2 text-[12px] font-bold text-[#060D26] hover:bg-[#E96F4F] transition-all duration-200">Confirm move-in</button>
+                            </form>
+                        </div>
                     @else
-                        <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">Agreement signed — waiting for payment</p>
+                        @php $pendingClaims = $reservation->paymentClaims->where('status', 'Pending')->where('claim_type', 'MoveIn'); @endphp
+                        @if($pendingClaims->isNotEmpty())
+                            <div class="space-y-2">@include('payments.partials._claim-review', ['claims' => $pendingClaims, 'tenantName' => $otherParty->first_name])</div>
+                        @else
+                            <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">Agreement signed — waiting for {{ $otherParty->first_name }} to pay</p>
+                        @endif
+                        @include('payments.partials._record-move-in', ['reservation' => $reservation])
                     @endif
 
                 @elseif($rentalStatus === 'Occupied')
@@ -269,6 +285,16 @@
                             : $otherParty->first_name . ' is occupying this unit';
                     @endphp
                     <p class="text-[12px] text-[#060D26] font-medium text-center py-1">{{ $occupiedNote }}</p>
+                    @php
+                        $tenancyChatId = \App\Models\Conversation::where('reservation_id', $reservation->reservation_id)->where('type', \App\Models\Conversation::TYPE_TENANCY)->value('conversation_id');
+                    @endphp
+                    @if($tenancyChatId)
+                        <a href="{{ route('conversations.index', ['box' => 'tenancy', 'active' => $tenancyChatId]) }}"
+                            class="mt-1 flex items-center justify-center rounded-xl bg-[#FF8A66] py-2 text-[12px] font-bold text-[#060D26] transition-colors hover:bg-[#E96F4F]">
+                            Continue in the tenancy chat
+                        </a>
+                    @endif
+
                 @endif
             @endif
 
@@ -356,6 +382,22 @@
                         </div>
                     @elseif($pendingPayment)
                         <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">Your payment is processing — this updates automatically once it clears.</p>
+                    @elseif($reservation->move_in_paid_at)
+                        <a href="{{ route('agreements.show', $reservation) }}" target="_blank" rel="noopener"
+                            class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
+                            Payment confirmed — confirm move-in
+                        </a>
+                    @elseif(! \App\Support\Payments::online())
+                        @php $waitingClaim = $reservation->paymentClaims->firstWhere('status', 'Pending'); @endphp
+                        @if($waitingClaim)
+                            <p class="text-[12px] text-[#5B6A8E] font-medium text-center py-1">Waiting for your landlord to confirm your payment of &#8369;{{ number_format($waitingClaim->amount, 2) }}.</p>
+                        @else
+                            {{-- The QR is already in this chat. One tap opens the "I've paid" form on the agreement page. --}}
+                            <a href="{{ route('agreements.show', ['reservation' => $reservation, 'pay' => 1]) }}#pay" target="_blank" rel="noopener"
+                                class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
+                                I&rsquo;ve paid
+                            </a>
+                        @endif
                     @else
                         <a href="{{ route('agreements.show', $reservation) }}" target="_blank" rel="noopener"
                             class="w-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[12px] font-bold py-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-1.5">
@@ -371,6 +413,16 @@
                             : 'You are occupying this unit';
                     @endphp
                     <p class="text-[12px] text-[#060D26] font-medium text-center py-1">{{ $occupiedNote }}</p>
+                    @php
+                        $tenancyChatId = \App\Models\Conversation::where('reservation_id', $reservation->reservation_id)->where('type', \App\Models\Conversation::TYPE_TENANCY)->value('conversation_id');
+                    @endphp
+                    @if($tenancyChatId)
+                        <a href="{{ route('conversations.index', ['box' => 'tenancy', 'active' => $tenancyChatId]) }}"
+                            class="mt-1 flex items-center justify-center rounded-xl bg-[#FF8A66] py-2 text-[12px] font-bold text-[#060D26] transition-colors hover:bg-[#E96F4F]">
+                            Continue in the tenancy chat
+                        </a>
+                    @endif
+
                 @endif
             @endif
 
@@ -429,7 +481,7 @@
             @if($message->is_inquiry_summary)
                 @php
                     $summaryUnit = $conversation->unit;
-                    $summaryRent = $summaryUnit?->rental_fee ?? $conversation->property->rental_fee;
+                    $summaryRent = $summaryUnit?->rental_fee ?? $conversation->property->min_rental_fee;
                     $summaryDeposit = $summaryUnit?->security_deposit ?? 0;
                     $summaryThumb = $conversation->property->media->firstWhere('media_type', 'Image');
                 @endphp
@@ -488,8 +540,13 @@
                                     </div>
                                 @endif
                                 <div class="flex items-center justify-between pt-1 border-t border-[#E2E4EC]">
+                                    @if(\App\Support\Payments::online())
                                     <span class="font-bold text-[#060D26]">Paid online (first month)</span>
                                     <span class="font-bold text-[#060D26]">&#8369;{{ number_format($summaryRent) }}</span>
+                                    @else
+                                    <span class="font-bold text-[#060D26]">Paid to the landlord at move-in</span>
+                                    <span class="font-bold text-[#060D26]">&#8369;{{ number_format($summaryRent + $summaryDeposit) }}</span>
+                                    @endif
                                 </div>
                             </div>
 
@@ -507,6 +564,8 @@
                     <p class="text-[11px] text-[#5B6A8E] text-center max-w-[70%] leading-relaxed">{{ $message->message }}</p>
                     <div class="flex-1 h-px bg-[#E2E4EC]"></div>
                 </div>
+            @elseif($message->kind === 'payment_qr')
+                @include('conversations.partials._payment-qr-card')
             @else
                 @include('conversations.partials._bubble', ['message' => $message, 'msgs' => $msgs, 'i' => $i])
             @endif
@@ -529,8 +588,11 @@
             <p class="text-center text-[12px] text-[#5B6A8E] font-medium">Messaging is disabled for cancelled conversations.</p>
         </div>
     @else
-        <div class="px-5 py-3 bg-white border-t border-[#E2E4EC] flex-shrink-0">
-            <form id="message-form" class="flex items-center gap-2.5">
+        <div class="px-5 py-3 bg-white border-t border-[#E2E4EC] flex-shrink-0 flex items-center gap-2.5">
+            @if($isLandlord)
+                @include('conversations.partials._payment-qr-sheet')
+            @endif
+            <form id="message-form" class="flex min-w-0 flex-1 items-center gap-2.5">
                 <label for="message-input" class="sr-only">Message {{ $otherParty->first_name }}</label>
                 <input type="text" id="message-input" name="message" required maxlength="2000" autocomplete="off"
                     class="flex-1 bg-[#F7F8FC] border border-[#E2E4EC] focus:border-[#FF8A66] focus:bg-white focus:ring-2 focus:ring-[#FF8A66]/10 rounded-xl px-4 py-2.5 text-[13px] text-[#060D26] transition-all duration-200 outline-none placeholder-[#5B6A8E]"
@@ -551,7 +613,7 @@
     <x-property-side-card :property="$conversation->property" :unit="$conversation->unit" :photo="$sheetPhoto" eyebrow="Inquiring about">
         @php
             $sideUnit = $conversation->unit;
-            $sideRent = $sideUnit?->rental_fee ?? $conversation->property->rental_fee;
+            $sideRent = $sideUnit?->rental_fee ?? $conversation->property->min_rental_fee;
             $sideDeposit = $sideUnit?->security_deposit ?? 0;
         @endphp
         <div class="border-t border-[#E2E4EC] pt-3">

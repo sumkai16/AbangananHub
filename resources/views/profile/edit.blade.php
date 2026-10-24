@@ -152,6 +152,7 @@
                             </span>
                         </a>
                         @if($user->usesLandlordShell())
+                            @if($user->showsPayoutTools())
                             <a href="#payout"
                                 class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
                                 data-section="payout">
@@ -164,6 +165,7 @@
                                     <span class="block text-[11px] opacity-60 leading-tight mt-0.5">GCash for payouts</span>
                                 </span>
                             </a>
+                            @endif
                             <a href="#business"
                                 class="sidebar-link relative z-10 group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:text-[#060D26]"
                                 data-section="business">

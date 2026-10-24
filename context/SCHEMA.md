@@ -41,6 +41,10 @@ erDiagram
     reservations ||--o{ deposit_charges : "reservation_id"
     reservations ||--o{ rent_reminders : "reservation_id"
     reservations ||--o{ late_fee_waivers : "reservation_id"
+    reservations ||--o{ payment_claims : "reservation_id"
+    payment_claims ||--o{ payments : "payment_claim_id"
+    conversations ||--o{ payment_qr_shares : "conversation_id"
+    payment_qr_shares ||--o{ messages : "payment_qr_share_id"
     reservations ||--o| tenant_ratings : "reservation_id"
     reservations ||--o{ tenant_concerns : "reservation_id"
     reservations ||--o{ viewing_requests : "reservation_id"
@@ -381,6 +385,7 @@ One tenant's inquiry-to-tenancy record on one unit. `rental_status` walks Inquir
 | landlord_tc_accepted_at | timestamp | null | | |
 | tenant_tc_accepted_at | timestamp | null | | |
 | tenant_confirmed_move_in_at | timestamp | null | | Only a genuine tenant confirmation writes this |
+| move_in_paid_at | timestamp | null | | Move-in money paid straight to the landlord and settled (a confirmed claim, or the landlord recorded it). `hasSettledInitialPayment()` reads it; set while status is `Rental Agreement Signed`, before either party confirms move-in |
 | keys_turned_over_at | timestamp | null | | The clock switch: null = Clock 1, set = Clock 2 |
 | move_in_deadline_at | timestamp | null | index with `move_in_disputed_at` | Whichever clock is active; null = no clock |
 | move_in_disputed_at | timestamp | null | | Non-null = frozen in the admin queue |
@@ -465,6 +470,43 @@ A landlord dropping the late fee on one month. The ledger gives a waived month `
 | created_at | timestamp | null | | |
 | updated_at | timestamp | null | | |
 
+### payment_claims
+A tenant's "I paid the landlord directly". Not money: nothing reads a claim as a payment. Confirming one writes ordinary `Paid` rows in `payments` that point back here. See `plans/direct-payments-record-and-confirm.md`.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| payment_claim_id | bigint unsigned | NN | PK | |
+| reservation_id | bigint unsigned | NN | FK → reservations, cascade | Index `(reservation_id, status)` |
+| claim_type | enum('MoveIn','Monthly') | NN | | MoveIn = first month + deposit while the agreement is signed |
+| billing_period | date | null | | Required for Monthly (first of the month) |
+| amount | decimal(10,2) | NN | | What the tenant says they paid |
+| payment_method | enum('GCash','Maya','GoTyme','Bank Transfer','Other') | NN | | The app they paid from. Cash is never claimed, the landlord records it |
+| reference_no | varchar(100) | NN | | From the tenant's receipt; the landlord checks it in their own app |
+| paid_on | date | NN | | Becomes `paid_at` on the rows, so a late fee is judged by when the tenant paid |
+| note | varchar(500) | null | | |
+| status | enum('Pending','Confirmed','Rejected','Withdrawn') | NN, = 'Pending' | | Pending claims are withdrawn when the reservation ends |
+| filed_by | bigint unsigned | null | FK → users, set null | |
+| decided_by | bigint unsigned | null | FK → users, set null | |
+| decided_at | timestamp | null | | |
+| rejection_reason | varchar(255) | null | | Required on reject |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
+### payment_qr_shares
+A landlord's payment QR (QR Ph / InstaPay) shared in one conversation. Only the decoded text is kept, never the image; the QR is redrawn from it.
+
+| Column | Type | Null / default | Key | Note |
+|---|---|---|---|---|
+| payment_qr_share_id | bigint unsigned | NN | PK | |
+| conversation_id | bigint unsigned | NN | FK → conversations, cascade | Index `(conversation_id, created_at)` |
+| shared_by | bigint unsigned | NN | FK → users, cascade | Always the conversation's landlord |
+| payload | text | NN | | `encrypted` cast. The QR Ph text; validated by `QrPh::parse()` before saving |
+| account_name | varchar(100) | NN | | Read from the QR (tag 59), shown as "Pay to …" |
+| note | varchar(300) | null | | |
+| replaced_at | timestamp | null | | Set when the landlord shares a newer QR with the same tenant for the same property |
+| created_at | timestamp | null | | |
+| updated_at | timestamp | null | | |
+
 ### rent_reminders
 Idempotency guard for `reservations:process-rent-reminders`: one row per fired milestone.
 
@@ -509,7 +551,7 @@ One money movement on a tenancy: online escrow, landlord-recorded, or a correcti
 | payment_type | enum('Initial','Monthly','Deposit','Utility','Other') | NN | | |
 | billing_period | date | null | | The month a `Monthly` payment settles; required for `Monthly`, null otherwise |
 | amount | decimal(10,2) | NN | | Serializes as a string; `parseFloat()` client-side |
-| payment_method | enum('GCash','QRPh','Cash','Bank Transfer','Maya','Check','Other') | NN | | Escrow uses GCash/QRPh via PayMongo; the rest are landlord-recorded |
+| payment_method | enum('GCash','QRPh','Cash','Bank Transfer','Maya','GoTyme','Check','Other') | NN | | Escrow uses GCash/QRPh via PayMongo; the rest are landlord-recorded or came from a confirmed payment claim |
 | paymongo_payment_intent_id | varchar(255) | null | UNIQUE | |
 | paymongo_payment_id | varchar(255) | null | | |
 | paymongo_checkout_session_id | varchar(255) | null | UNIQUE | |
@@ -525,6 +567,7 @@ One money movement on a tenancy: online escrow, landlord-recorded, or a correcti
 | void_reason | enum('wrong_amount','wrong_month','wrong_tenancy','duplicate','not_received','other') | null | | |
 | void_note | varchar(255) | null | | Required when `void_reason = 'other'` |
 | replaces_payment_id | bigint unsigned | null | FK → payments, set null | On the *new* row of a "void and correct", pointing back at the voided one |
+| payment_claim_id | bigint unsigned | null | FK → payment_claims, set null | Set on every row a confirmed claim wrote (never on PayMongo rows) |
 | recorded_by | bigint unsigned | null | FK → users, set null | Null = platform-settled (PayMongo); non-null = landlord-asserted |
 | reference_no | varchar(255) | null | | OR number / GCash reference of a recorded payment |
 | payment_notes | text | null | | |
@@ -580,8 +623,9 @@ No `updated_at`; `Message::$timestamps = false`.
 | conversation_id | bigint unsigned | NN | FK → conversations, cascade | Indexes `(conversation_id, is_read, sender_id)` and `(conversation_id, sent_at)` |
 | sender_id | bigint unsigned | null | FK → users, cascade | Null only for `system` rows (`Reservation::postSystemMessage()`) |
 | message | text | NN | | |
-| kind | enum('user','system','inquiry_summary','concern') | NN, = 'user' | | `system` = status narration (no sender, centered divider); `inquiry_summary` = the first card (property/rent/dates); `concern` = a tenant's concern card. `is_system` and `is_inquiry_summary` remain as read-only attributes derived from it |
+| kind | enum('user','system','inquiry_summary','concern','payment_qr') | NN, = 'user' | | `system` = status narration (no sender, centered divider); `inquiry_summary` = the first card (property/rent/dates); `concern` = a tenant's concern card; `payment_qr` = a landlord's shared payment QR. `is_system` and `is_inquiry_summary` remain as read-only attributes derived from it |
 | concern_id | bigint unsigned | null | FK → tenant_concerns, set null | A concern's card, and the system lines narrating its status |
+| payment_qr_share_id | bigint unsigned | null | FK → payment_qr_shares, set null | The QR a `payment_qr` message carries |
 | is_read | boolean | NN, = 0 | | |
 | sent_at | timestamp | NN, = now | | Set in `Message::booted()`, so fixtures can backdate it |
 

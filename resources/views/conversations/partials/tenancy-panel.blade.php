@@ -95,6 +95,8 @@
                 </div>
             @elseif($message->concern_id && $message->concern)
                 @include('conversations.partials._concern-card')
+            @elseif($message->kind === 'payment_qr')
+                @include('conversations.partials._payment-qr-card')
             @else
                 @include('conversations.partials._bubble', ['message' => $message, 'msgs' => $msgs, 'i' => $i])
             @endif
@@ -112,6 +114,9 @@
         <div class="px-3 sm:px-5 py-3 bg-white border-t border-[#E2E4EC] flex-shrink-0 flex items-center gap-2">
             @if($isTenant && $running)
                 @include('conversations.partials._concern-sheet', ['categories' => \App\Models\TenantConcern::CATEGORIES])
+            @endif
+            @if($isLandlord && $running)
+                @include('conversations.partials._payment-qr-sheet')
             @endif
             <form id="message-form" class="flex min-w-0 flex-1 items-center gap-2">
                 <label for="message-input" class="sr-only">Message {{ $otherParty->first_name }}</label>

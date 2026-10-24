@@ -42,6 +42,7 @@ class TenancyController extends Controller
             'depositCharges.charger',
             'depositCharges.voider',
             'conversation',
+            'paymentClaims',
         ]);
 
         $ledger = RentLedger::for($reservation);

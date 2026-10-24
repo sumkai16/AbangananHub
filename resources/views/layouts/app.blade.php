@@ -128,6 +128,13 @@
                         class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer">
                         How it works
                     </a>
+
+                    @if(! empty($myUnitReservationId))
+                        <a href="{{ route('tenancy.show', $myUnitReservationId) }}" @if(request()->routeIs('tenancy.show')) aria-current="page" @endif
+                            class="px-3.5 py-2 rounded-full text-[13.5px] font-semibold transition-colors duration-200 cursor-pointer {{ request()->routeIs('tenancy.show') ? 'text-[#B35A3D] bg-[#ECEEF6]' : 'text-[#060D26] hover:bg-[#F7F8FC] hover:text-[#B35A3D]' }}">
+                            My Unit
+                        </a>
+                    @endif
                 </nav>
             @endif
 
@@ -327,6 +334,15 @@
                             {{-- Section: Activity --}}
                             <p class="{{ $menuLabel }}">Activity</p>
 
+                            @if($userRoles->contains('Tenant') && ! empty($myUnitReservationId))
+                                <a href="{{ route('tenancy.show', $myUnitReservationId) }}" class="{{ $menuRow }}">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5 12 3l9 7.5M5 9.5V20a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V9.5" />
+                                    </svg>
+                                    My Unit
+                                </a>
+                            @endif
+
                             @if($userRoles->contains('Tenant'))
                                 <a href="{{ route('reservations.index') }}" class="{{ $menuRow }}">
                                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" class="{{ $menuIcon }}" aria-hidden="true">
@@ -474,6 +490,13 @@
                 class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] hover:bg-[#F7F8FC]">
                 How it works
             </a>
+
+            @if(! empty($myUnitReservationId))
+                <a href="{{ route('tenancy.show', $myUnitReservationId) }}" @click="mobileNavOpen = false"
+                    class="block px-3.5 py-2.5 rounded-xl text-[14px] font-semibold text-[#060D26] hover:bg-[#F7F8FC]">
+                    My Unit
+                </a>
+            @endif
 
             @auth
                 <div class="h-px bg-[#E2E4EC] my-2"></div>

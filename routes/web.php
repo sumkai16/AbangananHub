@@ -22,6 +22,7 @@ use App\Http\Controllers\HandoverController;
 use App\Http\Controllers\Landlord\AnalyticsController;
 use App\Http\Controllers\Landlord\DashboardController;
 use App\Http\Controllers\Landlord\DepositChargeController;
+use App\Http\Controllers\Landlord\PaymentClaimController;
 use App\Http\Controllers\Landlord\PayoutController;
 use App\Http\Controllers\Landlord\PropertyController as LandlordPropertyController;
 use App\Http\Controllers\Landlord\PropertyDocumentController as LandlordPropertyDocumentController;
@@ -34,6 +35,7 @@ use App\Http\Controllers\Landlord\UnitIndexController;
 use App\Http\Controllers\Landlord\WalkInTenantController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentQrShareController;
 use App\Http\Controllers\PayMongoWebhookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
@@ -154,6 +156,7 @@ Route::middleware('auth')->group(function () {
         // agreement page instead of surfacing a raw 405.
         Route::get('/reservations/{reservation}/confirm-move-in', fn (Reservation $reservation) => redirect()->route('agreements.show', $reservation));
         Route::post('/reservations/{reservation}/dispute-move-in', [AgreementController::class, 'disputeMoveIn'])->name('agreements.disputeMoveIn');
+        Route::post('/reservations/{reservation}/confirm-direct-move-in', [PaymentClaimController::class, 'confirmMoveIn'])->name('agreements.confirmDirectMoveIn');
 
         // A tenant's own tenancy and rent ledger — read-only except for the
         // one earliest unsettled period, which can be paid online via GCash.
@@ -163,6 +166,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/tenancy/{reservation}/lease', [LeaseController::class, 'show'])->name('tenancy.lease');
         Route::get('/tenancy/{reservation}/lease-file', [LeaseController::class, 'file'])->name('tenancy.lease.file');
         Route::post('/tenancy/{reservation}/pay-rent', [PaymentController::class, 'createRentCheckoutSession'])->name('payments.rentCheckout');
+
+        // Paying the landlord directly: report it, or take the report back. The landlord decides.
+        Route::post('/reservations/{reservation}/payment-claims', [App\Http\Controllers\Tenant\PaymentClaimController::class, 'store'])->name('paymentClaims.store');
+        Route::delete('/payment-claims/{claim}', [App\Http\Controllers\Tenant\PaymentClaimController::class, 'withdraw'])->name('paymentClaims.withdraw');
         Route::get('/tenancy/{reservation}/rent-success', [PaymentController::class, 'rentSuccess'])->name('payments.rent.success');
 
         Route::post('/reviews', [App\Http\Controllers\Tenant\ReviewController::class, 'store'])->name('reviews.store');
@@ -204,6 +211,11 @@ Route::middleware('auth')->group(function () {
         Route::patch('/reservations/{reservation}/advance-negotiation', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToNegotiation'])->name('reservations.advanceNegotiation');
         Route::patch('/reservations/{reservation}/advance-agreement', [App\Http\Controllers\Landlord\ReservationController::class, 'advanceToPendingAgreement'])->name('reservations.advanceAgreement');
         Route::post('/reservations/{reservation}/turned-over', [App\Http\Controllers\Landlord\ReservationController::class, 'markTurnedOver'])->name('reservations.markTurnedOver');
+        // Direct payments: answer a tenant's report, record move-in money by hand, confirm a direct move-in.
+        Route::post('/payment-claims/{claim}/confirm', [PaymentClaimController::class, 'confirm'])->name('paymentClaims.confirm');
+        Route::post('/payment-claims/{claim}/reject', [PaymentClaimController::class, 'reject'])->name('paymentClaims.reject');
+        Route::post('/reservations/{reservation}/move-in-payment', [PaymentClaimController::class, 'recordMoveIn'])->name('reservations.recordMoveInPayment');
+        Route::post('/reservations/{reservation}/confirm-direct-move-in', [PaymentClaimController::class, 'confirmMoveIn'])->name('reservations.confirmDirectMoveIn');
         Route::post('/reservations/{reservation}/confirm-walk-in-move-in', [App\Http\Controllers\Landlord\ReservationController::class, 'confirmWalkInMoveIn'])->name('reservations.confirmWalkInMoveIn');
 
         // Units
@@ -393,6 +405,7 @@ Route::middleware('auth')->group(function () {
     // Post-move-in chat and its concern cards. Both sides use the same URLs; policies decide.
     Route::get('/tenancy/{reservation}/chat', [ConversationController::class, 'tenancyChat'])->name('tenancy.chat');
     Route::post('/conversations/{conversation}/concerns', [TenantConcernController::class, 'store'])->name('concerns.store');
+    Route::post('/conversations/{conversation}/payment-qr', [PaymentQrShareController::class, 'store'])->name('paymentQr.store');
     Route::patch('/concerns/{concern}/status', [TenantConcernController::class, 'updateStatus'])->name('concerns.status');
 
     // Notifications

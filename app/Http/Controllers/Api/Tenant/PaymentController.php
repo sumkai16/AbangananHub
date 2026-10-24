@@ -8,6 +8,7 @@ use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use App\Support\Payments;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -30,6 +31,10 @@ class PaymentController extends Controller
     public function pay(Reservation $reservation): JsonResponse
     {
         Gate::authorize('sign', $reservation);
+
+        if (! Payments::online()) {
+            return response()->json(['message' => Payments::OFFLINE_MESSAGE], 409);
+        }
 
         if ($reservation->rental_status !== 'Rental Agreement Signed') {
             throw ValidationException::withMessages(['payment' => ['Agreement must be signed before payment.']]);
@@ -141,6 +146,10 @@ class PaymentController extends Controller
     public function payRent(Reservation $reservation): JsonResponse
     {
         Gate::authorize('payRent', $reservation);
+
+        if (! Payments::online()) {
+            return response()->json(['message' => Payments::OFFLINE_MESSAGE], 409);
+        }
 
         $reservation->loadMissing('unit', 'tenant');
 

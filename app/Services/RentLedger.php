@@ -349,6 +349,47 @@ class RentLedger
             ->values();
     }
 
+    /**
+     * The month a tenant could pay early: the one right after the last month the ledger shows. It has no
+     * row yet (future debt is never listed), so it is described here in the same shape, owing a full
+     * month's rent. Null while an earlier month is still unsettled (pay that first), or when the lease
+     * has ended or runs out before that month.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function advancePeriod(): ?array
+    {
+        $periods = $this->periods();
+
+        if ($periods->isEmpty() || $this->unsettledPeriods()->isNotEmpty() || $periods->contains(fn ($p) => $p['status'] !== 'paid')) {
+            return null;
+        }
+
+        $next = $periods->last()['period']->copy()->addMonthNoOverflow()->startOfMonth();
+        $moveOut = $this->reservation->target_move_out_date;
+
+        if ($moveOut && $next->greaterThan($moveOut->copy()->startOfMonth())) {
+            return null;
+        }
+
+        $rent = $this->reservation->monthlyRent();
+
+        return [
+            'period' => $next,
+            'label' => $next->format('M Y'),
+            'due_on' => $next->copy()->day($this->reservation->rentDueDay()),
+            'rent' => $rent,
+            'late_fee' => 0.0,
+            'late_fee_waived' => false,
+            'expected' => $rent,
+            'paid' => 0.0,
+            'balance' => $rent,
+            'status' => 'upcoming',
+            'is_future' => true,
+            'payments' => collect(),
+        ];
+    }
+
     // ─── Internals ───────────────────────────────────────────
 
     /**

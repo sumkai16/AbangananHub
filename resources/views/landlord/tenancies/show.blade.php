@@ -572,6 +572,13 @@
                     </div>
                 </x-card>
 
+                @php $pendingClaims = $reservation->paymentClaims->where('status', 'Pending')->where('claim_type', 'Monthly'); @endphp
+                @if($pendingClaims->isNotEmpty())
+                    <div class="space-y-3">
+                        @include('payments.partials._claim-review', ['claims' => $pendingClaims, 'tenantName' => $reservation->tenant?->first_name])
+                    </div>
+                @endif
+
                 @if($unpaidPeriods->isNotEmpty())
                     <x-card flush>
                         <div class="px-5 sm:px-6 py-4 border-b border-[#E2E4EC]">

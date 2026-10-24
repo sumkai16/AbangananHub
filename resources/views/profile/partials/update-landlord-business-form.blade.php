@@ -5,7 +5,8 @@
     @method('PATCH')
     @php $business = $user->rentalBusiness; @endphp
 
-    {{-- Payout details --}}
+    {{-- Payout details: only while online payments are on, or money is still owed to this landlord. --}}
+    @if($user->showsPayoutTools())
     <div id="payout" class="scroll-mt-28 rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] bg-white p-6 sm:p-8" data-animate>
         <h2 class="text-[15px] font-normal text-[#060D26] mb-1">Payout details</h2>
         <p class="text-[12px] text-[#5B6A8E] mb-4">Where AbangananHub sends the rent and deposits it collects on your behalf. Both fields are required before you can be paid out.</p>
@@ -31,6 +32,8 @@
             </div>
         </div>
     </div>
+
+    @endif
 
     {{-- Business info --}}
     <div id="business" class="scroll-mt-28 rounded-2xl ring-1 ring-[#5B6A8E]/10 shadow-[0_2px_12px_rgba(6,13,38,0.05)] bg-white p-6 sm:p-8" data-animate>

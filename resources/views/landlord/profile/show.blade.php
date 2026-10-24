@@ -207,6 +207,7 @@
                                 <dd class="mt-1 text-[14px] font-semibold text-[#060D26]">{{ $visibilityTitle }}</dd>
                                 <p class="text-[12px] text-[#5B6A8E]">{{ $visibilitySub }}</p>
                             </div>
+                            @if($user->showsPayoutTools())
                             <div class="min-w-0">
                                 <dt class="text-[12px] font-semibold text-[#5B6A8E]">Payout (GCash)</dt>
                                 @if($hasPayout)
@@ -217,6 +218,7 @@
                                     <p class="text-[12px] text-[#5B6A8E]"><a href="{{ route('profile.edit') }}#payout" class="font-semibold text-[#B35A3D] hover:underline">Add GCash details</a> to get paid</p>
                                 @endif
                             </div>
+                            @endif
                         @endif
                     </dl>
                     </x-card>

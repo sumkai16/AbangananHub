@@ -159,6 +159,10 @@ shows "Late fee waived". The waiver is audit-logged with `AuditLog::record()`, l
 
 ## Phase 4 — Pay the landlord directly (item 1)
 
+> **Superseded Oct 24 2026 by `plans/direct-payments-record-and-confirm.md`.** AbangananHub stops
+> holding money altogether (PayMongo behind an admin switch, off by default), and landlords are
+> never asked for GCash details. The design below is kept for history only; do not build it.
+
 ### The idea
 The tenant pays the landlord outside AbangananHub (scan the landlord's GCash QR, or hand over cash),
 then tells the system "I paid". The landlord confirms, and only then does it count as paid. This is
