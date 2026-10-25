@@ -6,13 +6,13 @@
 @section('title', 'Profile')
 
 @section('content')
-    <div class="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[calc(100vh-72px)]">
+    <div class="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10 min-h-[calc(100vh-72px)]">
 
         {{-- Profile header card --}}
         <div
-            class="bg-white border border-[#E2E4EC] rounded-2xl p-6 sm:p-8 mb-6 flex flex-col sm:flex-row sm:items-center gap-5">
+            class="bg-white border border-[#E2E4EC] rounded-2xl p-4 sm:p-8 mb-4 sm:mb-6 flex items-start sm:items-center gap-3 sm:gap-5">
             <div
-                class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#FF8A66] text-2xl font-bold text-[#060D26] overflow-hidden">
+                class="flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-2xl bg-[#FF8A66] text-xl sm:text-2xl font-bold text-[#060D26] overflow-hidden">
                 @if($user->profile_picture)
                     <img loading="lazy" decoding="async" src="{{ $user->profile_picture }}" alt="{{ $user->first_name }}" class="h-full w-full object-cover">
                 @else
@@ -51,7 +51,7 @@
                 @endif
             </div>
             <a href="{{ route('profile.edit') }}"
-                class="inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-lg border border-[#E2E4EC] text-[13px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors shrink-0 self-start sm:self-center">
+                class="max-sm:hidden inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-lg border border-[#E2E4EC] text-[13px] font-semibold text-[#060D26] hover:bg-[#ECEEF6] transition-colors shrink-0 self-start sm:self-center">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -61,22 +61,22 @@
         </div>
 
         {{-- Activity stats --}}
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-4 text-center">
-                <p class="text-2xl font-extrabold text-[#060D26]">{{ $reservationCount }}</p>
-                <p class="text-[12px] text-[#5B6A8E] mt-0.5">Reservations</p>
+        <div class="grid grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-2.5 sm:p-4 text-center">
+                <p class="text-xl sm:text-2xl font-extrabold text-[#060D26]">{{ $reservationCount }}</p>
+                <p class="text-[10.5px] sm:text-[12px] leading-tight text-[#5B6A8E] mt-0.5">Reservations</p>
             </div>
-            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-4 text-center">
-                <p class="text-2xl font-extrabold text-[#060D26]">{{ $favoriteCount }}</p>
-                <p class="text-[12px] text-[#5B6A8E] mt-0.5">Favorites</p>
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-2.5 sm:p-4 text-center">
+                <p class="text-xl sm:text-2xl font-extrabold text-[#060D26]">{{ $favoriteCount }}</p>
+                <p class="text-[10.5px] sm:text-[12px] leading-tight text-[#5B6A8E] mt-0.5">Favorites</p>
             </div>
-            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-4 text-center">
-                <p class="text-2xl font-extrabold text-[#060D26]">{{ $reviewCount }}</p>
-                <p class="text-[12px] text-[#5B6A8E] mt-0.5">Reviews written</p>
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-2.5 sm:p-4 text-center">
+                <p class="text-xl sm:text-2xl font-extrabold text-[#060D26]">{{ $reviewCount }}</p>
+                <p class="text-[10.5px] sm:text-[12px] leading-tight text-[#5B6A8E] mt-0.5">Reviews written</p>
             </div>
-            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-4 text-center">
-                <p class="text-2xl font-extrabold text-[#060D26]">{{ $propertyCount }}</p>
-                <p class="text-[12px] text-[#5B6A8E] mt-0.5">Properties listed</p>
+            <div class="bg-white border border-[#E2E4EC] rounded-2xl p-2.5 sm:p-4 text-center">
+                <p class="text-xl sm:text-2xl font-extrabold text-[#060D26]">{{ $propertyCount }}</p>
+                <p class="text-[10.5px] sm:text-[12px] leading-tight text-[#5B6A8E] mt-0.5">Properties listed</p>
             </div>
         </div>
 

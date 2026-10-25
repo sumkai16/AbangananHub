@@ -16,7 +16,7 @@
         </x-page-header>
 
         {{-- Stat cards --}}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div class="stat-chips grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <x-stat-card label="Total Reports" :value="$stats['total']" sub="All reports you've filed">
                 <x-slot:icon>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#060D26" stroke-width="2">
@@ -46,7 +46,7 @@
                 {{-- Filter bar --}}
                 <form method="GET" action="{{ route('landlord.complaints.index') }}"
                     class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-4 mb-6">
-                    <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="filter-row flex flex-wrap items-center gap-2.5">
                         <x-styled-select name="status" :options="['' => 'All Statuses', 'Pending' => 'Pending', 'Resolved' => 'Resolved']"
                             :selected="request('status', '')"
                             class="h-11 pl-4 pr-9 rounded-xl border border-[#5B6A8E]/25 bg-[#F7F8FC] text-[13.5px] text-[#060D26]" />

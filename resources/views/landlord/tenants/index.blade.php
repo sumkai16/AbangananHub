@@ -38,7 +38,7 @@
 
         {{-- Stat cards — the last two double as filters: click one to jump
              straight to the tenants it's counting. --}}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div class="stat-chips grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             @php
                 $statusSub = match(request('status')) {
                     'active'   => 'Currently occupying units',
@@ -103,7 +103,7 @@
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2.5">
+                <div class="filter-row flex flex-wrap items-center gap-2.5">
                     @php
                         $tenantsPropertyOptions = ['' => 'All Properties'] + $properties->pluck('title', 'property_id')->all();
                     @endphp

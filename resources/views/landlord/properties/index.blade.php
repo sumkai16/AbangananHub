@@ -16,7 +16,7 @@
             </x-slot:icon>
             <x-slot:actions>
             <a href="{{ route('properties.create') }}"
-                class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[14px] font-semibold transition-colors duration-200 shrink-0">
+                class="inline-flex items-center justify-center gap-2 h-11 max-sm:h-9 px-5 max-sm:px-4 rounded-xl bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-[14px] font-semibold transition-colors duration-200 shrink-0">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
@@ -26,35 +26,35 @@
         </x-page-header>
 
         {{-- Summary strip — account-wide totals, not affected by the filter toolbar below --}}
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-px mb-6 overflow-hidden rounded-2xl border border-[#E2E4EC] bg-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
-            <div class="bg-white p-4 sm:p-5">
-                <p class="text-[12px] font-semibold text-[#5B6A8E]">Properties</p>
-                <p class="mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['properties'] }}</p>
-                <p class="mt-2 text-[12.5px] text-[#5B6A8E]">Listed on AbangananHub</p>
+        <div class="stat-strip stat-strip-grid grid grid-cols-2 lg:grid-cols-4 gap-px mb-4 sm:mb-6 overflow-hidden rounded-2xl border border-[#E2E4EC] bg-[#E2E4EC] shadow-[0_1px_3px_rgba(6,13,38,0.06)]">
+            <div class="stat-strip-cell bg-white p-4 sm:p-5">
+                <p class="ss-label text-[12px] font-semibold text-[#5B6A8E]">Properties</p>
+                <p class="ss-value mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['properties'] }}</p>
+                <p class="ss-note mt-2 text-[12.5px] text-[#5B6A8E]">Listed on AbangananHub</p>
             </div>
-            <div class="bg-white p-4 sm:p-5">
-                <p class="text-[12px] font-semibold text-[#5B6A8E]">Units</p>
-                <p class="mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['units'] }}</p>
-                <p class="mt-2 text-[12.5px] text-[#5B6A8E]">Across all properties</p>
+            <div class="stat-strip-cell bg-white p-4 sm:p-5">
+                <p class="ss-label text-[12px] font-semibold text-[#5B6A8E]">Units</p>
+                <p class="ss-value mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['units'] }}</p>
+                <p class="ss-note mt-2 text-[12.5px] text-[#5B6A8E]">Across all properties</p>
             </div>
-            <div class="bg-white p-4 sm:p-5">
-                <p class="text-[12px] font-semibold text-[#5B6A8E]">Occupied</p>
-                <p class="mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['occupied'] }}</p>
-                <div class="mt-2.5 h-1.5 rounded-full bg-[#E2E4EC] overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+            <div class="stat-strip-cell bg-white p-4 sm:p-5">
+                <p class="ss-label text-[12px] font-semibold text-[#5B6A8E]">Occupied</p>
+                <p class="ss-value mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['occupied'] }}</p>
+                <div class="ss-note mt-2.5 h-1.5 rounded-full bg-[#E2E4EC] overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100"
                     aria-valuenow="{{ $stats['occupancyRate'] }}" aria-label="Occupancy rate">
                     <div class="h-full rounded-full bg-[#060D26]" style="width: {{ $stats['occupancyRate'] }}%"></div>
                 </div>
-                <p class="mt-1.5 text-[12.5px] text-[#5B6A8E]">{{ $stats['occupancyRate'] }}% occupancy</p>
+                <p class="ss-note mt-1.5 text-[12.5px] text-[#5B6A8E]">{{ $stats['occupancyRate'] }}% occupancy</p>
             </div>
-            <div class="bg-white p-4 sm:p-5">
-                <p class="text-[12px] font-semibold text-[#5B6A8E]">Available</p>
-                <p class="mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['available'] }}</p>
-                <p class="mt-2 text-[12.5px] text-[#5B6A8E]">Ready for tenants</p>
+            <div class="stat-strip-cell bg-white p-4 sm:p-5">
+                <p class="ss-label text-[12px] font-semibold text-[#5B6A8E]">Available</p>
+                <p class="ss-value mt-2 text-[30px] font-extrabold leading-none tabular-nums text-[#060D26]">{{ $stats['available'] }}</p>
+                <p class="ss-note mt-2 text-[12.5px] text-[#5B6A8E]">Ready for tenants</p>
             </div>
         </div>
 
         {{-- Filter toolbar --}}
-        <x-card class="mb-8">
+        <x-card class="mb-4 sm:mb-8 max-sm:!p-3">
         <form method="GET" action="{{ route('landlord.properties.index') }}">
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
 
@@ -69,7 +69,7 @@
                         class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#5B6A8E] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2.5">
+                <div class="filter-row flex flex-wrap items-center gap-2.5">
                     @php
                         $listStatusOptions = ['' => 'All Status', 'Approved' => 'Approved', 'Pending' => 'Pending', 'Rejected' => 'Rejected'];
                         $listTypeOptions = [...\App\Enums\PropertyType::options('All Types'), 'House' => 'House for Rent'];
@@ -177,11 +177,11 @@
                     @php extract($derived[$property->property_id]); @endphp
 
                     <article
-                        class="group flex flex-col rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 hover:ring-[#5B6A8E]/30 hover:shadow-lg transition-all duration-300">
+                        class="group relative flex flex-col max-sm:flex-row rounded-2xl overflow-hidden bg-white ring-1 ring-[#5B6A8E]/15 hover:ring-[#5B6A8E]/30 hover:shadow-lg transition-all duration-300">
 
                         {{-- Thumbnail --}}
                         <a href="{{ route('landlord.properties.show', $property) }}"
-                            class="relative block aspect-[16/9] overflow-hidden bg-[#ECEEF6] shrink-0">
+                            class="relative block aspect-[16/9] max-sm:aspect-auto max-sm:w-24 max-sm:min-h-[104px] overflow-hidden bg-[#ECEEF6] shrink-0">
                             @if($thumb)
                                 <img loading="lazy" decoding="async" src="{{ $thumb->media_url }}" alt="{{ $property->title }}"
                                     class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out">
@@ -197,7 +197,7 @@
                             @endif
 
                             {{-- Status chip --}}
-                            <div class="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                            <div class="absolute top-3 left-3 max-sm:top-1.5 max-sm:left-1.5 flex items-center gap-1.5 flex-wrap">
                                 <span class="inline-flex rounded-full bg-white shadow-sm">
                                     <span class="inline-flex items-center text-[12px] font-semibold px-2.5 py-1 rounded-full ring-1 {{ $statusBg }}">
                                         {{ $statusText }}
@@ -210,13 +210,13 @@
                         </a>
 
                         {{-- Body --}}
-                        <div class="flex flex-col flex-1 p-4 gap-3">
+                        <div class="flex flex-col flex-1 min-w-0 p-4 gap-3 max-sm:p-3 max-sm:gap-1.5">
 
                             {{-- Title + address --}}
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <a href="{{ route('landlord.properties.show', $property) }}"
-                                        class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#B35A3D] transition-colors duration-200">
+                                        class="block text-[15px] font-bold text-[#060D26] leading-snug line-clamp-1 hover:text-[#B35A3D] transition-colors duration-200 max-sm:after:absolute max-sm:after:inset-0">
                                         {{ $property->title }}
                                     </a>
                                     <p class="text-[12px] text-[#5B6A8E] mt-0.5 line-clamp-1 flex items-center gap-1">
@@ -231,7 +231,7 @@
                                     </p>
                                 </div>
                                 <span
-                                    class="shrink-0 text-[12px] font-medium text-[#060D26] bg-[#ECEEF6] rounded-full px-2.5 py-0.5 mt-0.5">
+                                    class="shrink-0 text-[12px] font-medium text-[#060D26] bg-[#ECEEF6] rounded-full px-2.5 py-0.5 mt-0.5 max-sm:hidden">
                                     {{ $property->property_type }}
                                 </span>
                             </div>
@@ -266,7 +266,7 @@
                                         <div class="h-full bg-[#EF4444]" style="width: {{ $property->occupied_units_count / $unitTotal * 100 }}%"></div>
                                     @endif
                                 </div>
-                                <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#5B6A8E]">
+                                <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#5B6A8E] max-sm:hidden">
                                     <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span>{{ $property->available_units_count }} available</span>
                                     <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#FBBF24]"></span>{{ $property->reserved_units_count }} reserved</span>
                                     <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#EF4444]"></span>{{ $property->occupied_units_count }} occupied</span>
@@ -274,7 +274,7 @@
                             </div>
 
                             {{-- Actions --}}
-                            <div class="flex items-center gap-2 pt-1 mt-auto">
+                            <div class="relative z-10 flex items-center gap-2 pt-1 mt-auto">
                                 @if($property->isDraft())
                                     <a href="{{ route('properties.wizard.resume', $property) }}"
                                         class="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl bg-[#FF8A66] text-[#060D26] text-[13px] font-semibold hover:bg-[#E96F4F] transition-all duration-200">
@@ -298,7 +298,7 @@
                                     </form>
                                 @else
                                     <a href="{{ route('landlord.properties.units.index', $property) }}"
-                                        class="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl border border-[#060D26]/25 text-[#060D26] text-[13px] font-semibold hover:border-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">
+                                        class="max-sm:hidden flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl border border-[#060D26]/25 text-[#060D26] text-[13px] font-semibold hover:border-[#060D26] hover:bg-[#F7F8FC] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -307,7 +307,7 @@
                                         View Units
                                     </a>
                                     <a href="{{ route('properties.edit', $property) }}"
-                                        class="h-10 px-4 flex items-center gap-1.5 rounded-xl border border-[#5B6A8E]/30 text-[#060D26] text-[13px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
+                                        class="max-sm:hidden h-10 px-4 flex items-center gap-1.5 rounded-xl border border-[#5B6A8E]/30 text-[#060D26] text-[13px] font-medium hover:bg-[#ECEEF6] transition-colors duration-200">
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                             stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round"

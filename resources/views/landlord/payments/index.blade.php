@@ -104,16 +104,16 @@
             $segmentTones = ['bg-[#DC2626]', 'bg-[#DC2626]/75', 'bg-[#DC2626]/55', 'bg-[#DC2626]/40', 'bg-[#DC2626]/25'];
             $shortName = fn ($r) => trim(explode(' ', $r['name'])[0] . ' ' . mb_substr(collect(explode(' ', $r['name']))->last(), 0, 1) . '.');
         @endphp
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 mb-5">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3 mb-4 sm:mb-5">
             {{-- This month --}}
-            <section class="lg:col-span-2 rounded-2xl bg-[#060D26] text-white px-5 sm:px-6 py-5 sm:py-6 flex flex-col justify-between gap-6"
+            <section class="lg:col-span-2 rounded-2xl bg-[#060D26] text-white px-3.5 sm:px-6 py-3.5 sm:py-6 flex flex-col justify-between gap-3 sm:gap-6"
                 aria-label="Collected this month">
                 <div>
-                    <p class="text-[12.5px] font-medium text-white/60">Collected this month</p>
-                    <p class="mt-2 text-[34px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums">
+                    <p class="text-[11.5px] sm:text-[12.5px] font-medium text-white/60">Collected this month</p>
+                    <p class="mt-1.5 sm:mt-2 text-[20px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums">
                         ₱{{ number_format($totals['collectedThisMonth'], 2) }}
                     </p>
-                    <p class="mt-1.5 text-[13px] text-white/60 tabular-nums">of ₱{{ number_format($totals['dueThisMonth'], 2) }} due</p>
+                    <p class="mt-1 sm:mt-1.5 text-[11.5px] sm:text-[13px] text-white/60 tabular-nums">of ₱{{ number_format($totals['dueThisMonth'], 2) }} due</p>
                 </div>
 
                 @if($totals['collectedPercent'] !== null)
@@ -123,9 +123,9 @@
                             aria-valuenow="{{ min(100, $totals['collectedPercent']) }}">
                             <div class="h-full rounded-full bg-[#FF8A66]" style="width: {{ min(100, $totals['collectedPercent']) }}%"></div>
                         </div>
-                        <div class="mt-2.5 flex items-center justify-between text-[12px] text-white/70">
+                        <div class="mt-2 sm:mt-2.5 flex items-center justify-between text-[11.5px] sm:text-[12px] text-white/70">
                             <span><span class="font-semibold text-white">{{ $totals['collectedPercent'] }}%</span> collected</span>
-                            <span>{{ $totals['duePaymentCount'] }} {{ \Illuminate\Support\Str::plural('payment', $totals['duePaymentCount']) }} due</span>
+                            <span class="max-sm:hidden">{{ $totals['duePaymentCount'] }} {{ \Illuminate\Support\Str::plural('payment', $totals['duePaymentCount']) }} due</span>
                         </div>
                     </div>
                 @else
@@ -134,16 +134,16 @@
             </section>
 
             {{-- Who owes --}}
-            <x-card class="lg:col-span-3 !p-5 sm:!p-6 flex flex-col justify-between gap-6">
-                <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+            <x-card class="lg:col-span-3 !p-3.5 sm:!p-6 flex flex-col justify-between gap-3 sm:gap-6">
+                <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-1.5 sm:gap-y-2">
                     <div>
-                        <p class="text-[12.5px] font-medium text-[#5B6A8E]">Still owed</p>
-                        <p class="mt-2 text-[34px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums text-[#060D26]">
+                        <p class="text-[11.5px] sm:text-[12.5px] font-medium text-[#5B6A8E]">Still owed</p>
+                        <p class="mt-1.5 sm:mt-2 text-[20px] sm:text-[38px] font-semibold leading-none tracking-tight tabular-nums text-[#060D26]">
                             ₱{{ number_format($totals['outstanding'], 2) }}
                         </p>
                     </div>
                     @if($totals['overdue'] > 0)
-                        <p class="inline-flex items-center gap-1.5 h-7 px-3 rounded-full border border-[#DC2626]/20 bg-[#EF4444]/[0.06] text-[12px] font-semibold text-[#DC2626]">
+                        <p class="inline-flex items-center gap-1.5 h-6 sm:h-7 px-2 sm:px-3 rounded-full border border-[#DC2626]/20 bg-[#EF4444]/[0.06] text-[11px] sm:text-[12px] font-semibold text-[#DC2626]">
                             <span class="w-1.5 h-1.5 rounded-full bg-[#DC2626]"></span>
                             {{ $totals['overdue'] >= $totals['outstanding'] ? 'All of it overdue' : '₱' . number_format($totals['overdue'], 2) . ' overdue' }}
                         </p>
@@ -161,7 +161,7 @@
                                     style="width: {{ round($r['summary']['outstanding'] / $totals['outstanding'] * 100, 2) }}%"></div>
                             @endforeach
                         </div>
-                        <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px]">
+                        <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px] max-sm:hidden">
                             @foreach($owing->take(3) as $i => $r)
                                 <li class="inline-flex items-center gap-2 min-w-0">
                                     <span class="w-2 h-2 rounded-full shrink-0 {{ $segmentTones[$i] }}"></span>

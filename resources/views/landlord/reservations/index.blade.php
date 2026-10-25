@@ -90,7 +90,7 @@
                     x-on:input.debounce.400ms="$el.form.requestSubmit()"
                     class="w-full h-10 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#E2E4EC] bg-[#F7F8FC] text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] focus:bg-white transition-all duration-200">
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-2.5">
+            <div class="grid grid-cols-2 lg:flex gap-2.5">
                 <div>
                     <label for="filter-property" class="sr-only">Property</label>
                     @php

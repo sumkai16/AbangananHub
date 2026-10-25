@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 26 2026 — Phone layouts: the content comes first (branch `axci`)
+Landlord and tenant pages spent the first screen on a big title, stat cards and filter boxes. Suite: 623 passed. **Not verified in a browser** (375px): every page below, dark mode, the Settings pill row.
+- **Page title lives in the landlord top bar below 1024px** (hamburger, icon, title, then theme / Messages icon / bell). `<x-page-header>` and the hand-built landlord headers `@push('mobile-title')`; `layouts/landlord.blade.php` renders the stack; CSS in `resources/css/app.css` hides the in-page title inside `.landlord-shell` (`.page-header-title`, `.page-header-bare`). Status badges and action buttons stay. Tenant and admin shells keep a smaller in-page header (36px icon, `text-xl`, no subtitle below `sm`).
+- **Stat cards and strips become an even grid of small tiles below `sm`** (number over label, notes, icons and bars dropped, no sideways scroll): `.stat-chips` (on the container of `<x-stat-card>`s) and `<x-stat-strip>`. 2, 3, 4 and 6 tiles share even rows, 5 become three over two (12-column grid, counted with `:nth-last-child`). My Properties' hand-built strip uses the strip classes.
+- **Filters:** the Filter button is icon-only on phones (`.filter-row`), dropdowns wrap; Reservations puts property and date side by side. **My Properties cards are compact rows** (thumbnail, title, occupancy bar; View Units and Edit are hidden on phones, the whole card opens the property; drafts keep their buttons). **Unit cards** are about 40px shorter. **Payments hero cards** sit side by side with the amount at 20px and the per-tenant legend hidden.
+- **Report a problem:** reason is five radio chips (was a dropdown, on every width), tighter card, the "What happens next?" panel hidden below `lg` with a one-line confidentiality note beside Submit.
+- **Account Settings and Profile:** half-height hero, the side menu is a swipeable pill row below `lg`, "Account overview" and the trust tip hidden there; profile stats are one row of four.
+- Files: `resources/css/app.css`, `components/{page-header,page-icon,stat-card,stat-strip}.blade.php`, `layouts/landlord.blade.php`, `conversations/index`, `landlord/{properties,units/all,payments,reservations,tenants,reviews,complaints,analytics,payouts,documents}/index`, `reports/create`, `profile/{edit,show}`. `PageIconTest` follows the new tile size.
+
 ## Oct 25 2026 — Payments page: reminders, and the new name (branch `axci`)
 Decision with the PM: keep `/landlord/payments` as its own page (the merge with Tenants was dropped) and let the landlord chase from it. Suite: 623 passed. Not verified in a browser.
 - **Renamed "Rent & Payments" to "Payments"** (sidebar, page title, About page). The route names and URLs are unchanged.
