@@ -199,7 +199,7 @@
                         class="w-full h-11 pl-10 pr-4 text-[13.5px] rounded-xl border border-[#5B6A8E]/25 bg-white text-[#060D26] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8A66]/20 focus:border-[#FF8A66] transition-all duration-200">
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2.5">
+                <div class="filter-row flex flex-wrap items-center gap-2.5">
                     <div>
                         <label for="filter-property" class="sr-only">Filter by property</label>
                         @php

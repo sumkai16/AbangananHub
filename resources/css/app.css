@@ -326,7 +326,11 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
     .stat-strip-cell .ss-label > span { display: inline-block; vertical-align: middle; margin: -.1em .3rem 0 0; }
     .stat-chips .sc-icon, .stat-chips .sc-bar, .stat-chips .sc-sub, .stat-strip-cell .ss-note { display: none; }
 
-    /* Filter shrinks to its icon; dropdowns wrap onto a second line rather than scroll sideways. */
+    /* One line: the dropdowns share the width evenly (labels truncate), Filter shrinks to its icon. */
+    .filter-row { flex-wrap: nowrap; }
+    .filter-row > :has(button[aria-haspopup="listbox"]) { flex: 1 1 0; min-width: 0; }
+    .filter-row button[aria-haspopup="listbox"] { width: 100%; max-width: none; padding-left: .75rem; padding-right: 2rem; }
+    .filter-row > button[type="submit"] { flex: none; }
     .filter-row > button[type="submit"] { font-size: 0; width: 2.75rem; padding: 0; justify-content: center; gap: 0; }
 
     .stat-strip { background: none; border: 0; box-shadow: none; overflow: visible; }
