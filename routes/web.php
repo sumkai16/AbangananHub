@@ -270,6 +270,8 @@ Route::middleware('auth')->group(function () {
 
         // Rent collection
         Route::get('/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'index'])->name('payments.index');
+        Route::post('/payments/remind-overdue', [App\Http\Controllers\Landlord\PaymentController::class, 'remindOverdue'])
+            ->middleware('throttle:3,1')->name('payments.remindOverdue');
         Route::get('/payments/export', [App\Http\Controllers\Landlord\PaymentController::class, 'export'])->name('payments.export');
         Route::post('/tenancies/{reservation}/payments', [App\Http\Controllers\Landlord\PaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/{payment}/receipt', [App\Http\Controllers\Landlord\PaymentController::class, 'receipt'])->name('payments.receipt');

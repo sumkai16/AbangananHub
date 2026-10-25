@@ -1,6 +1,6 @@
 @extends('layouts.landlord')
 
-@section('page-title', 'Rent & Payments')
+@section('page-title', 'Payments')
 
 @section('content')
     @php
@@ -35,6 +35,9 @@
                 'dueOn'        => $oldestUnpaid['due_on'] ?? null,
                 'paid'         => $oldestUnpaid['paid'] ?? 0.0,
                 'monthsLabel'  => $summary['unpaidMonthCount'] > 1 ? $summary['unpaidMonthCount'] . ' months' : null,
+                // Reminders go to an app account, so not walk-ins or inactive users, and only while rent is owed.
+                'canRemind'    => $tenant && ! $tenant->is_walk_in && $tenant->account_status === 'active' && $summary['outstanding'] > 0,
+                'isOverdue'    => $row['paymentStatus'] === 'overdue',
             ];
         });
     @endphp
@@ -42,7 +45,7 @@
     <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
 
         {{-- Header --}}
-        <x-page-header title="Rent & Payments" subtitle="Rent collection across all occupied units, with the most urgent payments shown first.">
+        <x-page-header title="Payments" subtitle="Rent collection across all occupied units, with the most urgent payments shown first.">
             <x-slot:icon>
                 <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -60,6 +63,20 @@
                         </a>
                     @endforeach
                 </div>
+                @if($totals['overdueCount'] > 0)
+                    <form method="POST" action="{{ route('landlord.payments.remindOverdue') }}" class="shrink-0"
+                        data-confirm="Remind {{ $totals['overdueCount'] }} overdue {{ Str::plural('tenant', $totals['overdueCount']) }}?"
+                        data-confirm-message="Each tenant with an app account gets an in-app notification about their overdue rent. Anyone reminded in the last 24 hours is skipped."
+                        data-confirm-button="Send reminders">
+                        @csrf
+                        @if($propertyId)<input type="hidden" name="property" value="{{ $propertyId }}">@endif
+                        <button type="submit"
+                            class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-[#FF8A66] hover:bg-[#E96F4F] text-[#060D26] text-sm font-semibold transition-all duration-200 cursor-pointer">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
+                            Remind overdue ({{ $totals['overdueCount'] }})
+                        </button>
+                    </form>
+                @endif
                 <a href="{{ route('landlord.payments.export', request()->only('property')) }}"
                     class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-[#E2E4EC] bg-white hover:bg-[#F7F8FC] text-[#060D26] text-sm font-semibold transition-all duration-200 shrink-0 cursor-pointer">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -323,10 +340,24 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('landlord.tenancies.show', $reservation) }}"
-                            class="mt-3 flex items-center justify-center h-9 rounded-xl border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
-                            Open Ledger
-                        </a>
+                        <div class="mt-3 flex gap-2">
+                            <a href="{{ route('landlord.tenancies.show', $reservation) }}"
+                                class="flex-1 flex items-center justify-center h-10 rounded-xl border border-[#FF8A66] text-[#B35A3D] text-[12px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer">
+                                Open Ledger
+                            </a>
+                            @if($item['canRemind'])
+                                <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
+                                    data-confirm="Send {{ $reservation->tenant->first_name }} a rent reminder?"
+                                    data-confirm-message="They get an in-app notification about their {{ $item['isOverdue'] ? 'overdue' : 'upcoming' }} rent."
+                                    data-confirm-button="Send reminder">
+                                    @csrf
+                                    <button type="submit" class="h-10 px-4 flex items-center justify-center gap-1.5 rounded-xl text-[12px] font-semibold cursor-pointer transition-colors duration-200 {{ $item['isOverdue'] ? 'bg-[#FF8A66] text-[#060D26] hover:bg-[#E96F4F]' : 'border border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6]' }}">
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
+                                        Remind
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </x-card>
                 @endforeach
             </div>
@@ -429,11 +460,25 @@
                                         </span>
                                     </td>
                                     <td class="px-5 sm:px-6 py-4 text-right">
-                                        <a href="{{ route('landlord.tenancies.show', $reservation) }}"
-                                            class="inline-flex items-center gap-1 text-[#060D26] text-[12.5px] font-semibold hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer whitespace-nowrap">
-                                            Open ledger
-                                            <span aria-hidden="true">→</span>
-                                        </a>
+                                        <div class="flex items-center justify-end gap-3">
+                                            @if($item['canRemind'])
+                                                <form method="POST" action="{{ route('landlord.tenancies.remind', $reservation) }}"
+                                                    data-confirm="Send {{ $reservation->tenant->first_name }} a rent reminder?"
+                                                    data-confirm-message="They get an in-app notification about their {{ $item['isOverdue'] ? 'overdue' : 'upcoming' }} rent."
+                                                    data-confirm-button="Send reminder">
+                                                    @csrf
+                                                    <button type="submit" title="Send rent reminder" aria-label="Send {{ $reservation->tenant->first_name }} a rent reminder"
+                                                        class="h-9 w-9 flex items-center justify-center rounded-full border transition-colors duration-200 cursor-pointer {{ $item['isOverdue'] ? 'border-[#EF4444]/40 text-[#DC2626] hover:bg-[#EF4444]/[0.06]' : 'border-[#5B6A8E]/30 text-[#060D26] hover:bg-[#ECEEF6]' }}">
+                                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <a href="{{ route('landlord.tenancies.show', $reservation) }}"
+                                                class="inline-flex items-center gap-1 text-[#060D26] text-[12.5px] font-semibold hover:text-[#B35A3D] transition-colors duration-200 cursor-pointer whitespace-nowrap">
+                                                Open ledger
+                                                <span aria-hidden="true">→</span>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

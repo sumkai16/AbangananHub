@@ -2,6 +2,12 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 25 2026 — Payments page: reminders, and the new name (branch `axci`)
+Decision with the PM: keep `/landlord/payments` as its own page (the merge with Tenants was dropped) and let the landlord chase from it. Suite: 623 passed. Not verified in a browser.
+- **Renamed "Rent & Payments" to "Payments"** (sidebar, page title, About page). The route names and URLs are unchanged.
+- **Remind from the list:** a bell on each row with rent owed (desktop table) and a "Remind" button on each card (phone), using the existing `landlord.tenancies.remind` (same in-app message the nightly job sends). Hidden for walk-ins and inactive accounts, which have no app account.
+- **"Remind overdue (N)"** in the page header: `Landlord\PaymentController::remindOverdue` (`landlord.payments.remindOverdue`, throttled 3 per minute) notifies every overdue tenant with an account, honours the property filter, skips anyone reminded about the same tenancy in the last 24 hours and says how many were skipped and why. Tests: `PaymentsPageRemindersTest`.
+
 ## Oct 25 2026 — Browser-pass fixes and pay-ahead (branch `axci`)
 Found while verifying phases 1 to 3 and direct payments by hand. Suite: 619 passed. Plans stay in `plans/` until the manual pass is finished.
 - **Edit property** had a leftover required "Monthly rent" field (rent lives on units), so the browser blocked the submit silently and no flash appeared. Removed; the page points to the units.
