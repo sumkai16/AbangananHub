@@ -1,6 +1,8 @@
 @extends('layouts.app', ['searchBar' => false])
 
 @section('content')
+    @push('mobile-title')<x-page-icon class="!h-7 !w-7 !rounded-lg" path="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /><span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">Landlord verification</span>@endpush
+
     @php
         $status = $verification->verification_status;
         $isPending = $status === 'Pending';
@@ -58,10 +60,10 @@
             </a>
 
             <div class="flex items-center gap-3.5 mb-5">
-                <x-page-icon path="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                <x-page-icon path="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" class="page-header-title" />
                 <div>
-                    <h1 class="text-2xl font-normal text-[#060D26]">Landlord verification</h1>
-                    <p class="text-sm text-[#5B6A8E] mt-0.5">Status of your identity verification application.</p>
+                    <h1 class="page-header-title text-xl sm:text-2xl font-normal text-[#060D26]">Landlord verification</h1>
+                    <p class="hidden sm:block text-sm text-[#5B6A8E] mt-0.5">Status of your identity verification application.</p>
                 </div>
             </div>
 

@@ -1,6 +1,8 @@
 @extends('layouts.landlord')
 
 @section('content')
+    @push('mobile-title')<span class="truncate text-[15px] font-semibold tracking-tight text-[#060D26]">Rate Tenant</span>@endpush
+
     <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {{-- Back link --}}
@@ -12,8 +14,8 @@
             Back to Reservations
         </a>
 
-        <h1 class="text-2xl font-normal text-[#060D26] mb-1">Rate Tenant</h1>
-        <p class="text-sm text-[#5B6A8E] mb-8">Share your experience with this tenant to help other landlords.</p>
+        <h1 class="page-header-title text-xl sm:text-2xl font-normal text-[#060D26] mb-1">Rate Tenant</h1>
+        <p class="hidden sm:block text-sm text-[#5B6A8E] mb-8">Share your experience with this tenant to help other landlords.</p>
 
         {{-- Tenant & reservation context card --}}
         <div class="bg-white border border-[#E2E4EC] rounded-2xl shadow-[0_1px_3px_rgba(6,13,38,0.06)] p-5 mb-6">

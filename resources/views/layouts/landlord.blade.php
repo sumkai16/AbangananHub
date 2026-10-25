@@ -94,7 +94,7 @@
 
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#060D26] focus:text-white focus:font-semibold">Skip to main content</a>
 
-    <div class="flex min-h-screen">
+    <div class="landlord-shell flex min-h-screen">
 
         {{-- Mobile overlay --}}
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 bg-black/40 z-40 lg:hidden">
@@ -355,7 +355,10 @@
                     </svg>
                 </button>
 
-                <div class="flex items-center gap-2">
+                {{-- Page title: pages push it from <x-page-header> (or by hand) and the in-page title hides below lg. --}}
+                <div class="flex min-w-0 flex-1 items-center gap-2 px-3">@stack('mobile-title')</div>
+
+                <div class="flex shrink-0 items-center gap-2">
                     <x-theme-toggle class="w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] hover:bg-[#ECEEF6]" />
 
                     {{-- Messages — mobile equivalent of the floating chat bubble,
@@ -366,10 +369,13 @@
                             $mobileUnreadMsgCount = $unreadMessageCount;
                         @endphp
                         <a href="{{ route('conversations.index') }}"
-                            class="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26] text-[12.5px] font-semibold hover:bg-[#ECEEF6] transition-colors duration-200">
-                            Messages
+                            aria-label="Messages"
+                            class="relative flex items-center justify-center w-9 h-9 rounded-lg border border-[#E2E4EC] bg-white text-[#060D26]/70 hover:bg-[#ECEEF6] transition-colors duration-200">
+                            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
                             @if($mobileUnreadMsgCount > 0)
-                                <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
+                                <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#EF4444] text-white text-[10px] font-bold ring-2 ring-white">{{ $mobileUnreadMsgCount > 99 ? '99+' : $mobileUnreadMsgCount }}</span>
                             @endif
                         </a>
                     @endauth

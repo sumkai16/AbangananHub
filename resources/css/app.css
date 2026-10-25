@@ -284,6 +284,54 @@ html.dark :where([type="checkbox"], [type="radio"]) { background-color: #1A2448;
     main, #main { animation: none !important; }
 }
 
+/* The landlord shell's mobile top bar carries the page title (@push('mobile-title')), so the
+   in-page title block (icon, title, subtitle) is dropped below lg and the content starts higher.
+   A header with no actions has nothing left to show and goes entirely. */
+@media (max-width: 1023px) {
+    .landlord-shell .page-header-title,
+    .landlord-shell .page-header-bare { display: none; }
+}
+
+/* Phone: stat cards and strips collapse to a compact grid of small tiles (number over label) that
+   fits the screen with no sideways scroll: four to a row, a fifth wraps. Notes, icons and bars drop;
+   sm and up is unchanged. */
+@media (max-width: 639px) {
+    /* 12-column grid so any count fills its rows evenly: 2, 3, 4 and 6 tiles share one or two even rows,
+       and 5 tiles become three over two. Counted with :nth-last-child so no markup needs to say how many. */
+    .stat-chips, .stat-strip-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: .5rem; background: none; }
+    .stat-chips > *, .stat-strip-grid > * { grid-column: span 4; }
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(1),
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(1) ~ *,
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(2),
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(2) ~ * { grid-column: span 6; }
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(4),
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(4) ~ * { grid-column: span 3; }
+    :is(.stat-chips, .stat-strip-grid) > :first-child:nth-last-child(5) ~ :nth-child(n+4) { grid-column: span 6; }
+    .stat-chips > .stat-card, .stat-strip-cell {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2rem;
+        min-width: 0; padding: .5rem .25rem; text-align: center; border-radius: .75rem; box-shadow: none;
+        border: 1px solid #E2E4EC; background: #fff; overflow-wrap: anywhere;
+    }
+    .stat-chips .sc-head { order: 2; margin: 0; justify-content: center; }
+    .stat-chips .sc-label, .stat-strip-cell .ss-label {
+        font-size: 11px; line-height: 1.15; font-weight: 600; white-space: normal; text-transform: none;
+        letter-spacing: 0; justify-content: center; gap: .3rem;
+    }
+    .stat-chips .sc-value, .stat-strip-cell .ss-value {
+        order: 1; margin: 0; font-size: 16px; line-height: 1.1; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .stat-strip-cell .ss-value { order: -1; }
+    /* The status dot sits inline with the text, so a label that wraps stays centred as one block. */
+    .stat-strip-cell .ss-label { display: block; }
+    .stat-strip-cell .ss-label > span { display: inline-block; vertical-align: middle; margin: -.1em .3rem 0 0; }
+    .stat-chips .sc-icon, .stat-chips .sc-bar, .stat-chips .sc-sub, .stat-strip-cell .ss-note { display: none; }
+
+    /* Filter shrinks to its icon; dropdowns wrap onto a second line rather than scroll sideways. */
+    .filter-row > button[type="submit"] { font-size: 0; width: 2.75rem; padding: 0; justify-content: center; gap: 0; }
+
+    .stat-strip { background: none; border: 0; box-shadow: none; overflow: visible; }
+}
+
 @layer base {
     a, button, [role="button"], input, select, textarea {
         transition-property: color, background-color, border-color, box-shadow, opacity, scale;
