@@ -24,7 +24,8 @@
          max-w-3xl reading measure it has always had; the rail fills what used
          to be dead margin, and carries the signing controls so they are on
          screen from the moment the page loads instead of below the fold. --}}
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-72px)]">
+    <x-print-document>
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-72px)] print:max-w-none print:mx-0 print:p-0 print:min-h-0">
 
         {{-- Page chrome — never printed --}}
         <div class="flex items-center justify-between gap-3 mb-6 print:hidden">
@@ -449,6 +450,7 @@
             {{ $agreementRef }} &middot; Generated {{ now()->format('F j, Y \a\t g:i A') }} &middot; AbangananHub
         </p>
     </div>
+    </x-print-document>
 
     @if($processingPayment)
         @push('scripts')

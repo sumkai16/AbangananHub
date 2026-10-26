@@ -49,7 +49,7 @@
         {{-- ===================== SIDEBAR ===================== --}}
         <aside id="admin-sidebar" x-cloak
             :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full', sidebarCollapsed ? 'lg:w-20' : 'lg:w-64']"
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
+            class="print:hidden fixed inset-y-0 left-0 z-50 w-64 bg-[#060D26] border-r border-white/[0.06] flex flex-col transition-all duration-300 lg:translate-x-0">
 
             {{-- Collapse toggle --}}
             <button @click="sidebarCollapsed = !sidebarCollapsed"
@@ -519,10 +519,10 @@
 
         {{-- ===================== MAIN ===================== --}}
         <div id="admin-main" :class="sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'"
-            class="flex-1 flex flex-col min-w-0 transition-all duration-300">
+            class="print:!ml-0 flex-1 flex flex-col min-w-0 transition-all duration-300">
 
             {{-- Mobile-only slim bar (hamburger + notif) --}}
-            <div class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">
+            <div class="lg:hidden print:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E2E4EC] sticky top-0 z-30">
                 <button @click="sidebarOpen = !sidebarOpen"
                     class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-[#ECEEF6] text-[#5B6A8E] transition-colors">
                     <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

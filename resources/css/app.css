@@ -43,6 +43,91 @@ h1, h2, h3, h4, h5, h6 {
     margin: 1in;
 }
 
+/* One-page documents (payment receipts) print on a margin-less page, which is what makes Chrome and Edge
+   drop their own header and footer (date, page title, URL, "1/1"). They print through `.print-sheet`,
+   which supplies the 0.6in margin as padding instead. Multi-page documents (lease, agreement) keep the
+   1in @page margin above, because padding only spaces the first and last page. */
+@page receipt {
+    margin: 0;
+}
+
+@media print {
+    .print-sheet {
+        page: receipt;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0.6in !important;
+        /* Fill the sheet top to bottom on any paper size: the page is margin-less, so 100vh is the page height.
+           The 1px keeps a rounding error from spilling onto a blank second page. */
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        min-height: calc(100vh - 1px);
+    }
+
+    /* Paper is always light, whatever theme the screen is in. */
+    html.dark body {
+        background-color: #ffffff;
+        color: #060D26;
+    }
+}
+
+/* Multi-page documents (lease, tenant agreement), see components/print-document.blade.php. The page has no
+   margin (so the browser prints no header or footer); the top and bottom margin comes from table spacers
+   that repeat on every page, the sides from padding. On screen the table is plain blocks and the spacers
+   are hidden, so nothing changes. */
+@page doc {
+    margin: 0;
+}
+
+.print-doc-table,
+.print-doc-table > tbody,
+.print-doc-table > tbody > tr,
+.print-doc-table > tbody > tr > td {
+    display: block;
+}
+
+.print-doc-table > thead,
+.print-doc-table > tfoot {
+    display: none;
+}
+
+@media print {
+    .print-doc {
+        page: doc;
+    }
+
+    .print-doc-table {
+        display: table;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .print-doc-table > thead { display: table-header-group; }
+    .print-doc-table > tfoot { display: table-footer-group; }
+    .print-doc-table > tbody { display: table-row-group; }
+    .print-doc-table > thead > tr,
+    .print-doc-table > tbody > tr,
+    .print-doc-table > tfoot > tr { display: table-row; }
+    .print-doc-table > thead > tr > td,
+    .print-doc-table > tbody > tr > td,
+    .print-doc-table > tfoot > tr > td { display: table-cell; }
+
+    .print-doc-gap { height: 0.7in; }
+    .print-doc-body { padding: 0 0.75in; }
+
+    /* Paper stays light in dark mode (the same opt-out as .paper above, for the whole document). */
+    html.dark :is(.print-doc, .print-doc *).bg-white { background-color: #ffffff; }
+    html.dark :is(.print-doc, .print-doc *).bg-\[\#ECEEF6\] { background-color: #ECEEF6; }
+    html.dark :is(.print-doc, .print-doc *).bg-\[\#F7F8FC\] { background-color: #F7F8FC; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#060D26\] { color: #060D26; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#5B6A8E\] { color: #5B6A8E; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#94A3B8\] { color: #94A3B8; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#334155\] { color: #334155; }
+    html.dark :is(.print-doc, .print-doc *).text-\[\#B35A3D\] { color: #B35A3D; }
+    html.dark :is(.print-doc, .print-doc *).border-\[\#E2E4EC\] { border-color: #E2E4EC; }
+}
+
 /* Slim, theme-matched scrollbar for dark sidebars (admin/landlord nav) —
    overrides the browser's bulky default arrows/thumb on Chromium + Firefox. */
 .scrollbar-thin {
@@ -153,6 +238,15 @@ html.dark .bg-\[\#FF8A66\] { color: #060D26; }
 html.dark .peer:checked ~ span { color: #060D26; }
 html.dark .to-white { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
 html.dark .from-\[\#ECEEF6\] { --tw-gradient-from: #1A2448 var(--tw-gradient-from-position); --tw-gradient-to: rgb(26 36 72 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+
+/* A printable document (payment receipt) is paper: it keeps its light palette in dark mode, on screen and in
+   print, instead of taking the remap above. :is() keeps the override above the remap's specificity. */
+html.dark :is(.paper, .paper *).bg-white { background-color: #ffffff; }
+html.dark :is(.paper, .paper *).bg-\[\#ECEEF6\] { background-color: #ECEEF6; }
+html.dark :is(.paper, .paper *).text-\[\#060D26\] { color: #060D26; }
+html.dark :is(.paper, .paper *).text-\[\#5B6A8E\] { color: #5B6A8E; }
+html.dark :is(.paper, .paper *).text-\[\#B35A3D\] { color: #B35A3D; }
+html.dark :is(.paper, .paper *).border-\[\#E2E4EC\] { border-color: #E2E4EC; }
 html.dark .to-\[\#F7F8FC\] { --tw-gradient-to: #111A3A var(--tw-gradient-to-position); }
 html.dark .bg-\[\#FF8A66\] .text-\[\#060D26\] { color: #060D26; }
 

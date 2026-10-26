@@ -163,6 +163,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/tenancy/{reservation}', [TenancyController::class, 'show'])->name('tenancy.show');
         // Read-only lease view — ReservationPolicy::viewLease already authorizes
         // the tenant, same as the landlord; this was the missing route.
+        Route::get('/tenancy/{reservation}/payments/{payment}/receipt', [TenancyController::class, 'receipt'])->name('tenancy.receipt');
         Route::get('/tenancy/{reservation}/lease', [LeaseController::class, 'show'])->name('tenancy.lease');
         Route::get('/tenancy/{reservation}/lease-file', [LeaseController::class, 'file'])->name('tenancy.lease.file');
         Route::post('/tenancy/{reservation}/pay-rent', [PaymentController::class, 'createRentCheckoutSession'])->name('payments.rentCheckout');

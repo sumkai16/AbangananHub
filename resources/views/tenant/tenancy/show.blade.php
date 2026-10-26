@@ -5,6 +5,15 @@
         $unit = $reservation->unit;
         $isActive = $reservation->rental_status === 'Occupied';
 
+        // Rows the tenant can open a receipt for get a link in the period popup.
+        $withReceipts = function (array $detail) use ($reservation) {
+            $detail['payments'] = array_map(fn ($p) => $p['has_receipt']
+                ? $p + ['receipt_url' => route('tenancy.receipt', [$reservation, $p['id']])]
+                : $p, $detail['payments']);
+
+            return $detail;
+        };
+
         $periodStyles = [
             'paid'    => ['pill' => 'bg-[#22C55E]/[0.07] text-[#15803D] border-[#22C55E]/25', 'label' => 'Paid'],
             'partial' => ['pill' => 'bg-[#FBBF24]/[0.10] text-[#B45309] border-[#FBBF24]/35', 'label' => 'Partial'],
@@ -284,6 +293,7 @@
                                     $detail = \App\Services\RentLedger::periodPayload($period);
                                     $detail['pill'] = $mStyle['pill'];
                                     $detail['status_label'] = $mStyle['label'];
+                                    $detail = $withReceipts($detail);
                                 @endphp
                                 <div class="px-5 py-4 cursor-pointer active:bg-[#F7F8FC]" role="button" tabindex="0" aria-haspopup="dialog"
                                     @if($isCollapsed($period, $loop->index)) x-show="moreRows" x-cloak @endif
@@ -331,6 +341,7 @@
                                             $detail = \App\Services\RentLedger::periodPayload($period);
                                             $detail['pill'] = $style['pill'];
                                             $detail['status_label'] = $style['label'];
+                                            $detail = $withReceipts($detail);
                                         @endphp
                                         <tr class="hover:bg-[#ECEEF6] transition-colors duration-200 cursor-pointer"
                                             @if($isCollapsed($period, $loop->index)) x-show="moreRows" x-cloak @endif
@@ -396,6 +407,9 @@
                                     <div class="flex items-center justify-between gap-3 mt-1 text-[12px] text-[#5B6A8E]">
                                         <span>{{ optional($charge->paid_at)->format('M d, Y') ?? '—' }} · {{ $charge->payment_method }}</span>
                                     </div>
+                                    @if($charge->hasReceipt())
+                                        <a href="{{ route('tenancy.receipt', [$reservation, $charge]) }}" class="mt-2 inline-block text-[12.5px] font-semibold text-[#B35A3D] hover:underline">Receipt</a>
+                                    @endif
                                     <div class="mt-2">
                                         @if($charge->isManuallyRecorded())
                                             <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#E2E4EC] bg-[#F7F8FC] text-[#5B6A8E] text-[11px] font-bold">
@@ -442,6 +456,9 @@
                                                     <span class="inline-flex items-center h-6 px-2.5 rounded-full border border-[#FF8A66]/25 bg-[#ECEEF6] text-[#060D26] text-[11px] font-bold">
                                                         Paid online
                                                     </span>
+                                                @endif
+                                            @if($charge->hasReceipt())
+                                                    <a href="{{ route('tenancy.receipt', [$reservation, $charge]) }}" class="ml-2 text-[12.5px] font-semibold text-[#B35A3D] hover:underline">Receipt</a>
                                                 @endif
                                             </td>
                                         </tr>

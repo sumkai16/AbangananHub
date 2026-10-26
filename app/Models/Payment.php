@@ -132,6 +132,12 @@ class Payment extends Model
         };
     }
 
+    /** The tenant's "I paid" report this row was written from, when a landlord confirmed one. */
+    public function claim(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(PaymentClaim::class, 'payment_claim_id', 'payment_claim_id');
+    }
+
     /**
      * Money the landlord collected offline and entered themselves, as opposed
      * to money PayMongo settled.
@@ -213,6 +219,27 @@ class Payment extends Model
     public function isPaidOut(): bool
     {
         return $this->payout_id !== null;
+    }
+
+    /** A landlord-confirmed or landlord-recorded payment that still counts. PayMongo payments have PayMongo's own. */
+    public function hasReceipt(): bool
+    {
+        return $this->isManuallyRecorded() && $this->status === 'Paid';
+    }
+
+    /** "Four thousand pesos only" / "Four thousand pesos and 50/100 only", as printed on Philippine receipts. */
+    public function amountInWords(): ?string
+    {
+        if (! class_exists(\NumberFormatter::class)) {
+            return null;
+        }
+
+        $pesos = (int) floor((float) $this->amount);
+        $centavos = (int) round(((float) $this->amount - $pesos) * 100);
+        $words = ucfirst((new \NumberFormatter('en', \NumberFormatter::SPELLOUT))->format($pesos));
+
+        return $words . ' ' . ($pesos === 1 ? 'peso' : 'pesos')
+            . ($centavos > 0 ? sprintf(' and %02d/100', $centavos) : '') . ' only';
     }
 
     public function isVoided(): bool
