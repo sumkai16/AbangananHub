@@ -163,7 +163,7 @@ class PaymentClaims
                 'payment',
                 'Payment confirmed',
                 'Your landlord confirmed your ₱'.number_format((float) $claim->amount, 2).' payment.',
-                $claim->claim_type === 'MoveIn' ? route('agreements.show', $locked) : route('tenancy.show', $locked),
+                $claim->claim_type === 'MoveIn' ? $locked->tenantAgreementUrl() : route('tenancy.show', $locked),
                 $locked->conversation_id,
             );
 
@@ -197,7 +197,7 @@ class PaymentClaims
                 'payment',
                 'Payment not confirmed',
                 'Your landlord could not confirm your ₱'.number_format((float) $claim->amount, 2).' payment: '.$reason,
-                $claim->claim_type === 'MoveIn' ? route('agreements.show', $locked) : route('tenancy.show', $locked),
+                $claim->claim_type === 'MoveIn' ? $locked->tenantAgreementUrl() : route('tenancy.show', $locked),
                 $locked->conversation_id,
             );
 
@@ -273,7 +273,7 @@ class PaymentClaims
                 'payment',
                 'Payment recorded',
                 'Your landlord recorded your ₱'.number_format((float) $data['initial_amount'], 2).' move-in payment.',
-                route('agreements.show', $locked),
+                $locked->tenantAgreementUrl(),
                 $locked->conversation_id,
             );
         });

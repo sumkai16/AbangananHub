@@ -35,9 +35,9 @@ class RentReminderNotifier
         Notification::notify(
             $landlordId,
             'payment',
-            $this->title($today->greaterThan($period['due_on'])),
+            $this->title(($period['status'] ?? '') === 'overdue'),
             $name . "'s " . $period['label'] . ' rent (' . $this->amount($period) . ') '
-                . $this->timing($period['due_on'], $today) . '.',
+                . $this->timing($period['due_on'], $today, ($period['status'] ?? 'overdue') === 'overdue') . '.',
             route('landlord.tenancies.show', $reservation),
         );
     }
@@ -58,11 +58,11 @@ class RentReminderNotifier
         Notification::notify(
             $tenant->user_id,
             'payment',
-            $this->title($today->greaterThan($period['due_on'])),
+            $this->title(($period['status'] ?? '') === 'overdue'),
             'Your ' . $period['label'] . ' rent (' . $this->amount($period) . ') '
-                . $this->timing($period['due_on'], $today) . (Payments::online()
+                . $this->timing($period['due_on'], $today, ($period['status'] ?? 'overdue') === 'overdue') . (Payments::online()
                     ? '. You can pay it online from your tenancy page, or arrange it with your landlord.'
-                    : '. Pay your landlord, then tap "I paid" on your tenancy page so they can confirm it.'),
+                    : '. Pay your landlord, then tap "I\'ve paid" on your tenancy page so they can confirm it.'),
             route('tenancy.show', $reservation),
         );
 
@@ -74,15 +74,16 @@ class RentReminderNotifier
         return $overdue ? 'Rent overdue' : 'Rent due soon';
     }
 
-    private function timing(Carbon $dueOn, Carbon $today): string
+    /** Past the due date but still inside the grace period is "due", not "overdue" - the same word the ledger uses. */
+    private function timing(Carbon $dueOn, Carbon $today, bool $overdue = true): string
     {
-        $days = $today->diffInDays($dueOn, false); // positive = due date is ahead
+        $days = (int) round($today->diffInDays($dueOn, false)); // positive = due date is ahead
 
         return match (true) {
             $days > 1   => "is due in {$days} days",
             $days === 1 => 'is due tomorrow',
             $days === 0 => 'is due today',
-            default     => 'is ' . abs($days) . ' ' . (abs($days) === 1 ? 'day' : 'days') . ' overdue',
+            default     => ($overdue ? 'is ' : 'was due ') . abs($days) . ' ' . (abs($days) === 1 ? 'day' : 'days') . ($overdue ? ' overdue' : ' ago'),
         };
     }
 

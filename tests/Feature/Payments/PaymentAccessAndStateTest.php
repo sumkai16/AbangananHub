@@ -167,7 +167,7 @@ class PaymentAccessAndStateTest extends TestCase
         $other = $this->pendingPayout($theirs, 7000);
 
         $this->actingAs($admin)
-            ->post(route('admin.payouts.markPaidOut', $mine['landlord']), ['payout_reference' => 'GCASH-REF-1'])
+            ->post(route('admin.payouts.markPaidOut', $mine['landlord']), ['payout_reference' => 'GCASH-REF-1', 'expected_total' => 8000])
             ->assertRedirect();
 
         foreach ([$a, $b] as $payment) {
@@ -195,8 +195,8 @@ class PaymentAccessAndStateTest extends TestCase
             ->assertSessionHasErrors('payout_reference');
         $this->assertSame('Pending Payout', $payment->fresh()->payout_status);
 
-        $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'R1'])->assertRedirect();
-        $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'R2'])->assertStatus(409);
+        $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'R1', 'expected_total' => 5000])->assertRedirect();
+        $this->actingAs($admin)->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'R2', 'expected_total' => 5000])->assertStatus(409);
 
         $this->assertSame('R1', $payment->fresh()->payout->payout_reference, 'A second click must not overwrite the reference.');
         $this->assertSame(1, Payout::count(), 'A second click must not create a second payout.');
@@ -208,7 +208,7 @@ class PaymentAccessAndStateTest extends TestCase
         $payment = $this->pendingPayout($t, 5000);
 
         $this->actingAs($t['landlord'])
-            ->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'SELF'])
+            ->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'SELF', 'expected_total' => 5000])
             ->assertForbidden();
 
         $this->assertSame('Pending Payout', $payment->fresh()->payout_status);

@@ -55,25 +55,29 @@ trait ReconcilesPaymongoCheckout
             'paid_at'                     => now(),
         ];
 
-        if ($payment->payment_type === 'Monthly') {
-            $payment->update($common + [
-                'status'        => 'Paid',
-                'payout_owed_at' => now(),
-            ]);
+        $isRent = $payment->payment_type === 'Monthly';
 
-            $label = $payment->billing_period?->format('M Y') ?? 'this period';
+        $settled = $payment->settlePending($common + ($isRent
+            ? ['status' => 'Paid', 'payout_owed_at' => now()]
+            : ['status' => 'Held']));
+
+        // The webhook (or another poll) settled it first: report the row as it now is, announce nothing.
+        if (! $settled) {
+            return $payment->fresh();
+        }
+
+        if ($isRent) {
+            $label = $settled->billing_period?->format('M Y') ?? 'this period';
             $reservation->postSystemMessage($reservation->tenant->name.' paid rent for '.$label.' online.');
         } else {
-            $payment->update($common + ['status' => 'Held']);
-
             $reservation->postSystemMessage(
                 $reservation->tenant->name.' completed the initial payment. Funds are held by AbangananHub.'
             );
         }
 
-        $payment->alertAdminsIfStranded();
+        $settled->alertAdminsIfStranded();
 
-        return $payment->fresh();
+        return $settled->fresh();
     }
 
     /**

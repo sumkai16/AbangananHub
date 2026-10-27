@@ -190,7 +190,7 @@ class TenantDetailsTest extends TestCase
             ->assertOk()
             ->assertSee('Ana Cruz')
             ->assertSee('PhilSys')
-            // The full number is in the page for the Show button; the visible default is masked.
+            // Only the masked number is in the page; the Show button fetches the full one.
             ->assertSee('••••••••••••3456');
     }
 

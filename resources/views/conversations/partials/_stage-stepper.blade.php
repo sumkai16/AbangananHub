@@ -14,9 +14,10 @@
 @php
     $stageLabels = ['Inquiry', 'Negotiation', 'Agreement', 'Signed', 'Paid', 'Occupied'];
 
-    $settled = $reservation?->payments->contains(
-        fn ($p) => in_array($p->status, ['Held', 'Released'], true)
-    );
+    // A direct payment is written as 'Paid' and stamps move_in_paid_at once the landlord confirms it; online money is Held/Released.
+    $settled = $reservation && ($reservation->move_in_paid_at !== null || $reservation->payments->contains(
+        fn ($p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true)
+    ));
 
     $currentStageIndex = match ($reservation?->rental_status) {
         'Inquiry' => 0,

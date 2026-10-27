@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\BusinessTime;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 
@@ -21,7 +22,7 @@ class StoreReservationRequest extends FormRequest
             // way, so the two-mode form was explaining a distinction that
             // didn't exist. A move-in date is optional either way: a tenant
             // still asking questions hasn't necessarily settled on one.
-            'target_move_in_date'  => 'nullable|date|after_or_equal:today|before_or_equal:' . now()->addYear()->toDateString(),
+            'target_move_in_date'  => 'nullable|date|after_or_equal:' . BusinessTime::today() . '|before_or_equal:' . BusinessTime::now()->addYear()->toDateString(),
             // The app is monthly-only end to end (rent, the ledger, every
             // price label) — duration is expressed in months, not a
             // free-picked move-out date, so a tenant can't accidentally

@@ -302,7 +302,7 @@
                                     <div class="rounded-lg border border-[#FF8A66]/25 bg-[#ECEEF6] p-4 mb-4">
                                         <p class="text-sm font-medium text-[#060D26]">Payment secured</p>
                                         <p class="mt-1 text-sm text-[#060D26]">
-                                            Your deposit is held safely and is not released until you confirm your move-in.
+                                            Your payment is held safely and is not released until you confirm your move-in.
                                             Your landlord will contact you to turn over the keys.
                                         </p>
                                     </div>
@@ -320,9 +320,9 @@
                                         </p>
                                         <p class="mt-1 text-sm {{ $daysLeft <= 1 ? 'text-[#DC2626]' : 'text-[#B45309]' }}">
                                             @if ($daysLeft < 0)
-                                                Your deadline of {{ $reservation->move_in_deadline_at->format('M j, Y') }} has passed. Your deposit has not been released yet, but it will be released to the landlord automatically. You can still confirm your move-in now &mdash; if something isn't right, use "I haven't received the keys" below.
+                                                Your deadline of {{ $reservation->move_in_deadline_at->format('M j, Y') }} has passed. Your payment has not been released yet, but it will be released to the landlord automatically. You can still confirm your move-in now &mdash; if something isn't right, use "I haven't received the keys" below.
                                             @else
-                                                Confirming releases your deposit to the landlord. If you don't confirm by
+                                                Confirming releases your payment to the landlord. If you don't confirm by
                                                 {{ $reservation->move_in_deadline_at->format('M j, Y') }}, it is released automatically.
                                             @endif
                                         </p>
@@ -374,7 +374,7 @@
                                                  x-transition:leave-end="opacity-0 scale-95 translate-y-4 motion-reduce:scale-100 motion-reduce:translate-y-0">
                                                 <h3 class="text-lg font-normal text-[#060D26] text-left">Report a move-in issue</h3>
                                                 <p class="mt-2 text-sm text-[#5B6A8E] text-left">
-                                                    Your deposit stays on hold and an administrator will review this. Your landlord will be notified.
+                                                    Your payment stays on hold and an administrator will review this. Your landlord will be notified.
                                                 </p>
 
                                                 <form action="{{ route('agreements.disputeMoveIn', $reservation) }}" method="POST" class="mt-4 text-left">
@@ -403,7 +403,7 @@
                                 <div class="mt-3 rounded-xl border border-[#FBBF24]/35 bg-[#FBBF24]/[0.10] p-4">
                                     <p class="text-sm font-bold text-[#B45309]">Move-in issue under review</p>
                                     <p class="mt-1 text-xs text-[#B45309]">
-                                        Reported {{ $reservation->move_in_disputed_at->diffForHumans() }}. Your deposit is on hold
+                                        Reported {{ $reservation->move_in_disputed_at->diffForHumans() }}. Your payment is on hold
                                         and the countdown is paused while an administrator reviews this.
                                     </p>
                                 </div>

@@ -96,7 +96,7 @@ class ProfileController extends Controller
 
     private function approvedProperties(User $user)
     {
-        return $user->properties()->where('verification_status', 'Approved');
+        return $user->properties()->live();
     }
 
     /**
@@ -134,6 +134,7 @@ class ProfileController extends Controller
 
         // Reviews received on this landlord's properties
         $reviews = Review::whereIn('property_id', $propertyIds)
+            ->where('is_hidden', false)
             ->with(['tenant:user_id,first_name,last_name,profile_picture', 'property:property_id,title'])
             ->latest('created_at')
             ->take(10)

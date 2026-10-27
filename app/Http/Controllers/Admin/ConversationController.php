@@ -16,19 +16,16 @@ class ConversationController extends Controller
         $conversations = Conversation::with(['tenant', 'landlord', 'property', 'latestMessage'])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($inner) use ($search) {
-                    $inner->whereHas('tenant', fn($t) =>
-                        $t->where('first_name', 'like', "%{$search}%")
-                          ->orWhere('last_name',  'like', "%{$search}%")
-                          ->orWhere('email',       'like', "%{$search}%")
-                    )->orWhereHas('landlord', fn($l) =>
-                        $l->where('first_name', 'like', "%{$search}%")
-                          ->orWhere('last_name',  'like', "%{$search}%")
-                    )->orWhereHas('property', fn($p) =>
-                        $p->where('title', 'like', "%{$search}%")
+                    $inner->whereHas('tenant', fn ($t) => $t->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                    )->orWhereHas('landlord', fn ($l) => $l->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                    )->orWhereHas('property', fn ($p) => $p->where('title', 'like', "%{$search}%")
                     );
                 });
             })
-            ->when($status !== 'all', fn($q) => $q->where('status', $status))
+            ->when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -49,7 +46,7 @@ class ConversationController extends Controller
         // actually stands — no stage, no handover schedule, no escrow state,
         // while both participants see all three in their own thread.
         $conversation->load([
-            'tenant', 'landlord', 'property', 'unit', 'messages.sender',
+            'tenant', 'landlord', 'property', 'unit', 'messages.sender', 'messages.concern',
             'activeReservation.payments', 'activeReservation.unit',
         ]);
 

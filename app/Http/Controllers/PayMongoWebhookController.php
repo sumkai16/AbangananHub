@@ -63,7 +63,7 @@ class PayMongoWebhookController extends Controller
         // Initial payment which stays escrowed until move-in is confirmed.
         $isRent = $payment->payment_type === 'Monthly';
 
-        $payment->update([
+        $settled = $payment->settlePending([
             'status' => $isRent ? 'Paid' : 'Held',
             'payment_method' => $paymentMethod,
             'paymongo_payment_intent_id' => $paymentIntentId,
@@ -75,15 +75,20 @@ class PayMongoWebhookController extends Controller
             'payout_owed_at' => $isRent ? now() : null,
         ]);
 
+        // A replay, or the poll fallback got there first: nothing to announce twice.
+        if (! $settled) {
+            return;
+        }
+
         // The broadcast and both notifications are raised by PaymentObserver off
         // the status change above — the tenant sitting on the agreement/ledger
         // page's "Payment Processing" spinner is waiting for exactly that.
         $message = $isRent
-            ? $payment->reservation->tenant->name . ' paid rent for ' . ($payment->billing_period?->format('M Y') ?? 'this period') . ' online.'
-            : $payment->reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.';
+            ? $settled->reservation->tenant->name . ' paid rent for ' . ($settled->billing_period?->format('M Y') ?? 'this period') . ' online.'
+            : $settled->reservation->tenant->name . ' completed the initial payment. Funds are held by AbangananHub.';
 
-        $payment->reservation?->postSystemMessage($message);
-        $payment->alertAdminsIfStranded();
+        $settled->reservation?->postSystemMessage($message);
+        $settled->alertAdminsIfStranded();
     }
 
     protected function verifySignature(string $payload, string $signatureHeader): bool

@@ -134,7 +134,7 @@ class ProfileController extends Controller
         }
 
         $properties = $user->properties()
-            ->where('verification_status', 'Approved')
+            ->live()
             ->with('media')
             ->latest('created_at')
             ->get();
@@ -144,12 +144,13 @@ class ProfileController extends Controller
         $units = PropertyUnit::whereIn('property_id', $propertyIds)->get();
 
         $reviews = Review::whereIn('property_id', $propertyIds)
+            ->where('is_hidden', false)
             ->with(['tenant:user_id,first_name,last_name', 'property:property_id,title'])
             ->latest('created_at')
             ->take(10)
             ->get();
 
-        $averageRating = Review::whereIn('property_id', $propertyIds)->avg('rating');
+        $averageRating = Review::whereIn('property_id', $propertyIds)->where('is_hidden', false)->avg('rating');
 
         return response()->json([
             'data' => [

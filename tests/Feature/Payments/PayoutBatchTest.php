@@ -49,7 +49,7 @@ class PayoutBatchTest extends TestCase
         $this->owed($t, 2500);
 
         $this->actingAs($admin)
-            ->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'REF-1'])
+            ->post(route('admin.payouts.markPaidOut', $t['landlord']), ['payout_reference' => 'REF-1', 'expected_total' => 2500])
             ->assertRedirect();
 
         $t['landlord']->savePayoutAccount('09990000000', 'Someone Else');
@@ -77,6 +77,8 @@ class PayoutBatchTest extends TestCase
         $t = $this->makeTenancy();
         $paid = $this->makePayment($t['reservation'], ['payout_status' => 'Paid Out', 'billing_period' => null, 'payment_type' => 'Other']);
 
+        $this->actingAs($t['landlord']);
+
         $payload = (new PaymentResource($paid->fresh()))->resolve();
 
         $this->assertSame('Paid Out', $payload['payout_status']);
@@ -89,6 +91,8 @@ class PayoutBatchTest extends TestCase
     {
         $t = $this->makeTenancy();
         $payment = $this->owed($t, 900);
+
+        $this->actingAs($t['landlord']);
 
         $payload = (new PaymentResource($payment->fresh()))->resolve();
 

@@ -62,13 +62,14 @@
 
         {{-- Summary strip --}}
         @php
-            $inProgressCount = $counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'];
+            $inProgressCount = $counts['Inquiry'] + $counts['Under Negotiation'] + $counts['Pending Rental Agreement'] + $counts['Rental Agreement Signed'] + $counts['Reserved'];
             $rejectedCount = $counts['Rejected'] + $counts['Cancelled'];
         @endphp
         <x-stat-strip class="mb-4" :cells="[
             ['label' => 'Total', 'value' => $counts['all']],
             ['label' => 'In progress', 'value' => $inProgressCount, 'note' => 'Awaiting action', 'dot' => '#FBBF24'],
             ['label' => 'Occupied', 'value' => $counts['Occupied'], 'dot' => '#22C55E'],
+            ['label' => 'Completed', 'value' => $counts['Completed'], 'dot' => '#94A3B8'],
             ['label' => 'Rejected / cancelled', 'value' => $rejectedCount, 'dot' => '#EF4444'],
         ]" />
 
@@ -179,6 +180,7 @@
                 'Rental Agreement Signed' => 'Signed',
                 'Reserved' => 'Reserved',
                 'Occupied' => 'Occupied',
+                'Completed' => 'Completed',
                 'Rejected' => 'Rejected',
                 'Cancelled' => 'Cancelled',
             ] as $key => $label)

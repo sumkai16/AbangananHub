@@ -18,5 +18,5 @@ class Payments
     }
 
     /** The reason shown (and returned as a 409) when someone tries to start a checkout while it is off. */
-    public const OFFLINE_MESSAGE = 'Online payment is not available right now. Pay your landlord directly with the QR they shared, then tap "I paid".';
+    public const OFFLINE_MESSAGE = 'Online payment is not available right now. Pay your landlord directly with the QR they shared, then tap "I\'ve paid".';
 }

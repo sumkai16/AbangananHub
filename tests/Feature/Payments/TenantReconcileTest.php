@@ -271,8 +271,11 @@ class TenantReconcileTest extends TestCase
             $this->assertSame(1, Notification::where('user_id', $t['landlord']->user_id)->where('type', 'payment')->count());
         } else {
             $this->assertStringContainsString('paid rent for Aug 2026 online', $system->first()->message);
-            $this->assertSame(0, Notification::whereIn('user_id', [$t['tenant']->user_id, $t['landlord']->user_id])->where('type', 'payment')->count(),
-                'The escrow-funded notification belongs to Pending -> Held only.');
+            // Online rent is announced once to each party; the escrow-funded pair belongs to Pending -> Held only.
+            $this->assertSame(1, Notification::where('user_id', $t['tenant']->user_id)->where('type', 'payment')->where('title', 'Rent payment received')->count());
+            $this->assertSame(1, Notification::where('user_id', $t['landlord']->user_id)->where('type', 'payment')->where('title', 'Rent received')->count());
+            $this->assertSame(2, Notification::whereIn('user_id', [$t['tenant']->user_id, $t['landlord']->user_id])->where('type', 'payment')->count(),
+                'Exactly one rent notice each, and no escrow-funded notice.');
         }
     }
 

@@ -10,6 +10,8 @@ use App\Models\Reservation;
 use App\Models\TenantDetail;
 use App\Services\RentLedger;
 use App\Services\RentReminderNotifier;
+use App\Support\BusinessTime;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -80,6 +82,30 @@ class TenancyController extends Controller
     }
 
     /**
+     * The tenant's full ID number, fetched only when the landlord taps Show, so it is never in the page
+     * HTML. Each reveal is audited (without the number itself).
+     */
+    public function revealTenantId(Reservation $reservation): JsonResponse
+    {
+        Gate::authorize('viewTenantDetails', $reservation);
+
+        $reservation->load('tenant.tenantDetail');
+        $idNumber = $reservation->tenant?->tenantDetail?->id_number;
+
+        abort_if(blank($idNumber), 404);
+
+        AuditLog::record(
+            'tenant_details.reveal_id',
+            'Landlord viewed a tenant\'s ID number',
+            $reservation,
+            null,
+            ['tenant_id' => $reservation->tenant_id],
+        );
+
+        return response()->json(['id_number' => $idNumber])->header('Cache-Control', 'no-store, private');
+    }
+
+    /**
      * Close out the tenancy and hand the unit back to the available pool.
      *
      * Locked and re-checked inside the transaction per RULES.md: this flips a
@@ -92,7 +118,7 @@ class TenancyController extends Controller
         Gate::authorize('endTenancy', $reservation);
 
         $data = $request->validate([
-            'move_out_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'move_out_date' => ['nullable', 'date', 'before_or_equal:' . BusinessTime::today()],
         ], [
             'move_out_date.before_or_equal' => 'A move-out date cannot be in the future.',
         ]);

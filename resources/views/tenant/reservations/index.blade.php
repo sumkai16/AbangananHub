@@ -70,7 +70,9 @@
                 'Under Negotiation' => 'Negotiation',
                 'Pending Rental Agreement' => 'Pending Agreement',
                 'Rental Agreement Signed' => 'Signed',
+                'Reserved' => 'Reserved',
                 'Occupied' => 'Occupied',
+                'Completed' => 'Completed',
                 'Rejected' => 'Rejected',
                 'Cancelled' => 'Cancelled',
             ] as $key => $label)

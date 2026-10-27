@@ -249,7 +249,7 @@ class TenantPaymentRecoveryTest extends TestCase
 
         $this->assertStringContainsString('held by AbangananHub', $html);
         $this->assertStringNotContainsString(route('reservations.cancel', $t['reservation']), $html, 'no Cancel form is offered');
-        $this->assertStringContainsString('Open agreement', $html, 'the next step is offered instead');
+        $this->assertStringContainsString('Confirm move-in', $html, 'the next step is offered instead');
     }
 
     public function test_the_landlord_list_explains_why_cancel_is_missing_when_money_is_held(): void

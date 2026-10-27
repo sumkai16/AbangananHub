@@ -11,7 +11,7 @@ class OcrService
 
     public function __construct()
     {
-        $this->apiKey = env('GOOGLE_VISION_API_KEY', '');
+        $this->apiKey = (string) config('services.google_vision.key', '');
     }
 
     /**
@@ -22,6 +22,7 @@ class OcrService
     {
         if (empty($this->apiKey)) {
             Log::warning('OcrService: GOOGLE_VISION_API_KEY not set');
+
             return '';
         }
 
@@ -52,6 +53,7 @@ class OcrService
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+
                 return '';
             }
 
@@ -60,6 +62,7 @@ class OcrService
             return $result['responses'][0]['fullTextAnnotation']['text'] ?? '';
         } catch (\Exception $e) {
             Log::error('OcrService: Vision API exception', ['message' => $e->getMessage()]);
+
             return '';
         }
     }
@@ -107,7 +110,9 @@ class OcrService
 
         foreach ($lines as $line) {
             $line = trim($line);
-            if (strlen($line) < 3) continue;
+            if (strlen($line) < 3) {
+                continue;
+            }
 
             $lineLower = strtolower($line);
 

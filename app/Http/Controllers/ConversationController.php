@@ -138,8 +138,10 @@ class ConversationController extends Controller
             'tenant_id' => $tenantId,
             'landlord_id' => $property->landlord_id,
             'property_id' => $property->property_id,
-            'unit_id' => $validated['unit_id'] ?? null,
             'type' => Conversation::TYPE_INQUIRY,
+        ], [
+            // Not in the match: the unique key is (tenant, landlord, property, type), so a different unit would collide.
+            'unit_id' => $validated['unit_id'] ?? null,
         ]);
 
         return redirect()->route('conversations.show', $conversation);

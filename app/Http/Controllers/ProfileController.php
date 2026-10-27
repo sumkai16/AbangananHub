@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Services\AccountFilePurger;
 use App\Services\ImageUploader;
 use App\Services\RentLedger;
 use Illuminate\Http\RedirectResponse;
@@ -111,9 +112,13 @@ class ProfileController extends Controller
             return back()->with('error', $blocker);
         }
 
+        $files = AccountFilePurger::snapshot($user);
+
         Auth::logout();
 
         $user->delete();
+
+        AccountFilePurger::purge($files);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
