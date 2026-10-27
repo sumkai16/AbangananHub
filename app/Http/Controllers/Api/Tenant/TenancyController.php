@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReservationResource;
+use App\Models\PaymentQrShare;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use App\Support\Payments;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 
@@ -36,6 +38,8 @@ class TenancyController extends Controller
                 'other_charges'  => $ledger->otherCharges(),
                 'summary'        => $ledger->summary(),
                 'payable_period' => $ledger->unsettledPeriods()->first(),
+                'online_payments_enabled' => Payments::online(),
+                'payment_qr' => PaymentQrShare::latestFor($reservation)?->toApi(),
             ],
         ]);
     }

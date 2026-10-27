@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Events\HandoverScheduleUpdated;
 use App\Events\ReservationStatusUpdated;
+use App\Models\Conversation;
 use App\Models\Notification;
 use App\Models\Reservation;
 use Illuminate\Broadcasting\BroadcastException;
@@ -91,6 +92,15 @@ class ReservationObserver
     {
         if ($reservation->rental_status === 'Occupied') {
             $reservation->openTenancyThread();
+
+            // The inquiry did its job. Closing it moves the chat out of the landlord's Inquiries list and the
+            // tenant's inbox, so everything from here on lives in the tenancy chat and nobody keeps two threads.
+            if ($reservation->conversation_id) {
+                Conversation::where('conversation_id', $reservation->conversation_id)
+                    ->where('type', Conversation::TYPE_INQUIRY)
+                    ->where('status', '!=', 'Resolved')
+                    ->update(['status' => 'Resolved']);
+            }
         } elseif ($reservation->rental_status === 'Completed') {
             $reservation->tenancyThread()->update(['status' => 'Resolved']);
         }
@@ -98,7 +108,7 @@ class ReservationObserver
 
     /**
      * A rejected, cancelled or completed reservation can't still have a
-     * viewing on the landlord's calendar. Hooked here for the same reason as
+     * viewing on the landlord's calendar, or a payment report waiting to be confirmed. Hooked here for the same reason as
      * the broadcast: every path that ends a reservation goes through save().
      * The status change's own notification already tells both parties, so
      * no separate viewing notice.
@@ -112,6 +122,12 @@ class ReservationObserver
         $reservation->viewings()->active()->update([
             'status'       => 'Cancelled',
             'responded_at' => now(),
+        ]);
+
+        // A report waiting for a landlord's answer on a reservation that ended has nothing left to decide.
+        $reservation->paymentClaims()->pending()->update([
+            'status'     => 'Withdrawn',
+            'decided_at' => now(),
         ]);
     }
 
@@ -149,6 +165,23 @@ class ReservationObserver
                 // but leave tenant_confirmed_move_in_at null on purpose, and
                 // both send their own "deposit released" notices; telling the
                 // landlord the tenant confirmed would be untrue and a duplicate.
+                if ($reservation->move_in_paid_at !== null) {
+                    // Paid directly, nothing was held. Tell whoever did not press the button.
+                    $actorId = auth()->id();
+
+                    if ($actorId !== $tenantId) {
+                        Notification::notify($tenantId, 'reservation', 'Move-in confirmed',
+                            "Your landlord confirmed your move-in to {$unitLabel}.",
+                            route('agreements.show', $reservation), $conversationId);
+                    }
+
+                    if ($actorId !== $landlordId) {
+                        Notification::notify($landlordId, 'reservation', 'Move-in confirmed',
+                            "{$tenantName} confirmed move-in for {$unitLabel}.", $thread, $conversationId);
+                    }
+                    break;
+                }
+
                 if (! $reservation->wasChanged('tenant_confirmed_move_in_at')) {
                     break;
                 }

@@ -349,6 +349,10 @@ class PropertyController extends Controller
             // Set after the dirty check on purpose: standard lease terms are private to the landlord and
             // never shown on the listing, so editing them must not send an approved listing back to review.
             $property->default_lease_terms = $validated['default_lease_terms'] ?? null;
+            // Rent rules are private defaults too: each lease freezes its own copy when it is issued.
+            $property->rent_grace_days = isset($validated['rent_grace_days']) ? (int) $validated['rent_grace_days'] : null;
+            $property->late_fee_type = $validated['late_fee_type'] ?? null;
+            $property->late_fee_value = $property->late_fee_type ? $validated['late_fee_value'] : null;
 
             $property->save();
 

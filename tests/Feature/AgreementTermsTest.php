@@ -116,6 +116,57 @@ class AgreementTermsTest extends TestCase
         $this->assertNull($this->property->fresh()->default_lease_terms);
     }
 
+    public function test_rent_rules_save_privately_without_requeuing_the_review(): void
+    {
+        $this->actingAs($this->landlord)
+            ->put(route('properties.update', $this->property), $this->editPayload([
+                'rent_grace_days' => 3, 'late_fee_type' => 'percent', 'late_fee_value' => '10',
+            ]))
+            ->assertSessionHas('success', 'Property updated.');
+
+        $property = $this->property->fresh();
+        $this->assertSame(3, $property->rent_grace_days);
+        $this->assertSame('percent', $property->late_fee_type);
+        $this->assertSame('10.00', (string) $property->late_fee_value);
+        $this->assertSame('Approved', $property->verification_status);
+
+        // Choosing "None" clears the fee and its value.
+        $this->actingAs($this->landlord)
+            ->put(route('properties.update', $this->property), $this->editPayload(['rent_grace_days' => '', 'late_fee_type' => '', 'late_fee_value' => '5']))
+            ->assertSessionHasNoErrors();
+
+        $property = $this->property->fresh();
+        $this->assertNull($property->rent_grace_days);
+        $this->assertNull($property->late_fee_type);
+        $this->assertNull($property->late_fee_value);
+    }
+
+    public function test_rent_rules_are_validated(): void
+    {
+        $edit = fn (array $o) => $this->actingAs($this->landlord)->put(route('properties.update', $this->property), $this->editPayload($o));
+
+        $edit(['late_fee_type' => 'percent'])->assertSessionHasErrors('late_fee_value');
+        $edit(['late_fee_type' => 'percent', 'late_fee_value' => '150'])->assertSessionHasErrors('late_fee_value');
+        $edit(['late_fee_type' => 'fixed', 'late_fee_value' => '0'])->assertSessionHasErrors('late_fee_value');
+        $edit(['rent_grace_days' => 31])->assertSessionHasErrors('rent_grace_days');
+        $edit(['late_fee_type' => 'weekly', 'late_fee_value' => '5'])->assertSessionHasErrors('late_fee_type');
+    }
+
+    public function test_the_rules_in_force_when_the_agreement_is_sent_land_on_the_lease(): void
+    {
+        $this->property->update(['rent_grace_days' => 2, 'late_fee_type' => 'fixed', 'late_fee_value' => 150]);
+        $reservation = $this->negotiatingReservation();
+
+        $this->actingAs($this->landlord)->patch(route('landlord.reservations.advanceAgreement', $reservation), ['accept_tc' => '1'])->assertSessionHas('success');
+
+        // The landlord changes the property afterwards: the issued lease keeps what was agreed.
+        $this->property->update(['late_fee_type' => 'percent', 'late_fee_value' => 50]);
+
+        $snapshot = $reservation->fresh()->lease_snapshot;
+        $this->assertSame(2, $snapshot['grace_days']);
+        $this->assertEquals(['type' => 'fixed', 'value' => 150], $snapshot['late_fee']);
+    }
+
     public function test_the_send_agreement_form_is_prefilled_with_the_property_terms(): void
     {
         $this->property->update(['default_lease_terms' => 'No visitors after nine in the evening.']);

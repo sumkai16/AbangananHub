@@ -1565,8 +1565,13 @@
                                             <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.depositRaw ?? 0).toLocaleString()"></span>
                                         </div>
                                         <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-[#E2E4EC]">
+                                            @if(\App\Support\Payments::online())
                                             <span class="font-bold text-[#060D26]">Paid online (first month)</span>
                                             <span class="font-bold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
+                                            @else
+                                            <span class="font-bold text-[#060D26]">Paid to the landlord at move-in</span>
+                                            <span class="font-bold text-[#060D26]" x-text="'₱' + (Number(selected?.rentRaw ?? 0) + Number(selected?.depositRaw ?? 0)).toLocaleString()"></span>
+                                            @endif
                                         </div>
                                     </div>
                                 </template>
@@ -1779,8 +1784,13 @@
                                                     <span class="font-semibold text-[#060D26]" x-text="'₱' + Number(selected?.depositRaw ?? 0).toLocaleString()"></span>
                                                 </div>
                                                 <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-[#E2E4EC]">
+                                                    @if(\App\Support\Payments::online())
                                                     <span class="font-bold text-[#060D26]">Paid online (first month)</span>
                                                     <span class="font-bold text-[#060D26]" x-text="'₱' + Number(selected?.rentRaw ?? 0).toLocaleString()"></span>
+                                                    @else
+                                                    <span class="font-bold text-[#060D26]">Paid to the landlord at move-in</span>
+                                                    <span class="font-bold text-[#060D26]" x-text="'₱' + (Number(selected?.rentRaw ?? 0) + Number(selected?.depositRaw ?? 0)).toLocaleString()"></span>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </template>

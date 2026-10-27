@@ -190,7 +190,7 @@ The move-in escrow is the only place in the app where money moves with no human 
 - **One reservation holds a unit between agreement and move-in.** Anything that sends an agreement, starts a payment or sets a unit Occupied must go through `Reservation::unitHeldByAnother()` under a lock on the `PropertyUnit` row. Two signed and paid reservations on one unit has no refund path.
 - **Settle a PayMongo payment only through `Payment::settlePending()`.** Never `update()` a `Pending` payment from a controller or the poll: two deliveries race and double-post.
 - **An `afterCommit` observer must not call `getOriginal()`.** By the time it runs inside a transaction the original already holds the new value. Capture what you need in a model event that fires immediately (`Payment::$previousStatus` is the pattern).
-- Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Concerns\RecordsMoveInPayments`.
+- Reference implementations: `ProcessMoveInDeadlines`, `Reservation::confirmMoveIn`, `Admin\PaymentController::release`, `Services\MoveInPaymentRecorder`.
 
 ## Testing
 - **Tests run against `abanganan_hub_test`, never the dev database.** `phpunit.xml` sets `DB_DATABASE=abanganan_hub_test`. Many tests use `RefreshDatabase`, which drops and rebuilds every table in the database they point at, so pointing `DB_DATABASE` back at `abanganan_hub` wipes the dev data (this happened in Oct 2026 and the seeded data had to be re-created). The test database must exist before the first run: `CREATE DATABASE abanganan_hub_test`. `RefreshDatabase` builds the schema itself, so no migrate step is needed.

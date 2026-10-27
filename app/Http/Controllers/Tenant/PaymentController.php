@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Services\RentLedger;
+use App\Support\Payments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -19,6 +20,10 @@ class PaymentController extends Controller
     public function createCheckoutSession(Reservation $reservation)
     {
         Gate::authorize('sign', $reservation);
+
+        if (! Payments::online()) {
+            return back()->withErrors(['payment' => Payments::OFFLINE_MESSAGE]);
+        }
 
         if ($reservation->rental_status !== 'Rental Agreement Signed') {
             return back()->withErrors(['payment' => 'Agreement must be signed before payment.']);
@@ -147,6 +152,10 @@ class PaymentController extends Controller
     {
         Gate::authorize('payRent', $reservation);
 
+        if (! Payments::online()) {
+            return back()->withErrors(['payment' => Payments::OFFLINE_MESSAGE]);
+        }
+
         $reservation->loadMissing('unit', 'tenant');
 
         if (!$reservation->unit) {
@@ -211,7 +220,7 @@ class PaymentController extends Controller
                             [
                                 'currency' => 'PHP',
                                 'amount' => $amount,
-                                'name' => $reservation->unit->unit_name . ' — Rent (' . $period['label'] . ')',
+                                'name' => $reservation->unit->unit_name . ' — Rent (' . $period['label'] . ')' . ($period['late_fee'] > 0 ? ' + late fee' : ''),
                                 'quantity' => 1,
                             ],
                         ],
