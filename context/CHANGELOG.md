@@ -2,6 +2,15 @@
 
 Newest first. One entry per piece of work, with the files to read. Longer reasoning lives in ARCHITECTURE.md (Key Decisions Log), DESIGN.md §31 and RULES.md; this file is the index. SCHEMA.md is reference only. Entries up to `94f2e15` came from branch `joseph`; the Oct 8 entries below are on `axci`.
 
+## Oct 28 2026 — Public footer reworked for phones (branch `joseph`)
+The footer in `layouts/app.blade.php` (shown on every tenant and public page) looked off at 375px. Markup and classes only; no behaviour or routes changed.
+- **Balanced link groups.** Five groups in a 2-column grid left one alone on the last row. A lone last group now spans both columns on phones (`max-sm:[&>*:last-child:nth-child(odd)]:col-span-2`), so the grid stays even whether a guest sees 3 groups or a signed-in user sees 5.
+- **One alignment.** Everything is left-aligned now; the bottom bar was centred on phones while the rest was not.
+- **Brand block.** The logo has a one-line tagline under it ("Verified rentals across Cebu, from the first message to move-in.").
+- **Easier taps.** Link rows are `py-2` blocks (about 36px) instead of 20px lines separated by gaps; tighter group gaps and top padding so the footer is shorter overall.
+- **Grey chip removed.** The "Supporting UN SDG 11 · Cebu, Philippines" pill (`bg-white/10`) is now plain text with the coral dot. The bottom padding is `max(2rem, env(safe-area-inset-bottom))` so the iPhone home indicator never covers the copyright line.
+- **Not the footer:** the dark bar some screenshots show along the very bottom is **Laravel Debugbar**, a developer toolbar that appears while `APP_DEBUG=true`. It is not part of the site and does not appear in production; set `DEBUGBAR_ENABLED=false` in `.env` to hide it locally.
+- Checked: guest footer renders (3 groups, 9 link rows), built CSS contains the new classes, Pint passes, 45 related tests pass. **Not verified on a phone:** the spacing and the spanned last group.
 ## Oct 28 2026 — `main` merged into `joseph` (branch `joseph`)
 Merged `origin/main` (direct payments, grace days and late fee, Account Settings for landlords, landlord chat layout, browser-pass fixes) into the branch that carries the Oct 19 future-proofing pass. Six files conflicted; none lost anything from either side:
 - `Api/Tenant/AgreementController`: both sides added keys to the same JSON, so the agreement response now has `needs_tenant_details` and main's `online_payments_enabled` and `payment_qr`.

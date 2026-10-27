@@ -1002,15 +1002,31 @@ class Reservation extends Model
      *
      * @return array{label: string, url: string}|null
      */
+    /**
+     * Where a tenant notification about the agreement should land. The agreement page 404s once a reservation is
+     * rejected or cancelled, so those fall back to the reservations list instead of a dead end.
+     */
+    public function tenantAgreementUrl(): string
+    {
+        return in_array($this->rental_status, ['Pending Rental Agreement', 'Rental Agreement Signed', 'Occupied', 'Completed'], true)
+            ? route('agreements.show', $this)
+            : route('reservations.index');
+    }
+
     public function tenantNextStep(): ?array
     {
         $paid = $this->move_in_paid_at !== null || ($this->relationLoaded('payments')
             ? $this->payments->contains(fn ($p) => $p->payment_type === 'Initial' && in_array($p->status, ['Held', 'Paid', 'Released'], true))
             : $this->hasSettledInitialPayment());
 
+        // A direct-payment report the landlord has not answered yet: do not invite the tenant to pay again.
+        $reported = ! $paid && $this->rental_status === 'Rental Agreement Signed' && ($this->relationLoaded('paymentClaims')
+            ? $this->paymentClaims->contains(fn ($c) => $c->status === 'Pending')
+            : $this->paymentClaims()->pending()->exists());
+
         return match ($this->rental_status) {
             'Pending Rental Agreement' => ['label' => 'Review & sign', 'url' => route('agreements.show', $this)],
-            'Rental Agreement Signed'  => ['label' => $paid ? 'Open agreement' : (Payments::online() ? 'Pay now' : 'Pay your landlord'), 'url' => route('agreements.show', $this)],
+            'Rental Agreement Signed'  => ['label' => $reported ? 'Waiting for landlord' : ($paid ? 'Confirm move-in' : (Payments::online() ? 'Pay now' : 'Pay your landlord')), 'url' => route('agreements.show', $this)],
             'Occupied'                 => ['label' => 'Rent & payments', 'url' => route('tenancy.show', $this)],
             'Completed'                => ['label' => 'View tenancy', 'url' => route('tenancy.show', $this)],
             default                    => null,
